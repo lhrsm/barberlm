@@ -19,9 +19,10 @@ export const Route = createFileRoute("/$slug")({
 
 function ShopPageComponent() {
   const { slug } = Route.useParams();
-  
+  const [shop, setShop] = useState<any>(null);
+
   // Font loading
-  useMemo(() => {
+  useEffect(() => {
     // Only attempt to load if it's not the default Inter
     if (typeof window !== 'undefined' && shop?.font_family && shop.font_family !== 'Inter') {
       const fontId = 'custom-shop-font';
