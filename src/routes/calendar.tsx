@@ -251,11 +251,7 @@ function CalendarComponent() {
                 
                 <div className="py-4 space-y-4">
                   {/* Step Progress Bar */}
-                  <div className="flex gap-1 h-1 w-full bg-muted rounded-full overflow-hidden">
-                    <div className={cn("h-full bg-primary transition-all duration-300", 
-                      currentStep === 1 ? "w-1/4" : currentStep === 2 ? "w-2/4" : currentStep === 3 ? "w-3/4" : "w-full"
-                    )} />
-                  </div>
+                  <Progress value={(currentStep / 4) * 100} className="h-1" />
 
                   {currentStep === 1 && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
