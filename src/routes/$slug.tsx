@@ -412,6 +412,15 @@ function ShopPageComponent() {
           </section>
         )}
 
+        {/* Cancellation Section */}
+        <section className="bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-white/20 text-center space-y-3">
+          <h4 className="font-bold">Precisa cancelar um agendamento?</h4>
+          <p className="text-sm text-muted-foreground">Utilize o código enviado no seu WhatsApp para cancelar seu horário.</p>
+          <Button variant="outline" size="sm" onClick={() => setIsCancelModalOpen(true)}>
+            Cancelar Agendamento
+          </Button>
+        </section>
+
         {/* Footer info */}
         <section className="pt-8 border-t text-center text-sm text-muted-foreground">
           <p>© 2026 {shop.business_name} - Todos os direitos reservados.</p>
