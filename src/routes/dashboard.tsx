@@ -46,6 +46,7 @@ function DashboardComponent() {
       services: 0
     }
   });
+  const [barbers, setBarbers] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loading && !user) {
