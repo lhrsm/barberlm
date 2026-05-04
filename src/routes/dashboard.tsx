@@ -164,6 +164,49 @@ function DashboardComponent() {
             <p className="text-muted-foreground">Visão geral do desempenho da sua barbearia.</p>
           </div>
           <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="relative">
+                  <Bell size={20} />
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
+                      {notifications.filter(n => !n.read).length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <div className="p-4 border-b">
+                  <h4 className="font-semibold">Notificações</h4>
+                </div>
+                <ScrollArea className="h-[300px]">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      Nenhuma notificação encontrada.
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div 
+                        key={n.id} 
+                        className={`p-4 border-b hover:bg-muted/50 transition-colors cursor-pointer ${!n.read ? 'bg-primary/5' : ''}`}
+                        onClick={() => {
+                          markAsRead(n.id);
+                          if (n.link) navigate({ to: n.link });
+                        }}
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <p className={`text-sm ${!n.read ? 'font-bold' : 'font-medium'}`}>{n.title}</p>
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
+                      </div>
+                    ))
+                  )}
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
             <Button onClick={() => navigate({ to: "/calendar" })} className="gap-2">
               <Calendar size={18} /> Novo Agendamento
             </Button>
