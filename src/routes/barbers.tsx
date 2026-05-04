@@ -106,6 +106,39 @@ function BarbersComponent() {
     }
   }
 
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean = false) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${user?.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('barber-avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('barber-avatars')
+        .getPublicUrl(filePath);
+
+      if (isEdit) {
+        setEditingBarber({ ...editingBarber, avatar_url: publicUrl });
+      } else {
+        setNewBarber({ ...newBarber, avatar_url: publicUrl });
+      }
+      toast.success("Imagem enviada com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro ao enviar imagem: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
   if (loading || !user) return null;
 
   return (
