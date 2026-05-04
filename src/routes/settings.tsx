@@ -23,7 +23,8 @@ import {
   QrCode, 
   Lock,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  Calendar
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -97,7 +98,7 @@ function SettingsComponent() {
         business_name: data.business_name || "",
         slug: data.slug || "",
         whatsapp_enabled: data.whatsapp_enabled || false,
-        scheduling_mode: data.scheduling_mode || "automatic",
+        scheduling_mode: (data.scheduling_mode as "manual" | "automatic") || "automatic",
         payment_gateway_provider: data.payment_gateway_provider || "none",
         payment_gateway_key: data.payment_gateway_key || "",
         primary_color: data.primary_color || "#7c3aed",
