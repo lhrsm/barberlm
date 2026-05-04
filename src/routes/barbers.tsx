@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown } from "lucide-react";
+import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/barbers")({
 function BarbersComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { checkLimit, refresh: refreshLimits } = usePlanLimits();
+  const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
@@ -183,6 +183,43 @@ function BarbersComponent() {
       toast.error("Erro ao enviar imagem: " + error.message);
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleDuplicateBarber(barber: any) {
+    if (!user) return;
+    
+    if (usage.barbers >= limits.barbers) {
+      toast.error(`Limite atingido! Seu plano permite apenas ${limits.barbers} profissionais.`);
+      return;
+    }
+
+    const { data: newBarberData, error } = await supabase.from("barbers").insert({
+      name: `${barber.name} (Cópia)`,
+      phone: barber.phone,
+      email: barber.email,
+      avatar_url: barber.avatar_url,
+      category: barber.category,
+      commission_rate: barber.commission_rate,
+      user_id: user.id,
+    }).select().single();
+
+    if (error) {
+      toast.error("Erro ao duplicar barbeiro");
+    } else {
+      // Duplicate services if they exist
+      if (barber.barber_services && barber.barber_services.length > 0) {
+        const links = barber.barber_services.map((bs: any) => ({
+          barber_id: newBarberData.id,
+          service_id: bs.service_id,
+          user_id: user.id
+        }));
+        await supabase.from("barber_services").insert(links);
+      }
+
+      toast.success("Barbeiro duplicado com sucesso!");
+      fetchBarbers();
+      refreshLimits();
     }
   }
 
@@ -411,8 +448,18 @@ function BarbersComponent() {
                     <span>{barber.email || "Não informado"}</span>
                   </div>
                 </div>
-                <div className="mt-6 flex gap-2">
+                <div className="mt-6 flex gap-2 items-center">
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => toast.info("Relatório em breve")}>Desempenho</Button>
+                  {plan !== 'free' && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      onClick={() => handleDuplicateBarber(barber)}
+                    >
+                      <Copy size={14} />
+                    </Button>
+                  )}
                   <Button 
                     variant="ghost" 
                     size="sm" 

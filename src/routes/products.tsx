@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ShoppingBag, Plus, Package, AlertTriangle, Crown, Image as ImageIcon, Trash2, Edit } from "lucide-react";
+import { ShoppingBag, Plus, Package, AlertTriangle, Crown, Image as ImageIcon, Trash2, Edit, Copy } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/products")({
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/products")({
 function ProductsComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
+  const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [products, setProducts] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -143,6 +143,32 @@ function ProductsComponent() {
       toast.error("Erro ao remover produto");
     } else {
       toast.success("Produto removido");
+      fetchProducts();
+      refreshLimits();
+    }
+  }
+
+  async function handleDuplicateProduct(product: any) {
+    if (!user) return;
+    
+    if (usage.products >= limits.products) {
+      toast.error(`Limite atingido! Seu plano permite apenas ${limits.products} produtos.`);
+      return;
+    }
+
+    const { error } = await supabase.from("products").insert({
+      name: `${product.name} (Cópia)`,
+      price: product.price,
+      stock_quantity: product.stock_quantity,
+      description: product.description,
+      image_url: product.image_url,
+      user_id: user.id,
+    });
+
+    if (error) {
+      toast.error("Erro ao duplicar produto");
+    } else {
+      toast.success("Produto duplicado com sucesso!");
       fetchProducts();
       refreshLimits();
     }
@@ -317,6 +343,16 @@ function ProductsComponent() {
                       >
                         <Edit size={14} />
                       </Button>
+                      {plan !== 'free' && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => handleDuplicateProduct(product)}
+                        >
+                          <Copy size={14} />
+                        </Button>
+                      )}
                       <Button 
                         variant="ghost" 
                         size="icon" 
