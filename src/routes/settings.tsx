@@ -47,6 +47,9 @@ function SettingsComponent() {
   const [whatsappInstances, setWhatsappInstances] = useState<any[]>([]);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [newInstanceName, setNewInstanceName] = useState("");
+  const [connectionType, setConnectionType] = useState<"qrcode" | "api_key">("qrcode");
+  const [apiUrl, setApiUrl] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [connectingInstance, setConnectingInstance] = useState<string | null>(null);
   const [qrValue, setQrValue] = useState("");
 
