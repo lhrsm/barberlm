@@ -125,6 +125,8 @@ function SettingsComponent() {
       return;
     }
 
+    console.log("Creating WhatsApp instance for user:", user.id);
+
     const { data, error } = await supabase
       .from("whatsapp_instances")
       .insert({
@@ -136,13 +138,15 @@ function SettingsComponent() {
       .single();
 
     if (error) {
-      toast.error("Erro ao criar conexão");
+      console.error("Error creating WhatsApp connection:", error);
+      toast.error("Erro ao criar conexão: " + error.message);
       return;
     }
 
     setNewInstanceName("");
     setWhatsappInstances([...whatsappInstances, data]);
     setConnectingInstance(data.id);
+    setQrValue(`https://meu-saas.com/connect/${data.id}-${Math.random().toString(36).substr(2, 9)}`);
     setIsQrModalOpen(true);
     refreshLimits();
   }
