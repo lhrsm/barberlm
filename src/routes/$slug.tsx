@@ -863,6 +863,22 @@ function ShopPageComponent() {
         </DialogContent>
       </Dialog>
 
+      {/* Floating Cart Button */}
+      {selectedProducts.length > 0 && (
+        <Button 
+          style={{ backgroundColor: primaryColor }}
+          className="fixed bottom-24 right-6 h-14 px-6 rounded-full shadow-lg z-50 animate-in fade-in zoom-in duration-300 gap-2 text-white"
+          onClick={() => {
+            setIsBookingOpen(true);
+            setBookingStep(1);
+          }}
+        >
+          <ShoppingBag size={20} />
+          <span className="font-bold">Ver Carrinho ({selectedProducts.reduce((acc, p) => acc + (p.quantity || 1), 0)})</span>
+          <span className="ml-2 pl-2 border-l border-white/20">R$ {calculateTotalBeforeCashback().toFixed(2)}</span>
+        </Button>
+      )}
+
       {/* Floating WhatsApp Button */}
       {shop.whatsapp_enabled && shop.whatsapp_number && (
         <a 
