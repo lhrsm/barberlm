@@ -10,11 +10,13 @@ export const PLAN_LIMITS = {
     barbers: 1,
     services: 5,
     monthlyAppointments: 30,
+    whatsappConnections: 1,
   },
   pro: {
     barbers: Infinity,
     services: Infinity,
     monthlyAppointments: Infinity,
+    whatsappConnections: Infinity,
   },
 };
 
@@ -25,6 +27,7 @@ export function usePlanLimits() {
     barbers: 0,
     services: 0,
     monthlyAppointments: 0,
+    whatsappConnections: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +44,7 @@ export function usePlanLimits() {
     const monthStart = startOfMonth(new Date()).toISOString();
     const monthEnd = endOfMonth(new Date()).toISOString();
 
-    const [profileRes, barbRes, servRes, appRes] = await Promise.all([
+    const [profileRes, barbRes, servRes, appRes, whatsappRes] = await Promise.all([
       supabase.from("profiles").select("plan").eq("id", user.id).single(),
       supabase.from("barbers").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
       supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
@@ -49,6 +52,7 @@ export function usePlanLimits() {
         .eq("user_id", user.id)
         .gte("start_time", monthStart)
         .lte("start_time", monthEnd),
+      supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("user_id", user.id),
     ]);
 
     if (profileRes.data) {
@@ -59,6 +63,7 @@ export function usePlanLimits() {
       barbers: barbRes.count || 0,
       services: servRes.count || 0,
       monthlyAppointments: appRes.count || 0,
+      whatsappConnections: whatsappRes.count || 0,
     });
 
     setLoading(false);
