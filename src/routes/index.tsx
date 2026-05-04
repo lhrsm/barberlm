@@ -29,7 +29,8 @@ function LandingPageComponent() {
     }
   }, [user, loading, navigate]);
 
-  if (loading || user) return null;
+  if (loading) return null;
+  if (user) return null;
 
   return (
     <div className="min-h-screen bg-background font-sans selection:bg-primary/20">
