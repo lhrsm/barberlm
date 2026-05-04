@@ -406,6 +406,7 @@ function CalendarComponent() {
                         onClick={() => {
                           setSelectedTime(`${hour.toString().padStart(2, '0')}:00`);
                           setSelectedDate(format(currentDate, "yyyy-MM-dd"));
+                          setCurrentStep(2); // Jump to date/time step as they are already set
                           setIsDialogOpen(true);
                         }}
                       >
