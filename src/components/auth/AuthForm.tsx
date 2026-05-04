@@ -51,7 +51,7 @@ export function AuthForm() {
         password,
       });
       if (error) throw error;
-      navigate({ to: "/" });
+      navigate({ to: "/dashboard" });
     } catch (error: any) {
       toast.error(error.message);
     } finally {
