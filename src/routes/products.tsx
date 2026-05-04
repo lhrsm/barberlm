@@ -197,8 +197,8 @@ function ProductsComponent() {
                       <Input 
                         id="name" 
                         placeholder="Pomada Modeladora, Balm, etc."
-                        value={newProduct.name} 
-                        onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} 
+                        value={editingProduct ? editingProduct.name : newProduct.name} 
+                        onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} 
                         required 
                       />
                     </div>
@@ -210,18 +210,18 @@ function ProductsComponent() {
                           type="number"
                           step="0.01"
                           placeholder="0.00"
-                          value={newProduct.price} 
-                          onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} 
+                          value={editingProduct ? editingProduct.price : newProduct.price} 
+                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})} 
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="stock">Estoque Inicial</Label>
+                        <Label htmlFor="stock">Estoque {editingProduct ? "Atual" : "Inicial"}</Label>
                         <Input 
                           id="stock" 
                           type="number"
-                          value={newProduct.stock_quantity} 
-                          onChange={(e) => setNewProduct({...newProduct, stock_quantity: e.target.value})} 
+                          value={editingProduct ? editingProduct.stock_quantity : newProduct.stock_quantity} 
+                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, stock_quantity: e.target.value}) : setNewProduct({...newProduct, stock_quantity: e.target.value})} 
                           required
                         />
                       </div>
@@ -230,11 +230,13 @@ function ProductsComponent() {
                       <Label htmlFor="description">Descrição (Opcional)</Label>
                       <Input 
                         id="description" 
-                        value={newProduct.description} 
-                        onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} 
+                        value={editingProduct ? editingProduct.description : newProduct.description} 
+                        onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})} 
                       />
                     </div>
-                    <Button type="submit" className="w-full" disabled={uploading}>Salvar Produto</Button>
+                    <Button type="submit" className="w-full" disabled={uploading}>
+                      {editingProduct ? "Salvar Alterações" : "Salvar Produto"}
+                    </Button>
                   </form>
                 </>
               ) : (
