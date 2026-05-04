@@ -129,6 +129,13 @@ function SettingsComponent() {
       return;
     }
 
+    if (connectionType === "api_key") {
+      if (!apiUrl.trim() || !apiKey.trim()) {
+        toast.error("Preencha a URL e a Chave da API");
+        return;
+      }
+    }
+
     console.log("Creating WhatsApp instance for user:", user.id);
 
     const { data, error } = await supabase
@@ -136,7 +143,10 @@ function SettingsComponent() {
       .insert({
         user_id: user.id,
         name: trimmedName,
-        status: "pending"
+        status: connectionType === "api_key" ? "connected" : "pending",
+        connection_type: connectionType,
+        api_url: connectionType === "api_key" ? apiUrl : null,
+        api_key: connectionType === "api_key" ? apiKey : null
       })
       .select()
       .single();
@@ -148,10 +158,18 @@ function SettingsComponent() {
     }
 
     setNewInstanceName("");
+    setApiUrl("");
+    setApiKey("");
     setWhatsappInstances([...whatsappInstances, data]);
-    setConnectingInstance(data.id);
-    setQrValue(`https://meu-saas.com/connect/${data.id}-${Math.random().toString(36).substr(2, 9)}`);
-    setIsQrModalOpen(true);
+    
+    if (connectionType === "qrcode") {
+      setConnectingInstance(data.id);
+      setQrValue(`https://meu-saas.com/connect/${data.id}-${Math.random().toString(36).substr(2, 9)}`);
+      setIsQrModalOpen(true);
+    } else {
+      toast.success("Conexão via API configurada com sucesso!");
+    }
+    
     refreshLimits();
   }
 
