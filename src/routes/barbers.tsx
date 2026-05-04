@@ -87,17 +87,28 @@ function BarbersComponent() {
     e.preventDefault();
     if (!user) return;
 
-    const { error } = await supabase.from("barbers").insert({
+    const { data: barber, error } = await supabase.from("barbers").insert({
       ...newBarber,
       user_id: user.id,
-    });
+    }).select().single();
 
     if (error) {
       toast.error("Erro ao adicionar barbeiro");
     } else {
+      // Add links to services
+      if (selectedServices.length > 0) {
+        const links = selectedServices.map(serviceId => ({
+          barber_id: barber.id,
+          service_id: serviceId,
+          user_id: user.id
+        }));
+        await supabase.from("barber_services").insert(links);
+      }
+
       toast.success("Barbeiro cadastrado com sucesso!");
       setIsAddDialogOpen(false);
       setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0 });
+      setSelectedServices([]);
       fetchBarbers();
       refreshLimits();
     }
@@ -105,7 +116,7 @@ function BarbersComponent() {
 
   async function handleUpdateBarber(e: React.FormEvent) {
     e.preventDefault();
-    if (!editingBarber) return;
+    if (!editingBarber || !user) return;
 
     const { error } = await supabase
       .from("barbers")
@@ -122,9 +133,22 @@ function BarbersComponent() {
     if (error) {
       toast.error("Erro ao atualizar barbeiro");
     } else {
+      // Update services: delete existing and insert new
+      await supabase.from("barber_services").delete().eq("barber_id", editingBarber.id);
+      
+      if (selectedServices.length > 0) {
+        const links = selectedServices.map(serviceId => ({
+          barber_id: editingBarber.id,
+          service_id: serviceId,
+          user_id: user.id
+        }));
+        await supabase.from("barber_services").insert(links);
+      }
+
       toast.success("Barbeiro atualizado com sucesso!");
       setIsEditDialogOpen(false);
       setEditingBarber(null);
+      setSelectedServices([]);
       fetchBarbers();
     }
   }
@@ -268,6 +292,14 @@ function BarbersComponent() {
                         onChange={(e) => setNewBarber({...newBarber, phone: e.target.value})} 
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email (Opcional)</Label>
+                      <Input 
+                        id="email" 
+                        type="email"
+                        value={newBarber.email} 
+                        onChange={(e) => setNewBarber({...newBarber, email: e.target.value})} 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Serviços Prestados</Label>
