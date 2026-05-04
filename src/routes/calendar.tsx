@@ -192,6 +192,7 @@ function CalendarComponent() {
       setIsDialogOpen(false);
       setCurrentStep(1);
       fetchData();
+      refreshLimits();
     } catch (error: any) {
       toast.error("Erro ao criar agendamento: " + error.message);
     } finally {
