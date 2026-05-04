@@ -22,7 +22,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, Search, Phone } from "lucide-react";
+import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/customers")({
   component: CustomersComponent,
@@ -34,6 +39,11 @@ function CustomersComponent() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [customerHistory, setCustomerHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [shopProfile, setShopProfile] = useState<any>(null);
   const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "", notes: "" });
 
   useEffect(() => {
@@ -41,8 +51,35 @@ function CustomersComponent() {
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    if (user) fetchCustomers();
+    if (user) {
+      fetchCustomers();
+      fetchShopProfile();
+    }
   }, [user]);
+
+  async function fetchShopProfile() {
+    if (!user) return;
+    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    if (data) setShopProfile(data);
+  }
+
+  async function fetchCustomerHistory(customerId: string) {
+    setLoadingHistory(true);
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("*, services(name), barbers(name)")
+      .eq("customer_id", customerId)
+      .order("start_time", { ascending: false });
+    
+    if (data) setCustomerHistory(data);
+    setLoadingHistory(false);
+  }
+
+  const handleViewHistory = (customer: any) => {
+    setSelectedCustomer(customer);
+    fetchCustomerHistory(customer.id);
+    setIsHistoryOpen(true);
+  };
 
   async function fetchCustomers() {
     const { data, error } = await supabase
@@ -155,7 +192,7 @@ function CustomersComponent() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Telefone</TableHead>
-                <TableHead className="hidden md:table-cell">Email</TableHead>
+                <TableHead className="hidden md:table-cell">Fidelidade</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -176,9 +213,15 @@ function CustomersComponent() {
                         {customer.phone || "-"}
                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{customer.email || "-"}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex items-center gap-2">
+                        <Gift size={14} className="text-primary" />
+                        <span className="font-medium">{customer.loyalty_points || 0}</span>
+                        <span className="text-muted-foreground text-xs">/ {shopProfile?.free_service_threshold || 10}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => toast.info("Histórico em breve")}>
+                      <Button variant="ghost" size="sm" onClick={() => handleViewHistory(customer)}>
                         Ver Histórico
                       </Button>
                     </TableCell>
@@ -191,4 +234,59 @@ function CustomersComponent() {
       </div>
     </AppLayout>
   );
-}
+
+        <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Histórico de {selectedCustomer?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              {/* Loyalty Progress */}
+              <div className="bg-primary/5 p-4 rounded-xl border border-primary/10">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Gift size={18} />
+                    <span className="font-bold">Cartão Fidelidade</span>
+                  </div>
+                  <span className="text-sm font-medium">
+                    {selectedCustomer?.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
+                  </span>
+                </div>
+                <Progress 
+                  value={((selectedCustomer?.loyalty_points || 0) % (shopProfile?.free_service_threshold || 10)) / (shopProfile?.free_service_threshold || 10) * 100} 
+                  className="h-2" 
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  {selectedCustomer?.loyalty_points >= (shopProfile?.free_service_threshold || 10) 
+                    ? "Este cliente já possui serviços gratuitos acumulados!" 
+                    : `Faltam ${(shopProfile?.free_service_threshold || 10) - (selectedCustomer?.loyalty_points || 0)} procedimentos para o próximo serviço gratuito.`}
+                </p>
+              </div>
+
+              <ScrollArea className="h-[400px] pr-4">
+                <div className="space-y-4">
+                  {loadingHistory ? (
+                    <div className="text-center py-8">Carregando histórico...</div>
+                  ) : customerHistory.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">Nenhum agendamento encontrado.</div>
+                  ) : (
+                    customerHistory.map((app) => (
+                      <div key={app.id} className="flex items-center justify-between p-4 border rounded-xl">
+                        <div>
+                          <p className="font-bold">{app.services?.name}</p>
+                          <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1"><Clock size={12} /> {format(new Date(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                            <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
+                          </div>
+                        </div>
+                        <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'}>
+                          {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
+                        </Badge>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </DialogContent>
+        </Dialog>
