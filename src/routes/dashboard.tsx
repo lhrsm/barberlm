@@ -334,6 +334,50 @@ function DashboardComponent() {
                 </CardContent>
               </Card>
             </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Agendamentos de Hoje</CardTitle>
+                <CardDescription>Consulte os detalhes dos horários marcados para hoje.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {todayAppointments.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      Nenhum agendamento para hoje.
+                    </div>
+                  ) : (
+                    todayAppointments.map((app) => (
+                      <div 
+                        key={app.id} 
+                        className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors cursor-pointer group"
+                        onClick={() => navigate({ to: "/calendar" })}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            {app.customers?.name?.[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-bold">{app.customers?.name}</p>
+                            <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1"><Clock size={12} /> {format(new Date(app.start_time), 'HH:mm')}</span>
+                              <span className="flex items-center gap-1"><Scissors size={12} /> {app.services?.name}</span>
+                              <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={app.status === 'scheduled' ? 'secondary' : app.status === 'completed' ? 'default' : 'destructive'}>
+                            {app.status === 'scheduled' ? 'Agendado' : app.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                          </Badge>
+                          <ExternalLink size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="monthly" className="space-y-6">
