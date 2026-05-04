@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft } from "lucide-react";
+import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ function ShopPageComponent() {
   const [shop, setShop] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Booking state
@@ -35,6 +36,9 @@ function ShopPageComponent() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
+  const [customerCashback, setCustomerCashback] = useState(0);
+  const [useCashback, setUseCashback] = useState(false);
 
   useEffect(() => {
     fetchShopData();
@@ -57,13 +61,15 @@ function ShopPageComponent() {
     setShop(profile);
 
     // Fetch services and barbers for this shop
-    const [servicesRes, barbersRes] = await Promise.all([
+    const [servicesRes, barbersRes, productsRes] = await Promise.all([
       supabase.from("services").select("*").eq("user_id", profile.id).eq("active", true),
       supabase.from("barbers").select("*, barber_services(service_id)").eq("user_id", profile.id).eq("active", true),
+      supabase.from("products").select("*").eq("user_id", profile.id).eq("active", true),
     ]);
 
     setServices(servicesRes.data || []);
     setBarbers(barbersRes.data || []);
+    setProducts(productsRes.data || []);
     setLoading(false);
   }
 
@@ -109,7 +115,7 @@ function ShopPageComponent() {
       // 1. Create or get customer
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
-        .select("id")
+        .select("id, cashback_balance")
         .eq("phone", customerPhone)
         .eq("user_id", shop.id)
         .maybeSingle();
@@ -136,7 +142,7 @@ function ShopPageComponent() {
       const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
       const endTime = addMinutes(startTime, selectedService.duration_minutes || 30);
 
-      const { error: appError } = await supabase
+      const { error: appError, data: appointment } = await supabase
         .from("appointments")
         .insert({
           user_id: shop.id,
@@ -145,11 +151,48 @@ function ShopPageComponent() {
           barber_id: selectedBarber.id,
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
-          total_price: selectedService.price,
+          total_price: calculateTotal(),
           status: "scheduled"
-        });
+        })
+        .select()
+        .single();
 
       if (appError) throw appError;
+
+      // 3. Handle Cashback and Products
+      if (shop.cashback_enabled) {
+        let newBalance = (customerData?.cashback_balance || 0);
+        
+        if (useCashback) {
+          const discount = Math.min(newBalance, calculateTotalBeforeCashback());
+          newBalance -= discount;
+        }
+
+        // Add new cashback earned
+        const earned = (calculateTotalBeforeCashback() * (shop.cashback_percentage / 100));
+        newBalance += earned;
+
+        await supabase
+          .from("customers")
+          .update({ cashback_balance: newBalance })
+          .eq("id", customerId);
+      }
+
+      // 4. Create transactions for products if any
+      for (const product of selectedProducts) {
+        await supabase.from("transactions").insert({
+          user_id: shop.id,
+          appointment_id: appointment.id,
+          type: "income",
+          category: "product_sale",
+          amount: product.price,
+          description: `Venda de Produto: ${product.name}`,
+          date: new Date().toISOString().split('T')[0]
+        });
+
+        // Update stock
+        await supabase.rpc('decrement_product_stock', { prod_id: product.id, amount: 1 });
+      }
 
       toast.success("Agendamento realizado com sucesso!");
       setIsBookingOpen(false);
@@ -160,6 +203,41 @@ function ShopPageComponent() {
       toast.error("Erro ao realizar agendamento: " + error.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const calculateTotalBeforeCashback = () => {
+    const servicePrice = selectedService?.price || 0;
+    const productsTotal = selectedProducts.reduce((acc, p) => acc + (p.price || 0), 0);
+    return servicePrice + productsTotal;
+  };
+
+  const calculateTotal = () => {
+    const total = calculateTotalBeforeCashback();
+    if (useCashback) {
+      return Math.max(0, total - customerCashback);
+    }
+    return total;
+  };
+
+  const toggleProduct = (product: any) => {
+    if (selectedProducts.find(p => p.id === product.id)) {
+      setSelectedProducts(selectedProducts.filter(p => p.id !== product.id));
+    } else {
+      setSelectedProducts([...selectedProducts, product]);
+    }
+  };
+
+  const checkCustomerCashback = async (phone: string) => {
+    if (phone.length >= 10) {
+      const { data } = await supabase
+        .from("customers")
+        .select("cashback_balance")
+        .eq("phone", phone)
+        .eq("user_id", shop.id)
+        .maybeSingle();
+      if (data) setCustomerCashback(data.cashback_balance || 0);
+      else setCustomerCashback(0);
     }
   };
 
@@ -353,15 +431,86 @@ function ShopPageComponent() {
                 </div>
                 <div className="grid gap-2">
                   <Label>Seu WhatsApp</Label>
-                  <Input placeholder="(00) 00000-0000" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
+                  <Input 
+                    placeholder="(00) 00000-0000" 
+                    value={customerPhone} 
+                    onChange={(e) => {
+                      setCustomerPhone(e.target.value);
+                      checkCustomerCashback(e.target.value);
+                    }} 
+                  />
                 </div>
                 
+                {shop.cashback_enabled && customerCashback > 0 && (
+                  <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/10 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Gift size={18} className="text-primary" />
+                      <div>
+                        <p className="text-sm font-bold">Você tem cashback!</p>
+                        <p className="text-xs text-muted-foreground">Saldo: R$ {customerCashback.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant={useCashback ? "default" : "outline"} 
+                      size="sm" 
+                      onClick={() => setUseCashback(!useCashback)}
+                    >
+                      {useCashback ? "Usando" : "Usar"}
+                    </Button>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Deseja adicionar algum produto?</Label>
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    {products.map(p => {
+                      const isSelected = selectedProducts.find(sp => sp.id === p.id);
+                      return (
+                        <div 
+                          key={p.id}
+                          className={cn(
+                            "flex-shrink-0 w-24 p-2 border rounded-lg cursor-pointer transition-all text-center",
+                            isSelected ? "border-primary bg-primary/5" : "hover:bg-muted"
+                          )}
+                          onClick={() => toggleProduct(p)}
+                        >
+                          <div className="h-10 w-10 mx-auto mb-1">
+                            {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover rounded" /> : <Package size={20} className="mx-auto text-muted-foreground" />}
+                          </div>
+                          <p className="text-[10px] font-bold truncate">{p.name}</p>
+                          <p className="text-[10px] text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">Serviço:</span> <span>{selectedService?.name}</span></div>
+                  {selectedProducts.length > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Produtos ({selectedProducts.length}):</span> 
+                      <span>R$ {selectedProducts.reduce((acc, p) => acc + p.price, 0).toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between"><span className="text-muted-foreground">Profissional:</span> <span>{selectedBarber?.name}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Data:</span> <span>{format(parseISO(selectedDate), "dd/MM/yyyy")}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Hora:</span> <span>{selectedTime}</span></div>
-                  <div className="flex justify-between border-t pt-2 font-bold"><span className="text-muted-foreground">Total:</span> <span style={{ color: primaryColor }}>R$ {selectedService?.price.toFixed(2)}</span></div>
+                  {useCashback && (
+                    <div className="flex justify-between text-green-600 font-medium">
+                      <span>Desconto Cashback:</span> 
+                      <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between border-t pt-2 font-bold">
+                    <span className="text-muted-foreground">Total:</span> 
+                    <span style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
+                  </div>
+                  {shop.cashback_enabled && (
+                    <div className="text-[10px] text-muted-foreground text-center mt-2">
+                      Você ganhará R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)} de volta após o atendimento!
+                    </div>
+                  )}
                 </div>
 
                 <Button className="w-full" onClick={handleFinalizeBooking} disabled={submitting}>
