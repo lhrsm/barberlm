@@ -25,7 +25,8 @@ import {
   CheckCircle2,
   RefreshCw,
   Calendar,
-  Gift
+  Gift,
+  Upload
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import {
