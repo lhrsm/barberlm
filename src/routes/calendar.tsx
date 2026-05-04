@@ -96,15 +96,30 @@ function CalendarComponent() {
         .select("*, customers(name), services(name, duration_minutes), barbers(name)")
         .gte("start_time", start.toISOString())
         .lte("start_time", end.toISOString()),
-      supabase.from("barbers").select("*").eq("active", true),
-      supabase.from("customers").select("*"),
-      supabase.from("services").select("*").eq("active", true),
+      supabase.from("barbers").select("*").eq("active", true).order("name"),
+      supabase.from("customers").select("*").order("name"),
+      supabase.from("services").select("*").eq("active", true).order("name"),
     ]);
 
     if (appRes.data) setAppointments(appRes.data);
-    if (barbRes.data) setBarbers(barbRes.data);
-    if (custRes.data) setCustomers(custRes.data);
-    if (servRes.data) setServices(servRes.data);
+    if (barbRes.data) {
+      setBarbers(barbRes.data);
+      if (barbRes.data.length > 0 && !selectedBarber) {
+        setSelectedBarber(barbRes.data[0].id);
+      }
+    }
+    if (custRes.data) {
+      setCustomers(custRes.data);
+      if (custRes.data.length > 0 && !selectedCustomer) {
+        setSelectedCustomer(custRes.data[0].id);
+      }
+    }
+    if (servRes.data) {
+      setServices(servRes.data);
+      if (servRes.data.length > 0 && !selectedService) {
+        setSelectedService(servRes.data[0].id);
+      }
+    }
   }
 
   const handleCreateAppointment = async (e: React.FormEvent) => {
