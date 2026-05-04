@@ -64,6 +64,8 @@ const PROFESSIONAL_COLORS: Record<string, string> = {
 function CalendarComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { checkLimit, limits, refresh: refreshLimits } = usePlanLimits();
+  const canAddAppointment = checkLimit("monthlyAppointments");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week">("day");
   const [appointments, setAppointments] = useState<any[]>([]);
