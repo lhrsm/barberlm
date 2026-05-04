@@ -290,3 +290,7 @@ function CustomersComponent() {
             </div>
           </DialogContent>
         </Dialog>
+      </div>
+    </AppLayout>
+  );
+}
