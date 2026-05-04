@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   RefreshCw
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +48,7 @@ function SettingsComponent() {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [newInstanceName, setNewInstanceName] = useState("");
   const [connectingInstance, setConnectingInstance] = useState<string | null>(null);
+  const [qrValue, setQrValue] = useState("");
 
   const [formData, setFormData] = useState({
     business_name: "",
@@ -118,29 +120,34 @@ function SettingsComponent() {
       return;
     }
 
-    if (!newInstanceName) {
+    const trimmedName = newInstanceName.trim();
+    if (!trimmedName) {
       toast.error("Dê um nome para esta conexão (ex: Principal, Recepção)");
       return;
     }
+
+    console.log("Creating WhatsApp instance for user:", user.id);
 
     const { data, error } = await supabase
       .from("whatsapp_instances")
       .insert({
         user_id: user.id,
-        name: newInstanceName,
+        name: trimmedName,
         status: "pending"
       })
       .select()
       .single();
 
     if (error) {
-      toast.error("Erro ao criar conexão");
+      console.error("Error creating WhatsApp connection:", error);
+      toast.error("Erro ao criar conexão: " + error.message);
       return;
     }
 
     setNewInstanceName("");
     setWhatsappInstances([...whatsappInstances, data]);
     setConnectingInstance(data.id);
+    setQrValue(`https://meu-saas.com/connect/${data.id}-${Math.random().toString(36).substr(2, 9)}`);
     setIsQrModalOpen(true);
     refreshLimits();
   }
@@ -152,6 +159,7 @@ function SettingsComponent() {
       .eq("id", id);
 
     if (error) {
+      console.error("Error deleting WhatsApp connection:", error);
       toast.error("Erro ao remover conexão");
       return;
     }
@@ -167,17 +175,24 @@ function SettingsComponent() {
     
     setSaving(true);
 
+    // Prevent saving gateway config for free plan
+    const updatedData = { ...formData };
+    if (plan === "free") {
+      updatedData.payment_gateway_provider = "none";
+      updatedData.payment_gateway_key = "";
+    }
+
     const { error } = await supabase
       .from("profiles")
       .update({
-        business_name: formData.business_name,
-        slug: formData.slug,
-        whatsapp_enabled: formData.whatsapp_enabled,
-        payment_gateway_provider: formData.payment_gateway_provider === "none" ? null : formData.payment_gateway_provider,
-        payment_gateway_key: formData.payment_gateway_key,
-        primary_color: formData.primary_color,
-        secondary_color: formData.secondary_color,
-        logo_url: formData.logo_url,
+        business_name: updatedData.business_name,
+        slug: updatedData.slug,
+        whatsapp_enabled: updatedData.whatsapp_enabled,
+        payment_gateway_provider: updatedData.payment_gateway_provider === "none" ? null : updatedData.payment_gateway_provider,
+        payment_gateway_key: updatedData.payment_gateway_key,
+        primary_color: updatedData.primary_color,
+        secondary_color: updatedData.secondary_color,
+        logo_url: updatedData.logo_url,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
@@ -200,21 +215,32 @@ function SettingsComponent() {
   const simulateConnection = async () => {
     if (!connectingInstance) return;
     
-    toast.info("Conectando...");
+    setSaving(true);
+    const toastId = toast.loading("Autenticando com o WhatsApp...");
     
+    // Simulate network delay
     setTimeout(async () => {
       const { error } = await supabase
         .from("whatsapp_instances")
-        .update({ status: "connected" })
+        .update({ 
+          status: "connected",
+          phone: "+55 (11) 9" + Math.floor(Math.random() * 90000000 + 10000000)
+        })
         .eq("id", connectingInstance);
 
-      if (!error) {
+      setSaving(false);
+      
+      if (error) {
+        console.error("Error updating connection status:", error);
+        toast.error("Erro ao finalizar conexão", { id: toastId });
+      } else {
         setIsQrModalOpen(false);
         setConnectingInstance(null);
-        fetchWhatsappInstances();
-        toast.success("WhatsApp conectado com sucesso!");
+        await fetchWhatsappInstances();
+        await refreshLimits();
+        toast.success("WhatsApp conectado com sucesso!", { id: toastId });
       }
-    }, 3000);
+    }, 2000);
   };
 
   if (loading || !user) return null;
@@ -447,15 +473,38 @@ function SettingsComponent() {
                     <DialogTitle>Conectar WhatsApp</DialogTitle>
                     <DialogDescription>
                       Abra o WhatsApp no seu celular, vá em Aparelhos Conectados e escaneie o código abaixo.
+                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-amber-700 text-xs">
+                        <b>Ambiente de Teste:</b> O QR Code abaixo é figurativo. Para prosseguir com a demonstração, clique no botão "Simular Leitura" abaixo.
+                      </div>
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex flex-col items-center justify-center p-6 space-y-6">
-                    <div className="relative p-4 border-4 border-primary rounded-xl bg-white">
-                      {/* Mocked QR Code */}
-                      <div className="w-48 h-48 bg-slate-100 flex items-center justify-center relative overflow-hidden group">
-                        <QrCode size={120} className="text-slate-800" />
-                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                           <RefreshCw size={32} className="animate-spin text-primary" />
+                    <div className="relative p-6 border-4 border-primary rounded-xl bg-white shadow-lg">
+                      {/* Dynamic QR Code */}
+                      <div className="w-48 h-48 bg-white flex items-center justify-center relative overflow-hidden group">
+                        {qrValue ? (
+                          <QRCodeSVG 
+                            value={qrValue} 
+                            size={192}
+                            level="H"
+                            includeMargin={false}
+                            imageSettings={{
+                              src: formData.logo_url || "/placeholder.svg",
+                              x: undefined,
+                              y: undefined,
+                              height: 40,
+                              width: 40,
+                              excavate: true,
+                            }}
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                            <RefreshCw className="animate-spin" />
+                            <p className="text-xs">Gerando código...</p>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => setQrValue(qrValue + "1")}>
+                           <RefreshCw size={32} className="text-primary" />
                         </div>
                       </div>
                     </div>
