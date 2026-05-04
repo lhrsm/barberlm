@@ -71,8 +71,36 @@ function DashboardComponent() {
   useEffect(() => {
     if (user) {
       fetchStats();
+      fetchNotifications();
+      fetchTodayAppointments();
     }
   }, [user]);
+
+  async function fetchNotifications() {
+    const { data } = await supabase
+      .from("notifications")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (data) setNotifications(data);
+  }
+
+  async function fetchTodayAppointments() {
+    const todayStart = startOfDay(new Date()).toISOString();
+    const todayEnd = endOfDay(new Date()).toISOString();
+    const { data } = await supabase
+      .from("appointments")
+      .select("*, customers(name, phone), services(name), barbers(name)")
+      .gte("start_time", todayStart)
+      .lte("start_time", todayEnd)
+      .order("start_time", { ascending: true });
+    if (data) setTodayAppointments(data);
+  }
+
+  async function markAsRead(id: string) {
+    await supabase.from("notifications").update({ read: true }).eq("id", id);
+    fetchNotifications();
+  }
 
   async function fetchStats() {
     const todayStart = startOfDay(new Date()).toISOString();
