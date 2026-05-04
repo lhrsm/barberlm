@@ -24,6 +24,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   Dialog,
   DialogContent,
@@ -42,9 +45,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/calendar")({
   component: CalendarComponent,
@@ -64,8 +64,7 @@ const PROFESSIONAL_COLORS: Record<string, string> = {
 function CalendarComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { checkLimit, limits, refresh: refreshLimits } = usePlanLimits();
-  const canAddAppointment = checkLimit("monthlyAppointments");
+  const { checkLimit, limits, usage, refresh: refreshLimits } = usePlanLimits();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week">("day");
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -74,6 +73,9 @@ function CalendarComponent() {
   const [services, setServices] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+
+  const canAddAppointment = checkLimit("monthlyAppointments");
 
   // Form State
   const [selectedCustomer, setSelectedCustomer] = useState("");
@@ -81,7 +83,6 @@ function CalendarComponent() {
   const [selectedBarber, setSelectedBarber] = useState("");
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("08:00");
-  const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -225,6 +226,19 @@ function CalendarComponent() {
   return (
     <AppLayout>
       <div className="flex flex-col h-full space-y-4">
+        {!canAddAppointment && (
+          <Alert>
+            <Crown className="h-4 w-4" />
+            <AlertTitle>Limite de Agendamentos</AlertTitle>
+            <AlertDescription className="flex items-center justify-between">
+              Você atingiu o limite mensal de {limits.monthlyAppointments} agendamentos do plano gratuito.
+              <Button variant="link" size="sm" asChild className="p-0 h-auto">
+                <Link to="/subscription">Fazer Upgrade</Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -257,128 +271,141 @@ function CalendarComponent() {
                     <DialogHeader>
                       <DialogTitle>Novo Agendamento - Passo {currentStep} de 4</DialogTitle>
                     </DialogHeader>
-                    {/* ... rest of existing form content ... */}
+                    
+                    <div className="py-4 space-y-4">
+                      {/* Step Progress Bar */}
+                      <Progress value={(currentStep / 4) * 100} className="h-1" />
 
-                
-                <div className="py-4 space-y-4">
-                  {/* Step Progress Bar */}
-                  <Progress value={(currentStep / 4) * 100} className="h-1" />
-
-                  {currentStep === 1 && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                      <div className="space-y-2">
-                        <Label>Profissional</Label>
-                        <Select value={selectedBarber} onValueChange={setSelectedBarber} required>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o profissional" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {barbers.map((b) => (
-                              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Serviço</Label>
-                        <Select value={selectedService} onValueChange={setSelectedService} required>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o serviço" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {services.map((s) => (
-                              <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 2 && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                      <div className="space-y-2">
-                        <Label>Data</Label>
-                        <Input 
-                          type="date" 
-                          value={selectedDate} 
-                          onChange={(e) => setSelectedDate(e.target.value)}
-                          required 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Horário</Label>
-                        <Input 
-                          type="time" 
-                          value={selectedTime} 
-                          onChange={(e) => setSelectedTime(e.target.value)}
-                          required 
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 3 && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                      <div className="space-y-2">
-                        <Label>Cliente</Label>
-                        <Select value={selectedCustomer} onValueChange={setSelectedCustomer} required>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um cliente" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {customers.map((c) => (
-                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 4 && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                      <div className="bg-muted/50 p-4 rounded-lg space-y-3">
-                        <div className="flex justify-between border-b pb-2">
-                          <span className="text-muted-foreground">Profissional:</span>
-                          <span className="font-medium">{barbers.find(b => b.id === selectedBarber)?.name}</span>
+                      {currentStep === 1 && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                          <div className="space-y-2">
+                            <Label>Profissional</Label>
+                            <Select value={selectedBarber} onValueChange={setSelectedBarber} required>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o profissional" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {barbers.map((b) => (
+                                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Serviço</Label>
+                            <Select value={selectedService} onValueChange={setSelectedService} required>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o serviço" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {services.map((s) => (
+                                  <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                        <div className="flex justify-between border-b pb-2">
-                          <span className="text-muted-foreground">Serviço:</span>
-                          <span className="font-medium">{services.find(s => s.id === selectedService)?.name}</span>
-                        </div>
-                        <div className="flex justify-between border-b pb-2">
-                          <span className="text-muted-foreground">Data/Hora:</span>
-                          <span className="font-medium">
-                            {format(parseISO(selectedDate), "dd/MM/yyyy", { locale: ptBR })} às {selectedTime}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Cliente:</span>
-                          <span className="font-medium">{customers.find(c => c.id === selectedCustomer)?.name}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                      )}
 
-                <DialogFooter className="flex gap-2 sm:justify-between">
-                  {currentStep > 1 ? (
-                    <Button variant="outline" onClick={() => setCurrentStep(prev => prev - 1)} disabled={isLoading}>
-                      Voltar
+                      {currentStep === 2 && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                          <div className="space-y-2">
+                            <Label>Data</Label>
+                            <Input 
+                              type="date" 
+                              value={selectedDate} 
+                              onChange={(e) => setSelectedDate(e.target.value)}
+                              required 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Horário</Label>
+                            <Input 
+                              type="time" 
+                              value={selectedTime} 
+                              onChange={(e) => setSelectedTime(e.target.value)}
+                              required 
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {currentStep === 3 && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                          <div className="space-y-2">
+                            <Label>Cliente</Label>
+                            <Select value={selectedCustomer} onValueChange={setSelectedCustomer} required>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione um cliente" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {customers.map((c) => (
+                                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      )}
+
+                      {currentStep === 4 && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                          <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+                            <div className="flex justify-between border-b pb-2">
+                              <span className="text-muted-foreground">Profissional:</span>
+                              <span className="font-medium">{barbers.find(b => b.id === selectedBarber)?.name}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                              <span className="text-muted-foreground">Serviço:</span>
+                              <span className="font-medium">{services.find(s => s.id === selectedService)?.name}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                              <span className="text-muted-foreground">Data/Hora:</span>
+                              <span className="font-medium">
+                                {format(parseISO(selectedDate), "dd/MM/yyyy", { locale: ptBR })} às {selectedTime}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Cliente:</span>
+                              <span className="font-medium">{customers.find(c => c.id === selectedCustomer)?.name}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <DialogFooter className="flex gap-2 sm:justify-between">
+                      {currentStep > 1 ? (
+                        <Button variant="outline" onClick={() => setCurrentStep(prev => prev - 1)} disabled={isLoading}>
+                          Voltar
+                        </Button>
+                      ) : <div />}
+                      
+                      {currentStep < 4 ? (
+                        <Button onClick={handleNextStep} disabled={isLoading}>
+                          {isLoading ? "Validando..." : "Próximo"}
+                        </Button>
+                      ) : (
+                        <Button onClick={handleCreateAppointment} disabled={isLoading}>
+                          {isLoading ? "Salvando..." : "Confirmar"}
+                        </Button>
+                      )}
+                    </DialogFooter>
+                  </>
+                ) : (
+                  <div className="space-y-4 py-4">
+                    <Alert variant="destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle>Limite de Agendamentos Atingido</AlertTitle>
+                      <AlertDescription>
+                        Seu plano atual permite apenas {limits.monthlyAppointments} agendamentos por mês. Faça o upgrade para o plano Pro para agendamentos ilimitados.
+                      </AlertDescription>
+                    </Alert>
+                    <Button className="w-full" asChild>
+                      <Link to="/subscription">Ver Planos</Link>
                     </Button>
-                  ) : <div />}
-                  
-                  {currentStep < 4 ? (
-                    <Button onClick={handleNextStep} disabled={isLoading}>
-                      {isLoading ? "Validando..." : "Próximo"}
-                    </Button>
-                  ) : (
-                    <Button onClick={handleCreateAppointment} disabled={isLoading}>
-                      {isLoading ? "Salvando..." : "Confirmar"}
-                    </Button>
-                  )}
-                </DialogFooter>
+                  </div>
+                )}
               </DialogContent>
             </Dialog>
           </div>
