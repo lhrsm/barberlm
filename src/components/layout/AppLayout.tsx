@@ -34,9 +34,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = state.location.pathname;
 
   useEffect(() => {
-    if (pathname === "/") {
-      navigate({ to: "/dashboard" });
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session && pathname !== "/auth" && pathname !== "/") {
+        navigate({ to: "/auth" });
+      }
     }
+    checkAuth();
   }, [pathname, navigate]);
 
   useEffect(() => {
