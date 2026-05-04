@@ -26,9 +26,25 @@ const navItems = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [businessName, setBusinessName] = useState<string>("BarberSaaS");
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
+
+  useEffect(() => {
+    async function fetchProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("business_name")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (data?.business_name) setBusinessName(data.business_name);
+      }
+    }
+    fetchProfile();
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -36,11 +52,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar for desktop */}
       <aside className="hidden md:flex flex-col w-64 border-r bg-card">
         <div className="p-6">
-          <h1 className="text-2xl font-bold text-primary">BarberSaaS</h1>
+          <h1 className="text-2xl font-bold text-primary truncate">{businessName}</h1>
         </div>
         <nav className="flex-1 px-4 space-y-1">
           {navItems.map((item) => (
@@ -74,7 +90,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile Top Header */}
       <div className="md:hidden flex flex-col w-full">
         <header className="flex items-center justify-between p-4 border-b bg-card">
-          <h1 className="text-xl font-bold text-primary">BarberSaaS</h1>
+          <h1 className="text-xl font-bold text-primary truncate">{businessName}</h1>
           <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             {isMobileMenuOpen ? <X /> : <Menu />}
           </Button>
