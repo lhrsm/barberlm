@@ -168,16 +168,16 @@ function ProductsComponent() {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
-              {canAddProduct ? (
+              {canAddProduct || editingProduct ? (
                 <>
                   <DialogHeader>
-                    <DialogTitle>Adicionar Novo Produto</DialogTitle>
+                    <DialogTitle>{editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleAddProduct} className="space-y-4 pt-4">
                     <div className="flex flex-col items-center justify-center mb-4">
                       <div className="relative w-32 h-32 border-2 border-dashed rounded-xl flex items-center justify-center overflow-hidden bg-muted/30">
-                        {newProduct.image_url ? (
-                          <img src={newProduct.image_url} alt="Preview" className="w-full h-full object-cover" />
+                        {(editingProduct?.image_url || newProduct.image_url) ? (
+                          <img src={editingProduct?.image_url || newProduct.image_url} alt="Preview" className="w-full h-full object-cover" />
                         ) : (
                           <ImageIcon className="w-10 h-10 text-muted-foreground opacity-20" />
                         )}
