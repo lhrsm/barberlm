@@ -67,7 +67,7 @@ function CustomersComponent() {
     setLoadingHistory(true);
     const { data, error } = await supabase
       .from("appointments")
-      .select("*, services(name), barbers(name)")
+      .select("*, services(name), barbers(name), service_ratings(rating, comment)")
       .eq("customer_id", customerId)
       .order("start_time", { ascending: false });
     
