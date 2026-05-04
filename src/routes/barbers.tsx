@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy } from "lucide-react";
+import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -72,7 +72,6 @@ function BarbersComponent() {
         *,
         barber_services(service_id)
       `)
-      .eq("active", true)
       .order("name");
     
     if (error) {
@@ -83,6 +82,37 @@ function BarbersComponent() {
     }
   }
 
+  async function handleToggleStatus(barber: any) {
+    const { error } = await supabase
+      .from("barbers")
+      .update({ active: !barber.active })
+      .eq("id", barber.id);
+
+    if (error) {
+      toast.error("Erro ao alterar status");
+    } else {
+      toast.success("Status atualizado com sucesso!");
+      fetchBarbers();
+    }
+  }
+
+  async function handleDeleteBarber(id: string) {
+    if (!confirm("Tem certeza que deseja excluir este profissional? Esta ação não pode ser desfeita.")) return;
+
+    const { error } = await supabase
+      .from("barbers")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast.error("Erro ao excluir barbeiro");
+    } else {
+      toast.success("Barbeiro excluído com sucesso!");
+      fetchBarbers();
+      refreshLimits();
+    }
+  }
+
   async function handleAddBarber(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
@@ -90,6 +120,7 @@ function BarbersComponent() {
     const { data: barber, error } = await supabase.from("barbers").insert({
       ...newBarber,
       user_id: user.id,
+      active: true,
     }).select().single();
 
     if (error) {
@@ -417,7 +448,14 @@ function BarbersComponent() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <h3 className="font-bold text-lg">{barber.name}</h3>
-                      <span className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Ativo</span>
+                      <button 
+                        onClick={() => handleToggleStatus(barber)}
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors ${
+                          barber.active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'
+                        }`}
+                      >
+                        {barber.active ? 'Ativo' : 'Inativo'}
+                      </button>
                     </div>
                     <div className="flex items-center gap-1 mt-0.5 mb-1">
                       <Star size={12} className="text-yellow-500" fill="currentColor" />
@@ -470,6 +508,14 @@ function BarbersComponent() {
                     }}
                   >
                     Editar
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleDeleteBarber(barber.id)}
+                  >
+                    <Trash2 size={14} />
                   </Button>
                 </div>
               </div>

@@ -207,19 +207,22 @@ function ShopPageComponent() {
       }
 
       // 4. Create transactions for products if any
-      for (const product of selectedProducts) {
+      for (const item of selectedProducts) {
         await supabase.from("transactions").insert({
           user_id: shop.id,
           appointment_id: appointment.id,
           type: "income",
           category: "product_sale",
-          amount: product.price,
-          description: `Venda de Produto: ${product.name}`,
+          amount: item.price * (item.quantity || 1),
+          description: `Venda de Produto: ${item.name} (x${item.quantity || 1})`,
           date: new Date().toISOString().split('T')[0]
         });
 
         // Update stock
-        await (supabase as any).rpc('decrement_product_stock', { prod_id: product.id, amount: 1 });
+        await (supabase as any).rpc('decrement_product_stock', { 
+          prod_id: item.id, 
+          amount: item.quantity || 1 
+        });
       }
 
       toast.success("Agendamento realizado com sucesso!");
@@ -338,7 +341,7 @@ function ShopPageComponent() {
 
   const calculateTotalBeforeCashback = () => {
     const servicePrice = selectedService?.price || 0;
-    const productsTotal = selectedProducts.reduce((acc, p) => acc + (p.price || 0), 0);
+    const productsTotal = selectedProducts.reduce((acc, p) => acc + ((p.price || 0) * (p.quantity || 1)), 0);
     return servicePrice + productsTotal;
   };
 
@@ -350,11 +353,38 @@ function ShopPageComponent() {
     return total;
   };
 
-  const toggleProduct = (product: any) => {
-    if (selectedProducts.find(p => p.id === product.id)) {
-      setSelectedProducts(selectedProducts.filter(p => p.id !== product.id));
+  const addToCart = (product: any) => {
+    const existing = selectedProducts.find(p => p.id === product.id);
+    if (existing) {
+      setSelectedProducts(selectedProducts.map(p => 
+        p.id === product.id ? { ...p, quantity: (p.quantity || 1) + 1 } : p
+      ));
     } else {
-      setSelectedProducts([...selectedProducts, product]);
+      setSelectedProducts([...selectedProducts, { ...product, quantity: 1 }]);
+    }
+    toast.success(`${product.name} adicionado ao carrinho`);
+  };
+
+  const removeFromCart = (productId: string) => {
+    setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
+  };
+
+  const updateQuantity = (productId: string, delta: number) => {
+    setSelectedProducts(selectedProducts.map(p => {
+      if (p.id === productId) {
+        const newQty = Math.max(1, (p.quantity || 1) + delta);
+        return { ...p, quantity: newQty };
+      }
+      return p;
+    }));
+  };
+
+  const toggleProduct = (product: any) => {
+    const existing = selectedProducts.find(p => p.id === product.id);
+    if (existing) {
+      removeFromCart(product.id);
+    } else {
+      addToCart(product);
     }
   };
 
@@ -526,35 +556,67 @@ function ShopPageComponent() {
               <h3 className="text-xl font-bold">Nossos Produtos</h3>
             </div>
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
-              {products.map((product) => (
-                <Card key={product.id} className="overflow-hidden group hover:shadow-md transition-shadow">
-                  <div className="aspect-square bg-muted relative overflow-hidden">
-                    {product.image_url ? (
-                      <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center">
-                        <Package className="h-8 w-8 text-muted-foreground/30" />
+              {products.map((product) => {
+                const cartItem = selectedProducts.find(p => p.id === product.id);
+                return (
+                  <Card key={product.id} className="overflow-hidden group hover:shadow-md transition-shadow">
+                    <div className="aspect-square bg-muted relative overflow-hidden">
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center">
+                          <Package className="h-8 w-8 text-muted-foreground/30" />
+                        </div>
+                      )}
+                      {product.stock_quantity <= 0 && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <span className="text-white font-bold text-xs px-2 py-1 bg-red-600 rounded">Esgotado</span>
+                        </div>
+                      )}
+                    </div>
+                    <CardContent className="p-3">
+                      <h4 className="font-bold text-sm truncate">{product.name}</h4>
+                      <div className="flex justify-between items-center mt-1">
+                        <p className="font-bold text-primary" style={{ color: primaryColor }}>R$ {product.price.toFixed(2)}</p>
+                        <span className="text-[10px] text-muted-foreground">Estoque: {product.stock_quantity}</span>
                       </div>
-                    )}
-                  </div>
-                  <CardContent className="p-3">
-                    <h4 className="font-bold text-sm truncate">{product.name}</h4>
-                    <p className="font-bold text-primary mt-1" style={{ color: primaryColor }}>R$ {product.price.toFixed(2)}</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full mt-2 h-8 text-xs"
-                      onClick={() => {
-                        setSelectedProducts([product]);
-                        setIsBookingOpen(true);
-                        setBookingStep(1);
-                      }}
-                    >
-                      Comprar
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                      
+                      {cartItem ? (
+                        <div className="flex items-center justify-between mt-2 gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(product.id, -1)}
+                          >
+                            -
+                          </Button>
+                          <span className="font-bold text-sm">{cartItem.quantity}</span>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(product.id, 1)}
+                            disabled={cartItem.quantity >= product.stock_quantity}
+                          >
+                            +
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full mt-2 h-8 text-xs"
+                          onClick={() => addToCart(product)}
+                          disabled={product.stock_quantity <= 0}
+                        >
+                          {product.stock_quantity <= 0 ? "Indisponível" : "Comprar"}
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </section>
         )}
@@ -714,21 +776,37 @@ function ShopPageComponent() {
                   <Label>Deseja adicionar algum produto?</Label>
                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {products.map(p => {
-                      const isSelected = selectedProducts.find(sp => sp.id === p.id);
+                      const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
                         <div 
                           key={p.id}
                           className={cn(
-                            "flex-shrink-0 w-24 p-2 border rounded-lg cursor-pointer transition-all text-center",
-                            isSelected ? "border-primary bg-primary/5" : "hover:bg-muted"
+                            "flex-shrink-0 w-28 p-2 border rounded-lg transition-all text-center relative",
+                            cartItem ? "border-primary bg-primary/5" : "hover:bg-muted"
                           )}
-                          onClick={() => toggleProduct(p)}
                         >
-                          <div className="h-10 w-10 mx-auto mb-1">
-                            {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover rounded" /> : <Package size={20} className="mx-auto text-muted-foreground" />}
+                          <div 
+                            className="cursor-pointer"
+                            onClick={() => toggleProduct(p)}
+                          >
+                            <div className="h-10 w-10 mx-auto mb-1">
+                              {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover rounded" /> : <Package size={20} className="mx-auto text-muted-foreground" />}
+                            </div>
+                            <p className="text-[10px] font-bold truncate">{p.name}</p>
+                            <p className="text-[10px] text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
                           </div>
-                          <p className="text-[10px] font-bold truncate">{p.name}</p>
-                          <p className="text-[10px] text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
+                          
+                          {cartItem && (
+                            <div className="flex items-center justify-between mt-1 px-1">
+                              <button onClick={() => updateQuantity(p.id, -1)} className="text-primary hover:bg-primary/10 rounded h-4 w-4 flex items-center justify-center">-</button>
+                              <span className="text-[10px] font-bold">{cartItem.quantity}</span>
+                              <button 
+                                onClick={() => updateQuantity(p.id, 1)} 
+                                className="text-primary hover:bg-primary/10 rounded h-4 w-4 flex items-center justify-center"
+                                disabled={cartItem.quantity >= p.stock_quantity}
+                              >+</button>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -738,9 +816,14 @@ function ShopPageComponent() {
                 <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">Serviço:</span> <span>{selectedService?.name}</span></div>
                   {selectedProducts.length > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Produtos ({selectedProducts.length}):</span> 
-                      <span>R$ {selectedProducts.reduce((acc, p) => acc + p.price, 0).toFixed(2)}</span>
+                    <div className="space-y-1 py-1 border-y border-dashed my-1">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase">Produtos</p>
+                      {selectedProducts.map(p => (
+                        <div key={p.id} className="flex justify-between text-[11px]">
+                          <span>{p.name} (x{p.quantity || 1})</span>
+                          <span>R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
                   <div className="flex justify-between"><span className="text-muted-foreground">Profissional:</span> <span>{selectedBarber?.name}</span></div>
