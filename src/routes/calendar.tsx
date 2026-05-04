@@ -1,33 +1,386 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import * as React from "react";
+import { format, addMinutes, startOfHour, parseISO, isSameDay, startOfWeek, endOfWeek, eachDayOfInterval, addDays, subDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Plus, 
+  Calendar as CalendarIcon,
+  Clock,
+  User,
+  Scissors
+} from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect } from "react";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/calendar")({
   component: CalendarComponent,
 });
 
+const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8:00 to 20:00
+
+const PROFESSIONAL_COLORS: Record<string, string> = {
+  0: "bg-blue-500",
+  1: "bg-purple-500",
+  2: "bg-emerald-500",
+  3: "bg-orange-500",
+  4: "bg-pink-500",
+  5: "bg-cyan-500",
+};
+
 function CalendarComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState<"day" | "week">("day");
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [barbers, setBarbers] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Form State
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedService, setSelectedService] = useState("");
+  const [selectedBarber, setSelectedBarber] = useState("");
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedTime, setSelectedTime] = useState("08:00");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [user, loading, navigate]);
 
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user, currentDate, view]);
+
+  async function fetchData() {
+    if (!user) return;
+
+    const start = view === "day" ? currentDate : startOfWeek(currentDate, { weekStartsOn: 0 });
+    const end = view === "day" ? currentDate : endOfWeek(currentDate, { weekStartsOn: 0 });
+
+    const [appRes, barbRes, custRes, servRes] = await Promise.all([
+      supabase
+        .from("appointments")
+        .select("*, customers(name), services(name, duration_minutes), barbers(name)")
+        .gte("start_time", start.toISOString())
+        .lte("start_time", end.toISOString()),
+      supabase.from("barbers").select("*").eq("active", true),
+      supabase.from("customers").select("*"),
+      supabase.from("services").select("*").eq("active", true),
+    ]);
+
+    if (appRes.data) setAppointments(appRes.data);
+    if (barbRes.data) setBarbers(barbRes.data);
+    if (custRes.data) setCustomers(custRes.data);
+    if (servRes.data) setServices(servRes.data);
+  }
+
+  const handleCreateAppointment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setIsLoading(true);
+
+    try {
+      const service = services.find(s => s.id === selectedService);
+      const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
+      const endTime = addMinutes(startTime, service?.duration_minutes || 30);
+
+      const { error } = await supabase.from("appointments").insert({
+        user_id: user.id,
+        customer_id: selectedCustomer,
+        service_id: selectedService,
+        barber_id: selectedBarber,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        total_price: service?.price || 0,
+        status: "scheduled",
+      });
+
+      if (error) throw error;
+
+      toast.success("Agendamento criado com sucesso!");
+      setIsDialogOpen(false);
+      fetchData();
+      
+      // Reset form
+      setSelectedCustomer("");
+      setSelectedService("");
+      setSelectedBarber("");
+    } catch (error: any) {
+      toast.error("Erro ao criar agendamento: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const weekDays = useMemo(() => {
+    const start = startOfWeek(currentDate, { weekStartsOn: 0 });
+    return eachDayOfInterval({
+      start,
+      end: addDays(start, 6),
+    });
+  }, [currentDate]);
+
+  const getAppointmentsForTime = (date: Date, hour: number) => {
+    return appointments.filter(app => {
+      const appDate = parseISO(app.start_time);
+      return isSameDay(appDate, date) && appDate.getHours() === hour;
+    });
+  };
+
+  const getBarberColor = (barberId: string) => {
+    const index = barbers.findIndex(b => b.id === barberId);
+    return PROFESSIONAL_COLORS[index % 6] || "bg-gray-500";
+  };
+
   if (loading || !user) return null;
 
   return (
     <AppLayout>
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-4">
-        <div className="p-6 bg-primary/10 rounded-full">
-          <CalendarIcon size={48} className="text-primary" />
+      <div className="flex flex-col h-full space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <CalendarIcon className="text-primary" />
+              Agenda
+            </h2>
+            <p className="text-muted-foreground">Gerencie seus atendimentos diários.</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week")} className="w-full md:w-auto">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="day">Dia</TabsTrigger>
+                <TabsTrigger value="week">Semana</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus size={18} /> <span className="hidden md:inline">Novo Agendamento</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Novo Agendamento</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreateAppointment} className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label>Cliente</Label>
+                    <Select value={selectedCustomer} onValueChange={setSelectedCustomer} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customers.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Data</Label>
+                      <Input 
+                        type="date" 
+                        value={selectedDate} 
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        required 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Horário</Label>
+                      <Input 
+                        type="time" 
+                        value={selectedTime} 
+                        onChange={(e) => setSelectedTime(e.target.value)}
+                        required 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Serviço</Label>
+                    <Select value={selectedService} onValueChange={setSelectedService} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o serviço" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {services.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Profissional</Label>
+                    <Select value={selectedBarber} onValueChange={setSelectedBarber} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o profissional" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {barbers.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <DialogFooter>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Salvando..." : "Confirmar Agendamento"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
-        <h2 className="text-2xl font-bold">Agenda em Construção</h2>
-        <p className="text-muted-foreground max-w-sm">
-          A visualização diária e semanal de agendamentos estará disponível em breve na sua versão final.
-        </p>
+
+        <Card className="flex-1 overflow-hidden flex flex-col">
+          <div className="p-4 border-b flex items-center justify-between bg-muted/30">
+            <div className="flex items-center gap-4">
+              <Button variant="outline" size="icon" onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}>
+                <ChevronLeft size={18} />
+              </Button>
+              <h3 className="font-semibold text-lg min-w-[200px] text-center capitalize">
+                {format(currentDate, view === 'day' ? "EEEE, d 'de' MMMM" : "'Semana de' d 'de' MMMM", { locale: ptBR })}
+              </h3>
+              <Button variant="outline" size="icon" onClick={() => setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))}>
+                <ChevronRight size={18} />
+              </Button>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setCurrentDate(new Date())}>Hoje</Button>
+          </div>
+
+          <ScrollArea className="flex-1">
+            <div className="min-w-[800px] md:min-w-0">
+              {view === 'day' ? (
+                <div className="flex flex-col divide-y">
+                  {HOURS.map(hour => (
+                    <div key={hour} className="flex group min-h-[80px]">
+                      <div className="w-20 py-4 px-2 text-right text-sm text-muted-foreground font-medium border-r bg-muted/5">
+                        {hour.toString().padStart(2, '0')}:00
+                      </div>
+                      <div 
+                        className="flex-1 p-2 relative gap-2 flex flex-wrap content-start bg-background/50 group-hover:bg-muted/10 transition-colors cursor-pointer"
+                        onClick={() => {
+                          setSelectedTime(`${hour.toString().padStart(2, '0')}:00`);
+                          setSelectedDate(format(currentDate, "yyyy-MM-dd"));
+                          setIsDialogOpen(true);
+                        }}
+                      >
+                        {getAppointmentsForTime(currentDate, hour).map(app => (
+                          <div 
+                            key={app.id}
+                            onClick={(e) => e.stopPropagation()}
+                            className={cn(
+                              "flex flex-col p-2 rounded-md text-white text-xs shadow-sm min-w-[150px] max-w-[250px] animate-in fade-in zoom-in duration-200",
+                              getBarberColor(app.barber_id)
+                            )}
+                          >
+                            <span className="font-bold truncate">{app.customers?.name}</span>
+                            <span className="opacity-90 flex items-center gap-1">
+                              <Scissors size={10} /> {app.services?.name}
+                            </span>
+                            <span className="opacity-90 flex items-center gap-1">
+                              <User size={10} /> {app.barbers?.name}
+                            </span>
+                            <span className="mt-1 font-mono text-[10px] bg-black/20 rounded px-1 self-start">
+                              {format(parseISO(app.start_time), "HH:mm")} - {format(parseISO(app.end_time), "HH:mm")}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-[80px_repeat(7,1fr)] divide-x divide-y border-b">
+                  <div className="bg-muted/5 border-r" />
+                  {weekDays.map(day => (
+                    <div key={day.toString()} className={cn(
+                      "p-2 text-center text-sm font-semibold bg-muted/30 capitalize",
+                      isSameDay(day, new Date()) && "text-primary bg-primary/5"
+                    )}>
+                      {format(day, "EEE, dd", { locale: ptBR })}
+                    </div>
+                  ))}
+                  
+                  {HOURS.map(hour => (
+                    <React.Fragment key={hour}>
+                      <div className="py-4 px-2 text-right text-xs text-muted-foreground font-medium border-r bg-muted/5">
+                        {hour.toString().padStart(2, '0')}:00
+                      </div>
+                      {weekDays.map(day => (
+                        <div 
+                          key={`${day}-${hour}`} 
+                          className="min-h-[100px] p-1 group hover:bg-muted/10 transition-colors cursor-pointer relative"
+                          onClick={() => {
+                            setSelectedTime(`${hour.toString().padStart(2, '0')}:00`);
+                            setSelectedDate(format(day, "yyyy-MM-dd"));
+                            setIsDialogOpen(true);
+                          }}
+                        >
+                          <div className="flex flex-col gap-1">
+                            {getAppointmentsForTime(day, hour).map(app => (
+                              <div 
+                                key={app.id}
+                                onClick={(e) => e.stopPropagation()}
+                                className={cn(
+                                  "p-1 rounded text-[10px] text-white shadow-sm truncate",
+                                  getBarberColor(app.barber_id)
+                                )}
+                                title={`${app.customers?.name} - ${app.services?.name}`}
+                              >
+                                {app.customers?.name.split(' ')[0]}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </Card>
       </div>
     </AppLayout>
   );
