@@ -101,6 +101,8 @@ function DashboardComponent() {
     });
   }
 
+  if (loading || !user) return null;
+
   return (
     <AppLayout>
       <div className="space-y-6">
