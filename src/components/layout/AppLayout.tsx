@@ -34,9 +34,15 @@ const defaultNavItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [businessName, setBusinessName] = useState<string>("BarberSaaS");
+  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
+
+  const navItems = [...defaultNavItems];
+  if (userRole === 'admin') {
+    navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/platform-admin" });
+  }
 
   useEffect(() => {
     async function checkAuth() {
@@ -54,10 +60,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       if (user) {
         const { data } = await supabase
           .from("profiles")
-          .select("business_name")
+          .select("business_name, role")
           .eq("id", user.id)
           .maybeSingle();
         if (data?.business_name) setBusinessName(data.business_name);
+        if (data?.role) setUserRole(data.role);
       }
     }
     fetchProfile();
