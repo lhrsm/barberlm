@@ -41,6 +41,7 @@ function ShopPageComponent() {
   const [cancelling, setCancelling] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [customerCashback, setCustomerCashback] = useState(0);
+  const [customerLoyaltyPoints, setCustomerLoyaltyPoints] = useState(0);
   const [useCashback, setUseCashback] = useState(false);
 
   useEffect(() => {
@@ -262,12 +263,17 @@ function ShopPageComponent() {
     if (phone.length >= 10) {
       const { data } = await supabase
         .from("customers")
-        .select("cashback_balance")
+        .select("cashback_balance, loyalty_points")
         .eq("phone", phone)
         .eq("user_id", shop.id)
         .maybeSingle();
-      if (data) setCustomerCashback(data.cashback_balance || 0);
-      else setCustomerCashback(0);
+      if (data) {
+        setCustomerCashback(data.cashback_balance || 0);
+        setCustomerLoyaltyPoints(data.loyalty_points || 0);
+      } else {
+        setCustomerCashback(0);
+        setCustomerLoyaltyPoints(0);
+      }
     }
   };
 
@@ -565,6 +571,23 @@ function ShopPageComponent() {
                     >
                       {useCashback ? "Usando" : "Usar"}
                     </Button>
+                  </div>
+                )}
+
+                {customerLoyaltyPoints > 0 && (
+                  <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Gift size={18} className="text-primary" />
+                      <p className="text-sm font-bold">Seu Cartão Fidelidade</p>
+                    </div>
+                    <Progress 
+                      value={((customerLoyaltyPoints % (shop.free_service_threshold || 10)) / (shop.free_service_threshold || 10)) * 100} 
+                      className="h-1.5" 
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1 text-center">
+                      Você já completou {customerLoyaltyPoints} procedimento(s). 
+                      Faltam {(shop.free_service_threshold || 10) - (customerLoyaltyPoints % (shop.free_service_threshold || 10))} para o próximo gratuito!
+                    </p>
                   </div>
                 )}
 
