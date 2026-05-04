@@ -30,12 +30,15 @@ function ShopPageComponent() {
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedBarber, setSelectedBarber] = useState<any>(null);
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelTokenInput, setCancelTokenInput] = useState("");
   const [modalBarber, setModalBarber] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("09:00");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [customerCashback, setCustomerCashback] = useState(0);
   const [useCashback, setUseCashback] = useState(false);
