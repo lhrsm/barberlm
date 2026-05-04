@@ -1,31 +1,28 @@
-Vou implementar um sistema de planos para o BarberSaaS, permitindo diferenciar os recursos disponíveis para contas gratuitas e pagas.
+Vou criar uma Landing Page (página de vendas) profissional e moderna para o BarberSaaS, movendo o Dashboard atual para uma rota interna e definindo a rota raiz (`/`) para a página de vendas.
 
-### Definição dos Planos:
-1.  **Plano Grátis (Free)**:
-    - Limite de 1 Profissional (Barbeiro).
-    - Limite de 5 Serviços cadastrados.
-    - Limite de 30 Agendamentos por mês.
-2.  **Plano Pro**:
-    - Recursos ilimitados.
+### Objetivos:
+- Criar uma página de vendas persuasiva na rota `/`.
+- Mover o Dashboard atual para `/dashboard`.
+- Adicionar seções essenciais: Hero, Funcionalidades, Preços (Subscription), Depoimentos e FAQ.
+- Garantir que a página seja totalmente responsiva e focada em conversão.
 
 ### Alterações Técnicas:
-1.  **Banco de Dados**:
-    - Adicionar a coluna `plan` na tabela `profiles` com valor padrão 'free'.
-2.  **Lógica de Limitação**:
-    - Criar um hook `usePlanLimits` para verificar se o usuário atingiu o limite de seu plano atual antes de permitir novas criações.
-3.  **Nova Rota `/subscription`**:
-    - Uma página para o usuário visualizar seu plano atual, ver os limites e simular o upgrade para o plano Pro.
-4.  **Integração na UI**:
-    - **Barbeiros**: Bloquear o botão "Novo Barbeiro" se já houver 1 cadastrado no plano Free.
-    - **Serviços**: Bloquear o botão "Novo Serviço" se já houver 5 cadastrados no plano Free.
-    - **Agenda**: Bloquear novos agendamentos se o limite mensal de 30 for atingido no plano Free.
-    - **Dashboard**: Exibir um alerta ou progresso de uso dos limites do plano.
+1.  **Refatoração de Rotas**:
+    - Mover o conteúdo de `src/routes/index.tsx` (Dashboard) para uma nova rota `src/routes/dashboard.tsx`.
+    - Criar a nova Landing Page em `src/routes/index.tsx`.
+2.  **Novo Componente `LandingLayout`**: Para a página de vendas (sem a sidebar do sistema interno).
+3.  **Implementação da Landing Page**:
+    - **Seção Hero**: Título impactante, descrição e botão de CTA (Chamada para Ação).
+    - **Funcionalidades**: Grid exibindo Agenda, Gestão de Clientes, Financeiro e Multi-tenant.
+    - **Preços**: Exibição dos planos Grátis e Pro (baseado no que já implementamos).
+    - **Rodapé**: Links úteis e informações de contato.
 
 ### Experiência do Usuário:
-- Mensagens amigáveis explicando o motivo do bloqueio e convidando para o upgrade.
-- Visualização clara do consumo de recursos (ex: "Você usou 8/30 agendamentos este mês").
+- Se o usuário já estiver logado, ele será redirecionado automaticamente para o `/dashboard`.
+- Design limpo com cores que transmitem confiança e modernidade (focado no público de barbearias).
+- CTAs claros para "Começar Agora Gratuitamente".
 
 ### Próximos Passos:
-- Executar migração SQL para adicionar a coluna de plano.
-- Implementar a página de Gerenciamento de Assinatura.
-- Atualizar as telas de cadastro (Barbeiros, Serviços, Agenda) com a lógica de restrição.
+- Mover o Dashboard para `src/routes/dashboard.tsx`.
+- Implementar a nova Landing Page em `src/routes/index.tsx`.
+- Ajustar links de navegação para apontar para as novas rotas.
