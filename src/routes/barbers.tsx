@@ -36,6 +36,8 @@ function BarbersComponent() {
   const { checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingBarber, setEditingBarber] = useState<any>(null);
   const [newBarber, setNewBarber] = useState({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0 });
   const canAddBarber = checkLimit("barbers");
 
