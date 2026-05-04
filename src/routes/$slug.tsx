@@ -28,6 +28,8 @@ function ShopPageComponent() {
   const [bookingStep, setBookingStep] = useState(1);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedBarber, setSelectedBarber] = useState<any>(null);
+  const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
+  const [modalBarber, setModalBarber] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("09:00");
   const [customerName, setCustomerName] = useState("");
@@ -57,7 +59,7 @@ function ShopPageComponent() {
     // Fetch services and barbers for this shop
     const [servicesRes, barbersRes] = await Promise.all([
       supabase.from("services").select("*").eq("user_id", profile.id).eq("active", true),
-      supabase.from("barbers").select("*").eq("user_id", profile.id).eq("active", true),
+      supabase.from("barbers").select("*, barber_services(service_id)").eq("user_id", profile.id).eq("active", true),
     ]);
 
     setServices(servicesRes.data || []);
@@ -238,7 +240,14 @@ function ShopPageComponent() {
           </div>
           <div className="flex flex-wrap gap-6 justify-center sm:justify-start">
             {barbers.map((barber) => (
-              <div key={barber.id} className="text-center group cursor-pointer">
+              <div 
+                key={barber.id} 
+                className="text-center group cursor-pointer"
+                onClick={() => {
+                  setModalBarber(barber);
+                  setIsServicesModalOpen(true);
+                }}
+              >
                 <div className="h-20 w-20 rounded-full bg-muted mx-auto mb-2 overflow-hidden border-2 transition-colors group-hover:border-primary">
                   {barber.avatar_url ? (
                     <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
@@ -383,6 +392,41 @@ function ShopPageComponent() {
           <MessageSquare size={28} />
         </a>
       )}
+
+      {/* Services for Barber Modal */}
+      <Dialog open={isServicesModalOpen} onOpenChange={setIsServicesModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Serviços de {modalBarber?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            {modalBarber && services
+              .filter(s => modalBarber.barber_services?.some((bs: any) => bs.service_id === s.id))
+              .map(service => (
+                <div 
+                  key={service.id} 
+                  className="p-3 border rounded-lg flex justify-between items-center hover:bg-muted cursor-pointer transition-colors"
+                  onClick={() => {
+                    setSelectedService(service);
+                    setSelectedBarber(modalBarber);
+                    setIsServicesModalOpen(false);
+                    setIsBookingOpen(true);
+                    setBookingStep(3); // Go straight to date selection
+                  }}
+                >
+                  <div>
+                    <p className="font-bold">{service.name}</p>
+                    <p className="text-xs text-muted-foreground">{service.duration_minutes} min</p>
+                  </div>
+                  <p className="font-bold" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
+                </div>
+              ))}
+            {modalBarber && !modalBarber.barber_services?.length && (
+              <p className="text-center text-muted-foreground py-4">Este profissional ainda não tem serviços vinculados.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
