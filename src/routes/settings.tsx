@@ -456,12 +456,32 @@ function SettingsComponent() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex flex-col items-center justify-center p-6 space-y-6">
-                    <div className="relative p-4 border-4 border-primary rounded-xl bg-white">
-                      {/* Mocked QR Code */}
-                      <div className="w-48 h-48 bg-slate-100 flex items-center justify-center relative overflow-hidden group">
-                        <QrCode size={120} className="text-slate-800" />
-                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                           <RefreshCw size={32} className="animate-spin text-primary" />
+                    <div className="relative p-6 border-4 border-primary rounded-xl bg-white shadow-lg">
+                      {/* Dynamic QR Code */}
+                      <div className="w-48 h-48 bg-white flex items-center justify-center relative overflow-hidden group">
+                        {qrValue ? (
+                          <QRCodeSVG 
+                            value={qrValue} 
+                            size={192}
+                            level="H"
+                            includeMargin={false}
+                            imageSettings={{
+                              src: formData.logo_url || "/placeholder.svg",
+                              x: undefined,
+                              y: undefined,
+                              height: 40,
+                              width: 40,
+                              excavate: true,
+                            }}
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                            <RefreshCw className="animate-spin" />
+                            <p className="text-xs">Gerando código...</p>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => setQrValue(qrValue + "1")}>
+                           <RefreshCw size={32} className="text-primary" />
                         </div>
                       </div>
                     </div>
