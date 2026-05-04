@@ -77,6 +77,8 @@ function BarbersComponent() {
       fetchBarbers();
       refreshLimits();
     }
+  }
+
   async function handleUpdateBarber(e: React.FormEvent) {
     e.preventDefault();
     if (!editingBarber) return;
