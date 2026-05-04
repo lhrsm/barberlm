@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as FinancesRouteImport } from './routes/finances'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BarbersRouteImport } from './routes/barbers'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,11 @@ const FinancesRoute = FinancesRouteImport.update({
 const CustomersRoute = CustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BarbersRoute = BarbersRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
+  '/calendar': typeof CalendarRoute
   '/customers': typeof CustomersRoute
   '/finances': typeof FinancesRoute
   '/services': typeof ServicesRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
+  '/calendar': typeof CalendarRoute
   '/customers': typeof CustomersRoute
   '/finances': typeof FinancesRoute
   '/services': typeof ServicesRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
+  '/calendar': typeof CalendarRoute
   '/customers': typeof CustomersRoute
   '/finances': typeof FinancesRoute
   '/services': typeof ServicesRoute
@@ -78,16 +87,25 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/barbers'
+    | '/calendar'
     | '/customers'
     | '/finances'
     | '/services'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/barbers' | '/customers' | '/finances' | '/services'
+  to:
+    | '/'
+    | '/auth'
+    | '/barbers'
+    | '/calendar'
+    | '/customers'
+    | '/finances'
+    | '/services'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/barbers'
+    | '/calendar'
     | '/customers'
     | '/finances'
     | '/services'
@@ -97,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   BarbersRoute: typeof BarbersRoute
+  CalendarRoute: typeof CalendarRoute
   CustomersRoute: typeof CustomersRoute
   FinancesRoute: typeof FinancesRoute
   ServicesRoute: typeof ServicesRoute
@@ -123,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/customers'
       preLoaderRoute: typeof CustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/barbers': {
@@ -153,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   BarbersRoute: BarbersRoute,
+  CalendarRoute: CalendarRoute,
   CustomersRoute: CustomersRoute,
   FinancesRoute: FinancesRoute,
   ServicesRoute: ServicesRoute,
