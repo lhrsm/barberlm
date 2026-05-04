@@ -8,7 +8,8 @@ import {
   Calendar as CalendarIcon,
   Clock,
   User,
-  Scissors
+  Scissors,
+  X
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
