@@ -123,6 +123,68 @@ function DashboardComponent() {
           </div>
         </div>
 
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mb-6">
+          <Card className="col-span-4 bg-primary/5 border-primary/20">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-lg">Plano {plan === 'pro' ? 'Pro' : 'Grátis'}</CardTitle>
+                  <CardDescription>Status dos recursos da sua barbearia</CardDescription>
+                </div>
+                {plan === 'pro' ? <Crown className="w-5 h-5 text-yellow-500" /> : <Zap className="w-5 h-5 text-blue-500" />}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Profissionais</span>
+                  <div className="flex items-end gap-1">
+                    <span className="text-lg font-bold leading-none">{usage.barbers}</span>
+                    <span className="text-[10px] text-muted-foreground">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
+                  </div>
+                  <Progress value={limits.barbers === Infinity ? 100 : (usage.barbers / limits.barbers) * 100} className="h-1" />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Serviços</span>
+                  <div className="flex items-end gap-1">
+                    <span className="text-lg font-bold leading-none">{usage.services}</span>
+                    <span className="text-[10px] text-muted-foreground">/ {limits.services === Infinity ? "∞" : limits.services}</span>
+                  </div>
+                  <Progress value={limits.services === Infinity ? 100 : (usage.services / limits.services) * 100} className="h-1" />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Agenda (Mês)</span>
+                  <div className="flex items-end gap-1">
+                    <span className="text-lg font-bold leading-none">{usage.monthlyAppointments}</span>
+                    <span className="text-[10px] text-muted-foreground">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
+                  </div>
+                  <Progress value={limits.monthlyAppointments === Infinity ? 100 : (usage.monthlyAppointments / limits.monthlyAppointments) * 100} className="h-1" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="col-span-3 flex flex-col justify-center bg-card">
+            <CardContent className="py-4 text-center space-y-2">
+              {plan === 'free' ? (
+                <>
+                  <p className="text-sm font-medium">Precisando de mais recursos?</p>
+                  <Button size="sm" className="w-full" asChild>
+                    <Link to="/subscription">Fazer Upgrade para Pro</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-primary">Você possui todos os recursos liberados!</p>
+                  <Button variant="outline" size="sm" className="w-full" asChild>
+                    <Link to="/subscription">Gerenciar Assinatura</Link>
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         <Tabs defaultValue="daily" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
             <TabsTrigger value="daily">Hoje</TabsTrigger>
