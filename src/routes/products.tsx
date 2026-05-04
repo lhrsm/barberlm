@@ -28,6 +28,7 @@ function ProductsComponent() {
   const { limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [products, setProducts] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const [newProduct, setNewProduct] = useState({ 
     name: "", 
