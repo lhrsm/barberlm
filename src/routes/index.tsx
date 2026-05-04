@@ -1,10 +1,12 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { 
   Users, 
   Scissors, 
@@ -13,7 +15,9 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
-  Target
+  Target,
+  Crown,
+  Zap
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, format } from "date-fns";
@@ -25,6 +29,7 @@ export const Route = createFileRoute("/")({
 function DashboardComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { plan, usage, limits } = usePlanLimits();
   const [stats, setStats] = useState({
     daily: {
       appointments: 0,
