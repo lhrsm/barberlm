@@ -280,6 +280,9 @@ export type Database = {
           cashback_enabled: boolean
           cashback_percentage: number
           created_at: string
+          font_color: string | null
+          font_family: string | null
+          font_size: string | null
           free_service_threshold: number | null
           google_maps_url: string | null
           id: string
@@ -301,6 +304,9 @@ export type Database = {
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          font_color?: string | null
+          font_family?: string | null
+          font_size?: string | null
           free_service_threshold?: number | null
           google_maps_url?: string | null
           id: string
@@ -322,6 +328,9 @@ export type Database = {
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          font_color?: string | null
+          font_family?: string | null
+          font_size?: string | null
           free_service_threshold?: number | null
           google_maps_url?: string | null
           id?: string
