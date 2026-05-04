@@ -81,6 +81,9 @@ export type Database = {
       barbers: {
         Row: {
           active: boolean | null
+          avatar_url: string | null
+          category: string | null
+          commission_rate: number | null
           created_at: string
           email: string | null
           id: string
@@ -90,6 +93,9 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          avatar_url?: string | null
+          category?: string | null
+          commission_rate?: number | null
           created_at?: string
           email?: string | null
           id?: string
@@ -99,6 +105,9 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          avatar_url?: string | null
+          category?: string | null
+          commission_rate?: number | null
           created_at?: string
           email?: string | null
           id?: string

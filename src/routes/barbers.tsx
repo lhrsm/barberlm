@@ -13,6 +13,13 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { UserPlus, UserRound, Phone, Mail, AlertTriangle } from "lucide-react";
@@ -29,7 +36,7 @@ function BarbersComponent() {
   const { checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newBarber, setNewBarber] = useState({ name: "", phone: "", email: "" });
+  const [newBarber, setNewBarber] = useState({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0 });
   const canAddBarber = checkLimit("barbers");
 
   useEffect(() => {
@@ -64,7 +71,7 @@ function BarbersComponent() {
     } else {
       toast.success("Barbeiro cadastrado com sucesso!");
       setIsAddDialogOpen(false);
-      setNewBarber({ name: "", phone: "", email: "" });
+      setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0 });
       fetchBarbers();
       refreshLimits();
     }
@@ -94,6 +101,15 @@ function BarbersComponent() {
                   </DialogHeader>
                   <form onSubmit={handleAddBarber} className="space-y-4 pt-4">
                     <div className="space-y-2">
+                      <Label htmlFor="avatar_url">URL da Foto</Label>
+                      <Input 
+                        id="avatar_url" 
+                        placeholder="https://exemplo.com/foto.jpg"
+                        value={newBarber.avatar_url} 
+                        onChange={(e) => setNewBarber({...newBarber, avatar_url: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="name">Nome do Profissional</Label>
                       <Input 
                         id="name" 
@@ -102,6 +118,38 @@ function BarbersComponent() {
                         onChange={(e) => setNewBarber({...newBarber, name: e.target.value})} 
                         required 
                       />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="category">Categoria</Label>
+                        <Select 
+                          value={newBarber.category} 
+                          onValueChange={(value) => setNewBarber({
+                            ...newBarber, 
+                            category: value,
+                            commission_rate: value === 'Freelancer' ? 50 : 0
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Proprietário">Proprietário</SelectItem>
+                            <SelectItem value="Freelancer">Freelancer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {newBarber.category === 'Freelancer' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="commission">Comissão (%)</Label>
+                          <Input 
+                            id="commission" 
+                            type="number"
+                            value={newBarber.commission_rate} 
+                            onChange={(e) => setNewBarber({...newBarber, commission_rate: Number(e.target.value)})} 
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Telefone</Label>
@@ -166,13 +214,31 @@ function BarbersComponent() {
               <div key={barber.id} className="p-6 border rounded-xl bg-card shadow-sm">
                 <div className="flex items-center gap-4 mb-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {barber.name.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
+                    {barber.avatar_url ? (
+                      <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {barber.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
-                  <div>
-                    <h3 className="font-bold text-lg">{barber.name}</h3>
-                    <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Ativo</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-lg">{barber.name}</h3>
+                      <span className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Ativo</span>
+                    </div>
+                    <div className="flex gap-2 mt-1">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                        barber.category === 'Freelancer' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {barber.category}
+                      </span>
+                      {barber.category === 'Freelancer' && (
+                        <span className="text-[10px] px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">
+                          {barber.commission_rate}% Comissão
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-2 text-sm text-muted-foreground">

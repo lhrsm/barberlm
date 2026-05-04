@@ -46,6 +46,7 @@ function DashboardComponent() {
       services: 0
     }
   });
+  const [barbers, setBarbers] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -73,7 +74,8 @@ function DashboardComponent() {
       dailyCust,
       monthlyCust,
       totalCust,
-      totalServ
+      totalServ,
+      barbersData
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", monthStart).lte("start_time", monthEnd),
@@ -82,8 +84,11 @@ function DashboardComponent() {
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }),
-      supabase.from("services").select("*", { count: "exact", head: true })
+      supabase.from("services").select("*", { count: "exact", head: true }),
+      supabase.from("barbers").select("*").eq("active", true).limit(5)
     ]);
+
+    setBarbers(barbersData.data || []);
 
     const dailyRevenue = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
     const monthlyRevenue = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
@@ -322,6 +327,53 @@ function DashboardComponent() {
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Equipe</CardTitle>
+              <CardDescription>Profissionais e suas categorias</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/barbers">Ver Todos</Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {barbers.map((barber) => (
+                <div key={barber.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                    {barber.avatar_url ? (
+                      <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-primary font-bold text-xs">{barber.name.substring(0, 2).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{barber.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                        barber.category === 'Freelancer' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {barber.category}
+                      </span>
+                      {barber.category === 'Freelancer' && (
+                        <span className="text-[10px] text-muted-foreground italic">
+                          {barber.commission_rate}% comissão
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {barbers.length === 0 && (
+                <p className="col-span-full text-center text-sm text-muted-foreground py-4">
+                  Nenhum profissional cadastrado.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );
