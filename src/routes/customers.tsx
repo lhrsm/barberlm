@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2 } from "lucide-react";
+import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -289,9 +289,17 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
                         <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
                       </div>
                     </div>
-                    <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'}>
-                      {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'}>
+                        {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
+                      </Badge>
+                      {app.service_ratings?.[0] && (
+                        <div className="flex items-center gap-1 text-yellow-500">
+                          <Star size={12} fill="currentColor" />
+                          <span className="text-xs font-bold">{app.service_ratings[0].rating}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))
               )}
