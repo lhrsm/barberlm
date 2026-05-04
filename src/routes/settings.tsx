@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   RefreshCw
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Dialog,
   DialogContent,
