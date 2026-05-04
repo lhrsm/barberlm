@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as BarbersRouteImport } from './routes/barbers'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -22,6 +23,11 @@ const ServicesRoute = ServicesRouteImport.update({
 const CustomersRoute = CustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BarbersRoute = BarbersRouteImport.update({
+  id: '/barbers',
+  path: '/barbers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -38,12 +44,14 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/barbers': typeof BarbersRoute
   '/customers': typeof CustomersRoute
   '/services': typeof ServicesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/barbers': typeof BarbersRoute
   '/customers': typeof CustomersRoute
   '/services': typeof ServicesRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/barbers': typeof BarbersRoute
   '/customers': typeof CustomersRoute
   '/services': typeof ServicesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/customers' | '/services'
+  fullPaths: '/' | '/auth' | '/barbers' | '/customers' | '/services'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/customers' | '/services'
-  id: '__root__' | '/' | '/auth' | '/customers' | '/services'
+  to: '/' | '/auth' | '/barbers' | '/customers' | '/services'
+  id: '__root__' | '/' | '/auth' | '/barbers' | '/customers' | '/services'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  BarbersRoute: typeof BarbersRoute
   CustomersRoute: typeof CustomersRoute
   ServicesRoute: typeof ServicesRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/customers'
       preLoaderRoute: typeof CustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/barbers': {
+      id: '/barbers'
+      path: '/barbers'
+      fullPath: '/barbers'
+      preLoaderRoute: typeof BarbersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  BarbersRoute: BarbersRoute,
   CustomersRoute: CustomersRoute,
   ServicesRoute: ServicesRoute,
 }
