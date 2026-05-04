@@ -294,6 +294,87 @@ function BarbersComponent() {
             ))
           )}
         </div>
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Profissional</DialogTitle>
+            </DialogHeader>
+            {editingBarber && (
+              <form onSubmit={handleUpdateBarber} className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_avatar_url">URL da Foto</Label>
+                  <Input 
+                    id="edit_avatar_url" 
+                    placeholder="https://exemplo.com/foto.jpg"
+                    value={editingBarber.avatar_url || ""} 
+                    onChange={(e) => setEditingBarber({...editingBarber, avatar_url: e.target.value})} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_name">Nome do Profissional</Label>
+                  <Input 
+                    id="edit_name" 
+                    placeholder="João Silva"
+                    value={editingBarber.name} 
+                    onChange={(e) => setEditingBarber({...editingBarber, name: e.target.value})} 
+                    required 
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_category">Categoria</Label>
+                    <Select 
+                      value={editingBarber.category} 
+                      onValueChange={(value) => setEditingBarber({
+                        ...editingBarber, 
+                        category: value,
+                        commission_rate: value === 'Freelancer' ? (editingBarber.commission_rate || 50) : 0
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Proprietário">Proprietário</SelectItem>
+                        <SelectItem value="Freelancer">Freelancer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {editingBarber.category === 'Freelancer' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="edit_commission">Comissão (%)</Label>
+                      <Input 
+                        id="edit_commission" 
+                        type="number"
+                        value={editingBarber.commission_rate} 
+                        onChange={(e) => setEditingBarber({...editingBarber, commission_rate: Number(e.target.value)})} 
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_phone">Telefone</Label>
+                  <Input 
+                    id="edit_phone" 
+                    placeholder="(00) 00000-0000"
+                    value={editingBarber.phone || ""} 
+                    onChange={(e) => setEditingBarber({...editingBarber, phone: e.target.value})} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_email">Email (Opcional)</Label>
+                  <Input 
+                    id="edit_email" 
+                    type="email"
+                    value={editingBarber.email || ""} 
+                    onChange={(e) => setEditingBarber({...editingBarber, email: e.target.value})} 
+                  />
+                </div>
+                <Button type="submit" className="w-full">Salvar Alterações</Button>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
