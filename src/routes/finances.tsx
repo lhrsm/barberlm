@@ -1,6 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/finances")({
 function FinancesComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { plan } = usePlanLimits();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -103,7 +105,22 @@ function FinancesComponent() {
             <h2 className="text-3xl font-bold tracking-tight">Financeiro</h2>
             <p className="text-muted-foreground">Controle suas entradas e saídas.</p>
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2" 
+              onClick={() => {
+                if (plan === 'free') {
+                  toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
+                  navigate({ to: "/subscription" });
+                } else {
+                  toast.info("Gerando relatório PDF...");
+                }
+              }}
+            >
+              <Wallet size={18} /> Exportar PDF
+            </Button>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus size={18} /> Nova Transação
@@ -161,7 +178,8 @@ function FinancesComponent() {
                 <Button type="submit" className="w-full">Salvar</Button>
               </form>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">

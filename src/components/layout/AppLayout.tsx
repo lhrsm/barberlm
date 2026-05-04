@@ -9,7 +9,8 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  X
+  X,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ const navItems = [
   { label: "Barbeiros", icon: UserRound, to: "/barbers" },
   { label: "Serviços", icon: Scissors, to: "/services" },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
+  { label: "Assinatura", icon: CreditCard, to: "/subscription" },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {

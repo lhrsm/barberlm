@@ -1,6 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,9 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, UserRound, Phone, Mail } from "lucide-react";
+import { UserPlus, UserRound, Phone, Mail, AlertTriangle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/barbers")({
   component: BarbersComponent,
@@ -24,9 +26,11 @@ export const Route = createFileRoute("/barbers")({
 function BarbersComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newBarber, setNewBarber] = useState({ name: "", phone: "", email: "" });
+  const canAddBarber = checkLimit("barbers");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -62,6 +66,7 @@ function BarbersComponent() {
       setIsAddDialogOpen(false);
       setNewBarber({ name: "", phone: "", email: "" });
       fetchBarbers();
+      refreshLimits();
     }
   }
 
@@ -77,48 +82,78 @@ function BarbersComponent() {
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2" variant={canAddBarber ? "default" : "secondary"}>
                 <UserPlus size={18} /> Novo Barbeiro
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Novo Barbeiro</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAddBarber} className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome do Profissional</Label>
-                  <Input 
-                    id="name" 
-                    placeholder="João Silva"
-                    value={newBarber.name} 
-                    onChange={(e) => setNewBarber({...newBarber, name: e.target.value})} 
-                    required 
-                  />
+              {canAddBarber ? (
+                <>
+                  <DialogHeader>
+                    <DialogTitle>Adicionar Novo Barbeiro</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleAddBarber} className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome do Profissional</Label>
+                      <Input 
+                        id="name" 
+                        placeholder="João Silva"
+                        value={newBarber.name} 
+                        onChange={(e) => setNewBarber({...newBarber, name: e.target.value})} 
+                        required 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Telefone</Label>
+                      <Input 
+                        id="phone" 
+                        placeholder="(00) 00000-0000"
+                        value={newBarber.phone} 
+                        onChange={(e) => setNewBarber({...newBarber, phone: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email (Opcional)</Label>
+                      <Input 
+                        id="email" 
+                        type="email"
+                        value={newBarber.email} 
+                        onChange={(e) => setNewBarber({...newBarber, email: e.target.value})} 
+                      />
+                    </div>
+                    <Button type="submit" className="w-full">Salvar Barbeiro</Button>
+                  </form>
+                </>
+              ) : (
+                <div className="space-y-4 py-4">
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Limite Atingido</AlertTitle>
+                    <AlertDescription>
+                      Seu plano atual permite apenas 1 profissional. Faça o upgrade para o plano Pro para adicionar mais.
+                    </AlertDescription>
+                  </Alert>
+                  <Button className="w-full" asChild>
+                    <Link to="/subscription">Ver Planos</Link>
+                  </Button>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input 
-                    id="phone" 
-                    placeholder="(00) 00000-0000"
-                    value={newBarber.phone} 
-                    onChange={(e) => setNewBarber({...newBarber, phone: e.target.value})} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email (Opcional)</Label>
-                  <Input 
-                    id="email" 
-                    type="email"
-                    value={newBarber.email} 
-                    onChange={(e) => setNewBarber({...newBarber, email: e.target.value})} 
-                  />
-                </div>
-                <Button type="submit" className="w-full">Salvar Barbeiro</Button>
-              </form>
+              )}
             </DialogContent>
           </Dialog>
         </div>
+
+        {!canAddBarber && (
+          <Alert>
+            <Crown className="h-4 w-4" />
+            <AlertTitle>Atenção</AlertTitle>
+            <AlertDescription className="flex items-center justify-between">
+              Você atingiu o limite de profissionais do plano gratuito.
+              <Button variant="link" size="sm" asChild className="p-0 h-auto">
+                <Link to="/subscription">Fazer Upgrade</Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {barbers.length === 0 ? (
@@ -162,3 +197,6 @@ function BarbersComponent() {
     </AppLayout>
   );
 }
+
+// Add Crown to imports
+import { Crown } from "lucide-react";
