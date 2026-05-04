@@ -153,13 +153,13 @@ function ProductsComponent() {
                         ) : (
                           <ImageIcon className="w-10 h-10 text-muted-foreground opacity-20" />
                         )}
-                        <Input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={handleFileUpload}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                          disabled={uploading}
-                        />
+<Input 
+  type="file" 
+  accept="image/*" 
+  onChange={handleFileUpload}
+  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+  disabled={uploading}
+/>
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">{uploading ? "Enviando..." : "Clique para anexar imagem"}</p>
                     </div>
