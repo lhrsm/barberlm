@@ -305,14 +305,27 @@ function ProductsComponent() {
                       <Package size={14} />
                       <span>{product.stock_quantity} un. em estoque</span>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => handleDeleteProduct(product.id)}
-                    >
-                      <Trash2 size={14} />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => {
+                          setEditingProduct(product);
+                          setIsAddDialogOpen(true);
+                        }}
+                      >
+                        <Edit size={14} />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeleteProduct(product.id)}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
