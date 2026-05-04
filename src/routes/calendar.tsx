@@ -247,14 +247,18 @@ function CalendarComponent() {
               if (!open) setCurrentStep(1);
             }}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2" variant={canAddAppointment ? "default" : "secondary"}>
                   <Plus size={18} /> <span className="hidden md:inline">Novo Agendamento</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()}>
-                <DialogHeader>
-                  <DialogTitle>Novo Agendamento - Passo {currentStep} de 4</DialogTitle>
-                </DialogHeader>
+                {canAddAppointment ? (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle>Novo Agendamento - Passo {currentStep} de 4</DialogTitle>
+                    </DialogHeader>
+                    {/* ... rest of existing form content ... */}
+
                 
                 <div className="py-4 space-y-4">
                   {/* Step Progress Bar */}
