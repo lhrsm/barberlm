@@ -71,6 +71,9 @@ function SettingsComponent() {
     free_service_threshold: 10,
     address: "",
     google_maps_url: "",
+    font_family: "Inter",
+    font_size: "16px",
+    font_color: "#000000",
   });
 
   useEffect(() => {
@@ -116,6 +119,9 @@ function SettingsComponent() {
         free_service_threshold: data.free_service_threshold || 10,
         address: data.address || "",
         google_maps_url: data.google_maps_url || "",
+        font_family: data.font_family || "Inter",
+        font_size: data.font_size || "16px",
+        font_color: data.font_color || "#000000",
       });
     }
   }
@@ -235,6 +241,9 @@ function SettingsComponent() {
         free_service_threshold: updatedData.free_service_threshold,
         address: updatedData.address,
         google_maps_url: updatedData.google_maps_url,
+        font_family: updatedData.font_family,
+        font_size: updatedData.font_size,
+        font_color: updatedData.font_color,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
