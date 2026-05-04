@@ -31,7 +31,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/finances")({
@@ -46,6 +46,8 @@ function FinancesComponent() {
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço" });
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -91,6 +93,46 @@ function FinancesComponent() {
       toast.success("Transação adicionada!");
       setIsAddDialogOpen(false);
       setNewTransaction({ amount: "", type: "income", description: "", category: "Serviço" });
+      fetchTransactions();
+    }
+  }
+
+  async function handleUpdateTransaction(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user || !editingTransaction) return;
+
+    const { error } = await supabase
+      .from("transactions")
+      .update({
+        amount: parseFloat(editingTransaction.amount),
+        type: editingTransaction.type,
+        description: editingTransaction.description,
+        category: editingTransaction.category,
+      })
+      .eq("id", editingTransaction.id);
+
+    if (error) {
+      toast.error("Erro ao atualizar transação");
+    } else {
+      toast.success("Transação atualizada!");
+      setIsEditDialogOpen(false);
+      setEditingTransaction(null);
+      fetchTransactions();
+    }
+  }
+
+  async function handleDeleteTransaction(id: string) {
+    if (!confirm("Tem certeza que deseja excluir esta transação?")) return;
+
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast.error("Erro ao excluir transação");
+    } else {
+      toast.success("Transação excluída!");
       fetchTransactions();
     }
   }
@@ -222,12 +264,13 @@ function FinancesComponent() {
                 <TableHead>Descrição</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {transactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     Nenhuma transação registrada.
                   </TableCell>
                 </TableRow>
@@ -240,6 +283,32 @@ function FinancesComponent() {
                     <TableCell className={cn("text-right font-bold", t.type === "income" ? "text-green-600" : "text-red-600")}>
                       {t.type === "income" ? "+" : "-"} R$ {Number(t.amount).toFixed(2)}
                     </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            setEditingTransaction({
+                              ...t,
+                              amount: t.amount.toString()
+                            });
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Edit2 size={14} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteTransaction(t.id)}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -247,6 +316,62 @@ function FinancesComponent() {
           </Table>
         </div>
       </div>
-    </AppLayout>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Transação</DialogTitle>
+          </DialogHeader>
+          {editingTransaction && (
+            <form onSubmit={handleUpdateTransaction} className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-amount">Valor (R$)</Label>
+                <Input 
+                  id="edit-amount" 
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={editingTransaction.amount} 
+                  onChange={(e) => setEditingTransaction({...editingTransaction, amount: e.target.value})} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-type">Tipo</Label>
+                <Select 
+                  value={editingTransaction.type} 
+                  onValueChange={(val) => setEditingTransaction({...editingTransaction, type: val})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income">Entrada (Receita)</SelectItem>
+                    <SelectItem value="expense">Saída (Despesa)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Categoria</Label>
+                <Input 
+                  id="edit-category" 
+                  placeholder="Serviço, Aluguel, Produtos, etc."
+                  value={editingTransaction.category} 
+                  onChange={(e) => setEditingTransaction({...editingTransaction, category: e.target.value})} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Descrição</Label>
+                <Input 
+                  id="edit-description" 
+                  value={editingTransaction.description} 
+                  onChange={(e) => setEditingTransaction({...editingTransaction, description: e.target.value})} 
+                />
+              </div>
+              <Button type="submit" className="w-full">Salvar Alterações</Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+      </AppLayout>
   );
 }
