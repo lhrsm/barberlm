@@ -232,8 +232,3 @@ function FinancesComponent() {
     </AppLayout>
   );
 }
-
-// Simple cn helper if not imported
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(" ");
-}
