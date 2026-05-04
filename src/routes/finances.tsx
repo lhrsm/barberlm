@@ -41,6 +41,7 @@ export const Route = createFileRoute("/finances")({
 function FinancesComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { plan } = usePlanLimits();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
