@@ -101,6 +101,15 @@ function BarbersComponent() {
                   </DialogHeader>
                   <form onSubmit={handleAddBarber} className="space-y-4 pt-4">
                     <div className="space-y-2">
+                      <Label htmlFor="avatar_url">URL da Foto</Label>
+                      <Input 
+                        id="avatar_url" 
+                        placeholder="https://exemplo.com/foto.jpg"
+                        value={newBarber.avatar_url} 
+                        onChange={(e) => setNewBarber({...newBarber, avatar_url: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="name">Nome do Profissional</Label>
                       <Input 
                         id="name" 
@@ -109,6 +118,38 @@ function BarbersComponent() {
                         onChange={(e) => setNewBarber({...newBarber, name: e.target.value})} 
                         required 
                       />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="category">Categoria</Label>
+                        <Select 
+                          value={newBarber.category} 
+                          onValueChange={(value) => setNewBarber({
+                            ...newBarber, 
+                            category: value,
+                            commission_rate: value === 'Freelancer' ? 50 : 0
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Proprietário">Proprietário</SelectItem>
+                            <SelectItem value="Freelancer">Freelancer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {newBarber.category === 'Freelancer' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="commission">Comissão (%)</Label>
+                          <Input 
+                            id="commission" 
+                            type="number"
+                            value={newBarber.commission_rate} 
+                            onChange={(e) => setNewBarber({...newBarber, commission_rate: Number(e.target.value)})} 
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Telefone</Label>
