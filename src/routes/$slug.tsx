@@ -236,6 +236,7 @@ function ShopPageComponent() {
       setCancelling(false);
     }
   };
+  const calculateTotalBeforeCashback = () => {
     const servicePrice = selectedService?.price || 0;
     const productsTotal = selectedProducts.reduce((acc, p) => acc + (p.price || 0), 0);
     return servicePrice + productsTotal;
