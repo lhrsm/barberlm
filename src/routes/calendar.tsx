@@ -376,12 +376,15 @@ function CalendarComponent() {
                             {getAppointmentsForTime(day, hour).map(app => (
                               <div 
                                 key={app.id}
-                                onClick={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toast.info(`Agendamento: ${app.customers?.name} - ${app.services?.name}`);
+                                }}
                                 className={cn(
-                                  "p-1 rounded text-[10px] text-white shadow-sm truncate",
+                                  "p-1 rounded text-[10px] text-white shadow-sm truncate animate-in fade-in zoom-in duration-200",
                                   getBarberColor(app.barber_id)
                                 )}
-                                title={`${app.customers?.name} - ${app.services?.name}`}
+                                title={`${app.customers?.name} - ${app.services?.name} (${app.barbers?.name})`}
                               >
                                 {app.customers?.name.split(' ')[0]}
                               </div>
