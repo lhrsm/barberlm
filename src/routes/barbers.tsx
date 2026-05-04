@@ -279,7 +279,16 @@ function BarbersComponent() {
                 </div>
                 <div className="mt-6 flex gap-2">
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => toast.info("Relatório em breve")}>Desempenho</Button>
-                  <Button variant="ghost" size="sm" onClick={() => toast.info("Edição em breve")}>Editar</Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      setEditingBarber(barber);
+                      setIsEditDialogOpen(true);
+                    }}
+                  >
+                    Editar
+                  </Button>
                 </div>
               </div>
             ))
