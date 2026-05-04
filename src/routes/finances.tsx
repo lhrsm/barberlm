@@ -46,6 +46,8 @@ function FinancesComponent() {
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço" });
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
