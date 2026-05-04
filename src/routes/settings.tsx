@@ -112,6 +112,8 @@ function SettingsComponent() {
         logo_url: data.logo_url || "",
         cashback_enabled: data.cashback_enabled || false,
         cashback_percentage: data.cashback_percentage || 0,
+        address: data.address || "",
+        google_maps_url: data.google_maps_url || "",
       });
     }
   }
