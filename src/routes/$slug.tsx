@@ -191,7 +191,7 @@ function ShopPageComponent() {
         });
 
         // Update stock
-        await supabase.rpc('decrement_product_stock', { prod_id: product.id, amount: 1 });
+        await (supabase as any).rpc('decrement_product_stock', { prod_id: product.id, amount: 1 });
       }
 
       toast.success("Agendamento realizado com sucesso!");
