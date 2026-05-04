@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   CreditCard,
-  Settings
+  Settings,
+  ShoppingBag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ const navItems = [
   { label: "Barbeiros", icon: UserRound, to: "/barbers" },
   { label: "Serviços", icon: Scissors, to: "/services" },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
+  { label: "Produtos", icon: ShoppingBag, to: "/products" },
   { label: "Assinatura", icon: CreditCard, to: "/subscription" },
   { label: "Configurações", icon: Settings, to: "/settings" },
 ];

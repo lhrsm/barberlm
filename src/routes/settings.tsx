@@ -24,7 +24,8 @@ import {
   Lock,
   CheckCircle2,
   RefreshCw,
-  Calendar
+  Calendar,
+  Gift
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -35,6 +36,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsComponent,
@@ -64,6 +66,8 @@ function SettingsComponent() {
     primary_color: "#7c3aed",
     secondary_color: "#f4f4f5",
     logo_url: "",
+    cashback_enabled: false,
+    cashback_percentage: 0,
   });
 
   useEffect(() => {
@@ -104,6 +108,8 @@ function SettingsComponent() {
         primary_color: data.primary_color || "#7c3aed",
         secondary_color: data.secondary_color || "#f4f4f5",
         logo_url: data.logo_url || "",
+        cashback_enabled: data.cashback_enabled || false,
+        cashback_percentage: data.cashback_percentage || 0,
       });
     }
   }
@@ -218,6 +224,8 @@ function SettingsComponent() {
         primary_color: updatedData.primary_color,
         secondary_color: updatedData.secondary_color,
         logo_url: updatedData.logo_url,
+        cashback_enabled: updatedData.cashback_enabled,
+        cashback_percentage: updatedData.cashback_percentage,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
@@ -287,7 +295,7 @@ function SettingsComponent() {
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 max-w-[700px]">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 max-w-[800px]">
               <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
                 <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
               </TabsTrigger>
@@ -302,6 +310,9 @@ function SettingsComponent() {
               </TabsTrigger>
               <TabsTrigger value="payments" className="gap-2 text-xs sm:text-sm">
                 <CreditCard size={16} /> <span className="hidden sm:inline">Pagamentos</span>
+              </TabsTrigger>
+              <TabsTrigger value="loyalty" className="gap-2 text-xs sm:text-sm">
+                <Gift size={16} /> <span className="hidden sm:inline">Fidelidade</span>
               </TabsTrigger>
             </TabsList>
 
@@ -715,6 +726,60 @@ function SettingsComponent() {
                       <p className="text-xs text-muted-foreground">
                         Sua chave de API é criptografada e nunca compartilhada.
                       </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="loyalty" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sistema de Cashback</CardTitle>
+                  <CardDescription>Configure como seus clientes ganham crédito a cada serviço.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Ativar Cashback</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Habilita o acúmulo de saldo para seus clientes.
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={formData.cashback_enabled} 
+                      onCheckedChange={(checked) => setFormData({ ...formData, cashback_enabled: checked })}
+                    />
+                  </div>
+
+                  {formData.cashback_enabled && (
+                    <div className="grid gap-4 animate-in fade-in slide-in-from-top-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="cashback_percentage">Porcentagem de Retorno (%)</Label>
+                        <div className="flex items-center gap-4">
+                          <Input 
+                            id="cashback_percentage" 
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={formData.cashback_percentage} 
+                            onChange={(e) => setFormData({ ...formData, cashback_percentage: parseFloat(e.target.value) || 0 })}
+                            className="max-w-[150px]"
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            A cada R$ 100,00 gastos, o cliente receberá R$ {formData.cashback_percentage.toFixed(2)} de crédito.
+                          </span>
+                        </div>
+                      </div>
+
+                      <Alert>
+                        <Gift className="h-4 w-4" />
+                        <AlertTitle>Como funciona?</AlertTitle>
+                        <AlertDescription>
+                          O saldo é gerado automaticamente após a conclusão de um agendamento pago. 
+                          Os clientes podem usar esse saldo para obter descontos em serviços futuros ou na compra de produtos.
+                        </AlertDescription>
+                      </Alert>
                     </div>
                   )}
                 </CardContent>

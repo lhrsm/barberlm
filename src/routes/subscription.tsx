@@ -94,6 +94,7 @@ function SubscriptionComponent() {
       features: [
         `${PLAN_LIMITS.free.barbers} Profissional`,
         `${PLAN_LIMITS.free.services} Serviços`,
+        `${PLAN_LIMITS.free.products} Produtos`,
         `${PLAN_LIMITS.free.monthlyAppointments} Agendamentos/mês`,
         "1 Conexão WhatsApp",
       ],
@@ -109,6 +110,7 @@ function SubscriptionComponent() {
       features: [
         `${PLAN_LIMITS.basic.barbers} Profissionais`,
         `${PLAN_LIMITS.basic.services} Serviços`,
+        `${PLAN_LIMITS.basic.products} Produtos`,
         `${PLAN_LIMITS.basic.monthlyAppointments} Agendamentos/mês`,
         "1 Conexão WhatsApp",
       ],
@@ -124,6 +126,7 @@ function SubscriptionComponent() {
       features: [
         `${PLAN_LIMITS.intermediate.barbers} Profissionais`,
         `${PLAN_LIMITS.intermediate.services} Serviços`,
+        `${PLAN_LIMITS.intermediate.products} Produtos`,
         `${PLAN_LIMITS.intermediate.monthlyAppointments} Agendamentos/mês`,
         "Até 3 Conexões WhatsApp",
         "Gateway de Pagamento",
@@ -140,10 +143,10 @@ function SubscriptionComponent() {
       features: [
         "Profissionais Ilimitados",
         "Serviços Ilimitados",
+        "Produtos Ilimitados",
         "Agendamentos Ilimitados",
         "Conexões WhatsApp Ilimitadas",
         "Gateway de Pagamento Liberado",
-        "Suporte Prioritário",
       ],
       buttonText: "Upgrade para Pró",
       color: "yellow"
@@ -199,7 +202,7 @@ function SubscriptionComponent() {
                 {plan === 'free' ? '7 Dias de Teste Ativos' : 'Assinatura Ativa'}
               </div>
             </CardHeader>
-            <CardContent className="grid gap-6 md:grid-cols-4">
+            <CardContent className="grid gap-6 md:grid-cols-5">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Profissionais</span>
@@ -213,6 +216,13 @@ function SubscriptionComponent() {
                   <span className="font-bold">{usage.services} / {limits.services === Infinity ? "∞" : limits.services}</span>
                 </div>
                 <Progress value={limits.services === Infinity ? 100 : Math.min((usage.services / limits.services) * 100, 100)} className="h-1.5" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Produtos</span>
+                  <span className="font-bold">{usage.products} / {limits.products === Infinity ? "∞" : limits.products}</span>
+                </div>
+                <Progress value={limits.products === Infinity ? 100 : Math.min((usage.products / limits.products) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">

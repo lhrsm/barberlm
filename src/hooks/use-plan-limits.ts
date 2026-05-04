@@ -9,6 +9,7 @@ export const PLAN_LIMITS = {
   free: {
     barbers: 1,
     services: 5,
+    products: 5,
     monthlyAppointments: 30,
     whatsappConnections: 1,
     hasTrial: true,
@@ -17,6 +18,7 @@ export const PLAN_LIMITS = {
   basic: {
     barbers: 2,
     services: 10,
+    products: 25,
     monthlyAppointments: 100,
     whatsappConnections: 1,
     price: 19.90,
@@ -24,6 +26,7 @@ export const PLAN_LIMITS = {
   intermediate: {
     barbers: 5,
     services: 25,
+    products: 100,
     monthlyAppointments: 500,
     whatsappConnections: 3,
     price: 39.90,
@@ -31,6 +34,7 @@ export const PLAN_LIMITS = {
   pro: {
     barbers: Infinity,
     services: Infinity,
+    products: Infinity,
     monthlyAppointments: Infinity,
     whatsappConnections: Infinity,
     price: 59.90,
@@ -43,6 +47,7 @@ export function usePlanLimits() {
   const [usage, setUsage] = useState({
     barbers: 0,
     services: 0,
+    products: 0,
     monthlyAppointments: 0,
     whatsappConnections: 0,
   });
@@ -61,10 +66,11 @@ export function usePlanLimits() {
     const monthStart = startOfMonth(new Date()).toISOString();
     const monthEnd = endOfMonth(new Date()).toISOString();
 
-    const [profileRes, barbRes, servRes, appRes, whatsappRes] = await Promise.all([
+    const [profileRes, barbRes, servRes, prodRes, appRes, whatsappRes] = await Promise.all([
       supabase.from("profiles").select("plan").eq("id", user.id).single(),
       supabase.from("barbers").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
       supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
+      supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
       supabase.from("appointments").select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .gte("start_time", monthStart)
@@ -79,6 +85,7 @@ export function usePlanLimits() {
     setUsage({
       barbers: barbRes.count || 0,
       services: servRes.count || 0,
+      products: prodRes.count || 0,
       monthlyAppointments: appRes.count || 0,
       whatsappConnections: whatsappRes.count || 0,
     });
