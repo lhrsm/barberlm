@@ -165,6 +165,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          loyalty_points: number | null
           name: string
           notes: string | null
           phone: string | null
@@ -175,6 +176,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          loyalty_points?: number | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -185,6 +187,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          loyalty_points?: number | null
           name?: string
           notes?: string | null
           phone?: string | null
@@ -271,6 +274,7 @@ export type Database = {
           cashback_enabled: boolean
           cashback_percentage: number
           created_at: string
+          free_service_threshold: number | null
           google_maps_url: string | null
           id: string
           logo_url: string | null
@@ -291,6 +295,7 @@ export type Database = {
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          free_service_threshold?: number | null
           google_maps_url?: string | null
           id: string
           logo_url?: string | null
@@ -311,6 +316,7 @@ export type Database = {
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          free_service_threshold?: number | null
           google_maps_url?: string | null
           id?: string
           logo_url?: string | null
