@@ -66,6 +66,7 @@ function BarbersComponent() {
       setIsAddDialogOpen(false);
       setNewBarber({ name: "", phone: "", email: "" });
       fetchBarbers();
+      refreshLimits();
     }
   }
 
