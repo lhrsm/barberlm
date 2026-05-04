@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, UserRound, Phone, Mail, AlertTriangle } from "lucide-react";
+import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
