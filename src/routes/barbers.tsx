@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, UserRound, Phone, Mail, AlertTriangle } from "lucide-react";
+import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -39,6 +39,7 @@ function BarbersComponent() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingBarber, setEditingBarber] = useState<any>(null);
   const [newBarber, setNewBarber] = useState({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0 });
+  const [uploading, setUploading] = useState(false);
   const canAddBarber = checkLimit("barbers");
 
   useEffect(() => {
@@ -105,6 +106,39 @@ function BarbersComponent() {
     }
   }
 
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean = false) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${user?.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('barber-avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('barber-avatars')
+        .getPublicUrl(filePath);
+
+      if (isEdit) {
+        setEditingBarber({ ...editingBarber, avatar_url: publicUrl });
+      } else {
+        setNewBarber({ ...newBarber, avatar_url: publicUrl });
+      }
+      toast.success("Imagem enviada com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro ao enviar imagem: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
   if (loading || !user) return null;
 
   return (
@@ -129,13 +163,29 @@ function BarbersComponent() {
                   </DialogHeader>
                   <form onSubmit={handleAddBarber} className="space-y-4 pt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="avatar_url">URL da Foto</Label>
-                      <Input 
-                        id="avatar_url" 
-                        placeholder="https://exemplo.com/foto.jpg"
-                        value={newBarber.avatar_url} 
-                        onChange={(e) => setNewBarber({...newBarber, avatar_url: e.target.value})} 
-                      />
+                      <Label htmlFor="avatar">Foto do Profissional</Label>
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-16 w-16">
+                          {newBarber.avatar_url ? (
+                            <img src={newBarber.avatar_url} alt="Preview" className="h-full w-full object-cover" />
+                          ) : (
+                            <AvatarFallback><Upload size={20} className="text-muted-foreground" /></AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div className="flex-1">
+                          <Input 
+                            id="avatar" 
+                            type="file" 
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, false)}
+                            disabled={uploading}
+                            className="cursor-pointer"
+                          />
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            {uploading ? "Enviando..." : "Selecione uma imagem quadrada (JPG, PNG)"}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="name">Nome do Profissional</Label>
@@ -304,13 +354,29 @@ function BarbersComponent() {
             {editingBarber && (
               <form onSubmit={handleUpdateBarber} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit_avatar_url">URL da Foto</Label>
-                  <Input 
-                    id="edit_avatar_url" 
-                    placeholder="https://exemplo.com/foto.jpg"
-                    value={editingBarber.avatar_url || ""} 
-                    onChange={(e) => setEditingBarber({...editingBarber, avatar_url: e.target.value})} 
-                  />
+                  <Label htmlFor="edit_avatar">Foto do Profissional</Label>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      {editingBarber.avatar_url ? (
+                        <img src={editingBarber.avatar_url} alt="Preview" className="h-full w-full object-cover" />
+                      ) : (
+                        <AvatarFallback><Upload size={20} className="text-muted-foreground" /></AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex-1">
+                      <Input 
+                        id="edit_avatar" 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, true)}
+                        disabled={uploading}
+                        className="cursor-pointer"
+                      />
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {uploading ? "Enviando..." : "Selecione uma imagem quadrada (JPG, PNG)"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit_name">Nome do Profissional</Label>
