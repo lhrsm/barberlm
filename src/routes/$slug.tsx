@@ -338,7 +338,7 @@ function ShopPageComponent() {
 
   const calculateTotalBeforeCashback = () => {
     const servicePrice = selectedService?.price || 0;
-    const productsTotal = selectedProducts.reduce((acc, p) => acc + (p.price || 0), 0);
+    const productsTotal = selectedProducts.reduce((acc, p) => acc + ((p.price || 0) * (p.quantity || 1)), 0);
     return servicePrice + productsTotal;
   };
 
@@ -350,11 +350,38 @@ function ShopPageComponent() {
     return total;
   };
 
-  const toggleProduct = (product: any) => {
-    if (selectedProducts.find(p => p.id === product.id)) {
-      setSelectedProducts(selectedProducts.filter(p => p.id !== product.id));
+  const addToCart = (product: any) => {
+    const existing = selectedProducts.find(p => p.id === product.id);
+    if (existing) {
+      setSelectedProducts(selectedProducts.map(p => 
+        p.id === product.id ? { ...p, quantity: (p.quantity || 1) + 1 } : p
+      ));
     } else {
-      setSelectedProducts([...selectedProducts, product]);
+      setSelectedProducts([...selectedProducts, { ...product, quantity: 1 }]);
+    }
+    toast.success(`${product.name} adicionado ao carrinho`);
+  };
+
+  const removeFromCart = (productId: string) => {
+    setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
+  };
+
+  const updateQuantity = (productId: string, delta: number) => {
+    setSelectedProducts(selectedProducts.map(p => {
+      if (p.id === productId) {
+        const newQty = Math.max(1, (p.quantity || 1) + delta);
+        return { ...p, quantity: newQty };
+      }
+      return p;
+    }));
+  };
+
+  const toggleProduct = (product: any) => {
+    const existing = selectedProducts.find(p => p.id === product.id);
+    if (existing) {
+      removeFromCart(product.id);
+    } else {
+      addToCart(product);
     }
   };
 
