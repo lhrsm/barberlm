@@ -47,12 +47,12 @@ export const Route = createFileRoute("/calendar")({
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8:00 to 20:00
 
 const PROFESSIONAL_COLORS: Record<string, string> = {
-  0: "bg-blue-500",
-  1: "bg-purple-500",
-  2: "bg-emerald-500",
-  3: "bg-orange-500",
-  4: "bg-pink-500",
-  5: "bg-cyan-500",
+  0: "bg-blue-600 hover:bg-blue-700",
+  1: "bg-purple-600 hover:bg-purple-700",
+  2: "bg-emerald-600 hover:bg-emerald-700",
+  3: "bg-orange-600 hover:bg-orange-700",
+  4: "bg-pink-600 hover:bg-pink-700",
+  5: "bg-cyan-600 hover:bg-cyan-700",
 };
 
 function CalendarComponent() {
