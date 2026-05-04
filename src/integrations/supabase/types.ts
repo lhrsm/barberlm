@@ -158,6 +158,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          cashback_balance: number
           created_at: string
           email: string | null
           id: string
@@ -167,6 +168,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cashback_balance?: number
           created_at?: string
           email?: string | null
           id?: string
@@ -176,6 +178,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cashback_balance?: number
           created_at?: string
           email?: string | null
           id?: string
@@ -186,9 +189,50 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          stock_quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          price?: number
+          stock_quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number
+          stock_quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           business_name: string | null
+          cashback_enabled: boolean
+          cashback_percentage: number
           created_at: string
           id: string
           logo_url: string | null
@@ -205,6 +249,8 @@ export type Database = {
         }
         Insert: {
           business_name?: string | null
+          cashback_enabled?: boolean
+          cashback_percentage?: number
           created_at?: string
           id: string
           logo_url?: string | null
@@ -221,6 +267,8 @@ export type Database = {
         }
         Update: {
           business_name?: string | null
+          cashback_enabled?: boolean
+          cashback_percentage?: number
           created_at?: string
           id?: string
           logo_url?: string | null
