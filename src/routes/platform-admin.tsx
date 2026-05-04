@@ -164,7 +164,7 @@ function PlatformAdminComponent() {
               <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ {stats.totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">R$ {stats.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
               <p className="text-xs text-muted-foreground">Total processado (vendas + serviços)</p>
             </CardContent>
           </Card>
