@@ -302,7 +302,7 @@ function ShopPageComponent() {
         return;
       }
 
-      if (data.service_ratings && data.service_ratings.length > 0) {
+      if (data.service_ratings && (Array.isArray(data.service_ratings) ? data.service_ratings.length > 0 : !!data.service_ratings)) {
         toast.error("Este atendimento já foi avaliado.");
         return;
       }
