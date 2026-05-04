@@ -149,11 +149,6 @@ function CalendarComponent() {
       toast.success("Agendamento criado com sucesso!");
       setIsDialogOpen(false);
       fetchData();
-      
-      // Reset form
-      setSelectedCustomer("");
-      setSelectedService("");
-      setSelectedBarber("");
     } catch (error: any) {
       toast.error("Erro ao criar agendamento: " + error.message);
     } finally {
