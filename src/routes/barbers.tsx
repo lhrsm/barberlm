@@ -35,6 +35,8 @@ function BarbersComponent() {
   const navigate = useNavigate();
   const { checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingBarber, setEditingBarber] = useState<any>(null);
@@ -47,17 +49,38 @@ function BarbersComponent() {
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    if (user) fetchBarbers();
+    if (user) {
+      fetchBarbers();
+      fetchServices();
+    }
   }, [user]);
+
+  async function fetchServices() {
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .eq("active", true)
+      .order("name");
+    if (error) toast.error("Erro ao buscar serviços");
+    else setServices(data || []);
+  }
 
   async function fetchBarbers() {
     const { data, error } = await supabase
       .from("barbers")
-      .select("*")
+      .select(`
+        *,
+        barber_services(service_id)
+      `)
       .eq("active", true)
       .order("name");
-    if (error) toast.error("Erro ao buscar barbeiros");
-    else setBarbers(data || []);
+    
+    if (error) {
+      console.error(error);
+      toast.error("Erro ao buscar barbeiros");
+    } else {
+      setBarbers(data || []);
+    }
   }
 
   async function handleAddBarber(e: React.FormEvent) {
@@ -151,7 +174,14 @@ function BarbersComponent() {
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2" variant={canAddBarber ? "default" : "secondary"}>
+              <Button 
+                className="gap-2" 
+                variant={canAddBarber ? "default" : "secondary"}
+                onClick={() => {
+                  setSelectedServices([]);
+                  setIsAddDialogOpen(true);
+                }}
+              >
                 <UserPlus size={18} /> Novo Barbeiro
               </Button>
             </DialogTrigger>
@@ -238,14 +268,29 @@ function BarbersComponent() {
                         onChange={(e) => setNewBarber({...newBarber, phone: e.target.value})} 
                       />
                     </div>
+                    </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email (Opcional)</Label>
-                      <Input 
-                        id="email" 
-                        type="email"
-                        value={newBarber.email} 
-                        onChange={(e) => setNewBarber({...newBarber, email: e.target.value})} 
-                      />
+                      <Label>Serviços Prestados</Label>
+                      <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 border rounded-md">
+                        {services.map(service => (
+                          <div key={service.id} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`new-service-${service.id}`}
+                              checked={selectedServices.includes(service.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedServices([...selectedServices, service.id]);
+                                } else {
+                                  setSelectedServices(selectedServices.filter(id => id !== service.id));
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <label htmlFor={`new-service-${service.id}`} className="text-xs truncate">{service.name}</label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     <Button type="submit" className="w-full">Salvar Barbeiro</Button>
                   </form>
@@ -336,6 +381,7 @@ function BarbersComponent() {
                     size="sm" 
                     onClick={() => {
                       setEditingBarber(barber);
+                      setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
                       setIsEditDialogOpen(true);
                     }}
                   >
@@ -437,6 +483,29 @@ function BarbersComponent() {
                     value={editingBarber.email || ""} 
                     onChange={(e) => setEditingBarber({...editingBarber, email: e.target.value})} 
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label>Serviços Prestados</Label>
+                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 border rounded-md">
+                    {services.map(service => (
+                      <div key={service.id} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`edit-service-${service.id}`}
+                          checked={selectedServices.includes(service.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedServices([...selectedServices, service.id]);
+                            } else {
+                              setSelectedServices(selectedServices.filter(id => id !== service.id));
+                            }
+                          }}
+                          className="rounded border-gray-300"
+                        />
+                        <label htmlFor={`edit-service-${service.id}`} className="text-xs truncate">{service.name}</label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <Button type="submit" className="w-full">Salvar Alterações</Button>
               </form>
