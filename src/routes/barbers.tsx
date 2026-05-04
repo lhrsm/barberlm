@@ -33,7 +33,7 @@ export const Route = createFileRoute("/barbers")({
 function BarbersComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { checkLimit, refresh: refreshLimits } = usePlanLimits();
+  const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
