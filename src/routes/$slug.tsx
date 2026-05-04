@@ -556,35 +556,67 @@ function ShopPageComponent() {
               <h3 className="text-xl font-bold">Nossos Produtos</h3>
             </div>
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
-              {products.map((product) => (
-                <Card key={product.id} className="overflow-hidden group hover:shadow-md transition-shadow">
-                  <div className="aspect-square bg-muted relative overflow-hidden">
-                    {product.image_url ? (
-                      <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center">
-                        <Package className="h-8 w-8 text-muted-foreground/30" />
+              {products.map((product) => {
+                const cartItem = selectedProducts.find(p => p.id === product.id);
+                return (
+                  <Card key={product.id} className="overflow-hidden group hover:shadow-md transition-shadow">
+                    <div className="aspect-square bg-muted relative overflow-hidden">
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center">
+                          <Package className="h-8 w-8 text-muted-foreground/30" />
+                        </div>
+                      )}
+                      {product.stock_quantity <= 0 && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <span className="text-white font-bold text-xs px-2 py-1 bg-red-600 rounded">Esgotado</span>
+                        </div>
+                      )}
+                    </div>
+                    <CardContent className="p-3">
+                      <h4 className="font-bold text-sm truncate">{product.name}</h4>
+                      <div className="flex justify-between items-center mt-1">
+                        <p className="font-bold text-primary" style={{ color: primaryColor }}>R$ {product.price.toFixed(2)}</p>
+                        <span className="text-[10px] text-muted-foreground">Estoque: {product.stock_quantity}</span>
                       </div>
-                    )}
-                  </div>
-                  <CardContent className="p-3">
-                    <h4 className="font-bold text-sm truncate">{product.name}</h4>
-                    <p className="font-bold text-primary mt-1" style={{ color: primaryColor }}>R$ {product.price.toFixed(2)}</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full mt-2 h-8 text-xs"
-                      onClick={() => {
-                        setSelectedProducts([product]);
-                        setIsBookingOpen(true);
-                        setBookingStep(1);
-                      }}
-                    >
-                      Comprar
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                      
+                      {cartItem ? (
+                        <div className="flex items-center justify-between mt-2 gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(product.id, -1)}
+                          >
+                            -
+                          </Button>
+                          <span className="font-bold text-sm">{cartItem.quantity}</span>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(product.id, 1)}
+                            disabled={cartItem.quantity >= product.stock_quantity}
+                          >
+                            +
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full mt-2 h-8 text-xs"
+                          onClick={() => addToCart(product)}
+                          disabled={product.stock_quantity <= 0}
+                        >
+                          {product.stock_quantity <= 0 ? "Indisponível" : "Comprar"}
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </section>
         )}
