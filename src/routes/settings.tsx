@@ -132,7 +132,7 @@ function SettingsComponent() {
       .from("whatsapp_instances")
       .insert({
         user_id: user.id,
-        name: newInstanceName,
+        name: trimmedName,
         status: "pending"
       })
       .select()
