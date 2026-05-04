@@ -186,6 +186,43 @@ function BarbersComponent() {
     }
   }
 
+  async function handleDuplicateBarber(barber: any) {
+    if (!user) return;
+    
+    if (usage.barbers >= limits.barbers) {
+      toast.error(`Limite atingido! Seu plano permite apenas ${limits.barbers} profissionais.`);
+      return;
+    }
+
+    const { data: newBarberData, error } = await supabase.from("barbers").insert({
+      name: `${barber.name} (Cópia)`,
+      phone: barber.phone,
+      email: barber.email,
+      avatar_url: barber.avatar_url,
+      category: barber.category,
+      commission_rate: barber.commission_rate,
+      user_id: user.id,
+    }).select().single();
+
+    if (error) {
+      toast.error("Erro ao duplicar barbeiro");
+    } else {
+      // Duplicate services if they exist
+      if (barber.barber_services && barber.barber_services.length > 0) {
+        const links = barber.barber_services.map((bs: any) => ({
+          barber_id: newBarberData.id,
+          service_id: bs.service_id,
+          user_id: user.id
+        }));
+        await supabase.from("barber_services").insert(links);
+      }
+
+      toast.success("Barbeiro duplicado com sucesso!");
+      fetchBarbers();
+      refreshLimits();
+    }
+  }
+
   if (loading || !user) return null;
 
   return (
