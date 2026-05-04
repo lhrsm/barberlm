@@ -870,8 +870,7 @@ function ShopPageComponent() {
           style={{ backgroundColor: primaryColor }}
           className="fixed bottom-24 right-6 h-14 px-6 rounded-full shadow-lg z-50 animate-in fade-in zoom-in duration-300 gap-2 text-white"
           onClick={() => {
-            setIsBookingOpen(true);
-            setBookingStep(1);
+            setIsCartOpen(true);
           }}
         >
           <ShoppingBag size={20} />
