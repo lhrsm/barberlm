@@ -287,6 +287,61 @@ function FinancesComponent() {
           </Table>
         </div>
       </div>
-    </AppLayout>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Transação</DialogTitle>
+          </DialogHeader>
+          {editingTransaction && (
+            <form onSubmit={handleUpdateTransaction} className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-amount">Valor (R$)</Label>
+                <Input 
+                  id="edit-amount" 
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={editingTransaction.amount} 
+                  onChange={(e) => setEditingTransaction({...editingTransaction, amount: e.target.value})} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-type">Tipo</Label>
+                <Select 
+                  value={editingTransaction.type} 
+                  onValueChange={(val) => setEditingTransaction({...editingTransaction, type: val})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income">Entrada (Receita)</SelectItem>
+                    <SelectItem value="expense">Saída (Despesa)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Categoria</Label>
+                <Input 
+                  id="edit-category" 
+                  placeholder="Serviço, Aluguel, Produtos, etc."
+                  value={editingTransaction.category} 
+                  onChange={(e) => setEditingTransaction({...editingTransaction, category: e.target.value})} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Descrição</Label>
+                <Input 
+                  id="edit-description" 
+                  value={editingTransaction.description} 
+                  onChange={(e) => setEditingTransaction({...editingTransaction, description: e.target.value})} 
+                />
+              </div>
+              <Button type="submit" className="w-full">Salvar Alterações</Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
   );
 }
