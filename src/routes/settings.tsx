@@ -230,6 +230,8 @@ function SettingsComponent() {
         logo_url: updatedData.logo_url,
         cashback_enabled: updatedData.cashback_enabled,
         cashback_percentage: updatedData.cashback_percentage,
+        address: updatedData.address,
+        google_maps_url: updatedData.google_maps_url,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
