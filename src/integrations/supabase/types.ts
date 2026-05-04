@@ -148,6 +148,7 @@ export type Database = {
           payment_gateway_provider: string | null
           plan: string | null
           primary_color: string | null
+          scheduling_mode: string | null
           secondary_color: string | null
           slug: string | null
           updated_at: string
@@ -163,6 +164,7 @@ export type Database = {
           payment_gateway_provider?: string | null
           plan?: string | null
           primary_color?: string | null
+          scheduling_mode?: string | null
           secondary_color?: string | null
           slug?: string | null
           updated_at?: string
@@ -178,6 +180,7 @@ export type Database = {
           payment_gateway_provider?: string | null
           plan?: string | null
           primary_color?: string | null
+          scheduling_mode?: string | null
           secondary_color?: string | null
           slug?: string | null
           updated_at?: string
