@@ -266,10 +266,12 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           business_name: string | null
           cashback_enabled: boolean
           cashback_percentage: number
           created_at: string
+          google_maps_url: string | null
           id: string
           logo_url: string | null
           payment_gateway_key: string | null
@@ -284,10 +286,12 @@ export type Database = {
           whatsapp_number: string | null
         }
         Insert: {
+          address?: string | null
           business_name?: string | null
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          google_maps_url?: string | null
           id: string
           logo_url?: string | null
           payment_gateway_key?: string | null
@@ -302,10 +306,12 @@ export type Database = {
           whatsapp_number?: string | null
         }
         Update: {
+          address?: string | null
           business_name?: string | null
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          google_maps_url?: string | null
           id?: string
           logo_url?: string | null
           payment_gateway_key?: string | null
