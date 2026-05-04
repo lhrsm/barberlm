@@ -74,6 +74,7 @@ function CalendarComponent() {
   const [selectedBarber, setSelectedBarber] = useState("");
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("08:00");
+  const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
