@@ -124,6 +124,7 @@ export type Database = {
         Row: {
           active: boolean | null
           avatar_url: string | null
+          average_rating: number | null
           category: string | null
           commission_rate: number | null
           created_at: string
@@ -131,11 +132,13 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          total_ratings: number | null
           user_id: string
         }
         Insert: {
           active?: boolean | null
           avatar_url?: string | null
+          average_rating?: number | null
           category?: string | null
           commission_rate?: number | null
           created_at?: string
@@ -143,11 +146,13 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          total_ratings?: number | null
           user_id: string
         }
         Update: {
           active?: boolean | null
           avatar_url?: string | null
+          average_rating?: number | null
           category?: string | null
           commission_rate?: number | null
           created_at?: string
@@ -155,6 +160,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          total_ratings?: number | null
           user_id?: string
         }
         Relationships: []
@@ -332,6 +338,68 @@ export type Database = {
           whatsapp_number?: string | null
         }
         Relationships: []
+      }
+      service_ratings: {
+        Row: {
+          appointment_id: string
+          barber_id: string
+          comment: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          appointment_id: string
+          barber_id: string
+          comment?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string
+          barber_id?: string
+          comment?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_ratings_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_ratings_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_ratings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {
