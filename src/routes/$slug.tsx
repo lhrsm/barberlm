@@ -39,7 +39,6 @@ function ShopPageComponent() {
       link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
     }
   }, [shop?.font_family]);
-  const [shop, setShop] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
