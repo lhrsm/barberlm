@@ -461,6 +461,9 @@ function SettingsComponent() {
                     <DialogTitle>Conectar WhatsApp</DialogTitle>
                     <DialogDescription>
                       Abra o WhatsApp no seu celular, vá em Aparelhos Conectados e escaneie o código abaixo.
+                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-amber-700 text-xs">
+                        <b>Ambiente de Teste:</b> O QR Code abaixo é figurativo. Para prosseguir com a demonstração, clique no botão "Simular Leitura" abaixo.
+                      </div>
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex flex-col items-center justify-center p-6 space-y-6">
