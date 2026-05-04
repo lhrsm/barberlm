@@ -105,7 +105,22 @@ function FinancesComponent() {
             <h2 className="text-3xl font-bold tracking-tight">Financeiro</h2>
             <p className="text-muted-foreground">Controle suas entradas e saídas.</p>
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2" 
+              onClick={() => {
+                if (plan === 'free') {
+                  toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
+                  navigate({ to: "/subscription" });
+                } else {
+                  toast.info("Gerando relatório PDF...");
+                }
+              }}
+            >
+              <Wallet size={18} /> Exportar PDF
+            </Button>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus size={18} /> Nova Transação
