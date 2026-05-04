@@ -158,6 +158,7 @@ function SettingsComponent() {
       .eq("id", id);
 
     if (error) {
+      console.error("Error deleting WhatsApp connection:", error);
       toast.error("Erro ao remover conexão");
       return;
     }
