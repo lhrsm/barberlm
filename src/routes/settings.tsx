@@ -120,7 +120,8 @@ function SettingsComponent() {
       return;
     }
 
-    if (!newInstanceName) {
+    const trimmedName = newInstanceName.trim();
+    if (!trimmedName) {
       toast.error("Dê um nome para esta conexão (ex: Principal, Recepção)");
       return;
     }
