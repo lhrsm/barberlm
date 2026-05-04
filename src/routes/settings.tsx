@@ -173,17 +173,24 @@ function SettingsComponent() {
     
     setSaving(true);
 
+    // Prevent saving gateway config for free plan
+    const updatedData = { ...formData };
+    if (plan === "free") {
+      updatedData.payment_gateway_provider = "none";
+      updatedData.payment_gateway_key = "";
+    }
+
     const { error } = await supabase
       .from("profiles")
       .update({
-        business_name: formData.business_name,
-        slug: formData.slug,
-        whatsapp_enabled: formData.whatsapp_enabled,
-        payment_gateway_provider: formData.payment_gateway_provider === "none" ? null : formData.payment_gateway_provider,
-        payment_gateway_key: formData.payment_gateway_key,
-        primary_color: formData.primary_color,
-        secondary_color: formData.secondary_color,
-        logo_url: formData.logo_url,
+        business_name: updatedData.business_name,
+        slug: updatedData.slug,
+        whatsapp_enabled: updatedData.whatsapp_enabled,
+        payment_gateway_provider: updatedData.payment_gateway_provider === "none" ? null : updatedData.payment_gateway_provider,
+        payment_gateway_key: updatedData.payment_gateway_key,
+        primary_color: updatedData.primary_color,
+        secondary_color: updatedData.secondary_color,
+        logo_url: updatedData.logo_url,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
