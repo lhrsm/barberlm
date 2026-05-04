@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Settings as SettingsIcon, MessageSquare, CreditCard, Palette, Globe, Save } from "lucide-react";
+import { MessageSquare, CreditCard, Palette, Globe, Save } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsComponent,
@@ -76,6 +76,8 @@ function SettingsComponent() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!user) return;
+    
     setSaving(true);
 
     const { error } = await supabase
@@ -121,17 +123,17 @@ function SettingsComponent() {
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 max-w-[600px]">
-              <TabsTrigger value="general" className="gap-2">
-                <Globe size={16} /> Geral
+              <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
+                <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
               </TabsTrigger>
-              <TabsTrigger value="appearance" className="gap-2">
-                <Palette size={16} /> Aparência
+              <TabsTrigger value="appearance" className="gap-2 text-xs sm:text-sm">
+                <Palette size={16} /> <span className="hidden sm:inline">Aparência</span>
               </TabsTrigger>
-              <TabsTrigger value="whatsapp" className="gap-2">
-                <MessageSquare size={16} /> WhatsApp
+              <TabsTrigger value="whatsapp" className="gap-2 text-xs sm:text-sm">
+                <MessageSquare size={16} /> <span className="hidden sm:inline">WhatsApp</span>
               </TabsTrigger>
-              <TabsTrigger value="payments" className="gap-2">
-                <CreditCard size={16} /> Pagamentos
+              <TabsTrigger value="payments" className="gap-2 text-xs sm:text-sm">
+                <CreditCard size={16} /> <span className="hidden sm:inline">Pagamentos</span>
               </TabsTrigger>
             </TabsList>
 
