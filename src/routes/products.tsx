@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ShoppingBag, Plus, Package, AlertTriangle, Crown, Image as ImageIcon, Trash2, Edit } from "lucide-react";
+import { ShoppingBag, Plus, Package, AlertTriangle, Crown, Image as ImageIcon, Trash2, Edit, Copy } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/products")({
