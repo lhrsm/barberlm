@@ -207,19 +207,22 @@ function ShopPageComponent() {
       }
 
       // 4. Create transactions for products if any
-      for (const product of selectedProducts) {
+      for (const item of selectedProducts) {
         await supabase.from("transactions").insert({
           user_id: shop.id,
           appointment_id: appointment.id,
           type: "income",
           category: "product_sale",
-          amount: product.price,
-          description: `Venda de Produto: ${product.name}`,
+          amount: item.price * (item.quantity || 1),
+          description: `Venda de Produto: ${item.name} (x${item.quantity || 1})`,
           date: new Date().toISOString().split('T')[0]
         });
 
         // Update stock
-        await (supabase as any).rpc('decrement_product_stock', { prod_id: product.id, amount: 1 });
+        await (supabase as any).rpc('decrement_product_stock', { 
+          prod_id: item.id, 
+          amount: item.quantity || 1 
+        });
       }
 
       toast.success("Agendamento realizado com sucesso!");
