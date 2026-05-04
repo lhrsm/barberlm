@@ -26,10 +26,20 @@ function DashboardComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({
-    customers: 0,
-    services: 0,
-    appointments: 0,
-    revenue: 0,
+    daily: {
+      appointments: 0,
+      revenue: 0,
+      newCustomers: 0
+    },
+    monthly: {
+      appointments: 0,
+      revenue: 0,
+      newCustomers: 0
+    },
+    total: {
+      customers: 0,
+      services: 0
+    }
   });
 
   useEffect(() => {
@@ -45,20 +55,49 @@ function DashboardComponent() {
   }, [user]);
 
   async function fetchStats() {
-    const [custRes, servRes, appRes, transRes] = await Promise.all([
+    const todayStart = startOfDay(new Date()).toISOString();
+    const todayEnd = endOfDay(new Date()).toISOString();
+    const monthStart = startOfMonth(new Date()).toISOString();
+    const monthEnd = endOfMonth(new Date()).toISOString();
+
+    const [
+      dailyApp, 
+      monthlyApp, 
+      dailyTrans, 
+      monthlyTrans,
+      dailyCust,
+      monthlyCust,
+      totalCust,
+      totalServ
+    ] = await Promise.all([
+      supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", monthStart).lte("start_time", monthEnd),
+      supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", todayStart).lte("created_at", todayEnd),
+      supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", monthStart).lte("created_at", monthEnd),
+      supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
+      supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }),
-      supabase.from("services").select("*", { count: "exact", head: true }),
-      supabase.from("appointments").select("*", { count: "exact", head: true }),
-      supabase.from("transactions").select("amount").eq("type", "income"),
+      supabase.from("services").select("*", { count: "exact", head: true })
     ]);
 
-    const revenue = transRes.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+    const dailyRevenue = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+    const monthlyRevenue = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
 
     setStats({
-      customers: custRes.count || 0,
-      services: servRes.count || 0,
-      appointments: appRes.count || 0,
-      revenue,
+      daily: {
+        appointments: dailyApp.count || 0,
+        revenue: dailyRevenue,
+        newCustomers: dailyCust.count || 0
+      },
+      monthly: {
+        appointments: monthlyApp.count || 0,
+        revenue: monthlyRevenue,
+        newCustomers: monthlyCust.count || 0
+      },
+      total: {
+        customers: totalCust.count || 0,
+        services: totalServ.count || 0
+      }
     });
   }
 
