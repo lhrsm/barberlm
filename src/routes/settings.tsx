@@ -46,6 +46,8 @@ function SettingsComponent() {
   }, [user]);
 
   async function fetchProfile() {
+    if (!user) return;
+    
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
