@@ -97,7 +97,45 @@ function FinancesComponent() {
     }
   }
 
-  if (loading || !user) return null;
+  async function handleUpdateTransaction(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user || !editingTransaction) return;
+
+    const { error } = await supabase
+      .from("transactions")
+      .update({
+        amount: parseFloat(editingTransaction.amount),
+        type: editingTransaction.type,
+        description: editingTransaction.description,
+        category: editingTransaction.category,
+      })
+      .eq("id", editingTransaction.id);
+
+    if (error) {
+      toast.error("Erro ao atualizar transação");
+    } else {
+      toast.success("Transação atualizada!");
+      setIsEditDialogOpen(false);
+      setEditingTransaction(null);
+      fetchTransactions();
+    }
+  }
+
+  async function handleDeleteTransaction(id: string) {
+    if (!confirm("Tem certeza que deseja excluir esta transação?")) return;
+
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast.error("Erro ao excluir transação");
+    } else {
+      toast.success("Transação excluída!");
+      fetchTransactions();
+    }
+  }
 
   return (
     <AppLayout>
