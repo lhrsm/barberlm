@@ -358,7 +358,15 @@ function ShopPageComponent() {
   };
 
   return (
-    <div className="min-h-screen bg-background" style={{ backgroundColor: shop.secondary_color || "#f4f4f5" }}>
+    <div 
+      className="min-h-screen bg-background" 
+      style={{ 
+        backgroundColor: shop.secondary_color || "#f4f4f5",
+        fontFamily: shop.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
+        fontSize: shop.font_size || '16px',
+        color: shop.font_color || '#000000'
+      }}
+    >
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
