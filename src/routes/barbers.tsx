@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2 } from "lucide-react";
+import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -382,6 +382,11 @@ function BarbersComponent() {
                       <h3 className="font-bold text-lg">{barber.name}</h3>
                       <span className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Ativo</span>
                     </div>
+                    <div className="flex items-center gap-1 mt-0.5 mb-1">
+                      <Star size={12} className="text-yellow-500" fill="currentColor" />
+                      <span className="text-xs font-bold">{barber.average_rating || "5.0"}</span>
+                      <span className="text-[10px] text-muted-foreground">({barber.total_ratings || 0})</span>
+                    </div>
                     <div className="flex gap-2 mt-1">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                         barber.category === 'Freelancer' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
@@ -549,5 +554,3 @@ function BarbersComponent() {
   );
 }
 
-// Add Crown to imports
-import { Crown } from "lucide-react";

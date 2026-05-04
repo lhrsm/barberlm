@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2 } from "lucide-react";
+import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,10 @@ function ShopPageComponent() {
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelTokenInput, setCancelTokenInput] = useState("");
+  const [ratingAppointment, setRatingAppointment] = useState<any>(null);
+  const [ratingValue, setRatingValue] = useState(5);
+  const [ratingComment, setRatingComment] = useState("");
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [modalBarber, setModalBarber] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("09:00");
@@ -238,6 +242,81 @@ function ShopPageComponent() {
       setCancelling(false);
     }
   };
+  const handleSubmitRating = async () => {
+    if (!ratingAppointment) return;
+    
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("service_ratings")
+        .insert({
+          appointment_id: ratingAppointment.id,
+          customer_id: ratingAppointment.customer_id,
+          barber_id: ratingAppointment.barber_id,
+          user_id: shop.id,
+          rating: ratingValue,
+          comment: ratingComment
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error("Você já avaliou este atendimento.");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success("Obrigado pela sua avaliação!");
+        setIsRatingModalOpen(false);
+        setRatingAppointment(null);
+        setRatingComment("");
+        setRatingValue(5);
+      }
+    } catch (error: any) {
+      toast.error("Erro ao enviar avaliação: " + error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCheckRatingEligibility = async () => {
+    if (!cancelTokenInput) {
+      toast.error("Por favor, insira o código do seu agendamento.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("*, service_ratings(id)")
+        .eq("cancel_token", cancelTokenInput)
+        .single();
+
+      if (error || !data) {
+        toast.error("Agendamento não encontrado.");
+        return;
+      }
+
+      if (data.status !== 'completed') {
+        toast.error("Você só pode avaliar atendimentos concluídos.");
+        return;
+      }
+
+      if (data.service_ratings && (Array.isArray(data.service_ratings) ? data.service_ratings.length > 0 : !!data.service_ratings)) {
+        toast.error("Este atendimento já foi avaliado.");
+        return;
+      }
+
+      setRatingAppointment(data);
+      setIsRatingModalOpen(true);
+      setIsCancelModalOpen(false);
+    } catch (error: any) {
+      toast.error("Erro ao buscar agendamento.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const calculateTotalBeforeCashback = () => {
     const servicePrice = selectedService?.price || 0;
     const productsTotal = selectedProducts.reduce((acc, p) => acc + (p.price || 0), 0);
@@ -401,6 +480,11 @@ function ShopPageComponent() {
                   )}
                 </div>
                 <p className="font-medium text-sm">{barber.name}</p>
+                <div className="flex items-center justify-center gap-1 mt-0.5">
+                  <Star size={12} className="text-yellow-500" fill="currentColor" />
+                  <span className="text-xs font-bold">{barber.average_rating || "5.0"}</span>
+                  <span className="text-[10px] text-muted-foreground">({barber.total_ratings || 0})</span>
+                </div>
                 <p className="text-xs text-muted-foreground">{barber.specialty || 'Barbeiro'}</p>
               </div>
             ))}
@@ -449,12 +533,19 @@ function ShopPageComponent() {
         )}
 
         {/* Cancellation Section */}
-        <section className="bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-white/20 text-center space-y-3">
-          <h4 className="font-bold">Precisa cancelar um agendamento?</h4>
-          <p className="text-sm text-muted-foreground">Utilize o código enviado no seu WhatsApp para cancelar seu horário.</p>
-          <Button variant="outline" size="sm" onClick={() => setIsCancelModalOpen(true)}>
-            Cancelar Agendamento
-          </Button>
+        <section className="bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-white/20 text-center space-y-4">
+          <div className="space-y-2">
+            <h4 className="font-bold">Gerenciar seu Agendamento</h4>
+            <p className="text-sm text-muted-foreground">Use o código enviado no seu WhatsApp para cancelar ou avaliar seu atendimento.</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => setIsCancelModalOpen(true)}>
+              Cancelar Agendamento
+            </Button>
+            <Button variant="secondary" size="sm" className="gap-2" onClick={() => setIsCancelModalOpen(true)}>
+              <Star size={14} /> Avaliar Atendimento
+            </Button>
+          </div>
         </section>
 
         {/* Footer info */}
@@ -709,15 +800,15 @@ function ShopPageComponent() {
         </DialogContent>
       </Dialog>
       
-      {/* Cancellation Modal */}
+      {/* Cancellation & Rating Access Modal */}
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Cancelar Agendamento</DialogTitle>
+            <DialogTitle>Gerenciar Agendamento</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <div className="grid gap-2">
-              <Label htmlFor="cancelToken">Código de Cancelamento</Label>
+              <Label htmlFor="cancelToken">Código do Agendamento</Label>
               <Input 
                 id="cancelToken" 
                 placeholder="Insira o código recebido" 
@@ -726,17 +817,66 @@ function ShopPageComponent() {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              O cancelamento só pode ser realizado se o horário ainda não tiver passado.
+              O cancelamento só pode ser realizado antes do horário marcado. A avaliação é liberada após a conclusão do serviço.
             </p>
           </div>
-          <DialogFooter>
+          <div className="grid grid-cols-2 gap-3">
+            <Button 
+              variant="outline" 
+              onClick={handleCheckRatingEligibility}
+            >
+              Avaliar
+            </Button>
             <Button 
               variant="destructive" 
-              className="w-full" 
               onClick={handleCancelAppointment}
               disabled={cancelling}
             >
-              {cancelling ? "Cancelando..." : "Confirmar Cancelamento"}
+              {cancelling ? "Cancelando..." : "Cancelar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rating Modal */}
+      <Dialog open={isRatingModalOpen} onOpenChange={setIsRatingModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Avaliar Atendimento</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-6">
+            <div className="text-center space-y-2">
+              <p className="text-sm font-medium">Sua nota para o atendimento:</p>
+              <div className="flex justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRatingValue(star)}
+                    className={cn(
+                      "p-1 transition-transform active:scale-95",
+                      ratingValue >= star ? "text-yellow-500" : "text-muted-foreground/30"
+                    )}
+                  >
+                    <Star size={32} fill={ratingValue >= star ? "currentColor" : "none"} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="ratingComment">Comentário (Opcional)</Label>
+              <textarea
+                id="ratingComment"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Conte-nos o que achou do atendimento..."
+                value={ratingComment}
+                onChange={(e) => setRatingComment(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button className="w-full" onClick={handleSubmitRating} disabled={submitting}>
+              {submitting ? "Enviando..." : "Enviar Avaliação"}
             </Button>
           </DialogFooter>
         </DialogContent>
