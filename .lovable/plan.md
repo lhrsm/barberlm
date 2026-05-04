@@ -1,26 +1,21 @@
-Vou implementar uma tela de agenda completa com visualização diária e semanal, blocos de horário e diferenciação por profissional.
+Vou reformular o diálogo de agendamento em `src/routes/calendar.tsx` para um fluxo de 4 passos, adicionando uma verificação de conflitos de horário antes de salvar.
 
-### Objetivos:
-- Implementar visualização por Dia e Semana na rota `/calendar`.
-- Adicionar blocos de horário interativos (das 08:00 às 20:00).
-- Diferenciar agendamentos por cores baseadas no profissional.
-- Criar um botão flutuante para "Novo Agendamento" que abre um diálogo de cadastro.
+### Passos do Fluxo:
+1.  **Profissional e Serviço**: Escolher quem vai atender e o que será feito.
+2.  **Data e Horário**: Selecionar o momento do atendimento (com feedback visual se estiver ocupado).
+3.  **Cliente**: Identificar quem será atendido.
+4.  **Resumo**: Revisar os dados antes de confirmar.
+
+### Validação de Conflitos:
+- Antes de permitir o avanço para o Passo 3 ou a finalização, o sistema consultará o Supabase para verificar se o profissional escolhido já possui um agendamento que se sobreponha ao horário selecionado (considerando a duração do serviço).
 
 ### Alterações Técnicas:
-1. **Novo Componente `CalendarHeader`**: Para navegação entre datas e troca de visualização (Dia/Semana).
-2. **Novo Componente `AppointmentCard`**: Para exibir os detalhes do agendamento no grid.
-3. **Novo Componente `AppointmentDialog`**: Formulário para criar novos agendamentos vinculando Cliente, Serviço e Profissional.
-4. **Refatoração de `src/routes/calendar.tsx`**:
-   - Buscar dados de `appointments`, `barbers`, `customers` e `services` do Supabase.
-   - Implementar a lógica de renderização do grid de horários.
-   - Gerenciar o estado de visualização atual.
+- **Estado de Step**: Adicionar `currentStep` ao estado do componente.
+- **Lógica de Conflito**: Criar uma função `checkConflict` que valida a disponibilidade no banco de dados.
+- **UI de Passos**: Substituir o formulário único por uma estrutura condicional baseada no `currentStep`.
+- **Feedback Visual**: Exibir avisos claros caso o horário esteja ocupado.
 
-### Detalhes da Interface:
-- **Mobile-First**: A visualização semanal será adaptada ou simplificada em telas pequenas (scroll horizontal ou foco no dia selecionado).
-- **Cores**: Cada profissional terá uma cor atribuída dinamicamente ou pré-definida no sistema para facilitar a identificação visual.
-- **Interatividade**: Clique em um horário vazio para abrir o diálogo de novo agendamento pré-preenchido com aquele horário.
-
-### Próximos Passos:
-- Criar os componentes de UI necessários para o calendário.
-- Integrar com as tabelas existentes no banco de dados.
-- Validar a usabilidade em dispositivos móveis.
+### Experiência do Usuário:
+- Navegação "Voltar" e "Próximo" entre os passos.
+- Barra de progresso ou indicadores visuais do passo atual.
+- Limpeza dos campos ao fechar o diálogo ou finalizar com sucesso.
