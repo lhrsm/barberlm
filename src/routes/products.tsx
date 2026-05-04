@@ -78,7 +78,11 @@ function ProductsComponent() {
         .from('barber-avatars')
         .getPublicUrl(filePath);
 
-      setNewProduct({ ...newProduct, image_url: publicUrl });
+      if (editingProduct) {
+        setEditingProduct({ ...editingProduct, image_url: publicUrl });
+      } else {
+        setNewProduct({ ...newProduct, image_url: publicUrl });
+      }
       toast.success("Imagem enviada com sucesso!");
     } catch (error: any) {
       toast.error("Erro ao enviar imagem: " + error.message);
