@@ -776,21 +776,37 @@ function ShopPageComponent() {
                   <Label>Deseja adicionar algum produto?</Label>
                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {products.map(p => {
-                      const isSelected = selectedProducts.find(sp => sp.id === p.id);
+                      const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
                         <div 
                           key={p.id}
                           className={cn(
-                            "flex-shrink-0 w-24 p-2 border rounded-lg cursor-pointer transition-all text-center",
-                            isSelected ? "border-primary bg-primary/5" : "hover:bg-muted"
+                            "flex-shrink-0 w-28 p-2 border rounded-lg transition-all text-center relative",
+                            cartItem ? "border-primary bg-primary/5" : "hover:bg-muted"
                           )}
-                          onClick={() => toggleProduct(p)}
                         >
-                          <div className="h-10 w-10 mx-auto mb-1">
-                            {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover rounded" /> : <Package size={20} className="mx-auto text-muted-foreground" />}
+                          <div 
+                            className="cursor-pointer"
+                            onClick={() => toggleProduct(p)}
+                          >
+                            <div className="h-10 w-10 mx-auto mb-1">
+                              {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover rounded" /> : <Package size={20} className="mx-auto text-muted-foreground" />}
+                            </div>
+                            <p className="text-[10px] font-bold truncate">{p.name}</p>
+                            <p className="text-[10px] text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
                           </div>
-                          <p className="text-[10px] font-bold truncate">{p.name}</p>
-                          <p className="text-[10px] text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
+                          
+                          {cartItem && (
+                            <div className="flex items-center justify-between mt-1 px-1">
+                              <button onClick={() => updateQuantity(p.id, -1)} className="text-primary hover:bg-primary/10 rounded h-4 w-4 flex items-center justify-center">-</button>
+                              <span className="text-[10px] font-bold">{cartItem.quantity}</span>
+                              <button 
+                                onClick={() => updateQuantity(p.id, 1)} 
+                                className="text-primary hover:bg-primary/10 rounded h-4 w-4 flex items-center justify-center"
+                                disabled={cartItem.quantity >= p.stock_quantity}
+                              >+</button>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
