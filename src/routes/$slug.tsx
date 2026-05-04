@@ -46,6 +46,7 @@ function ShopPageComponent() {
   
   // Booking state
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedBarber, setSelectedBarber] = useState<any>(null);
@@ -869,8 +870,7 @@ function ShopPageComponent() {
           style={{ backgroundColor: primaryColor }}
           className="fixed bottom-24 right-6 h-14 px-6 rounded-full shadow-lg z-50 animate-in fade-in zoom-in duration-300 gap-2 text-white"
           onClick={() => {
-            setIsBookingOpen(true);
-            setBookingStep(1);
+            setIsCartOpen(true);
           }}
         >
           <ShoppingBag size={20} />
@@ -961,6 +961,93 @@ function ShopPageComponent() {
               {cancelling ? "Cancelando..." : "Cancelar"}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cart Summary Modal */}
+      <Dialog open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShoppingBag size={20} style={{ color: primaryColor }} />
+              Seu Carrinho
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            {selectedProducts.length > 0 ? (
+              <>
+                <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2">
+                  {selectedProducts.map((p) => (
+                    <div key={p.id} className="flex justify-between items-center p-3 border rounded-lg bg-muted/30">
+                      <div className="flex-1 min-w-0 mr-3">
+                        <p className="font-bold text-sm truncate">{p.name}</p>
+                        <p className="text-xs text-muted-foreground">R$ {p.price.toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center border rounded-md bg-background">
+                          <button 
+                            onClick={() => updateQuantity(p.id, -1)}
+                            className="w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors"
+                          >
+                            -
+                          </button>
+                          <span className="w-8 text-center text-sm font-bold">{p.quantity || 1}</span>
+                          <button 
+                            onClick={() => updateQuantity(p.id, 1)}
+                            className="w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors"
+                            disabled={(p.quantity || 1) >= p.stock_quantity}
+                          >
+                            +
+                          </button>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => removeFromCart(p.id)}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="border-t pt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal:</span>
+                    <span className="font-bold">R$ {calculateTotalBeforeCashback().toFixed(2)}</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center">
+                    Deseja agendar um serviço também? Você poderá revisar tudo na finalização.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8 space-y-3">
+                <ShoppingBag size={48} className="mx-auto text-muted-foreground/20" />
+                <p className="text-muted-foreground">Seu carrinho está vazio.</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            {selectedProducts.length > 0 && (
+              <Button 
+                className="w-full" 
+                style={{ backgroundColor: primaryColor }}
+                onClick={() => {
+                  setIsCartOpen(false);
+                  setIsBookingOpen(true);
+                  setBookingStep(1); // Go to service selection
+                }}
+              >
+                Continuar para Agendamento
+              </Button>
+            )}
+            <Button variant="ghost" className="w-full" onClick={() => setIsCartOpen(false)}>
+              Continuar Comprando
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
