@@ -25,7 +25,7 @@ export const Route = createFileRoute("/products")({
 function ProductsComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
+  const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [products, setProducts] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
