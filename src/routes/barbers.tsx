@@ -77,6 +77,30 @@ function BarbersComponent() {
       fetchBarbers();
       refreshLimits();
     }
+  async function handleUpdateBarber(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingBarber) return;
+
+    const { error } = await supabase
+      .from("barbers")
+      .update({
+        name: editingBarber.name,
+        phone: editingBarber.phone,
+        email: editingBarber.email,
+        avatar_url: editingBarber.avatar_url,
+        category: editingBarber.category,
+        commission_rate: editingBarber.commission_rate,
+      })
+      .eq("id", editingBarber.id);
+
+    if (error) {
+      toast.error("Erro ao atualizar barbeiro");
+    } else {
+      toast.success("Barbeiro atualizado com sucesso!");
+      setIsEditDialogOpen(false);
+      setEditingBarber(null);
+      fetchBarbers();
+    }
   }
 
   if (loading || !user) return null;
