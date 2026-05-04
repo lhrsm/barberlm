@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
