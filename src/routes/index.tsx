@@ -164,42 +164,75 @@ function LandingPageComponent() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-base font-semibold text-primary uppercase tracking-wide mb-2">Preços</h2>
-            <p className="text-3xl lg:text-5xl font-bold tracking-tight text-foreground">Comece hoje, pague depois</p>
+            <p className="text-3xl lg:text-5xl font-bold tracking-tight text-foreground">Planos que cabem no seu bolso</p>
+            <p className="mt-4 text-muted-foreground">Teste gratuitamente por 7 dias em qualquer modalidade.</p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Free Plan */}
-            <div className="relative p-8 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-bold mb-2">Plano Grátis</h3>
-              <p className="text-muted-foreground mb-6">Para quem está começando e quer organizar a casa.</p>
-              <div className="text-4xl font-extrabold mb-6">R$ 0<span className="text-base font-normal text-muted-foreground">/mês</span></div>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> 1 Profissional Ativo</li>
-                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Até 5 Serviços</li>
-                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> 30 Agendamentos Mensais</li>
-                <li className="flex items-center gap-3 text-sm text-muted-foreground/50"><CheckCircle2 className="h-5 w-5" /> Relatórios Financeiros</li>
+            <div className="relative p-6 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all">
+              <h3 className="text-lg font-bold mb-1">Grátis</h3>
+              <p className="text-xs text-muted-foreground mb-4">Teste de 7 dias incluso.</p>
+              <div className="text-3xl font-extrabold mb-6">R$ 0<span className="text-sm font-normal text-muted-foreground">/mês</span></div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 1 Profissional</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> Até 5 Serviços</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 30 Agendamentos</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 1 WhatsApp</li>
               </ul>
               <Button variant="outline" className="w-full" asChild>
-                <Link to="/auth">Criar conta grátis</Link>
+                <Link to="/auth">Começar Grátis</Link>
+              </Button>
+            </div>
+
+            {/* Basic Plan */}
+            <div className="relative p-6 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all border-green-500/20">
+              <h3 className="text-lg font-bold mb-1 text-green-600">Básico</h3>
+              <p className="text-xs text-muted-foreground mb-4">Para profissionais liberais.</p>
+              <div className="text-3xl font-extrabold mb-6">R$ 19,90<span className="text-sm font-normal text-muted-foreground">/mês</span></div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 2 Profissionais</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 10 Serviços</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 100 Agendamentos</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 1 WhatsApp</li>
+              </ul>
+              <Button className="w-full bg-green-600 hover:bg-green-700" asChild>
+                <Link to="/auth">Assinar Básico</Link>
+              </Button>
+            </div>
+
+            {/* Intermediate Plan */}
+            <div className="relative p-6 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all border-purple-500/30">
+              <div className="absolute -top-3 right-4 bg-purple-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">RECOMENDADO</div>
+              <h3 className="text-lg font-bold mb-1 text-purple-600">Intermediário</h3>
+              <p className="text-xs text-muted-foreground mb-4">Pequenas barbearias.</p>
+              <div className="text-3xl font-extrabold mb-6">R$ 39,90<span className="text-sm font-normal text-muted-foreground">/mês</span></div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 5 Profissionais</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 25 Serviços</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 500 Agendamentos</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 3 WhatsApps</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> Gateway Pagto</li>
+              </ul>
+              <Button className="w-full bg-purple-600 hover:bg-purple-700" asChild>
+                <Link to="/auth">Assinar Interm.</Link>
               </Button>
             </div>
             
             {/* Pro Plan */}
-            <div className="relative p-8 rounded-2xl border-2 border-primary bg-card shadow-xl overflow-hidden">
-              <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-bl-lg">MAIS POPULAR</div>
-              <h3 className="text-xl font-bold mb-2">Plano Pro</h3>
-              <p className="text-muted-foreground mb-6">A solução completa para barbearias de sucesso.</p>
-              <div className="text-4xl font-extrabold mb-2">R$ 49,90<span className="text-base font-normal text-muted-foreground">/mês</span></div>
-              <p className="text-sm text-primary font-medium mb-6">Economize 20% no plano anual</p>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Profissionais Ilimitados</li>
-                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Serviços Ilimitados</li>
-                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Agendamentos Ilimitados</li>
-                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Relatórios de Performance</li>
-                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Suporte Prioritário</li>
+            <div className="relative p-6 rounded-2xl border-2 border-primary bg-card shadow-xl overflow-hidden transition-all">
+              <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-4 py-1 rounded-bl-lg">PRÓ</div>
+              <h3 className="text-lg font-bold mb-1">Profissional (Pró)</h3>
+              <p className="text-xs text-muted-foreground mb-4">Solução sem limites.</p>
+              <div className="text-3xl font-extrabold mb-6">R$ 59,90<span className="text-sm font-normal text-muted-foreground">/mês</span></div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-2 text-sm font-medium"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> Tudo Ilimitado</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> WhatsApp Ilimitado</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> Gateway Pagto</li>
+                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> Suporte Prioritário</li>
               </ul>
-              <Button className="w-full h-12 text-lg" asChild>
-                <Link to="/auth">Fazer Upgrade agora</Link>
+              <Button className="w-full bg-primary hover:bg-primary/90" asChild>
+                <Link to="/auth">Assinar Pró</Link>
               </Button>
             </div>
           </div>

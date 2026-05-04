@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./use-auth";
 import { startOfMonth, endOfMonth } from "date-fns";
 
-export type PlanType = "free" | "pro";
+export type PlanType = "free" | "basic" | "intermediate" | "pro";
 
 export const PLAN_LIMITS = {
   free: {
@@ -11,12 +11,29 @@ export const PLAN_LIMITS = {
     services: 5,
     monthlyAppointments: 30,
     whatsappConnections: 1,
+    hasTrial: true,
+    trialDays: 7,
+  },
+  basic: {
+    barbers: 2,
+    services: 10,
+    monthlyAppointments: 100,
+    whatsappConnections: 1,
+    price: 19.90,
+  },
+  intermediate: {
+    barbers: 5,
+    services: 25,
+    monthlyAppointments: 500,
+    whatsappConnections: 3,
+    price: 39.90,
   },
   pro: {
     barbers: Infinity,
     services: Infinity,
     monthlyAppointments: Infinity,
     whatsappConnections: Infinity,
+    price: 59.90,
   },
 };
 
