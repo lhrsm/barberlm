@@ -97,8 +97,8 @@ function CalendarComponent() {
   async function fetchData() {
     if (!user) return;
 
-    const start = view === "day" ? currentDate : startOfWeek(currentDate, { weekStartsOn: 0 });
-    const end = view === "day" ? currentDate : endOfWeek(currentDate, { weekStartsOn: 0 });
+    const start = startOfDay(view === "day" ? currentDate : startOfWeek(currentDate, { weekStartsOn: 0 }));
+    const end = endOfDay(view === "day" ? currentDate : endOfWeek(currentDate, { weekStartsOn: 0 }));
 
     const [appRes, barbRes, custRes, servRes] = await Promise.all([
       supabase
