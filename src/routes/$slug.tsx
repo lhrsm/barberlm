@@ -242,6 +242,81 @@ function ShopPageComponent() {
       setCancelling(false);
     }
   };
+  const handleSubmitRating = async () => {
+    if (!ratingAppointment) return;
+    
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("service_ratings")
+        .insert({
+          appointment_id: ratingAppointment.id,
+          customer_id: ratingAppointment.customer_id,
+          barber_id: ratingAppointment.barber_id,
+          user_id: shop.id,
+          rating: ratingValue,
+          comment: ratingComment
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error("Você já avaliou este atendimento.");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success("Obrigado pela sua avaliação!");
+        setIsRatingModalOpen(false);
+        setRatingAppointment(null);
+        setRatingComment("");
+        setRatingValue(5);
+      }
+    } catch (error: any) {
+      toast.error("Erro ao enviar avaliação: " + error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCheckRatingEligibility = async () => {
+    if (!cancelTokenInput) {
+      toast.error("Por favor, insira o código do seu agendamento.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("*, service_ratings(id)")
+        .eq("cancel_token", cancelTokenInput)
+        .single();
+
+      if (error || !data) {
+        toast.error("Agendamento não encontrado.");
+        return;
+      }
+
+      if (data.status !== 'completed') {
+        toast.error("Você só pode avaliar atendimentos concluídos.");
+        return;
+      }
+
+      if (data.service_ratings && data.service_ratings.length > 0) {
+        toast.error("Este atendimento já foi avaliado.");
+        return;
+      }
+
+      setRatingAppointment(data);
+      setIsRatingModalOpen(true);
+      setIsCancelModalOpen(false);
+    } catch (error: any) {
+      toast.error("Erro ao buscar agendamento.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const calculateTotalBeforeCashback = () => {
     const servicePrice = selectedService?.price || 0;
     const productsTotal = selectedProducts.reduce((acc, p) => acc + (p.price || 0), 0);
