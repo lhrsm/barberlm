@@ -12,13 +12,14 @@ import {
   X,
   CreditCard,
   Settings,
-  ShoppingBag
+  ShoppingBag,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+const defaultNavItems = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Agenda", icon: Calendar, to: "/calendar" },
   { label: "Clientes", icon: Users, to: "/customers" },
