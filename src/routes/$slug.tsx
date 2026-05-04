@@ -209,7 +209,33 @@ function ShopPageComponent() {
     }
   };
 
-  const calculateTotalBeforeCashback = () => {
+  const handleCancelAppointment = async () => {
+    if (!cancelTokenInput) {
+      toast.error("Por favor, insira o código de cancelamento.");
+      return;
+    }
+
+    setCancelling(true);
+    try {
+      const { data, error } = await (supabase as any).rpc('cancel_appointment_by_token', { 
+        token_val: cancelTokenInput 
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        toast.success("Agendamento cancelado com sucesso.");
+        setIsCancelModalOpen(false);
+        setCancelTokenInput("");
+      } else {
+        toast.error("Código inválido ou agendamento já cancelado.");
+      }
+    } catch (error: any) {
+      toast.error("Erro ao cancelar: " + error.message);
+    } finally {
+      setCancelling(false);
+    }
+  };
     const servicePrice = selectedService?.price || 0;
     const productsTotal = selectedProducts.reduce((acc, p) => acc + (p.price || 0), 0);
     return servicePrice + productsTotal;
