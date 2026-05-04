@@ -158,9 +158,12 @@ function ProductsComponent() {
             <h2 className="text-3xl font-bold tracking-tight">Produtos</h2>
             <p className="text-muted-foreground">Gerencie seu estoque de pomadas, balms e outros itens.</p>
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+            setIsAddDialogOpen(open);
+            if (!open) setEditingProduct(null);
+          }}>
             <DialogTrigger asChild>
-              <Button className="gap-2" variant={canAddProduct ? "default" : "secondary"}>
+              <Button className="gap-2" variant={canAddProduct ? "default" : "secondary"} onClick={() => setEditingProduct(null)}>
                 <Plus size={18} /> Novo Produto
               </Button>
             </DialogTrigger>
