@@ -68,6 +68,8 @@ function SettingsComponent() {
     logo_url: "",
     cashback_enabled: false,
     cashback_percentage: 0,
+    address: "",
+    google_maps_url: "",
   });
 
   useEffect(() => {
