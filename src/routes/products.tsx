@@ -95,21 +95,41 @@ function ProductsComponent() {
     e.preventDefault();
     if (!user) return;
 
-    const { error } = await supabase.from("products").insert({
-      ...newProduct,
-      price: parseFloat(newProduct.price),
-      stock_quantity: parseInt(newProduct.stock_quantity),
-      user_id: user.id,
-    });
+    if (editingProduct) {
+      const { error } = await supabase
+        .from("products")
+        .update({
+          ...editingProduct,
+          price: parseFloat(editingProduct.price),
+          stock_quantity: parseInt(editingProduct.stock_quantity),
+        })
+        .eq("id", editingProduct.id);
 
-    if (error) {
-      toast.error("Erro ao adicionar produto");
+      if (error) {
+        toast.error("Erro ao atualizar produto");
+      } else {
+        toast.success("Produto atualizado com sucesso!");
+        setIsAddDialogOpen(false);
+        setEditingProduct(null);
+        fetchProducts();
+      }
     } else {
-      toast.success("Produto adicionado com sucesso!");
-      setIsAddDialogOpen(false);
-      setNewProduct({ name: "", price: "", stock_quantity: "0", description: "", image_url: "" });
-      fetchProducts();
-      refreshLimits();
+      const { error } = await supabase.from("products").insert({
+        ...newProduct,
+        price: parseFloat(newProduct.price),
+        stock_quantity: parseInt(newProduct.stock_quantity),
+        user_id: user.id,
+      });
+
+      if (error) {
+        toast.error("Erro ao adicionar produto");
+      } else {
+        toast.success("Produto adicionado com sucesso!");
+        setIsAddDialogOpen(false);
+        setNewProduct({ name: "", price: "", stock_quantity: "0", description: "", image_url: "" });
+        fetchProducts();
+        refreshLimits();
+      }
     }
   }
 
