@@ -68,6 +68,7 @@ function SettingsComponent() {
     logo_url: "",
     cashback_enabled: false,
     cashback_percentage: 0,
+    free_service_threshold: 10,
     address: "",
     google_maps_url: "",
   });
@@ -112,6 +113,7 @@ function SettingsComponent() {
         logo_url: data.logo_url || "",
         cashback_enabled: data.cashback_enabled || false,
         cashback_percentage: data.cashback_percentage || 0,
+        free_service_threshold: data.free_service_threshold || 10,
         address: data.address || "",
         google_maps_url: data.google_maps_url || "",
       });
@@ -230,6 +232,7 @@ function SettingsComponent() {
         logo_url: updatedData.logo_url,
         cashback_enabled: updatedData.cashback_enabled,
         cashback_percentage: updatedData.cashback_percentage,
+        free_service_threshold: updatedData.free_service_threshold,
         address: updatedData.address,
         google_maps_url: updatedData.google_maps_url,
         updated_at: new Date().toISOString(),
@@ -808,6 +811,41 @@ function SettingsComponent() {
                       </Alert>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cartão Fidelidade</CardTitle>
+                  <CardDescription>A cada X serviços realizados, o próximo é gratuito.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="free_service_threshold">Meta para Serviço Gratuito</Label>
+                    <div className="flex items-center gap-4">
+                      <Input 
+                        id="free_service_threshold" 
+                        type="number"
+                        min="2"
+                        max="100"
+                        value={formData.free_service_threshold} 
+                        onChange={(e) => setFormData({ ...formData, free_service_threshold: parseInt(e.target.value) || 10 })}
+                        className="max-w-[150px]"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        Após completar {formData.free_service_threshold} procedimentos, o cliente ganha o próximo gratuitamente.
+                      </span>
+                    </div>
+                  </div>
+
+                  <Alert>
+                    <Gift className="h-4 w-4" />
+                    <AlertTitle>Como funciona?</AlertTitle>
+                    <AlertDescription>
+                      O sistema contabiliza automaticamente cada agendamento marcado como "Concluído". 
+                      O cliente poderá acompanhar o progresso em sua página de histórico.
+                    </AlertDescription>
+                  </Alert>
                 </CardContent>
               </Card>
             </TabsContent>
