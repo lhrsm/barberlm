@@ -124,8 +124,42 @@ function CalendarComponent() {
     }
   }
 
-  const handleCreateAppointment = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
+    const service = services.find(s => s.id === serviceId);
+    const startTime = parseISO(`${date}T${time}:00`);
+    const endTime = addMinutes(startTime, service?.duration_minutes || 30);
+
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("id")
+      .eq("barber_id", barberId)
+      .or(`start_time.lte.${startTime.toISOString()},end_time.gte.${startTime.toISOString()}`)
+      .or(`start_time.lt.${endTime.toISOString()},end_time.gt.${endTime.toISOString()}`)
+      .limit(1);
+
+    if (error) {
+      console.error("Erro ao verificar conflitos:", error);
+      return false;
+    }
+
+    return data && data.length > 0;
+  };
+
+  const handleNextStep = async () => {
+    if (currentStep === 2) {
+      setIsLoading(true);
+      const hasConflict = await checkConflict(selectedBarber, selectedDate, selectedTime, selectedService);
+      setIsLoading(false);
+      
+      if (hasConflict) {
+        toast.error("Este profissional já possui um agendamento neste horário.");
+        return;
+      }
+    }
+    setCurrentStep(prev => prev + 1);
+  };
+
+  const handleCreateAppointment = async () => {
     if (!user) return;
     setIsLoading(true);
 
@@ -149,6 +183,7 @@ function CalendarComponent() {
 
       toast.success("Agendamento criado com sucesso!");
       setIsDialogOpen(false);
+      setCurrentStep(1);
       fetchData();
     } catch (error: any) {
       toast.error("Erro ao criar agendamento: " + error.message);
