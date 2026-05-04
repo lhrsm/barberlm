@@ -554,5 +554,3 @@ function BarbersComponent() {
   );
 }
 
-// Add Crown to imports
-import { Crown } from "lucide-react";
