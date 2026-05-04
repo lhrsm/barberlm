@@ -34,6 +34,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = state.location.pathname;
 
   useEffect(() => {
+    if (pathname === "/") {
+      navigate({ to: "/dashboard" });
+    }
+  }, [pathname, navigate]);
+
+  useEffect(() => {
     async function fetchProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
