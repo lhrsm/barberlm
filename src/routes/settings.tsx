@@ -57,6 +57,7 @@ function SettingsComponent() {
     business_name: "",
     slug: "",
     whatsapp_enabled: false,
+    scheduling_mode: "automatic" as "manual" | "automatic",
     payment_gateway_provider: "none",
     payment_gateway_key: "",
     primary_color: "#7c3aed",
@@ -96,6 +97,7 @@ function SettingsComponent() {
         business_name: data.business_name || "",
         slug: data.slug || "",
         whatsapp_enabled: data.whatsapp_enabled || false,
+        scheduling_mode: data.scheduling_mode || "automatic",
         payment_gateway_provider: data.payment_gateway_provider || "none",
         payment_gateway_key: data.payment_gateway_key || "",
         primary_color: data.primary_color || "#7c3aed",
@@ -209,6 +211,7 @@ function SettingsComponent() {
         business_name: updatedData.business_name,
         slug: updatedData.slug,
         whatsapp_enabled: updatedData.whatsapp_enabled,
+        scheduling_mode: updatedData.scheduling_mode,
         payment_gateway_provider: updatedData.payment_gateway_provider === "none" ? null : updatedData.payment_gateway_provider,
         payment_gateway_key: updatedData.payment_gateway_key,
         primary_color: updatedData.primary_color,
@@ -283,12 +286,15 @@ function SettingsComponent() {
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 max-w-[600px]">
+            <TabsList className="grid w-full grid-cols-5 max-w-[700px]">
               <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
                 <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
               </TabsTrigger>
               <TabsTrigger value="appearance" className="gap-2 text-xs sm:text-sm">
                 <Palette size={16} /> <span className="hidden sm:inline">Aparência</span>
+              </TabsTrigger>
+              <TabsTrigger value="scheduling" className="gap-2 text-xs sm:text-sm">
+                <Calendar size={16} /> <span className="hidden sm:inline">Agendamento</span>
               </TabsTrigger>
               <TabsTrigger value="whatsapp" className="gap-2 text-xs sm:text-sm">
                 <MessageSquare size={16} /> <span className="hidden sm:inline">WhatsApp</span>
@@ -386,6 +392,58 @@ function SettingsComponent() {
                     />
                     <p className="text-xs text-muted-foreground">Insira o link da imagem do seu logotipo.</p>
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="scheduling" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Configurações de Agendamento</CardTitle>
+                  <CardDescription>Defina como seus clientes podem marcar horários.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setFormData({ ...formData, scheduling_mode: "manual" })}>
+                      <div className="mt-1">
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.scheduling_mode === 'manual' ? 'border-primary' : 'border-muted-foreground'}`}>
+                          {formData.scheduling_mode === 'manual' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-base cursor-pointer">Agendamento Manual</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Seus clientes verão seu contato de WhatsApp e deverão entrar em contato para agendar. Você insere o horário manualmente na agenda.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setFormData({ ...formData, scheduling_mode: "automatic" })}>
+                      <div className="mt-1">
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.scheduling_mode === 'automatic' ? 'border-primary' : 'border-muted-foreground'}`}>
+                          {formData.scheduling_mode === 'automatic' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-base cursor-pointer">Agendamento Automático (Self-Service)</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Seus clientes escolhem o serviço, profissional e horário diretamente na sua página. O agendamento é confirmado automaticamente conforme sua disponibilidade.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {formData.scheduling_mode === 'automatic' && (
+                    <div className="bg-primary/5 p-4 rounded-lg border border-primary/10 animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-center gap-2 text-primary font-medium mb-1">
+                        <CheckCircle2 size={16} />
+                        <span>Recomendado</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        O modo automático aumenta sua produtividade e permite que clientes agendem mesmo fora do horário comercial.
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
