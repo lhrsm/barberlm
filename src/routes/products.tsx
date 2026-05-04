@@ -343,6 +343,16 @@ function ProductsComponent() {
                       >
                         <Edit size={14} />
                       </Button>
+                      {plan !== 'free' && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => handleDuplicateProduct(product)}
+                        >
+                          <Copy size={14} />
+                        </Button>
+                      )}
                       <Button 
                         variant="ghost" 
                         size="icon" 
