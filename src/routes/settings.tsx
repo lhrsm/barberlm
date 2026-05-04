@@ -353,6 +353,26 @@ function SettingsComponent() {
                     </div>
                     <p className="text-xs text-muted-foreground">Este será o link que seus clientes usarão para agendar.</p>
                   </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="address">Endereço Físico</Label>
+                    <Input 
+                      id="address" 
+                      value={formData.address} 
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      placeholder="Ex: Rua das Flores, 123 - Centro, São Paulo - SP"
+                    />
+                    <p className="text-xs text-muted-foreground">O endereço completo que aparecerá para os clientes.</p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="google_maps_url">Link do Google Maps (Embed)</Label>
+                    <Input 
+                      id="google_maps_url" 
+                      value={formData.google_maps_url} 
+                      onChange={(e) => setFormData({ ...formData, google_maps_url: e.target.value })}
+                      placeholder='Ex: <iframe src="https://www.google.com/maps/embed?pb=..." ...></iframe>'
+                    />
+                    <p className="text-xs text-muted-foreground">Copie o código de incorporação (embed) do Google Maps para exibir o mapa na sua página.</p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
