@@ -30,12 +30,15 @@ function ShopPageComponent() {
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedBarber, setSelectedBarber] = useState<any>(null);
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelTokenInput, setCancelTokenInput] = useState("");
   const [modalBarber, setModalBarber] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("09:00");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [customerCashback, setCustomerCashback] = useState(0);
   const [useCashback, setUseCashback] = useState(false);
@@ -206,6 +209,33 @@ function ShopPageComponent() {
     }
   };
 
+  const handleCancelAppointment = async () => {
+    if (!cancelTokenInput) {
+      toast.error("Por favor, insira o código de cancelamento.");
+      return;
+    }
+
+    setCancelling(true);
+    try {
+      const { data, error } = await (supabase as any).rpc('cancel_appointment_by_token', { 
+        token_val: cancelTokenInput 
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        toast.success("Agendamento cancelado com sucesso.");
+        setIsCancelModalOpen(false);
+        setCancelTokenInput("");
+      } else {
+        toast.error("Código inválido ou agendamento já cancelado.");
+      }
+    } catch (error: any) {
+      toast.error("Erro ao cancelar: " + error.message);
+    } finally {
+      setCancelling(false);
+    }
+  };
   const calculateTotalBeforeCashback = () => {
     const servicePrice = selectedService?.price || 0;
     const productsTotal = selectedProducts.reduce((acc, p) => acc + (p.price || 0), 0);
@@ -382,6 +412,15 @@ function ShopPageComponent() {
             </div>
           </section>
         )}
+
+        {/* Cancellation Section */}
+        <section className="bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-white/20 text-center space-y-3">
+          <h4 className="font-bold">Precisa cancelar um agendamento?</h4>
+          <p className="text-sm text-muted-foreground">Utilize o código enviado no seu WhatsApp para cancelar seu horário.</p>
+          <Button variant="outline" size="sm" onClick={() => setIsCancelModalOpen(true)}>
+            Cancelar Agendamento
+          </Button>
+        </section>
 
         {/* Footer info */}
         <section className="pt-8 border-t text-center text-sm text-muted-foreground">
@@ -615,6 +654,39 @@ function ShopPageComponent() {
               <p className="text-center text-muted-foreground py-4">Este profissional ainda não tem serviços vinculados.</p>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Cancellation Modal */}
+      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Cancelar Agendamento</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="cancelToken">Código de Cancelamento</Label>
+              <Input 
+                id="cancelToken" 
+                placeholder="Insira o código recebido" 
+                value={cancelTokenInput}
+                onChange={(e) => setCancelTokenInput(e.target.value)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              O cancelamento só pode ser realizado se o horário ainda não tiver passado.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="destructive" 
+              className="w-full" 
+              onClick={handleCancelAppointment}
+              disabled={cancelling}
+            >
+              {cancelling ? "Cancelando..." : "Confirmar Cancelamento"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

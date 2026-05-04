@@ -17,6 +17,7 @@ export type Database = {
       appointments: {
         Row: {
           barber_id: string | null
+          cancel_token: string | null
           created_at: string
           customer_id: string | null
           end_time: string
@@ -30,6 +31,7 @@ export type Database = {
         }
         Insert: {
           barber_id?: string | null
+          cancel_token?: string | null
           created_at?: string
           customer_id?: string | null
           end_time: string
@@ -43,6 +45,7 @@ export type Database = {
         }
         Update: {
           barber_id?: string | null
+          cancel_token?: string | null
           created_at?: string
           customer_id?: string | null
           end_time?: string
@@ -185,6 +188,39 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          link: string | null
+          message: string
+          read: boolean | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string | null
           user_id?: string
         }
         Relationships: []
@@ -409,6 +445,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_appointment_by_token: {
+        Args: { token_val: string }
+        Returns: boolean
+      }
       decrement_product_stock: {
         Args: { amount: number; prod_id: string }
         Returns: undefined

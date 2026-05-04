@@ -17,10 +17,22 @@ import {
   ArrowDownRight,
   Target,
   Crown,
-  Zap
+  Zap,
+  Bell,
+  ExternalLink,
+  Clock,
+  User as UserIcon
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, endOfDay, startOfMonth, endOfMonth, format } from "date-fns";
+import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardComponent,
@@ -30,6 +42,8 @@ function DashboardComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { plan, usage, limits } = usePlanLimits();
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [stats, setStats] = useState({
     daily: {
       appointments: 0,
@@ -57,8 +71,36 @@ function DashboardComponent() {
   useEffect(() => {
     if (user) {
       fetchStats();
+      fetchNotifications();
+      fetchTodayAppointments();
     }
   }, [user]);
+
+  async function fetchNotifications() {
+    const { data } = await supabase
+      .from("notifications")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (data) setNotifications(data);
+  }
+
+  async function fetchTodayAppointments() {
+    const todayStart = startOfDay(new Date()).toISOString();
+    const todayEnd = endOfDay(new Date()).toISOString();
+    const { data } = await supabase
+      .from("appointments")
+      .select("*, customers(name, phone), services(name), barbers(name)")
+      .gte("start_time", todayStart)
+      .lte("start_time", todayEnd)
+      .order("start_time", { ascending: true });
+    if (data) setTodayAppointments(data);
+  }
+
+  async function markAsRead(id: string) {
+    await supabase.from("notifications").update({ read: true }).eq("id", id);
+    fetchNotifications();
+  }
 
   async function fetchStats() {
     const todayStart = startOfDay(new Date()).toISOString();
@@ -122,6 +164,49 @@ function DashboardComponent() {
             <p className="text-muted-foreground">Visão geral do desempenho da sua barbearia.</p>
           </div>
           <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="relative">
+                  <Bell size={20} />
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
+                      {notifications.filter(n => !n.read).length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <div className="p-4 border-b">
+                  <h4 className="font-semibold">Notificações</h4>
+                </div>
+                <ScrollArea className="h-[300px]">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      Nenhuma notificação encontrada.
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div 
+                        key={n.id} 
+                        className={`p-4 border-b hover:bg-muted/50 transition-colors cursor-pointer ${!n.read ? 'bg-primary/5' : ''}`}
+                        onClick={() => {
+                          markAsRead(n.id);
+                          if (n.link) navigate({ to: n.link });
+                        }}
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <p className={`text-sm ${!n.read ? 'font-bold' : 'font-medium'}`}>{n.title}</p>
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
+                      </div>
+                    ))
+                  )}
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
             <Button onClick={() => navigate({ to: "/calendar" })} className="gap-2">
               <Calendar size={18} /> Novo Agendamento
             </Button>
@@ -249,6 +334,50 @@ function DashboardComponent() {
                 </CardContent>
               </Card>
             </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Agendamentos de Hoje</CardTitle>
+                <CardDescription>Consulte os detalhes dos horários marcados para hoje.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {todayAppointments.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      Nenhum agendamento para hoje.
+                    </div>
+                  ) : (
+                    todayAppointments.map((app) => (
+                      <div 
+                        key={app.id} 
+                        className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors cursor-pointer group"
+                        onClick={() => navigate({ to: "/calendar" })}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            {app.customers?.name?.[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-bold">{app.customers?.name}</p>
+                            <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1"><Clock size={12} /> {format(new Date(app.start_time), 'HH:mm')}</span>
+                              <span className="flex items-center gap-1"><Scissors size={12} /> {app.services?.name}</span>
+                              <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={app.status === 'scheduled' ? 'secondary' : app.status === 'completed' ? 'default' : 'destructive'}>
+                            {app.status === 'scheduled' ? 'Agendado' : app.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                          </Badge>
+                          <ExternalLink size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="monthly" className="space-y-6">
