@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as FinancesRouteImport } from './routes/finances'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -22,6 +23,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/services': typeof ServicesRoute
+  '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/services': typeof ServicesRoute
+  '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/services': typeof ServicesRoute
+  '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finances'
     | '/services'
+    | '/settings'
     | '/subscription'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finances'
     | '/services'
+    | '/settings'
     | '/subscription'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finances'
     | '/services'
+    | '/settings'
     | '/subscription'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FinancesRoute: typeof FinancesRoute
   ServicesRoute: typeof ServicesRoute
+  SettingsRoute: typeof SettingsRoute
   SubscriptionRoute: typeof SubscriptionRoute
 }
 
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/subscription'
       preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FinancesRoute: FinancesRoute,
   ServicesRoute: ServicesRoute,
+  SettingsRoute: SettingsRoute,
   SubscriptionRoute: SubscriptionRoute,
 }
 export const routeTree = rootRouteImport
