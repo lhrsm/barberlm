@@ -47,6 +47,9 @@ function SettingsComponent() {
   const [whatsappInstances, setWhatsappInstances] = useState<any[]>([]);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [newInstanceName, setNewInstanceName] = useState("");
+  const [connectionType, setConnectionType] = useState<"qrcode" | "api_key">("qrcode");
+  const [apiUrl, setApiUrl] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [connectingInstance, setConnectingInstance] = useState<string | null>(null);
   const [qrValue, setQrValue] = useState("");
 
@@ -126,6 +129,13 @@ function SettingsComponent() {
       return;
     }
 
+    if (connectionType === "api_key") {
+      if (!apiUrl.trim() || !apiKey.trim()) {
+        toast.error("Preencha a URL e a Chave da API");
+        return;
+      }
+    }
+
     console.log("Creating WhatsApp instance for user:", user.id);
 
     const { data, error } = await supabase
@@ -133,7 +143,10 @@ function SettingsComponent() {
       .insert({
         user_id: user.id,
         name: trimmedName,
-        status: "pending"
+        status: connectionType === "api_key" ? "connected" : "pending",
+        connection_type: connectionType,
+        api_url: connectionType === "api_key" ? apiUrl : null,
+        api_key: connectionType === "api_key" ? apiKey : null
       })
       .select()
       .single();
@@ -145,10 +158,18 @@ function SettingsComponent() {
     }
 
     setNewInstanceName("");
+    setApiUrl("");
+    setApiKey("");
     setWhatsappInstances([...whatsappInstances, data]);
-    setConnectingInstance(data.id);
-    setQrValue(`https://meu-saas.com/connect/${data.id}-${Math.random().toString(36).substr(2, 9)}`);
-    setIsQrModalOpen(true);
+    
+    if (connectionType === "qrcode") {
+      setConnectingInstance(data.id);
+      setQrValue(`https://meu-saas.com/connect/${data.id}-${Math.random().toString(36).substr(2, 9)}`);
+      setIsQrModalOpen(true);
+    } else {
+      toast.success("Conexão via API configurada com sucesso!");
+    }
+    
     refreshLimits();
   }
 
@@ -401,7 +422,12 @@ function SettingsComponent() {
                             <MessageSquare size={18} />
                           </div>
                           <div>
-                            <p className="font-medium text-sm">{instance.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm">{instance.name}</p>
+                              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground uppercase">
+                                {instance.connection_type === 'api_key' ? 'API' : 'QR Code'}
+                              </span>
+                            </div>
                             <div className="flex items-center gap-2">
                               <span className={`w-2 h-2 rounded-full ${instance.status === 'connected' ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
                               <span className="text-xs text-muted-foreground">
@@ -411,7 +437,7 @@ function SettingsComponent() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {instance.status !== 'connected' && (
+                          {instance.status !== 'connected' && instance.connection_type === 'qrcode' && (
                             <Button 
                               variant="outline" 
                               size="sm" 
@@ -442,24 +468,68 @@ function SettingsComponent() {
                       </div>
                     )}
 
-                    <div className="flex gap-2 pt-2">
-                      <Input 
-                        placeholder="Nome da conexão (ex: Principal)" 
-                        value={newInstanceName}
-                        onChange={(e) => setNewInstanceName(e.target.value)}
-                        disabled={!checkLimit("whatsappConnections")}
-                      />
+                    <div className="space-y-4 pt-4 border-t">
+                      <div className="grid gap-2">
+                        <Label>Nova Conexão</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder="Nome da conexão (ex: Principal)" 
+                            value={newInstanceName}
+                            onChange={(e) => setNewInstanceName(e.target.value)}
+                            disabled={!checkLimit("whatsappConnections")}
+                          />
+                          <Select 
+                            value={connectionType} 
+                            onValueChange={(value: any) => setConnectionType(value)}
+                            disabled={!checkLimit("whatsappConnections")}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Tipo de conexão" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="qrcode">QR Code</SelectItem>
+                              <SelectItem value="api_key">Chave de API</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {connectionType === "api_key" && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                          <div className="grid gap-2">
+                            <Label htmlFor="api_url">URL da API</Label>
+                            <Input 
+                              id="api_url"
+                              placeholder="https://api.whatsapp.com/v1" 
+                              value={apiUrl}
+                              onChange={(e) => setApiUrl(e.target.value)}
+                            />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label htmlFor="api_key">Chave da API</Label>
+                            <Input 
+                              id="api_key"
+                              type="password"
+                              placeholder="Sua chave secreta" 
+                              value={apiKey}
+                              onChange={(e) => setApiKey(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      )}
+
                       <Button 
                         type="button" 
                         onClick={handleAddWhatsapp} 
                         disabled={!checkLimit("whatsappConnections")}
-                        className="gap-2 shrink-0"
+                        className="w-full gap-2"
                       >
-                        <Plus size={18} /> Adicionar Número
+                        <Plus size={18} /> Adicionar e Conectar
                       </Button>
                     </div>
+
                     {!checkLimit("whatsappConnections") && (
-                      <p className="text-xs text-destructive font-medium">
+                      <p className="text-xs text-destructive font-medium text-center">
                         Você atingiu o limite de conexões do seu plano. {plan === "free" && "Faça upgrade para adicionar mais."}
                       </p>
                     )}
