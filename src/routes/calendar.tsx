@@ -234,7 +234,10 @@ function CalendarComponent() {
               </TabsList>
             </Tabs>
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) setCurrentStep(1);
+            }}>
               <DialogTrigger asChild>
                 <Button className="gap-2">
                   <Plus size={18} /> <span className="hidden md:inline">Novo Agendamento</span>
@@ -242,78 +245,132 @@ function CalendarComponent() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()}>
                 <DialogHeader>
-                  <DialogTitle>Novo Agendamento</DialogTitle>
+                  <DialogTitle>Novo Agendamento - Passo {currentStep} de 4</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleCreateAppointment} className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Cliente</Label>
-                    <Select value={selectedCustomer} onValueChange={setSelectedCustomer} required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customers.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                
+                <div className="py-4 space-y-4">
+                  {/* Step Progress Bar */}
+                  <div className="flex gap-1 h-1 w-full bg-muted rounded-full overflow-hidden">
+                    <div className={cn("h-full bg-primary transition-all duration-300", 
+                      currentStep === 1 ? "w-1/4" : currentStep === 2 ? "w-2/4" : currentStep === 3 ? "w-3/4" : "w-full"
+                    )} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Data</Label>
-                      <Input 
-                        type="date" 
-                        value={selectedDate} 
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        required 
-                      />
+                  {currentStep === 1 && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                      <div className="space-y-2">
+                        <Label>Profissional</Label>
+                        <Select value={selectedBarber} onValueChange={setSelectedBarber} required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o profissional" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {barbers.map((b) => (
+                              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Serviço</Label>
+                        <Select value={selectedService} onValueChange={setSelectedService} required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o serviço" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {services.map((s) => (
+                              <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Horário</Label>
-                      <Input 
-                        type="time" 
-                        value={selectedTime} 
-                        onChange={(e) => setSelectedTime(e.target.value)}
-                        required 
-                      />
+                  )}
+
+                  {currentStep === 2 && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                      <div className="space-y-2">
+                        <Label>Data</Label>
+                        <Input 
+                          type="date" 
+                          value={selectedDate} 
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                          required 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Horário</Label>
+                        <Input 
+                          type="time" 
+                          value={selectedTime} 
+                          onChange={(e) => setSelectedTime(e.target.value)}
+                          required 
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="space-y-2">
-                    <Label>Serviço</Label>
-                    <Select value={selectedService} onValueChange={setSelectedService} required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o serviço" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {services.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {currentStep === 3 && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                      <div className="space-y-2">
+                        <Label>Cliente</Label>
+                        <Select value={selectedCustomer} onValueChange={setSelectedCustomer} required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um cliente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {customers.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
 
-                  <div className="space-y-2">
-                    <Label>Profissional</Label>
-                    <Select value={selectedBarber} onValueChange={setSelectedBarber} required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o profissional" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {barbers.map((b) => (
-                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {currentStep === 4 && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                      <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+                        <div className="flex justify-between border-b pb-2">
+                          <span className="text-muted-foreground">Profissional:</span>
+                          <span className="font-medium">{barbers.find(b => b.id === selectedBarber)?.name}</span>
+                        </div>
+                        <div className="flex justify-between border-b pb-2">
+                          <span className="text-muted-foreground">Serviço:</span>
+                          <span className="font-medium">{services.find(s => s.id === selectedService)?.name}</span>
+                        </div>
+                        <div className="flex justify-between border-b pb-2">
+                          <span className="text-muted-foreground">Data/Hora:</span>
+                          <span className="font-medium">
+                            {format(parseISO(selectedDate), "dd/MM/yyyy", { locale: ptBR })} às {selectedTime}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Cliente:</span>
+                          <span className="font-medium">{customers.find(c => c.id === selectedCustomer)?.name}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-                  <DialogFooter>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Salvando..." : "Confirmar Agendamento"}
+                <DialogFooter className="flex gap-2 sm:justify-between">
+                  {currentStep > 1 ? (
+                    <Button variant="outline" onClick={() => setCurrentStep(prev => prev - 1)} disabled={isLoading}>
+                      Voltar
                     </Button>
-                  </DialogFooter>
-                </form>
+                  ) : <div />}
+                  
+                  {currentStep < 4 ? (
+                    <Button onClick={handleNextStep} disabled={isLoading}>
+                      {isLoading ? "Validando..." : "Próximo"}
+                    </Button>
+                  ) : (
+                    <Button onClick={handleCreateAppointment} disabled={isLoading}>
+                      {isLoading ? "Salvando..." : "Confirmar"}
+                    </Button>
+                  )}
+                </DialogFooter>
               </DialogContent>
             </Dialog>
           </div>
