@@ -17,10 +17,22 @@ import {
   ArrowDownRight,
   Target,
   Crown,
-  Zap
+  Zap,
+  Bell,
+  ExternalLink,
+  Clock,
+  User as UserIcon
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, endOfDay, startOfMonth, endOfMonth, format } from "date-fns";
+import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardComponent,
