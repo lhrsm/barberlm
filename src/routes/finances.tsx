@@ -178,7 +178,8 @@ function FinancesComponent() {
                 <Button type="submit" className="w-full">Salvar</Button>
               </form>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
