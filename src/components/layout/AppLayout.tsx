@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Painel", icon: LayoutDashboard, to: "/" },
+  { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Agenda", icon: Calendar, to: "/calendar" },
   { label: "Clientes", icon: Users, to: "/customers" },
   { label: "Barbeiros", icon: UserRound, to: "/barbers" },
@@ -32,6 +32,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session && pathname !== "/auth" && pathname !== "/") {
+        navigate({ to: "/auth" });
+      }
+    }
+    checkAuth();
+  }, [pathname, navigate]);
 
   useEffect(() => {
     async function fetchProfile() {

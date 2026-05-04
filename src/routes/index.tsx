@@ -1,320 +1,309 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
-import { usePlanLimits } from "@/hooks/use-plan-limits";
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
 import { 
-  Users, 
-  Scissors, 
   Calendar, 
-  CircleDollarSign,
-  TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
-  Target,
-  Crown,
-  Zap
+  Users, 
+  CircleDollarSign, 
+  Scissors, 
+  CheckCircle2, 
+  ArrowRight,
+  BarChart3,
+  Smartphone,
+  ShieldCheck,
+  Star
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, endOfDay, startOfMonth, endOfMonth, format } from "date-fns";
 
 export const Route = createFileRoute("/")({
-  component: DashboardComponent,
+  component: LandingPageComponent,
 });
 
-function DashboardComponent() {
+function LandingPageComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { plan, usage, limits } = usePlanLimits();
-  const [stats, setStats] = useState({
-    daily: {
-      appointments: 0,
-      revenue: 0,
-      newCustomers: 0
-    },
-    monthly: {
-      appointments: 0,
-      revenue: 0,
-      newCustomers: 0
-    },
-    total: {
-      customers: 0,
-      services: 0
-    }
-  });
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate({ to: "/auth" });
+    if (!loading && user) {
+      navigate({ to: "/dashboard" });
     }
   }, [user, loading, navigate]);
 
-  useEffect(() => {
-    if (user) {
-      fetchStats();
-    }
-  }, [user]);
-
-  async function fetchStats() {
-    const todayStart = startOfDay(new Date()).toISOString();
-    const todayEnd = endOfDay(new Date()).toISOString();
-    const monthStart = startOfMonth(new Date()).toISOString();
-    const monthEnd = endOfMonth(new Date()).toISOString();
-
-    const [
-      dailyApp, 
-      monthlyApp, 
-      dailyTrans, 
-      monthlyTrans,
-      dailyCust,
-      monthlyCust,
-      totalCust,
-      totalServ
-    ] = await Promise.all([
-      supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", monthStart).lte("start_time", monthEnd),
-      supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", monthStart).lte("created_at", monthEnd),
-      supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", monthStart).lte("created_at", monthEnd),
-      supabase.from("customers").select("*", { count: "exact", head: true }),
-      supabase.from("services").select("*", { count: "exact", head: true })
-    ]);
-
-    const dailyRevenue = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-    const monthlyRevenue = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-
-    setStats({
-      daily: {
-        appointments: dailyApp.count || 0,
-        revenue: dailyRevenue,
-        newCustomers: dailyCust.count || 0
-      },
-      monthly: {
-        appointments: monthlyApp.count || 0,
-        revenue: monthlyRevenue,
-        newCustomers: monthlyCust.count || 0
-      },
-      total: {
-        customers: totalCust.count || 0,
-        services: totalServ.count || 0
-      }
-    });
-  }
-
-  if (loading || !user) return null;
+  if (loading) return null;
+  if (user) return null;
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Painel de Controle</h2>
-            <p className="text-muted-foreground">Visão geral do desempenho da sua barbearia.</p>
-          </div>
+    <div className="min-h-screen bg-background font-sans selection:bg-primary/20">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button onClick={() => navigate({ to: "/calendar" })} className="gap-2">
-              <Calendar size={18} /> Novo Agendamento
+            <Scissors className="text-primary h-6 w-6" />
+            <span className="text-xl font-bold tracking-tight text-primary">BarberSaaS</span>
+          </div>
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#funcionalidades" className="text-sm font-medium hover:text-primary transition-colors">Funcionalidades</a>
+            <a href="#precos" className="text-sm font-medium hover:text-primary transition-colors">Preços</a>
+            <a href="#depoimentos" className="text-sm font-medium hover:text-primary transition-colors">Depoimentos</a>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" asChild>
+              <Link to="/auth">Entrar</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/auth">Começar Grátis</Link>
             </Button>
           </div>
         </div>
+      </nav>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mb-6">
-          <Card className="col-span-4 bg-primary/5 border-primary/20">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">Plano {plan === 'pro' ? 'Pro' : 'Grátis'}</CardTitle>
-                  <CardDescription>Status dos recursos da sua barbearia</CardDescription>
-                </div>
-                {plan === 'pro' ? <Crown className="w-5 h-5 text-yellow-500" /> : <Zap className="w-5 h-5 text-blue-500" />}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Profissionais</span>
-                  <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none">{usage.barbers}</span>
-                    <span className="text-[10px] text-muted-foreground">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
-                  </div>
-                  <Progress value={limits.barbers === Infinity ? 100 : (usage.barbers / limits.barbers) * 100} className="h-1" />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Serviços</span>
-                  <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none">{usage.services}</span>
-                    <span className="text-[10px] text-muted-foreground">/ {limits.services === Infinity ? "∞" : limits.services}</span>
-                  </div>
-                  <Progress value={limits.services === Infinity ? 100 : (usage.services / limits.services) * 100} className="h-1" />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Agenda (Mês)</span>
-                  <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none">{usage.monthlyAppointments}</span>
-                    <span className="text-[10px] text-muted-foreground">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
-                  </div>
-                  <Progress value={limits.monthlyAppointments === Infinity ? 100 : (usage.monthlyAppointments / limits.monthlyAppointments) * 100} className="h-1" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 lg:pt-48 lg:pb-32 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 animate-fade-in">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
+            A solução definitiva para sua barbearia
+          </div>
+          <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-6 text-foreground leading-[1.1]">
+            Gerencie sua barbearia <br className="hidden lg:block" />
+            <span className="text-primary">como um profissional.</span>
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+            Agenda inteligente, controle financeiro, gestão de profissionais e muito mais. 
+            Tudo o que você precisa em um único lugar para focar no que importa: seus clientes.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button size="lg" className="h-14 px-8 text-lg gap-2" asChild>
+              <Link to="/auth">
+                Começar agora gratuitamente <ArrowRight className="h-5 w-5" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="h-14 px-8 text-lg" asChild>
+              <a href="#funcionalidades">Ver todas as funções</a>
+            </Button>
+          </div>
           
-          <Card className="col-span-3 flex flex-col justify-center bg-card">
-            <CardContent className="py-4 text-center space-y-2">
-              {plan === 'free' ? (
-                <>
-                  <p className="text-sm font-medium">Precisando de mais recursos?</p>
-                  <Button size="sm" className="w-full" asChild>
-                    <Link to="/subscription">Fazer Upgrade para Pro</Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm font-medium text-primary">Você possui todos os recursos liberados!</p>
-                  <Button variant="outline" size="sm" className="w-full" asChild>
-                    <Link to="/subscription">Gerenciar Assinatura</Link>
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
+          {/* Dashboard Preview */}
+          <div className="mt-16 lg:mt-24 relative max-w-5xl mx-auto">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-blue-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+            <div className="relative rounded-xl border bg-card shadow-2xl overflow-hidden animate-slide-up">
+              <img 
+                src="https://images.unsplash.com/photo-1512690196162-458d9bc0a892?auto=format&fit=crop&q=80&w=2000" 
+                alt="Barber Dashboard Preview" 
+                className="w-full h-auto opacity-50 grayscale hover:grayscale-0 transition duration-700"
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-[2px]">
+                 <div className="bg-background/90 p-8 rounded-xl border shadow-xl max-w-md text-center">
+                    <BarChart3 className="w-12 h-12 text-primary mx-auto mb-4" />
+                    <h3 className="text-xl font-bold mb-2">Interface Simples e Poderosa</h3>
+                    <p className="text-muted-foreground">Otimizado para desktop e mobile. Gerencie tudo do seu celular ou tablet.</p>
+                 </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <Tabs defaultValue="daily" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
-            <TabsTrigger value="daily">Hoje</TabsTrigger>
-            <TabsTrigger value="monthly">Este Mês</TabsTrigger>
-          </TabsList>
+      {/* Social Proof */}
+      <section className="py-12 border-y bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-center gap-12 text-muted-foreground/60 font-medium">
+          <div className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> +500 Barbearias Ativas</div>
+          <div className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> 99.9% de Disponibilidade</div>
+          <div className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> Suporte 24/7 em Português</div>
+        </div>
+      </section>
 
-          <TabsContent value="daily" className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Receita de Hoje</CardTitle>
-                  <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">R$ {stats.daily.revenue.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Faturamento bruto do dia</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Agendamentos Hoje</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.daily.appointments}</div>
-                  <p className="text-xs text-muted-foreground">Total de horários marcados</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Novos Clientes</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.daily.newCustomers}</div>
-                  <p className="text-xs text-muted-foreground">Cadastrados hoje</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Ticket Médio (Mês)</CardTitle>
-                  <Target className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    R$ {stats.monthly.appointments > 0 ? (stats.monthly.revenue / stats.monthly.appointments).toFixed(2) : "0.00"}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Baseado no mês atual</p>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="monthly" className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
-                  <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">R$ {stats.monthly.revenue.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Total faturado neste mês</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Agendamentos no Mês</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.monthly.appointments}</div>
-                  <p className="text-xs text-muted-foreground">Total de atendimentos marcados</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Novos Clientes (Mês)</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.monthly.newCustomers}</div>
-                  <p className="text-xs text-muted-foreground">Conquistados neste mês</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.total.customers}</div>
-                  <p className="text-xs text-muted-foreground">Base de dados completa</p>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-4">
-            <CardHeader>
-              <CardTitle>Ações Rápidas</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-4">
-              <Button variant="outline" onClick={() => navigate({ to: "/customers" })} className="gap-2">
-                <Users size={18} /> Novo Cliente
-              </Button>
-              <Button variant="outline" onClick={() => navigate({ to: "/barbers" })} className="gap-2">
-                <Target size={18} /> Ver Equipe
-              </Button>
-            </CardContent>
-          </Card>
+      {/* Features Section */}
+      <section id="funcionalidades" className="py-24 px-4 bg-muted/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-base font-semibold text-primary uppercase tracking-wide mb-2">Funcionalidades</h2>
+            <p className="text-3xl lg:text-5xl font-bold tracking-tight text-foreground">Tudo o que você precisa para crescer</p>
+          </div>
           
-          <Card className="col-span-3">
-            <CardHeader>
-              <CardTitle>Status da Operação</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2 text-green-600">
-                <TrendingUp size={20} />
-                <span className="font-medium">Sistema Online</span>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <FeatureCard 
+              icon={<Calendar className="h-8 w-8 text-primary" />}
+              title="Agenda Inteligente"
+              description="Visualização diária e semanal com sistema de arraste e solte. Evite conflitos de horário automaticamente."
+            />
+            <FeatureCard 
+              icon={<Users className="h-8 w-8 text-primary" />}
+              title="Gestão de Clientes"
+              description="Histórico completo de atendimentos, preferências e dados de contato para fidelizar seus clientes."
+            />
+            <FeatureCard 
+              icon={<CircleDollarSign className="h-8 w-8 text-primary" />}
+              title="Controle Financeiro"
+              description="Fluxo de caixa simplificado. Acompanhe entradas, saídas e comissões de forma automática."
+            />
+            <FeatureCard 
+              icon={<Smartphone className="h-8 w-8 text-primary" />}
+              title="100% Responsivo"
+              description="Acesse de qualquer lugar. O sistema funciona perfeitamente em celulares, tablets e computadores."
+            />
+            <FeatureCard 
+              icon={<ShieldCheck className="h-8 w-8 text-primary" />}
+              title="Segurança SaaS"
+              description="Dados isolados por barbearia com criptografia de ponta a ponta e backups automáticos diários."
+            />
+            <FeatureCard 
+              icon={<BarChart3 className="h-8 w-8 text-primary" />}
+              title="Métricas em Tempo Real"
+              description="Dashboard completo com faturamento, ticket médio e novos clientes por dia e mês."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="precos" className="py-24 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-base font-semibold text-primary uppercase tracking-wide mb-2">Preços</h2>
+            <p className="text-3xl lg:text-5xl font-bold tracking-tight text-foreground">Comece hoje, pague depois</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Plan */}
+            <div className="relative p-8 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-bold mb-2">Plano Grátis</h3>
+              <p className="text-muted-foreground mb-6">Para quem está começando e quer organizar a casa.</p>
+              <div className="text-4xl font-extrabold mb-6">R$ 0<span className="text-base font-normal text-muted-foreground">/mês</span></div>
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> 1 Profissional Ativo</li>
+                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Até 5 Serviços</li>
+                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> 30 Agendamentos Mensais</li>
+                <li className="flex items-center gap-3 text-sm text-muted-foreground/50"><CheckCircle2 className="h-5 w-5" /> Relatórios Financeiros</li>
+              </ul>
+              <Button variant="outline" className="w-full" asChild>
+                <Link to="/auth">Criar conta grátis</Link>
+              </Button>
+            </div>
+            
+            {/* Pro Plan */}
+            <div className="relative p-8 rounded-2xl border-2 border-primary bg-card shadow-xl overflow-hidden">
+              <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-bl-lg">MAIS POPULAR</div>
+              <h3 className="text-xl font-bold mb-2">Plano Pro</h3>
+              <p className="text-muted-foreground mb-6">A solução completa para barbearias de sucesso.</p>
+              <div className="text-4xl font-extrabold mb-2">R$ 49,90<span className="text-base font-normal text-muted-foreground">/mês</span></div>
+              <p className="text-sm text-primary font-medium mb-6">Economize 20% no plano anual</p>
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Profissionais Ilimitados</li>
+                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Serviços Ilimitados</li>
+                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Agendamentos Ilimitados</li>
+                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Relatórios de Performance</li>
+                <li className="flex items-center gap-3 text-sm"><CheckCircle2 className="h-5 w-5 text-green-500" /> Suporte Prioritário</li>
+              </ul>
+              <Button className="w-full h-12 text-lg" asChild>
+                <Link to="/auth">Fazer Upgrade agora</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section id="depoimentos" className="py-24 px-4 bg-primary/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-base font-semibold text-primary uppercase tracking-wide mb-2">Depoimentos</h2>
+            <p className="text-3xl lg:text-5xl font-bold tracking-tight text-foreground">O que dizem os barbeiros</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <TestimonialCard 
+              name="Carlos Alberto"
+              business="Barbearia Estilo"
+              content="O sistema mudou a forma como gerencio meu tempo. O controle de conflitos na agenda é perfeito."
+              rating={5}
+            />
+            <TestimonialCard 
+              name="Ricardo Nunes"
+              business="The Barber Shop"
+              content="Saímos do papel para o digital em um dia. A interface é tão simples que nem precisei treinar minha equipe."
+              rating={5}
+            />
+            <TestimonialCard 
+              name="Marcos Souza"
+              business="Barba & Cia"
+              content="O controle financeiro é o diferencial. Agora sei exatamente quanto estou faturando e quais serviços rendem mais."
+              rating={5}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-background border-t py-12 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div className="col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <Scissors className="text-primary h-6 w-6" />
+                <span className="text-xl font-bold tracking-tight text-primary">BarberSaaS</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Sua barbearia possui {stats.total.services} serviços ativos cadastrados.
+              <p className="text-muted-foreground max-w-sm mb-6">
+                Ajudamos barbeiros a profissionalizarem seus negócios através de tecnologia simples e acessível.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Produto</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#funcionalidades" className="hover:text-primary transition-colors">Funcionalidades</a></li>
+                <li><a href="#precos" className="hover:text-primary transition-colors">Preços</a></li>
+                <li><a href="/auth" className="hover:text-primary transition-colors">Cadastrar</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Suporte</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-primary transition-colors">Central de Ajuda</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Contato</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Termos de Uso</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t text-center text-sm text-muted-foreground">
+            © 2026 BarberSaaS. Todos os direitos reservados.
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+  return (
+    <div className="p-8 rounded-2xl bg-card border shadow-sm hover:shadow-md transition-shadow animate-fade-in">
+      <div className="mb-4">{icon}</div>
+      <h3 className="text-xl font-bold mb-2">{title}</h3>
+      <p className="text-muted-foreground leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
+function TestimonialCard({ name, business, content, rating }: { name: string, business: string, content: string, rating: number }) {
+  return (
+    <div className="p-8 rounded-2xl bg-card border shadow-sm animate-fade-in">
+      <div className="flex gap-1 mb-4 text-yellow-400">
+        {Array.from({ length: rating }).map((_, i) => (
+          <Star key={i} className="h-4 w-4 fill-current" />
+        ))}
+      </div>
+      <p className="text-lg italic mb-6 leading-relaxed">"{content}"</p>
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
+          {name.charAt(0)}
+        </div>
+        <div>
+          <div className="font-bold">{name}</div>
+          <div className="text-xs text-muted-foreground">{business}</div>
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }

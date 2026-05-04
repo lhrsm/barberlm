@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlanLimits, PLAN_LIMITS } from "@/hooks/use-plan-limits";
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/subscription")({
 
 function SubscriptionComponent() {
   const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const { plan, usage, limits, refresh } = usePlanLimits();
 
   const handleUpgrade = async () => {
@@ -50,7 +52,13 @@ function SubscriptionComponent() {
     }
   };
 
-  if (authLoading) return null;
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate({ to: "/auth" });
+    }
+  }, [user, authLoading, navigate]);
+
+  if (authLoading || !user) return null;
 
   return (
     <AppLayout>
