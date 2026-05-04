@@ -395,7 +395,7 @@ function SettingsComponent() {
                   <CardTitle>Personalização Visual</CardTitle>
                   <CardDescription>Deixe a página com a cara da sua marca.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="grid gap-2">
                       <Label htmlFor="primary_color">Cor Primária</Label>
@@ -432,15 +432,122 @@ function SettingsComponent() {
                       </div>
                     </div>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="logo_url">URL do Logo</Label>
-                    <Input 
-                      id="logo_url" 
-                      value={formData.logo_url} 
-                      onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                      placeholder="https://exemplo.com/logo.png"
-                    />
-                    <p className="text-xs text-muted-foreground">Insira o link da imagem do seu logotipo.</p>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="font-medium text-sm">Configurações de Fonte</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="font_family">Tipografia</Label>
+                        <Select 
+                          value={formData.font_family} 
+                          onValueChange={(value) => setFormData({ ...formData, font_family: value })}
+                        >
+                          <SelectTrigger id="font_family">
+                            <SelectValue placeholder="Selecione a fonte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Inter">Inter (Padrão)</SelectItem>
+                            <SelectItem value="Roboto">Roboto</SelectItem>
+                            <SelectItem value="Open Sans">Open Sans</SelectItem>
+                            <SelectItem value="Montserrat">Montserrat</SelectItem>
+                            <SelectItem value="Playfair Display">Playfair Display (Elegante)</SelectItem>
+                            <SelectItem value="Oswald">Oswald (Moderna)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="font_size">Tamanho da Fonte</Label>
+                        <Select 
+                          value={formData.font_size} 
+                          onValueChange={(value) => setFormData({ ...formData, font_size: value })}
+                        >
+                          <SelectTrigger id="font_size">
+                            <SelectValue placeholder="Selecione o tamanho" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="14px">Pequeno (14px)</SelectItem>
+                            <SelectItem value="16px">Normal (16px)</SelectItem>
+                            <SelectItem value="18px">Médio (18px)</SelectItem>
+                            <SelectItem value="20px">Grande (20px)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="font_color">Cor da Fonte</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            id="font_color" 
+                            type="color" 
+                            className="w-12 h-10 p-1"
+                            value={formData.font_color} 
+                            onChange={(e) => setFormData({ ...formData, font_color: e.target.value })}
+                          />
+                          <Input 
+                            value={formData.font_color} 
+                            onChange={(e) => setFormData({ ...formData, font_color: e.target.value })}
+                            placeholder="#000000"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="font-medium text-sm">Logo da Barbearia</h4>
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                        {formData.logo_url ? (
+                          <img src={formData.logo_url} alt="Logo Preview" className="h-full w-full object-contain" />
+                        ) : (
+                          <Upload className="h-6 w-6 text-muted-foreground/30" />
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <Label htmlFor="logo_file">Anexar Arquivo de Logo</Label>
+                        <Input 
+                          id="logo_file" 
+                          type="file" 
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || !user) return;
+                            
+                            try {
+                              setSaving(true);
+                              const fileExt = file.name.split('.').pop();
+                              const fileName = `${user.id}-logo-${Math.random()}.${fileExt}`;
+                              
+                              const { error: uploadError } = await supabase.storage
+                                .from('barber-avatars') // Using existing bucket for simplicity
+                                .upload(fileName, file);
+                                
+                              if (uploadError) throw uploadError;
+                              
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('barber-avatars')
+                                .getPublicUrl(fileName);
+                                
+                              setFormData({ ...formData, logo_url: publicUrl });
+                              toast.success("Logo carregado com sucesso!");
+                            } catch (error: any) {
+                              toast.error("Erro ao carregar logo: " + error.message);
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                        />
+                        <p className="text-[10px] text-muted-foreground">Recomendado: imagem quadrada ou horizontal com fundo transparente.</p>
+                      </div>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="logo_url">Ou URL do Logo</Label>
+                      <Input 
+                        id="logo_url" 
+                        value={formData.logo_url} 
+                        onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                        placeholder="https://exemplo.com/logo.png"
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
