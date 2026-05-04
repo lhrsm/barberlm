@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as FinancesRouteImport } from './routes/finances'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -17,11 +18,17 @@ import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BarbersRouteImport } from './routes/barbers'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -59,6 +66,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SlugRoute = SlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -67,6 +79,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -74,10 +87,12 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/services': typeof ServicesRoute
+  '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -85,11 +100,13 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/services': typeof ServicesRoute
+  '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -97,12 +114,14 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
   '/services': typeof ServicesRoute
+  '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$slug'
     | '/auth'
     | '/barbers'
     | '/calendar'
@@ -110,10 +129,12 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finances'
     | '/services'
+    | '/settings'
     | '/subscription'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$slug'
     | '/auth'
     | '/barbers'
     | '/calendar'
@@ -121,10 +142,12 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finances'
     | '/services'
+    | '/settings'
     | '/subscription'
   id:
     | '__root__'
     | '/'
+    | '/$slug'
     | '/auth'
     | '/barbers'
     | '/calendar'
@@ -132,11 +155,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finances'
     | '/services'
+    | '/settings'
     | '/subscription'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SlugRoute: typeof SlugRoute
   AuthRoute: typeof AuthRoute
   BarbersRoute: typeof BarbersRoute
   CalendarRoute: typeof CalendarRoute
@@ -144,6 +169,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FinancesRoute: typeof FinancesRoute
   ServicesRoute: typeof ServicesRoute
+  SettingsRoute: typeof SettingsRoute
   SubscriptionRoute: typeof SubscriptionRoute
 }
 
@@ -154,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/subscription'
       preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -205,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$slug': {
+      id: '/$slug'
+      path: '/$slug'
+      fullPath: '/$slug'
+      preLoaderRoute: typeof SlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -217,6 +257,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SlugRoute: SlugRoute,
   AuthRoute: AuthRoute,
   BarbersRoute: BarbersRoute,
   CalendarRoute: CalendarRoute,
@@ -224,8 +265,18 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FinancesRoute: FinancesRoute,
   ServicesRoute: ServicesRoute,
+  SettingsRoute: SettingsRoute,
   SubscriptionRoute: SubscriptionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
