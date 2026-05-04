@@ -72,7 +72,6 @@ function BarbersComponent() {
         *,
         barber_services(service_id)
       `)
-      .eq("active", true)
       .order("name");
     
     if (error) {
@@ -83,6 +82,37 @@ function BarbersComponent() {
     }
   }
 
+  async function handleToggleStatus(barber: any) {
+    const { error } = await supabase
+      .from("barbers")
+      .update({ active: !barber.active })
+      .eq("id", barber.id);
+
+    if (error) {
+      toast.error("Erro ao alterar status");
+    } else {
+      toast.success("Status atualizado com sucesso!");
+      fetchBarbers();
+    }
+  }
+
+  async function handleDeleteBarber(id: string) {
+    if (!confirm("Tem certeza que deseja excluir este profissional? Esta ação não pode ser desfeita.")) return;
+
+    const { error } = await supabase
+      .from("barbers")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast.error("Erro ao excluir barbeiro");
+    } else {
+      toast.success("Barbeiro excluído com sucesso!");
+      fetchBarbers();
+      refreshLimits();
+    }
+  }
+
   async function handleAddBarber(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
@@ -90,6 +120,7 @@ function BarbersComponent() {
     const { data: barber, error } = await supabase.from("barbers").insert({
       ...newBarber,
       user_id: user.id,
+      active: true,
     }).select().single();
 
     if (error) {
