@@ -51,7 +51,13 @@ function SubscriptionComponent() {
     }
   };
 
-  if (authLoading) return null;
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate({ to: "/auth" });
+    }
+  }, [user, authLoading, navigate]);
+
+  if (authLoading || !user) return null;
 
   return (
     <AppLayout>
