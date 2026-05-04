@@ -160,6 +160,14 @@ function DashboardComponent() {
                   </div>
                   <Progress value={limits.monthlyAppointments === Infinity ? 100 : (usage.monthlyAppointments / limits.monthlyAppointments) * 100} className="h-1" />
                 </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">WhatsApp</span>
+                  <div className="flex items-end gap-1">
+                    <span className="text-lg font-bold leading-none">{usage.whatsappConnections}</span>
+                    <span className="text-[10px] text-muted-foreground">/ {limits.whatsappConnections === Infinity ? "∞" : limits.whatsappConnections}</span>
+                  </div>
+                  <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1" />
+                </div>
               </div>
             </CardContent>
           </Card>
