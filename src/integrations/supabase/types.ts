@@ -143,22 +143,46 @@ export type Database = {
           business_name: string | null
           created_at: string
           id: string
+          logo_url: string | null
+          payment_gateway_key: string | null
+          payment_gateway_provider: string | null
           plan: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          slug: string | null
           updated_at: string
+          whatsapp_enabled: boolean | null
+          whatsapp_number: string | null
         }
         Insert: {
           business_name?: string | null
           created_at?: string
           id: string
+          logo_url?: string | null
+          payment_gateway_key?: string | null
+          payment_gateway_provider?: string | null
           plan?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string | null
           updated_at?: string
+          whatsapp_enabled?: boolean | null
+          whatsapp_number?: string | null
         }
         Update: {
           business_name?: string | null
           created_at?: string
           id?: string
+          logo_url?: string | null
+          payment_gateway_key?: string | null
+          payment_gateway_provider?: string | null
           plan?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string | null
           updated_at?: string
+          whatsapp_enabled?: boolean | null
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
