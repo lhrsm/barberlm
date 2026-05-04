@@ -655,6 +655,39 @@ function ShopPageComponent() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Cancellation Modal */}
+      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Cancelar Agendamento</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="cancelToken">Código de Cancelamento</Label>
+              <Input 
+                id="cancelToken" 
+                placeholder="Insira o código recebido" 
+                value={cancelTokenInput}
+                onChange={(e) => setCancelTokenInput(e.target.value)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              O cancelamento só pode ser realizado se o horário ainda não tiver passado.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="destructive" 
+              className="w-full" 
+              onClick={handleCancelAppointment}
+              disabled={cancelling}
+            >
+              {cancelling ? "Cancelando..." : "Confirmar Cancelamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
