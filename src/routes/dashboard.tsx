@@ -74,7 +74,8 @@ function DashboardComponent() {
       dailyCust,
       monthlyCust,
       totalCust,
-      totalServ
+      totalServ,
+      barbersData
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", monthStart).lte("start_time", monthEnd),
@@ -83,8 +84,11 @@ function DashboardComponent() {
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }),
-      supabase.from("services").select("*", { count: "exact", head: true })
+      supabase.from("services").select("*", { count: "exact", head: true }),
+      supabase.from("barbers").select("*").eq("active", true).limit(5)
     ]);
+
+    setBarbers(barbersData.data || []);
 
     const dailyRevenue = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
     const monthlyRevenue = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
