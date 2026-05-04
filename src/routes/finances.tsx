@@ -43,9 +43,10 @@ function FinancesComponent() {
   const navigate = useNavigate();
   const { plan } = usePlanLimits();
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [barbers, setBarbers] = useState<any[]>([]);
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço" });
+  const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none" });
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -56,13 +57,31 @@ function FinancesComponent() {
   useEffect(() => {
     if (user) {
       fetchTransactions();
+      fetchBarbers();
     }
   }, [user]);
+
+  async function fetchBarbers() {
+    const { data, error } = await supabase
+      .from("barbers")
+      .select("id, name")
+      .eq("active", true);
+    
+    if (error) {
+      toast.error("Erro ao buscar barbeiros");
+      return;
+    }
+
+    setBarbers(data || []);
+  }
 
   async function fetchTransactions() {
     const { data, error } = await supabase
       .from("transactions")
-      .select("*")
+      .select(`
+        *,
+        barber:barbers(name)
+      `)
       .order("date", { ascending: false });
     
     if (error) {
@@ -85,6 +104,7 @@ function FinancesComponent() {
       ...newTransaction,
       amount: parseFloat(newTransaction.amount),
       user_id: user.id,
+      barber_id: newTransaction.barber_id === "none" ? null : newTransaction.barber_id,
     });
 
     if (error) {
@@ -92,7 +112,7 @@ function FinancesComponent() {
     } else {
       toast.success("Transação adicionada!");
       setIsAddDialogOpen(false);
-      setNewTransaction({ amount: "", type: "income", description: "", category: "Serviço" });
+      setNewTransaction({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none" });
       fetchTransactions();
     }
   }
@@ -108,6 +128,7 @@ function FinancesComponent() {
         type: editingTransaction.type,
         description: editingTransaction.description,
         category: editingTransaction.category,
+        barber_id: editingTransaction.barber_id === "none" ? null : editingTransaction.barber_id,
       })
       .eq("id", editingTransaction.id);
 
@@ -210,6 +231,23 @@ function FinancesComponent() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="barber">Barbeiro</Label>
+                  <Select 
+                    value={newTransaction.barber_id} 
+                    onValueChange={(val) => setNewTransaction({...newTransaction, barber_id: val})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um barbeiro" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum / Geral</SelectItem>
+                      {barbers.map((b) => (
+                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="description">Descrição</Label>
                   <Input 
                     id="description" 
@@ -262,6 +300,7 @@ function FinancesComponent() {
               <TableRow>
                 <TableHead>Data</TableHead>
                 <TableHead>Descrição</TableHead>
+                <TableHead>Barbeiro</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -279,6 +318,7 @@ function FinancesComponent() {
                   <TableRow key={t.id}>
                     <TableCell>{new Date(t.date).toLocaleDateString('pt-BR')}</TableCell>
                     <TableCell className="font-medium">{t.description || "-"}</TableCell>
+                    <TableCell>{t.barber?.name || "Geral"}</TableCell>
                     <TableCell>{t.category || "-"}</TableCell>
                     <TableCell className={cn("text-right font-bold", t.type === "income" ? "text-green-600" : "text-red-600")}>
                       {t.type === "income" ? "+" : "-"} R$ {Number(t.amount).toFixed(2)}
@@ -292,7 +332,8 @@ function FinancesComponent() {
                           onClick={() => {
                             setEditingTransaction({
                               ...t,
-                              amount: t.amount.toString()
+                              amount: t.amount.toString(),
+                              barber_id: t.barber_id || "none"
                             });
                             setIsEditDialogOpen(true);
                           }}
@@ -358,6 +399,23 @@ function FinancesComponent() {
                   value={editingTransaction.category} 
                   onChange={(e) => setEditingTransaction({...editingTransaction, category: e.target.value})} 
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-barber">Barbeiro</Label>
+                <Select 
+                  value={editingTransaction.barber_id || "none"} 
+                  onValueChange={(val) => setEditingTransaction({...editingTransaction, barber_id: val})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um barbeiro" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum / Geral</SelectItem>
+                    {barbers.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-description">Descrição</Label>

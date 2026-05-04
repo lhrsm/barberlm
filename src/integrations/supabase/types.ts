@@ -450,6 +450,7 @@ export type Database = {
         Row: {
           amount: number
           appointment_id: string | null
+          barber_id: string | null
           category: string | null
           created_at: string
           date: string | null
@@ -461,6 +462,7 @@ export type Database = {
         Insert: {
           amount: number
           appointment_id?: string | null
+          barber_id?: string | null
           category?: string | null
           created_at?: string
           date?: string | null
@@ -472,6 +474,7 @@ export type Database = {
         Update: {
           amount?: number
           appointment_id?: string | null
+          barber_id?: string | null
           category?: string | null
           created_at?: string
           date?: string | null
@@ -486,6 +489,13 @@ export type Database = {
             columns: ["appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
             referencedColumns: ["id"]
           },
         ]
