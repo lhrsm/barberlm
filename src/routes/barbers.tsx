@@ -448,7 +448,14 @@ function BarbersComponent() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <h3 className="font-bold text-lg">{barber.name}</h3>
-                      <span className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Ativo</span>
+                      <button 
+                        onClick={() => handleToggleStatus(barber)}
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors ${
+                          barber.active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'
+                        }`}
+                      >
+                        {barber.active ? 'Ativo' : 'Inativo'}
+                      </button>
                     </div>
                     <div className="flex items-center gap-1 mt-0.5 mb-1">
                       <Star size={12} className="text-yellow-500" fill="currentColor" />
