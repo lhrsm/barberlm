@@ -42,6 +42,8 @@ function DashboardComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { plan, usage, limits } = usePlanLimits();
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [stats, setStats] = useState({
     daily: {
       appointments: 0,
