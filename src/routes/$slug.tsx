@@ -342,6 +342,47 @@ function ShopPageComponent() {
           </div>
         </section>
 
+        {/* Products */}
+        {products.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <ShoppingBag className="h-5 w-5" style={{ color: primaryColor }} />
+              <h3 className="text-xl font-bold">Nossos Produtos</h3>
+            </div>
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
+              {products.map((product) => (
+                <Card key={product.id} className="overflow-hidden group hover:shadow-md transition-shadow">
+                  <div className="aspect-square bg-muted relative overflow-hidden">
+                    {product.image_url ? (
+                      <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center">
+                        <Package className="h-8 w-8 text-muted-foreground/30" />
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-3">
+                    <h4 className="font-bold text-sm truncate">{product.name}</h4>
+                    <p className="font-bold text-primary mt-1" style={{ color: primaryColor }}>R$ {product.price.toFixed(2)}</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-2 h-8 text-xs"
+                      onClick={() => {
+                        setSelectedProducts([product]);
+                        setIsBookingOpen(true);
+                        setBookingStep(1);
+                      }}
+                    >
+                      Comprar
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Footer info */}
         <section className="pt-8 border-t text-center text-sm text-muted-foreground">
           <p>© 2026 {shop.business_name} - Todos os direitos reservados.</p>
