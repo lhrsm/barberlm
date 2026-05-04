@@ -23,6 +23,7 @@ const navItems = [
   { label: "Barbeiros", icon: UserRound, to: "/barbers" },
   { label: "Serviços", icon: Scissors, to: "/services" },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
+  { label: "Assinatura", icon: CreditCard, to: "/subscription" },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
