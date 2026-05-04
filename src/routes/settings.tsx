@@ -49,7 +49,7 @@ function SettingsComponent() {
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", user?.id)
+      .eq("id", user.id)
       .single();
 
     if (error) {
@@ -90,7 +90,7 @@ function SettingsComponent() {
         logo_url: formData.logo_url,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", user?.id);
+      .eq("id", user.id);
 
     setSaving(false);
 
