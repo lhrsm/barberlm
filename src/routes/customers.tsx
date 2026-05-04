@@ -232,10 +232,70 @@ function CustomersComponent() {
           </Table>
         </div>
       </div>
+      </div>
     </AppLayout>
   );
+}
 
-        <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, loadingHistory, customerHistory }: any) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Histórico de {selectedCustomer?.name}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6 py-4">
+          {/* Loyalty Progress */}
+          <div className="bg-primary/5 p-4 rounded-xl border border-primary/10">
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2 text-primary">
+                <Gift size={18} />
+                <span className="font-bold">Cartão Fidelidade</span>
+              </div>
+              <span className="text-sm font-medium">
+                {selectedCustomer?.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
+              </span>
+            </div>
+            <Progress 
+              value={((selectedCustomer?.loyalty_points || 0) % (shopProfile?.free_service_threshold || 10)) / (shopProfile?.free_service_threshold || 10) * 100} 
+              className="h-2" 
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              {selectedCustomer?.loyalty_points >= (shopProfile?.free_service_threshold || 10) 
+                ? "Este cliente já possui serviços gratuitos acumulados!" 
+                : `Faltam ${(shopProfile?.free_service_threshold || 10) - ((selectedCustomer?.loyalty_points || 0) % (shopProfile?.free_service_threshold || 10))} procedimentos para o próximo serviço gratuito.`}
+            </p>
+          </div>
+
+          <ScrollArea className="h-[400px] pr-4">
+            <div className="space-y-4">
+              {loadingHistory ? (
+                <div className="text-center py-8">Carregando histórico...</div>
+              ) : customerHistory.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">Nenhum agendamento encontrado.</div>
+              ) : (
+                customerHistory.map((app: any) => (
+                  <div key={app.id} className="flex items-center justify-between p-4 border rounded-xl">
+                    <div>
+                      <p className="font-bold">{app.services?.name}</p>
+                      <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1"><Clock size={12} /> {format(new Date(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                        <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
+                      </div>
+                    </div>
+                    <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'}>
+                      {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
+                    </Badge>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Histórico de {selectedCustomer?.name}</DialogTitle>
