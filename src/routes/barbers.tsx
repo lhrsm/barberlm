@@ -26,9 +26,11 @@ export const Route = createFileRoute("/barbers")({
 function BarbersComponent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { plan, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newBarber, setNewBarber] = useState({ name: "", phone: "", email: "" });
+  const canAddBarber = checkLimit("barbers");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
