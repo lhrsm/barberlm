@@ -13,7 +13,7 @@ function AuthPageComponent() {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate({ to: "/" });
+      navigate({ to: "/dashboard" });
     }
   }, [user, loading, navigate]);
 
