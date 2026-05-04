@@ -354,13 +354,29 @@ function BarbersComponent() {
             {editingBarber && (
               <form onSubmit={handleUpdateBarber} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit_avatar_url">URL da Foto</Label>
-                  <Input 
-                    id="edit_avatar_url" 
-                    placeholder="https://exemplo.com/foto.jpg"
-                    value={editingBarber.avatar_url || ""} 
-                    onChange={(e) => setEditingBarber({...editingBarber, avatar_url: e.target.value})} 
-                  />
+                  <Label htmlFor="edit_avatar">Foto do Profissional</Label>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      {editingBarber.avatar_url ? (
+                        <img src={editingBarber.avatar_url} alt="Preview" className="h-full w-full object-cover" />
+                      ) : (
+                        <AvatarFallback><Upload size={20} className="text-muted-foreground" /></AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex-1">
+                      <Input 
+                        id="edit_avatar" 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, true)}
+                        disabled={uploading}
+                        className="cursor-pointer"
+                      />
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {uploading ? "Enviando..." : "Selecione uma imagem quadrada (JPG, PNG)"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit_name">Nome do Profissional</Label>
