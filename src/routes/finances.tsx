@@ -262,12 +262,13 @@ function FinancesComponent() {
                 <TableHead>Descrição</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {transactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     Nenhuma transação registrada.
                   </TableCell>
                 </TableRow>
@@ -279,6 +280,32 @@ function FinancesComponent() {
                     <TableCell>{t.category || "-"}</TableCell>
                     <TableCell className={cn("text-right font-bold", t.type === "income" ? "text-green-600" : "text-red-600")}>
                       {t.type === "income" ? "+" : "-"} R$ {Number(t.amount).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            setEditingTransaction({
+                              ...t,
+                              amount: t.amount.toString()
+                            });
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Edit2 size={14} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteTransaction(t.id)}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
