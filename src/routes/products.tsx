@@ -148,6 +148,32 @@ function ProductsComponent() {
     }
   }
 
+  async function handleDuplicateProduct(product: any) {
+    if (!user) return;
+    
+    if (usage.products >= limits.products) {
+      toast.error(`Limite atingido! Seu plano permite apenas ${limits.products} produtos.`);
+      return;
+    }
+
+    const { error } = await supabase.from("products").insert({
+      name: `${product.name} (Cópia)`,
+      price: product.price,
+      stock_quantity: product.stock_quantity,
+      description: product.description,
+      image_url: product.image_url,
+      user_id: user.id,
+    });
+
+    if (error) {
+      toast.error("Erro ao duplicar produto");
+    } else {
+      toast.success("Produto duplicado com sucesso!");
+      fetchProducts();
+      refreshLimits();
+    }
+  }
+
   if (loading || !user) return null;
 
   return (
