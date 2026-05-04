@@ -71,7 +71,7 @@ function BarbersComponent() {
     } else {
       toast.success("Barbeiro cadastrado com sucesso!");
       setIsAddDialogOpen(false);
-      setNewBarber({ name: "", phone: "", email: "" });
+      setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0 });
       fetchBarbers();
       refreshLimits();
     }
