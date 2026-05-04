@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
