@@ -310,11 +310,39 @@ function ShopPageComponent() {
                 <MessageSquare size={16} /> WhatsApp
               </a>
             )}
-            <span className="flex items-center gap-1 text-muted-foreground">
-              <MapPin size={16} /> Ver Localização
-            </span>
+            {shop.address && (
+              <a 
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1 text-muted-foreground hover:underline"
+              >
+                <MapPin size={16} /> {shop.address}
+              </a>
+            )}
           </div>
         </section>
+
+        {/* Map Section */}
+        {shop.google_maps_url && (
+          <section className="rounded-2xl overflow-hidden border shadow-sm h-64 sm:h-80 bg-muted">
+            {shop.google_maps_url.includes('<iframe') ? (
+              <div 
+                className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full border-none"
+                dangerouslySetInnerHTML={{ __html: shop.google_maps_url }}
+              />
+            ) : (
+              <iframe
+                title="Google Maps"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                src={shop.google_maps_url}
+                allowFullScreen
+              />
+            )}
+          </section>
+        )}
 
         {/* Services */}
         <section>
