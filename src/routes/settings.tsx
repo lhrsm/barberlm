@@ -214,21 +214,32 @@ function SettingsComponent() {
   const simulateConnection = async () => {
     if (!connectingInstance) return;
     
-    toast.info("Conectando...");
+    setSaving(true);
+    const toastId = toast.loading("Autenticando com o WhatsApp...");
     
+    // Simulate network delay
     setTimeout(async () => {
       const { error } = await supabase
         .from("whatsapp_instances")
-        .update({ status: "connected" })
+        .update({ 
+          status: "connected",
+          phone: "+55 (11) 9" + Math.floor(Math.random() * 90000000 + 10000000)
+        })
         .eq("id", connectingInstance);
 
-      if (!error) {
+      setSaving(false);
+      
+      if (error) {
+        console.error("Error updating connection status:", error);
+        toast.error("Erro ao finalizar conexão", { id: toastId });
+      } else {
         setIsQrModalOpen(false);
         setConnectingInstance(null);
-        fetchWhatsappInstances();
-        toast.success("WhatsApp conectado com sucesso!");
+        await fetchWhatsappInstances();
+        await refreshLimits();
+        toast.success("WhatsApp conectado com sucesso!", { id: toastId });
       }
-    }, 3000);
+    }, 2000);
   };
 
   if (loading || !user) return null;
