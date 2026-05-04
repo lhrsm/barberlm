@@ -68,6 +68,8 @@ function SettingsComponent() {
     logo_url: "",
     cashback_enabled: false,
     cashback_percentage: 0,
+    loyalty_program_enabled: false,
+    free_service_threshold: 10,
     address: "",
     google_maps_url: "",
   });
@@ -112,6 +114,8 @@ function SettingsComponent() {
         logo_url: data.logo_url || "",
         cashback_enabled: data.cashback_enabled || false,
         cashback_percentage: data.cashback_percentage || 0,
+        loyalty_program_enabled: data.loyalty_program_enabled || false,
+        free_service_threshold: data.free_service_threshold || 10,
         address: data.address || "",
         google_maps_url: data.google_maps_url || "",
       });
@@ -230,6 +234,8 @@ function SettingsComponent() {
         logo_url: updatedData.logo_url,
         cashback_enabled: updatedData.cashback_enabled,
         cashback_percentage: updatedData.cashback_percentage,
+        loyalty_program_enabled: updatedData.loyalty_program_enabled,
+        free_service_threshold: updatedData.free_service_threshold,
         address: updatedData.address,
         google_maps_url: updatedData.google_maps_url,
         updated_at: new Date().toISOString(),
