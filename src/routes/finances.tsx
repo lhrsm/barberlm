@@ -370,5 +370,6 @@ function FinancesComponent() {
           )}
         </DialogContent>
       </Dialog>
+      </AppLayout>
   );
 }
