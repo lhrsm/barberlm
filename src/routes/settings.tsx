@@ -48,6 +48,7 @@ function SettingsComponent() {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [newInstanceName, setNewInstanceName] = useState("");
   const [connectingInstance, setConnectingInstance] = useState<string | null>(null);
+  const [qrValue, setQrValue] = useState("");
 
   const [formData, setFormData] = useState({
     business_name: "",
