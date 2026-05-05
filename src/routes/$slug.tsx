@@ -1180,8 +1180,8 @@ function ShopPageComponent() {
                   setIsPixVisible(false);
                   setSelectedProducts([]);
                   
-                  // Redirect to home/main page as requested
-                  window.location.href = "/";
+                  // Redirect back to the shop's main page
+                  window.location.href = `/${slug}`;
                 } catch (error: any) {
                   console.error("Error processing sale:", error);
                   toast.error("Erro ao confirmar pagamento: " + error.message);
