@@ -1038,8 +1038,7 @@ function ShopPageComponent() {
                 style={{ backgroundColor: primaryColor }}
                 onClick={() => {
                   setIsCartOpen(false);
-                  setIsBookingOpen(true);
-                  setBookingStep(1); // Go to service selection
+                  setIsPixVisible(true);
                 }}
               >
                 Pagar Agora
