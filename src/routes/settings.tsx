@@ -76,6 +76,8 @@ function SettingsComponent() {
     font_family: "Inter",
     font_size: "16px",
     font_color: "#000000",
+    pix_key: "",
+    pix_qr_code_url: "",
   });
 
   useEffect(() => {
@@ -133,6 +135,8 @@ function SettingsComponent() {
           font_family: profile.font_family || "Inter",
           font_size: profile.font_size || "16px",
           font_color: profile.font_color || "#000000",
+          pix_key: profile.pix_key || "",
+          pix_qr_code_url: profile.pix_qr_code_url || "",
         });
       } else {
         console.warn("No profile rows found in database for user ID:", user.id);
@@ -275,6 +279,8 @@ function SettingsComponent() {
         font_family: updatedData.font_family,
         font_size: updatedData.font_size,
         font_color: updatedData.font_color,
+        pix_key: updatedData.pix_key,
+        pix_qr_code_url: updatedData.pix_qr_code_url,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
@@ -344,7 +350,7 @@ function SettingsComponent() {
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 max-w-[800px]">
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 max-w-[900px]">
               <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
                 <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
               </TabsTrigger>
@@ -362,6 +368,9 @@ function SettingsComponent() {
               </TabsTrigger>
               <TabsTrigger value="loyalty" className="gap-2 text-xs sm:text-sm">
                 <Gift size={16} /> <span className="hidden sm:inline">Fidelidade</span>
+              </TabsTrigger>
+              <TabsTrigger value="pix" className="gap-2 text-xs sm:text-sm">
+                <QrCode size={16} /> <span className="hidden sm:inline">Chave PIX</span>
               </TabsTrigger>
             </TabsList>
 
@@ -1006,6 +1015,76 @@ function SettingsComponent() {
                       O cliente poderá acompanhar o progresso em sua página de histórico.
                     </AlertDescription>
                   </Alert>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="pix" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Configuração de Pagamento PIX</CardTitle>
+                  <CardDescription>Cadastre sua chave PIX para recebimentos diretos dos clientes.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="pix_key">Chave PIX</Label>
+                    <Input 
+                      id="pix_key" 
+                      value={formData.pix_key} 
+                      onChange={(e) => setFormData({ ...formData, pix_key: e.target.value })}
+                      placeholder="CPF, E-mail, Celular ou Chave Aleatória"
+                    />
+                    <p className="text-xs text-muted-foreground">Esta chave será exibida para o cliente no momento do pagamento.</p>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="font-medium text-sm">QR Code do PIX</h4>
+                    <div className="flex items-center gap-4">
+                      <div className="h-24 w-24 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                        {formData.pix_qr_code_url ? (
+                          <img src={formData.pix_qr_code_url} alt="PIX QR Code Preview" className="h-full w-full object-contain" />
+                        ) : (
+                          <QrCode className="h-8 w-8 text-muted-foreground/30" />
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <Label htmlFor="pix_qr_file">Upload do QR Code (Imagem)</Label>
+                        <Input 
+                          id="pix_qr_file" 
+                          type="file" 
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || !user) return;
+                            
+                            try {
+                              setSaving(true);
+                              const fileExt = file.name.split('.').pop();
+                              const fileName = `${user.id}-pix-qr-${Math.random()}.${fileExt}`;
+                              
+                              const { error: uploadError } = await supabase.storage
+                                .from('barber-avatars') 
+                                .upload(fileName, file);
+                                
+                              if (uploadError) throw uploadError;
+                              
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('barber-avatars')
+                                .getPublicUrl(fileName);
+                                
+                              setFormData({ ...formData, pix_qr_code_url: publicUrl });
+                              toast.success("QR Code carregado com sucesso!");
+                            } catch (error: any) {
+                              toast.error("Erro ao carregar QR Code: " + error.message);
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                        />
+                        <p className="text-[10px] text-muted-foreground">Upload da imagem do seu QR Code gerado pelo banco.</p>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
