@@ -67,7 +67,7 @@ export function usePlanLimits() {
     const monthEnd = endOfMonth(new Date()).toISOString();
 
     const [profileRes, barbRes, servRes, prodRes, appRes, whatsappRes] = await Promise.all([
-      supabase.from("profiles").select("plan").eq("id", user.id).single(),
+      supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle(),
       supabase.from("barbers").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
       supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
       supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
