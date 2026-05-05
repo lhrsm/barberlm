@@ -234,6 +234,50 @@ export type Database = {
         }
         Relationships: []
       }
+      product_sales: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          items: Json
+          pix_key: string | null
+          status: Database["public"]["Enums"]["product_sale_status"]
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          items: Json
+          pix_key?: string | null
+          status?: Database["public"]["Enums"]["product_sale_status"]
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          items?: Json
+          pix_key?: string | null
+          status?: Database["public"]["Enums"]["product_sale_status"]
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_sales_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           active: boolean
@@ -562,9 +606,19 @@ export type Database = {
         Returns: undefined
       }
       is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
+      process_product_sale: {
+        Args: {
+          p_customer_id: string
+          p_items: Json
+          p_pix_key: string
+          p_total_amount: number
+          p_user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      product_sale_status: "completed" | "cancelled" | "refunded"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -691,6 +745,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      product_sale_status: ["completed", "cancelled", "refunded"],
+    },
   },
 } as const

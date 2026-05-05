@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState } from "react";
@@ -15,8 +16,26 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ShoppingBag, Plus, Package, AlertTriangle, Crown, Image as ImageIcon, Trash2, Edit, Copy } from "lucide-react";
+import { 
+  ShoppingBag, 
+  Plus, 
+  Package, 
+  AlertTriangle, 
+  Crown, 
+  Image as ImageIcon, 
+  Trash2, 
+  Edit, 
+  Copy,
+  History,
+  XCircle,
+  RefreshCcw,
+  CheckCircle2
+} from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const Route = createFileRoute("/products")({
   component: ProductsComponent,
@@ -179,6 +198,18 @@ function ProductsComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <Tabs defaultValue="inventory" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+            <TabsTrigger value="inventory" className="gap-2">
+              <Package size={16} /> Estoque
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2">
+              <History size={16} /> Histórico
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="inventory" className="space-y-6 pt-6">
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Produtos</h2>
@@ -368,7 +399,150 @@ function ProductsComponent() {
             ))
           )}
         </div>
+          </TabsContent>
+
+          <TabsContent value="history" className="pt-6">
+            <SalesHistory user={user} />
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
+  );
+}
+
+function SalesHistory({ user }: { user: any }) {
+  const [sales, setSales] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchSales();
+  }, []);
+
+  async function fetchSales() {
+    try {
+      const { data, error } = await supabase
+        .from("product_sales")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setSales(data || []);
+    } catch (error) {
+      console.error("Error fetching sales:", error);
+      toast.error("Erro ao carregar histórico");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function updateStatus(saleId: string, newStatus: 'completed' | 'cancelled' | 'refunded') {
+    try {
+      const { error } = await supabase
+        .from("product_sales")
+        .update({ status: newStatus })
+        .eq("id", saleId);
+
+      if (error) throw error;
+      toast.success(`Status atualizado para ${newStatus}`);
+      fetchSales();
+    } catch (error) {
+      toast.error("Erro ao atualizar status");
+    }
+  }
+
+  if (loading) return <div className="text-center py-12">Carregando histórico...</div>;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Histórico de Vendas</CardTitle>
+        <CardDescription>Acompanhe suas vendas, cancelamentos e reembolsos.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {sales.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <History size={48} className="mx-auto mb-4 opacity-20" />
+            <p>Nenhuma venda registrada ainda.</p>
+          </div>
+        ) : (
+          <div className="relative overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs uppercase bg-muted/50">
+                <tr>
+                  <th className="px-4 py-3">Data</th>
+                  <th className="px-4 py-3">Itens</th>
+                  <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {sales.map((sale) => (
+                  <tr key={sale.id} className="bg-card">
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="max-w-[200px] truncate">
+                        {sale.items.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 font-bold">
+                      R$ {sale.total_amount.toFixed(2)}
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className={cn(
+                        "px-2 py-1 rounded-full text-[10px] font-bold uppercase",
+                        sale.status === 'completed' && "bg-green-100 text-green-700",
+                        sale.status === 'cancelled' && "bg-red-100 text-red-700",
+                        sale.status === 'refunded' && "bg-amber-100 text-amber-700"
+                      )}>
+                        {sale.status === 'completed' ? 'Concluída' : 
+                         sale.status === 'cancelled' ? 'Cancelada' : 'Reembolsada'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex gap-2">
+                        {sale.status === 'completed' && (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-7 px-2 text-[10px] gap-1"
+                              onClick={() => updateStatus(sale.id, 'cancelled')}
+                            >
+                              <XCircle size={12} /> Cancelar
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-7 px-2 text-[10px] gap-1"
+                              onClick={() => updateStatus(sale.id, 'refunded')}
+                            >
+                              <RefreshCcw size={12} /> Reembolsar
+                            </Button>
+                          </>
+                        )}
+                        {sale.status !== 'completed' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 px-2 text-[10px] gap-1"
+                            onClick={() => updateStatus(sale.id, 'completed')}
+                          >
+                            <CheckCircle2 size={12} /> Restaurar
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

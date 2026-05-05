@@ -1154,13 +1154,54 @@ function ShopPageComponent() {
             <Button 
               className="w-full" 
               style={{ backgroundColor: primaryColor }}
+              disabled={submitting}
+              onClick={async () => {
+                setSubmitting(true);
+                try {
+                  const items = selectedProducts.map(p => ({
+                    product_id: p.id,
+                    name: p.name,
+                    price: p.price,
+                    quantity: p.quantity || 1
+                  }));
+
+                  // Register sale and adjust stock
+                  const { error } = await supabase.rpc('process_product_sale', {
+                    p_user_id: shop.id,
+                    p_customer_id: undefined as any,
+                    p_total_amount: calculateTotalBeforeCashback(),
+                    p_items: items,
+                    p_pix_key: shop.pix_key
+                  });
+
+                  if (error) throw error;
+
+                  toast.success("Pagamento confirmado! Estoque atualizado.");
+                  setIsPixVisible(false);
+                  setSelectedProducts([]);
+                  
+                  // Redirect to home/main page as requested
+                  window.location.href = "/";
+                } catch (error: any) {
+                  console.error("Error processing sale:", error);
+                  toast.error("Erro ao confirmar pagamento: " + error.message);
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {submitting ? "Processando..." : "Confirmar Pagamento"}
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
               onClick={() => {
                 setIsPixVisible(false);
                 setIsBookingOpen(true);
                 setBookingStep(1);
               }}
             >
-              Confirmar Pagamento e Agendar
+              Agendar Serviço
             </Button>
             <Button variant="ghost" className="w-full" onClick={() => setIsPixVisible(false)}>
               Voltar ao Carrinho
