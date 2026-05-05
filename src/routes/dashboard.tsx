@@ -21,9 +21,11 @@ import {
   Bell,
   ExternalLink,
   Clock,
-  User as UserIcon
+  User as UserIcon,
+  Copy
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
