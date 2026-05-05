@@ -1018,76 +1018,76 @@ function SettingsComponent() {
                 </CardContent>
               </Card>
             </TabsContent>
-1021: 
-1022:             <TabsContent value="pix" className="space-y-4">
-1023:               <Card>
-1024:                 <CardHeader>
-1025:                   <CardTitle>Configuração de Pagamento PIX</CardTitle>
-1026:                   <CardDescription>Cadastre sua chave PIX para recebimentos diretos dos clientes.</CardDescription>
-1027:                 </CardHeader>
-1028:                 <CardContent className="space-y-6">
-1029:                   <div className="grid gap-2">
-1030:                     <Label htmlFor="pix_key">Chave PIX</Label>
-1031:                     <Input 
-1032:                       id="pix_key" 
-1033:                       value={formData.pix_key} 
-1034:                       onChange={(e) => setFormData({ ...formData, pix_key: e.target.value })}
-1035:                       placeholder="CPF, E-mail, Celular ou Chave Aleatória"
-1036:                     />
-1037:                     <p className="text-xs text-muted-foreground">Esta chave será exibida para o cliente no momento do pagamento.</p>
-1038:                   </div>
-1039: 
-1040:                   <div className="space-y-4 pt-4 border-t">
-1041:                     <h4 className="font-medium text-sm">QR Code do PIX</h4>
-1042:                     <div className="flex items-center gap-4">
-1043:                       <div className="h-24 w-24 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
-1044:                         {formData.pix_qr_code_url ? (
-1045:                           <img src={formData.pix_qr_code_url} alt="PIX QR Code Preview" className="h-full w-full object-contain" />
-1046:                         ) : (
-1047:                           <QrCode className="h-8 w-8 text-muted-foreground/30" />
-1048:                         )}
-1049:                       </div>
-1050:                       <div className="flex-1 space-y-2">
-1051:                         <Label htmlFor="pix_qr_file">Upload do QR Code (Imagem)</Label>
-1052:                         <Input 
-1053:                           id="pix_qr_file" 
-1054:                           type="file" 
-1055:                           accept="image/*"
-1056:                           onChange={async (e) => {
-1057:                             const file = e.target.files?.[0];
-1058:                             if (!file || !user) return;
-1059:                             
-1060:                             try {
-1061:                               setSaving(true);
-1062:                               const fileExt = file.name.split('.').pop();
-1063:                               const fileName = `${user.id}-pix-qr-${Math.random()}.${fileExt}`;
-1064:                               
-1065:                               const { error: uploadError } = await supabase.storage
-1066:                                 .from('barber-avatars') 
-1067:                                 .upload(fileName, file);
-1068:                                 
-1069:                               if (uploadError) throw uploadError;
-1070:                               
-1071:                               const { data: { publicUrl } } = supabase.storage
-1072:                                 .from('barber-avatars')
-1073:                                 .getPublicUrl(fileName);
-1074:                                 
-1075:                               setFormData({ ...formData, pix_qr_code_url: publicUrl });
-1076:                               toast.success("QR Code carregado com sucesso!");
-1077:                             } catch (error: any) {
-1078:                               toast.error("Erro ao carregar QR Code: " + error.message);
-1079:                             } finally {
-1080:                               setSaving(false);
-1081:                             }
-1082:                           }}
-1083:                         />
-1084:                         <p className="text-[10px] text-muted-foreground">Upload da imagem do seu QR Code gerado pelo banco.</p>
-1085:                       </div>
-1086:                     </div>
-1087:                   </div>
-1088:                 </CardContent>
-1089:               </Card>
-1090:             </TabsContent>
+
+            <TabsContent value="pix" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Configuração de Pagamento PIX</CardTitle>
+                  <CardDescription>Cadastre sua chave PIX para recebimentos diretos dos clientes.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="pix_key">Chave PIX</Label>
+                    <Input 
+                      id="pix_key" 
+                      value={formData.pix_key} 
+                      onChange={(e) => setFormData({ ...formData, pix_key: e.target.value })}
+                      placeholder="CPF, E-mail, Celular ou Chave Aleatória"
+                    />
+                    <p className="text-xs text-muted-foreground">Esta chave será exibida para o cliente no momento do pagamento.</p>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="font-medium text-sm">QR Code do PIX</h4>
+                    <div className="flex items-center gap-4">
+                      <div className="h-24 w-24 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                        {formData.pix_qr_code_url ? (
+                          <img src={formData.pix_qr_code_url} alt="PIX QR Code Preview" className="h-full w-full object-contain" />
+                        ) : (
+                          <QrCode className="h-8 w-8 text-muted-foreground/30" />
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <Label htmlFor="pix_qr_file">Upload do QR Code (Imagem)</Label>
+                        <Input 
+                          id="pix_qr_file" 
+                          type="file" 
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || !user) return;
+                            
+                            try {
+                              setSaving(true);
+                              const fileExt = file.name.split('.').pop();
+                              const fileName = `${user.id}-pix-qr-${Math.random()}.${fileExt}`;
+                              
+                              const { error: uploadError } = await supabase.storage
+                                .from('barber-avatars') 
+                                .upload(fileName, file);
+                                
+                              if (uploadError) throw uploadError;
+                              
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('barber-avatars')
+                                .getPublicUrl(fileName);
+                                
+                              setFormData({ ...formData, pix_qr_code_url: publicUrl });
+                              toast.success("QR Code carregado com sucesso!");
+                            } catch (error: any) {
+                              toast.error("Erro ao carregar QR Code: " + error.message);
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                        />
+                        <p className="text-[10px] text-muted-foreground">Upload da imagem do seu QR Code gerado pelo banco.</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             <div className="flex justify-end">
               <Button type="submit" className="gap-2" disabled={saving}>
