@@ -159,18 +159,20 @@ function ShopPageComponent() {
   async function fetchShopData() {
     setLoading(true);
     // Fetch profile by slug
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("slug", slug)
-      .single();
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("slug", slug);
 
-    if (profileError || !profile) {
-      setLoading(false);
-      return;
-    }
+      if (profileError || !profile || profile.length === 0) {
+        console.error("Shop not found for slug:", slug, profileError);
+        setLoading(false);
+        return;
+      }
 
-    setShop(profile);
+      setShop(profile[0]);
+      const currentShop = profile[0];
 
     // Fetch services and barbers for this shop
     const [servicesRes, barbersRes, productsRes] = await Promise.all([
