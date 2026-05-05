@@ -28,7 +28,8 @@ import {
   Gift,
   Upload,
   Copy,
-  Check
+  Check,
+  ExternalLink
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import {
