@@ -369,6 +369,9 @@ function SettingsComponent() {
               <TabsTrigger value="loyalty" className="gap-2 text-xs sm:text-sm">
                 <Gift size={16} /> <span className="hidden sm:inline">Fidelidade</span>
               </TabsTrigger>
+              <TabsTrigger value="pix" className="gap-2 text-xs sm:text-sm">
+                <QrCode size={16} /> <span className="hidden sm:inline">Chave PIX</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="general" className="space-y-4">
