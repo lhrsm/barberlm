@@ -1094,6 +1094,80 @@ function ShopPageComponent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* PIX Payment Modal */}
+      <Dialog open={isPixVisible} onOpenChange={setIsPixVisible}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode size={20} style={{ color: primaryColor }} />
+              Pagamento via PIX
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-6 space-y-6 text-center">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground font-medium">Total a pagar:</p>
+              <p className="text-3xl font-bold" style={{ color: primaryColor }}>
+                R$ {calculateTotalBeforeCashback().toFixed(2)}
+              </p>
+            </div>
+
+            {shop.pix_qr_code_url && (
+              <div className="flex justify-center">
+                <div className="p-3 border-2 border-muted rounded-xl bg-white">
+                  <img 
+                    src={shop.pix_qr_code_url} 
+                    alt="PIX QR Code" 
+                    className="h-48 w-48 object-contain"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3 bg-muted/50 p-4 rounded-lg">
+              <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Chave PIX</p>
+              <div className="flex items-center justify-center gap-2">
+                <p className="font-mono font-bold break-all">
+                  {shop.pix_key || "Chave não cadastrada"}
+                </p>
+                {shop.pix_key && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 shrink-0"
+                    onClick={() => {
+                      navigator.clipboard.writeText(shop.pix_key);
+                      toast.success("Chave PIX copiada!");
+                    }}
+                  >
+                    <CheckCircle2 size={14} />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Após realizar o pagamento, você pode prosseguir com o agendamento do seu horário.
+            </p>
+          </div>
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            <Button 
+              className="w-full" 
+              style={{ backgroundColor: primaryColor }}
+              onClick={() => {
+                setIsPixVisible(false);
+                setIsBookingOpen(true);
+                setBookingStep(1);
+              }}
+            >
+              Confirmar Pagamento e Agendar
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={() => setIsPixVisible(false)}>
+              Voltar ao Carrinho
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
