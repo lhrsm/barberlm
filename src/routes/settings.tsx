@@ -279,6 +279,8 @@ function SettingsComponent() {
         font_family: updatedData.font_family,
         font_size: updatedData.font_size,
         font_color: updatedData.font_color,
+        pix_key: updatedData.pix_key,
+        pix_qr_code_url: updatedData.pix_qr_code_url,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
