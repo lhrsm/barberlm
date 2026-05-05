@@ -159,7 +159,6 @@ function ShopPageComponent() {
   }, [slug]);
 
   async function fetchShopData(targetSlug: string) {
-    console.log("fetchShopData starting for:", targetSlug);
     setLoading(true);
     // Fetch profile by slug
     try {
@@ -168,10 +167,7 @@ function ShopPageComponent() {
         .select("*")
         .eq("slug", targetSlug);
 
-      console.log("fetchShopData profile result:", { profile, profileError });
-
       if (profileError || !profile || profile.length === 0) {
-        console.error("Shop not found for slug:", slug, profileError);
         setLoading(false);
         return;
       }
