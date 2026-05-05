@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState } from "react";
@@ -435,7 +436,7 @@ function SalesHistory({ user }: { user: any }) {
     }
   }
 
-  async function updateStatus(saleId: string, newStatus: string) {
+  async function updateStatus(saleId: string, newStatus: 'completed' | 'cancelled' | 'refunded') {
     try {
       const { error } = await supabase
         .from("product_sales")

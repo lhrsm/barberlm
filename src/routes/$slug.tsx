@@ -1168,7 +1168,7 @@ function ShopPageComponent() {
                   // Register sale and adjust stock
                   const { error } = await supabase.rpc('process_product_sale', {
                     p_user_id: shop.id,
-                    p_customer_id: null, // Could be improved if we have customer info here
+                    p_customer_id: undefined, // Changed from null to undefined to match generated types
                     p_total_amount: calculateTotalBeforeCashback(),
                     p_items: items,
                     p_pix_key: shop.pix_key
