@@ -70,7 +70,85 @@ function ShopPageComponent() {
   const [customerLoyaltyPoints, setCustomerLoyaltyPoints] = useState(0);
   const [useCashback, setUseCashback] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  const [fetchingTimes, setFetchingTimes] = useState(false);
+  const [dayAppointments, setDayAppointments] = useState<any[]>([]);
+  const [loadingDayData, setLoadingDayData] = useState(false);
+
+  const fetchDayData = async (date: string) => {
+    if (!shop?.id) return;
+    setLoadingDayData(true);
+    try {
+      const startOfDay = `${date}T00:00:00Z`;
+      const endOfDay = `${date}T23:59:59Z`;
+      
+      const { data } = await supabase
+        .from("appointments")
+        .select("barber_id, start_time, end_time")
+        .eq("user_id", shop.id)
+        .eq("status", "scheduled")
+        .gte("start_time", startOfDay)
+        .lte("start_time", endOfDay);
+        
+      setDayAppointments(data || []);
+    } catch (error) {
+      console.error("Error fetching day data:", error);
+    } finally {
+      setLoadingDayData(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedDate && shop?.id && isBookingOpen) {
+      fetchDayData(selectedDate);
+    }
+  }, [selectedDate, shop?.id, isBookingOpen]);
+
+  const isBarberAvailableOnDate = (barber: any, date: string, service: any, appointments: any[]) => {
+    if (!service || !barber) return false;
+    
+    const performsService = barber.barber_services?.some((bs: any) => bs.service_id === service.id);
+    if (!performsService) return false;
+
+    const dateObj = parseISO(date);
+    const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
+    const dayMap: Record<string, string> = {
+      'segunda-feira': 'monday',
+      'terça-feira': 'tuesday',
+      'quarta-feira': 'wednesday',
+      'quinta-feira': 'thursday',
+      'sexta-feira': 'friday',
+      'sábado': 'saturday',
+      'domingo': 'sunday'
+    };
+    const dayKey = dayMap[dayName] || dayName;
+    const workingHours = barber.working_hours?.[dayKey];
+
+    if (!workingHours || !workingHours.enabled) return false;
+
+    const barberAppointments = appointments?.filter(a => a.barber_id === barber.id) || [];
+    const [startHour, startMin] = workingHours.start.split(':').map(Number);
+    const [endHour, endMin] = workingHours.end.split(':').map(Number);
+    const interval = 30;
+
+    for (let hour = startHour; hour <= endHour; hour++) {
+      for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
+        if (hour === endHour && min >= endMin) break;
+        const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+        const checkTime = parseISO(`${date}T${timeStr}:00`);
+        
+        if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
+
+        const isBusy = barberAppointments.some(app => {
+          const appStart = parseISO(app.start_time);
+          const appEnd = parseISO(app.end_time);
+          return checkTime >= appStart && checkTime < appEnd;
+        });
+
+        if (!isBusy) return true;
+      }
+    }
+    return false;
+  };
+
 
   useEffect(() => {
     fetchShopData();
