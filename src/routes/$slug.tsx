@@ -159,6 +159,10 @@ function ShopPageComponent() {
     }
   }, [slug]);
 
+  useEffect(() => {
+    console.log("Page status update:", { loading, hasShop: !!shop, slug });
+  }, [loading, shop, slug]);
+
   async function fetchShopData(targetSlug: string) {
     console.log("fetchShopData starting for:", targetSlug);
     setLoading(true);
