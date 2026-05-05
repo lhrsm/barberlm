@@ -350,7 +350,7 @@ function SettingsComponent() {
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 max-w-[800px]">
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 max-w-[900px]">
               <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
                 <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
               </TabsTrigger>
