@@ -209,44 +209,7 @@ function DashboardComponent() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
-        </div>
-        
-        {profile?.slug && (
-          <Card className="bg-primary/5 border-primary/20 overflow-hidden">
-            <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                  <Globe size={20} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold">Sua Página de Agendamento</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {window.location.origin}/{profile.slug}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1 sm:flex-none gap-2"
-                  onClick={() => {
-                    const url = `${window.location.origin}/${profile.slug}`;
-                    navigator.clipboard.writeText(url);
-                    toast.success("Link copiado!");
-                  }}
-                >
-                  <Copy size={14} /> Copiar Link
-                </Button>
-                <Button variant="default" size="sm" className="flex-1 sm:flex-none gap-2" asChild>
-                  <a href={`/${profile.slug}`} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink size={14} /> Abrir Página
-                  </a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                      </div>
                     ))
                   )}
                 </ScrollArea>
