@@ -937,6 +937,20 @@ function ShopPageComponent() {
 
             {bookingStep === 3 && (
               <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="h-10 w-10 rounded-full bg-muted overflow-hidden">
+                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-bold">{selectedBarber?.name[0]}</div>}
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Profissional</p>
+                      <p className="text-sm font-bold">{selectedBarber?.name}</p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(2)} className="text-xs h-8">Alterar</Button>
+                </div>
+
+              <div className="space-y-4">
                 <div className="grid gap-2">
                   <Label>Data</Label>
                   <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={format(new Date(), "yyyy-MM-dd")} />
