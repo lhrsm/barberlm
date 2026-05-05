@@ -289,6 +289,8 @@ export type Database = {
           logo_url: string | null
           payment_gateway_key: string | null
           payment_gateway_provider: string | null
+          pix_key: string | null
+          pix_qr_code_url: string | null
           plan: string | null
           primary_color: string | null
           role: string | null
@@ -314,6 +316,8 @@ export type Database = {
           logo_url?: string | null
           payment_gateway_key?: string | null
           payment_gateway_provider?: string | null
+          pix_key?: string | null
+          pix_qr_code_url?: string | null
           plan?: string | null
           primary_color?: string | null
           role?: string | null
@@ -339,6 +343,8 @@ export type Database = {
           logo_url?: string | null
           payment_gateway_key?: string | null
           payment_gateway_provider?: string | null
+          pix_key?: string | null
+          pix_qr_code_url?: string | null
           plan?: string | null
           primary_color?: string | null
           role?: string | null
