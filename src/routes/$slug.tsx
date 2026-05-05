@@ -70,8 +70,10 @@ function ShopPageComponent() {
   const [customerLoyaltyPoints, setCustomerLoyaltyPoints] = useState(0);
   const [useCashback, setUseCashback] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [fetchingTimes, setFetchingTimes] = useState(false);
   const [dayAppointments, setDayAppointments] = useState<any[]>([]);
   const [loadingDayData, setLoadingDayData] = useState(false);
+
 
   const fetchDayData = async (date: string) => {
     if (!shop?.id) return;
