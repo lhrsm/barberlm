@@ -1,0 +1,1 @@
+ALTER FUNCTION public.process_product_sale(UUID, UUID, DECIMAL, JSONB, TEXT) SET search_path = public;
