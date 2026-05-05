@@ -109,8 +109,8 @@ function SettingsComponent() {
         .eq("id", user.id);
 
       if (error) {
-        console.error("Supabase error fetching profile:", error.message, "Code:", error.code, "Status:", status);
-        toast.error(`Erro ao carregar configurações: ${error.message}`);
+        console.error("Supabase error fetching profile:", error);
+        toast.error(`Erro ao carregar configurações: ${error.message || "Erro desconhecido"}`);
         return;
       }
 
