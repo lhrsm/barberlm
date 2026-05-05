@@ -409,7 +409,7 @@ function SettingsComponent() {
                   <div className="grid gap-2">
                     <Label htmlFor="slug">Endereço da sua Página (URL)</Label>
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground text-sm hidden sm:inline">meu-saas.com/</span>
+                      <span className="text-muted-foreground text-sm hidden sm:inline">{window.location.origin}/</span>
                       <Input 
                         id="slug" 
                         value={formData.slug} 
@@ -417,6 +417,30 @@ function SettingsComponent() {
                         placeholder="minha-barbearia"
                         required
                       />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => {
+                          const url = `${window.location.origin}/${formData.slug}`;
+                          navigator.clipboard.writeText(url);
+                          toast.success("Link copiado!");
+                        }}
+                        title="Copiar link"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        asChild
+                        title="Ver página"
+                      >
+                        <a href={`/${formData.slug}`} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">Este será o link que seus clientes usarão para agendar.</p>
                   </div>
