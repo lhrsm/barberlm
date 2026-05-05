@@ -154,18 +154,22 @@ function ShopPageComponent() {
 
   useEffect(() => {
     if (slug) {
-      fetchShopData();
+      console.log("Calling fetchShopData for slug:", slug);
+      fetchShopData(slug);
     }
   }, [slug]);
 
-  async function fetchShopData() {
+  async function fetchShopData(targetSlug: string) {
+    console.log("fetchShopData starting for:", targetSlug);
     setLoading(true);
     // Fetch profile by slug
     try {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")
-        .eq("slug", slug);
+        .eq("slug", targetSlug);
+
+      console.log("fetchShopData profile result:", { profile, profileError });
 
       if (profileError || !profile || profile.length === 0) {
         console.error("Shop not found for slug:", slug, profileError);
