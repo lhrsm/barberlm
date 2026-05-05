@@ -76,6 +76,8 @@ function SettingsComponent() {
     font_family: "Inter",
     font_size: "16px",
     font_color: "#000000",
+    pix_key: "",
+    pix_qr_code_url: "",
   });
 
   useEffect(() => {
