@@ -63,6 +63,7 @@ function DashboardComponent() {
     }
   });
   const [barbers, setBarbers] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     if (!loading && !user) {
