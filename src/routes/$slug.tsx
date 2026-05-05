@@ -883,25 +883,55 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 2 && (
-              <div className="grid grid-cols-2 gap-4">
-                {barbers.map(b => (
-                  <div 
-                    key={b.id} 
-                    className={cn(
-                      "p-4 border rounded-lg cursor-pointer text-center space-y-2 transition-colors",
-                      selectedBarber?.id === b.id ? "border-primary bg-primary/5" : "hover:bg-muted"
-                    )}
-                    onClick={() => {
-                      setSelectedBarber(b);
-                      setBookingStep(3);
-                    }}
-                  >
-                    <div className="h-16 w-16 rounded-full bg-muted mx-auto overflow-hidden">
-                      {b.avatar_url ? <img src={b.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-bold text-lg">{b.name[0]}</div>}
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  <Label>Data do Agendamento</Label>
+                  <Input 
+                    type="date" 
+                    value={selectedDate} 
+                    onChange={(e) => setSelectedDate(e.target.value)} 
+                    min={format(new Date(), "yyyy-MM-dd")} 
+                  />
+                  <p className="text-[10px] text-muted-foreground">Selecione uma data para ver os profissionais disponíveis.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Escolha o Profissional</Label>
+                  {loadingDayData ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
-                    <p className="font-medium text-sm">{b.name}</p>
-                  </div>
-                ))}
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      {barbers
+                        .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments))
+                        .map(b => (
+                        <div 
+                          key={b.id} 
+                          className={cn(
+                            "p-4 border rounded-lg cursor-pointer text-center space-y-2 transition-colors",
+                            selectedBarber?.id === b.id ? "border-primary bg-primary/5" : "hover:bg-muted"
+                          )}
+                          onClick={() => {
+                            setSelectedBarber(b);
+                            setBookingStep(3);
+                          }}
+                        >
+                          <div className="h-16 w-16 rounded-full bg-muted mx-auto overflow-hidden">
+                            {b.avatar_url ? <img src={b.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-bold text-lg">{b.name[0]}</div>}
+                          </div>
+                          <p className="font-medium text-sm">{b.name}</p>
+                        </div>
+                      ))}
+                      {barbers.filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments)).length === 0 && (
+                        <div className="col-span-2 py-8 text-center space-y-2">
+                          <p className="text-sm text-muted-foreground">Nenhum profissional disponível para esta data.</p>
+                          <p className="text-xs text-muted-foreground">Tente selecionar outro dia.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
