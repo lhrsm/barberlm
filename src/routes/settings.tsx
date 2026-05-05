@@ -93,18 +93,21 @@ function SettingsComponent() {
   async function fetchProfile() {
     if (!user) return;
     
+    console.log("Fetching profile for user:", user.id);
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     if (error) {
+      console.error("Error fetching profile:", error);
       toast.error("Erro ao carregar configurações");
       return;
     }
 
     if (data) {
+      console.log("Profile data loaded:", data);
       setFormData({
         business_name: data.business_name || "",
         slug: data.slug || "",
@@ -124,6 +127,8 @@ function SettingsComponent() {
         font_size: data.font_size || "16px",
         font_color: data.font_color || "#000000",
       });
+    } else {
+      console.warn("No profile found for current user ID");
     }
   }
 
