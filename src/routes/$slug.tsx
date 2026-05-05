@@ -162,26 +162,53 @@ function ShopPageComponent() {
   const fetchAvailableTimes = async (barberId: string, date: string) => {
     setFetchingTimes(true);
     try {
-      const startOfDay = `${date}T00:00:00Z`;
-      const endOfDay = `${date}T23:59:59Z`;
+      const barber = barbers.find(b => b.id === barberId);
+      if (!barber) return;
+
+      const dateObj = parseISO(date);
+      const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
+      
+      // Map Portuguese day name to English key used in DB
+      const dayMap: Record<string, string> = {
+        'segunda-feira': 'monday',
+        'terça-feira': 'tuesday',
+        'quarta-feira': 'wednesday',
+        'quinta-feira': 'thursday',
+        'sexta-feira': 'friday',
+        'sábado': 'saturday',
+        'domingo': 'sunday'
+      };
+      
+      const dayKey = dayMap[dayName] || dayName;
+      const workingHours = barber.working_hours?.[dayKey];
+
+      if (!workingHours || !workingHours.enabled) {
+        setAvailableTimes([]);
+        return;
+      }
+
+      const startOfDayTime = `${date}T00:00:00Z`;
+      const endOfDayTime = `${date}T23:59:59Z`;
 
       const { data: appointments, error } = await supabase
         .from("appointments")
         .select("start_time, end_time")
         .eq("barber_id", barberId)
         .eq("status", "scheduled")
-        .gte("start_time", startOfDay)
-        .lte("start_time", endOfDay);
+        .gte("start_time", startOfDayTime)
+        .lte("start_time", endOfDayTime);
 
       if (error) throw error;
 
       const times = [];
-      const startHour = 8;
-      const endHour = 20;
+      const [startHour, startMin] = workingHours.start.split(':').map(Number);
+      const [endHour, endMin] = workingHours.end.split(':').map(Number);
       const interval = 30;
 
-      for (let hour = startHour; hour < endHour; hour++) {
-        for (let min = 0; min < 60; min += interval) {
+      for (let hour = startHour; hour <= endHour; hour++) {
+        for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
+          if (hour === endHour && min >= endMin) break;
+          
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
           const checkTime = parseISO(`${date}T${timeStr}:00`);
           

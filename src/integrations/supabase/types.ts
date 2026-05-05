@@ -134,6 +134,7 @@ export type Database = {
           phone: string | null
           total_ratings: number | null
           user_id: string
+          working_hours: Json | null
         }
         Insert: {
           active?: boolean | null
@@ -148,6 +149,7 @@ export type Database = {
           phone?: string | null
           total_ratings?: number | null
           user_id: string
+          working_hours?: Json | null
         }
         Update: {
           active?: boolean | null
@@ -162,6 +164,7 @@ export type Database = {
           phone?: string | null
           total_ratings?: number | null
           user_id?: string
+          working_hours?: Json | null
         }
         Relationships: []
       }

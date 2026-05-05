@@ -22,13 +22,34 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy, Trash2 } from "lucide-react";
+import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy, Trash2, Clock } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/barbers")({
   component: BarbersComponent,
 });
+
+const DEFAULT_WORKING_HOURS = {
+  monday: { enabled: true, start: "09:00", end: "19:00" },
+  tuesday: { enabled: true, start: "09:00", end: "19:00" },
+  wednesday: { enabled: true, start: "09:00", end: "19:00" },
+  thursday: { enabled: true, start: "09:00", end: "19:00" },
+  friday: { enabled: true, start: "09:00", end: "19:00" },
+  saturday: { enabled: true, start: "09:00", end: "14:00" },
+  sunday: { enabled: false, start: "09:00", end: "14:00" }
+};
+
+const DAY_LABELS: Record<string, string> = {
+  monday: "Segunda",
+  tuesday: "Terça",
+  wednesday: "Quarta",
+  thursday: "Quinta",
+  friday: "Sexta",
+  saturday: "Sábado",
+  sunday: "Domingo"
+};
 
 function BarbersComponent() {
   const { user, loading } = useAuth();
@@ -40,7 +61,15 @@ function BarbersComponent() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingBarber, setEditingBarber] = useState<any>(null);
-  const [newBarber, setNewBarber] = useState({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0 });
+  const [newBarber, setNewBarber] = useState({ 
+    name: "", 
+    phone: "", 
+    email: "", 
+    avatar_url: "", 
+    category: "Proprietário", 
+    commission_rate: 0,
+    working_hours: DEFAULT_WORKING_HOURS
+  });
   const [uploading, setUploading] = useState(false);
   const canAddBarber = checkLimit("barbers");
 
@@ -138,7 +167,7 @@ function BarbersComponent() {
 
       toast.success("Barbeiro cadastrado com sucesso!");
       setIsAddDialogOpen(false);
-      setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0 });
+      setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0, working_hours: DEFAULT_WORKING_HOURS });
       setSelectedServices([]);
       fetchBarbers();
       refreshLimits();
@@ -158,6 +187,7 @@ function BarbersComponent() {
         avatar_url: editingBarber.avatar_url,
         category: editingBarber.category,
         commission_rate: editingBarber.commission_rate,
+        working_hours: editingBarber.working_hours,
       })
       .eq("id", editingBarber.id);
 
@@ -392,6 +422,79 @@ function BarbersComponent() {
                         ))}
                       </div>
                     </div>
+
+                    <div className="space-y-4">
+                      <Label className="flex items-center gap-2">
+                        <Clock size={16} /> Horário de Trabalho
+                      </Label>
+                      <div className="space-y-3 p-3 border rounded-md">
+                        {Object.entries(DAY_LABELS).map(([day, label]) => (
+                          <div key={day} className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Checkbox 
+                                  id={`day-${day}`}
+                                  checked={newBarber.working_hours[day as keyof typeof DEFAULT_WORKING_HOURS]?.enabled}
+                                  onCheckedChange={(checked) => {
+                                    setNewBarber({
+                                      ...newBarber,
+                                      working_hours: {
+                                        ...newBarber.working_hours,
+                                        [day]: {
+                                          ...(newBarber.working_hours[day as keyof typeof DEFAULT_WORKING_HOURS] || DEFAULT_WORKING_HOURS[day as keyof typeof DEFAULT_WORKING_HOURS]),
+                                          enabled: checked === true
+                                        }
+                                      }
+                                    });
+                                  }}
+                                />
+                                <Label htmlFor={`day-${day}`} className="text-sm font-medium">{label}</Label>
+                              </div>
+                              {newBarber.working_hours[day as keyof typeof DEFAULT_WORKING_HOURS]?.enabled && (
+                                <div className="flex items-center gap-2">
+                                  <Input 
+                                    type="time" 
+                                    className="h-8 w-24 text-xs"
+                                    value={newBarber.working_hours[day as keyof typeof DEFAULT_WORKING_HOURS]?.start}
+                                    onChange={(e) => {
+                                      setNewBarber({
+                                        ...newBarber,
+                                        working_hours: {
+                                          ...newBarber.working_hours,
+                                          [day]: {
+                                            ...newBarber.working_hours[day as keyof typeof DEFAULT_WORKING_HOURS],
+                                            start: e.target.value
+                                          }
+                                        }
+                                      });
+                                    }}
+                                  />
+                                  <span className="text-xs text-muted-foreground">às</span>
+                                  <Input 
+                                    type="time" 
+                                    className="h-8 w-24 text-xs"
+                                    value={newBarber.working_hours[day as keyof typeof DEFAULT_WORKING_HOURS]?.end}
+                                    onChange={(e) => {
+                                      setNewBarber({
+                                        ...newBarber,
+                                        working_hours: {
+                                          ...newBarber.working_hours,
+                                          [day]: {
+                                            ...newBarber.working_hours[day as keyof typeof DEFAULT_WORKING_HOURS],
+                                            end: e.target.value
+                                          }
+                                        }
+                                      });
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                     <Button type="submit" className="w-full">Salvar Barbeiro</Button>
                   </form>
                 </>
@@ -637,6 +740,82 @@ function BarbersComponent() {
                     ))}
                   </div>
                 </div>
+
+                <div className="space-y-4">
+                  <Label className="flex items-center gap-2">
+                    <Clock size={16} /> Horário de Trabalho
+                  </Label>
+                  <div className="space-y-3 p-3 border rounded-md">
+                    {Object.entries(DAY_LABELS).map(([day, label]) => {
+                      const dayConfig = (editingBarber.working_hours?.[day]) || DEFAULT_WORKING_HOURS[day as keyof typeof DEFAULT_WORKING_HOURS];
+                      return (
+                        <div key={day} className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Checkbox 
+                                id={`edit-day-${day}`}
+                                checked={dayConfig.enabled}
+                                onCheckedChange={(checked) => {
+                                  setEditingBarber({
+                                    ...editingBarber,
+                                    working_hours: {
+                                      ...(editingBarber.working_hours || DEFAULT_WORKING_HOURS),
+                                      [day]: {
+                                        ...dayConfig,
+                                        enabled: checked === true
+                                      }
+                                    }
+                                  });
+                                }}
+                              />
+                              <Label htmlFor={`edit-day-${day}`} className="text-sm font-medium">{label}</Label>
+                            </div>
+                            {dayConfig.enabled && (
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  type="time" 
+                                  className="h-8 w-24 text-xs"
+                                  value={dayConfig.start}
+                                  onChange={(e) => {
+                                    setEditingBarber({
+                                      ...editingBarber,
+                                      working_hours: {
+                                        ...(editingBarber.working_hours || DEFAULT_WORKING_HOURS),
+                                        [day]: {
+                                          ...dayConfig,
+                                          start: e.target.value
+                                        }
+                                      }
+                                    });
+                                  }}
+                                />
+                                <span className="text-xs text-muted-foreground">às</span>
+                                <Input 
+                                  type="time" 
+                                  className="h-8 w-24 text-xs"
+                                  value={dayConfig.end}
+                                  onChange={(e) => {
+                                    setEditingBarber({
+                                      ...editingBarber,
+                                      working_hours: {
+                                        ...(editingBarber.working_hours || DEFAULT_WORKING_HOURS),
+                                        [day]: {
+                                          ...dayConfig,
+                                          end: e.target.value
+                                        }
+                                      }
+                                    });
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <Button type="submit" className="w-full">Salvar Alterações</Button>
               </form>
             )}
