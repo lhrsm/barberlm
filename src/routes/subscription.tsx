@@ -33,27 +33,38 @@ function SubscriptionComponent() {
   const [updating, setUpdating] = useState(false);
 
   const handlePlanChange = async (newPlan: PlanType) => {
-    if (!user) return;
+    if (!user) {
+      toast.error("Você precisa estar logado.");
+      return;
+    }
     setUpdating(true);
     
-    const { error } = await supabase
-      .from("profiles")
-      .update({ plan: newPlan })
-      .eq("id", user.id);
+    console.log("Attempting to change plan to:", newPlan, "for user:", user.id);
+    
+    try {
+      const { error, status } = await supabase
+        .from("profiles")
+        .update({ plan: newPlan })
+        .eq("id", user.id);
 
-    setUpdating(false);
-
-    if (error) {
-      toast.error("Erro ao atualizar plano");
-    } else {
-      const planNames = {
-        free: "Grátis",
-        basic: "Básico",
-        intermediate: "Intermediário",
-        pro: "Pró"
-      };
-      toast.success(`Plano alterado para ${planNames[newPlan]}!`);
-      refresh();
+      if (error) {
+        console.error("Plan update error:", error.message, "Code:", error.code, "Status:", status);
+        toast.error(`Erro ao atualizar plano: ${error.message}`);
+      } else {
+        const planNames = {
+          free: "Grátis",
+          basic: "Básico",
+          intermediate: "Intermediário",
+          pro: "Pró"
+        };
+        toast.success(`Plano alterado para ${planNames[newPlan]}!`);
+        await refresh();
+      }
+    } catch (e: any) {
+      console.error("Plan update exception:", e);
+      toast.error("Erro inesperado ao atualizar plano.");
+    } finally {
+      setUpdating(false);
     }
   };
 
