@@ -174,17 +174,21 @@ function ShopPageComponent() {
       setShop(profile[0]);
       const currentShop = profile[0];
 
-    // Fetch services and barbers for this shop
-    const [servicesRes, barbersRes, productsRes] = await Promise.all([
-      supabase.from("services").select("*").eq("user_id", profile.id).eq("active", true),
-      supabase.from("barbers").select("*, barber_services(service_id)").eq("user_id", profile.id).eq("active", true),
-      supabase.from("products").select("*").eq("user_id", profile.id).eq("active", true),
-    ]);
+      // Fetch services and barbers for this shop
+      const [servicesRes, barbersRes, productsRes] = await Promise.all([
+        supabase.from("services").select("*").eq("user_id", currentShop.id).eq("active", true),
+        supabase.from("barbers").select("*, barber_services(service_id)").eq("user_id", currentShop.id).eq("active", true),
+        supabase.from("products").select("*").eq("user_id", currentShop.id).eq("active", true),
+      ]);
 
-    setServices(servicesRes.data || []);
-    setBarbers(barbersRes.data || []);
-    setProducts(productsRes.data || []);
-    setLoading(false);
+      setServices(servicesRes.data || []);
+      setBarbers(barbersRes.data || []);
+      setProducts(productsRes.data || []);
+    } catch (error) {
+      console.error("Error fetching shop data:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (loading) {
