@@ -106,6 +106,7 @@ function DashboardComponent() {
   }
 
   async function fetchStats() {
+    if (!user) return;
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
     const monthStart = startOfMonth(new Date()).toISOString();
