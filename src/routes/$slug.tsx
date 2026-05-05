@@ -15,10 +15,6 @@ import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
-  loader: async ({ params }) => {
-    console.log("Route loader running for slug:", params.slug);
-    return { slug: params.slug };
-  },
 });
 
 function ShopPageComponent() {
