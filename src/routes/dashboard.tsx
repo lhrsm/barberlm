@@ -21,9 +21,12 @@ import {
   Bell,
   ExternalLink,
   Clock,
-  User as UserIcon
+  User as UserIcon,
+  Copy,
+  Globe
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -61,6 +64,7 @@ function DashboardComponent() {
     }
   });
   const [barbers, setBarbers] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -103,6 +107,7 @@ function DashboardComponent() {
   }
 
   async function fetchStats() {
+    if (!user) return;
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
     const monthStart = startOfMonth(new Date()).toISOString();
@@ -117,7 +122,8 @@ function DashboardComponent() {
       monthlyCust,
       totalCust,
       totalServ,
-      barbersData
+      barbersData,
+      profileData
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", monthStart).lte("start_time", monthEnd),
@@ -127,10 +133,12 @@ function DashboardComponent() {
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }),
       supabase.from("services").select("*", { count: "exact", head: true }),
-      supabase.from("barbers").select("*").eq("active", true).limit(5)
+      supabase.from("barbers").select("*").eq("active", true).limit(5),
+      supabase.from("profiles").select("*").eq("id", user.id).single()
     ]);
 
     setBarbers(barbersData.data || []);
+    setProfile(profileData.data);
 
     const dailyRevenue = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
     const monthlyRevenue = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
@@ -212,6 +220,43 @@ function DashboardComponent() {
             </Button>
           </div>
         </div>
+        
+        {profile?.slug && (
+          <Card className="bg-primary/5 border-primary/20 overflow-hidden">
+            <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                  <Globe size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold">Sua Página de Agendamento</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {window.location.origin}/{profile.slug}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1 sm:flex-none gap-2"
+                  onClick={() => {
+                    const url = `${window.location.origin}/${profile.slug}`;
+                    navigator.clipboard.writeText(url);
+                    toast.success("Link copiado!");
+                  }}
+                >
+                  <Copy size={14} /> Copiar Link
+                </Button>
+                <Button variant="default" size="sm" className="flex-1 sm:flex-none gap-2" asChild>
+                  <a href={`/${profile.slug}`} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink size={14} /> Abrir Página
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mb-6">
           <Card className="col-span-4 bg-primary/5 border-primary/20">
