@@ -56,6 +56,7 @@ function SettingsComponent() {
   const [apiKey, setApiKey] = useState("");
   const [connectingInstance, setConnectingInstance] = useState<string | null>(null);
   const [qrValue, setQrValue] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const [formData, setFormData] = useState({
     business_name: "",
@@ -129,6 +130,19 @@ function SettingsComponent() {
       });
     } else {
       console.warn("No profile found for current user ID");
+    }
+  }
+
+  async function handleForceSync() {
+    setIsSyncing(true);
+    try {
+      await fetchProfile();
+      toast.success("Dados sincronizados com o banco!");
+    } catch (error) {
+      console.error("Error syncing profile:", error);
+      toast.error("Erro ao sincronizar dados");
+    } finally {
+      setIsSyncing(false);
     }
   }
 
