@@ -1,28 +1,15 @@
-Vou criar uma Landing Page (página de vendas) profissional e moderna para o BarberSaaS, movendo o Dashboard atual para uma rota interna e definindo a rota raiz (`/`) para a página de vendas.
+The user wants a button in the "Geral" (General) tab of the settings page to manually force a re-synchronization of their business data from the database. This is to ensure that their information (business name, URL/slug, address, and Google Maps embed) is up-to-date without needing to refresh the whole page.
 
-### Objetivos:
-- Criar uma página de vendas persuasiva na rota `/`.
-- Mover o Dashboard atual para `/dashboard`.
-- Adicionar seções essenciais: Hero, Funcionalidades, Preços (Subscription), Depoimentos e FAQ.
-- Garantir que a página seja totalmente responsiva e focada em conversão.
+I will implement this by:
+1.  Adding a new state `isSyncing` in the `SettingsComponent` within `src/routes/settings.tsx` to handle the loading state of the manual synchronization.
+2.  Creating a `handleForceSync` function that calls the existing `fetchProfile` function and provides feedback via a toast notification.
+3.  Modifying the `CardHeader` of the "Informações do Negócio" section in the "Geral" tab to include a "Sincronizar" button with a refresh icon.
+4.  Ensuring the button has an animation when syncing to provide visual feedback.
 
-### Alterações Técnicas:
-1.  **Refatoração de Rotas**:
-    - Mover o conteúdo de `src/routes/index.tsx` (Dashboard) para uma nova rota `src/routes/dashboard.tsx`.
-    - Criar a nova Landing Page em `src/routes/index.tsx`.
-2.  **Novo Componente `LandingLayout`**: Para a página de vendas (sem a sidebar do sistema interno).
-3.  **Implementação da Landing Page**:
-    - **Seção Hero**: Título impactante, descrição e botão de CTA (Chamada para Ação).
-    - **Funcionalidades**: Grid exibindo Agenda, Gestão de Clientes, Financeiro e Multi-tenant.
-    - **Preços**: Exibição dos planos Grátis e Pro (baseado no que já implementamos).
-    - **Rodapé**: Links úteis e informações de contato.
+### Technical Details
+- **File**: `src/routes/settings.tsx`
+- **State**: `const [isSyncing, setIsSyncing] = useState(false);`
+- **Icon**: Use the existing `RefreshCw` from `lucide-react`.
+- **Logic**: The button will trigger `fetchProfile`, which already fetches the user profile from Supabase and updates the local `formData` state.
 
-### Experiência do Usuário:
-- Se o usuário já estiver logado, ele será redirecionado automaticamente para o `/dashboard`.
-- Design limpo com cores que transmitem confiança e modernidade (focado no público de barbearias).
-- CTAs claros para "Começar Agora Gratuitamente".
-
-### Próximos Passos:
-- Mover o Dashboard para `src/routes/dashboard.tsx`.
-- Implementar a nova Landing Page em `src/routes/index.tsx`.
-- Ajustar links de navegação para apontar para as novas rotas.
+No other components or database migrations are required for this specific request.

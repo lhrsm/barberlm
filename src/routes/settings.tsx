@@ -56,6 +56,7 @@ function SettingsComponent() {
   const [apiKey, setApiKey] = useState("");
   const [connectingInstance, setConnectingInstance] = useState<string | null>(null);
   const [qrValue, setQrValue] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const [formData, setFormData] = useState({
     business_name: "",
@@ -129,6 +130,19 @@ function SettingsComponent() {
       });
     } else {
       console.warn("No profile found for current user ID");
+    }
+  }
+
+  async function handleForceSync() {
+    setIsSyncing(true);
+    try {
+      await fetchProfile();
+      toast.success("Dados sincronizados com o banco!");
+    } catch (error) {
+      console.error("Error syncing profile:", error);
+      toast.error("Erro ao sincronizar dados");
+    } finally {
+      setIsSyncing(false);
     }
   }
 
@@ -342,9 +356,22 @@ function SettingsComponent() {
 
             <TabsContent value="general" className="space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle>Informações do Negócio</CardTitle>
-                  <CardDescription>Configure os dados básicos da sua página pública.</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="space-y-1">
+                    <CardTitle>Informações do Negócio</CardTitle>
+                    <CardDescription>Configure os dados básicos da sua página pública.</CardDescription>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    type="button"
+                    onClick={handleForceSync}
+                    disabled={isSyncing}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+                    {isSyncing ? "Sincronizando..." : "Sincronizar"}
+                  </Button>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-2">
