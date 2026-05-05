@@ -153,41 +153,48 @@ function ShopPageComponent() {
 
 
   useEffect(() => {
-    fetchShopData();
+    if (slug) {
+      fetchShopData(slug);
+    }
   }, [slug]);
 
-  async function fetchShopData() {
+  async function fetchShopData(targetSlug: string) {
     setLoading(true);
     // Fetch profile by slug
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("slug", slug)
-      .single();
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("slug", targetSlug);
 
-    if (profileError || !profile) {
+      if (profileError || !profile || profile.length === 0) {
+        setLoading(false);
+        return;
+      }
+
+      setShop(profile[0]);
+      const currentShop = profile[0];
+
+      // Fetch services and barbers for this shop
+      const [servicesRes, barbersRes, productsRes] = await Promise.all([
+        supabase.from("services").select("*").eq("user_id", currentShop.id).eq("active", true),
+        supabase.from("barbers").select("*, barber_services(service_id)").eq("user_id", currentShop.id).eq("active", true),
+        supabase.from("products").select("*").eq("user_id", currentShop.id).eq("active", true),
+      ]);
+
+      setServices(servicesRes.data || []);
+      setBarbers(barbersRes.data || []);
+      setProducts(productsRes.data || []);
+    } catch (error) {
+      console.error("Error fetching shop data:", error);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setShop(profile);
-
-    // Fetch services and barbers for this shop
-    const [servicesRes, barbersRes, productsRes] = await Promise.all([
-      supabase.from("services").select("*").eq("user_id", profile.id).eq("active", true),
-      supabase.from("barbers").select("*, barber_services(service_id)").eq("user_id", profile.id).eq("active", true),
-      supabase.from("products").select("*").eq("user_id", profile.id).eq("active", true),
-    ]);
-
-    setServices(servicesRes.data || []);
-    setBarbers(barbersRes.data || []);
-    setProducts(productsRes.data || []);
-    setLoading(false);
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
