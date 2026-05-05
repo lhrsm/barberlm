@@ -135,6 +135,8 @@ function SettingsComponent() {
           font_family: profile.font_family || "Inter",
           font_size: profile.font_size || "16px",
           font_color: profile.font_color || "#000000",
+          pix_key: profile.pix_key || "",
+          pix_qr_code_url: profile.pix_qr_code_url || "",
         });
       } else {
         console.warn("No profile rows found in database for user ID:", user.id);
