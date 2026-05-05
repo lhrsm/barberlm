@@ -154,14 +154,9 @@ function ShopPageComponent() {
 
   useEffect(() => {
     if (slug) {
-      console.log("Calling fetchShopData for slug:", slug);
       fetchShopData(slug);
     }
   }, [slug]);
-
-  useEffect(() => {
-    console.log("Page status update:", { loading, hasShop: !!shop, slug });
-  }, [loading, shop, slug]);
 
   async function fetchShopData(targetSlug: string) {
     console.log("fetchShopData starting for:", targetSlug);
