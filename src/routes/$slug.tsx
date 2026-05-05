@@ -949,8 +949,6 @@ function ShopPageComponent() {
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => setBookingStep(2)} className="text-xs h-8">Alterar</Button>
                 </div>
-
-              <div className="space-y-4">
                 <div className="grid gap-2">
                   <Label>Data</Label>
                   <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={format(new Date(), "yyyy-MM-dd")} />
