@@ -153,7 +153,9 @@ function ShopPageComponent() {
 
 
   useEffect(() => {
-    fetchShopData();
+    if (slug) {
+      fetchShopData();
+    }
   }, [slug]);
 
   async function fetchShopData() {
