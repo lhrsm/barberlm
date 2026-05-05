@@ -201,10 +201,6 @@ function ShopPageComponent() {
     }
   }
 
-  useEffect(() => {
-    console.log("Page status:", { loading, hasShop: !!shop, slug });
-  }, [loading, shop, slug]);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
