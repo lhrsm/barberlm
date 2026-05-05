@@ -193,7 +193,9 @@ function ShopPageComponent() {
     }
   }
 
-  console.log("Rendering shop page", { loading, hasShop: !!shop, shopId: shop?.id });
+  useEffect(() => {
+    console.log("Page status:", { loading, hasShop: !!shop, slug });
+  }, [loading, shop, slug]);
 
   if (loading) {
     return (
