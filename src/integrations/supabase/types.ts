@@ -555,6 +555,7 @@ export type Database = {
         Args: { amount: number; prod_id: string }
         Returns: undefined
       }
+      is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
