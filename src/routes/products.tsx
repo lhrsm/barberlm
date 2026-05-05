@@ -402,7 +402,7 @@ function ProductsComponent() {
           </TabsContent>
 
           <TabsContent value="history" className="pt-6">
-            <SalesHistory user={user} />
+            <SalesHistory user={user} onStatusChange={fetchProducts} />
           </TabsContent>
         </Tabs>
       </div>
@@ -410,7 +410,7 @@ function ProductsComponent() {
   );
 }
 
-function SalesHistory({ user }: { user: any }) {
+function SalesHistory({ user, onStatusChange }: { user: any, onStatusChange?: () => void }) {
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -446,6 +446,7 @@ function SalesHistory({ user }: { user: any }) {
       if (error) throw error;
       toast.success(`Status atualizado para ${newStatus}`);
       fetchSales();
+      if (onStatusChange) onStatusChange();
     } catch (error) {
       toast.error("Erro ao atualizar status");
     }
