@@ -1,24 +1,23 @@
-The user is reporting that business information (Business Name, URL/Slug, Address, and Google Maps link) is not appearing in the "Geral" (General) tab of the Settings page, even after a manual synchronization.
+The user is confirmed to be logged in as `louisdabahia@gmail.com`, and the database correctly associates this email with profile ID `c54ac1ac-49be-4505-b7a4-d257ed023f08`, which has the "Pró" plan and all business data populated. However, the app is showing a "Grátis" plan and failing to load profile data, even with the manual sync button.
 
-My investigation confirms:
-1.  **Data exists**: The database record for `louisdabahia@gmail.com` (profile ID `c54ac1ac-49be-4505-b7a4-d257ed023f08`) has all the missing information populated correctly.
-2.  **Logic seems correct**: `src/routes/settings.tsx` uses `fetchProfile()` which queries the `profiles` table using `supabase.auth.getUser()`.
-3.  **RLS is open**: There's a policy `Profiles are viewable by everyone` using `true`, so data should be readable.
-4.  **UI mapping**: The state `formData` is updated in `fetchProfile` and used to populate the input fields.
+The "Erro ao carregar informações" message in Settings and "Erro ao atualizar plano" in Subscription suggest that either:
+1.  **Auth token issues**: The session might be stale or invalid, preventing proper database reads despite RLS being set to "true".
+2.  **App state mismatch**: The `useAuth` hook might be returning a different user ID than expected, or `supabase.auth.getUser()` is failing on the client.
+3.  **Local Storage/Cache**: There might be a persistent state issue in the browser's local storage for the Supabase session.
 
-The most likely cause is that the `supabase.auth.getUser()` or `auth.uid()` in the context of the running app is not matching the profile ID I found in the database, or there's a race condition/caching issue in the `useAuth` hook which is used by the `SettingsComponent`.
-
-I will:
-1.  Add more robust logging to `src/routes/settings.tsx` to see exactly what `user.id` is being used and what the response from Supabase is.
-2.  Add a "debug" mode or a clear indicator of the current user's email/ID in the settings page to help the user verify they are logged into the correct account.
-3.  Update the `fetchProfile` function to use `supabase.auth.getSession()` or a more direct check if `getUser()` is failing for some reason in this environment.
-4.  Verify if there are any conflicting RLS policies or triggers that might be hiding data.
+I have already verified that the database record is correct and even re-forced an update. Now I will modify the code to be more resilient and provide better feedback to isolate if this is a connection/auth problem.
 
 ### Technical Steps
-1.  Modify `src/routes/settings.tsx`:
-    - Improve console logs in `fetchProfile`.
-    - Add a `useEffect` to specifically log the user object from `useAuth`.
-    - Fix potential race conditions by checking `loading` state from `useAuth` more strictly.
-2.  Ensure `maybeSingle()` isn't failing silently by adding error handling for "no rows found".
+1.  **Enhance `useAuth` hook**: Ensure it provides the most up-to-date user data and handle session refresh if needed.
+2.  **Modify `fetchProfile` in `src/routes/settings.tsx`**:
+    - Change from `maybeSingle()` to a standard `select().eq()` with a limit to catch if multiple records exist (unlikely but good for debug).
+    - Add explicit error logging of the `error` object from Supabase (including message and code).
+    - Check if the Supabase URL and Key are being loaded correctly in the browser.
+3.  **Modify `SubscriptionComponent` in `src/routes/subscription.tsx`**:
+    - Add better error logging for the plan update failure.
+4.  **Add a "Logout & Clear" utility**: Since the user mentions things "disappeared" or "changed", a fresh login is the best way to clear session issues.
 
-If the user is logged into the wrong account (which happened previously in history), this will make it obvious. If it's a technical bug, the logs will reveal why the data is returning empty.
+### Diagnostic Tooling
+I will add a temporary "Auth Debug" section to the Settings page that shows the current `user.id` and `auth.role` as seen by the browser, so the user can see if it matches the expected ID (`c54ac1ac-...`).
+
+**Note to user**: The most effective immediate fix is often to log out and log back in to refresh the secure connection to the database.
