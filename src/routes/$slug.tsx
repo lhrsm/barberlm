@@ -69,6 +69,8 @@ function ShopPageComponent() {
   const [customerCashback, setCustomerCashback] = useState(0);
   const [customerLoyaltyPoints, setCustomerLoyaltyPoints] = useState(0);
   const [useCashback, setUseCashback] = useState(false);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [fetchingTimes, setFetchingTimes] = useState(false);
 
   useEffect(() => {
     fetchShopData();
@@ -134,6 +136,86 @@ function ShopPageComponent() {
     }
   };
 
+  const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
+    const service = services.find(s => s.id === serviceId);
+    if (!service) return false;
+    
+    const startTime = parseISO(`${date}T${time}:00`);
+    const endTime = addMinutes(startTime, service.duration_minutes || 30);
+
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("id")
+      .eq("barber_id", barberId)
+      .eq("status", "scheduled")
+      .or(`and(start_time.lte.${startTime.toISOString()},end_time.gt.${startTime.toISOString()}),and(start_time.lt.${endTime.toISOString()},end_time.gte.${endTime.toISOString()}),and(start_time.gte.${startTime.toISOString()},end_time.lte.${endTime.toISOString()})`)
+      .limit(1);
+
+    if (error) {
+      console.error("Erro ao verificar conflitos:", error);
+      return false;
+    }
+
+    return data && data.length > 0;
+  };
+
+  const fetchAvailableTimes = async (barberId: string, date: string) => {
+    setFetchingTimes(true);
+    try {
+      const startOfDay = `${date}T00:00:00Z`;
+      const endOfDay = `${date}T23:59:59Z`;
+
+      const { data: appointments, error } = await supabase
+        .from("appointments")
+        .select("start_time, end_time")
+        .eq("barber_id", barberId)
+        .eq("status", "scheduled")
+        .gte("start_time", startOfDay)
+        .lte("start_time", endOfDay);
+
+      if (error) throw error;
+
+      const times = [];
+      const startHour = 8;
+      const endHour = 20;
+      const interval = 30;
+
+      for (let hour = startHour; hour < endHour; hour++) {
+        for (let min = 0; min < 60; min += interval) {
+          const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+          const checkTime = parseISO(`${date}T${timeStr}:00`);
+          
+          // Don't show past times for today
+          if (isSameDay(checkTime, new Date()) && checkTime < new Date()) {
+            continue;
+          }
+
+          const isBusy = appointments?.some(app => {
+            const appStart = parseISO(app.start_time);
+            const appEnd = parseISO(app.end_time);
+            return checkTime >= appStart && checkTime < appEnd;
+          });
+
+          if (!isBusy) {
+            times.push(timeStr);
+          }
+        }
+      }
+      setAvailableTimes(times);
+    } catch (error) {
+      console.error("Error fetching times:", error);
+      toast.error("Erro ao carregar horários disponíveis.");
+    } finally {
+      setFetchingTimes(false);
+    }
+  };
+
+  useEffect(() => {
+    if (bookingStep === 3 && selectedBarber && selectedDate) {
+      fetchAvailableTimes(selectedBarber.id, selectedDate);
+    }
+  }, [bookingStep, selectedBarber, selectedDate]);
+
   const handleFinalizeBooking = async () => {
     if (!customerName || !customerPhone) {
       toast.error("Por favor, preencha seu nome e telefone.");
@@ -166,6 +248,16 @@ function ShopPageComponent() {
         
         if (createError) throw createError;
         customerId = newCustomer.id;
+      }
+
+      // 1.5 Check for conflict again to be sure
+      const hasConflict = await checkConflict(selectedBarber.id, selectedDate, selectedTime, selectedService.id);
+      if (hasConflict) {
+        toast.error("Este horário acabou de ser preenchido. Por favor, escolha outro.");
+        setBookingStep(3);
+        fetchAvailableTimes(selectedBarber.id, selectedDate);
+        setSubmitting(false);
+        return;
       }
 
       // 2. Create appointment
@@ -714,9 +806,44 @@ function ShopPageComponent() {
                 </div>
                 <div className="grid gap-2">
                   <Label>Horário</Label>
-                  <Input type="time" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} />
+                  {fetchingTimes ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    </div>
+                  ) : availableTimes.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto p-1">
+                      {availableTimes.map(time => (
+                        <Button
+                          key={time}
+                          type="button"
+                          variant={selectedTime === time ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedTime(time)}
+                          className={cn(selectedTime === time && "bg-primary")}
+                        >
+                          {time}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-center text-muted-foreground py-4">
+                      Nenhum horário disponível para esta data.
+                    </p>
+                  )}
                 </div>
-                <Button className="w-full mt-2" onClick={() => setBookingStep(4)}>Próximo</Button>
+                <Button 
+                  className="w-full mt-2" 
+                  onClick={() => {
+                    if (!selectedTime) {
+                      toast.error("Por favor, selecione um horário.");
+                      return;
+                    }
+                    setBookingStep(4);
+                  }}
+                  disabled={availableTimes.length === 0}
+                >
+                  Próximo
+                </Button>
               </div>
             )}
 
