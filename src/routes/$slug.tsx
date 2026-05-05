@@ -1042,7 +1042,7 @@ function ShopPageComponent() {
                   setBookingStep(1); // Go to service selection
                 }}
               >
-                Continuar para Agendamento
+                Pagar Agora
               </Button>
             )}
             <Button variant="ghost" className="w-full" onClick={() => setIsCartOpen(false)}>
