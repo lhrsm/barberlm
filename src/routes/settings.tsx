@@ -100,45 +100,47 @@ function SettingsComponent() {
     console.log("Fetching profile for user ID:", user.id, "Email:", user.email);
     
     try {
-      const { data, error } = await supabase
+      // Use a more direct query to avoid maybeSingle() caching if any
+      const { data, error, status } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
+        .eq("id", user.id);
 
       if (error) {
-        console.error("Supabase error fetching profile:", error);
-        toast.error("Erro ao carregar configurações");
+        console.error("Supabase error fetching profile:", error.message, "Code:", error.code, "Status:", status);
+        toast.error(`Erro ao carregar configurações: ${error.message}`);
         return;
       }
 
-      if (data) {
-        console.log("Profile data successfully loaded from Supabase:", data);
+      if (data && data.length > 0) {
+        const profile = data[0];
+        console.log("Profile data successfully loaded from Supabase:", profile);
         setFormData({
-          business_name: data.business_name || "",
-          slug: data.slug || "",
-          whatsapp_enabled: data.whatsapp_enabled || false,
-          scheduling_mode: (data.scheduling_mode as "manual" | "automatic") || "automatic",
-          payment_gateway_provider: data.payment_gateway_provider || "none",
-          payment_gateway_key: data.payment_gateway_key || "",
-          primary_color: data.primary_color || "#7c3aed",
-          secondary_color: data.secondary_color || "#f4f4f5",
-          logo_url: data.logo_url || "",
-          cashback_enabled: data.cashback_enabled || false,
-          cashback_percentage: data.cashback_percentage || 0,
-          free_service_threshold: data.free_service_threshold || 10,
-          address: data.address || "",
-          google_maps_url: data.google_maps_url || "",
-          font_family: data.font_family || "Inter",
-          font_size: data.font_size || "16px",
-          font_color: data.font_color || "#000000",
+          business_name: profile.business_name || "",
+          slug: profile.slug || "",
+          whatsapp_enabled: profile.whatsapp_enabled || false,
+          scheduling_mode: (profile.scheduling_mode as "manual" | "automatic") || "automatic",
+          payment_gateway_provider: profile.payment_gateway_provider || "none",
+          payment_gateway_key: profile.payment_gateway_key || "",
+          primary_color: profile.primary_color || "#7c3aed",
+          secondary_color: profile.secondary_color || "#f4f4f5",
+          logo_url: profile.logo_url || "",
+          cashback_enabled: profile.cashback_enabled || false,
+          cashback_percentage: profile.cashback_percentage || 0,
+          free_service_threshold: profile.free_service_threshold || 10,
+          address: profile.address || "",
+          google_maps_url: profile.google_maps_url || "",
+          font_family: profile.font_family || "Inter",
+          font_size: profile.font_size || "16px",
+          font_color: profile.font_color || "#000000",
         });
       } else {
-        console.warn("No profile found in database for ID:", user.id);
-        toast.error("Perfil não encontrado no banco de dados.");
+        console.warn("No profile rows found in database for user ID:", user.id);
+        toast.error("Perfil não encontrado. Tente sair e entrar novamente.");
       }
-    } catch (e) {
-      console.error("Exception in fetchProfile:", e);
+    } catch (e: any) {
+      console.error("Unexpected error in fetchProfile:", e);
+      toast.error("Erro inesperado ao buscar dados.");
     }
   }
 
