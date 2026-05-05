@@ -370,7 +370,7 @@ function SettingsComponent() {
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <div className="space-y-1">
                     <CardTitle>Informações do Negócio</CardTitle>
-                    <CardDescription>Logado como: <span className="font-mono text-primary font-bold">{user?.email}</span></CardDescription>
+                    <CardDescription>Logado como: <span className="font-mono text-primary font-bold">{user?.email}</span> (ID: {user?.id?.substring(0, 8)}...)</CardDescription>
                   </div>
                   <Button 
                     variant="outline" 
