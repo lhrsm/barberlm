@@ -13,7 +13,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, FileText } from "lucide-react";
+import { Users, FileText, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2 } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/finances")({
@@ -45,12 +45,17 @@ function FinancesComponent() {
   const navigate = useNavigate();
   const { plan } = usePlanLimits();
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none" });
+  const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: new Date().toLocaleTimeString('pt-BR', { hour12: false, hour: '2-digit', minute: '2-digit' }) });
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  
+  // Filtros
+  const [filterDay, setFilterDay] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -62,6 +67,10 @@ function FinancesComponent() {
       fetchBarbers();
     }
   }, [user]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [transactions, filterDay, filterMonth]);
 
   async function fetchBarbers() {
     const { data, error } = await supabase
@@ -84,7 +93,8 @@ function FinancesComponent() {
         *,
         barber:barbers(name)
       `)
-      .order("date", { ascending: false });
+      .order("date", { ascending: false })
+      .order("time", { ascending: false });
     
     if (error) {
       toast.error("Erro ao buscar transações");
@@ -92,9 +102,29 @@ function FinancesComponent() {
     }
 
     setTransactions(data || []);
+  }
 
-    const income = data?.filter(t => t.type === "income").reduce((acc, t) => acc + Number(t.amount), 0) || 0;
-    const expense = data?.filter(t => t.type === "expense").reduce((acc, t) => acc + Number(t.amount), 0) || 0;
+  function applyFilters() {
+    let filtered = [...transactions];
+
+    if (filterDay) {
+      filtered = filtered.filter(t => {
+        const tDate = new Date(t.date + 'T12:00:00'); // Use noon to avoid timezone issues
+        return tDate.getDate().toString() === filterDay;
+      });
+    }
+
+    if (filterMonth) {
+      filtered = filtered.filter(t => {
+        const tDate = new Date(t.date + 'T12:00:00');
+        return (tDate.getMonth() + 1).toString() === filterMonth;
+      });
+    }
+
+    setFilteredTransactions(filtered);
+
+    const income = filtered.filter(t => t.type === "income").reduce((acc, t) => acc + Number(t.amount), 0) || 0;
+    const expense = filtered.filter(t => t.type === "expense").reduce((acc, t) => acc + Number(t.amount), 0) || 0;
     setSummary({ income, expense, balance: income - expense });
   }
 
@@ -114,7 +144,15 @@ function FinancesComponent() {
     } else {
       toast.success("Transação adicionada!");
       setIsAddDialogOpen(false);
-      setNewTransaction({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none" });
+      setNewTransaction({ 
+        amount: "", 
+        type: "income", 
+        description: "", 
+        category: "Serviço", 
+        barber_id: "none",
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString('pt-BR', { hour12: false, hour: '2-digit', minute: '2-digit' })
+      });
       fetchTransactions();
     }
   }
@@ -131,6 +169,8 @@ function FinancesComponent() {
         description: editingTransaction.description,
         category: editingTransaction.category,
         barber_id: editingTransaction.barber_id === "none" ? null : editingTransaction.barber_id,
+        date: editingTransaction.date,
+        time: editingTransaction.time,
       })
       .eq("id", editingTransaction.id);
 
@@ -196,6 +236,28 @@ function FinancesComponent() {
                 <DialogTitle>Adicionar Transação</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddTransaction} className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Data</Label>
+                    <Input 
+                      id="date" 
+                      type="date"
+                      value={newTransaction.date} 
+                      onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})} 
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="time">Horário</Label>
+                    <Input 
+                      id="time" 
+                      type="time"
+                      value={newTransaction.time} 
+                      onChange={(e) => setNewTransaction({...newTransaction, time: e.target.value})} 
+                      required 
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="amount">Valor (R$)</Label>
                   <Input 
@@ -264,6 +326,56 @@ function FinancesComponent() {
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-4 bg-card p-4 rounded-xl border">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filtrar por:</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select value={filterDay} onValueChange={setFilterDay}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Dia" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos</SelectItem>
+                {Array.from({ length: 31 }, (_, i) => (
+                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                    {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterMonth} onValueChange={setFilterMonth}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Mês" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos</SelectItem>
+                {[
+                  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                ].map((month, i) => (
+                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                    {month}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(filterDay || filterMonth) && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setFilterDay("");
+                  setFilterMonth("");
+                }}
+              >
+                Limpar
+              </Button>
+            )}
+          </div>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="bg-green-50/50 border-green-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -311,7 +423,7 @@ function FinancesComponent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
+                    <TableHead>Data/Hora</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Barbeiro</TableHead>
                     <TableHead>Categoria</TableHead>
@@ -320,16 +432,21 @@ function FinancesComponent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.length === 0 ? (
+                  {filteredTransactions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                        Nenhuma transação registrada.
+                        Nenhuma transação encontrada para os filtros selecionados.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    transactions.map((t) => (
+                    filteredTransactions.map((t) => (
                       <TableRow key={t.id}>
-                        <TableCell>{new Date(t.date).toLocaleDateString('pt-BR')}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span>{new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                            <span className="text-xs text-muted-foreground">{t.time?.substring(0, 5) || "--:--"}</span>
+                          </div>
+                        </TableCell>
                         <TableCell className="font-medium">{t.description || "-"}</TableCell>
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
                         <TableCell>{t.category || "-"}</TableCell>
@@ -338,21 +455,121 @@ function FinancesComponent() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              onClick={() => {
-                                setEditingTransaction({
-                                  ...t,
-                                  amount: t.amount.toString(),
-                                  barber_id: t.barber_id || "none"
-                                });
-                                setIsEditDialogOpen(true);
-                              }}
-                            >
-                              <Edit2 size={14} />
-                            </Button>
+                            <Dialog open={isEditDialogOpen && editingTransaction?.id === t.id} onOpenChange={(open) => {
+                              if (!open) {
+                                setIsEditDialogOpen(false);
+                                setEditingTransaction(null);
+                              }
+                            }}>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={() => {
+                                  setEditingTransaction({
+                                    ...t,
+                                    amount: t.amount.toString(),
+                                    barber_id: t.barber_id || "none",
+                                    date: t.date,
+                                    time: t.time || "12:00:00"
+                                  });
+                                  setIsEditDialogOpen(true);
+                                }}
+                              >
+                                <Edit2 size={14} />
+                              </Button>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Editar Transação</DialogTitle>
+                                </DialogHeader>
+                                {editingTransaction && (
+                                  <form onSubmit={handleUpdateTransaction} className="space-y-4 pt-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-2">
+                                        <Label htmlFor="edit-date">Data</Label>
+                                        <Input 
+                                          id="edit-date" 
+                                          type="date"
+                                          value={editingTransaction.date} 
+                                          onChange={(e) => setEditingTransaction({...editingTransaction, date: e.target.value})} 
+                                          required 
+                                        />
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label htmlFor="edit-time">Horário</Label>
+                                        <Input 
+                                          id="edit-time" 
+                                          type="time"
+                                          value={editingTransaction.time} 
+                                          onChange={(e) => setEditingTransaction({...editingTransaction, time: e.target.value})} 
+                                          required 
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-amount">Valor (R$)</Label>
+                                      <Input 
+                                        id="edit-amount" 
+                                        type="number"
+                                        step="0.01"
+                                        value={editingTransaction.amount} 
+                                        onChange={(e) => setEditingTransaction({...editingTransaction, amount: e.target.value})} 
+                                        required 
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-type">Tipo</Label>
+                                      <Select 
+                                        value={editingTransaction.type} 
+                                        onValueChange={(val) => setEditingTransaction({...editingTransaction, type: val})}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="income">Entrada (Receita)</SelectItem>
+                                          <SelectItem value="expense">Saída (Despesa)</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-category">Categoria</Label>
+                                      <Input 
+                                        id="edit-category" 
+                                        value={editingTransaction.category} 
+                                        onChange={(e) => setEditingTransaction({...editingTransaction, category: e.target.value})} 
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-barber">Barbeiro</Label>
+                                      <Select 
+                                        value={editingTransaction.barber_id} 
+                                        onValueChange={(val) => setEditingTransaction({...editingTransaction, barber_id: val})}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="none">Nenhum / Geral</SelectItem>
+                                          {barbers.map((b) => (
+                                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-description">Descrição</Label>
+                                      <Input 
+                                        id="edit-description" 
+                                        value={editingTransaction.description} 
+                                        onChange={(e) => setEditingTransaction({...editingTransaction, description: e.target.value})} 
+                                      />
+                                    </div>
+                                    <Button type="submit" className="w-full">Atualizar</Button>
+                                  </form>
+                                )}
+                              </DialogContent>
+                            </Dialog>
                             <Button 
                               variant="ghost" 
                               size="icon" 
