@@ -111,7 +111,9 @@ function FinancesComponent() {
       filtered = filtered.filter(t => {
         if (!t.date) return false;
         try {
-          const [year, month, day] = t.date.split('-').map(Number);
+          const parts = String(t.date).split('-');
+          if (parts.length < 3) return false;
+          const day = parseInt(parts[2], 10);
           return day.toString() === filterDay;
         } catch (e) {
           return false;
@@ -123,7 +125,9 @@ function FinancesComponent() {
       filtered = filtered.filter(t => {
         if (!t.date) return false;
         try {
-          const [year, month, day] = t.date.split('-').map(Number);
+          const parts = String(t.date).split('-');
+          if (parts.length < 2) return false;
+          const month = parseInt(parts[1], 10);
           return month.toString() === filterMonth;
         } catch (e) {
           return false;
@@ -456,10 +460,13 @@ function FinancesComponent() {
                             <span>
                               {t.date ? (() => {
                                 try {
-                                  const [year, month, day] = t.date.split('-');
-                                  return `${day}/${month}/${year}`;
+                                  const parts = String(t.date).split('-');
+                                  if (parts.length >= 3) {
+                                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                                  }
+                                  return String(t.date);
                                 } catch (e) {
-                                  return t.date;
+                                  return String(t.date);
                                 }
                               })() : "-"}
                             </span>
