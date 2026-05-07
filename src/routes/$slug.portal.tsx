@@ -19,12 +19,14 @@ import {
   CheckCircle2,
   XCircle,
   RefreshCcw,
-  AlertTriangle
+  AlertTriangle,
+  Edit2
 } from "lucide-react";
-import { format, isAfter, subDays, parseISO } from "date-fns";
+import { format, isAfter, subDays, parseISO, addMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
