@@ -99,7 +99,11 @@ function ShopPageComponent() {
     }
   };
 
-  // Day data useEffect removed from here to fix hook order (moved below other hooks)
+  useEffect(() => {
+    if (selectedDate && shop?.id && isBookingOpen) {
+      fetchDayData(selectedDate);
+    }
+  }, [selectedDate, shop?.id, isBookingOpen]);
 
   const isBarberAvailableOnDate = (barber: any, date: string, service: any, appointments: any[]) => {
     if (!service || !barber) return false;
