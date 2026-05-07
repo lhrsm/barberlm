@@ -113,35 +113,54 @@ function ClientPortalComponent() {
   }
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setSubmitting(true);
     try {
-      // @ts-ignore - types are being updated
-      const { data, error } = await supabase
-        .from("client_auth")
-        .select("*, customers(id, name, user_id)")
+      // Find customer in this specific shop first
+      const { data: customerData, error: customerError } = await supabase
+        .from("customers")
+        .select("id, name")
         .eq("phone", phone)
+        .eq("user_id", shop.id)
         .maybeSingle();
 
-      if (error) throw error;
-      
-      if (!data) {
-        toast.error("Telefone não cadastrado. Por favor, cadastre-se primeiro.");
+      if (!customerData) {
+        toast.error("Telefone não encontrado nesta barbearia. Por favor, cadastre-se.");
         setIsRegistering(true);
         return;
       }
 
+      // @ts-ignore - types are being updated
+      const { data: authData, error: authError } = await supabase
+        .from("client_auth")
+        .select("*")
+        .eq("phone", phone)
+        .maybeSingle();
+
+      if (authError) throw authError;
+      
+      let finalCustomerId = customerData.id;
+
+      // If no auth record, create one
+      if (!authData) {
+        await supabase
+          .from("client_auth")
+          .insert({
+            phone: phone,
+            customer_id: finalCustomerId
+          });
+      }
+
       const sessionData = {
-        id: data.id,
-        phone: data.phone,
-        customer_id: data.customer_id,
-        name: data.customers?.name
+        phone: phone,
+        customer_id: finalCustomerId,
+        name: customerData.name
       };
 
       setClient(sessionData);
       setIsLoggedIn(true);
       localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
-      fetchClientData(data.customer_id || "");
+      fetchClientData(finalCustomerId);
       toast.success(`Bem-vindo de volta, ${sessionData.name}!`);
     } catch (e) {
       console.error(e);
@@ -152,20 +171,22 @@ function ClientPortalComponent() {
   };
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setSubmitting(true);
     try {
-      // 1. Find or create customer
+      // 1. Find or create customer for this shop
       const { data: existingCustomer } = await supabase
         .from("customers")
-        .select("id")
+        .select("id, name")
         .eq("phone", phone)
         .eq("user_id", shop.id)
         .maybeSingle();
       
       let customerId;
+      let name = customerName;
       if (existingCustomer) {
         customerId = existingCustomer.id;
+        name = existingCustomer.name;
       } else {
         const { data: newCust, error: custErr } = await supabase
           .from("customers")
@@ -180,23 +201,29 @@ function ClientPortalComponent() {
         customerId = newCust.id;
       }
 
-      // 2. Create client_auth record
+      // 2. Create or update client_auth record (one record per phone globally is fine if we check customer in login)
       // @ts-ignore - types are being updated
       const { error: authErr } = await supabase
         .from("client_auth")
-        .insert({
+        .upsert({
           phone: phone,
           customer_id: customerId
-        });
+        }, { onConflict: 'phone' });
 
-      if (authErr) {
-        if (authErr.code === '23505') toast.error("Este telefone já possui cadastro.");
-        else throw authErr;
-        return;
-      }
+      if (authErr) throw authErr;
 
       toast.success("Cadastro realizado com sucesso!");
-      handleLogin(e);
+      
+      const sessionData = {
+        phone: phone,
+        customer_id: customerId,
+        name: name
+      };
+
+      setClient(sessionData);
+      setIsLoggedIn(true);
+      localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
+      fetchClientData(customerId);
     } catch (e: any) {
       toast.error(e.message || "Erro ao cadastrar");
     } finally {
