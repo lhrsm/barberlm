@@ -1511,8 +1511,8 @@ function ShopPageComponent() {
                     user_id: shop.id,
                     customer_id: saleCustomerId,
                     total_amount: totalAmount,
-                    status: 'completed',
-                    items: items
+                    status: 'completed' as any,
+                    items: items as any
                   }).select().single();
 
                   if (saleError) throw saleError;
