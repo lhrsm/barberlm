@@ -1869,6 +1869,29 @@ function ShopPageComponent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Cancellation & Rating Access Modal */}
+      {!isEmbedded && <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Acessar Agendamento</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-muted-foreground">Insira o código do seu agendamento para avaliar o serviço.</p>
+            <div className="grid gap-2">
+              <Label htmlFor="token">Código do Agendamento</Label>
+              <Input 
+                id="token" 
+                placeholder="Ex: ABC-123" 
+                value={cancelTokenInput} 
+                onChange={(e) => setCancelTokenInput(e.target.value)} 
+              />
+            </div>
+            <Button className="w-full" onClick={handleCheckAppointmentForRating}>
+              Acessar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>}
     </div>
   );
 }
