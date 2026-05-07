@@ -11,7 +11,8 @@ import {
   Scissors,
   X,
   AlertTriangle,
-  Crown
+  Crown,
+  CheckCircle2
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
