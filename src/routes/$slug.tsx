@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw } from "lucide-react";
+import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -1393,7 +1393,12 @@ function ShopPageComponent() {
                       <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
                     </div>
                   )}
-                  {/* Credits usage summary removed */}
+                  {useCredits && (
+                    <div className="flex justify-between text-green-600 font-medium">
+                      <span>Desconto Créditos:</span> 
+                      <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between border-t pt-2 font-bold">
                     <span className="text-muted-foreground">Total:</span> 
                     <span style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
