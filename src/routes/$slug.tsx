@@ -1019,11 +1019,13 @@ function ShopPageComponent() {
           </p>
         </section>
 
-        {/* Footer info */}
-        <section className="pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>© 2026 {shop.business_name} - Todos os direitos reservados.</p>
-          <p className="mt-2">Desenvolvido por BarberSaaS</p>
-        </section>
+            {/* Footer info */}
+            <section className="pt-8 border-t text-center text-sm text-muted-foreground">
+              <p>© 2026 {shop.business_name} - Todos os direitos reservados.</p>
+              <p className="mt-2">Desenvolvido por BarberSaaS</p>
+            </section>
+          </>
+        )}
       </main>
 
       <Dialog open={isBookingOpen} onOpenChange={(open) => {
