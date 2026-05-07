@@ -13,7 +13,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2 } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
@@ -50,6 +51,7 @@ function FinancesComponent() {
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Filtros
   const [filterDay, setFilterDay] = useState("");
@@ -90,6 +92,7 @@ function FinancesComponent() {
   async function fetchTransactions() {
     if (fetching) return;
     setFetching(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from("transactions")
@@ -102,6 +105,7 @@ function FinancesComponent() {
       
       if (error) {
         console.error("Error fetching transactions:", error);
+        setError("Erro ao carregar transações do servidor.");
         toast.error("Erro ao buscar transações");
         return;
       }
@@ -109,6 +113,7 @@ function FinancesComponent() {
       setTransactions(data || []);
     } catch (e) {
       console.error("Exception fetching transactions:", e);
+      setError("Ocorreu um erro inesperado ao processar os dados.");
       setTransactions([]);
     } finally {
       setFetching(false);
@@ -283,6 +288,15 @@ function FinancesComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro</AlertTitle>
+            <AlertDescription>
+              {error} <Button variant="link" className="p-0 h-auto" onClick={() => fetchTransactions()}>Tentar novamente</Button>
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Financeiro</h2>
