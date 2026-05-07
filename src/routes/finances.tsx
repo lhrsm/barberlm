@@ -144,7 +144,15 @@ function FinancesComponent() {
     } else {
       toast.success("Transação adicionada!");
       setIsAddDialogOpen(false);
-      setNewTransaction({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none" });
+      setNewTransaction({ 
+        amount: "", 
+        type: "income", 
+        description: "", 
+        category: "Serviço", 
+        barber_id: "none",
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString('pt-BR', { hour12: false, hour: '2-digit', minute: '2-digit' })
+      });
       fetchTransactions();
     }
   }
