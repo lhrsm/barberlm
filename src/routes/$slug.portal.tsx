@@ -409,9 +409,13 @@ function ClientPortalComponent() {
                            <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'}>
                              {app.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
                            </Badge>
-                           <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'}>
-                             {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
-                           </Badge>
+                            <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'} className={cn(
+                              app.status === 'completed' && "bg-green-500 hover:bg-green-600",
+                              app.status === 'scheduled' && "bg-blue-500 hover:bg-blue-600",
+                              app.status === 'cancelled' && "bg-red-500 hover:bg-red-600"
+                            )}>
+                              {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
+                            </Badge>
                            {app.status === 'scheduled' && (
                              <Button 
                                variant="ghost" 
@@ -452,8 +456,15 @@ function ClientPortalComponent() {
                             <span className="text-sm font-medium text-muted-foreground">
                               {format(parseISO(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                             </span>
-                            <Badge variant={sale.status === 'completed' ? 'default' : 'secondary'}>
-                              {sale.status === 'completed' ? 'Pago' : sale.status === 'refunded' ? 'Reembolsado' : 'Pendente'}
+                            <Badge 
+                              variant={sale.status === 'completed' ? 'default' : 'secondary'}
+                              className={cn(
+                                sale.status === 'completed' && "bg-green-500 hover:bg-green-600",
+                                sale.status === 'refunded' && "bg-amber-500 hover:bg-amber-600",
+                                sale.status === 'pending' && "bg-slate-400 hover:bg-slate-500"
+                              )}
+                            >
+                              {sale.status === 'completed' ? 'Concluído' : sale.status === 'refunded' ? 'Reembolsado' : 'Pendente'}
                             </Badge>
                           </div>
                           <span className="font-bold text-lg text-primary">R$ {sale.total_amount.toFixed(2)}</span>
