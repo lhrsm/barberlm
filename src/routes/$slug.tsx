@@ -154,11 +154,7 @@ function ShopPageComponent() {
     }
   }, [slug]);
 
-  useEffect(() => {
-    if (selectedDate && shop?.id && isBookingOpen) {
-      fetchDayData(selectedDate);
-    }
-  }, [selectedDate, shop?.id, isBookingOpen]);
+  // Day data useEffect moved below to fix hook order (placed after state definitions and before conditional returns)
 
   async function fetchShopData(targetSlug: string) {
     setLoading(true);
