@@ -1,0 +1,1 @@
+UPDATE public.customers SET credits = 0;
