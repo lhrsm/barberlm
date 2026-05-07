@@ -464,7 +464,7 @@ function ShopPageComponent() {
       if (appError) throw appError;
 
       // 3. Create transactions for products and services if paid via PIX OR credits
-      if (paymentMethod === 'pix' || (useCredits && customerCredits > 0)) {
+      if (paymentMethod === 'pix' || (useCredits && customerCredits > 0 && calculateTotal() === 0)) {
         // Add service transaction
         await supabase.from("transactions").insert({
           user_id: shop.id,
@@ -1235,19 +1235,13 @@ function ShopPageComponent() {
                     }
                     
                     // Se o cliente tiver créditos suficientes para cobrir o valor total,
-                    // pré-selecionamos o uso de créditos e avançamos
+                    // pré-selecionamos o uso de créditos
                     const totalBeforeCredits = calculateTotalBeforeCashback() - (useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0);
                     if (customerCredits >= totalBeforeCredits && totalBeforeCredits > 0) {
                       setUseCredits(true);
                       setPaymentMethod('pix');
-                      setBookingStep(5);
-                      
-                      // Auto-finalize if credits cover everything and user just wants to confirm
-                      // But the user asked for a "Confirmar agendamento" button in the modal, 
-                      // so we go to step 5 where that button is.
-                    } else {
-                      setBookingStep(5);
                     }
+                    setBookingStep(5);
                   }}
                   disabled={fetchingTimes || !selectedDate}
                 >
