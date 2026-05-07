@@ -12,6 +12,8 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -64,7 +66,7 @@ function FinancesComponent() {
   async function fetchBarbers() {
     const { data, error } = await supabase
       .from("barbers")
-      .select("id, name")
+      .select("id, name, commission_rate")
       .eq("active", true);
     
     if (error) {
@@ -294,68 +296,123 @@ function FinancesComponent() {
           </Card>
         </div>
 
-        <div className="border rounded-xl bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Barbeiro</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Nenhuma transação registrada.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                transactions.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell>{new Date(t.date).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell className="font-medium">{t.description || "-"}</TableCell>
-                    <TableCell>{t.barber?.name || "Geral"}</TableCell>
-                    <TableCell>{t.category || "-"}</TableCell>
-                    <TableCell className={cn("text-right font-bold", t.type === "income" ? "text-green-600" : "text-red-600")}>
-                      {t.type === "income" ? "+" : "-"} R$ {Number(t.amount).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-muted-foreground hover:text-primary"
-                          onClick={() => {
-                            setEditingTransaction({
-                              ...t,
-                              amount: t.amount.toString(),
-                              barber_id: t.barber_id || "none"
-                            });
-                            setIsEditDialogOpen(true);
-                          }}
-                        >
-                          <Edit2 size={14} />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleDeleteTransaction(t.id)}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                    </TableCell>
+        <Tabs defaultValue="transactions" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+            <TabsTrigger value="transactions" className="gap-2">
+              <FileText size={16} /> Lançamentos
+            </TabsTrigger>
+            <TabsTrigger value="barbers" className="gap-2">
+              <Users size={16} /> Por Barbeiro
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="transactions" className="pt-4">
+            <div className="border rounded-xl bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Barbeiro</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))
+                </TableHeader>
+                <TableBody>
+                  {transactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        Nenhuma transação registrada.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    transactions.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell>{new Date(t.date).toLocaleDateString('pt-BR')}</TableCell>
+                        <TableCell className="font-medium">{t.description || "-"}</TableCell>
+                        <TableCell>{t.barber?.name || "Geral"}</TableCell>
+                        <TableCell>{t.category || "-"}</TableCell>
+                        <TableCell className={cn("text-right font-bold", t.type === "income" ? "text-green-600" : "text-red-600")}>
+                          {t.type === "income" ? "+" : "-"} R$ {Number(t.amount).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => {
+                                setEditingTransaction({
+                                  ...t,
+                                  amount: t.amount.toString(),
+                                  barber_id: t.barber_id || "none"
+                                });
+                                setIsEditDialogOpen(true);
+                              }}
+                            >
+                              <Edit2 size={14} />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDeleteTransaction(t.id)}
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="barbers" className="pt-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {barbers.map((barber) => {
+                const barberTransactions = transactions.filter(t => t.barber_id === barber.id && t.type === 'income');
+                const totalReceived = barberTransactions.reduce((acc, t) => acc + Number(t.amount), 0);
+                const commissionRate = Number(barber.commission_rate || 0);
+                const barberPart = totalReceived * (commissionRate / 100);
+                const barbershopPart = totalReceived - barberPart;
+
+                return (
+                  <Card key={barber.id}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">{barber.name}</CardTitle>
+                      <p className="text-xs text-muted-foreground">Comissão: {commissionRate}%</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between items-center border-b pb-2">
+                        <span className="text-sm text-muted-foreground">Total Recebido</span>
+                        <span className="font-bold">R$ {totalReceived.toFixed(2)}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-sm">
+                          <span>Parte do Barbeiro ({commissionRate}%)</span>
+                          <span className="text-green-600 font-medium">R$ {barberPart.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span>Parte da Barbearia</span>
+                          <span className="text-blue-600 font-medium">R$ {barbershopPart.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+              {barbers.length === 0 && (
+                <div className="col-span-full text-center py-12 border rounded-xl bg-card text-muted-foreground">
+                  Nenhum barbeiro cadastrado.
+                </div>
               )}
-            </TableBody>
-          </Table>
-        </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
