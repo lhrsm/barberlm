@@ -90,7 +90,7 @@ function ShopPageComponent() {
   }, [shop?.font_family]);
 
   useEffect(() => {
-    if (bookingStep === 3 && selectedBarber && selectedDate) {
+    if (bookingStep === 4 && selectedBarber && selectedDate) {
       fetchAvailableTimes(selectedBarber.id, selectedDate);
     }
   }, [bookingStep, selectedBarber, selectedDate]);
