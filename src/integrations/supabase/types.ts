@@ -562,6 +562,7 @@ export type Database = {
           date: string | null
           description: string | null
           id: string
+          time: string | null
           type: string
           user_id: string
         }
@@ -574,6 +575,7 @@ export type Database = {
           date?: string | null
           description?: string | null
           id?: string
+          time?: string | null
           type: string
           user_id: string
         }
@@ -586,6 +588,7 @@ export type Database = {
           date?: string | null
           description?: string | null
           id?: string
+          time?: string | null
           type?: string
           user_id?: string
         }
