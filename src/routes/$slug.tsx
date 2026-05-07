@@ -53,13 +53,15 @@ function ShopPageComponent() {
   const [cancelling, setCancelling] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [customerCashback, setCustomerCashback] = useState(0);
+  const [customerCredits, setCustomerCredits] = useState(0);
   const [customerLoyaltyPoints, setCustomerLoyaltyPoints] = useState(0);
   const [useCashback, setUseCashback] = useState(false);
+  const [useCredits, setUseCredits] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [dayAppointments, setDayAppointments] = useState<any[]>([]);
   const [loadingDayData, setLoadingDayData] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
   const [showPixStep, setShowPixStep] = useState(false);
 
   useEffect(() => {
@@ -380,7 +382,7 @@ function ShopPageComponent() {
       // 1. Create or get customer
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
-        .select("id, cashback_balance")
+        .select("id, cashback_balance, credits")
         .eq("phone", customerPhone)
         .eq("user_id", shop.id)
         .maybeSingle();
@@ -389,6 +391,7 @@ function ShopPageComponent() {
       if (customerData) {
         customerId = customerData.id;
         setCustomerCashback(Number(customerData.cashback_balance || 0));
+        setCustomerCredits(Number(customerData.credits || 0));
       } else {
         const { data: newCustomer, error: createError } = await supabase
           .from("customers")
@@ -447,11 +450,11 @@ function ShopPageComponent() {
           end_time: endTime.toISOString(),
           total_price: calculateTotal(),
           status: "scheduled",
-          payment_method: paymentMethod || (calculateTotal() === 0 ? 'cashback' : 'barbershop'),
+          payment_method: paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop'),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
           notes: useCashback ? 
             `Pagamento: Cashback (R$ ${Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)})` : 
-            null,
+            useCredits ? `Pagamento: Créditos (R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : null,
           items: [
             { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
             ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
@@ -462,8 +465,19 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
-      // 3. Create transactions for products and services if paid via PIX OR credits
+      // 2.5 Update customer credits if used
+      if (useCredits) {
+        const amountToDeduct = Math.min(customerCredits, calculateTotalBeforeCredits());
+        await supabase
+          .from("customers")
+          .update({ credits: customerCredits - amountToDeduct })
+          .eq("id", customerId);
+      }
+
+      // 3. Create transactions for products and services if paid via PIX OR credits/cashback
       if (paymentMethod === 'pix' || (calculateTotal() === 0)) {
+        const finalPaymentMethod = calculateTotal() === 0 ? (useCredits ? 'CRÉDITOS' : (useCashback ? 'CASHBACK' : 'PIX')) : 'PIX';
+        
         // Add service transaction
         await supabase.from("transactions").insert({
           user_id: shop.id,
@@ -471,8 +485,8 @@ function ShopPageComponent() {
           appointment_id: appointment.id,
           type: "income",
           category: "Serviço",
-          amount: selectedService.price,
-          description: `Agendamento (${calculateTotal() === 0 ? (useCashback ? 'Cashback' : 'PIX') : 'PIX'}): ${selectedService.name} - Cliente: ${customerName}`,
+          amount: calculateTotal() === 0 ? 0 : selectedService.price,
+          description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
 
