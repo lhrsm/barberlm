@@ -124,34 +124,46 @@ function FinancesComponent() {
         };
       }
 
-      let filtered = [...transactions];
+      const filtered = transactions.filter(t => {
+        if (!t) return false;
+        
+        let matchDay = true;
+        let matchMonth = true;
 
-      if (filterDay) {
-        filtered = filtered.filter(t => {
-          if (!t || !t.date) return false;
+        if (filterDay && t.date) {
           const parts = String(t.date).split('-');
-          if (parts.length < 3) return false;
-          const day = parseInt(parts[2], 10);
-          return day.toString() === filterDay;
-        });
-      }
+          if (parts.length >= 3) {
+            const day = parseInt(parts[2], 10);
+            matchDay = day.toString() === filterDay;
+          } else {
+            matchDay = false;
+          }
+        }
 
-      if (filterMonth) {
-        filtered = filtered.filter(t => {
-          if (!t || !t.date) return false;
+        if (filterMonth && t.date) {
           const parts = String(t.date).split('-');
-          if (parts.length < 2) return false;
-          const month = parseInt(parts[1], 10);
-          return month.toString() === filterMonth;
-        });
-      }
+          if (parts.length >= 2) {
+            const month = parseInt(parts[1], 10);
+            matchMonth = month.toString() === filterMonth;
+          } else {
+            matchMonth = false;
+          }
+        }
 
-      const income = filtered
-        .filter(t => t && t.type === "income")
-        .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
-      const expense = filtered
-        .filter(t => t && t.type === "expense")
-        .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+        return matchDay && matchMonth;
+      });
+
+      let income = 0;
+      let expense = 0;
+
+      filtered.forEach(t => {
+        const amount = parseFloat(String(t.amount)) || 0;
+        if (t.type === "income") {
+          income += amount;
+        } else if (t.type === "expense") {
+          expense += amount;
+        }
+      });
 
       return {
         filteredTransactions: filtered,
@@ -519,7 +531,7 @@ function FinancesComponent() {
                                 onClick={() => {
                                   setEditingTransaction({
                                     ...t,
-                                    amount: t.amount.toString(),
+                                    amount: String(t.amount || ""),
                                     barber_id: t.barber_id || "none",
                                     date: t.date,
                                     time: t.time || "12:00:00"
@@ -703,79 +715,7 @@ function FinancesComponent() {
           </TabsContent>
         </Tabs>
       </div>
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Transação</DialogTitle>
-          </DialogHeader>
-          {editingTransaction && (
-            <form onSubmit={handleUpdateTransaction} className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-amount">Valor (R$)</Label>
-                <Input 
-                  id="edit-amount" 
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={editingTransaction.amount} 
-                  onChange={(e) => setEditingTransaction({...editingTransaction, amount: e.target.value})} 
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-type">Tipo</Label>
-                <Select 
-                  value={editingTransaction.type} 
-                  onValueChange={(val) => setEditingTransaction({...editingTransaction, type: val})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="income">Entrada (Receita)</SelectItem>
-                    <SelectItem value="expense">Saída (Despesa)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-category">Categoria</Label>
-                <Input 
-                  id="edit-category" 
-                  placeholder="Serviço, Aluguel, Produtos, etc."
-                  value={editingTransaction.category} 
-                  onChange={(e) => setEditingTransaction({...editingTransaction, category: e.target.value})} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-barber">Barbeiro</Label>
-                <Select 
-                  value={editingTransaction.barber_id || "none"} 
-                  onValueChange={(val) => setEditingTransaction({...editingTransaction, barber_id: val})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um barbeiro" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum / Geral</SelectItem>
-                    {barbers.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Descrição</Label>
-                <Input 
-                  id="edit-description" 
-                  value={editingTransaction.description} 
-                  onChange={(e) => setEditingTransaction({...editingTransaction, description: e.target.value})} 
-                />
-              </div>
-              <Button type="submit" className="w-full">Salvar Alterações</Button>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Redundant dialog removed to prevent conflicts */}
       </AppLayout>
   );
 }
