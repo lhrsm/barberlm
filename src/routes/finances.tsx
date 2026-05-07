@@ -111,9 +111,8 @@ function FinancesComponent() {
       filtered = filtered.filter(t => {
         if (!t.date) return false;
         try {
-          const d = new Date(t.date + 'T12:00:00');
-          if (isNaN(d.getTime())) return false;
-          return d.getDate().toString() === filterDay;
+          const [year, month, day] = t.date.split('-').map(Number);
+          return day.toString() === filterDay;
         } catch (e) {
           return false;
         }
@@ -124,9 +123,8 @@ function FinancesComponent() {
       filtered = filtered.filter(t => {
         if (!t.date) return false;
         try {
-          const d = new Date(t.date + 'T12:00:00');
-          if (isNaN(d.getTime())) return false;
-          return (d.getMonth() + 1).toString() === filterMonth;
+          const [year, month, day] = t.date.split('-').map(Number);
+          return month.toString() === filterMonth;
         } catch (e) {
           return false;
         }
@@ -458,8 +456,8 @@ function FinancesComponent() {
                             <span>
                               {t.date ? (() => {
                                 try {
-                                  const d = new Date(t.date + 'T12:00:00');
-                                  return isNaN(d.getTime()) ? t.date : d.toLocaleDateString('pt-BR');
+                                  const [year, month, day] = t.date.split('-');
+                                  return `${day}/${month}/${year}`;
                                 } catch (e) {
                                   return t.date;
                                 }
