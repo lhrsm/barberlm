@@ -409,9 +409,13 @@ function ClientPortalComponent() {
                            <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'}>
                              {app.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
                            </Badge>
-                           <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'}>
-                             {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
-                           </Badge>
+                            <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'} className={cn(
+                              app.status === 'completed' && "bg-green-500 hover:bg-green-600",
+                              app.status === 'scheduled' && "bg-blue-500 hover:bg-blue-600",
+                              app.status === 'cancelled' && "bg-red-500 hover:bg-red-600"
+                            )}>
+                              {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
+                            </Badge>
                            {app.status === 'scheduled' && (
                              <Button 
                                variant="ghost" 
