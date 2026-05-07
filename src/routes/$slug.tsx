@@ -21,24 +21,9 @@ function ShopPageComponent() {
   const { slug } = Route.useParams();
   const [shop, setShop] = useState<any>(null);
 
-  // Font loading
-  useEffect(() => {
-    // Only attempt to load if it's not the default Inter
-    if (typeof window !== 'undefined' && shop?.font_family && shop.font_family !== 'Inter') {
-      const fontId = 'custom-shop-font';
-      let link = document.getElementById(fontId) as HTMLLinkElement;
-      
-      if (!link) {
-        link = document.createElement('link');
-        link.id = fontId;
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
-      }
-      
-      const fontName = shop.font_family.replace(/\s+/g, '+');
-      link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
-    }
-  }, [shop?.font_family]);
+  // Hook placement placeholder
+
+
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -98,11 +83,8 @@ function ShopPageComponent() {
     }
   };
 
-  useEffect(() => {
-    if (selectedDate && shop?.id && isBookingOpen) {
-      fetchDayData(selectedDate);
-    }
-  }, [selectedDate, shop?.id, isBookingOpen]);
+  // Hook placement placeholder
+
 
   const isBarberAvailableOnDate = (barber: any, date: string, service: any, appointments: any[]) => {
     if (!service || !barber) return false;
@@ -152,11 +134,7 @@ function ShopPageComponent() {
   };
 
 
-  useEffect(() => {
-    if (slug) {
-      fetchShopData(slug);
-    }
-  }, [slug]);
+  // Hook placement placeholder
 
   async function fetchShopData(targetSlug: string) {
     setLoading(true);
@@ -192,6 +170,39 @@ function ShopPageComponent() {
     }
   }
 
+  const primaryColor = shop?.primary_color || "#7c3aed";
+
+  useEffect(() => {
+    if (slug) {
+      fetchShopData(slug);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    if (selectedDate && shop?.id && isBookingOpen) {
+      fetchDayData(selectedDate);
+    }
+  }, [selectedDate, shop?.id, isBookingOpen]);
+
+  // Font loading
+  useEffect(() => {
+    // Only attempt to load if it's not the default Inter
+    if (typeof window !== 'undefined' && shop?.font_family && shop.font_family !== 'Inter') {
+      const fontId = 'custom-shop-font';
+      let link = document.getElementById(fontId) as HTMLLinkElement;
+      
+      if (!link) {
+        link = document.createElement('link');
+        link.id = fontId;
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+      
+      const fontName = shop.font_family.replace(/\s+/g, '+');
+      link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
+    }
+  }, [shop?.font_family]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -211,8 +222,6 @@ function ShopPageComponent() {
       </div>
     );
   }
-
-  const primaryColor = shop.primary_color || "#7c3aed";
 
   const handleBookingAction = () => {
     if (shop.scheduling_mode === 'manual') {
