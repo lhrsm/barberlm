@@ -20,6 +20,10 @@ export const Route = createFileRoute("/$slug")({
 function ShopPageComponent() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(window.location.search);
+  const isEmbedded = searchParams.get('embed') === 'true';
+  const initialPhone = searchParams.get('phone') || "";
+  const initialName = searchParams.get('name') || "";
   const [shop, setShop] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
