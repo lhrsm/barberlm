@@ -456,8 +456,15 @@ function ClientPortalComponent() {
                             <span className="text-sm font-medium text-muted-foreground">
                               {format(parseISO(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                             </span>
-                            <Badge variant={sale.status === 'completed' ? 'default' : 'secondary'}>
-                              {sale.status === 'completed' ? 'Pago' : sale.status === 'refunded' ? 'Reembolsado' : 'Pendente'}
+                            <Badge 
+                              variant={sale.status === 'completed' ? 'default' : 'secondary'}
+                              className={cn(
+                                sale.status === 'completed' && "bg-green-500 hover:bg-green-600",
+                                sale.status === 'refunded' && "bg-amber-500 hover:bg-amber-600",
+                                sale.status === 'pending' && "bg-slate-400 hover:bg-slate-500"
+                              )}
+                            >
+                              {sale.status === 'completed' ? 'Concluído' : sale.status === 'refunded' ? 'Reembolsado' : 'Pendente'}
                             </Badge>
                           </div>
                           <span className="font-bold text-lg text-primary">R$ {sale.total_amount.toFixed(2)}</span>
