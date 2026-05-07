@@ -349,7 +349,7 @@ function CalendarComponent() {
   };
 
   const getStatusColor = (status: string, barberId: string) => {
-    if (status === 'completed') return "bg-green-600 hover:bg-green-700";
+    if (status === 'completed') return "bg-emerald-600 hover:bg-emerald-700";
     if (status === 'cancelled') return "bg-red-600 hover:bg-red-700";
     
     // Default to barber color (scheduled is blue/purple/etc as before)
