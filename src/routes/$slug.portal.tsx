@@ -573,7 +573,7 @@ function ClientPortalComponent() {
             <h2 className="text-2xl font-bold">Olá, {client.name}!</h2>
             <p className="text-muted-foreground">Bem-vindo à sua área exclusiva na {shop?.business_name}.</p>
           </div>
-          <Button onClick={() => navigate({ to: `/${slug}` })} className="gap-2">
+          <Button onClick={() => setIsBookingOpen(true)} className="gap-2">
             <Calendar size={18} /> Novo Agendamento
           </Button>
         </div>
