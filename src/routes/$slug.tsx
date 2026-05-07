@@ -360,6 +360,8 @@ function ShopPageComponent() {
       let customerId;
       if (customerData) {
         customerId = customerData.id;
+        setCustomerCashback(Number(customerData.cashback_balance || 0));
+        setCustomerCredits(Number(customerData.credits || 0));
       } else {
         const { data: newCustomer, error: createError } = await supabase
           .from("customers")
@@ -373,6 +375,8 @@ function ShopPageComponent() {
         
         if (createError) throw createError;
         customerId = newCustomer.id;
+        setCustomerCashback(0);
+        setCustomerCredits(0);
       }
 
       // Automatically create or update client_auth session for the portal
