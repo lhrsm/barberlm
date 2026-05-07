@@ -413,7 +413,8 @@ function ShopPageComponent() {
           date: new Date().toISOString().split('T')[0]
         });
 
-        // 4. Create transactions and sales records for products if any
+      // 4. Create transactions and sales records for products if any
+      if (paymentMethod === 'pix') {
         for (const item of selectedProducts) {
           // Create general transaction for the finance tab
           await supabase.from("transactions").insert({
@@ -442,11 +443,8 @@ function ShopPageComponent() {
         }
       }
 
-        // Create a transaction record specifically linked to this sale if needed by reports
-        // The transaction above already covers the finance part.
-
-
-        // Update stock
+      // 4.5. Update stock regardless of payment method
+      for (const item of selectedProducts) {
         await (supabase as any).rpc('decrement_product_stock', { 
           prod_id: item.id, 
           amount: item.quantity || 1 
