@@ -446,53 +446,7 @@ function ClientPortalComponent() {
     }
   };
 
-  const handleCompleteAppointment = async (app: any) => {
-    try {
-      const { error } = await supabase
-        .from("appointments")
-        .update({ status: 'completed' })
-        .eq("id", app.id);
-      
-      if (error) throw error;
-      
-      // Handle financial registration
-      const isCreditOrCashback = app.payment_method === 'credits' || app.payment_method === 'cashback';
-      const totalPrice = Number(app.total_price || 0);
-      
-      if (!isCreditOrCashback) {
-        await supabase
-          .from("transactions")
-          .insert({
-            amount: totalPrice,
-            type: "income",
-            description: `Atendimento concluído pelo cliente: ${app.services?.name || 'Serviço'}`,
-            category: "Serviço",
-            barber_id: app.barber_id,
-            appointment_id: app.id,
-            user_id: shop.id,
-            date: new Date().toISOString().split('T')[0]
-          });
-      } else {
-         await supabase
-          .from("transactions")
-          .insert({
-            amount: 0,
-            type: "income",
-            description: `[${app.payment_method.toUpperCase()}] Atendimento concluído pelo cliente: ${app.services?.name || 'Serviço'}`,
-            category: "Serviço (Uso de Crédito/Cashback)",
-            barber_id: app.barber_id,
-            appointment_id: app.id,
-            user_id: shop.id,
-            date: new Date().toISOString().split('T')[0]
-          });
-      }
-
-      toast.success("Atendimento concluído!");
-      fetchClientData(client.customer_id);
-    } catch (e) {
-      toast.error("Erro ao concluir atendimento");
-    }
-  };
+  // handleCompleteAppointment removed - only admin can complete appointments
 
   const checkAutoCancellation = async (appts: any[]) => {
     const now = new Date();
@@ -729,14 +683,6 @@ function ClientPortalComponent() {
                             </Badge>
                            {app.status === 'scheduled' && (
                              <div className="flex flex-wrap items-center gap-1">
-                               <Button 
-                                 variant="default" 
-                                 size="sm" 
-                                 className="bg-green-600 hover:bg-green-700 h-8 px-2 text-xs gap-1"
-                                 onClick={() => handleCompleteAppointment(app)}
-                               >
-                                 <CheckCircle2 size={14} /> Concluir
-                               </Button>
                                <Button 
                                  variant="ghost" 
                                  size="sm" 
