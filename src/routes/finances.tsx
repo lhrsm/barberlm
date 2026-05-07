@@ -13,7 +13,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, FileText } from "lucide-react";
+import { Users, FileText, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2 } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/finances")({
@@ -45,12 +45,17 @@ function FinancesComponent() {
   const navigate = useNavigate();
   const { plan } = usePlanLimits();
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none" });
+  const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: new Date().toLocaleTimeString('pt-BR', { hour12: false, hour: '2-digit', minute: '2-digit' }) });
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  
+  // Filtros
+  const [filterDay, setFilterDay] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -62,6 +67,10 @@ function FinancesComponent() {
       fetchBarbers();
     }
   }, [user]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [transactions, filterDay, filterMonth]);
 
   async function fetchBarbers() {
     const { data, error } = await supabase
@@ -84,7 +93,8 @@ function FinancesComponent() {
         *,
         barber:barbers(name)
       `)
-      .order("date", { ascending: false });
+      .order("date", { ascending: false })
+      .order("time", { ascending: false });
     
     if (error) {
       toast.error("Erro ao buscar transações");
@@ -92,9 +102,29 @@ function FinancesComponent() {
     }
 
     setTransactions(data || []);
+  }
 
-    const income = data?.filter(t => t.type === "income").reduce((acc, t) => acc + Number(t.amount), 0) || 0;
-    const expense = data?.filter(t => t.type === "expense").reduce((acc, t) => acc + Number(t.amount), 0) || 0;
+  function applyFilters() {
+    let filtered = [...transactions];
+
+    if (filterDay) {
+      filtered = filtered.filter(t => {
+        const tDate = new Date(t.date + 'T12:00:00'); // Use noon to avoid timezone issues
+        return tDate.getDate().toString() === filterDay;
+      });
+    }
+
+    if (filterMonth) {
+      filtered = filtered.filter(t => {
+        const tDate = new Date(t.date + 'T12:00:00');
+        return (tDate.getMonth() + 1).toString() === filterMonth;
+      });
+    }
+
+    setFilteredTransactions(filtered);
+
+    const income = filtered.filter(t => t.type === "income").reduce((acc, t) => acc + Number(t.amount), 0) || 0;
+    const expense = filtered.filter(t => t.type === "expense").reduce((acc, t) => acc + Number(t.amount), 0) || 0;
     setSummary({ income, expense, balance: income - expense });
   }
 
