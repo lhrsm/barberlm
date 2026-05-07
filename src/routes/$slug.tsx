@@ -451,8 +451,11 @@ function ShopPageComponent() {
           end_time: endTime.toISOString(),
           total_price: calculateTotal(),
           status: "scheduled",
-          payment_method: paymentMethod || (calculateTotal() === 0 ? 'credits' : null),
+          payment_method: paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : (useCashback ? 'cashback' : 'barbershop')) : 'barbershop'),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
+          notes: (useCredits || useCashback) ? 
+            `Pagamento: ${useCredits ? `Créditos (R$ ${Math.min(customerCredits, calculateTotalBeforeCashback()).toFixed(2)})` : ''}${useCredits && useCashback ? ' + ' : ''}${useCashback ? `Cashback (R$ ${Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)})` : ''}` : 
+            null,
           items: [
             { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
             ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
@@ -473,7 +476,7 @@ function ShopPageComponent() {
           type: "income",
           category: "Serviço",
           amount: selectedService.price,
-          description: `Agendamento (${calculateTotal() === 0 && useCredits ? 'Créditos' : 'PIX'}): ${selectedService.name} - Cliente: ${customerName}`,
+          description: `Agendamento (${calculateTotal() === 0 ? (useCredits ? 'Créditos' : (useCashback ? 'Cashback' : 'PIX')) : 'PIX'}): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
 

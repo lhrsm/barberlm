@@ -429,6 +429,18 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
                       <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1"><Clock size={12} /> {format(new Date(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                         <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
+                        {app.payment_method && (
+                          <span className="flex items-center gap-1">
+                            <Badge variant="outline" className="text-[10px] py-0 h-4">
+                              {app.payment_method === 'pix' ? 'PIX' : 
+                               app.payment_method === 'credits' ? 'Créditos' : 
+                               app.payment_method === 'cashback' ? 'Cashback' : 'Na Barbearia'}
+                            </Badge>
+                          </span>
+                        )}
+                        {app.notes && app.notes.includes('Pagamento:') && (
+                          <span className="text-[10px] text-primary font-medium">{app.notes}</span>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
