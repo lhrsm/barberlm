@@ -1306,7 +1306,29 @@ function ShopPageComponent() {
                     </p>
                   </div>
                 )}
-                {/* Credits UI removed */}
+                
+                {customerCredits > 0 && (
+                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-100 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <CircleDollarSign size={18} className="text-green-600" />
+                      <div>
+                        <p className="text-sm font-bold text-green-800">Você tem créditos!</p>
+                        <p className="text-xs text-green-600">Saldo: R$ {customerCredits.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant={useCredits ? "default" : "outline"} 
+                      size="sm" 
+                      className={cn(useCredits && "bg-green-600 hover:bg-green-700")}
+                      onClick={() => {
+                        setUseCredits(!useCredits);
+                        if (!useCredits) setUseCashback(false);
+                      }}
+                    >
+                      {useCredits ? "Usando" : "Usar"}
+                    </Button>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>Deseja adicionar algum produto?</Label>
