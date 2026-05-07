@@ -236,6 +236,28 @@ function FinancesComponent() {
                 <DialogTitle>Adicionar Transação</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddTransaction} className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Data</Label>
+                    <Input 
+                      id="date" 
+                      type="date"
+                      value={newTransaction.date} 
+                      onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})} 
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="time">Horário</Label>
+                    <Input 
+                      id="time" 
+                      type="time"
+                      value={newTransaction.time} 
+                      onChange={(e) => setNewTransaction({...newTransaction, time: e.target.value})} 
+                      required 
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="amount">Valor (R$)</Label>
                   <Input 
@@ -301,6 +323,56 @@ function FinancesComponent() {
               </form>
             </DialogContent>
             </Dialog>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4 bg-card p-4 rounded-xl border">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filtrar por:</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select value={filterDay} onValueChange={setFilterDay}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Dia" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos</SelectItem>
+                {Array.from({ length: 31 }, (_, i) => (
+                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                    {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterMonth} onValueChange={setFilterMonth}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Mês" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos</SelectItem>
+                {[
+                  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                ].map((month, i) => (
+                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                    {month}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(filterDay || filterMonth) && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setFilterDay("");
+                  setFilterMonth("");
+                }}
+              >
+                Limpar
+              </Button>
+            )}
           </div>
         </div>
 
