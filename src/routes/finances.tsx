@@ -376,9 +376,13 @@ function FinancesComponent() {
               {barbers.map((barber) => {
                 const barberTransactions = transactions.filter(t => t.barber_id === barber.id && t.type === 'income');
                 const totalReceived = barberTransactions.reduce((acc, t) => acc + Number(t.amount), 0);
+                const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
+                const totalGeneral = generalTransactions.reduce((acc, t) => acc + Number(t.amount), 0);
+                
                 const commissionRate = Number(barber.commission_rate || 0);
                 const barberPart = totalReceived * (commissionRate / 100);
-                const barbershopPart = totalReceived - barberPart;
+                const barbershopPartFromBarber = totalReceived - barberPart;
+
 
                 return (
                   <Card key={barber.id}>
@@ -398,8 +402,9 @@ function FinancesComponent() {
                         </div>
                         <div className="flex justify-between items-center text-sm">
                           <span>Parte da Barbearia</span>
-                          <span className="text-blue-600 font-medium">R$ {barbershopPart.toFixed(2)}</span>
+                          <span className="text-blue-600 font-medium">R$ {barbershopPartFromBarber.toFixed(2)}</span>
                         </div>
+
                       </div>
                     </CardContent>
                   </Card>

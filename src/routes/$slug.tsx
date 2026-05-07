@@ -408,16 +408,17 @@ function ShopPageComponent() {
         date: new Date().toISOString().split('T')[0]
       });
 
-      // 4. Create transactions for products if any
+      // 4. Create transactions and sales records for products if any
       for (const item of selectedProducts) {
+        // Create general transaction for the finance tab
         await supabase.from("transactions").insert({
           user_id: shop.id,
-          barber_id: selectedBarber.id, // Attributing product sale to the same barber
+          barber_id: selectedBarber.id,
           appointment_id: appointment.id,
           type: "income",
-          category: "product_sale",
+          category: "Produtos",
           amount: item.price * (item.quantity || 1),
-          description: `Venda de Produto: ${item.name} (x${item.quantity || 1})`,
+          description: `Venda de Produto: ${item.name} (x${item.quantity || 1}) - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
 
@@ -433,6 +434,10 @@ function ShopPageComponent() {
             quantity: item.quantity || 1
           }]
         });
+
+        // Create a transaction record specifically linked to this sale if needed by reports
+        // The transaction above already covers the finance part.
+
 
         // Update stock
         await (supabase as any).rpc('decrement_product_stock', { 
@@ -1475,18 +1480,40 @@ function ShopPageComponent() {
                     quantity: p.quantity || 1
                   }));
 
-                  // Register sale and adjust stock
-                  const { error } = await supabase.rpc('process_product_sale', {
-                    p_user_id: shop.id,
-                    p_customer_id: null as any,
-                    p_total_amount: calculateTotalBeforeCashback(),
-                    p_items: items,
-                    p_pix_key: shop.pix_key || ""
+                  // 1. Create sale record in product_sales for the "Faturamento" tab
+                  const totalAmount = calculateTotalBeforeCashback();
+                  const { data: saleData, error: saleError } = await supabase.from("product_sales").insert({
+                    user_id: shop.id,
+                    total_amount: totalAmount,
+                    status: 'completed',
+                    items: items
+                  }).select().single();
+
+                  if (saleError) throw saleError;
+
+                  // 2. Create finance transaction for the "Financeiro" tab
+                  // Since there is no specific barber for a standalone product sale, we assign to "Geral" (barber_id: null)
+                  const { error: transError } = await supabase.from("transactions").insert({
+                    user_id: shop.id,
+                    type: "income",
+                    category: "Produtos",
+                    amount: totalAmount,
+                    description: `Venda de Produtos (Standalone) - Itens: ${items.map(i => `${i.name} (x${i.quantity})`).join(", ")}`,
+                    date: new Date().toISOString().split('T')[0]
                   });
 
-                  if (error) throw error;
+                  if (transError) throw transError;
 
-                  toast.success("Pagamento confirmado! Estoque atualizado.");
+                  // 3. Update stock for each product
+                  for (const item of items) {
+                    await (supabase as any).rpc('decrement_product_stock', { 
+                      prod_id: item.product_id, 
+                      amount: item.quantity 
+                    });
+                  }
+
+                  toast.success("Pagamento confirmado! Estoque e faturamento atualizados.");
+
                   setIsPixVisible(false);
                   setSelectedProducts([]);
                   
