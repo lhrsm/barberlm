@@ -109,6 +109,7 @@ function FinancesComponent() {
       setTransactions(data || []);
     } catch (e) {
       console.error("Exception fetching transactions:", e);
+      setTransactions([]);
     } finally {
       setFetching(false);
     }
