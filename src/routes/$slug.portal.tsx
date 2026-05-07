@@ -675,7 +675,7 @@ function ClientPortalComponent() {
                             <Badge 
                               variant={sale.status === 'completed' ? 'default' : 'secondary'}
                               className={cn(
-                                sale.status === 'completed' && "bg-green-500 hover:bg-green-600",
+                                sale.status === 'completed' && "bg-green-600 hover:bg-green-700",
                                 sale.status === 'refunded' && "bg-amber-500 hover:bg-amber-600",
                                 sale.status === 'pending' && "bg-slate-400 hover:bg-slate-500"
                               )}
