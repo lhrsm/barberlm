@@ -182,14 +182,6 @@ function ShopPageComponent() {
     }
   }, [selectedDate, shop?.id, isBookingOpen]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   // Font loading
   useEffect(() => {
     // Only attempt to load if it's not the default Inter
@@ -208,6 +200,14 @@ function ShopPageComponent() {
       link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
     }
   }, [shop?.font_family]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!shop) {
     return (
