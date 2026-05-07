@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
