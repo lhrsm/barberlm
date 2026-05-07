@@ -1396,7 +1396,7 @@ function ShopPageComponent() {
                   )}
                 </div>
 
-                {!paymentMethod ? (
+                {(!paymentMethod && calculateTotal() > 0) ? (
                   <div className="grid grid-cols-2 gap-3 mt-4">
                     <Button 
                       variant="outline" 
@@ -1413,6 +1413,30 @@ function ShopPageComponent() {
                     >
                       <QrCode size={20} />
                       <div className="text-xs">Pagar Agora (PIX)</div>
+                    </Button>
+                  </div>
+                ) : (calculateTotal() === 0 && !paymentMethod) ? (
+                  <div className="space-y-4 mt-4">
+                    <div className="p-6 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center space-y-3">
+                      <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 size={24} className="text-green-600" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-base font-bold text-green-700">Valor Total Coberto!</p>
+                        <p className="text-sm text-muted-foreground">O agendamento será pago com seus créditos/cashback.</p>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
+                      style={{ backgroundColor: primaryColor }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleFinalizeBooking();
+                      }} 
+                      disabled={submitting}
+                    >
+                      {submitting ? "Finalizando..." : "Confirmar Agendamento com Créditos"}
                     </Button>
                   </div>
                 ) : (
