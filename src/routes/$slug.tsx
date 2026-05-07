@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/$slug")({
 
 function ShopPageComponent() {
   const { slug } = Route.useParams();
+  const navigate = useNavigate();
   const [shop, setShop] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
@@ -477,6 +478,10 @@ function ShopPageComponent() {
       setIsBookingOpen(false);
       setBookingStep(1);
       setSelectedProducts([]);
+      
+      // Redirecionar para a página do cliente (portal)
+      navigate({ to: `/${slug}/portal` });
+      
       
     } catch (error: any) {
       toast.error("Erro ao realizar agendamento: " + error.message);

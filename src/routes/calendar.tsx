@@ -105,6 +105,7 @@ function CalendarComponent() {
       supabase
         .from("appointments")
         .select("*, customers(name), services(name, duration_minutes), barbers(name)")
+        .neq("status", "cancelled")
         .gte("start_time", start.toISOString())
         .lte("start_time", end.toISOString()),
       supabase.from("barbers").select("*").eq("active", true).order("name"),
@@ -252,7 +253,7 @@ function CalendarComponent() {
       // 1. Update appointment status
       const { error: updateErr } = await supabase
         .from("appointments")
-        .update({ payment_status: 'paid' })
+        .update({ payment_status: 'paid', status: 'completed' })
         .eq("id", appointment.id);
 
       if (updateErr) throw updateErr;
@@ -347,9 +348,13 @@ function CalendarComponent() {
     });
   };
 
-  const getBarberColor = (barberId: string) => {
+  const getStatusColor = (status: string, barberId: string) => {
+    if (status === 'completed') return "bg-green-600 hover:bg-green-700";
+    if (status === 'cancelled') return "bg-red-600 hover:bg-red-700";
+    
+    // Default to barber color (scheduled is blue/purple/etc as before)
     const index = barbers.findIndex(b => b.id === barberId);
-    return PROFESSIONAL_COLORS[index % 6] || "bg-gray-500";
+    return PROFESSIONAL_COLORS[index % 6] || "bg-blue-600 hover:bg-blue-700";
   };
 
   if (loading || !user) return null;
@@ -609,7 +614,7 @@ function CalendarComponent() {
                             onClick={(e) => e.stopPropagation()}
                             className={cn(
                               "flex flex-col p-2 rounded-md text-white text-xs shadow-sm min-w-[150px] max-w-[250px] animate-in fade-in zoom-in duration-200",
-                              getBarberColor(app.barber_id)
+                              getStatusColor(app.status, app.barber_id)
                             )}
                           >
                             <span className="font-bold truncate">{app.customers?.name}</span>
@@ -645,9 +650,9 @@ function CalendarComponent() {
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     if (confirm("Deseja cancelar este agendamento?")) {
-                                      await supabase.from("appointments").delete().eq("id", app.id);
+                                      await supabase.from("appointments").update({ status: 'cancelled' }).eq("id", app.id);
                                       fetchData();
-                                      toast.success("Agendamento removido");
+                                      toast.success("Agendamento cancelado");
                                     }
                                   }}
                                 >
@@ -699,7 +704,7 @@ function CalendarComponent() {
                                 }}
                                 className={cn(
                                   "p-1 rounded text-[10px] text-white shadow-sm truncate animate-in fade-in zoom-in duration-200",
-                                  getBarberColor(app.barber_id)
+                                  getStatusColor(app.status, app.barber_id)
                                 )}
                                 title={`${app.customers?.name} - ${app.services?.name} (${app.barbers?.name})`}
                               >
