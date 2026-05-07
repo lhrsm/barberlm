@@ -433,8 +433,8 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
-      // 3. Create transactions for products and services ONLY if paid via PIX
-      if (paymentMethod === 'pix') {
+      // 3. Create transactions for products and services if paid via PIX OR credits
+      if (paymentMethod === 'pix' || (useCredits && customerCredits > 0)) {
         // Add service transaction
         await supabase.from("transactions").insert({
           user_id: shop.id,
@@ -443,7 +443,7 @@ function ShopPageComponent() {
           type: "income",
           category: "Serviço",
           amount: selectedService.price,
-          description: `Agendamento (PIX): ${selectedService.name} - Cliente: ${customerName}`,
+          description: `Agendamento (${calculateTotal() === 0 && useCredits ? 'Créditos' : 'PIX'}): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
 
@@ -1175,7 +1175,18 @@ function ShopPageComponent() {
                       toast.error("Por favor, selecione um horário.");
                       return;
                     }
-                    setBookingStep(5);
+                    
+                    // Se o cliente tiver créditos suficientes para cobrir o valor total,
+                    // finaliza o agendamento automaticamente como pago
+                    const totalBeforeCredits = calculateTotalBeforeCashback() - (useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0);
+                    if (customerCredits >= totalBeforeCredits && totalBeforeCredits > 0) {
+                      setUseCredits(true);
+                      setPaymentMethod('pix'); // Usamos 'pix' como placeholder para indicar que já está pago
+                      toast.info("Créditos aplicados automaticamente.");
+                      setBookingStep(5);
+                    } else {
+                      setBookingStep(5);
+                    }
                   }}
                   disabled={availableTimes.length === 0}
                 >
