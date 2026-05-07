@@ -486,7 +486,7 @@ function ShopPageComponent() {
       setSelectedProducts([]);
       
       // Redirecionar para a página do cliente (portal)
-      window.location.assign(`/${slug}/portal`);
+      navigate({ to: `/${slug}/portal` });
       
       
     } catch (error: any) {
