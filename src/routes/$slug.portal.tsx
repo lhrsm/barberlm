@@ -41,7 +41,6 @@ function ClientPortalComponent() {
   
   // Auth state
   const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [customerName, setCustomerName] = useState("");
 
@@ -121,16 +120,13 @@ function ClientPortalComponent() {
         .from("client_auth")
         .select("*, customers(id, name, user_id)")
         .eq("phone", phone)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
-        toast.error("Telefone não cadastrado");
-        return;
-      }
-
-      // In a real app, we'd verify password_hash. For this PoC, we compare directly or use dummy check.
-      if (data.password_hash !== password) {
-        toast.error("Senha incorreta");
+      if (error) throw error;
+      
+      if (!data) {
+        toast.error("Telefone não cadastrado. Por favor, cadastre-se primeiro.");
+        setIsRegistering(true);
         return;
       }
 
@@ -145,8 +141,9 @@ function ClientPortalComponent() {
       setIsLoggedIn(true);
       localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
       fetchClientData(data.customer_id || "");
-      toast.success(`Bem-vindo, ${sessionData.name}!`);
+      toast.success(`Bem-vindo de volta, ${sessionData.name}!`);
     } catch (e) {
+      console.error(e);
       toast.error("Erro ao entrar");
     } finally {
       setSubmitting(false);
@@ -187,7 +184,6 @@ function ClientPortalComponent() {
         .from("client_auth")
         .insert({
           phone: phone,
-          password_hash: password, // In production, hash this!
           customer_id: customerId
         });
 
@@ -197,8 +193,8 @@ function ClientPortalComponent() {
         return;
       }
 
-      toast.success("Cadastro realizado! Agora você pode entrar.");
-      setIsRegistering(false);
+      toast.success("Cadastro realizado com sucesso!");
+      handleLogin(e);
     } catch (e: any) {
       toast.error(e.message || "Erro ao cadastrar");
     } finally {
@@ -299,16 +295,7 @@ function ClientPortalComponent() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
-                />
-              </div>
+              {/* Senha removida para login simplificado apenas por telefone */}
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? "Processando..." : (isRegistering ? "Cadastrar" : "Entrar")}
               </Button>
