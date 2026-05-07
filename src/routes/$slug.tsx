@@ -54,6 +54,8 @@ function ShopPageComponent() {
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [dayAppointments, setDayAppointments] = useState<any[]>([]);
   const [loadingDayData, setLoadingDayData] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | null>(null);
+  const [showPixStep, setShowPixStep] = useState(false);
 
   useEffect(() => {
     if (slug) {
