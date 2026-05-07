@@ -1053,10 +1053,11 @@ function ShopPageComponent() {
             setCustomerPhone("");
           }
           setUseCashback(false);
+          setUseCredits(false);
           setPaymentMethod(null);
         }
       }}>
-        <DialogContent className={cn("sm:max-w-[425px]", isEmbedded && "w-full max-w-full m-0")}>
+        <DialogContent className={cn("sm:max-w-[425px]", isEmbedded && "w-full max-w-full m-0 h-[90vh] overflow-y-auto")}>
           <DialogHeader>
             <DialogTitle>
               {bookingStep === 1 && "Informe seu WhatsApp"}
@@ -1248,7 +1249,6 @@ function ShopPageComponent() {
                     const totalBeforeCredits = calculateTotalBeforeCashback() - (useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0);
                     if (customerCredits >= totalBeforeCredits && totalBeforeCredits > 0) {
                       setUseCredits(true);
-                      setPaymentMethod('pix');
                     }
                     setBookingStep(5);
                   }}
