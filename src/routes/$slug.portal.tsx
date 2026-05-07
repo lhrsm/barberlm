@@ -589,12 +589,7 @@ function ClientPortalComponent() {
               <CardTitle className="text-2xl font-bold">{appointments.filter(a => a.status === 'scheduled').length}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="bg-green-500/5 border-green-500/20">
-            <CardHeader className="pb-2">
-              <CardDescription className="text-green-700">Meus Créditos</CardDescription>
-              <CardTitle className="text-2xl font-bold text-green-800">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
-            </CardHeader>
-          </Card>
+          {/* Credits card removed */}
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Cashback</CardDescription>

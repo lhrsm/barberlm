@@ -476,18 +476,7 @@ function ShopPageComponent() {
           date: new Date().toISOString().split('T')[0]
         });
 
-        // Generate credits if paid via PIX (as requested: "créditos são gerados quando o pagamento for efetuado via pix e o cliente não remarcou o agendamento")
-        // Note: The logic for "didn't reschedule" will be handled during cancellation/refund/reschedule process, 
-        // but the base credit should be available if needed later. 
-        // For now, we ensure the customer record is updated if they use credits.
-        if (useCredits && customerCredits > 0) {
-          const totalBeforeCredits = calculateTotalBeforeCashback() - (useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0);
-          const creditsToUse = Math.min(customerCredits, totalBeforeCredits);
-          await supabase
-            .from("customers")
-            .update({ credits: customerCredits - creditsToUse })
-            .eq("id", customerId);
-        }
+        // Credits logic removed
 
         // 4. Create transactions and sales records for products if any
         for (const item of selectedProducts) {
@@ -689,9 +678,7 @@ function ShopPageComponent() {
     if (useCashback) {
       total = Math.max(0, total - Math.min(customerCashback, total));
     }
-    if (useCredits) {
-      total = Math.max(0, total - Math.min(customerCredits, total));
-    }
+    // Credits calculation removed
     return total;
   };
 
@@ -741,7 +728,7 @@ function ShopPageComponent() {
       if (data) {
         setCustomerCashback(data.cashback_balance || 0);
         setCustomerLoyaltyPoints(data.loyalty_points || 0);
-        setCustomerCredits(data.credits || 0);
+        // setCustomerCredits removed
         if (data.name) setCustomerName(data.name);
         return data;
       } else {
@@ -1051,7 +1038,7 @@ function ShopPageComponent() {
             setCustomerPhone("");
           }
           setUseCashback(false);
-          setUseCredits(false);
+          // setUseCredits removed
           setPaymentMethod(null);
         }
       }}>
@@ -1242,12 +1229,7 @@ function ShopPageComponent() {
                       return;
                     }
                     
-                    // Se o cliente tiver créditos suficientes para cobrir o valor total,
-                    // pré-selecionamos o uso de créditos
-                    const totalBeforeCredits = calculateTotalBeforeCashback() - (useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0);
-                    if (customerCredits >= totalBeforeCredits && totalBeforeCredits > 0) {
-                      setUseCredits(true);
-                    }
+                    // Se o cliente tiver cashback, pode usar
                     setBookingStep(5);
                   }}
                   disabled={fetchingTimes || !selectedDate}
@@ -1386,12 +1368,7 @@ function ShopPageComponent() {
                       <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
                     </div>
                   )}
-                  {useCredits && (
-                    <div className="flex justify-between text-green-600 font-medium">
-                      <span>Uso de Créditos:</span> 
-                      <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCashback() - (useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0)).toFixed(2)}</span>
-                    </div>
-                  )}
+                  {/* Credits usage summary removed */}
                   <div className="flex justify-between border-t pt-2 font-bold">
                     <span className="text-muted-foreground">Total:</span> 
                     <span style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
