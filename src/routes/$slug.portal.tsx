@@ -22,7 +22,7 @@ import {
   AlertTriangle,
   Edit2
 } from "lucide-react";
-import { format, isAfter, subDays, parseISO, addMinutes } from "date-fns";
+import { format, isAfter, subDays, parseISO, addMinutes, differenceInMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -111,6 +111,7 @@ function ClientPortalComponent() {
       .order("start_time", { ascending: false });
     
     setAppointments(appts || []);
+    if (appts) checkAutoCancellation(appts);
 
     // Fetch sales
     const { data: saleData } = await supabase
@@ -397,6 +398,37 @@ function ClientPortalComponent() {
     }
   };
 
+  const checkAutoCancellation = async (appts: any[]) => {
+    const now = new Date();
+    const toCancel = appts.filter(app => {
+      if (app.status !== 'scheduled') return false;
+      const startTime = parseISO(app.start_time);
+      // Cancel if it's more than 10 minutes past start time and still 'scheduled'
+      return isAfter(now, addMinutes(startTime, 10));
+    });
+
+    if (toCancel.length === 0) return;
+
+    for (const app of toCancel) {
+      await supabase
+        .from("appointments")
+        .update({ status: 'cancelled' })
+        .eq("id", app.id);
+    }
+    
+    if (toCancel.length > 0) {
+      fetchClientData(client.customer_id);
+    }
+  };
+
+  const canCancel = (startTimeStr: string) => {
+    const now = new Date();
+    const startTime = parseISO(startTimeStr);
+    const minutesUntil = differenceInMinutes(startTime, now);
+    // Only allow cancellation if it's at least 10 minutes before the appointment
+    return minutesUntil >= 10;
+  };
+
   const handleRequestRefund = async (saleId: string) => {
     const reason = prompt("Por favor, informe o motivo do reembolso:");
     if (!reason) return;
@@ -596,14 +628,16 @@ function ClientPortalComponent() {
                                >
                                  <Edit2 size={14} className="mr-1" /> Editar
                                </Button>
-                               <Button 
-                                 variant="ghost" 
-                                 size="sm" 
-                                 className="text-destructive h-8 px-2"
-                                 onClick={() => handleCancelAppointment(app.id)}
-                               >
-                                 Cancelar
-                               </Button>
+                               {canCancel(app.start_time) && (
+                                 <Button 
+                                   variant="ghost" 
+                                   size="sm" 
+                                   className="text-destructive h-8 px-2"
+                                   onClick={() => handleCancelAppointment(app.id)}
+                                 >
+                                   Cancelar
+                                 </Button>
+                               )}
                              </div>
                            )}
                          </div>
