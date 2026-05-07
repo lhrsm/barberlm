@@ -395,7 +395,53 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
-      // 3. Handle Cashback and Products
+      // 3. Create transactions for products and services
+      // Add service transaction
+      await supabase.from("transactions").insert({
+        user_id: shop.id,
+        barber_id: selectedBarber.id,
+        appointment_id: appointment.id,
+        type: "income",
+        category: "Serviço",
+        amount: selectedService.price,
+        description: `Agendamento: ${selectedService.name} - Cliente: ${customerName}`,
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      // 4. Create transactions for products if any
+      for (const item of selectedProducts) {
+        await supabase.from("transactions").insert({
+          user_id: shop.id,
+          barber_id: selectedBarber.id, // Attributing product sale to the same barber
+          appointment_id: appointment.id,
+          type: "income",
+          category: "product_sale",
+          amount: item.price * (item.quantity || 1),
+          description: `Venda de Produto: ${item.name} (x${item.quantity || 1})`,
+          date: new Date().toISOString().split('T')[0]
+        });
+
+        // Add to product_sales table for the Products -> Faturamento tab
+        await supabase.from("product_sales").insert({
+          user_id: shop.id,
+          total_amount: item.price * (item.quantity || 1),
+          status: 'completed',
+          items: [{
+            product_id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity || 1
+          }]
+        });
+
+        // Update stock
+        await (supabase as any).rpc('decrement_product_stock', { 
+          prod_id: item.id, 
+          amount: item.quantity || 1 
+        });
+      }
+
+      // 5. Handle Cashback
       if (shop.cashback_enabled) {
         let newBalance = (customerData?.cashback_balance || 0);
         
@@ -414,30 +460,11 @@ function ShopPageComponent() {
           .eq("id", customerId);
       }
 
-      // 4. Create transactions for products if any
-      for (const item of selectedProducts) {
-        await supabase.from("transactions").insert({
-          user_id: shop.id,
-          appointment_id: appointment.id,
-          type: "income",
-          category: "product_sale",
-          amount: item.price * (item.quantity || 1),
-          description: `Venda de Produto: ${item.name} (x${item.quantity || 1})`,
-          date: new Date().toISOString().split('T')[0]
-        });
-
-        // Update stock
-        await (supabase as any).rpc('decrement_product_stock', { 
-          prod_id: item.id, 
-          amount: item.quantity || 1 
-        });
-      }
-
       toast.success("Agendamento realizado com sucesso!");
       setIsBookingOpen(false);
       setBookingStep(1);
+      setSelectedProducts([]);
       
-      // If WhatsApp is enabled, could trigger a notification here
     } catch (error: any) {
       toast.error("Erro ao realizar agendamento: " + error.message);
     } finally {
