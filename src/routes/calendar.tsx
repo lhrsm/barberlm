@@ -168,7 +168,7 @@ function CalendarComponent() {
     setCurrentStep(prev => prev + 1);
   };
 
-  const handleCreateAppointment = async () => {
+  const handleCreateAppointment = async (paymentStatus: string = "pending") => {
     if (!user) return;
     setIsLoading(true);
 
@@ -186,29 +186,40 @@ function CalendarComponent() {
         end_time: endTime.toISOString(),
         total_price: service?.price || 0,
         status: "scheduled",
+        payment_status: paymentStatus,
+        items: [{
+          id: selectedService,
+          name: service?.name,
+          type: 'service',
+          price: service?.price,
+          quantity: 1
+        }]
       }).select().single();
 
       if (error) throw error;
 
-      // Create finance transaction for the schedule
-      await supabase.from("transactions").insert({
-        user_id: user.id,
-        barber_id: selectedBarber,
-        appointment_id: appointmentData.id,
-        type: "income",
-        category: "Serviço",
-        amount: service?.price || 0,
-        description: `Agendamento: ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
-        date: new Date().toISOString().split('T')[0]
-      });
+      // Only create transaction and sales records if paid
+      if (paymentStatus === 'paid') {
+        // Create finance transaction for the schedule
+        await supabase.from("transactions").insert({
+          user_id: user.id,
+          barber_id: selectedBarber,
+          appointment_id: appointmentData.id,
+          type: "income",
+          category: "Serviço",
+          amount: service?.price || 0,
+          description: `Agendamento: ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
+          date: new Date().toISOString().split('T')[0]
+        });
 
-      // Registrar também no faturamento de produtos (como um item de serviço)
-      await supabase.from("product_sales").insert({
-        user_id: user.id,
-        items: [{ id: selectedService, name: service?.name, quantity: 1, price: service?.price }],
-        total_amount: service?.price || 0,
-        status: 'completed'
-      });
+        // Registrar também no faturamento de produtos (como um item de serviço)
+        await supabase.from("product_sales").insert({
+          user_id: user.id,
+          items: [{ id: selectedService, name: service?.name, quantity: 1, price: service?.price }],
+          total_amount: service?.price || 0,
+          status: 'completed'
+        });
+      }
 
 
       toast.success("Agendamento criado com sucesso!");
