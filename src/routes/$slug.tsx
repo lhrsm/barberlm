@@ -697,6 +697,7 @@ function ShopPageComponent() {
       if (data) {
         setCustomerCashback(data.cashback_balance || 0);
         setCustomerLoyaltyPoints(data.loyalty_points || 0);
+        setCustomerCredits(data.credits || 0);
         if (data.name) setCustomerName(data.name);
         return data;
       } else {
