@@ -190,6 +190,12 @@ function ShopPageComponent() {
     }
   }
 
+  useEffect(() => {
+    if (selectedDate && shop?.id && isBookingOpen) {
+      fetchDayData(selectedDate);
+    }
+  }, [selectedDate, shop?.id, isBookingOpen]);
+
   const primaryColor = shop?.primary_color || "#7c3aed";
 
   if (loading) {
