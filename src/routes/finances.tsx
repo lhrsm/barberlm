@@ -423,7 +423,7 @@ function FinancesComponent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
+                    <TableHead>Data/Hora</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Barbeiro</TableHead>
                     <TableHead>Categoria</TableHead>
@@ -432,16 +432,21 @@ function FinancesComponent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.length === 0 ? (
+                  {filteredTransactions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                        Nenhuma transação registrada.
+                        Nenhuma transação encontrada para os filtros selecionados.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    transactions.map((t) => (
+                    filteredTransactions.map((t) => (
                       <TableRow key={t.id}>
-                        <TableCell>{new Date(t.date).toLocaleDateString('pt-BR')}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span>{new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                            <span className="text-xs text-muted-foreground">{t.time?.substring(0, 5) || "--:--"}</span>
+                          </div>
+                        </TableCell>
                         <TableCell className="font-medium">{t.description || "-"}</TableCell>
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
                         <TableCell>{t.category || "-"}</TableCell>
@@ -450,21 +455,121 @@ function FinancesComponent() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              onClick={() => {
-                                setEditingTransaction({
-                                  ...t,
-                                  amount: t.amount.toString(),
-                                  barber_id: t.barber_id || "none"
-                                });
-                                setIsEditDialogOpen(true);
-                              }}
-                            >
-                              <Edit2 size={14} />
-                            </Button>
+                            <Dialog open={isEditDialogOpen && editingTransaction?.id === t.id} onOpenChange={(open) => {
+                              if (!open) {
+                                setIsEditDialogOpen(false);
+                                setEditingTransaction(null);
+                              }
+                            }}>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={() => {
+                                  setEditingTransaction({
+                                    ...t,
+                                    amount: t.amount.toString(),
+                                    barber_id: t.barber_id || "none",
+                                    date: t.date,
+                                    time: t.time || "12:00:00"
+                                  });
+                                  setIsEditDialogOpen(true);
+                                }}
+                              >
+                                <Edit2 size={14} />
+                              </Button>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Editar Transação</DialogTitle>
+                                </DialogHeader>
+                                {editingTransaction && (
+                                  <form onSubmit={handleUpdateTransaction} className="space-y-4 pt-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-2">
+                                        <Label htmlFor="edit-date">Data</Label>
+                                        <Input 
+                                          id="edit-date" 
+                                          type="date"
+                                          value={editingTransaction.date} 
+                                          onChange={(e) => setEditingTransaction({...editingTransaction, date: e.target.value})} 
+                                          required 
+                                        />
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label htmlFor="edit-time">Horário</Label>
+                                        <Input 
+                                          id="edit-time" 
+                                          type="time"
+                                          value={editingTransaction.time} 
+                                          onChange={(e) => setEditingTransaction({...editingTransaction, time: e.target.value})} 
+                                          required 
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-amount">Valor (R$)</Label>
+                                      <Input 
+                                        id="edit-amount" 
+                                        type="number"
+                                        step="0.01"
+                                        value={editingTransaction.amount} 
+                                        onChange={(e) => setEditingTransaction({...editingTransaction, amount: e.target.value})} 
+                                        required 
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-type">Tipo</Label>
+                                      <Select 
+                                        value={editingTransaction.type} 
+                                        onValueChange={(val) => setEditingTransaction({...editingTransaction, type: val})}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="income">Entrada (Receita)</SelectItem>
+                                          <SelectItem value="expense">Saída (Despesa)</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-category">Categoria</Label>
+                                      <Input 
+                                        id="edit-category" 
+                                        value={editingTransaction.category} 
+                                        onChange={(e) => setEditingTransaction({...editingTransaction, category: e.target.value})} 
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-barber">Barbeiro</Label>
+                                      <Select 
+                                        value={editingTransaction.barber_id} 
+                                        onValueChange={(val) => setEditingTransaction({...editingTransaction, barber_id: val})}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="none">Nenhum / Geral</SelectItem>
+                                          {barbers.map((b) => (
+                                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label htmlFor="edit-description">Descrição</Label>
+                                      <Input 
+                                        id="edit-description" 
+                                        value={editingTransaction.description} 
+                                        onChange={(e) => setEditingTransaction({...editingTransaction, description: e.target.value})} 
+                                      />
+                                    </div>
+                                    <Button type="submit" className="w-full">Atualizar</Button>
+                                  </form>
+                                )}
+                              </DialogContent>
+                            </Dialog>
                             <Button 
                               variant="ghost" 
                               size="icon" 
