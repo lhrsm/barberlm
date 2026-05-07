@@ -547,12 +547,19 @@ function ShopPageComponent() {
       }
 
       toast.success("Agendamento realizado com sucesso!");
+      
+      // Reset state and close modal
       setIsBookingOpen(false);
       setBookingStep(1);
       setSelectedProducts([]);
+      setPaymentMethod(null);
+      setUseCredits(false);
+      setUseCashback(false);
       
-      // Redirecionar para a página do cliente (portal) com refresh para garantir sessão
-      window.location.assign(`/${slug}/portal`);
+      // Delay redirection slightly to ensure state is clear
+      setTimeout(() => {
+        window.location.href = `/${slug}/portal`;
+      }, 500);
       
       
     } catch (error: any) {
@@ -1233,8 +1240,14 @@ function ShopPageComponent() {
                     if (customerCredits >= totalBeforeCredits && totalBeforeCredits > 0) {
                       setUseCredits(true);
                       setPaymentMethod('pix');
+                      setBookingStep(5);
+                      
+                      // Auto-finalize if credits cover everything and user just wants to confirm
+                      // But the user asked for a "Confirmar agendamento" button in the modal, 
+                      // so we go to step 5 where that button is.
+                    } else {
+                      setBookingStep(5);
                     }
-                    setBookingStep(5);
                   }}
                   disabled={fetchingTimes || !selectedDate}
                 >
@@ -1480,9 +1493,13 @@ function ShopPageComponent() {
 
                     <div className="pt-2">
                       <Button 
+                        id="btn-confirm-booking"
                         className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
                         style={{ backgroundColor: primaryColor }}
-                        onClick={handleFinalizeBooking} 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleFinalizeBooking();
+                        }} 
                         disabled={submitting}
                       >
                         {submitting ? "Finalizando..." : "Confirmar Agendamento"}
