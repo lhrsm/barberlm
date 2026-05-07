@@ -633,7 +633,7 @@ function CalendarComponent() {
                                   <Button 
                                     variant="ghost" 
                                     size="sm" 
-                                    className="h-6 px-2 text-white bg-green-500/30 hover:bg-green-500/50 text-[10px] gap-1"
+                                    className="h-6 px-2 text-white bg-emerald-500/30 hover:bg-emerald-500/50 text-[10px] gap-1"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleMarkAsPaid(app);
