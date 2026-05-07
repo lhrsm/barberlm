@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw } from "lucide-react";
+import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -53,13 +53,15 @@ function ShopPageComponent() {
   const [cancelling, setCancelling] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [customerCashback, setCustomerCashback] = useState(0);
+  const [customerCredits, setCustomerCredits] = useState(0);
   const [customerLoyaltyPoints, setCustomerLoyaltyPoints] = useState(0);
   const [useCashback, setUseCashback] = useState(false);
+  const [useCredits, setUseCredits] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [dayAppointments, setDayAppointments] = useState<any[]>([]);
   const [loadingDayData, setLoadingDayData] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
   const [showPixStep, setShowPixStep] = useState(false);
 
   useEffect(() => {
@@ -380,7 +382,7 @@ function ShopPageComponent() {
       // 1. Create or get customer
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
-        .select("id, cashback_balance")
+        .select("id, cashback_balance, credits")
         .eq("phone", customerPhone)
         .eq("user_id", shop.id)
         .maybeSingle();
@@ -389,6 +391,7 @@ function ShopPageComponent() {
       if (customerData) {
         customerId = customerData.id;
         setCustomerCashback(Number(customerData.cashback_balance || 0));
+        setCustomerCredits(Number(customerData.credits || 0));
       } else {
         const { data: newCustomer, error: createError } = await supabase
           .from("customers")
@@ -447,11 +450,11 @@ function ShopPageComponent() {
           end_time: endTime.toISOString(),
           total_price: calculateTotal(),
           status: "scheduled",
-          payment_method: paymentMethod || (calculateTotal() === 0 ? 'cashback' : 'barbershop'),
+          payment_method: paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop'),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
           notes: useCashback ? 
             `Pagamento: Cashback (R$ ${Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)})` : 
-            null,
+            useCredits ? `Pagamento: Créditos (R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : null,
           items: [
             { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
             ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
@@ -462,8 +465,19 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
-      // 3. Create transactions for products and services if paid via PIX OR credits
+      // 2.5 Update customer credits if used
+      if (useCredits) {
+        const amountToDeduct = Math.min(customerCredits, calculateTotalBeforeCredits());
+        await supabase
+          .from("customers")
+          .update({ credits: customerCredits - amountToDeduct })
+          .eq("id", customerId);
+      }
+
+      // 3. Create transactions for products and services if paid via PIX OR credits/cashback
       if (paymentMethod === 'pix' || (calculateTotal() === 0)) {
+        const finalPaymentMethod = calculateTotal() === 0 ? (useCredits ? 'CRÉDITOS' : (useCashback ? 'CASHBACK' : 'PIX')) : 'PIX';
+        
         // Add service transaction
         await supabase.from("transactions").insert({
           user_id: shop.id,
@@ -471,8 +485,8 @@ function ShopPageComponent() {
           appointment_id: appointment.id,
           type: "income",
           category: "Serviço",
-          amount: selectedService.price,
-          description: `Agendamento (${calculateTotal() === 0 ? (useCashback ? 'Cashback' : 'PIX') : 'PIX'}): ${selectedService.name} - Cliente: ${customerName}`,
+          amount: calculateTotal() === 0 ? 0 : selectedService.price,
+          description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
 
@@ -673,12 +687,19 @@ function ShopPageComponent() {
     return servicePrice + productsTotal;
   };
 
-  const calculateTotal = () => {
+  const calculateTotalBeforeCredits = () => {
     let total = calculateTotalBeforeCashback();
     if (useCashback) {
       total = Math.max(0, total - Math.min(customerCashback, total));
     }
-    // Credits calculation removed
+    return total;
+  };
+
+  const calculateTotal = () => {
+    let total = calculateTotalBeforeCredits();
+    if (useCredits) {
+      total = Math.max(0, total - Math.min(customerCredits, total));
+    }
     return total;
   };
 
@@ -721,14 +742,14 @@ function ShopPageComponent() {
     if (phone.length >= 10) {
       const { data } = await supabase
         .from("customers")
-        .select("cashback_balance, loyalty_points, name")
+        .select("cashback_balance, loyalty_points, name, credits")
         .eq("phone", phone)
         .eq("user_id", shop.id)
         .maybeSingle();
       if (data) {
         setCustomerCashback(data.cashback_balance || 0);
         setCustomerLoyaltyPoints(data.loyalty_points || 0);
-        // setCustomerCredits removed
+        setCustomerCredits(data.credits || 0);
         if (data.name) setCustomerName(data.name);
         return data;
       } else {
@@ -1285,7 +1306,29 @@ function ShopPageComponent() {
                     </p>
                   </div>
                 )}
-                {/* Credits UI removed */}
+                
+                {customerCredits > 0 && (
+                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-100 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <CircleDollarSign size={18} className="text-green-600" />
+                      <div>
+                        <p className="text-sm font-bold text-green-800">Você tem créditos!</p>
+                        <p className="text-xs text-green-600">Saldo: R$ {customerCredits.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant={useCredits ? "default" : "outline"} 
+                      size="sm" 
+                      className={cn(useCredits && "bg-green-600 hover:bg-green-700")}
+                      onClick={() => {
+                        setUseCredits(!useCredits);
+                        if (!useCredits) setUseCashback(false);
+                      }}
+                    >
+                      {useCredits ? "Usando" : "Usar"}
+                    </Button>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>Deseja adicionar algum produto?</Label>
@@ -1350,7 +1393,12 @@ function ShopPageComponent() {
                       <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
                     </div>
                   )}
-                  {/* Credits usage summary removed */}
+                  {useCredits && (
+                    <div className="flex justify-between text-green-600 font-medium">
+                      <span>Desconto Créditos:</span> 
+                      <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between border-t pt-2 font-bold">
                     <span className="text-muted-foreground">Total:</span> 
                     <span style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>

@@ -1,21 +1,26 @@
-The goal is to enhance the Products and Finances pages.
+As requested, I will implement the following changes:
 
-### 1. Products Page (src/routes/products.tsx)
-- Add a new tab called "Faturamento" (Billing/Revenue).
-- This tab will display a list of product sales, filtered to include only those that are NOT "cancelled" or "refunded".
-- The existing "Histórico" tab already exists and shows everything; I will keep it but add the "Faturamento" tab as requested.
+### 1. Business Logic Improvements
+- **Auto-Credits for Expired PIX Appointments**: Modify the `checkAutoCancellation` logic to automatically detect if an appointment was paid via PIX but expired without being completed. In such cases, the value will be converted into credits for the customer.
+- **Credit Consumption**: Update the appointment completion and creation logic to correctly deduct credits when used.
+- **Loyalty System**: 
+    - Loyalty points will only be incremented upon appointment completion.
+    - Payments made with credits will be explicitly detailed in the history.
 
-### 2. Finances Page (src/routes/finances.tsx)
-- Add a new section or tab to group transactions by barber.
-- Detail the total received by each barber.
-- Calculate and show the commission breakdown:
-    - How much the barber receives (based on `commission_rate` if they are not the owner).
-    - How much stays with the barbershop.
-- I'll need to fetch the `commission_rate` from the `barbers` table to perform these calculations accurately.
+### 2. Admin Dashboard (Barber Panel)
+- **Status Filter**: Add a filter to allow the administrator to view appointments by status (Scheduled, Completed, Cancelled).
+- **Service Completion**: Ensure the "Complete" button is clearly visible and correctly updates the status and financial records (excluding revenue for credit/cashback payments).
 
-### Technical Details:
-- I will modify `src/routes/products.tsx` to include the third tab in the `Tabs` component.
-- I will modify `src/routes/finances.tsx` to add a "Resumo por Barbeiro" (Summary by Barber) section.
-- I will use the `commission_rate` from the `barbers` table. If it's NULL or 0, it implies they might be the owner or have no commission (or I'll assume a default if not set, but the schema has a `commission_rate` field).
+### 3. Client Portal
+- **Loyalty Display**: Add a "Loyalty" (Fidelidade) field showing progress towards 10 services.
+- **Loyalty Reward**: Upon reaching 10 services, a button will appear to request credits equal to the value of the most expensive service in the barbershop.
 
-I will start by implementing the Products change, then move to Finances.
+### 4. Data Corrections
+- **Sync Issues**: Investigate and fix the discrepancy where active appointments are showing up even after being "deleted" (likely a status vs deletion mismatch).
+- **Financial Sync**: Adjust the financial records for May 6th/7th to ensure they reflect actual completed services and payments.
+
+Technical Details:
+- Updates to `src/routes/dashboard.tsx` (Admin filters, completion logic).
+- Updates to `src/routes/$slug.portal.tsx` (Loyalty UI, Reward button, auto-credit logic).
+- Supabase triggers/functions or edge logic to handle credit conversion for expired PIX payments.
+- SQL cleanup for mismatched appointments.

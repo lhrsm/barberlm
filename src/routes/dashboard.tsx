@@ -67,6 +67,7 @@ function DashboardComponent() {
   });
   const [barbers, setBarbers] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -80,7 +81,7 @@ function DashboardComponent() {
       fetchNotifications();
       fetchTodayAppointments();
     }
-  }, [user]);
+  }, [user, statusFilter]);
 
   async function fetchNotifications() {
     const { data } = await supabase
@@ -94,12 +95,18 @@ function DashboardComponent() {
   async function fetchTodayAppointments() {
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
-    const { data } = await supabase
+    
+    let query = supabase
       .from("appointments")
-      .select("*, customers(name, phone), services(name), barbers(name)")
+      .select("*, customers(name, phone, loyalty_points), services(name), barbers(name)")
       .gte("start_time", todayStart)
-      .lte("start_time", todayEnd)
-      .order("start_time", { ascending: true });
+      .lte("start_time", todayEnd);
+
+    if (statusFilter !== "all") {
+      query = query.eq("status", statusFilter);
+    }
+
+    const { data } = await query.order("start_time", { ascending: true });
     if (data) setTodayAppointments(data);
   }
 
@@ -111,6 +118,7 @@ function DashboardComponent() {
   async function completeAppointment(appointment: any) {
     if (appointment.status === 'completed') return;
 
+    // 1. Update appointment status
     const { error } = await supabase
       .from("appointments")
       .update({ status: 'completed' })
@@ -121,7 +129,16 @@ function DashboardComponent() {
       return;
     }
 
-    // Handle financial registration
+    // 2. Increment loyalty points for the customer
+    if (appointment.customer_id) {
+      const currentPoints = appointment.customers?.loyalty_points || 0;
+      await supabase
+        .from("customers")
+        .update({ loyalty_points: currentPoints + 1 })
+        .eq("id", appointment.customer_id);
+    }
+
+    // 3. Handle financial registration
     const isCreditOrCashback = appointment.payment_method === 'credits' || appointment.payment_method === 'cashback';
     const totalPrice = Number(appointment.total_price || 0);
     
@@ -142,11 +159,11 @@ function DashboardComponent() {
       
       if (transError) console.error("Error creating transaction:", transError);
     } else {
-      // For credits/cashback, we can log it as a neutral transaction or just descriptive
+      // For credits/cashback, we log it with 0 revenue to not inflate the dashboard revenue
       await supabase
         .from("transactions")
         .insert({
-          amount: 0, // 0 revenue
+          amount: 0, 
           type: "income",
           description: `[${appointment.payment_method.toUpperCase()}] ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
           category: "Serviço (Uso de Crédito/Cashback)",
@@ -157,7 +174,7 @@ function DashboardComponent() {
         });
     }
 
-    toast.success("Agendamento concluído com sucesso!");
+    toast.success("Agendamento concluído e fidelidade incrementada!");
     fetchTodayAppointments();
     fetchStats();
   }
@@ -426,6 +443,32 @@ function DashboardComponent() {
           </TabsList>
 
           <TabsContent value="daily" className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Agendamentos de Hoje</h3>
+              <div className="flex gap-2">
+                <Button 
+                  variant={statusFilter === "all" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setStatusFilter("all")}
+                >
+                  Todos
+                </Button>
+                <Button 
+                  variant={statusFilter === "scheduled" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setStatusFilter("scheduled")}
+                >
+                  Agendados
+                </Button>
+                <Button 
+                  variant={statusFilter === "completed" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setStatusFilter("completed")}
+                >
+                  Concluídos
+                </Button>
+              </div>
+            </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

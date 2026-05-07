@@ -407,6 +407,42 @@ function ClientPortalComponent() {
     setClient(null);
   };
 
+  const handleClaimLoyaltyReward = async () => {
+    if (!customerData || (customerData.loyalty_points || 0) < 10) return;
+
+    setSubmitting(true);
+    try {
+      // Get the most expensive service price
+      const { data: maxService } = await supabase
+        .from("services")
+        .select("price")
+        .order("price", { ascending: false })
+        .limit(1)
+        .single();
+      
+      const rewardValue = Number(maxService?.price || 50);
+      const newCredits = Number(customerData.credits || 0) + rewardValue;
+
+      const { error } = await supabase
+        .from("customers")
+        .update({ 
+          credits: newCredits,
+          loyalty_points: (customerData.loyalty_points || 0) - 10 
+        })
+        .eq("id", customerData.id);
+
+      if (error) throw error;
+
+      toast.success(`Parabéns! Você recebeu R$ ${rewardValue.toFixed(2)} em créditos por sua fidelidade!`);
+      fetchClientData(client.customer_id);
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao resgatar recompensa");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleCancelAppointment = async (app: any) => {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
     
@@ -440,6 +476,28 @@ function ClientPortalComponent() {
     if (toCancel.length === 0) return;
 
     for (const app of toCancel) {
+      // If the appointment was paid via PIX, convert the value to credits
+      if (app.payment_status === 'paid' && app.payment_method === 'pix') {
+        const amount = Number(app.total_price || 0);
+        if (amount > 0 && app.customer_id) {
+          // Fetch current credits to avoid race conditions (simplified here)
+          const { data: currentCust } = await supabase
+            .from("customers")
+            .select("credits")
+            .eq("id", app.customer_id)
+            .single();
+          
+          const newCredits = Number(currentCust?.credits || 0) + amount;
+          
+          await supabase
+            .from("customers")
+            .update({ credits: newCredits })
+            .eq("id", app.customer_id);
+          
+          toast.info(`Agendamento expirado. R$ ${amount.toFixed(2)} foi adicionado aos seus créditos.`);
+        }
+      }
+
       await supabase
         .from("appointments")
         .update({ status: 'cancelled' })
@@ -585,11 +643,23 @@ function ClientPortalComponent() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Agendados</CardDescription>
-              <CardTitle className="text-2xl font-bold">{appointments.filter(a => a.status === 'scheduled').length}</CardTitle>
+              <CardDescription>Fidelidade</CardDescription>
+              <CardTitle className="text-2xl font-bold flex items-center justify-between">
+                <span>{customerData?.loyalty_points || 0} / 10</span>
+                {customerData?.loyalty_points >= 10 && (
+                  <Button size="sm" onClick={handleClaimLoyaltyReward} disabled={submitting} className="h-7 text-[10px] bg-amber-500 hover:bg-amber-600">
+                    Resgatar
+                  </Button>
+                )}
+              </CardTitle>
             </CardHeader>
           </Card>
-          {/* Credits card removed */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Créditos</CardDescription>
+              <CardTitle className="text-2xl font-bold text-green-600">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
+            </CardHeader>
+          </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Cashback</CardDescription>
