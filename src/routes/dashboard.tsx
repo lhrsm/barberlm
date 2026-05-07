@@ -37,7 +37,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Check, CheckCircle2 } from "lucide-react";
+import { Check, CheckCircle2, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardComponent,
@@ -175,6 +175,24 @@ function DashboardComponent() {
     }
 
     toast.success(`Pagamento marcado como ${newStatus === 'paid' ? 'pago' : 'pendente'}`);
+    fetchTodayAppointments();
+    fetchStats();
+  }
+
+  async function cancelAppointment(appointmentId: string) {
+    if (!confirm("Deseja realmente cancelar este agendamento?")) return;
+
+    const { error } = await supabase
+      .from("appointments")
+      .update({ status: 'cancelled' })
+      .eq("id", appointmentId);
+
+    if (error) {
+      toast.error("Erro ao cancelar agendamento");
+      return;
+    }
+
+    toast.success("Agendamento cancelado com sucesso!");
     fetchTodayAppointments();
     fetchStats();
   }
@@ -497,6 +515,20 @@ function DashboardComponent() {
                               >
                                 <CheckCircle2 className="h-4 w-4" />
                                 Concluir
+                              </Button>
+                            )}
+                            {app.status === 'scheduled' && (
+                              <Button 
+                                variant="outline"
+                                size="sm" 
+                                className="h-8 gap-1 text-xs text-destructive border-destructive/20 hover:bg-destructive/10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  cancelAppointment(app.id);
+                                }}
+                              >
+                                <XCircle className="h-4 w-4" />
+                                Cancelar
                               </Button>
                             )}
                             <Button 
