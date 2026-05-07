@@ -1233,7 +1233,7 @@ function ShopPageComponent() {
                     if (customerCredits >= totalBeforeCredits && totalBeforeCredits > 0) {
                       setUseCredits(true);
                       setPaymentMethod('pix'); // Usamos 'pix' como placeholder para indicar que já está pago
-                      toast.info("Créditos aplicados automaticamente.");
+                      toast.info("Seus créditos cobrem o valor total deste agendamento!");
                       setBookingStep(5);
                     } else {
                       setBookingStep(5);
@@ -1416,58 +1416,89 @@ function ShopPageComponent() {
                     {paymentMethod === 'pix' && calculateTotal() > 0 && (
                       <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-xl space-y-4 text-center">
                         <p className="text-sm font-bold flex items-center justify-center gap-2">
-                          <QrCode size={18} /> Pagamento via PIX
+                          <QrCode size={18} className="text-primary" /> Pagamento via PIX
                         </p>
                         
                         {shop.pix_qr_code_url && (
                           <div className="flex justify-center">
-                            <img src={shop.pix_qr_code_url} className="h-32 w-32 object-contain bg-white p-2 rounded-lg border" alt="PIX" />
+                            <img src={shop.pix_qr_code_url} className="h-40 w-40 object-contain bg-white p-2 rounded-lg border shadow-sm" alt="PIX" />
                           </div>
                         )}
                         
-                        <div className="bg-background p-2 rounded border text-xs font-mono break-all relative group">
-                          {shop.pix_key || "Chave não cadastrada"}
-                          {shop.pix_key && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-6 w-6 absolute right-1 top-1"
-                              onClick={() => {
-                                navigator.clipboard.writeText(shop.pix_key);
-                                toast.success("Copiado!");
-                              }}
-                            >
-                              <CheckCircle2 size={12} />
-                            </Button>
-                          )}
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground font-medium">Chave PIX</p>
+                          <div className="bg-background p-3 rounded-lg border border-primary/20 text-xs font-mono break-all flex items-center justify-between gap-2 shadow-inner">
+                            <span className="flex-1 text-center">{shop.pix_key || "Chave não cadastrada"}</span>
+                            {shop.pix_key && (
+                              <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="h-8 px-3 shrink-0"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(shop.pix_key);
+                                  toast.success("Copiado!");
+                                }}
+                              >
+                                <CheckCircle2 size={14} className="mr-1" /> Copiar
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">Após pagar, clique em confirmar abaixo.</p>
+                        <div className="pt-2">
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            Após realizar o pagamento, clique no botão de confirmação abaixo para finalizar seu agendamento.
+                          </p>
+                        </div>
                       </div>
                     )}
                     
                     {paymentMethod === 'pix' && calculateTotal() === 0 && (
-                      <div className="p-4 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center">
-                        <p className="text-sm font-bold text-green-700 flex items-center justify-center gap-2">
-                          <CheckCircle2 size={18} /> Valor coberto por créditos
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">O agendamento será marcado como pago utilizando seu saldo.</p>
+                      <div className="p-6 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center space-y-3">
+                        <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
+                          <CheckCircle2 size={24} className="text-green-600" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-base font-bold text-green-700">Tudo pronto!</p>
+                          <p className="text-sm text-muted-foreground">O valor total será quitado com seus créditos disponíveis.</p>
+                        </div>
+                        <div className="pt-2">
+                          <p className="text-[11px] text-muted-foreground">
+                            Clique no botão abaixo para concluir seu agendamento agora mesmo.
+                          </p>
+                        </div>
                       </div>
                     )}
                     
                     {paymentMethod === 'barbershop' && (
-                      <div className="p-4 border-2 border-dashed rounded-xl text-center bg-muted/30">
-                        <p className="text-sm font-medium">Você escolheu pagar na barbearia.</p>
-                        <p className="text-xs text-muted-foreground mt-1">O pagamento será realizado no momento do atendimento.</p>
+                      <div className="p-6 border-2 border-dashed border-primary/30 rounded-xl text-center bg-muted/30 space-y-3">
+                        <div className="h-12 w-12 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
+                          <Scissors size={24} className="text-primary" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-base font-medium">Pagamento na Barbearia</p>
+                          <p className="text-sm text-muted-foreground">O pagamento será realizado no momento do atendimento.</p>
+                        </div>
                       </div>
                     )}
 
-                    <Button className="w-full" onClick={handleFinalizeBooking} disabled={submitting}>
-                      {submitting ? "Finalizando..." : "Confirmar Agendamento"}
-                    </Button>
-                    
-                    <Button variant="ghost" className="w-full text-xs" onClick={() => setPaymentMethod(null)}>
-                      Alterar forma de pagamento
-                    </Button>
+                    <div className="pt-2">
+                      <Button 
+                        className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
+                        style={{ backgroundColor: primaryColor }}
+                        onClick={handleFinalizeBooking} 
+                        disabled={submitting}
+                      >
+                        {submitting ? "Finalizando..." : "Confirmar Agendamento"}
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        className="w-full mt-2 text-xs h-10" 
+                        onClick={() => setPaymentMethod(null)}
+                      >
+                        Alterar forma de pagamento
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
