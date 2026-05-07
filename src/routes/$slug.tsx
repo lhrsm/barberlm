@@ -158,6 +158,12 @@ function ShopPageComponent() {
     }
   }, [slug]);
 
+  useEffect(() => {
+    if (selectedDate && shop?.id && isBookingOpen) {
+      fetchDayData(selectedDate);
+    }
+  }, [selectedDate, shop?.id, isBookingOpen]);
+
   async function fetchShopData(targetSlug: string) {
     setLoading(true);
     // Fetch profile by slug
