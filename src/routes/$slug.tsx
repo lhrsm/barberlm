@@ -90,7 +90,7 @@ function ShopPageComponent() {
   }, [shop?.font_family]);
 
   useEffect(() => {
-    if (bookingStep === 3 && selectedBarber && selectedDate) {
+    if (bookingStep === 4 && selectedBarber && selectedDate) {
       fetchAvailableTimes(selectedBarber.id, selectedDate);
     }
   }, [bookingStep, selectedBarber, selectedDate]);
@@ -502,8 +502,8 @@ function ShopPageComponent() {
       setBookingStep(1);
       setSelectedProducts([]);
       
-      // Redirecionar para a página do cliente (portal)
-      navigate({ to: `/${slug}/portal` });
+      // Redirecionar para a página do cliente (portal) com refresh para garantir sessão
+      window.location.assign(`/${slug}/portal`);
       
       
     } catch (error: any) {
