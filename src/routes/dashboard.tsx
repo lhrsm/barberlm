@@ -37,7 +37,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { Check, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardComponent,
@@ -106,6 +106,59 @@ function DashboardComponent() {
   async function markAsRead(id: string) {
     await supabase.from("notifications").update({ read: true }).eq("id", id);
     fetchNotifications();
+  }
+
+  async function completeAppointment(appointment: any) {
+    if (appointment.status === 'completed') return;
+
+    const { error } = await supabase
+      .from("appointments")
+      .update({ status: 'completed' })
+      .eq("id", appointment.id);
+
+    if (error) {
+      toast.error("Erro ao concluir agendamento");
+      return;
+    }
+
+    // Handle financial registration
+    const isCreditOrCashback = appointment.payment_method === 'credits' || appointment.payment_method === 'cashback';
+    
+    // Only register income in transactions if it wasn't paid via credit/cashback
+    if (!isCreditOrCashback) {
+      const { error: transError } = await supabase
+        .from("transactions")
+        .insert({
+          amount: appointment.total_price,
+          type: "income",
+          description: `Atendimento: ${appointment.services?.name} - ${appointment.customers?.name}`,
+          category: "Serviço",
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          user_id: user?.id,
+          date: new Date().toISOString().split('T')[0]
+        });
+      
+      if (transError) console.error("Error creating transaction:", transError);
+    } else {
+      // For credits/cashback, we can log it as a neutral transaction or just descriptive
+      await supabase
+        .from("transactions")
+        .insert({
+          amount: 0, // 0 revenue
+          type: "income",
+          description: `[${appointment.payment_method.toUpperCase()}] ${appointment.services?.name} - ${appointment.customers?.name}`,
+          category: "Serviço (Uso de Crédito/Cashback)",
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          user_id: user?.id,
+          date: new Date().toISOString().split('T')[0]
+        });
+    }
+
+    toast.success("Agendamento concluído com sucesso!");
+    fetchTodayAppointments();
+    fetchStats();
   }
 
   async function togglePaymentStatus(appointment: any) {
@@ -430,28 +483,44 @@ function DashboardComponent() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Button 
-                            variant={app.payment_status === 'paid' ? 'default' : 'outline'} 
-                            size="sm" 
-                            className={cn(
-                              "h-8 gap-1 text-xs",
-                              app.payment_status === 'paid' && "bg-emerald-600 hover:bg-emerald-700"
+                          <div className="flex flex-wrap items-center gap-2">
+                            {app.status === 'scheduled' && (
+                              <Button 
+                                variant="default"
+                                size="sm" 
+                                className="h-8 gap-1 text-xs bg-green-600 hover:bg-green-700"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  completeAppointment(app);
+                                }}
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                                Concluir
+                              </Button>
                             )}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              togglePaymentStatus(app);
-                            }}
-                          >
-                            <Check size={14} />
-                            {app.payment_status === 'paid' ? 'Pago' : 'Marcar Pago'}
-                          </Button>
-                          <Badge className={cn(
-                            app.status === 'scheduled' ? 'bg-secondary text-secondary-foreground' : 
-                            app.status === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white' : 
-                            'bg-destructive text-destructive-foreground'
-                          )}>
-                            {app.status === 'scheduled' ? 'Agendado' : app.status === 'completed' ? 'Concluído' : 'Cancelado'}
-                          </Badge>
+                            <Button 
+                              variant={app.payment_status === 'paid' ? 'secondary' : 'outline'} 
+                              size="sm" 
+                              className={cn(
+                                "h-8 gap-1 text-xs",
+                                app.payment_status === 'paid' && "text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
+                              )}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePaymentStatus(app);
+                              }}
+                            >
+                              <Check size={14} />
+                              {app.payment_status === 'paid' ? 'Pago' : 'Marcar Pago'}
+                            </Button>
+                            <Badge className={cn(
+                              app.status === 'scheduled' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100' : 
+                              app.status === 'completed' ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 
+                              'bg-destructive text-destructive-foreground'
+                            )} variant="outline">
+                              {app.status === 'scheduled' ? 'Agendado' : app.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                     ))
