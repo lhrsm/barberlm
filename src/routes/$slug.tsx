@@ -687,12 +687,19 @@ function ShopPageComponent() {
     return servicePrice + productsTotal;
   };
 
-  const calculateTotal = () => {
+  const calculateTotalBeforeCredits = () => {
     let total = calculateTotalBeforeCashback();
     if (useCashback) {
       total = Math.max(0, total - Math.min(customerCashback, total));
     }
-    // Credits calculation removed
+    return total;
+  };
+
+  const calculateTotal = () => {
+    let total = calculateTotalBeforeCredits();
+    if (useCredits) {
+      total = Math.max(0, total - Math.min(customerCredits, total));
+    }
     return total;
   };
 
@@ -735,14 +742,14 @@ function ShopPageComponent() {
     if (phone.length >= 10) {
       const { data } = await supabase
         .from("customers")
-        .select("cashback_balance, loyalty_points, name")
+        .select("cashback_balance, loyalty_points, name, credits")
         .eq("phone", phone)
         .eq("user_id", shop.id)
         .maybeSingle();
       if (data) {
         setCustomerCashback(data.cashback_balance || 0);
         setCustomerLoyaltyPoints(data.loyalty_points || 0);
-        // setCustomerCredits removed
+        setCustomerCredits(data.credits || 0);
         if (data.name) setCustomerName(data.name);
         return data;
       } else {
