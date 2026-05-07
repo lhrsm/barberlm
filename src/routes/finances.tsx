@@ -116,39 +116,47 @@ function FinancesComponent() {
   }
 
   const { filteredTransactions, summary } = useMemo(() => {
-    let filtered = [...transactions];
+    try {
+      let filtered = [...transactions];
 
-    if (filterDay) {
-      filtered = filtered.filter(t => {
-        if (!t.date) return false;
-        const parts = String(t.date).split('-');
-        if (parts.length < 3) return false;
-        const day = parseInt(parts[2], 10);
-        return day.toString() === filterDay;
-      });
+      if (filterDay) {
+        filtered = filtered.filter(t => {
+          if (!t.date) return false;
+          const parts = String(t.date).split('-');
+          if (parts.length < 3) return false;
+          const day = parseInt(parts[2], 10);
+          return day.toString() === filterDay;
+        });
+      }
+
+      if (filterMonth) {
+        filtered = filtered.filter(t => {
+          if (!t.date) return false;
+          const parts = String(t.date).split('-');
+          if (parts.length < 2) return false;
+          const month = parseInt(parts[1], 10);
+          return month.toString() === filterMonth;
+        });
+      }
+
+      const income = filtered
+        .filter(t => t.type === "income")
+        .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+      const expense = filtered
+        .filter(t => t.type === "expense")
+        .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+
+      return {
+        filteredTransactions: filtered,
+        summary: { income, expense, balance: income - expense }
+      };
+    } catch (e) {
+      console.error("Error in useMemo summary calculation:", e);
+      return {
+        filteredTransactions: [],
+        summary: { income: 0, expense: 0, balance: 0 }
+      };
     }
-
-    if (filterMonth) {
-      filtered = filtered.filter(t => {
-        if (!t.date) return false;
-        const parts = String(t.date).split('-');
-        if (parts.length < 2) return false;
-        const month = parseInt(parts[1], 10);
-        return month.toString() === filterMonth;
-      });
-    }
-
-    const income = filtered
-      .filter(t => t.type === "income")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
-    const expense = filtered
-      .filter(t => t.type === "expense")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
-
-    return {
-      filteredTransactions: filtered,
-      summary: { income, expense, balance: income - expense }
-    };
   }, [transactions, filterDay, filterMonth]);
 
   async function handleAddTransaction(e: React.FormEvent) {
