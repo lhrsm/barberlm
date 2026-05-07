@@ -1326,10 +1326,15 @@ function ShopPageComponent() {
           </div>
 
           {bookingStep > 1 && (
-            <DialogFooter>
-              <Button variant="ghost" className="w-full" onClick={() => setBookingStep(bookingStep - 1)}>
+            <DialogFooter className="flex justify-between items-center sm:justify-between">
+              <Button variant="ghost" size="sm" onClick={() => setBookingStep(prev => prev - 1)}>
                 <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
               </Button>
+              {bookingStep < 5 && (
+                <div className="text-[10px] text-muted-foreground">
+                  Passo {bookingStep} de 5
+                </div>
+              )}
             </DialogFooter>
           )}
         </DialogContent>
