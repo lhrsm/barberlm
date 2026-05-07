@@ -176,7 +176,7 @@ function CalendarComponent() {
       const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
       const endTime = addMinutes(startTime, service?.duration_minutes || 30);
 
-      const { error } = await supabase.from("appointments").insert({
+      const { data: appointmentData, error } = await supabase.from("appointments").insert({
         user_id: user.id,
         customer_id: selectedCustomer,
         service_id: selectedService,
@@ -185,9 +185,23 @@ function CalendarComponent() {
         end_time: endTime.toISOString(),
         total_price: service?.price || 0,
         status: "scheduled",
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Create finance transaction for the schedule
+      await supabase.from("transactions").insert({
+        user_id: user.id,
+        barber_id: selectedBarber,
+        appointment_id: appointmentData.id,
+
+        type: "income",
+        category: "Serviço",
+        amount: service?.price || 0,
+        description: `Agendamento: ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
+        date: new Date().toISOString().split('T')[0]
+      });
+
 
       toast.success("Agendamento criado com sucesso!");
       setIsDialogOpen(false);
