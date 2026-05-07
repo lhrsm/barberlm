@@ -1233,8 +1233,14 @@ function ShopPageComponent() {
                     if (customerCredits >= totalBeforeCredits && totalBeforeCredits > 0) {
                       setUseCredits(true);
                       setPaymentMethod('pix');
+                      setBookingStep(5);
+                      
+                      // Auto-finalize if credits cover everything and user just wants to confirm
+                      // But the user asked for a "Confirmar agendamento" button in the modal, 
+                      // so we go to step 5 where that button is.
+                    } else {
+                      setBookingStep(5);
                     }
-                    setBookingStep(5);
                   }}
                   disabled={fetchingTimes || !selectedDate}
                 >
