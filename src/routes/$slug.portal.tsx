@@ -688,6 +688,56 @@ function ClientPortalComponent() {
           </TabsContent>
         </Tabs>
       </main>
+
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Alterar Agendamento</DialogTitle>
+            <DialogDescription>Escolha uma nova data e horário para seu serviço.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-date">Nova Data</Label>
+              <Input 
+                id="edit-date" 
+                type="date" 
+                value={newDate} 
+                onChange={(e) => setNewDate(e.target.value)}
+                min={format(new Date(), "yyyy-MM-dd")}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Novo Horário</Label>
+              {fetchingTimes ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                </div>
+              ) : availableTimes.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto p-1">
+                  {availableTimes.map(time => (
+                    <Button
+                      key={time}
+                      variant={newTime === time ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setNewTime(time)}
+                    >
+                      {time}
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-center text-muted-foreground py-4">Nenhum horário disponível para esta data.</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
+            <Button onClick={handleUpdateAppointment} disabled={submitting || !newTime}>
+              {submitting ? "Salvando..." : "Confirmar Alteração"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
