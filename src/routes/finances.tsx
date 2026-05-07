@@ -110,16 +110,26 @@ function FinancesComponent() {
     if (filterDay) {
       filtered = filtered.filter(t => {
         if (!t.date) return false;
-        const d = new Date(t.date + 'T12:00:00');
-        return d.getDate().toString() === filterDay;
+        try {
+          const d = new Date(t.date + 'T12:00:00');
+          if (isNaN(d.getTime())) return false;
+          return d.getDate().toString() === filterDay;
+        } catch (e) {
+          return false;
+        }
       });
     }
 
     if (filterMonth) {
       filtered = filtered.filter(t => {
         if (!t.date) return false;
-        const d = new Date(t.date + 'T12:00:00');
-        return (d.getMonth() + 1).toString() === filterMonth;
+        try {
+          const d = new Date(t.date + 'T12:00:00');
+          if (isNaN(d.getTime())) return false;
+          return (d.getMonth() + 1).toString() === filterMonth;
+        } catch (e) {
+          return false;
+        }
       });
     }
 
@@ -445,7 +455,16 @@ function FinancesComponent() {
                       <TableRow key={t.id}>
                         <TableCell>
                           <div className="flex flex-col">
-                            <span>{t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}</span>
+                            <span>
+                              {t.date ? (() => {
+                                try {
+                                  const d = new Date(t.date + 'T12:00:00');
+                                  return isNaN(d.getTime()) ? t.date : d.toLocaleDateString('pt-BR');
+                                } catch (e) {
+                                  return t.date;
+                                }
+                              })() : "-"}
+                            </span>
                             <span className="text-xs text-muted-foreground">{t.time?.substring(0, 5) || "--:--"}</span>
                           </div>
                         </TableCell>
