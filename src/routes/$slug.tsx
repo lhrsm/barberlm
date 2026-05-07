@@ -652,6 +652,7 @@ function ShopPageComponent() {
       } else {
         setCustomerCashback(0);
         setCustomerLoyaltyPoints(0);
+        setCustomerName(""); // Certificar que o nome está vazio para novos clientes
         return null;
       }
     }
