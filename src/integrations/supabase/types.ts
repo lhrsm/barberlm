@@ -216,6 +216,7 @@ export type Database = {
         Row: {
           cashback_balance: number
           created_at: string
+          credits: number | null
           email: string | null
           id: string
           loyalty_points: number | null
@@ -227,6 +228,7 @@ export type Database = {
         Insert: {
           cashback_balance?: number
           created_at?: string
+          credits?: number | null
           email?: string | null
           id?: string
           loyalty_points?: number | null
@@ -238,6 +240,7 @@ export type Database = {
         Update: {
           cashback_balance?: number
           created_at?: string
+          credits?: number | null
           email?: string | null
           id?: string
           loyalty_points?: number | null
