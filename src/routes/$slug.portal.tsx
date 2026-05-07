@@ -455,17 +455,17 @@ function ClientPortalComponent() {
       
       if (error) throw error;
       
-      // Handle financial registration (if not already handled by admin)
-      // Usually admin completes, but if client can complete their own:
+      // Handle financial registration
       const isCreditOrCashback = app.payment_method === 'credits' || app.payment_method === 'cashback';
+      const totalPrice = Number(app.total_price || 0);
       
       if (!isCreditOrCashback) {
         await supabase
           .from("transactions")
           .insert({
-            amount: app.total_price,
+            amount: totalPrice,
             type: "income",
-            description: `Atendimento concluído pelo cliente: ${app.services?.name}`,
+            description: `Atendimento concluído pelo cliente: ${app.services?.name || 'Serviço'}`,
             category: "Serviço",
             barber_id: app.barber_id,
             appointment_id: app.id,
@@ -478,7 +478,7 @@ function ClientPortalComponent() {
           .insert({
             amount: 0,
             type: "income",
-            description: `[${app.payment_method.toUpperCase()}] Atendimento concluído pelo cliente: ${app.services?.name}`,
+            description: `[${app.payment_method.toUpperCase()}] Atendimento concluído pelo cliente: ${app.services?.name || 'Serviço'}`,
             category: "Serviço (Uso de Crédito/Cashback)",
             barber_id: app.barber_id,
             appointment_id: app.id,
