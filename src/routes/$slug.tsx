@@ -433,8 +433,8 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
-      // 3. Create transactions for products and services ONLY if paid via PIX
-      if (paymentMethod === 'pix') {
+      // 3. Create transactions for products and services if paid via PIX OR credits
+      if (paymentMethod === 'pix' || (useCredits && customerCredits > 0)) {
         // Add service transaction
         await supabase.from("transactions").insert({
           user_id: shop.id,
@@ -443,7 +443,7 @@ function ShopPageComponent() {
           type: "income",
           category: "Serviço",
           amount: selectedService.price,
-          description: `Agendamento (PIX): ${selectedService.name} - Cliente: ${customerName}`,
+          description: `Agendamento (${calculateTotal() === 0 && useCredits ? 'Créditos' : 'PIX'}): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
 
@@ -1175,7 +1175,18 @@ function ShopPageComponent() {
                       toast.error("Por favor, selecione um horário.");
                       return;
                     }
-                    setBookingStep(5);
+                    
+                    // Se o cliente tiver créditos suficientes para cobrir o valor total,
+                    // finaliza o agendamento automaticamente como pago
+                    const totalBeforeCredits = calculateTotalBeforeCashback() - (useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0);
+                    if (customerCredits >= totalBeforeCredits && totalBeforeCredits > 0) {
+                      setUseCredits(true);
+                      setPaymentMethod('pix'); // Usamos 'pix' como placeholder para indicar que já está pago
+                      toast.info("Créditos aplicados automaticamente.");
+                      setBookingStep(5);
+                    } else {
+                      setBookingStep(5);
+                    }
                   }}
                   disabled={availableTimes.length === 0}
                 >
@@ -1351,7 +1362,7 @@ function ShopPageComponent() {
                   </div>
                 ) : (
                   <div className="space-y-4 mt-4">
-                    {paymentMethod === 'pix' && (
+                    {paymentMethod === 'pix' && calculateTotal() > 0 && (
                       <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-xl space-y-4 text-center">
                         <p className="text-sm font-bold flex items-center justify-center gap-2">
                           <QrCode size={18} /> Pagamento via PIX
@@ -1380,6 +1391,15 @@ function ShopPageComponent() {
                           )}
                         </div>
                         <p className="text-[10px] text-muted-foreground">Após pagar, clique em confirmar abaixo.</p>
+                      </div>
+                    )}
+                    
+                    {paymentMethod === 'pix' && calculateTotal() === 0 && (
+                      <div className="p-4 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center">
+                        <p className="text-sm font-bold text-green-700 flex items-center justify-center gap-2">
+                          <CheckCircle2 size={18} /> Valor coberto por créditos
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">O agendamento será marcado como pago utilizando seu saldo.</p>
                       </div>
                     )}
                     
