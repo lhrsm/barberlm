@@ -49,6 +49,14 @@ function ClientPortalComponent() {
   // Data state
   const [appointments, setAppointments] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
+  
+  // Edit state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState<any>(null);
+  const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [fetchingTimes, setFetchingTimes] = useState(false);
 
   useEffect(() => {
     if (slug) {
