@@ -373,6 +373,23 @@ function ShopPageComponent() {
         customerId = newCustomer.id;
       }
 
+      // Automatically create or update client_auth session for the portal
+      const sessionData = {
+        phone: customerPhone,
+        customer_id: customerId,
+        name: customerName
+      };
+      localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
+
+      // Ensure client_auth record exists
+      await supabase
+        .from("client_auth")
+        .upsert({
+          phone: customerPhone,
+          customer_id: customerId
+        }, { onConflict: 'phone' });
+
+
       // 1.5 Check for conflict again to be sure
       const hasConflict = await checkConflict(selectedBarber.id, selectedDate, selectedTime, selectedService.id);
       if (hasConflict) {
