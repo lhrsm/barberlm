@@ -194,6 +194,8 @@ function ShopPageComponent() {
     }
   }
 
+  const primaryColor = shop?.primary_color || "#7c3aed";
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -213,8 +215,6 @@ function ShopPageComponent() {
       </div>
     );
   }
-
-  const primaryColor = shop.primary_color || "#7c3aed";
 
   const handleBookingAction = () => {
     if (shop.scheduling_mode === 'manual') {
