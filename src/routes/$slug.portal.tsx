@@ -113,35 +113,54 @@ function ClientPortalComponent() {
   }
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setSubmitting(true);
     try {
-      // @ts-ignore - types are being updated
-      const { data, error } = await supabase
-        .from("client_auth")
-        .select("*, customers(id, name, user_id)")
+      // Find customer in this specific shop first
+      const { data: customerData, error: customerError } = await supabase
+        .from("customers")
+        .select("id, name")
         .eq("phone", phone)
+        .eq("user_id", shop.id)
         .maybeSingle();
 
-      if (error) throw error;
-      
-      if (!data) {
-        toast.error("Telefone não cadastrado. Por favor, cadastre-se primeiro.");
+      if (!customerData) {
+        toast.error("Telefone não encontrado nesta barbearia. Por favor, cadastre-se.");
         setIsRegistering(true);
         return;
       }
 
+      // @ts-ignore - types are being updated
+      const { data: authData, error: authError } = await supabase
+        .from("client_auth")
+        .select("*")
+        .eq("phone", phone)
+        .maybeSingle();
+
+      if (authError) throw authError;
+      
+      let finalCustomerId = customerData.id;
+
+      // If no auth record, create one
+      if (!authData) {
+        await supabase
+          .from("client_auth")
+          .insert({
+            phone: phone,
+            customer_id: finalCustomerId
+          });
+      }
+
       const sessionData = {
-        id: data.id,
-        phone: data.phone,
-        customer_id: data.customer_id,
-        name: data.customers?.name
+        phone: phone,
+        customer_id: finalCustomerId,
+        name: customerData.name
       };
 
       setClient(sessionData);
       setIsLoggedIn(true);
       localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
-      fetchClientData(data.customer_id || "");
+      fetchClientData(finalCustomerId);
       toast.success(`Bem-vindo de volta, ${sessionData.name}!`);
     } catch (e) {
       console.error(e);
