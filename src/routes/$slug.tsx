@@ -690,7 +690,7 @@ function ShopPageComponent() {
     if (phone.length >= 10) {
       const { data } = await supabase
         .from("customers")
-        .select("cashback_balance, loyalty_points, name")
+        .select("cashback_balance, loyalty_points, name, credits")
         .eq("phone", phone)
         .eq("user_id", shop.id)
         .maybeSingle();
