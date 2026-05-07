@@ -1049,7 +1049,7 @@ function ShopPageComponent() {
                           )}
                           onClick={() => {
                             setSelectedBarber(b);
-                            setBookingStep(3);
+                            setBookingStep(4);
                           }}
                         >
                           <div className="h-16 w-16 rounded-full bg-muted mx-auto overflow-hidden">
@@ -1070,7 +1070,7 @@ function ShopPageComponent() {
               </div>
             )}
 
-            {bookingStep === 3 && (
+            {bookingStep === 4 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -1082,7 +1082,7 @@ function ShopPageComponent() {
                       <p className="text-sm font-bold">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(2)} className="text-xs h-8">Alterar</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-xs h-8">Alterar</Button>
                 </div>
                 <div className="grid gap-2">
                   <Label>Data</Label>
@@ -1122,7 +1122,7 @@ function ShopPageComponent() {
                       toast.error("Por favor, selecione um horário.");
                       return;
                     }
-                    setBookingStep(4);
+                    setBookingStep(5);
                   }}
                   disabled={availableTimes.length === 0}
                 >
@@ -1131,21 +1131,14 @@ function ShopPageComponent() {
               </div>
             )}
 
-            {bookingStep === 4 && (
+            {bookingStep === 5 && (
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <Label>Seu Nome</Label>
-                  <Input placeholder="Como podemos te chamar?" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Seu WhatsApp</Label>
+                  <Label>WhatsApp</Label>
                   <Input 
-                    placeholder="(00) 00000-0000" 
                     value={customerPhone} 
-                    onChange={(e) => {
-                      setCustomerPhone(e.target.value);
-                      checkCustomerCashback(e.target.value);
-                    }} 
+                    readOnly 
+                    className="bg-muted text-muted-foreground"
                   />
                 </div>
                 
