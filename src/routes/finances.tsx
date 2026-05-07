@@ -376,13 +376,10 @@ function FinancesComponent() {
               {barbers.map((barber) => {
                 const barberTransactions = transactions.filter(t => t.barber_id === barber.id && t.type === 'income');
                 const totalReceived = barberTransactions.reduce((acc, t) => acc + Number(t.amount), 0);
-                const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
-                const totalGeneral = generalTransactions.reduce((acc, t) => acc + Number(t.amount), 0);
                 
                 const commissionRate = Number(barber.commission_rate || 0);
                 const barberPart = totalReceived * (commissionRate / 100);
                 const barbershopPartFromBarber = totalReceived - barberPart;
-
 
                 return (
                   <Card key={barber.id}>
@@ -392,7 +389,7 @@ function FinancesComponent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex justify-between items-center border-b pb-2">
-                        <span className="text-sm text-muted-foreground">Total Recebido</span>
+                        <span className="text-sm text-muted-foreground">Total Atendido</span>
                         <span className="font-bold">R$ {totalReceived.toFixed(2)}</span>
                       </div>
                       <div className="space-y-2">
@@ -404,12 +401,31 @@ function FinancesComponent() {
                           <span>Parte da Barbearia</span>
                           <span className="text-blue-600 font-medium">R$ {barbershopPartFromBarber.toFixed(2)}</span>
                         </div>
-
                       </div>
                     </CardContent>
                   </Card>
                 );
               })}
+              
+              <Card className="bg-muted/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg text-primary">Barbearia (Geral)</CardTitle>
+                  <p className="text-xs text-muted-foreground">Vendas e lançamentos sem barbeiro específico</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {(() => {
+                    const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
+                    const totalGeneral = generalTransactions.reduce((acc, t) => acc + Number(t.amount), 0);
+                    return (
+                      <div className="flex justify-between items-center border-b pb-2">
+                        <span className="text-sm font-medium">Total Geral</span>
+                        <span className="font-bold text-primary">R$ {totalGeneral.toFixed(2)}</span>
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+
               {barbers.length === 0 && (
                 <div className="col-span-full text-center py-12 border rounded-xl bg-card text-muted-foreground">
                   Nenhum barbeiro cadastrado.
