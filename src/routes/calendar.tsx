@@ -236,7 +236,19 @@ function CalendarComponent() {
       if (updateErr) throw updateErr;
 
       // 2. Create transactions for items
-      const items = appointment.items || [];
+      let items = appointment.items || [];
+      
+      // Fallback for old appointments without items
+      if (items.length === 0 && appointment.service_id) {
+        items = [{
+          id: appointment.service_id,
+          name: appointment.services?.name || 'Serviço',
+          type: 'service',
+          price: appointment.total_price,
+          quantity: 1
+        }];
+      }
+
       const serviceItem = items.find((i: any) => i.type === 'service');
       const productItems = items.filter((i: any) => i.type === 'product');
 
