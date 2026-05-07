@@ -41,6 +41,7 @@ function ClientPortalComponent() {
   const [client, setClient] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
   
   // Auth state
   const [phone, setPhone] = useState("");
