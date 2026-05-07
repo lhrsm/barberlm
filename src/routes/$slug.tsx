@@ -1032,13 +1032,15 @@ function ShopPageComponent() {
         setIsBookingOpen(open);
         if (!open) {
           setBookingStep(1);
-          setCustomerName("");
-          setCustomerPhone("");
+          if (!isEmbedded) {
+            setCustomerName("");
+            setCustomerPhone("");
+          }
           setUseCashback(false);
           setPaymentMethod(null);
         }
       }}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className={cn("sm:max-w-[425px]", isEmbedded && "w-full max-w-full m-0")}>
           <DialogHeader>
             <DialogTitle>
               {bookingStep === 1 && "Informe seu WhatsApp"}
