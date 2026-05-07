@@ -1,0 +1,507 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { 
+  Phone, 
+  History, 
+  ShoppingBag, 
+  Calendar, 
+  LogOut, 
+  User as UserIcon, 
+  Clock, 
+  Scissors,
+  CheckCircle2,
+  XCircle,
+  RefreshCcw,
+  AlertTriangle
+} from "lucide-react";
+import { format, isAfter, subDays, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/$slug/portal")({
+  component: ClientPortalComponent,
+});
+
+function ClientPortalComponent() {
+  const { slug } = Route.useParams();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [shop, setShop] = useState<any>(null);
+  const [client, setClient] = useState<any>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Auth state
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+
+  // Data state
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [sales, setSales] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (slug) {
+      fetchShopData(slug);
+    }
+  }, [slug]);
+
+  // Persistent session check
+  useEffect(() => {
+    const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
+    if (savedClient) {
+      try {
+        const parsedClient = JSON.parse(savedClient);
+        setClient(parsedClient);
+        setIsLoggedIn(true);
+        fetchClientData(parsedClient.customer_id);
+      } catch (e) {
+        localStorage.removeItem(`client_portal_session_${slug}`);
+      }
+    }
+  }, [slug]);
+
+  async function fetchShopData(targetSlug: string) {
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("slug", targetSlug)
+        .single();
+
+      if (error || !profile) {
+        toast.error("Barbearia não encontrada");
+        navigate({ to: "/" });
+        return;
+      }
+      setShop(profile);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function fetchClientData(customerId: string) {
+    if (!customerId) return;
+    
+    // Fetch appointments
+    const { data: appts } = await supabase
+      .from("appointments")
+      .select("*, services(name), barbers(name)")
+      .eq("customer_id", customerId)
+      .order("start_time", { ascending: false });
+    
+    setAppointments(appts || []);
+
+    // Fetch sales
+    const { data: saleData } = await supabase
+      .from("product_sales")
+      .select("*")
+      .eq("customer_id", customerId)
+      .order("created_at", { ascending: false });
+    
+    setSales(saleData || []);
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase
+        .from("client_auth")
+        .select("*, customers(id, name, user_id)")
+        .eq("phone", phone)
+        .single();
+
+      if (error || !data) {
+        toast.error("Telefone não cadastrado");
+        return;
+      }
+
+      // In a real app, we'd verify password_hash. For this PoC, we compare directly or use dummy check.
+      if (data.password_hash !== password) {
+        toast.error("Senha incorreta");
+        return;
+      }
+
+      const sessionData = {
+        id: data.id,
+        phone: data.phone,
+        customer_id: data.customer_id,
+        name: data.customers?.name
+      };
+
+      setClient(sessionData);
+      setIsLoggedIn(true);
+      localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
+      fetchClientData(data.customer_id || "");
+      toast.success(`Bem-vindo, ${sessionData.name}!`);
+    } catch (e) {
+      toast.error("Erro ao entrar");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      // 1. Find or create customer
+      const { data: existingCustomer } = await supabase
+        .from("customers")
+        .select("id")
+        .eq("phone", phone)
+        .eq("user_id", shop.id)
+        .maybeSingle();
+      
+      let customerId;
+      if (existingCustomer) {
+        customerId = existingCustomer.id;
+      } else {
+        const { data: newCust, error: custErr } = await supabase
+          .from("customers")
+          .insert({
+            user_id: shop.id,
+            name: customerName,
+            phone: phone
+          })
+          .select("id")
+          .single();
+        if (custErr) throw custErr;
+        customerId = newCust.id;
+      }
+
+      // 2. Create client_auth record
+      const { error: authErr } = await supabase
+        .from("client_auth")
+        .insert({
+          phone: phone,
+          password_hash: password, // In production, hash this!
+          customer_id: customerId
+        });
+
+      if (authErr) {
+        if (authErr.code === '23505') toast.error("Este telefone já possui cadastro.");
+        else throw authErr;
+        return;
+      }
+
+      toast.success("Cadastro realizado! Agora você pode entrar.");
+      setIsRegistering(false);
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao cadastrar");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(`client_portal_session_${slug}`);
+    setIsLoggedIn(false);
+    setClient(null);
+  };
+
+  const handleCancelAppointment = async (appId: string) => {
+    if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+    
+    try {
+      const { error } = await supabase
+        .from("appointments")
+        .update({ status: 'cancelled' })
+        .eq("id", appId);
+      
+      if (error) throw error;
+      toast.success("Agendamento cancelado");
+      fetchClientData(client.customer_id);
+    } catch (e) {
+      toast.error("Erro ao cancelar agendamento");
+    }
+  };
+
+  const handleRequestRefund = async (saleId: string) => {
+    const reason = prompt("Por favor, informe o motivo do reembolso:");
+    if (!reason) return;
+
+    try {
+      const { error } = await supabase
+        .from("product_sales")
+        .update({ 
+          status: 'refunded',
+          refund_requested_at: new Date().toISOString(),
+          refund_reason: reason
+        })
+        .eq("id", saleId);
+      
+      if (error) throw error;
+      toast.success("Pedido de reembolso enviado!");
+      fetchClientData(client.customer_id);
+    } catch (e) {
+      toast.error("Erro ao processar reembolso");
+    }
+  };
+
+  const canRefund = (createdAt: string) => {
+    const date = parseISO(createdAt);
+    const limitDate = subDays(new Date(), 7);
+    return isAfter(date, limitDate);
+  };
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+  );
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-center px-4 py-8">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">{shop?.business_name}</CardTitle>
+            <CardDescription>Acesse seu portal do cliente para gerenciar seus pedidos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4">
+              {isRegistering && (
+                <div className="space-y-2">
+                  <Label htmlFor="reg-name">Seu Nome</Label>
+                  <Input 
+                    id="reg-name" 
+                    placeholder="João Silva" 
+                    value={customerName} 
+                    onChange={(e) => setCustomerName(e.target.value)} 
+                    required 
+                  />
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="phone" 
+                    placeholder="11999999999" 
+                    className="pl-10" 
+                    value={phone} 
+                    onChange={(e) => setPhone(e.target.value)} 
+                    required 
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  required 
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? "Processando..." : (isRegistering ? "Cadastrar" : "Entrar")}
+              </Button>
+            </form>
+            <div className="mt-6 text-center">
+              <button 
+                className="text-sm text-primary hover:underline" 
+                onClick={() => setIsRegistering(!isRegistering)}
+              >
+                {isRegistering ? "Já tem conta? Entre aqui" : "Ainda não tem conta? Cadastre-se"}
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+        <Button variant="link" className="mt-4" onClick={() => navigate({ to: `/${slug}` })}>
+          Voltar para a barbearia
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-muted/30 pb-20">
+      <header className="bg-background border-b sticky top-0 z-50">
+        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+          <h1 className="font-bold text-lg flex items-center gap-2">
+            <UserIcon size={20} className="text-primary" />
+            Portal do Cliente
+          </h1>
+          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair">
+            <LogOut size={20} />
+          </Button>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold">Olá, {client.name}!</h2>
+            <p className="text-muted-foreground">Bem-vindo à sua área exclusiva na {shop?.business_name}.</p>
+          </div>
+          <Button onClick={() => navigate({ to: `/${slug}` })} className="gap-2">
+            <Calendar size={18} /> Novo Agendamento
+          </Button>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Total de Serviços</CardDescription>
+              <CardTitle className="text-2xl font-bold">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Produtos Comprados</CardDescription>
+              <CardTitle className="text-2xl font-bold">{sales.filter(s => s.status === 'completed').length}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Agendados</CardDescription>
+              <CardTitle className="text-2xl font-bold">{appointments.filter(a => a.status === 'scheduled').length}</CardTitle>
+            </CardHeader>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="appointments" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+            <TabsTrigger value="appointments" className="gap-2">
+              <Calendar size={16} /> Agendamentos
+            </TabsTrigger>
+            <TabsTrigger value="purchases" className="gap-2">
+              <ShoppingBag size={16} /> Compras
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="appointments" className="pt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Histórico de Agendamentos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {appointments.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <History size={48} className="mx-auto mb-4 opacity-20" />
+                      <p>Nenhum agendamento encontrado.</p>
+                    </div>
+                  ) : (
+                    appointments.map((app) => (
+                      <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl gap-4">
+                        <div className="flex items-start gap-4">
+                          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <Scissors className="text-primary h-6 w-6" />
+                          </div>
+                          <div>
+                            <p className="font-bold">{app.services?.name}</p>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1"><Clock size={14} /> {format(parseISO(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                              <span className="flex items-center gap-1"><UserIcon size={14} /> {app.barbers?.name}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 self-end sm:self-center">
+                          <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'}>
+                            {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
+                          </Badge>
+                          {app.status === 'scheduled' && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-destructive h-8 px-2"
+                              onClick={() => handleCancelAppointment(app.id)}
+                            >
+                              Cancelar
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="purchases" className="pt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Suas Compras</CardTitle>
+                <CardDescription>Os reembolsos podem ser solicitados em até 7 dias após a compra.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {sales.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <ShoppingBag size={48} className="mx-auto mb-4 opacity-20" />
+                      <p>Nenhuma compra encontrada.</p>
+                    </div>
+                  ) : (
+                    sales.map((sale) => (
+                      <div key={sale.id} className="flex flex-col p-4 border rounded-xl gap-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-muted-foreground">
+                              {format(parseISO(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                            </span>
+                            <Badge variant={sale.status === 'completed' ? 'default' : 'secondary'}>
+                              {sale.status === 'completed' ? 'Pago' : sale.status === 'refunded' ? 'Reembolsado' : 'Pendente'}
+                            </Badge>
+                          </div>
+                          <span className="font-bold text-lg text-primary">R$ {sale.total_amount.toFixed(2)}</span>
+                        </div>
+                        <div className="bg-muted/30 p-3 rounded-lg">
+                          <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Itens:</p>
+                          <ul className="space-y-1">
+                            {(sale.items as any[]).map((item, idx) => (
+                              <li key={idx} className="text-sm flex justify-between">
+                                <span>{item.name} x{item.quantity}</span>
+                                <span className="text-muted-foreground">R$ {(item.price * item.quantity).toFixed(2)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        {sale.status === 'completed' && (
+                          <div className="flex justify-end pt-2">
+                            {canRefund(sale.created_at) ? (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="gap-2 h-8 text-amber-600 border-amber-200 hover:bg-amber-50"
+                                onClick={() => handleRequestRefund(sale.id)}
+                              >
+                                <RefreshCcw size={14} /> Pedir Reembolso
+                              </Button>
+                            ) : (
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <AlertTriangle size={14} />
+                                Prazo de reembolso expirado (7 dias)
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+}

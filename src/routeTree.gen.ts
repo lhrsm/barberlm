@@ -22,6 +22,7 @@ import { Route as BarbersRouteImport } from './routes/barbers'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
@@ -88,10 +89,15 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SlugPortalRoute = SlugPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => SlugRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$slug': typeof SlugRoute
+  '/$slug': typeof SlugRouteWithChildren
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -103,10 +109,11 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/$slug/portal': typeof SlugPortalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$slug': typeof SlugRoute
+  '/$slug': typeof SlugRouteWithChildren
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -118,11 +125,12 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/$slug/portal': typeof SlugPortalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$slug': typeof SlugRoute
+  '/$slug': typeof SlugRouteWithChildren
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/$slug/portal': typeof SlugPortalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/subscription'
+    | '/$slug/portal'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/subscription'
+    | '/$slug/portal'
   id:
     | '__root__'
     | '/'
@@ -181,11 +192,12 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/subscription'
+    | '/$slug/portal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  SlugRoute: typeof SlugRoute
+  SlugRoute: typeof SlugRouteWithChildren
   AuthRoute: typeof AuthRoute
   BarbersRoute: typeof BarbersRoute
   CalendarRoute: typeof CalendarRoute
@@ -292,12 +304,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$slug/portal': {
+      id: '/$slug/portal'
+      path: '/portal'
+      fullPath: '/$slug/portal'
+      preLoaderRoute: typeof SlugPortalRouteImport
+      parentRoute: typeof SlugRoute
+    }
   }
 }
 
+interface SlugRouteChildren {
+  SlugPortalRoute: typeof SlugPortalRoute
+}
+
+const SlugRouteChildren: SlugRouteChildren = {
+  SlugPortalRoute: SlugPortalRoute,
+}
+
+const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  SlugRoute: SlugRoute,
+  SlugRoute: SlugRouteWithChildren,
   AuthRoute: AuthRoute,
   BarbersRoute: BarbersRoute,
   CalendarRoute: CalendarRoute,
