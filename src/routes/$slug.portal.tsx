@@ -404,7 +404,9 @@ function ClientPortalComponent() {
           .single();
         
         const currentCredits = Number(cust?.credits || 0);
-        const refundAmount = Number(app.total_price || 0);
+        const items = app.items as any[] || [];
+        const originalTotal = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity || 1)), 0);
+        const refundAmount = originalTotal > 0 ? originalTotal : Number(app.total_price || 0);
         
         await supabase
           .from("customers")
