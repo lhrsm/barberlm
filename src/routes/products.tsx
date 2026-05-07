@@ -199,12 +199,15 @@ function ProductsComponent() {
     <AppLayout>
       <div className="space-y-6">
         <Tabs defaultValue="inventory" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+          <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
             <TabsTrigger value="inventory" className="gap-2">
               <Package size={16} /> Estoque
             </TabsTrigger>
+            <TabsTrigger value="billing" className="gap-2">
+              <History size={16} /> Faturamento
+            </TabsTrigger>
             <TabsTrigger value="history" className="gap-2">
-              <History size={16} /> Histórico
+              <History size={16} /> Histórico Completo
             </TabsTrigger>
           </TabsList>
 
@@ -401,6 +404,10 @@ function ProductsComponent() {
         </div>
           </TabsContent>
 
+          <TabsContent value="billing" className="pt-6">
+            <SalesHistory user={user} onStatusChange={fetchProducts} onlyCompleted={true} />
+          </TabsContent>
+
           <TabsContent value="history" className="pt-6">
             <SalesHistory user={user} onStatusChange={fetchProducts} />
           </TabsContent>
@@ -410,7 +417,7 @@ function ProductsComponent() {
   );
 }
 
-function SalesHistory({ user, onStatusChange }: { user: any, onStatusChange?: () => void }) {
+function SalesHistory({ user, onStatusChange, onlyCompleted }: { user: any, onStatusChange?: () => void, onlyCompleted?: boolean }) {
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -420,11 +427,16 @@ function SalesHistory({ user, onStatusChange }: { user: any, onStatusChange?: ()
 
   async function fetchSales() {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("product_sales")
         .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .eq("user_id", user.id);
+
+      if (onlyCompleted) {
+        query = query.not("status", "in", "('cancelled','refunded')");
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) throw error;
       setSales(data || []);
@@ -457,8 +469,12 @@ function SalesHistory({ user, onStatusChange }: { user: any, onStatusChange?: ()
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Histórico de Vendas</CardTitle>
-        <CardDescription>Acompanhe suas vendas, cancelamentos e reembolsos.</CardDescription>
+        <CardTitle>{onlyCompleted ? "Faturamento de Produtos" : "Histórico de Vendas"}</CardTitle>
+        <CardDescription>
+          {onlyCompleted 
+            ? "Acompanhe suas vendas concluídas (exclui cancelamentos e reembolsos)." 
+            : "Acompanhe todas as suas vendas, incluindo cancelamentos e reembolsos."}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {sales.length === 0 ? (
