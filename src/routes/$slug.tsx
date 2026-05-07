@@ -227,14 +227,6 @@ function ShopPageComponent() {
     );
   }
 
-  const handleBookingAction = () => {
-    if (shop.scheduling_mode === 'manual') {
-      const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
-      window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
-    } else {
-      setIsBookingOpen(true);
-    }
-  };
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
