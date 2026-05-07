@@ -480,7 +480,7 @@ function ShopPageComponent() {
       setSelectedProducts([]);
       
       // Redirecionar para a página do cliente (portal)
-      window.location.href = `/${slug}/portal`;
+      window.location.assign(`/${slug}/portal`);
       
       
     } catch (error: any) {

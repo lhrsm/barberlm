@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Check } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardComponent,
@@ -104,6 +105,23 @@ function DashboardComponent() {
   async function markAsRead(id: string) {
     await supabase.from("notifications").update({ read: true }).eq("id", id);
     fetchNotifications();
+  }
+
+  async function togglePaymentStatus(appointment: any) {
+    const newStatus = appointment.payment_status === 'paid' ? 'pending' : 'paid';
+    const { error } = await supabase
+      .from("appointments")
+      .update({ payment_status: newStatus })
+      .eq("id", appointment.id);
+
+    if (error) {
+      toast.error("Erro ao atualizar status de pagamento");
+      return;
+    }
+
+    toast.success(`Pagamento marcado como ${newStatus === 'paid' ? 'pago' : 'pendente'}`);
+    fetchTodayAppointments();
+    fetchStats();
   }
 
   async function fetchStats() {
@@ -395,10 +413,9 @@ function DashboardComponent() {
                     todayAppointments.map((app) => (
                       <div 
                         key={app.id} 
-                        className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors cursor-pointer group"
-                        onClick={() => navigate({ to: "/calendar" })}
+                        className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group"
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 cursor-pointer flex-1" onClick={() => navigate({ to: "/calendar" })}>
                           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
                             {app.customers?.name?.[0].toUpperCase()}
                           </div>
@@ -411,11 +428,22 @@ function DashboardComponent() {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
+                          <Button 
+                            variant={app.payment_status === 'paid' ? 'default' : 'outline'} 
+                            size="sm" 
+                            className="h-8 gap-1 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePaymentStatus(app);
+                            }}
+                          >
+                            <Check size={14} />
+                            {app.payment_status === 'paid' ? 'Pago' : 'Marcar Pago'}
+                          </Button>
                           <Badge variant={app.status === 'scheduled' ? 'secondary' : app.status === 'completed' ? 'default' : 'destructive'}>
                             {app.status === 'scheduled' ? 'Agendado' : app.status === 'completed' ? 'Concluído' : 'Cancelado'}
                           </Badge>
-                          <ExternalLink size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </div>
                     ))
