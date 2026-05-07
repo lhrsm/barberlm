@@ -199,7 +199,7 @@ function ShopPageComponent() {
   const primaryColor = shop?.primary_color || "#7c3aed";
 
   const handleBookingAction = () => {
-    if (shop.scheduling_mode === 'manual') {
+    if (shop?.scheduling_mode === 'manual') {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
     } else {
