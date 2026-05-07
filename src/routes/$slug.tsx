@@ -861,20 +861,32 @@ function ShopPageComponent() {
           </section>
         )}
 
-        {/* Cancellation Section */}
-        <section className="bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-white/20 text-center space-y-4">
-          <div className="space-y-2">
-            <h4 className="font-bold">Gerenciar seu Agendamento</h4>
-            <p className="text-sm text-muted-foreground">Use o código enviado no seu WhatsApp para cancelar ou avaliar seu atendimento.</p>
+        {/* Client Portal Access Section */}
+        <section className="bg-primary/5 p-8 rounded-3xl border border-primary/10 text-center space-y-6">
+          <div className="max-w-md mx-auto space-y-2">
+            <h4 className="text-2xl font-bold">Área do Cliente</h4>
+            <p className="text-muted-foreground">
+              Acesse seu portal exclusivo para ver seu histórico de serviços, compras e gerenciar seus agendamentos em um só lugar.
+            </p>
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button variant="outline" size="sm" onClick={() => setIsCancelModalOpen(true)}>
-              Cancelar Agendamento
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button 
+              size="lg"
+              className="px-8 rounded-full shadow-lg hover:shadow-primary/20 transition-all gap-2"
+              style={{ backgroundColor: primaryColor }}
+              asChild
+            >
+              <a href={`/${slug}/portal`}>
+                <UserIcon size={20} /> Entrar no Portal
+              </a>
             </Button>
-            <Button variant="secondary" size="sm" className="gap-2" onClick={() => setIsCancelModalOpen(true)}>
-              <Star size={14} /> Avaliar Atendimento
+            <Button variant="outline" size="lg" className="rounded-full px-8 gap-2" onClick={() => setIsCancelModalOpen(true)}>
+              <Star size={20} /> Avaliar Serviço
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground mt-4">
+            Login rápido usando seu número de telefone.
+          </p>
         </section>
 
         {/* Footer info */}
@@ -1482,8 +1494,22 @@ function ShopPageComponent() {
 
                   // 1. Create sale record in product_sales for the "Faturamento" tab
                   const totalAmount = calculateTotalBeforeCashback();
+                  
+                  // Try to find customer ID by phone if we have it
+                  let saleCustomerId = null;
+                  if (customerPhone) {
+                    const { data: custData } = await supabase
+                      .from("customers")
+                      .select("id")
+                      .eq("phone", customerPhone)
+                      .eq("user_id", shop.id)
+                      .maybeSingle();
+                    if (custData) saleCustomerId = custData.id;
+                  }
+
                   const { data: saleData, error: saleError } = await supabase.from("product_sales").insert({
                     user_id: shop.id,
+                    customer_id: saleCustomerId,
                     total_amount: totalAmount,
                     status: 'completed',
                     items: items
