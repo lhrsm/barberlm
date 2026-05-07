@@ -134,13 +134,7 @@ function ShopPageComponent() {
   };
 
 
-  useEffect(() => {
-    if (slug) {
-      fetchShopData(slug);
-    }
-  }, [slug]);
-
-  // Day data useEffect moved below to fix hook order (placed after state definitions and before conditional returns)
+  // Hook placement placeholder
 
   async function fetchShopData(targetSlug: string) {
     setLoading(true);
