@@ -207,12 +207,6 @@ function ShopPageComponent() {
     }
   };
 
-  useEffect(() => {
-    if (bookingStep === 3 && selectedBarber && selectedDate) {
-      fetchAvailableTimes(selectedBarber.id, selectedDate);
-    }
-  }, [bookingStep, selectedBarber, selectedDate]);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
