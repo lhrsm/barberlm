@@ -21,7 +21,24 @@ function ShopPageComponent() {
   const { slug } = Route.useParams();
   const [shop, setShop] = useState<any>(null);
 
-  // Font loading hook moved below state definitions to ensure consistent order
+  // Font loading
+  useEffect(() => {
+    // Only attempt to load if it's not the default Inter
+    if (typeof window !== 'undefined' && shop?.font_family && shop.font_family !== 'Inter') {
+      const fontId = 'custom-shop-font';
+      let link = document.getElementById(fontId) as HTMLLinkElement;
+      
+      if (!link) {
+        link = document.createElement('link');
+        link.id = fontId;
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+      
+      const fontName = shop.font_family.replace(/\s+/g, '+');
+      link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
+    }
+  }, [shop?.font_family]);
 
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
