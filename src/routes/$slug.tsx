@@ -190,6 +190,25 @@ function ShopPageComponent() {
     );
   }
 
+  // Font loading
+  useEffect(() => {
+    // Only attempt to load if it's not the default Inter
+    if (typeof window !== 'undefined' && shop?.font_family && shop.font_family !== 'Inter') {
+      const fontId = 'custom-shop-font';
+      let link = document.getElementById(fontId) as HTMLLinkElement;
+      
+      if (!link) {
+        link = document.createElement('link');
+        link.id = fontId;
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+      
+      const fontName = shop.font_family.replace(/\s+/g, '+');
+      link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
+    }
+  }, [shop?.font_family]);
+
   if (!shop) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
