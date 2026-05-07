@@ -547,12 +547,19 @@ function ShopPageComponent() {
       }
 
       toast.success("Agendamento realizado com sucesso!");
+      
+      // Reset state and close modal
       setIsBookingOpen(false);
       setBookingStep(1);
       setSelectedProducts([]);
+      setPaymentMethod(null);
+      setUseCredits(false);
+      setUseCashback(false);
       
-      // Redirecionar para a página do cliente (portal) com refresh para garantir sessão
-      window.location.assign(`/${slug}/portal`);
+      // Delay redirection slightly to ensure state is clear
+      setTimeout(() => {
+        window.location.href = `/${slug}/portal`;
+      }, 500);
       
       
     } catch (error: any) {
