@@ -349,7 +349,7 @@ function CalendarComponent() {
   };
 
   const getStatusColor = (status: string, barberId: string) => {
-    if (status === 'completed') return "bg-green-600 hover:bg-green-700";
+    if (status === 'completed') return "bg-emerald-600 hover:bg-emerald-700";
     if (status === 'cancelled') return "bg-red-600 hover:bg-red-700";
     
     // Default to barber color (scheduled is blue/purple/etc as before)
@@ -633,7 +633,7 @@ function CalendarComponent() {
                                   <Button 
                                     variant="ghost" 
                                     size="sm" 
-                                    className="h-6 px-2 text-white bg-green-500/30 hover:bg-green-500/50 text-[10px] gap-1"
+                                    className="h-6 px-2 text-white bg-emerald-500/30 hover:bg-emerald-500/50 text-[10px] gap-1"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleMarkAsPaid(app);
