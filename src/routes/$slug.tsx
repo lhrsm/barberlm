@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Outlet } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -216,6 +216,12 @@ function ShopPageComponent() {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  const isPortalRoute = window.location.pathname.endsWith('/portal');
+
+  if (isPortalRoute) {
+    return <Outlet />;
   }
 
   if (!shop) {
