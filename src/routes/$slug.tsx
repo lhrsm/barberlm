@@ -1177,9 +1177,75 @@ function ShopPageComponent() {
                   )}
                 </div>
 
-                <Button className="w-full" onClick={handleFinalizeBooking} disabled={submitting}>
-                  {submitting ? "Finalizando..." : "Confirmar Agendamento"}
-                </Button>
+                {!paymentMethod ? (
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <Button 
+                      variant="outline" 
+                      className="flex flex-col h-auto py-4 gap-2"
+                      onClick={() => setPaymentMethod('barbershop')}
+                    >
+                      <Scissors size={20} />
+                      <div className="text-xs">Pagar na Barbearia</div>
+                    </Button>
+                    <Button 
+                      className="flex flex-col h-auto py-4 gap-2"
+                      style={{ backgroundColor: primaryColor }}
+                      onClick={() => setPaymentMethod('pix')}
+                    >
+                      <QrCode size={20} />
+                      <div className="text-xs">Pagar Agora (PIX)</div>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 mt-4">
+                    {paymentMethod === 'pix' && (
+                      <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-xl space-y-4 text-center">
+                        <p className="text-sm font-bold flex items-center justify-center gap-2">
+                          <QrCode size={18} /> Pagamento via PIX
+                        </p>
+                        
+                        {shop.pix_qr_code_url && (
+                          <div className="flex justify-center">
+                            <img src={shop.pix_qr_code_url} className="h-32 w-32 object-contain bg-white p-2 rounded-lg border" alt="PIX" />
+                          </div>
+                        )}
+                        
+                        <div className="bg-background p-2 rounded border text-xs font-mono break-all relative group">
+                          {shop.pix_key || "Chave não cadastrada"}
+                          {shop.pix_key && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6 absolute right-1 top-1"
+                              onClick={() => {
+                                navigator.clipboard.writeText(shop.pix_key);
+                                toast.success("Copiado!");
+                              }}
+                            >
+                              <CheckCircle2 size={12} />
+                            </Button>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Após pagar, clique em confirmar abaixo.</p>
+                      </div>
+                    )}
+                    
+                    {paymentMethod === 'barbershop' && (
+                      <div className="p-4 border-2 border-dashed rounded-xl text-center bg-muted/30">
+                        <p className="text-sm font-medium">Você escolheu pagar na barbearia.</p>
+                        <p className="text-xs text-muted-foreground mt-1">O pagamento será realizado no momento do atendimento.</p>
+                      </div>
+                    )}
+
+                    <Button className="w-full" onClick={handleFinalizeBooking} disabled={submitting}>
+                      {submitting ? "Finalizando..." : "Confirmar Agendamento"}
+                    </Button>
+                    
+                    <Button variant="ghost" className="w-full text-xs" onClick={() => setPaymentMethod(null)}>
+                      Alterar forma de pagamento
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
