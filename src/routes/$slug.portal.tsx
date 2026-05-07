@@ -171,20 +171,22 @@ function ClientPortalComponent() {
   };
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setSubmitting(true);
     try {
-      // 1. Find or create customer
+      // 1. Find or create customer for this shop
       const { data: existingCustomer } = await supabase
         .from("customers")
-        .select("id")
+        .select("id, name")
         .eq("phone", phone)
         .eq("user_id", shop.id)
         .maybeSingle();
       
       let customerId;
+      let name = customerName;
       if (existingCustomer) {
         customerId = existingCustomer.id;
+        name = existingCustomer.name;
       } else {
         const { data: newCust, error: custErr } = await supabase
           .from("customers")
@@ -199,23 +201,29 @@ function ClientPortalComponent() {
         customerId = newCust.id;
       }
 
-      // 2. Create client_auth record
+      // 2. Create or update client_auth record (one record per phone globally is fine if we check customer in login)
       // @ts-ignore - types are being updated
       const { error: authErr } = await supabase
         .from("client_auth")
-        .insert({
+        .upsert({
           phone: phone,
           customer_id: customerId
-        });
+        }, { onConflict: 'phone' });
 
-      if (authErr) {
-        if (authErr.code === '23505') toast.error("Este telefone já possui cadastro.");
-        else throw authErr;
-        return;
-      }
+      if (authErr) throw authErr;
 
       toast.success("Cadastro realizado com sucesso!");
-      handleLogin(e);
+      
+      const sessionData = {
+        phone: phone,
+        customer_id: customerId,
+        name: name
+      };
+
+      setClient(sessionData);
+      setIsLoggedIn(true);
+      localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
+      fetchClientData(customerId);
     } catch (e: any) {
       toast.error(e.message || "Erro ao cadastrar");
     } finally {
