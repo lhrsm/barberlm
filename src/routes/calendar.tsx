@@ -278,6 +278,7 @@ function CalendarComponent() {
     } finally {
       setIsLoading(false);
     }
+  };
 
   const weekDays = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 0 });
