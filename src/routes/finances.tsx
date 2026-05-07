@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Table, 
@@ -41,25 +41,26 @@ export const Route = createFileRoute("/finances")({
 });
 
 function FinancesComponent() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { plan } = usePlanLimits();
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
-  const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: new Date().toLocaleTimeString('pt-BR', { hour12: false, hour: '2-digit', minute: '2-digit' }) });
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [fetching, setFetching] = useState(false);
   
   // Filtros
   const [filterDay, setFilterDay] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
-  }, [user, loading, navigate]);
+    if (!authLoading && !user) {
+      navigate({ to: "/auth" });
+    }
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     if (user) {
@@ -68,74 +69,74 @@ function FinancesComponent() {
     }
   }, [user]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [transactions, filterDay, filterMonth]);
-
   async function fetchBarbers() {
-    const { data, error } = await supabase
-      .from("barbers")
-      .select("id, name, commission_rate")
-      .eq("active", true);
-    
-    if (error) {
-      toast.error("Erro ao buscar barbeiros");
-      return;
-    }
+    try {
+      const { data, error } = await supabase
+        .from("barbers")
+        .select("id, name, commission_rate")
+        .eq("active", true);
+      
+      if (error) {
+        console.error("Error fetching barbers:", error);
+        toast.error("Erro ao buscar barbeiros");
+        return;
+      }
 
-    setBarbers(data || []);
+      setBarbers(data || []);
+    } catch (e) {
+      console.error("Exception fetching barbers:", e);
+    }
   }
 
   async function fetchTransactions() {
-    const { data, error } = await supabase
-      .from("transactions")
-      .select(`
-        *,
-        barber:barbers(name)
-      `)
-      .order("date", { ascending: false })
-      .order("time", { ascending: false });
-    
-    if (error) {
-      toast.error("Erro ao buscar transações");
-      return;
-    }
+    if (fetching) return;
+    setFetching(true);
+    try {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select(`
+          *,
+          barber:barbers(name)
+        `)
+        .order("date", { ascending: false })
+        .order("time", { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching transactions:", error);
+        toast.error("Erro ao buscar transações");
+        return;
+      }
 
-    setTransactions(data || []);
+      setTransactions(data || []);
+    } catch (e) {
+      console.error("Exception fetching transactions:", e);
+    } finally {
+      setFetching(false);
+    }
   }
 
-  function applyFilters() {
+  const { filteredTransactions, summary } = useMemo(() => {
     let filtered = [...transactions];
 
     if (filterDay) {
       filtered = filtered.filter(t => {
         if (!t.date) return false;
-        try {
-          const parts = String(t.date).split('-');
-          if (parts.length < 3) return false;
-          const day = parseInt(parts[2], 10);
-          return day.toString() === filterDay;
-        } catch (e) {
-          return false;
-        }
+        const parts = String(t.date).split('-');
+        if (parts.length < 3) return false;
+        const day = parseInt(parts[2], 10);
+        return day.toString() === filterDay;
       });
     }
 
     if (filterMonth) {
       filtered = filtered.filter(t => {
         if (!t.date) return false;
-        try {
-          const parts = String(t.date).split('-');
-          if (parts.length < 2) return false;
-          const month = parseInt(parts[1], 10);
-          return month.toString() === filterMonth;
-        } catch (e) {
-          return false;
-        }
+        const parts = String(t.date).split('-');
+        if (parts.length < 2) return false;
+        const month = parseInt(parts[1], 10);
+        return month.toString() === filterMonth;
       });
     }
-
-    setFilteredTransactions(filtered);
 
     const income = filtered
       .filter(t => t.type === "income")
@@ -143,8 +144,12 @@ function FinancesComponent() {
     const expense = filtered
       .filter(t => t.type === "expense")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
-    setSummary({ income, expense, balance: income - expense });
-  }
+
+    return {
+      filteredTransactions: filtered,
+      summary: { income, expense, balance: income - expense }
+    };
+  }, [transactions, filterDay, filterMonth]);
 
   async function handleAddTransaction(e: React.FormEvent) {
     e.preventDefault();
@@ -218,7 +223,8 @@ function FinancesComponent() {
     }
   }
 
-  if (loading || !user) return null;
+  if (authLoading) return null;
+  if (!user) return null;
 
   return (
     <AppLayout>
