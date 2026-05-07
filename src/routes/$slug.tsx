@@ -83,11 +83,8 @@ function ShopPageComponent() {
     }
   };
 
-  useEffect(() => {
-    if (selectedDate && shop?.id && isBookingOpen) {
-      fetchDayData(selectedDate);
-    }
-  }, [selectedDate, shop?.id, isBookingOpen]);
+  // Hook placement placeholder
+
 
   const isBarberAvailableOnDate = (barber: any, date: string, service: any, appointments: any[]) => {
     if (!service || !barber) return false;
