@@ -452,7 +452,8 @@ function ShopPageComponent() {
         // but the base credit should be available if needed later. 
         // For now, we ensure the customer record is updated if they use credits.
         if (useCredits && customerCredits > 0) {
-          const creditsToUse = Math.min(customerCredits, calculateTotal());
+          const totalBeforeCredits = calculateTotalBeforeCashback() - (useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0);
+          const creditsToUse = Math.min(customerCredits, totalBeforeCredits);
           await supabase
             .from("customers")
             .update({ credits: customerCredits - creditsToUse })
@@ -689,13 +690,14 @@ function ShopPageComponent() {
     if (phone.length >= 10) {
       const { data } = await supabase
         .from("customers")
-        .select("cashback_balance, loyalty_points, name")
+        .select("cashback_balance, loyalty_points, name, credits")
         .eq("phone", phone)
         .eq("user_id", shop.id)
         .maybeSingle();
       if (data) {
         setCustomerCashback(data.cashback_balance || 0);
         setCustomerLoyaltyPoints(data.loyalty_points || 0);
+        setCustomerCredits(data.credits || 0);
         if (data.name) setCustomerName(data.name);
         return data;
       } else {

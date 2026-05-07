@@ -653,10 +653,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cancel_appointment_by_token: {
-        Args: { token_val: string }
-        Returns: boolean
-      }
+      cancel_appointment_by_token:
+        | {
+            Args: { token_val: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.cancel_appointment_by_token(token_val => text), public.cancel_appointment_by_token(token_val => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { token_val: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.cancel_appointment_by_token(token_val => text), public.cancel_appointment_by_token(token_val => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
       decrement_product_stock: {
         Args: { amount: number; prod_id: string }
         Returns: undefined
