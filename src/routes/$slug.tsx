@@ -193,11 +193,8 @@ function ShopPageComponent() {
 
   const primaryColor = shop?.primary_color || "#7c3aed";
 
-  useEffect(() => {
-    if (selectedDate && shop?.id && isBookingOpen) {
-      fetchDayData(selectedDate);
-    }
-  }, [selectedDate, shop?.id, isBookingOpen]);
+  // Day data useEffect removed to ensure consistent hook order
+
 
   // Font loading hook moved to consistent location
 
