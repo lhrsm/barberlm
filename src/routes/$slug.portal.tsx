@@ -122,6 +122,139 @@ function ClientPortalComponent() {
     setSales(saleData || []);
   }
 
+  useEffect(() => {
+    if (isEditModalOpen && editingAppointment && newDate) {
+      fetchAvailableTimes(editingAppointment.barber_id, newDate);
+    }
+  }, [isEditModalOpen, editingAppointment, newDate]);
+
+  async function fetchAvailableTimes(barberId: string, date: string) {
+    setFetchingTimes(true);
+    try {
+      const { data: barber } = await supabase
+        .from("barbers")
+        .select("*")
+        .eq("id", barberId)
+        .single();
+
+      if (!barber) return;
+
+      const dateObj = parseISO(date);
+      const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
+      
+      const dayMap: Record<string, string> = {
+        'segunda-feira': 'monday',
+        'terça-feira': 'tuesday',
+        'quarta-feira': 'wednesday',
+        'quinta-feira': 'thursday',
+        'sexta-feira': 'friday',
+        'sábado': 'saturday',
+        'domingo': 'sunday'
+      };
+      
+      const dayKey = dayMap[dayName] || dayName;
+      const workingHours = barber.working_hours?.[dayKey];
+
+      if (!workingHours || !workingHours.enabled) {
+        setAvailableTimes([]);
+        return;
+      }
+
+      const startOfDayTime = `${date}T00:00:00Z`;
+      const endOfDayTime = `${date}T23:59:59Z`;
+
+      const { data: appointments } = await supabase
+        .from("appointments")
+        .select("start_time, end_time")
+        .eq("barber_id", barberId)
+        .eq("status", "scheduled")
+        .gte("start_time", startOfDayTime)
+        .lte("start_time", endOfDayTime);
+
+      const times = [];
+      const [startHour, startMin] = workingHours.start.split(':').map(Number);
+      const [endHour, endMin] = workingHours.end.split(':').map(Number);
+      const interval = 30;
+
+      for (let hour = startHour; hour <= endHour; hour++) {
+        for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
+          if (hour === endHour && min >= endMin) break;
+          
+          const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+          const checkTime = parseISO(`${date}T${timeStr}:00`);
+          
+          if (format(checkTime, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") && checkTime < new Date()) {
+            continue;
+          }
+
+          const isBusy = appointments?.some(app => {
+            if (editingAppointment && app.start_time === editingAppointment.start_time) return false;
+            const appStart = parseISO(app.start_time);
+            const appEnd = parseISO(app.end_time);
+            return checkTime >= appStart && checkTime < appEnd;
+          });
+
+          if (!isBusy) {
+            times.push(timeStr);
+          }
+        }
+      }
+      setAvailableTimes(times);
+    } catch (error) {
+      console.error("Error fetching times:", error);
+    } finally {
+      setFetchingTimes(false);
+    }
+  }
+
+  const handleEditAppointment = (app: any) => {
+    setEditingAppointment(app);
+    setNewDate(format(parseISO(app.start_time), "yyyy-MM-dd"));
+    setNewTime(format(parseISO(app.start_time), "HH:mm"));
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateAppointment = async () => {
+    if (!newDate || !newTime) {
+      toast.error("Por favor, selecione data e horário");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const startTime = parseISO(`${newDate}T${newTime}:00`);
+      
+      // Get service duration
+      const { data: service } = await supabase
+        .from("services")
+        .select("duration_minutes")
+        .eq("id", editingAppointment.service_id)
+        .single();
+        
+      const duration = service?.duration_minutes || 30;
+      const endTime = addMinutes(startTime, duration);
+
+      const { error } = await supabase
+        .from("appointments")
+        .update({
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString()
+        })
+        .eq("id", editingAppointment.id);
+
+      if (error) throw error;
+
+      toast.success("Agendamento alterado com sucesso!");
+      setIsEditModalOpen(false);
+      fetchClientData(client.customer_id);
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao alterar agendamento");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     if (e) e.preventDefault();
     setSubmitting(true);
