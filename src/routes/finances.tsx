@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
@@ -13,7 +13,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, FileText, Search } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,6 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/finances")({
@@ -110,6 +109,7 @@ function FinancesComponent() {
       setTransactions(data || []);
     } catch (e) {
       console.error("Exception fetching transactions:", e);
+      setTransactions([]);
     } finally {
       setFetching(false);
     }
@@ -117,11 +117,18 @@ function FinancesComponent() {
 
   const { filteredTransactions, summary } = useMemo(() => {
     try {
+      if (!transactions || !Array.isArray(transactions)) {
+        return {
+          filteredTransactions: [],
+          summary: { income: 0, expense: 0, balance: 0 }
+        };
+      }
+
       let filtered = [...transactions];
 
       if (filterDay) {
         filtered = filtered.filter(t => {
-          if (!t.date) return false;
+          if (!t || !t.date) return false;
           const parts = String(t.date).split('-');
           if (parts.length < 3) return false;
           const day = parseInt(parts[2], 10);
@@ -131,7 +138,7 @@ function FinancesComponent() {
 
       if (filterMonth) {
         filtered = filtered.filter(t => {
-          if (!t.date) return false;
+          if (!t || !t.date) return false;
           const parts = String(t.date).split('-');
           if (parts.length < 2) return false;
           const month = parseInt(parts[1], 10);
@@ -140,10 +147,10 @@ function FinancesComponent() {
       }
 
       const income = filtered
-        .filter(t => t.type === "income")
+        .filter(t => t && t.type === "income")
         .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
       const expense = filtered
-        .filter(t => t.type === "expense")
+        .filter(t => t && t.type === "expense")
         .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
 
       return {
@@ -495,7 +502,7 @@ function FinancesComponent() {
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
                         <TableCell>{t.category || "-"}</TableCell>
                         <TableCell className={cn("text-right font-bold", t.type === "income" ? "text-green-600" : "text-red-600")}>
-                          {t.type === "income" ? "+" : "-"} R$ {Number(t.amount).toFixed(2)}
+                          {t.type === "income" ? "+" : "-"} R$ {(parseFloat(String(t.amount)) || 0).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -635,7 +642,7 @@ function FinancesComponent() {
           <TabsContent value="barbers" className="pt-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {barbers.map((barber) => {
-                const barberTransactions = transactions.filter(t => t.barber_id === barber.id && t.type === 'income');
+                const barberTransactions = transactions ? transactions.filter(t => t && t.barber_id === barber.id && t.type === 'income') : [];
                 const totalReceived = barberTransactions.reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
                 
                 const commissionRate = Number(barber.commission_rate || 0);
@@ -675,7 +682,7 @@ function FinancesComponent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {(() => {
-                    const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
+                    const generalTransactions = transactions ? transactions.filter(t => t && !t.barber_id && t.type === 'income') : [];
                     const totalGeneral = generalTransactions.reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
                     return (
                       <div className="flex justify-between items-center border-b pb-2">
