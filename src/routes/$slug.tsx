@@ -640,17 +640,40 @@ function ShopPageComponent() {
     if (phone.length >= 10) {
       const { data } = await supabase
         .from("customers")
-        .select("cashback_balance, loyalty_points")
+        .select("cashback_balance, loyalty_points, name")
         .eq("phone", phone)
         .eq("user_id", shop.id)
         .maybeSingle();
       if (data) {
         setCustomerCashback(data.cashback_balance || 0);
         setCustomerLoyaltyPoints(data.loyalty_points || 0);
+        if (data.name) setCustomerName(data.name);
+        return data;
       } else {
         setCustomerCashback(0);
         setCustomerLoyaltyPoints(0);
+        return null;
       }
+    }
+    return null;
+  };
+
+  const handlePhoneCheck = async () => {
+    if (!customerPhone || customerPhone.length < 8) {
+      toast.error("Por favor, insira um número de WhatsApp válido.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const customer = await checkCustomerCashback(customerPhone);
+      setBookingStep(2);
+      if (customer) {
+        toast.success(`Bem-vindo de volta, ${customer.name}!`);
+      }
+    } catch (error) {
+      console.error("Error checking phone:", error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
