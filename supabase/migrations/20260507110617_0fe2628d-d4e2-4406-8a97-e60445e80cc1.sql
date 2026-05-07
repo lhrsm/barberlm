@@ -1,0 +1,1 @@
+ALTER TABLE public.client_auth ALTER COLUMN password_hash DROP NOT NULL;

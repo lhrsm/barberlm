@@ -173,7 +173,7 @@ export type Database = {
           created_at: string
           customer_id: string | null
           id: string
-          password_hash: string
+          password_hash: string | null
           phone: string
           updated_at: string
         }
@@ -181,7 +181,7 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
-          password_hash: string
+          password_hash?: string | null
           phone: string
           updated_at?: string
         }
@@ -189,7 +189,7 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
-          password_hash?: string
+          password_hash?: string | null
           phone?: string
           updated_at?: string
         }
