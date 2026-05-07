@@ -671,7 +671,7 @@ function ClientPortalComponent() {
                                    variant="ghost" 
                                    size="sm" 
                                    className="text-destructive h-8 px-2"
-                                   onClick={() => handleCancelAppointment(app.id)}
+                                   onClick={() => handleCancelAppointment(app)}
                                  >
                                    Cancelar
                                  </Button>

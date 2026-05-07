@@ -452,7 +452,8 @@ function ShopPageComponent() {
         // but the base credit should be available if needed later. 
         // For now, we ensure the customer record is updated if they use credits.
         if (useCredits && customerCredits > 0) {
-          const creditsToUse = Math.min(customerCredits, calculateTotal());
+          const totalBeforeCredits = calculateTotalBeforeCashback() - (useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0);
+          const creditsToUse = Math.min(customerCredits, totalBeforeCredits);
           await supabase
             .from("customers")
             .update({ credits: customerCredits - creditsToUse })
