@@ -587,14 +587,24 @@ function ClientPortalComponent() {
                               {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
                             </Badge>
                            {app.status === 'scheduled' && (
-                             <Button 
-                               variant="ghost" 
-                               size="sm" 
-                               className="text-destructive h-8 px-2"
-                               onClick={() => handleCancelAppointment(app.id)}
-                             >
-                               Cancelar
-                             </Button>
+                             <div className="flex items-center gap-1">
+                               <Button 
+                                 variant="ghost" 
+                                 size="sm" 
+                                 className="text-primary h-8 px-2"
+                                 onClick={() => handleEditAppointment(app)}
+                               >
+                                 <Edit2 size={14} className="mr-1" /> Editar
+                               </Button>
+                               <Button 
+                                 variant="ghost" 
+                                 size="sm" 
+                                 className="text-destructive h-8 px-2"
+                                 onClick={() => handleCancelAppointment(app.id)}
+                               >
+                                 Cancelar
+                               </Button>
+                             </div>
                            )}
                          </div>
                       </div>
