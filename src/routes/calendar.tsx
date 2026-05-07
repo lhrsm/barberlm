@@ -224,6 +224,7 @@ function CalendarComponent() {
   };
 
   const handleMarkAsPaid = async (appointment: any) => {
+    if (!user) return;
     setIsLoading(true);
     try {
       // 1. Update appointment status
