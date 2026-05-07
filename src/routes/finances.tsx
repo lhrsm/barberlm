@@ -111,7 +111,9 @@ function FinancesComponent() {
       filtered = filtered.filter(t => {
         if (!t.date) return false;
         try {
-          const [year, month, day] = t.date.split('-').map(Number);
+          const parts = String(t.date).split('-');
+          if (parts.length < 3) return false;
+          const day = parseInt(parts[2], 10);
           return day.toString() === filterDay;
         } catch (e) {
           return false;
@@ -123,7 +125,9 @@ function FinancesComponent() {
       filtered = filtered.filter(t => {
         if (!t.date) return false;
         try {
-          const [year, month, day] = t.date.split('-').map(Number);
+          const parts = String(t.date).split('-');
+          if (parts.length < 2) return false;
+          const month = parseInt(parts[1], 10);
           return month.toString() === filterMonth;
         } catch (e) {
           return false;
@@ -133,8 +137,12 @@ function FinancesComponent() {
 
     setFilteredTransactions(filtered);
 
-    const income = filtered.filter(t => t.type === "income").reduce((acc, t) => acc + Number(t.amount), 0) || 0;
-    const expense = filtered.filter(t => t.type === "expense").reduce((acc, t) => acc + Number(t.amount), 0) || 0;
+    const income = filtered
+      .filter(t => t.type === "income")
+      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+    const expense = filtered
+      .filter(t => t.type === "expense")
+      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
     setSummary({ income, expense, balance: income - expense });
   }
 
@@ -456,10 +464,13 @@ function FinancesComponent() {
                             <span>
                               {t.date ? (() => {
                                 try {
-                                  const [year, month, day] = t.date.split('-');
-                                  return `${day}/${month}/${year}`;
+                                  const parts = String(t.date).split('-');
+                                  if (parts.length >= 3) {
+                                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                                  }
+                                  return String(t.date);
                                 } catch (e) {
-                                  return t.date;
+                                  return String(t.date);
                                 }
                               })() : "-"}
                             </span>
@@ -611,7 +622,7 @@ function FinancesComponent() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {barbers.map((barber) => {
                 const barberTransactions = transactions.filter(t => t.barber_id === barber.id && t.type === 'income');
-                const totalReceived = barberTransactions.reduce((acc, t) => acc + Number(t.amount), 0);
+                const totalReceived = barberTransactions.reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
                 
                 const commissionRate = Number(barber.commission_rate || 0);
                 const barberPart = totalReceived * (commissionRate / 100);
@@ -651,7 +662,7 @@ function FinancesComponent() {
                 <CardContent className="space-y-4">
                   {(() => {
                     const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
-                    const totalGeneral = generalTransactions.reduce((acc, t) => acc + Number(t.amount), 0);
+                    const totalGeneral = generalTransactions.reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
                     return (
                       <div className="flex justify-between items-center border-b pb-2">
                         <span className="text-sm font-medium">Total Geral</span>
