@@ -144,7 +144,7 @@ function ClientPortalComponent() {
       setClient(sessionData);
       setIsLoggedIn(true);
       localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
-      fetchClientData(data.customer_id);
+      fetchClientData(data.customer_id || "");
       toast.success(`Bem-vindo, ${sessionData.name}!`);
     } catch (e) {
       toast.error("Erro ao entrar");
