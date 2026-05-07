@@ -335,11 +335,6 @@ function ShopPageComponent() {
     }
   };
 
-  useEffect(() => {
-    if (bookingStep === 3 && selectedBarber && selectedDate) {
-      fetchAvailableTimes(selectedBarber.id, selectedDate);
-    }
-  }, [bookingStep, selectedBarber, selectedDate]);
 
   const handleFinalizeBooking = async () => {
     if (!customerName || !customerPhone) {
