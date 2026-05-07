@@ -71,6 +71,32 @@ function ShopPageComponent() {
   }, [slug]);
 
   useEffect(() => {
+    if (isEmbedded && initialPhone) {
+      setCustomerPhone(initialPhone);
+      if (initialName) setCustomerName(initialName);
+      
+      // Auto trigger phone check if embedded with phone
+      const timer = setTimeout(() => {
+        handlePhoneCheckWithParams(initialPhone);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isEmbedded, initialPhone, initialName, shop?.id]);
+
+  const handlePhoneCheckWithParams = async (phone: string) => {
+    if (!phone || phone.length < 8 || !shop?.id) return;
+    setSubmitting(true);
+    try {
+      const customer = await checkCustomerCashback(phone);
+      setBookingStep(2);
+    } catch (error) {
+      console.error("Error checking phone:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
     if (selectedDate && shop?.id && isBookingOpen) {
       fetchDayData(selectedDate);
     }
