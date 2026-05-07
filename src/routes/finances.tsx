@@ -109,15 +109,17 @@ function FinancesComponent() {
 
     if (filterDay) {
       filtered = filtered.filter(t => {
-        const tDate = new Date(t.date + 'T12:00:00'); // Use noon to avoid timezone issues
-        return tDate.getDate().toString() === filterDay;
+        if (!t.date) return false;
+        const d = new Date(t.date + 'T12:00:00');
+        return d.getDate().toString() === filterDay;
       });
     }
 
     if (filterMonth) {
       filtered = filtered.filter(t => {
-        const tDate = new Date(t.date + 'T12:00:00');
-        return (tDate.getMonth() + 1).toString() === filterMonth;
+        if (!t.date) return false;
+        const d = new Date(t.date + 'T12:00:00');
+        return (d.getMonth() + 1).toString() === filterMonth;
       });
     }
 
@@ -443,7 +445,7 @@ function FinancesComponent() {
                       <TableRow key={t.id}>
                         <TableCell>
                           <div className="flex flex-col">
-                            <span>{new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                            <span>{t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}</span>
                             <span className="text-xs text-muted-foreground">{t.time?.substring(0, 5) || "--:--"}</span>
                           </div>
                         </TableCell>
