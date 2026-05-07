@@ -629,18 +629,18 @@ function CalendarComponent() {
                                 {format(parseISO(app.start_time), "HH:mm")}
                               </span>
                               <div className="flex items-center gap-1">
-                                {app.payment_status === 'pending' && (
+                                {app.payment_status === 'pending' && app.status !== 'cancelled' && (
                                   <Button 
                                     variant="ghost" 
-                                    size="icon" 
-                                    className="h-5 w-5 text-white hover:bg-green-500/50"
-                                    title="Marcar como Pago"
+                                    size="sm" 
+                                    className="h-6 px-2 text-white bg-green-500/30 hover:bg-green-500/50 text-[10px] gap-1"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleMarkAsPaid(app);
                                     }}
                                   >
-                                    <CheckCircle2 size={12} />
+                                    <CheckCircle2 size={10} />
+                                    <span>Pagar</span>
                                   </Button>
                                 )}
                                 <Button 
