@@ -1886,7 +1886,7 @@ function ShopPageComponent() {
                 onChange={(e) => setCancelTokenInput(e.target.value)} 
               />
             </div>
-            <Button className="w-full" onClick={handleCheckAppointmentForRating}>
+            <Button className="w-full" onClick={handleCheckRatingEligibility}>
               Acessar
             </Button>
           </div>
