@@ -451,8 +451,8 @@ function ShopPageComponent() {
           end_time: endTime.toISOString(),
           total_price: calculateTotal(),
           status: "scheduled",
-          payment_method: paymentMethod,
-          payment_status: paymentMethod === 'pix' ? 'paid' : 'pending',
+          payment_method: paymentMethod || (calculateTotal() === 0 ? 'credits' : null),
+          payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
           items: [
             { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
             ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
@@ -558,7 +558,16 @@ function ShopPageComponent() {
       
       // Delay redirection slightly to ensure state is clear
       setTimeout(() => {
-        window.location.href = `/${slug}/portal`;
+        if (window.self !== window.top) {
+          // If in iframe, tell parent to reload or redirect
+          window.parent.postMessage({ type: 'BOOKING_SUCCESS' }, '*');
+          // Fallback if message not handled
+          setTimeout(() => {
+            window.parent.location.href = `/${slug}/portal`;
+          }, 1000);
+        } else {
+          window.location.href = `/${slug}/portal`;
+        }
       }, 500);
       
       
@@ -1396,7 +1405,7 @@ function ShopPageComponent() {
                   )}
                 </div>
 
-                {!paymentMethod ? (
+                {(!paymentMethod && calculateTotal() > 0) ? (
                   <div className="grid grid-cols-2 gap-3 mt-4">
                     <Button 
                       variant="outline" 
@@ -1413,6 +1422,30 @@ function ShopPageComponent() {
                     >
                       <QrCode size={20} />
                       <div className="text-xs">Pagar Agora (PIX)</div>
+                    </Button>
+                  </div>
+                ) : (calculateTotal() === 0 && !paymentMethod) ? (
+                  <div className="space-y-4 mt-4">
+                    <div className="p-6 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center space-y-3">
+                      <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 size={24} className="text-green-600" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-base font-bold text-green-700">Valor Total Coberto!</p>
+                        <p className="text-sm text-muted-foreground">O agendamento será pago com seus créditos/cashback.</p>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
+                      style={{ backgroundColor: primaryColor }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleFinalizeBooking();
+                      }} 
+                      disabled={submitting}
+                    >
+                      {submitting ? "Finalizando..." : "Confirmar Agendamento com Créditos"}
                     </Button>
                   </div>
                 ) : (

@@ -80,6 +80,21 @@ function ClientPortalComponent() {
       }
     }
   }, [slug]);
+  
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'BOOKING_SUCCESS') {
+        setIsBookingOpen(false);
+        if (client?.customer_id) {
+          fetchClientData(client.customer_id);
+        }
+        toast.success("Agendamento realizado com sucesso!");
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [client?.customer_id]);
 
   async function fetchShopData(targetSlug: string) {
     try {
@@ -822,7 +837,7 @@ function ClientPortalComponent() {
           <div className="py-4">
             <iframe 
               src={`/${slug}?embed=true&phone=${client.phone}&name=${encodeURIComponent(client.name)}`} 
-              className="w-full h-[500px] border-none rounded-lg"
+              className="w-full h-[650px] border-none rounded-lg"
               title="Agendamento"
             />
           </div>
