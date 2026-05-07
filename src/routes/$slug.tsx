@@ -451,8 +451,8 @@ function ShopPageComponent() {
           end_time: endTime.toISOString(),
           total_price: calculateTotal(),
           status: "scheduled",
-          payment_method: paymentMethod,
-          payment_status: paymentMethod === 'pix' ? 'paid' : 'pending',
+          payment_method: paymentMethod || (calculateTotal() === 0 ? 'credits' : null),
+          payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
           items: [
             { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
             ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
