@@ -1362,7 +1362,7 @@ function ShopPageComponent() {
                   </div>
                 ) : (
                   <div className="space-y-4 mt-4">
-                    {paymentMethod === 'pix' && (
+                    {paymentMethod === 'pix' && calculateTotal() > 0 && (
                       <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-xl space-y-4 text-center">
                         <p className="text-sm font-bold flex items-center justify-center gap-2">
                           <QrCode size={18} /> Pagamento via PIX
@@ -1391,6 +1391,15 @@ function ShopPageComponent() {
                           )}
                         </div>
                         <p className="text-[10px] text-muted-foreground">Após pagar, clique em confirmar abaixo.</p>
+                      </div>
+                    )}
+                    
+                    {paymentMethod === 'pix' && calculateTotal() === 0 && (
+                      <div className="p-4 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center">
+                        <p className="text-sm font-bold text-green-700 flex items-center justify-center gap-2">
+                          <CheckCircle2 size={18} /> Valor coberto por créditos
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">O agendamento será marcado como pago utilizando seu saldo.</p>
                       </div>
                     )}
                     
