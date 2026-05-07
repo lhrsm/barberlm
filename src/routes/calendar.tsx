@@ -194,12 +194,19 @@ function CalendarComponent() {
         user_id: user.id,
         barber_id: selectedBarber,
         appointment_id: appointmentData.id,
-
         type: "income",
         category: "Serviço",
         amount: service?.price || 0,
         description: `Agendamento: ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
         date: new Date().toISOString().split('T')[0]
+      });
+
+      // Registrar também no faturamento de produtos (como um item de serviço)
+      await supabase.from("product_sales").insert({
+        user_id: user.id,
+        items: [{ id: selectedService, name: service?.name, quantity: 1, price: service?.price }],
+        total_amount: service?.price || 0,
+        status: 'completed'
       });
 
 

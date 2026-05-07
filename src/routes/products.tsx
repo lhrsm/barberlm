@@ -330,46 +330,31 @@ function ProductsComponent() {
           </Alert>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.length === 0 ? (
-            <div className="col-span-full text-center py-12 border rounded-xl bg-card text-muted-foreground">
-              <ShoppingBag size={48} className="mx-auto mb-4 opacity-20" />
-              <p>Nenhum produto cadastrado ainda.</p>
+            <div className="col-span-full text-center py-20 border-2 border-dashed rounded-2xl bg-muted/20 text-muted-foreground">
+              <div className="bg-background w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <ShoppingBag size={32} className="text-muted-foreground/40" />
+              </div>
+              <h3 className="text-lg font-semibold">Nenhum produto cadastrado</h3>
+              <p className="max-w-[250px] mx-auto text-sm mt-1">Comece adicionando itens ao seu estoque clicando no botão acima.</p>
             </div>
           ) : (
             products.map((product) => (
-              <div key={product.id} className="group relative border rounded-xl bg-card overflow-hidden shadow-sm hover:shadow-md transition-all">
-                <div className="aspect-square bg-muted/20 relative overflow-hidden">
+              <div key={product.id} className="group relative border rounded-2xl bg-card overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border-border/50">
+                <div className="aspect-[4/3] bg-muted/20 relative overflow-hidden">
                   {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package className="w-12 h-12 text-muted-foreground/20" />
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted">
+                      <Package className="w-16 h-16 text-muted-foreground/20" />
                     </div>
                   )}
-                  {product.stock_quantity <= 5 && (
-                    <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      Estoque Baixo: {product.stock_quantity}
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold truncate" title={product.name}>{product.name}</h3>
-                    <span className="font-bold text-primary shrink-0">R$ {Number(product.price).toFixed(2)}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-4 line-clamp-1">{product.description || "Sem descrição."}</p>
-                  
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Package size={14} />
-                      <span>{product.stock_quantity} un. em estoque</span>
-                    </div>
-                    <div className="flex items-center gap-1">
+                  <div className="absolute top-2 right-2 flex gap-1 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
                       <Button 
-                        variant="ghost" 
+                        variant="secondary" 
                         size="icon" 
-                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        className="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
                         onClick={() => {
                           setEditingProduct(product);
                           setIsAddDialogOpen(true);
@@ -377,23 +362,82 @@ function ProductsComponent() {
                       >
                         <Edit size={14} />
                       </Button>
-                      {plan !== 'free' && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-muted-foreground hover:text-primary"
-                          onClick={() => handleDuplicateProduct(product)}
-                        >
-                          <Copy size={14} />
-                        </Button>
-                      )}
                       <Button 
-                        variant="ghost" 
+                        variant="secondary" 
                         size="icon" 
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        className="h-8 w-8 bg-background/80 backdrop-blur-sm hover:text-destructive hover:bg-background"
                         onClick={() => handleDeleteProduct(product.id)}
                       >
                         <Trash2 size={14} />
+                      </Button>
+                  </div>
+                  {product.stock_quantity <= 5 && (
+                    <div className="absolute top-2 left-2 bg-amber-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm animate-pulse">
+                      Estoque Baixo: {product.stock_quantity}
+                    </div>
+                  )}
+                </div>
+                <div className="p-5">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-lg truncate pr-2" title={product.name}>{product.name}</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2 h-10">{product.description || "Sem descrição disponível."}</p>
+                  
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className="flex flex-col">
+                      <span className="text-2xl font-black text-primary">R$ {Number(product.price).toFixed(2)}</span>
+                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground mt-1">
+                        <Package size={12} />
+                        <span>{product.stock_quantity} un. em estoque</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        className="gap-2 rounded-full h-9 px-4"
+                        onClick={async () => {
+                          if (!user) return;
+                          if (product.stock_quantity <= 0) {
+                            toast.error("Produto sem estoque!");
+                            return;
+                          }
+                          
+                          try {
+                            const { error: saleError } = await supabase.from("product_sales").insert({
+                              user_id: user.id,
+                              items: [{ id: product.id, name: product.name, quantity: 1, price: product.price }],
+                              total_amount: product.price,
+                              status: 'completed'
+                            });
+
+                            if (saleError) throw saleError;
+
+                            const { error: stockError } = await supabase
+                              .from("products")
+                              .update({ stock_quantity: product.stock_quantity - 1 })
+                              .eq("id", product.id);
+
+                            if (stockError) throw stockError;
+                            
+                            // Adicionar ao financeiro
+                            await supabase.from("transactions").insert({
+                              user_id: user.id,
+                              amount: product.price,
+                              type: "income",
+                              category: "Venda de Produto",
+                              description: `Venda: ${product.name}`,
+                              date: new Date().toISOString().split('T')[0]
+                            });
+
+                            toast.success(`Venda de ${product.name} realizada!`);
+                            fetchProducts();
+                          } catch (error) {
+                            toast.error("Erro ao realizar venda");
+                          }
+                        }}
+                      >
+                        <ShoppingBag size={16} /> Vender
                       </Button>
                     </div>
                   </div>
@@ -433,7 +477,7 @@ function SalesHistory({ user, onStatusChange, onlyCompleted }: { user: any, onSt
         .eq("user_id", user.id);
 
       if (onlyCompleted) {
-        query = query.not("status", "in", "('cancelled','refunded')");
+        query = query.eq("status", "completed");
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });
