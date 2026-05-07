@@ -1233,11 +1233,8 @@ function ShopPageComponent() {
                     if (customerCredits >= totalBeforeCredits && totalBeforeCredits > 0) {
                       setUseCredits(true);
                       setPaymentMethod('pix'); // Usamos 'pix' como placeholder para indicar que já está pago
-                      toast.info("Seus créditos cobrem o valor total deste agendamento!");
-                      setBookingStep(5);
-                    } else {
-                      setBookingStep(5);
                     }
+                    setBookingStep(5);
                   }}
                   disabled={availableTimes.length === 0}
                 >
