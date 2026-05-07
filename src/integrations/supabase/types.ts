@@ -168,6 +168,41 @@ export type Database = {
         }
         Relationships: []
       }
+      client_auth: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          password_hash: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          password_hash: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          password_hash?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_auth_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           cashback_balance: number
@@ -244,6 +279,8 @@ export type Database = {
           id: string
           items: Json
           pix_key: string | null
+          refund_reason: string | null
+          refund_requested_at: string | null
           status: Database["public"]["Enums"]["product_sale_status"]
           total_amount: number
           updated_at: string
@@ -255,6 +292,8 @@ export type Database = {
           id?: string
           items: Json
           pix_key?: string | null
+          refund_reason?: string | null
+          refund_requested_at?: string | null
           status?: Database["public"]["Enums"]["product_sale_status"]
           total_amount: number
           updated_at?: string
@@ -266,6 +305,8 @@ export type Database = {
           id?: string
           items?: Json
           pix_key?: string | null
+          refund_reason?: string | null
+          refund_requested_at?: string | null
           status?: Database["public"]["Enums"]["product_sale_status"]
           total_amount?: number
           updated_at?: string
