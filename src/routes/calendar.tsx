@@ -219,6 +219,17 @@ function CalendarComponent() {
           total_amount: service?.price || 0,
           status: 'completed'
         });
+
+        // Atualizar pontos de fidelidade do cliente
+        if (selectedCustomer) {
+          const currentCustomer = customers.find(c => c.id === selectedCustomer);
+          const currentPoints = currentCustomer?.loyalty_points || 0;
+          
+          await supabase
+            .from("customers")
+            .update({ loyalty_points: currentPoints + 1 })
+            .eq("id", selectedCustomer);
+        }
       }
 
 
@@ -294,6 +305,22 @@ function CalendarComponent() {
           status: 'completed',
           items: [item]
         });
+      }
+
+      // Atualizar pontos de fidelidade do cliente ao marcar como pago
+      if (appointment.customer_id) {
+        const { data: customerData } = await supabase
+          .from("customers")
+          .select("loyalty_points")
+          .eq("id", appointment.customer_id)
+          .single();
+        
+        const currentPoints = customerData?.loyalty_points || 0;
+        
+        await supabase
+          .from("customers")
+          .update({ loyalty_points: currentPoints + 1 })
+          .eq("id", appointment.customer_id);
       }
 
       toast.success("Pagamento registrado com sucesso!");
