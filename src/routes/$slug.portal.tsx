@@ -822,7 +822,7 @@ function ClientPortalComponent() {
           <div className="py-4">
             <iframe 
               src={`/${slug}?embed=true&phone=${client.phone}&name=${encodeURIComponent(client.name)}`} 
-              className="w-full h-[500px] border-none rounded-lg"
+              className="w-full h-[650px] border-none rounded-lg"
               title="Agendamento"
             />
           </div>
