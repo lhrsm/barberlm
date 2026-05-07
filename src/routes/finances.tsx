@@ -475,7 +475,7 @@ function FinancesComponent() {
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-700">R$ {summary.income.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-green-700">R$ {summary?.income?.toFixed(2) || "0.00"}</div>
             </CardContent>
           </Card>
           <Card className="bg-red-50/50 border-red-100">
@@ -484,7 +484,7 @@ function FinancesComponent() {
               <TrendingDown className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-700">R$ {summary.expense.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-red-700">R$ {summary?.expense?.toFixed(2) || "0.00"}</div>
             </CardContent>
           </Card>
           <Card className="bg-blue-50/50 border-blue-100">
@@ -494,7 +494,7 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className={cn("text-2xl font-bold", summary.balance >= 0 ? "text-blue-700" : "text-red-700")}>
-                R$ {summary.balance.toFixed(2)}
+                R$ {summary?.balance?.toFixed(2) || "0.00"}
               </div>
             </CardContent>
           </Card>
@@ -524,7 +524,16 @@ function FinancesComponent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTransactions.length === 0 ? (
+                  {fetching ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-12">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                          <span className="text-muted-foreground">Carregando transações...</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredTransactions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         Nenhuma transação encontrada para os filtros selecionados.
