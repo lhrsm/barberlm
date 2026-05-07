@@ -539,25 +539,41 @@ function CalendarComponent() {
                             <span className="opacity-90 flex items-center gap-1 text-[10px]">
                               <User size={10} /> {app.barbers?.name}
                             </span>
-                            <div className="flex justify-between items-center mt-1">
+                            <div className="flex justify-between items-center mt-1 gap-1">
                               <span className="font-mono text-[10px] bg-black/20 rounded px-1">
                                 {format(parseISO(app.start_time), "HH:mm")}
                               </span>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-4 w-4 text-white hover:bg-white/20"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  if (confirm("Deseja cancelar este agendamento?")) {
-                                    await supabase.from("appointments").delete().eq("id", app.id);
-                                    fetchData();
-                                    toast.success("Agendamento removido");
-                                  }
-                                }}
-                              >
-                                <X size={10} />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                {app.payment_status === 'pending' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-5 w-5 text-white hover:bg-green-500/50"
+                                    title="Marcar como Pago"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMarkAsPaid(app);
+                                    }}
+                                  >
+                                    <CheckCircle2 size={12} />
+                                  </Button>
+                                )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-5 w-5 text-white hover:bg-red-500/50"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (confirm("Deseja cancelar este agendamento?")) {
+                                      await supabase.from("appointments").delete().eq("id", app.id);
+                                      fetchData();
+                                      toast.success("Agendamento removido");
+                                    }
+                                  }}
+                                >
+                                  <X size={12} />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
