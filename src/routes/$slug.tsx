@@ -390,7 +390,9 @@ function ShopPageComponent() {
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
           total_price: calculateTotal(),
-          status: "scheduled"
+          status: "scheduled",
+          payment_method: paymentMethod,
+          payment_status: paymentMethod === 'pix' ? 'paid' : 'pending'
         })
         .select()
         .single();
