@@ -1486,9 +1486,13 @@ function ShopPageComponent() {
 
                     <div className="pt-2">
                       <Button 
+                        id="btn-confirm-booking"
                         className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
                         style={{ backgroundColor: primaryColor }}
-                        onClick={handleFinalizeBooking} 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleFinalizeBooking();
+                        }} 
                         disabled={submitting}
                       >
                         {submitting ? "Finalizando..." : "Confirmar Agendamento"}
