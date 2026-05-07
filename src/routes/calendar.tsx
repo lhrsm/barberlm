@@ -222,6 +222,63 @@ function CalendarComponent() {
     }
   };
 
+  const handleMarkAsPaid = async (appointment: any) => {
+    setIsLoading(true);
+    try {
+      // 1. Update appointment status
+      const { error: updateErr } = await supabase
+        .from("appointments")
+        .update({ payment_status: 'paid' })
+        .eq("id", appointment.id);
+
+      if (updateErr) throw updateErr;
+
+      // 2. Create transactions for items
+      const items = appointment.items || [];
+      const serviceItem = items.find((i: any) => i.type === 'service');
+      const productItems = items.filter((i: any) => i.type === 'product');
+
+      if (serviceItem) {
+        await supabase.from("transactions").insert({
+          user_id: user.id,
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          type: "income",
+          category: "Serviço",
+          amount: serviceItem.price,
+          description: `Pagamento (Local): ${serviceItem.name} - Cliente: ${appointment.customers?.name}`,
+          date: new Date().toISOString().split('T')[0]
+        });
+      }
+
+      for (const item of productItems) {
+        await supabase.from("transactions").insert({
+          user_id: user.id,
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          type: "income",
+          category: "Produtos",
+          amount: item.price * (item.quantity || 1),
+          description: `Venda de Produto (Local): ${item.name} (x${item.quantity || 1}) - Cliente: ${appointment.customers?.name}`,
+          date: new Date().toISOString().split('T')[0]
+        });
+
+        await supabase.from("product_sales").insert({
+          user_id: user.id,
+          total_amount: item.price * (item.quantity || 1),
+          status: 'completed',
+          items: [item]
+        });
+      }
+
+      toast.success("Pagamento registrado com sucesso!");
+      fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao registrar pagamento: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+
   const weekDays = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 0 });
     return eachDayOfInterval({
