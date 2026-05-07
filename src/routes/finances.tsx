@@ -641,7 +641,7 @@ function FinancesComponent() {
           <TabsContent value="barbers" className="pt-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {barbers.map((barber) => {
-                const barberTransactions = transactions.filter(t => t.barber_id === barber.id && t.type === 'income');
+                const barberTransactions = transactions ? transactions.filter(t => t && t.barber_id === barber.id && t.type === 'income') : [];
                 const totalReceived = barberTransactions.reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
                 
                 const commissionRate = Number(barber.commission_rate || 0);
@@ -681,7 +681,7 @@ function FinancesComponent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {(() => {
-                    const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
+                    const generalTransactions = transactions ? transactions.filter(t => t && !t.barber_id && t.type === 'income') : [];
                     const totalGeneral = generalTransactions.reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
                     return (
                       <div className="flex justify-between items-center border-b pb-2">
