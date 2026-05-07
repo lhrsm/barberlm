@@ -13,7 +13,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2 } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
@@ -50,6 +51,7 @@ function FinancesComponent() {
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Filtros
   const [filterDay, setFilterDay] = useState("");
@@ -90,6 +92,7 @@ function FinancesComponent() {
   async function fetchTransactions() {
     if (fetching) return;
     setFetching(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from("transactions")
@@ -102,6 +105,7 @@ function FinancesComponent() {
       
       if (error) {
         console.error("Error fetching transactions:", error);
+        setError("Erro ao carregar transações do servidor.");
         toast.error("Erro ao buscar transações");
         return;
       }
@@ -109,60 +113,100 @@ function FinancesComponent() {
       setTransactions(data || []);
     } catch (e) {
       console.error("Exception fetching transactions:", e);
+      setError("Ocorreu um erro inesperado ao processar os dados.");
       setTransactions([]);
     } finally {
       setFetching(false);
     }
   }
 
-  const { filteredTransactions, summary } = useMemo(() => {
+  const summary = useMemo(() => {
     try {
       if (!transactions || !Array.isArray(transactions)) {
-        return {
-          filteredTransactions: [],
-          summary: { income: 0, expense: 0, balance: 0 }
-        };
+        return { income: 0, expense: 0, balance: 0 };
       }
 
-      let filtered = [...transactions];
+      let income = 0;
+      let expense = 0;
 
-      if (filterDay) {
-        filtered = filtered.filter(t => {
-          if (!t || !t.date) return false;
+      transactions.forEach(t => {
+        if (!t) return;
+        
+        let matchDay = true;
+        let matchMonth = true;
+
+        if (filterDay && t.date) {
           const parts = String(t.date).split('-');
-          if (parts.length < 3) return false;
-          const day = parseInt(parts[2], 10);
-          return day.toString() === filterDay;
-        });
-      }
+          if (parts.length >= 3) {
+            const day = parseInt(parts[2], 10);
+            matchDay = day.toString() === filterDay;
+          } else {
+            matchDay = false;
+          }
+        }
 
-      if (filterMonth) {
-        filtered = filtered.filter(t => {
-          if (!t || !t.date) return false;
+        if (filterMonth && t.date) {
           const parts = String(t.date).split('-');
-          if (parts.length < 2) return false;
-          const month = parseInt(parts[1], 10);
-          return month.toString() === filterMonth;
-        });
-      }
+          if (parts.length >= 2) {
+            const month = parseInt(parts[1], 10);
+            matchMonth = month.toString() === filterMonth;
+          } else {
+            matchMonth = false;
+          }
+        }
 
-      const income = filtered
-        .filter(t => t && t.type === "income")
-        .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
-      const expense = filtered
-        .filter(t => t && t.type === "expense")
-        .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+        if (matchDay && matchMonth) {
+          const amount = parseFloat(String(t.amount)) || 0;
+          if (t.type === "income") {
+            income += amount;
+          } else if (t.type === "expense") {
+            expense += amount;
+          }
+        }
+      });
 
-      return {
-        filteredTransactions: filtered,
-        summary: { income, expense, balance: income - expense }
-      };
+      return { income, expense, balance: income - expense };
     } catch (e) {
-      console.error("Error in useMemo summary calculation:", e);
-      return {
-        filteredTransactions: [],
-        summary: { income: 0, expense: 0, balance: 0 }
-      };
+      console.error("Error in summary calculation:", e);
+      return { income: 0, expense: 0, balance: 0 };
+    }
+  }, [transactions, filterDay, filterMonth]);
+
+  const filteredTransactions = useMemo(() => {
+    try {
+      if (!transactions || !Array.isArray(transactions)) return [];
+
+      return transactions.filter(t => {
+        if (!t) return false;
+        
+        let matchDay = true;
+        let matchMonth = true;
+
+        if (filterDay && t.date) {
+          const parts = String(t.date).split('-');
+          if (parts.length >= 3) {
+            const day = parseInt(parts[2], 10);
+            matchDay = day.toString() === filterDay;
+          } else {
+            matchDay = false;
+          }
+        }
+
+        if (filterMonth && t.date) {
+          const parts = String(t.date).split('-');
+          if (parts.length >= 2) {
+            const month = parseInt(parts[1], 10);
+            matchMonth = month.toString() === filterMonth;
+          } else {
+            matchMonth = false;
+          }
+        }
+
+        return matchDay && matchMonth;
+      });
+    } catch (e) {
+      console.error("Error in filtering transactions:", e);
+      return [];
     }
   }, [transactions, filterDay, filterMonth]);
 
@@ -244,6 +288,15 @@ function FinancesComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro</AlertTitle>
+            <AlertDescription>
+              {error} <Button variant="link" className="p-0 h-auto" onClick={() => fetchTransactions()}>Tentar novamente</Button>
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Financeiro</h2>
@@ -422,7 +475,7 @@ function FinancesComponent() {
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-700">R$ {summary.income.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-green-700">R$ {summary?.income?.toFixed(2) || "0.00"}</div>
             </CardContent>
           </Card>
           <Card className="bg-red-50/50 border-red-100">
@@ -431,7 +484,7 @@ function FinancesComponent() {
               <TrendingDown className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-700">R$ {summary.expense.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-red-700">R$ {summary?.expense?.toFixed(2) || "0.00"}</div>
             </CardContent>
           </Card>
           <Card className="bg-blue-50/50 border-blue-100">
@@ -441,7 +494,7 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className={cn("text-2xl font-bold", summary.balance >= 0 ? "text-blue-700" : "text-red-700")}>
-                R$ {summary.balance.toFixed(2)}
+                R$ {summary?.balance?.toFixed(2) || "0.00"}
               </div>
             </CardContent>
           </Card>
@@ -471,7 +524,16 @@ function FinancesComponent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTransactions.length === 0 ? (
+                  {fetching ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-12">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                          <span className="text-muted-foreground">Carregando transações...</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredTransactions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         Nenhuma transação encontrada para os filtros selecionados.
@@ -519,7 +581,7 @@ function FinancesComponent() {
                                 onClick={() => {
                                   setEditingTransaction({
                                     ...t,
-                                    amount: t.amount.toString(),
+                                    amount: String(t.amount || ""),
                                     barber_id: t.barber_id || "none",
                                     date: t.date,
                                     time: t.time || "12:00:00"
@@ -703,79 +765,7 @@ function FinancesComponent() {
           </TabsContent>
         </Tabs>
       </div>
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Transação</DialogTitle>
-          </DialogHeader>
-          {editingTransaction && (
-            <form onSubmit={handleUpdateTransaction} className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-amount">Valor (R$)</Label>
-                <Input 
-                  id="edit-amount" 
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={editingTransaction.amount} 
-                  onChange={(e) => setEditingTransaction({...editingTransaction, amount: e.target.value})} 
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-type">Tipo</Label>
-                <Select 
-                  value={editingTransaction.type} 
-                  onValueChange={(val) => setEditingTransaction({...editingTransaction, type: val})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="income">Entrada (Receita)</SelectItem>
-                    <SelectItem value="expense">Saída (Despesa)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-category">Categoria</Label>
-                <Input 
-                  id="edit-category" 
-                  placeholder="Serviço, Aluguel, Produtos, etc."
-                  value={editingTransaction.category} 
-                  onChange={(e) => setEditingTransaction({...editingTransaction, category: e.target.value})} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-barber">Barbeiro</Label>
-                <Select 
-                  value={editingTransaction.barber_id || "none"} 
-                  onValueChange={(val) => setEditingTransaction({...editingTransaction, barber_id: val})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um barbeiro" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum / Geral</SelectItem>
-                    {barbers.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Descrição</Label>
-                <Input 
-                  id="edit-description" 
-                  value={editingTransaction.description} 
-                  onChange={(e) => setEditingTransaction({...editingTransaction, description: e.target.value})} 
-                />
-              </div>
-              <Button type="submit" className="w-full">Salvar Alterações</Button>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Redundant dialog removed to prevent conflicts */}
       </AppLayout>
   );
 }
