@@ -1228,18 +1228,15 @@ function ShopPageComponent() {
                     }
                     
                     // Se o cliente tiver créditos suficientes para cobrir o valor total,
-                    // finaliza o agendamento automaticamente como pago
+                    // pré-selecionamos o uso de créditos e avançamos
                     const totalBeforeCredits = calculateTotalBeforeCashback() - (useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0);
                     if (customerCredits >= totalBeforeCredits && totalBeforeCredits > 0) {
                       setUseCredits(true);
-                      setPaymentMethod('pix'); // Usamos 'pix' como placeholder para indicar que já está pago
-                      toast.info("Seus créditos cobrem o valor total deste agendamento!");
-                      setBookingStep(5);
-                    } else {
-                      setBookingStep(5);
+                      setPaymentMethod('pix');
                     }
+                    setBookingStep(5);
                   }}
-                  disabled={availableTimes.length === 0}
+                  disabled={fetchingTimes || !selectedDate}
                 >
                   Próximo
                 </Button>
