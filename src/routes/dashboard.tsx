@@ -123,19 +123,20 @@ function DashboardComponent() {
 
     // Handle financial registration
     const isCreditOrCashback = appointment.payment_method === 'credits' || appointment.payment_method === 'cashback';
+    const totalPrice = Number(appointment.total_price || 0);
     
     // Only register income in transactions if it wasn't paid via credit/cashback
     if (!isCreditOrCashback) {
       const { error: transError } = await supabase
         .from("transactions")
         .insert({
-          amount: appointment.total_price,
+          amount: totalPrice,
           type: "income",
-          description: `Atendimento: ${appointment.services?.name} - ${appointment.customers?.name}`,
+          description: `Atendimento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
           category: "Serviço",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          user_id: user?.id,
+          user_id: user?.id || "",
           date: new Date().toISOString().split('T')[0]
         });
       
@@ -147,11 +148,11 @@ function DashboardComponent() {
         .insert({
           amount: 0, // 0 revenue
           type: "income",
-          description: `[${appointment.payment_method.toUpperCase()}] ${appointment.services?.name} - ${appointment.customers?.name}`,
+          description: `[${appointment.payment_method.toUpperCase()}] ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
           category: "Serviço (Uso de Crédito/Cashback)",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          user_id: user?.id,
+          user_id: user?.id || "",
           date: new Date().toISOString().split('T')[0]
         });
     }
