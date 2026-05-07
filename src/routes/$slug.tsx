@@ -1023,7 +1023,7 @@ function ShopPageComponent() {
               </div>
             )}
 
-            {bookingStep === 2 && (
+            {bookingStep === 3 && (
               <div className="space-y-4">
                 <div className="grid gap-2">
                   <Label>Data do Agendamento</Label>
