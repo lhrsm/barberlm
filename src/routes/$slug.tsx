@@ -478,6 +478,10 @@ function ShopPageComponent() {
       setBookingStep(1);
       setSelectedProducts([]);
       
+      // Redirecionar para a página do cliente (portal)
+      navigate({ to: `/${slug}/portal` });
+      
+      
     } catch (error: any) {
       toast.error("Erro ao realizar agendamento: " + error.message);
     } finally {
