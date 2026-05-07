@@ -502,8 +502,8 @@ function ShopPageComponent() {
       setBookingStep(1);
       setSelectedProducts([]);
       
-      // Redirecionar para a página do cliente (portal)
-      navigate({ to: `/${slug}/portal` });
+      // Redirecionar para a página do cliente (portal) com refresh para garantir sessão
+      window.location.assign(`/${slug}/portal`);
       
       
     } catch (error: any) {
