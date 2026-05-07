@@ -198,30 +198,14 @@ function ShopPageComponent() {
 
   const primaryColor = shop?.primary_color || "#7c3aed";
 
-  useEffect(() => {
-    if (selectedDate && shop?.id && isBookingOpen) {
-      fetchDayData(selectedDate);
+  const handleBookingAction = () => {
+    if (shop.scheduling_mode === 'manual') {
+      const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
+      window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
+    } else {
+      setIsBookingOpen(true);
     }
-  }, [selectedDate, shop?.id, isBookingOpen]);
-
-  // Font loading
-  useEffect(() => {
-    // Only attempt to load if it's not the default Inter
-    if (typeof window !== 'undefined' && shop?.font_family && shop.font_family !== 'Inter') {
-      const fontId = 'custom-shop-font';
-      let link = document.getElementById(fontId) as HTMLLinkElement;
-      
-      if (!link) {
-        link = document.createElement('link');
-        link.id = fontId;
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
-      }
-      
-      const fontName = shop.font_family.replace(/\s+/g, '+');
-      link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
-    }
-  }, [shop?.font_family]);
+  };
 
   if (loading) {
     return (
