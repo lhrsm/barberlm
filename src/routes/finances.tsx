@@ -115,16 +115,63 @@ function FinancesComponent() {
     }
   }
 
-  const { filteredTransactions, summary } = useMemo(() => {
+  const summary = useMemo(() => {
     try {
       if (!transactions || !Array.isArray(transactions)) {
-        return {
-          filteredTransactions: [],
-          summary: { income: 0, expense: 0, balance: 0 }
-        };
+        return { income: 0, expense: 0, balance: 0 };
       }
 
-      const filtered = transactions.filter(t => {
+      let income = 0;
+      let expense = 0;
+
+      transactions.forEach(t => {
+        if (!t) return;
+        
+        let matchDay = true;
+        let matchMonth = true;
+
+        if (filterDay && t.date) {
+          const parts = String(t.date).split('-');
+          if (parts.length >= 3) {
+            const day = parseInt(parts[2], 10);
+            matchDay = day.toString() === filterDay;
+          } else {
+            matchDay = false;
+          }
+        }
+
+        if (filterMonth && t.date) {
+          const parts = String(t.date).split('-');
+          if (parts.length >= 2) {
+            const month = parseInt(parts[1], 10);
+            matchMonth = month.toString() === filterMonth;
+          } else {
+            matchMonth = false;
+          }
+        }
+
+        if (matchDay && matchMonth) {
+          const amount = parseFloat(String(t.amount)) || 0;
+          if (t.type === "income") {
+            income += amount;
+          } else if (t.type === "expense") {
+            expense += amount;
+          }
+        }
+      });
+
+      return { income, expense, balance: income - expense };
+    } catch (e) {
+      console.error("Error in summary calculation:", e);
+      return { income: 0, expense: 0, balance: 0 };
+    }
+  }, [transactions, filterDay, filterMonth]);
+
+  const filteredTransactions = useMemo(() => {
+    try {
+      if (!transactions || !Array.isArray(transactions)) return [];
+
+      return transactions.filter(t => {
         if (!t) return false;
         
         let matchDay = true;
@@ -152,29 +199,9 @@ function FinancesComponent() {
 
         return matchDay && matchMonth;
       });
-
-      let income = 0;
-      let expense = 0;
-
-      filtered.forEach(t => {
-        const amount = parseFloat(String(t.amount)) || 0;
-        if (t.type === "income") {
-          income += amount;
-        } else if (t.type === "expense") {
-          expense += amount;
-        }
-      });
-
-      return {
-        filteredTransactions: filtered,
-        summary: { income, expense, balance: income - expense }
-      };
     } catch (e) {
-      console.error("Error in useMemo summary calculation:", e);
-      return {
-        filteredTransactions: [],
-        summary: { income: 0, expense: 0, balance: 0 }
-      };
+      console.error("Error in filtering transactions:", e);
+      return [];
     }
   }, [transactions, filterDay, filterMonth]);
 
