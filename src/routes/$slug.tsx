@@ -54,9 +54,7 @@ function ShopPageComponent() {
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [customerCashback, setCustomerCashback] = useState(0);
   const [customerLoyaltyPoints, setCustomerLoyaltyPoints] = useState(0);
-  const [customerCredits, setCustomerCredits] = useState(0);
   const [useCashback, setUseCashback] = useState(false);
-  const [useCredits, setUseCredits] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [dayAppointments, setDayAppointments] = useState<any[]>([]);
@@ -382,7 +380,7 @@ function ShopPageComponent() {
       // 1. Create or get customer
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
-        .select("id, cashback_balance, credits")
+        .select("id, cashback_balance")
         .eq("phone", customerPhone)
         .eq("user_id", shop.id)
         .maybeSingle();
@@ -391,7 +389,6 @@ function ShopPageComponent() {
       if (customerData) {
         customerId = customerData.id;
         setCustomerCashback(Number(customerData.cashback_balance || 0));
-        setCustomerCredits(Number(customerData.credits || 0));
       } else {
         const { data: newCustomer, error: createError } = await supabase
           .from("customers")
@@ -406,7 +403,6 @@ function ShopPageComponent() {
         if (createError) throw createError;
         customerId = newCustomer.id;
         setCustomerCashback(0);
-        setCustomerCredits(0);
       }
 
       // Automatically create or update client_auth session for the portal
@@ -451,10 +447,10 @@ function ShopPageComponent() {
           end_time: endTime.toISOString(),
           total_price: calculateTotal(),
           status: "scheduled",
-          payment_method: paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : (useCashback ? 'cashback' : 'barbershop')) : 'barbershop'),
+          payment_method: paymentMethod || (calculateTotal() === 0 ? 'cashback' : 'barbershop'),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
-          notes: (useCredits || useCashback) ? 
-            `Pagamento: ${useCredits ? `Créditos (R$ ${Math.min(customerCredits, calculateTotalBeforeCashback()).toFixed(2)})` : ''}${useCredits && useCashback ? ' + ' : ''}${useCashback ? `Cashback (R$ ${Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)})` : ''}` : 
+          notes: useCashback ? 
+            `Pagamento: Cashback (R$ ${Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)})` : 
             null,
           items: [
             { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
@@ -467,7 +463,7 @@ function ShopPageComponent() {
       if (appError) throw appError;
 
       // 3. Create transactions for products and services if paid via PIX OR credits
-      if (paymentMethod === 'pix' || (useCredits && customerCredits > 0 && calculateTotal() === 0)) {
+      if (paymentMethod === 'pix' || (calculateTotal() === 0)) {
         // Add service transaction
         await supabase.from("transactions").insert({
           user_id: shop.id,
@@ -476,7 +472,7 @@ function ShopPageComponent() {
           type: "income",
           category: "Serviço",
           amount: selectedService.price,
-          description: `Agendamento (${calculateTotal() === 0 ? (useCredits ? 'Créditos' : (useCashback ? 'Cashback' : 'PIX')) : 'PIX'}): ${selectedService.name} - Cliente: ${customerName}`,
+          description: `Agendamento (${calculateTotal() === 0 ? (useCashback ? 'Cashback' : 'PIX') : 'PIX'}): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
 
@@ -556,8 +552,7 @@ function ShopPageComponent() {
       setBookingStep(1);
       setSelectedProducts([]);
       setPaymentMethod(null);
-      setUseCredits(false);
-      setUseCashback(false);
+    setUseCashback(false);
       
       // Delay redirection slightly to ensure state is clear
       setTimeout(() => {
@@ -739,7 +734,7 @@ function ShopPageComponent() {
     if (phone.length >= 10) {
       const { data } = await supabase
         .from("customers")
-        .select("cashback_balance, loyalty_points, name, credits")
+        .select("cashback_balance, loyalty_points, name")
         .eq("phone", phone)
         .eq("user_id", shop.id)
         .maybeSingle();
