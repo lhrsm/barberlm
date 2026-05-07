@@ -432,7 +432,10 @@ function DashboardComponent() {
                           <Button 
                             variant={app.payment_status === 'paid' ? 'default' : 'outline'} 
                             size="sm" 
-                            className="h-8 gap-1 text-xs"
+                            className={cn(
+                              "h-8 gap-1 text-xs",
+                              app.payment_status === 'paid' && "bg-emerald-600 hover:bg-emerald-700"
+                            )}
                             onClick={(e) => {
                               e.stopPropagation();
                               togglePaymentStatus(app);
@@ -441,7 +444,11 @@ function DashboardComponent() {
                             <Check size={14} />
                             {app.payment_status === 'paid' ? 'Pago' : 'Marcar Pago'}
                           </Button>
-                          <Badge variant={app.status === 'scheduled' ? 'secondary' : app.status === 'completed' ? 'default' : 'destructive'}>
+                          <Badge className={cn(
+                            app.status === 'scheduled' ? 'bg-secondary text-secondary-foreground' : 
+                            app.status === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white' : 
+                            'bg-destructive text-destructive-foreground'
+                          )}>
                             {app.status === 'scheduled' ? 'Agendado' : app.status === 'completed' ? 'Concluído' : 'Cancelado'}
                           </Badge>
                         </div>
