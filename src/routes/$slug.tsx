@@ -770,26 +770,43 @@ function ShopPageComponent() {
       }}
     >
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {shop.logo_url ? (
-              <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain" />
-            ) : (
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
-              </div>
-            )}
-            <h1 className="font-bold text-lg">{shop.business_name}</h1>
+      {!isEmbedded && (
+        <header className="bg-white border-b sticky top-0 z-50">
+          <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {shop.logo_url ? (
+                <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain" />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
+                </div>
+              )}
+              <h1 className="font-bold text-lg">{shop.business_name}</h1>
+            </div>
+            <Button style={{ backgroundColor: primaryColor }} className="text-white" onClick={handleBookingAction}>
+              {shop.scheduling_mode === 'manual' ? 'Agendar via WhatsApp' : 'Agendar Agora'}
+            </Button>
           </div>
-          <Button style={{ backgroundColor: primaryColor }} className="text-white" onClick={handleBookingAction}>
-            {shop.scheduling_mode === 'manual' ? 'Agendar via WhatsApp' : 'Agendar Agora'}
-          </Button>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* Hero / About */}
+      <main className={cn("max-w-4xl mx-auto px-4 py-8 space-y-8", isEmbedded && "py-0")}>
+        {isEmbedded ? (
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            {!isBookingOpen ? (
+              <div className="text-center space-y-4">
+                <h3 className="text-xl font-bold">Pronto para agendar?</h3>
+                <Button size="lg" style={{ backgroundColor: primaryColor }} onClick={() => setIsBookingOpen(true)}>
+                  Começar Agendamento
+                </Button>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">O formulário de agendamento está aberto acima.</p>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Hero / About */}
         <section className="text-center space-y-4">
           <h2 className="text-3xl font-extrabold tracking-tight">Bem-vindo à {shop.business_name}</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
