@@ -39,6 +39,7 @@ function ClientPortalComponent() {
   const [submitting, setSubmitting] = useState(false);
   const [shop, setShop] = useState<any>(null);
   const [client, setClient] = useState<any>(null);
+  const [customerData, setCustomerData] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // Auth state
@@ -103,6 +104,15 @@ function ClientPortalComponent() {
   async function fetchClientData(customerId: string) {
     if (!customerId) return;
     
+    // Fetch customer profile for credits/cashback
+    const { data: profile } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("id", customerId)
+      .single();
+    
+    setCustomerData(profile);
+
     // Fetch appointments
     const { data: appts } = await supabase
       .from("appointments")
@@ -381,17 +391,37 @@ function ClientPortalComponent() {
     setClient(null);
   };
 
-  const handleCancelAppointment = async (appId: string) => {
+  const handleCancelAppointment = async (app: any) => {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
     
     try {
+      // Logic for credits: if paid via PIX and cancelled/not rescheduled, generate credits
+      if (app.payment_method === 'pix' && app.payment_status === 'paid') {
+        const { data: cust } = await supabase
+          .from("customers")
+          .select("credits")
+          .eq("id", app.customer_id)
+          .single();
+        
+        const currentCredits = Number(cust?.credits || 0);
+        const refundAmount = Number(app.total_price || 0);
+        
+        await supabase
+          .from("customers")
+          .update({ credits: currentCredits + refundAmount })
+          .eq("id", app.customer_id);
+          
+        toast.success(`Agendamento cancelado. R$ ${refundAmount.toFixed(2)} foram adicionados aos seus créditos.`);
+      } else {
+        toast.success("Agendamento cancelado");
+      }
+
       const { error } = await supabase
         .from("appointments")
         .update({ status: 'cancelled' })
-        .eq("id", appId);
+        .eq("id", app.id);
       
       if (error) throw error;
-      toast.success("Agendamento cancelado");
       fetchClientData(client.customer_id);
     } catch (e) {
       toast.error("Erro ao cancelar agendamento");
@@ -546,7 +576,7 @@ function ClientPortalComponent() {
           </Button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Total de Serviços</CardDescription>
@@ -555,14 +585,20 @@ function ClientPortalComponent() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Produtos Comprados</CardDescription>
-              <CardTitle className="text-2xl font-bold">{sales.filter(s => s.status === 'completed').length}</CardTitle>
+              <CardDescription>Agendados</CardDescription>
+              <CardTitle className="text-2xl font-bold">{appointments.filter(a => a.status === 'scheduled').length}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card className="bg-green-500/5 border-green-500/20">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-green-700">Meus Créditos</CardDescription>
+              <CardTitle className="text-2xl font-bold text-green-800">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Agendados</CardDescription>
-              <CardTitle className="text-2xl font-bold">{appointments.filter(a => a.status === 'scheduled').length}</CardTitle>
+              <CardDescription>Cashback</CardDescription>
+              <CardTitle className="text-2xl font-bold text-primary">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
             </CardHeader>
           </Card>
         </div>
