@@ -381,17 +381,37 @@ function ClientPortalComponent() {
     setClient(null);
   };
 
-  const handleCancelAppointment = async (appId: string) => {
+  const handleCancelAppointment = async (app: any) => {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
     
     try {
+      // Logic for credits: if paid via PIX and cancelled/not rescheduled, generate credits
+      if (app.payment_method === 'pix' && app.payment_status === 'paid') {
+        const { data: cust } = await supabase
+          .from("customers")
+          .select("credits")
+          .eq("id", app.customer_id)
+          .single();
+        
+        const currentCredits = Number(cust?.credits || 0);
+        const refundAmount = Number(app.total_price || 0);
+        
+        await supabase
+          .from("customers")
+          .update({ credits: currentCredits + refundAmount })
+          .eq("id", app.customer_id);
+          
+        toast.success(`Agendamento cancelado. R$ ${refundAmount.toFixed(2)} foram adicionados aos seus créditos.`);
+      } else {
+        toast.success("Agendamento cancelado");
+      }
+
       const { error } = await supabase
         .from("appointments")
         .update({ status: 'cancelled' })
-        .eq("id", appId);
+        .eq("id", app.id);
       
       if (error) throw error;
-      toast.success("Agendamento cancelado");
       fetchClientData(client.customer_id);
     } catch (e) {
       toast.error("Erro ao cancelar agendamento");
