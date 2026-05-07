@@ -399,45 +399,48 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
-      // 3. Create transactions for products and services
-      // Add service transaction
-      await supabase.from("transactions").insert({
-        user_id: shop.id,
-        barber_id: selectedBarber.id,
-        appointment_id: appointment.id,
-        type: "income",
-        category: "Serviço",
-        amount: selectedService.price,
-        description: `Agendamento: ${selectedService.name} - Cliente: ${customerName}`,
-        date: new Date().toISOString().split('T')[0]
-      });
-
-      // 4. Create transactions and sales records for products if any
-      for (const item of selectedProducts) {
-        // Create general transaction for the finance tab
+      // 3. Create transactions for products and services ONLY if paid via PIX
+      if (paymentMethod === 'pix') {
+        // Add service transaction
         await supabase.from("transactions").insert({
           user_id: shop.id,
           barber_id: selectedBarber.id,
           appointment_id: appointment.id,
           type: "income",
-          category: "Produtos",
-          amount: item.price * (item.quantity || 1),
-          description: `Venda de Produto: ${item.name} (x${item.quantity || 1}) - Cliente: ${customerName}`,
+          category: "Serviço",
+          amount: selectedService.price,
+          description: `Agendamento (PIX): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
 
-        // Add to product_sales table for the Products -> Faturamento tab
-        await supabase.from("product_sales").insert({
-          user_id: shop.id,
-          total_amount: item.price * (item.quantity || 1),
-          status: 'completed',
-          items: [{
-            product_id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity || 1
-          }]
-        });
+        // 4. Create transactions and sales records for products if any
+        for (const item of selectedProducts) {
+          // Create general transaction for the finance tab
+          await supabase.from("transactions").insert({
+            user_id: shop.id,
+            barber_id: selectedBarber.id,
+            appointment_id: appointment.id,
+            type: "income",
+            category: "Produtos",
+            amount: item.price * (item.quantity || 1),
+            description: `Venda de Produto (PIX): ${item.name} (x${item.quantity || 1}) - Cliente: ${customerName}`,
+            date: new Date().toISOString().split('T')[0]
+          });
+
+          // Add to product_sales table for the Products -> Faturamento tab
+          await supabase.from("product_sales").insert({
+            user_id: shop.id,
+            total_amount: item.price * (item.quantity || 1),
+            status: 'completed',
+            items: [{
+              product_id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity || 1
+            }]
+          });
+        }
+      }
 
         // Create a transaction record specifically linked to this sale if needed by reports
         // The transaction above already covers the finance part.
