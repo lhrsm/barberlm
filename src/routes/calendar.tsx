@@ -176,7 +176,7 @@ function CalendarComponent() {
       const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
       const endTime = addMinutes(startTime, service?.duration_minutes || 30);
 
-      const { error } = await supabase.from("appointments").insert({
+      const { data: appointmentData, error } = await supabase.from("appointments").insert({
         user_id: user.id,
         customer_id: selectedCustomer,
         service_id: selectedService,
@@ -193,7 +193,8 @@ function CalendarComponent() {
       await supabase.from("transactions").insert({
         user_id: user.id,
         barber_id: selectedBarber,
-        appointment_id: data.id,
+        appointment_id: appointmentData.id,
+
         type: "income",
         category: "Serviço",
         amount: service?.price || 0,
