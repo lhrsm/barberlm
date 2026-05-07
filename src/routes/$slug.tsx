@@ -413,8 +413,7 @@ function ShopPageComponent() {
           date: new Date().toISOString().split('T')[0]
         });
 
-      // 4. Create transactions and sales records for products if any
-      if (paymentMethod === 'pix') {
+        // 4. Create transactions and sales records for products if any
         for (const item of selectedProducts) {
           // Create general transaction for the finance tab
           await supabase.from("transactions").insert({
