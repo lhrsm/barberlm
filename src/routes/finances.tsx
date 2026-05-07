@@ -501,7 +501,7 @@ function FinancesComponent() {
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
                         <TableCell>{t.category || "-"}</TableCell>
                         <TableCell className={cn("text-right font-bold", t.type === "income" ? "text-green-600" : "text-red-600")}>
-                          {t.type === "income" ? "+" : "-"} R$ {Number(t.amount).toFixed(2)}
+                          {t.type === "income" ? "+" : "-"} R$ {(parseFloat(String(t.amount)) || 0).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
