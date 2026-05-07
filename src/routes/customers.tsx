@@ -18,11 +18,22 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger 
+  DialogTrigger,
+  DialogFooter
 } from "@/components/ui/dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star } from "lucide-react";
+import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -39,12 +50,15 @@ function CustomersComponent() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [customerHistory, setCustomerHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [shopProfile, setShopProfile] = useState<any>(null);
   const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "", notes: "" });
+  const [editingCustomer, setEditingCustomer] = useState({ id: "", name: "", phone: "", email: "", notes: "" });
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -108,6 +122,62 @@ function CustomersComponent() {
       fetchCustomers();
     }
   }
+
+  async function handleEditCustomer(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user || !editingCustomer.id) return;
+
+    const { error } = await supabase
+      .from("customers")
+      .update({
+        name: editingCustomer.name,
+        phone: editingCustomer.phone,
+        email: editingCustomer.email,
+        notes: editingCustomer.notes,
+      })
+      .eq("id", editingCustomer.id);
+
+    if (error) {
+      toast.error("Erro ao atualizar cliente");
+    } else {
+      toast.success("Cliente atualizado com sucesso!");
+      setIsEditDialogOpen(false);
+      fetchCustomers();
+    }
+  }
+
+  async function handleDeleteCustomer() {
+    if (!selectedCustomer) return;
+
+    const { error } = await supabase
+      .from("customers")
+      .delete()
+      .eq("id", selectedCustomer.id);
+
+    if (error) {
+      toast.error("Erro ao excluir cliente. Verifique se ele possui agendamentos vinculados.");
+    } else {
+      toast.success("Cliente excluído com sucesso!");
+      setIsDeleteDialogOpen(false);
+      fetchCustomers();
+    }
+  }
+
+  const openEditDialog = (customer: any) => {
+    setEditingCustomer({
+      id: customer.id,
+      name: customer.name,
+      phone: customer.phone || "",
+      email: customer.email || "",
+      notes: customer.notes || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (customer: any) => {
+    setSelectedCustomer(customer);
+    setIsDeleteDialogOpen(true);
+  };
 
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -221,9 +291,17 @@ function CustomersComponent() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => handleViewHistory(customer)}>
-                        Ver Histórico
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewHistory(customer)}>
+                          Histórico
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(customer)}>
+                          <Edit size={16} className="text-muted-foreground" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(customer)}>
+                          <Trash2 size={16} className="text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -239,6 +317,69 @@ function CustomersComponent() {
           loadingHistory={loadingHistory}
           customerHistory={customerHistory}
         />
+
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Cliente</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleEditCustomer} className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Nome Completo</Label>
+                <Input 
+                  id="edit-name" 
+                  value={editingCustomer.name} 
+                  onChange={(e) => setEditingCustomer({...editingCustomer, name: e.target.value})} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">Telefone / WhatsApp</Label>
+                <Input 
+                  id="edit-phone" 
+                  placeholder="(00) 00000-0000"
+                  value={editingCustomer.phone} 
+                  onChange={(e) => setEditingCustomer({...editingCustomer, phone: e.target.value})} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email (Opcional)</Label>
+                <Input 
+                  id="edit-email" 
+                  type="email"
+                  value={editingCustomer.email} 
+                  onChange={(e) => setEditingCustomer({...editingCustomer, email: e.target.value})} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-notes">Notas / Preferências</Label>
+                <Input 
+                  id="edit-notes" 
+                  value={editingCustomer.notes} 
+                  onChange={(e) => setEditingCustomer({...editingCustomer, notes: e.target.value})} 
+                />
+              </div>
+              <Button type="submit" className="w-full">Atualizar Cliente</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Cliente</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o cliente {selectedCustomer?.name}? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteCustomer} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
