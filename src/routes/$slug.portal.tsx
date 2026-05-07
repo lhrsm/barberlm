@@ -153,7 +153,7 @@ function ClientPortalComponent() {
       };
       
       const dayKey = dayMap[dayName] || dayName;
-      const workingHours = barber.working_hours?.[dayKey];
+      const workingHours = (barber.working_hours as any)?.[dayKey];
 
       if (!workingHours || !workingHours.enabled) {
         setAvailableTimes([]);
