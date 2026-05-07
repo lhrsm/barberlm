@@ -168,7 +168,7 @@ function CalendarComponent() {
     setCurrentStep(prev => prev + 1);
   };
 
-  const handleCreateAppointment = async () => {
+  const handleCreateAppointment = async (paymentStatus: string = "pending") => {
     if (!user) return;
     setIsLoading(true);
 
@@ -186,29 +186,40 @@ function CalendarComponent() {
         end_time: endTime.toISOString(),
         total_price: service?.price || 0,
         status: "scheduled",
+        payment_status: paymentStatus,
+        items: [{
+          id: selectedService,
+          name: service?.name,
+          type: 'service',
+          price: service?.price,
+          quantity: 1
+        }]
       }).select().single();
 
       if (error) throw error;
 
-      // Create finance transaction for the schedule
-      await supabase.from("transactions").insert({
-        user_id: user.id,
-        barber_id: selectedBarber,
-        appointment_id: appointmentData.id,
-        type: "income",
-        category: "Serviço",
-        amount: service?.price || 0,
-        description: `Agendamento: ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
-        date: new Date().toISOString().split('T')[0]
-      });
+      // Only create transaction and sales records if paid
+      if (paymentStatus === 'paid') {
+        // Create finance transaction for the schedule
+        await supabase.from("transactions").insert({
+          user_id: user.id,
+          barber_id: selectedBarber,
+          appointment_id: appointmentData.id,
+          type: "income",
+          category: "Serviço",
+          amount: service?.price || 0,
+          description: `Agendamento: ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
+          date: new Date().toISOString().split('T')[0]
+        });
 
-      // Registrar também no faturamento de produtos (como um item de serviço)
-      await supabase.from("product_sales").insert({
-        user_id: user.id,
-        items: [{ id: selectedService, name: service?.name, quantity: 1, price: service?.price }],
-        total_amount: service?.price || 0,
-        status: 'completed'
-      });
+        // Registrar também no faturamento de produtos (como um item de serviço)
+        await supabase.from("product_sales").insert({
+          user_id: user.id,
+          items: [{ id: selectedService, name: service?.name, quantity: 1, price: service?.price }],
+          total_amount: service?.price || 0,
+          status: 'completed'
+        });
+      }
 
 
       toast.success("Agendamento criado com sucesso!");
@@ -453,20 +464,44 @@ function CalendarComponent() {
                               <span className="font-medium">{services.find(s => s.id === selectedService)?.name}</span>
                             </div>
                             <div className="flex justify-between border-b pb-2">
-                              <span className="text-muted-foreground">Data/Hora:</span>
-                              <span className="font-medium">
-                                {format(parseISO(selectedDate), "dd/MM/yyyy", { locale: ptBR })} às {selectedTime}
-                              </span>
+                              <span className="text-muted-foreground">Data:</span>
+                              <span className="font-medium">{format(parseISO(selectedDate), "dd/MM/yyyy")}</span>
                             </div>
-                            <div className="flex justify-between">
+                            <div className="flex justify-between border-b pb-2">
+                              <span className="text-muted-foreground">Hora:</span>
+                              <span className="font-medium">{selectedTime}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
                               <span className="text-muted-foreground">Cliente:</span>
                               <span className="font-medium">{customers.find(c => c.id === selectedCustomer)?.name}</span>
                             </div>
+                            <div className="flex justify-between pt-2">
+                              <span className="font-bold">Total:</span>
+                              <span className="font-bold text-primary">R$ {services.find(s => s.id === selectedService)?.price}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2 mt-4">
+                            <Label>Status do Pagamento</Label>
+                            <Select 
+                              defaultValue="pending" 
+                              onValueChange={(val) => {
+                                (window as any)._calendar_payment_status = val;
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pendente (Pagar na Barbearia)</SelectItem>
+                                <SelectItem value="paid">Pago (PIX/Cartão/Dinheiro)</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
                       )}
                     </div>
-
+                    
                     <DialogFooter className="flex gap-2 sm:justify-between">
                       {currentStep > 1 ? (
                         <Button variant="outline" onClick={() => setCurrentStep(prev => prev - 1)} disabled={isLoading}>
@@ -479,7 +514,10 @@ function CalendarComponent() {
                           {isLoading ? "Validando..." : "Próximo"}
                         </Button>
                       ) : (
-                        <Button onClick={handleCreateAppointment} disabled={isLoading}>
+                        <Button onClick={() => {
+                          const status = (window as any)._calendar_payment_status || 'pending';
+                          handleCreateAppointment(status);
+                        }} disabled={isLoading}>
                           {isLoading ? "Salvando..." : "Confirmar"}
                         </Button>
                       )}

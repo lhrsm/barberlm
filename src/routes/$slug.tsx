@@ -640,17 +640,40 @@ function ShopPageComponent() {
     if (phone.length >= 10) {
       const { data } = await supabase
         .from("customers")
-        .select("cashback_balance, loyalty_points")
+        .select("cashback_balance, loyalty_points, name")
         .eq("phone", phone)
         .eq("user_id", shop.id)
         .maybeSingle();
       if (data) {
         setCustomerCashback(data.cashback_balance || 0);
         setCustomerLoyaltyPoints(data.loyalty_points || 0);
+        if (data.name) setCustomerName(data.name);
+        return data;
       } else {
         setCustomerCashback(0);
         setCustomerLoyaltyPoints(0);
+        return null;
       }
+    }
+    return null;
+  };
+
+  const handlePhoneCheck = async () => {
+    if (!customerPhone || customerPhone.length < 8) {
+      toast.error("Por favor, insira um número de WhatsApp válido.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const customer = await checkCustomerCashback(customerPhone);
+      setBookingStep(2);
+      if (customer) {
+        toast.success(`Bem-vindo de volta, ${customer.name}!`);
+      }
+    } catch (error) {
+      console.error("Error checking phone:", error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -904,40 +927,93 @@ function ShopPageComponent() {
         </section>
       </main>
 
-      {/* Booking Dialog */}
-      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+      <Dialog open={isBookingOpen} onOpenChange={(open) => {
+        setIsBookingOpen(open);
+        if (!open) {
+          setBookingStep(1);
+          setCustomerName("");
+          setCustomerPhone("");
+          setUseCashback(false);
+          setPaymentMethod(null);
+        }
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
-              {bookingStep === 1 && "Escolha o Serviço"}
-              {bookingStep === 2 && "Escolha o Profissional"}
-              {bookingStep === 3 && "Data e Horário"}
-              {bookingStep === 4 && "Suas Informações"}
+              {bookingStep === 1 && "Informe seu WhatsApp"}
+              {bookingStep === 2 && "Escolha o Serviço"}
+              {bookingStep === 3 && "Escolha o Profissional"}
+              {bookingStep === 4 && "Data e Horário"}
+              {bookingStep === 5 && "Finalizar Agendamento"}
             </DialogTitle>
           </DialogHeader>
 
           <div className="py-4">
             {bookingStep === 1 && (
-              <div className="space-y-3">
-                {services.map(s => (
-                  <div 
-                    key={s.id} 
-                    className={cn(
-                      "p-3 border rounded-lg cursor-pointer transition-colors flex justify-between items-center",
-                      selectedService?.id === s.id ? "border-primary bg-primary/5" : "hover:bg-muted"
-                    )}
-                    onClick={() => {
-                      setSelectedService(s);
-                      setBookingStep(2);
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  <Label>Seu WhatsApp</Label>
+                  <Input 
+                    placeholder="(00) 00000-0000" 
+                    value={customerPhone} 
+                    onChange={(e) => setCustomerPhone(e.target.value)} 
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && customerPhone) {
+                        handlePhoneCheck();
+                      }
                     }}
-                  >
-                    <div>
-                      <p className="font-bold">{s.name}</p>
-                      <p className="text-xs text-muted-foreground">{s.duration_minutes} min</p>
-                    </div>
-                    <p className="font-bold" style={{ color: primaryColor }}>R$ {s.price.toFixed(2)}</p>
+                  />
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={handlePhoneCheck}
+                  disabled={!customerPhone || submitting}
+                >
+                  Continuar
+                </Button>
+              </div>
+            )}
+
+            {bookingStep === 2 && (
+              <div className="space-y-3">
+                {customerName && (
+                  <p className="text-sm font-medium mb-2">Olá, <span style={{ color: primaryColor }}>{customerName}</span>! O que faremos hoje?</p>
+                )}
+                {!customerName && (
+                  <div className="grid gap-2 mb-4 animate-in fade-in slide-in-from-top-2">
+                    <Label>Como podemos te chamar?</Label>
+                    <Input 
+                      placeholder="Seu nome" 
+                      value={customerName} 
+                      onChange={(e) => setCustomerName(e.target.value)} 
+                    />
                   </div>
-                ))}
+                )}
+                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                  {services.map(s => (
+                    <div 
+                      key={s.id} 
+                      className={cn(
+                        "p-3 border rounded-lg cursor-pointer transition-colors flex justify-between items-center",
+                        selectedService?.id === s.id ? "border-primary bg-primary/5" : "hover:bg-muted"
+                      )}
+                      onClick={() => {
+                        if (!customerName) {
+                          toast.error("Por favor, informe seu nome primeiro.");
+                          return;
+                        }
+                        setSelectedService(s);
+                        setBookingStep(3);
+                      }}
+                    >
+                      <div>
+                        <p className="font-bold">{s.name}</p>
+                        <p className="text-xs text-muted-foreground">{s.duration_minutes} min</p>
+                      </div>
+                      <p className="font-bold" style={{ color: primaryColor }}>R$ {s.price.toFixed(2)}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -973,7 +1049,7 @@ function ShopPageComponent() {
                           )}
                           onClick={() => {
                             setSelectedBarber(b);
-                            setBookingStep(3);
+                            setBookingStep(4);
                           }}
                         >
                           <div className="h-16 w-16 rounded-full bg-muted mx-auto overflow-hidden">
@@ -994,7 +1070,7 @@ function ShopPageComponent() {
               </div>
             )}
 
-            {bookingStep === 3 && (
+            {bookingStep === 4 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -1006,7 +1082,7 @@ function ShopPageComponent() {
                       <p className="text-sm font-bold">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(2)} className="text-xs h-8">Alterar</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-xs h-8">Alterar</Button>
                 </div>
                 <div className="grid gap-2">
                   <Label>Data</Label>
@@ -1046,7 +1122,7 @@ function ShopPageComponent() {
                       toast.error("Por favor, selecione um horário.");
                       return;
                     }
-                    setBookingStep(4);
+                    setBookingStep(5);
                   }}
                   disabled={availableTimes.length === 0}
                 >
@@ -1055,21 +1131,14 @@ function ShopPageComponent() {
               </div>
             )}
 
-            {bookingStep === 4 && (
+            {bookingStep === 5 && (
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <Label>Seu Nome</Label>
-                  <Input placeholder="Como podemos te chamar?" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Seu WhatsApp</Label>
+                  <Label>WhatsApp</Label>
                   <Input 
-                    placeholder="(00) 00000-0000" 
                     value={customerPhone} 
-                    onChange={(e) => {
-                      setCustomerPhone(e.target.value);
-                      checkCustomerCashback(e.target.value);
-                    }} 
+                    readOnly 
+                    className="bg-muted text-muted-foreground"
                   />
                 </div>
                 
@@ -1257,10 +1326,15 @@ function ShopPageComponent() {
           </div>
 
           {bookingStep > 1 && (
-            <DialogFooter>
-              <Button variant="ghost" className="w-full" onClick={() => setBookingStep(bookingStep - 1)}>
+            <DialogFooter className="flex justify-between items-center sm:justify-between">
+              <Button variant="ghost" size="sm" onClick={() => setBookingStep(prev => prev - 1)}>
                 <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
               </Button>
+              {bookingStep < 5 && (
+                <div className="text-[10px] text-muted-foreground">
+                  Passo {bookingStep} de 5
+                </div>
+              )}
             </DialogFooter>
           )}
         </DialogContent>
