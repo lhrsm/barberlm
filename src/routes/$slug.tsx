@@ -20,10 +20,6 @@ export const Route = createFileRoute("/$slug")({
 function ShopPageComponent() {
   const { slug } = Route.useParams();
   const [shop, setShop] = useState<any>(null);
-
-  // Hook placement placeholder
-
-
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -59,6 +55,42 @@ function ShopPageComponent() {
   const [dayAppointments, setDayAppointments] = useState<any[]>([]);
   const [loadingDayData, setLoadingDayData] = useState(false);
 
+  useEffect(() => {
+    if (slug) {
+      fetchShopData(slug);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    if (selectedDate && shop?.id && isBookingOpen) {
+      fetchDayData(selectedDate);
+    }
+  }, [selectedDate, shop?.id, isBookingOpen]);
+
+  // Font loading
+  useEffect(() => {
+    // Only attempt to load if it's not the default Inter
+    if (typeof window !== 'undefined' && shop?.font_family && shop.font_family !== 'Inter') {
+      const fontId = 'custom-shop-font';
+      let link = document.getElementById(fontId) as HTMLLinkElement;
+      
+      if (!link) {
+        link = document.createElement('link');
+        link.id = fontId;
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+      
+      const fontName = shop.font_family.replace(/\s+/g, '+');
+      link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
+    }
+  }, [shop?.font_family]);
+
+  useEffect(() => {
+    if (bookingStep === 3 && selectedBarber && selectedDate) {
+      fetchAvailableTimes(selectedBarber.id, selectedDate);
+    }
+  }, [bookingStep, selectedBarber, selectedDate]);
 
   const fetchDayData = async (date: string) => {
     if (!shop?.id) return;
@@ -82,9 +114,6 @@ function ShopPageComponent() {
       setLoadingDayData(false);
     }
   };
-
-  // Hook placement placeholder
-
 
   const isBarberAvailableOnDate = (barber: any, date: string, service: any, appointments: any[]) => {
     if (!service || !barber) return false;
@@ -133,9 +162,6 @@ function ShopPageComponent() {
     return false;
   };
 
-
-  // Hook placement placeholder
-
   async function fetchShopData(targetSlug: string) {
     setLoading(true);
     // Fetch profile by slug
@@ -172,36 +198,14 @@ function ShopPageComponent() {
 
   const primaryColor = shop?.primary_color || "#7c3aed";
 
-  useEffect(() => {
-    if (slug) {
-      fetchShopData(slug);
+  const handleBookingAction = () => {
+    if (shop?.scheduling_mode === 'manual') {
+      const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
+      window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
+    } else {
+      setIsBookingOpen(true);
     }
-  }, [slug]);
-
-  useEffect(() => {
-    if (selectedDate && shop?.id && isBookingOpen) {
-      fetchDayData(selectedDate);
-    }
-  }, [selectedDate, shop?.id, isBookingOpen]);
-
-  // Font loading
-  useEffect(() => {
-    // Only attempt to load if it's not the default Inter
-    if (typeof window !== 'undefined' && shop?.font_family && shop.font_family !== 'Inter') {
-      const fontId = 'custom-shop-font';
-      let link = document.getElementById(fontId) as HTMLLinkElement;
-      
-      if (!link) {
-        link = document.createElement('link');
-        link.id = fontId;
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
-      }
-      
-      const fontName = shop.font_family.replace(/\s+/g, '+');
-      link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
-    }
-  }, [shop?.font_family]);
+  };
 
   if (loading) {
     return (
@@ -223,14 +227,6 @@ function ShopPageComponent() {
     );
   }
 
-  const handleBookingAction = () => {
-    if (shop.scheduling_mode === 'manual') {
-      const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
-      window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
-    } else {
-      setIsBookingOpen(true);
-    }
-  };
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
@@ -333,11 +329,6 @@ function ShopPageComponent() {
     }
   };
 
-  useEffect(() => {
-    if (bookingStep === 3 && selectedBarber && selectedDate) {
-      fetchAvailableTimes(selectedBarber.id, selectedDate);
-    }
-  }, [bookingStep, selectedBarber, selectedDate]);
 
   const handleFinalizeBooking = async () => {
     if (!customerName || !customerPhone) {
