@@ -476,7 +476,7 @@ function ShopPageComponent() {
           type: "income",
           category: "Serviço",
           amount: selectedService.price,
-          description: `Agendamento (${calculateTotal() === 0 && useCredits ? 'Créditos' : 'PIX'}): ${selectedService.name} - Cliente: ${customerName}`,
+          description: `Agendamento (${calculateTotal() === 0 ? (useCredits ? 'Créditos' : (useCashback ? 'Cashback' : 'PIX')) : 'PIX'}): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
 
