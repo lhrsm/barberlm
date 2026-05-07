@@ -431,7 +431,11 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'}>
+                      <Badge className={cn(
+                        app.status === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white' : 
+                        app.status === 'scheduled' ? 'bg-secondary text-secondary-foreground' : 
+                        'bg-destructive text-destructive-foreground'
+                      )}>
                         {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
                       </Badge>
                       {app.service_ratings?.[0] && (
