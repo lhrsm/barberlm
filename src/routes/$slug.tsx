@@ -54,6 +54,8 @@ function ShopPageComponent() {
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [dayAppointments, setDayAppointments] = useState<any[]>([]);
   const [loadingDayData, setLoadingDayData] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | null>(null);
+  const [showPixStep, setShowPixStep] = useState(false);
 
   useEffect(() => {
     if (slug) {
@@ -388,58 +390,64 @@ function ShopPageComponent() {
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
           total_price: calculateTotal(),
-          status: "scheduled"
+          status: "scheduled",
+          payment_method: paymentMethod,
+          payment_status: paymentMethod === 'pix' ? 'paid' : 'pending',
+          items: [
+            { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
+            ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
+          ]
         })
         .select()
         .single();
 
       if (appError) throw appError;
 
-      // 3. Create transactions for products and services
-      // Add service transaction
-      await supabase.from("transactions").insert({
-        user_id: shop.id,
-        barber_id: selectedBarber.id,
-        appointment_id: appointment.id,
-        type: "income",
-        category: "Serviço",
-        amount: selectedService.price,
-        description: `Agendamento: ${selectedService.name} - Cliente: ${customerName}`,
-        date: new Date().toISOString().split('T')[0]
-      });
-
-      // 4. Create transactions and sales records for products if any
-      for (const item of selectedProducts) {
-        // Create general transaction for the finance tab
+      // 3. Create transactions for products and services ONLY if paid via PIX
+      if (paymentMethod === 'pix') {
+        // Add service transaction
         await supabase.from("transactions").insert({
           user_id: shop.id,
           barber_id: selectedBarber.id,
           appointment_id: appointment.id,
           type: "income",
-          category: "Produtos",
-          amount: item.price * (item.quantity || 1),
-          description: `Venda de Produto: ${item.name} (x${item.quantity || 1}) - Cliente: ${customerName}`,
+          category: "Serviço",
+          amount: selectedService.price,
+          description: `Agendamento (PIX): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
 
-        // Add to product_sales table for the Products -> Faturamento tab
-        await supabase.from("product_sales").insert({
-          user_id: shop.id,
-          total_amount: item.price * (item.quantity || 1),
-          status: 'completed',
-          items: [{
-            product_id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity || 1
-          }]
-        });
+        // 4. Create transactions and sales records for products if any
+        for (const item of selectedProducts) {
+          // Create general transaction for the finance tab
+          await supabase.from("transactions").insert({
+            user_id: shop.id,
+            barber_id: selectedBarber.id,
+            appointment_id: appointment.id,
+            type: "income",
+            category: "Produtos",
+            amount: item.price * (item.quantity || 1),
+            description: `Venda de Produto (PIX): ${item.name} (x${item.quantity || 1}) - Cliente: ${customerName}`,
+            date: new Date().toISOString().split('T')[0]
+          });
 
-        // Create a transaction record specifically linked to this sale if needed by reports
-        // The transaction above already covers the finance part.
+          // Add to product_sales table for the Products -> Faturamento tab
+          await supabase.from("product_sales").insert({
+            user_id: shop.id,
+            total_amount: item.price * (item.quantity || 1),
+            status: 'completed',
+            items: [{
+              product_id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity || 1
+            }]
+          });
+        }
+      }
 
-
-        // Update stock
+      // 4.5. Update stock regardless of payment method
+      for (const item of selectedProducts) {
         await (supabase as any).rpc('decrement_product_stock', { 
           prod_id: item.id, 
           amount: item.quantity || 1 
@@ -1175,9 +1183,75 @@ function ShopPageComponent() {
                   )}
                 </div>
 
-                <Button className="w-full" onClick={handleFinalizeBooking} disabled={submitting}>
-                  {submitting ? "Finalizando..." : "Confirmar Agendamento"}
-                </Button>
+                {!paymentMethod ? (
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <Button 
+                      variant="outline" 
+                      className="flex flex-col h-auto py-4 gap-2"
+                      onClick={() => setPaymentMethod('barbershop')}
+                    >
+                      <Scissors size={20} />
+                      <div className="text-xs">Pagar na Barbearia</div>
+                    </Button>
+                    <Button 
+                      className="flex flex-col h-auto py-4 gap-2"
+                      style={{ backgroundColor: primaryColor }}
+                      onClick={() => setPaymentMethod('pix')}
+                    >
+                      <QrCode size={20} />
+                      <div className="text-xs">Pagar Agora (PIX)</div>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 mt-4">
+                    {paymentMethod === 'pix' && (
+                      <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-xl space-y-4 text-center">
+                        <p className="text-sm font-bold flex items-center justify-center gap-2">
+                          <QrCode size={18} /> Pagamento via PIX
+                        </p>
+                        
+                        {shop.pix_qr_code_url && (
+                          <div className="flex justify-center">
+                            <img src={shop.pix_qr_code_url} className="h-32 w-32 object-contain bg-white p-2 rounded-lg border" alt="PIX" />
+                          </div>
+                        )}
+                        
+                        <div className="bg-background p-2 rounded border text-xs font-mono break-all relative group">
+                          {shop.pix_key || "Chave não cadastrada"}
+                          {shop.pix_key && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6 absolute right-1 top-1"
+                              onClick={() => {
+                                navigator.clipboard.writeText(shop.pix_key);
+                                toast.success("Copiado!");
+                              }}
+                            >
+                              <CheckCircle2 size={12} />
+                            </Button>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Após pagar, clique em confirmar abaixo.</p>
+                      </div>
+                    )}
+                    
+                    {paymentMethod === 'barbershop' && (
+                      <div className="p-4 border-2 border-dashed rounded-xl text-center bg-muted/30">
+                        <p className="text-sm font-medium">Você escolheu pagar na barbearia.</p>
+                        <p className="text-xs text-muted-foreground mt-1">O pagamento será realizado no momento do atendimento.</p>
+                      </div>
+                    )}
+
+                    <Button className="w-full" onClick={handleFinalizeBooking} disabled={submitting}>
+                      {submitting ? "Finalizando..." : "Confirmar Agendamento"}
+                    </Button>
+                    
+                    <Button variant="ghost" className="w-full text-xs" onClick={() => setPaymentMethod(null)}>
+                      Alterar forma de pagamento
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

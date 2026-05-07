@@ -22,7 +22,10 @@ export type Database = {
           customer_id: string | null
           end_time: string
           id: string
+          items: Json | null
           notes: string | null
+          payment_method: string | null
+          payment_status: string | null
           service_id: string | null
           start_time: string
           status: string | null
@@ -36,7 +39,10 @@ export type Database = {
           customer_id?: string | null
           end_time: string
           id?: string
+          items?: Json | null
           notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
           service_id?: string | null
           start_time: string
           status?: string | null
@@ -50,7 +56,10 @@ export type Database = {
           customer_id?: string | null
           end_time?: string
           id?: string
+          items?: Json | null
           notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
           service_id?: string | null
           start_time?: string
           status?: string | null

@@ -398,25 +398,31 @@ function ClientPortalComponent() {
                             <p className="font-bold">{app.services?.name}</p>
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
                               <span className="flex items-center gap-1"><Clock size={14} /> {format(parseISO(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
-                              <span className="flex items-center gap-1"><UserIcon size={14} /> {app.barbers?.name}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 self-end sm:self-center">
-                          <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'}>
-                            {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
-                          </Badge>
-                          {app.status === 'scheduled' && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-destructive h-8 px-2"
-                              onClick={() => handleCancelAppointment(app.id)}
-                            >
-                              Cancelar
-                            </Button>
-                          )}
-                        </div>
+                               <span className="flex items-center gap-1"><UserIcon size={14} /> {app.barbers?.name}</span>
+                               <Badge variant="outline" className="capitalize text-[10px]">
+                                 {app.payment_method === 'pix' ? 'Pago via PIX' : 'Pagar na Barbearia'}
+                               </Badge>
+                             </div>
+                           </div>
+                         </div>
+                         <div className="flex items-center gap-3 self-end sm:self-center">
+                           <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'}>
+                             {app.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
+                           </Badge>
+                           <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'}>
+                             {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
+                           </Badge>
+                           {app.status === 'scheduled' && (
+                             <Button 
+                               variant="ghost" 
+                               size="sm" 
+                               className="text-destructive h-8 px-2"
+                               onClick={() => handleCancelAppointment(app.id)}
+                             >
+                               Cancelar
+                             </Button>
+                           )}
+                         </div>
                       </div>
                     ))
                   )}

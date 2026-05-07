@@ -11,7 +11,8 @@ import {
   Scissors,
   X,
   AlertTriangle,
-  Crown
+  Crown,
+  CheckCircle2
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -217,6 +218,77 @@ function CalendarComponent() {
       refreshLimits();
     } catch (error: any) {
       toast.error("Erro ao criar agendamento: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMarkAsPaid = async (appointment: any) => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      // 1. Update appointment status
+      const { error: updateErr } = await supabase
+        .from("appointments")
+        .update({ payment_status: 'paid' })
+        .eq("id", appointment.id);
+
+      if (updateErr) throw updateErr;
+
+      // 2. Create transactions for items
+      let items = appointment.items || [];
+      
+      // Fallback for old appointments without items
+      if (items.length === 0 && appointment.service_id) {
+        items = [{
+          id: appointment.service_id,
+          name: appointment.services?.name || 'Serviço',
+          type: 'service',
+          price: appointment.total_price,
+          quantity: 1
+        }];
+      }
+
+      const serviceItem = items.find((i: any) => i.type === 'service');
+      const productItems = items.filter((i: any) => i.type === 'product');
+
+      if (serviceItem) {
+        await supabase.from("transactions").insert({
+          user_id: user.id,
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          type: "income",
+          category: "Serviço",
+          amount: serviceItem.price,
+          description: `Pagamento (Local): ${serviceItem.name} - Cliente: ${appointment.customers?.name}`,
+          date: new Date().toISOString().split('T')[0]
+        });
+      }
+
+      for (const item of productItems) {
+        await supabase.from("transactions").insert({
+          user_id: user.id,
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          type: "income",
+          category: "Produtos",
+          amount: item.price * (item.quantity || 1),
+          description: `Venda de Produto (Local): ${item.name} (x${item.quantity || 1}) - Cliente: ${appointment.customers?.name}`,
+          date: new Date().toISOString().split('T')[0]
+        });
+
+        await supabase.from("product_sales").insert({
+          user_id: user.id,
+          total_amount: item.price * (item.quantity || 1),
+          status: 'completed',
+          items: [item]
+        });
+      }
+
+      toast.success("Pagamento registrado com sucesso!");
+      fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao registrar pagamento: " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -482,25 +554,41 @@ function CalendarComponent() {
                             <span className="opacity-90 flex items-center gap-1 text-[10px]">
                               <User size={10} /> {app.barbers?.name}
                             </span>
-                            <div className="flex justify-between items-center mt-1">
+                            <div className="flex justify-between items-center mt-1 gap-1">
                               <span className="font-mono text-[10px] bg-black/20 rounded px-1">
                                 {format(parseISO(app.start_time), "HH:mm")}
                               </span>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-4 w-4 text-white hover:bg-white/20"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  if (confirm("Deseja cancelar este agendamento?")) {
-                                    await supabase.from("appointments").delete().eq("id", app.id);
-                                    fetchData();
-                                    toast.success("Agendamento removido");
-                                  }
-                                }}
-                              >
-                                <X size={10} />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                {app.payment_status === 'pending' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-5 w-5 text-white hover:bg-green-500/50"
+                                    title="Marcar como Pago"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMarkAsPaid(app);
+                                    }}
+                                  >
+                                    <CheckCircle2 size={12} />
+                                  </Button>
+                                )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-5 w-5 text-white hover:bg-red-500/50"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (confirm("Deseja cancelar este agendamento?")) {
+                                      await supabase.from("appointments").delete().eq("id", app.id);
+                                      fetchData();
+                                      toast.success("Agendamento removido");
+                                    }
+                                  }}
+                                >
+                                  <X size={12} />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
