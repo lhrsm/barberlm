@@ -41,6 +41,7 @@ function ClientPortalComponent() {
   const [client, setClient] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
   
   // Auth state
   const [phone, setPhone] = useState("");
@@ -573,7 +574,7 @@ function ClientPortalComponent() {
             <h2 className="text-2xl font-bold">Olá, {client.name}!</h2>
             <p className="text-muted-foreground">Bem-vindo à sua área exclusiva na {shop?.business_name}.</p>
           </div>
-          <Button onClick={() => navigate({ to: `/${slug}` })} className="gap-2">
+          <Button onClick={() => setIsBookingOpen(true)} className="gap-2">
             <Calendar size={18} /> Novo Agendamento
           </Button>
         </div>
@@ -810,6 +811,21 @@ function ClientPortalComponent() {
               {submitting ? "Salvando..." : "Confirmar Alteração"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Novo Agendamento</DialogTitle>
+            <DialogDescription>Preencha os dados abaixo para agendar seu novo serviço.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <iframe 
+              src={`/${slug}?embed=true&phone=${client.phone}&name=${encodeURIComponent(client.name)}`} 
+              className="w-full h-[500px] border-none rounded-lg"
+              title="Agendamento"
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

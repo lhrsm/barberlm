@@ -20,6 +20,10 @@ export const Route = createFileRoute("/$slug")({
 function ShopPageComponent() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(window.location.search);
+  const isEmbedded = searchParams.get('embed') === 'true';
+  const initialPhone = searchParams.get('phone') || "";
+  const initialName = searchParams.get('name') || "";
   const [shop, setShop] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
@@ -65,6 +69,32 @@ function ShopPageComponent() {
       fetchShopData(slug);
     }
   }, [slug]);
+
+  useEffect(() => {
+    if (isEmbedded && initialPhone) {
+      setCustomerPhone(initialPhone);
+      if (initialName) setCustomerName(initialName);
+      
+      // Auto trigger phone check if embedded with phone
+      const timer = setTimeout(() => {
+        handlePhoneCheckWithParams(initialPhone);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isEmbedded, initialPhone, initialName, shop?.id]);
+
+  const handlePhoneCheckWithParams = async (phone: string) => {
+    if (!phone || phone.length < 8 || !shop?.id) return;
+    setSubmitting(true);
+    try {
+      const customer = await checkCustomerCashback(phone);
+      setBookingStep(2);
+    } catch (error) {
+      console.error("Error checking phone:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     if (selectedDate && shop?.id && isBookingOpen) {
@@ -740,26 +770,43 @@ function ShopPageComponent() {
       }}
     >
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {shop.logo_url ? (
-              <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain" />
-            ) : (
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
-              </div>
-            )}
-            <h1 className="font-bold text-lg">{shop.business_name}</h1>
+      {!isEmbedded && (
+        <header className="bg-white border-b sticky top-0 z-50">
+          <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {shop.logo_url ? (
+                <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain" />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
+                </div>
+              )}
+              <h1 className="font-bold text-lg">{shop.business_name}</h1>
+            </div>
+            <Button style={{ backgroundColor: primaryColor }} className="text-white" onClick={handleBookingAction}>
+              {shop.scheduling_mode === 'manual' ? 'Agendar via WhatsApp' : 'Agendar Agora'}
+            </Button>
           </div>
-          <Button style={{ backgroundColor: primaryColor }} className="text-white" onClick={handleBookingAction}>
-            {shop.scheduling_mode === 'manual' ? 'Agendar via WhatsApp' : 'Agendar Agora'}
-          </Button>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* Hero / About */}
+      <main className={cn("max-w-4xl mx-auto px-4 py-8 space-y-8", isEmbedded && "py-0")}>
+        {isEmbedded ? (
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            {!isBookingOpen ? (
+              <div className="text-center space-y-4">
+                <h3 className="text-xl font-bold">Pronto para agendar?</h3>
+                <Button size="lg" style={{ backgroundColor: primaryColor }} onClick={() => setIsBookingOpen(true)}>
+                  Começar Agendamento
+                </Button>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">O formulário de agendamento está aberto acima.</p>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Hero / About */}
         <section className="text-center space-y-4">
           <h2 className="text-3xl font-extrabold tracking-tight">Bem-vindo à {shop.business_name}</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -972,24 +1019,28 @@ function ShopPageComponent() {
           </p>
         </section>
 
-        {/* Footer info */}
-        <section className="pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>© 2026 {shop.business_name} - Todos os direitos reservados.</p>
-          <p className="mt-2">Desenvolvido por BarberSaaS</p>
-        </section>
+            {/* Footer info */}
+            <section className="pt-8 border-t text-center text-sm text-muted-foreground">
+              <p>© 2026 {shop.business_name} - Todos os direitos reservados.</p>
+              <p className="mt-2">Desenvolvido por BarberSaaS</p>
+            </section>
+          </>
+        )}
       </main>
 
       <Dialog open={isBookingOpen} onOpenChange={(open) => {
         setIsBookingOpen(open);
         if (!open) {
           setBookingStep(1);
-          setCustomerName("");
-          setCustomerPhone("");
+          if (!isEmbedded) {
+            setCustomerName("");
+            setCustomerPhone("");
+          }
           setUseCashback(false);
           setPaymentMethod(null);
         }
       }}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className={cn("sm:max-w-[425px]", isEmbedded && "w-full max-w-full m-0")}>
           <DialogHeader>
             <DialogTitle>
               {bookingStep === 1 && "Informe seu WhatsApp"}
@@ -1818,6 +1869,29 @@ function ShopPageComponent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Cancellation & Rating Access Modal */}
+      {!isEmbedded && <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Acessar Agendamento</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-muted-foreground">Insira o código do seu agendamento para avaliar o serviço.</p>
+            <div className="grid gap-2">
+              <Label htmlFor="token">Código do Agendamento</Label>
+              <Input 
+                id="token" 
+                placeholder="Ex: ABC-123" 
+                value={cancelTokenInput} 
+                onChange={(e) => setCancelTokenInput(e.target.value)} 
+              />
+            </div>
+            <Button className="w-full" onClick={handleCheckRatingEligibility}>
+              Acessar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>}
     </div>
   );
 }
