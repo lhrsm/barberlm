@@ -558,7 +558,16 @@ function ShopPageComponent() {
       
       // Delay redirection slightly to ensure state is clear
       setTimeout(() => {
-        window.location.href = `/${slug}/portal`;
+        if (window.self !== window.top) {
+          // If in iframe, tell parent to reload or redirect
+          window.parent.postMessage({ type: 'BOOKING_SUCCESS' }, '*');
+          // Fallback if message not handled
+          setTimeout(() => {
+            window.parent.location.href = `/${slug}/portal`;
+          }, 1000);
+        } else {
+          window.location.href = `/${slug}/portal`;
+        }
       }, 500);
       
       
