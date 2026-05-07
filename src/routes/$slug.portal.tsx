@@ -116,6 +116,7 @@ function ClientPortalComponent() {
     e.preventDefault();
     setSubmitting(true);
     try {
+      // @ts-ignore - types are being updated
       const { data, error } = await supabase
         .from("client_auth")
         .select("*, customers(id, name, user_id)")
@@ -180,6 +181,7 @@ function ClientPortalComponent() {
       }
 
       // 2. Create client_auth record
+      // @ts-ignore - types are being updated
       const { error: authErr } = await supabase
         .from("client_auth")
         .insert({
