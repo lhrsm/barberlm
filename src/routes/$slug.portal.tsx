@@ -20,7 +20,11 @@ import {
   XCircle,
   RefreshCcw,
   AlertTriangle,
-  Edit2
+  Edit2,
+  Upload,
+  Camera,
+  Save,
+  Mail
 } from "lucide-react";
 import { format, isAfter, subDays, parseISO, addMinutes, differenceInMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -669,12 +673,15 @@ function ClientPortalComponent() {
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+          <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
             <TabsTrigger value="appointments" className="gap-2">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
             <TabsTrigger value="purchases" className="gap-2">
               <ShoppingBag size={16} /> Compras
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2">
+              <UserIcon size={16} /> Perfil
             </TabsTrigger>
           </TabsList>
 
@@ -825,6 +832,153 @@ function ClientPortalComponent() {
                     ))
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="profile" className="pt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Meu Perfil</CardTitle>
+                <CardDescription>Atualize suas informações de contato e foto de perfil.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex flex-col items-center gap-4 py-4">
+                  <div className="relative group">
+                    <div className="h-24 w-24 rounded-full bg-muted overflow-hidden border-2 border-primary/20">
+                      {customerData?.avatar_url ? (
+                        <img src={customerData.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-3xl font-bold text-muted-foreground bg-primary/5">
+                          {customerData?.name?.[0] || "?"}
+                        </div>
+                      )}
+                    </div>
+                    <label className="absolute bottom-0 right-0 h-8 w-8 bg-primary rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg hover:scale-110 transition-transform">
+                      <Camera size={14} />
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !customerData?.id) return;
+                          
+                          setSubmitting(true);
+                          try {
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `${customerData.id}-${Math.random()}.${fileExt}`;
+                            const filePath = `customer-avatars/${fileName}`;
+
+                            const { error: uploadError } = await supabase.storage
+                              .from('barber-avatars')
+                              .upload(filePath, file);
+
+                            if (uploadError) throw uploadError;
+
+                            const { data: { publicUrl } } = supabase.storage
+                              .from('barber-avatars')
+                              .getPublicUrl(filePath);
+
+                            const { error: updateError } = await supabase
+                              .from('customers')
+                              .update({ avatar_url: publicUrl })
+                              .eq('id', customerData.id);
+
+                            if (updateError) throw updateError;
+                            
+                            toast.success("Foto atualizada!");
+                            fetchClientData(customerData.id);
+                          } catch (err: any) {
+                            toast.error("Erro ao enviar imagem");
+                            console.error(err);
+                          } finally {
+                            setSubmitting(false);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Clique no ícone para alterar sua foto</p>
+                </div>
+
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="profile-name">Nome Completo</Label>
+                    <Input 
+                      id="profile-name" 
+                      value={customerName || (customerData?.name || "")} 
+                      onChange={(e) => setCustomerName(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="profile-email">E-mail</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="profile-email" 
+                        type="email"
+                        placeholder="seu@email.com"
+                        className="pl-10"
+                        defaultValue={customerData?.email || ""}
+                        onBlur={async (e) => {
+                          if (!customerData?.id) return;
+                          const email = e.target.value;
+                          const { error } = await supabase
+                            .from('customers')
+                            .update({ email })
+                            .eq('id', customerData.id);
+                          if (!error) toast.success("E-mail atualizado!");
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="profile-phone">WhatsApp</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="profile-phone" 
+                        value={customerData?.phone || ""} 
+                        disabled 
+                        className="pl-10 bg-muted"
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground italic">O número de telefone não pode ser alterado.</p>
+                  </div>
+                </div>
+              </CardContent>
+              <CardContent className="pt-0 pb-6">
+                <Button 
+                  className="w-full gap-2" 
+                  disabled={submitting}
+                  onClick={async () => {
+                    if (!customerData?.id || !customerName) return;
+                    setSubmitting(true);
+                    try {
+                      const { error } = await supabase
+                        .from('customers')
+                        .update({ name: customerName })
+                        .eq('id', customerData.id);
+                      if (error) throw error;
+                      
+                      // Update local session
+                      const sessionData = JSON.parse(localStorage.getItem(`client_portal_session_${slug}`) || "{}");
+                      sessionData.name = customerName;
+                      localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
+                      setClient(sessionData);
+                      
+                      toast.success("Perfil atualizado com sucesso!");
+                      fetchClientData(customerData.id);
+                    } catch (e) {
+                      toast.error("Erro ao salvar alterações");
+                    } finally {
+                      setSubmitting(false);
+                    }
+                  }}
+                >
+                  <Save size={18} /> {submitting ? "Salvando..." : "Salvar Alterações"}
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

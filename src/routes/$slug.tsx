@@ -1112,7 +1112,8 @@ function ShopPageComponent() {
                     <Input 
                       placeholder="Seu nome" 
                       value={customerName} 
-                      onChange={(e) => setCustomerName(e.target.value)} 
+                      onBlur={(e) => setCustomerName(e.target.value)}
+                      defaultValue={customerName}
                     />
                   </div>
                 )}
