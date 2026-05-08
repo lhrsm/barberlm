@@ -106,20 +106,30 @@ function FinancesComponent() {
   const summary = useMemo(() => {
     const income = transactions
       .filter((t) => t.type === "income")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+      .reduce((acc, t) => {
+        const val = parseFloat(String(t.amount)) || 0;
+        if (val === 0 && t.description?.includes("CRÉDITOS")) {
+          const match = t.description.match(/R\$\s*([\d.]+)/);
+          if (match) return acc + parseFloat(match[1]);
+        }
+        return acc + val;
+      }, 0);
     const expense = transactions
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
     
     // Calcular créditos usados (transações com valor 0 mas que representam serviço)
-    const creditsUsed = transactions
+    const creditsUsedAmount = transactions
       .filter((t) => t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && t.description?.includes("CRÉDITOS"))
-      .length;
+      .reduce((acc, t) => {
+        const match = t.description?.match(/R\$\s*([\d.]+)/);
+        return acc + (match ? parseFloat(match[1]) : 0);
+      }, 0);
 
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
 
-    return { income, expense, pending, balance: income - expense, creditsUsed };
+    return { income, expense, pending, balance: income - expense, creditsUsedAmount };
   }, [transactions, appointments]);
 
   useEffect(() => {
@@ -396,7 +406,7 @@ function FinancesComponent() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[100px]">Data</TableHead>
-                    <TableHead className="w-[80px]">Hora</TableHead>
+                    <TableHead className="w-[100px]">Hora</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Barbeiro</TableHead>
                     <TableHead>Categoria</TableHead>
@@ -568,7 +578,7 @@ function FinancesComponent() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[100px]">Data</TableHead>
-                    <TableHead className="w-[80px]">Hora</TableHead>
+                    <TableHead className="w-[100px]">Hora</TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead>Serviço</TableHead>
                     <TableHead>Barbeiro</TableHead>
@@ -684,7 +694,18 @@ function FinancesComponent() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {barbers.map((barber) => {
                 const barberTransactions = transactions.filter(t => t.barber_id === barber.id && t.type === 'income');
-                const totalReceived = barberTransactions.reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+                const totalReceived = barberTransactions.reduce((acc, t) => {
+                  const val = parseFloat(String(t.amount)) || 0;
+                  // Se o valor for 0 mas houver descrição de agendamento, buscar o preço original do serviço se necessário
+                  // No entanto, o usuário pediu para mover créditos para receita quando usados.
+                  // Vamos garantir que se for crédito, o valor original seja considerado para cálculo de comissão.
+                  if (val === 0 && t.description?.includes("CRÉDITOS")) {
+                    // Tentar extrair valor da descrição "R$ 30.00"
+                    const match = t.description.match(/R\$\s*([\d.]+)/);
+                    if (match) return acc + parseFloat(match[1]);
+                  }
+                  return acc + val;
+                }, 0);
                 
                 const commissionRate = Number(barber.commission_rate || 0);
                 const barberPart = totalReceived * (commissionRate / 100);
@@ -722,16 +743,23 @@ function FinancesComponent() {
                   <p className="text-xs text-muted-foreground">Vendas e lançamentos sem barbeiro específico</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {(() => {
-                    const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
-                    const totalGeneral = generalTransactions.reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
-                    return (
-                      <div className="flex justify-between items-center border-b pb-2">
-                        <span className="text-sm font-medium">Total Geral</span>
-                        <span className="font-bold text-primary">R$ {totalGeneral.toFixed(2)}</span>
-                      </div>
-                    );
-                  })()}
+                    {(() => {
+                      const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
+                      const totalGeneral = generalTransactions.reduce((acc, t) => {
+                        const val = parseFloat(String(t.amount)) || 0;
+                        if (val === 0 && t.description?.includes("CRÉDITOS")) {
+                          const match = t.description.match(/R\$\s*([\d.]+)/);
+                          if (match) return acc + parseFloat(match[1]);
+                        }
+                        return acc + val;
+                      }, 0);
+                      return (
+                        <div className="flex justify-between items-center border-b pb-2">
+                          <span className="text-sm font-medium">Total Geral</span>
+                          <span className="font-bold text-primary">R$ {totalGeneral.toFixed(2)}</span>
+                        </div>
+                      );
+                    })()}
                 </CardContent>
               </Card>
 
