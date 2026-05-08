@@ -538,7 +538,9 @@ function ClientPortalComponent() {
           .update({ credits: newCredits })
           .eq("id", cancellingAppointment.customer_id);
 
-        // Remove the income from transactions as it's now credits (not realized revenue yet)
+        // Remove any realized revenue from transactions for this appointment
+        // We delete all transactions for this appointment because they will be re-recorded
+        // only when the client actually uses these credits for a future service.
         await supabase
           .from("transactions")
           .delete()
@@ -551,7 +553,8 @@ function ClientPortalComponent() {
             refund_requested_at: new Date().toISOString(),
             refund_type: 'credits',
             refund_status: 'completed',
-            payment_status: 'refunded'
+            payment_status: 'refunded',
+            notes: cancellingAppointment.notes ? `${cancellingAppointment.notes} | Convertido em créditos` : 'Convertido em créditos'
           })
           .eq("id", cancellingAppointment.id);
           

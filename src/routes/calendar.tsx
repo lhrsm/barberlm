@@ -235,42 +235,50 @@ function CalendarComponent() {
 
       // Only create transaction and sales records if paid
       if (paymentStatus === 'paid') {
-        const isWalletPayment = paymentMethod === 'wallet'; // Assumindo que adicionaremos 'wallet' como método
+        const isWalletPayment = paymentMethod === 'wallet';
         const totalPrice = service?.price || 0;
+        const currentCustomer = customers.find(c => c.id === selectedCustomer);
+        const availableCredits = Number(currentCustomer?.credits || 0);
 
-        // Se for pagamento via carteira (usando créditos), debitar do saldo
-        if (isWalletPayment) {
-          const { data: wallet } = await supabase
-            .from("wallet")
-            .select("id, balance")
-            .eq("customer_id", selectedCustomer)
-            .maybeSingle();
+        // Se for pagamento via créditos, debitar do saldo
+        if (isWalletPayment || availableCredits > 0) {
+          const usedCredits = Math.min(availableCredits, totalPrice);
+          const remainingToPay = totalPrice - usedCredits;
 
-          if (wallet && wallet.balance >= totalPrice) {
-            await supabase.from("wallet_transactions").insert({
-              wallet_id: wallet.id,
-              amount: totalPrice,
-              type: "debit",
-              description: `Uso de créditos: ${service?.name}`,
-              appointment_id: appointmentData.id,
-              user_id: user.id
-            });
+          if (usedCredits > 0) {
+            // Atualizar créditos do cliente
+            await supabase
+              .from("customers")
+              .update({ credits: availableCredits - usedCredits })
+              .eq("id", selectedCustomer);
             
-            // Quando créditos são usados, agora movemos para a receita real (transactions)
+            // Quando créditos são usados, movemos para a receita real (transactions)
             await supabase.from("transactions").insert({
               user_id: user.id,
               barber_id: selectedBarber,
               appointment_id: appointmentData.id,
               type: "income",
               category: "Serviço (Uso de Crédito)",
-              amount: totalPrice,
-              description: `Agendamento (Créditos): ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
+              amount: usedCredits,
+              description: `Agendamento (Créditos: R$ ${usedCredits.toFixed(2)}): ${service?.name} - Cliente: ${currentCustomer?.name}`,
               date: selectedDate,
               time: selectedTime + ":00"
             });
-          } else {
-            toast.error("Saldo insuficiente na carteira do cliente.");
-            // Reverter ou tratar erro de saldo
+          }
+
+          if (remainingToPay > 0) {
+            // Se ainda sobrou algo para pagar (pagamento misto ou crédito insuficiente)
+            await supabase.from("transactions").insert({
+              user_id: user.id,
+              barber_id: selectedBarber,
+              appointment_id: appointmentData.id,
+              type: "income",
+              category: "Serviço",
+              amount: remainingToPay,
+              description: `Agendamento (Diferença: R$ ${remainingToPay.toFixed(2)}): ${service?.name} - Cliente: ${currentCustomer?.name}`,
+              date: selectedDate,
+              time: selectedTime + ":00"
+            });
           }
         } else {
           // Pagamento normal (não crédito)
@@ -281,7 +289,7 @@ function CalendarComponent() {
             type: "income",
             category: "Serviço",
             amount: totalPrice,
-            description: `Agendamento: ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
+            description: `Agendamento: ${service?.name} - Cliente: ${currentCustomer?.name}`,
             date: selectedDate,
             time: selectedTime + ":00"
           });
@@ -292,14 +300,13 @@ function CalendarComponent() {
           user_id: user.id,
           items: [{ id: selectedService, name: service?.name, quantity: 1, price: totalPrice }],
           total_amount: totalPrice,
-          status: 'completed'
+          status: 'completed',
+          customer_id: selectedCustomer
         });
 
         // Atualizar pontos de fidelidade do cliente
         if (selectedCustomer) {
-          const currentCustomer = customers.find(c => c.id === selectedCustomer);
           const currentPoints = currentCustomer?.loyalty_points || 0;
-          
           await supabase
             .from("customers")
             .update({ loyalty_points: currentPoints + 1 })
@@ -346,21 +353,55 @@ function CalendarComponent() {
         }];
       }
 
+      // Check for available credits
+      const { data: customerData } = await supabase
+        .from("customers")
+        .select("loyalty_points, credits, name")
+        .eq("id", appointment.customer_id)
+        .single();
+      
+      const availableCredits = Number(customerData?.credits || 0);
       const serviceItem = items.find((i: any) => i.type === 'service');
       const productItems = items.filter((i: any) => i.type === 'product');
 
       if (serviceItem) {
-        await supabase.from("transactions").insert({
-          user_id: user.id,
-          barber_id: appointment.barber_id,
-          appointment_id: appointment.id,
-          type: "income",
-          category: "Serviço",
-          amount: serviceItem.price,
-          description: `Pagamento (Local): ${serviceItem.name} - Cliente: ${appointment.customers?.name} - R$ ${serviceItem.price}`,
-          date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
-          time: format(parseISO(appointment.start_time), "HH:mm:ss")
-        });
+        const totalPrice = serviceItem.price;
+        const usedCredits = Math.min(availableCredits, totalPrice);
+        const remainingToPay = totalPrice - usedCredits;
+
+        if (usedCredits > 0) {
+          // Atualizar créditos do cliente
+          await supabase
+            .from("customers")
+            .update({ credits: availableCredits - usedCredits })
+            .eq("id", appointment.customer_id);
+          
+          await supabase.from("transactions").insert({
+            user_id: user.id,
+            barber_id: appointment.barber_id,
+            appointment_id: appointment.id,
+            type: "income",
+            category: "Serviço (Uso de Crédito)",
+            amount: usedCredits,
+            description: `Pagamento (Créditos: R$ ${usedCredits.toFixed(2)}): ${serviceItem.name} - Cliente: ${customerData?.name}`,
+            date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
+            time: format(parseISO(appointment.start_time), "HH:mm:ss")
+          });
+        }
+
+        if (remainingToPay > 0) {
+          await supabase.from("transactions").insert({
+            user_id: user.id,
+            barber_id: appointment.barber_id,
+            appointment_id: appointment.id,
+            type: "income",
+            category: "Serviço",
+            amount: remainingToPay,
+            description: `Pagamento (Local - Diferença: R$ ${remainingToPay.toFixed(2)}): ${serviceItem.name} - Cliente: ${customerData?.name}`,
+            date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
+            time: format(parseISO(appointment.start_time), "HH:mm:ss")
+          });
+        }
       }
 
       for (const item of productItems) {
