@@ -262,7 +262,7 @@ function CalendarComponent() {
             appointment_id: appointmentData.id,
             type: "income",
             category: "Serviço",
-            amount: totalPrice,
+            amount: remainingToPay > 0 ? remainingToPay : totalPrice,
             description: `Agendamento${creditText}: ${service?.name} - Cliente: ${currentCustomer?.name}`,
             date: selectedDate,
             time: selectedTime + ":00"
