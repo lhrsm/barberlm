@@ -474,33 +474,28 @@ function ShopPageComponent() {
           .update({ credits: customerCredits - amountToDeduct })
           .eq("id", customerId);
 
-        // Se o valor debitado for maior que 0, registramos como entrada financeira
-        // distribuindo entre barbearia e freelancer
+        // Se o valor debitado for maior que 0, NÃO criamos transação aqui.
+        // A transação será única com o valor TOTAL (serviço + produtos) abatendo os créditos
+        // para que a receita reflita apenas o que entrou de dinheiro novo ou o total correto.
+        // O gerenciamento de créditos é um fluxo interno.
+        /* 
         if (amountToDeduct > 0) {
-          const commissionRate = Number(selectedBarber.commission_rate || 0);
-          const freelancerPart = amountToDeduct * (commissionRate / 100);
-          const barbershopPart = amountToDeduct - freelancerPart;
-
-          // No financeiro, registramos a entrada total, o sistema de resumo já calcula as partes baseado na comissão
-          await supabase.from("transactions").insert({
-            user_id: shop.id,
-            barber_id: selectedBarber.id,
-            appointment_id: appointment.id,
-            type: "income",
-            category: "Serviço (Uso de Crédito)",
-            amount: amountToDeduct,
-            description: `Uso de Crédito: ${selectedService.name} - Cliente: ${customerName} (Total: R$ ${amountToDeduct.toFixed(2)})`,
-            date: new Date().toISOString().split('T')[0]
-          });
+          // ... logic removed to avoid duplicate or inflated revenue
         }
+        */
       }
 
       // 3. Create transactions for products and services if paid via PIX OR cashback (credits handled above)
-      if (paymentMethod === 'pix' || (calculateTotal() === 0 && useCashback)) {
-        const finalPaymentMethod = calculateTotal() === 0 ? (useCashback ? 'CASHBACK' : 'PIX') : 'PIX';
+      // 3. Create transaction for the appointment (remaining amount or total)
+      if (paymentMethod === 'pix' || paymentMethod === 'barbershop' || calculateTotal() === 0) {
+        const finalPaymentMethod = paymentMethod === 'pix' ? 'PIX' : (paymentMethod === 'barbershop' ? 'BARBEARIA' : 'CRÉDITOS/CASHBACK');
         
         // Add service transaction
         const remainingAmount = calculateTotal();
+        
+        // Se sobrou algo para pagar (Pix/Barbearia) ou se foi totalmente pago com créditos/cashback
+        // Criamos uma única transação que representa a "receita" desse agendamento.
+        // O usuário quer que se o serviço é 50 e usou 20 de crédito, a receita seja 30 (o que entrou).
         await supabase.from("transactions").insert({
           user_id: shop.id,
           barber_id: selectedBarber.id,
@@ -508,7 +503,7 @@ function ShopPageComponent() {
           type: "income",
           category: "Serviço",
           amount: remainingAmount,
-          description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}`,
+          description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}${useCredits ? ` (Abatido R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)} em créditos)` : ""}`,
           date: new Date().toISOString().split('T')[0]
         });
 
