@@ -126,11 +126,6 @@ function FinancesComponent() {
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
-        // Se o valor for 0 mas for um uso de crédito, tentamos extrair o valor da descrição
-        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
-          const match = t.description.match(/R\$\s*([\d.]+)/);
-          if (match) return acc + parseFloat(match[1]);
-        }
         return acc + val;
       }, 0);
     const expense = transactions
