@@ -12,7 +12,8 @@ import {
   X,
   AlertTriangle,
   Crown,
-  CheckCircle2
+  CheckCircle2,
+  RefreshCcw
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -768,6 +769,42 @@ function CalendarComponent() {
                                     <span>Pagar</span>
                                   </Button>
                                 )}
+                                
+                                {app.refund_requested_at && app.refund_status === 'pending' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 px-2 text-white bg-amber-500/30 hover:bg-amber-500/50 text-[10px] gap-1"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (confirm(`Confirmar ${app.refund_type === 'refund' ? 'estorno' : 'créditos'} para este cliente?`)) {
+                                        try {
+                                          if (app.refund_type === 'credits') {
+                                            // Handle credits if not already done by auto-cancel
+                                            const { data: currentCust } = await supabase
+                                              .from("customers")
+                                              .select("credits")
+                                              .eq("id", app.customer_id)
+                                              .single();
+                                            
+                                            const newCredits = Number(currentCust?.credits || 0) + Number(app.total_price || 0);
+                                            await supabase.from("customers").update({ credits: newCredits }).eq("id", app.customer_id);
+                                          }
+                                          
+                                          await supabase.from("appointments").update({ refund_status: 'completed' }).eq("id", app.id);
+                                          toast.success("Solicitação processada com sucesso");
+                                          fetchData();
+                                        } catch (err) {
+                                          toast.error("Erro ao processar solicitação");
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <RefreshCcw size={10} />
+                                    <span>Aprovar {app.refund_type === 'refund' ? 'Estorno' : 'Créditos'}</span>
+                                  </Button>
+                                )}
+
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
