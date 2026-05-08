@@ -848,6 +848,8 @@ function CalendarComponent() {
                                             
                                             const newCredits = Number(currentCust?.credits || 0) + Number(app.total_price || 0);
                                             await supabase.from("customers").update({ credits: newCredits }).eq("id", app.customer_id);
+                                            // Remove original income from transactions when converting to credits
+                                            await supabase.from("transactions").delete().eq("appointment_id", app.id);
                                           } else if (app.refund_type === 'refund') {
                                             // Estorno: cria uma SAÍDA equivalente à entrada original.
                                             await supabase.from("transactions").insert({

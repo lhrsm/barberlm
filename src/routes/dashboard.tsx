@@ -779,8 +779,10 @@ function DashboardComponent() {
                                             appointment_id: app.id,
                                             user_id: user?.id || ""
                                           });
+                                          // Remove original income from transactions when converting to credits
+                                          await supabase.from("transactions").delete().eq("appointment_id", app.id);
                                           await supabase.from("appointments").delete().eq("id", app.id);
-                                          toast.success("Valor convertido em créditos!");
+                                          toast.success("Valor convertido em créditos e removido do saldo!");
                                         }
                                       } else if (app.refund_type === 'refund') {
                                         await supabase.from("transactions").insert({
