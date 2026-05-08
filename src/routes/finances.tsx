@@ -153,10 +153,6 @@ function FinancesComponent() {
       );
       const bTotal = bTransactions.reduce((tAcc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
-        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
-          const match = t.description.match(/R\$\s*([\d.]+)/);
-          if (match) return tAcc + parseFloat(match[1]);
-        }
         return tAcc + val;
       }, 0);
       const commissionRate = Number(barber.commission_rate || 0);
