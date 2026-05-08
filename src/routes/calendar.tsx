@@ -352,7 +352,7 @@ function CalendarComponent() {
           type: "income",
           category: "Serviço",
           amount: serviceItem.price,
-          description: `Pagamento (Local): ${serviceItem.name} - Cliente: ${appointment.customers?.name}`,
+          description: `Pagamento (Local): ${serviceItem.name} - Cliente: ${appointment.customers?.name} - R$ ${serviceItem.price}`,
           date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
           time: format(parseISO(appointment.start_time), "HH:mm:ss")
         });

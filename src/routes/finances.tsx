@@ -108,7 +108,8 @@ function FinancesComponent() {
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
-        if (val === 0 && t.description?.includes("CRÉDITOS")) {
+        // Se o valor for 0 mas for um uso de crédito, tentamos extrair o valor da descrição
+        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
           const match = t.description.match(/R\$\s*([\d.]+)/);
           if (match) return acc + parseFloat(match[1]);
         }
@@ -120,7 +121,7 @@ function FinancesComponent() {
     
     // Calcular créditos usados (transações com valor 0 mas que representam serviço)
     const creditsUsedAmount = transactions
-      .filter((t) => t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && t.description?.includes("CRÉDITOS"))
+      .filter((t) => t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito")))
       .reduce((acc, t) => {
         const match = t.description?.match(/R\$\s*([\d.]+)/);
         return acc + (match ? parseFloat(match[1]) : 0);
@@ -434,7 +435,14 @@ function FinancesComponent() {
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
                         <TableCell>{t.category || "-"}</TableCell>
                         <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>
-                          {t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "+" : "★") : "-"} R$ {(parseFloat(String(t.amount)) || 0).toFixed(2)}
+                          {t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "+" : "★") : "-"} R$ {(() => {
+                            const val = parseFloat(String(t.amount)) || 0;
+                            if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
+                              const match = t.description.match(/R\$\s*([\d.]+)/);
+                              return match ? parseFloat(match[1]).toFixed(2) : "0.00";
+                            }
+                            return val.toFixed(2);
+                          })()}
                           {t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && <span className="block text-[10px] opacity-70">Crédito</span>}
                         </TableCell>
                         <TableCell className="text-right">
@@ -696,11 +704,7 @@ function FinancesComponent() {
                 const barberTransactions = transactions.filter(t => t.barber_id === barber.id && t.type === 'income');
                 const totalReceived = barberTransactions.reduce((acc, t) => {
                   const val = parseFloat(String(t.amount)) || 0;
-                  // Se o valor for 0 mas houver descrição de agendamento, buscar o preço original do serviço se necessário
-                  // No entanto, o usuário pediu para mover créditos para receita quando usados.
-                  // Vamos garantir que se for crédito, o valor original seja considerado para cálculo de comissão.
-                  if (val === 0 && t.description?.includes("CRÉDITOS")) {
-                    // Tentar extrair valor da descrição "R$ 30.00"
+                  if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
                     const match = t.description.match(/R\$\s*([\d.]+)/);
                     if (match) return acc + parseFloat(match[1]);
                   }
@@ -747,7 +751,7 @@ function FinancesComponent() {
                       const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
                       const totalGeneral = generalTransactions.reduce((acc, t) => {
                         const val = parseFloat(String(t.amount)) || 0;
-                        if (val === 0 && t.description?.includes("CRÉDITOS")) {
+                        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
                           const match = t.description.match(/R\$\s*([\d.]+)/);
                           if (match) return acc + parseFloat(match[1]);
                         }

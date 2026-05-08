@@ -178,7 +178,7 @@ function DashboardComponent() {
             .insert({
               amount: 0, 
               type: "income",
-              description: `[${appointment.payment_method.toUpperCase()}] ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+              description: `[${appointment.payment_method.toUpperCase()}] ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'} - R$ ${totalPrice}`,
               category: "Serviço (Uso de Crédito/Cashback)",
               barber_id: appointment.barber_id,
               appointment_id: appointment.id,
