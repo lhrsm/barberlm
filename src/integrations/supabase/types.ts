@@ -26,6 +26,9 @@ export type Database = {
           notes: string | null
           payment_method: string | null
           payment_status: string | null
+          refund_requested_at: string | null
+          refund_status: string | null
+          refund_type: string | null
           service_id: string | null
           start_time: string
           status: string | null
@@ -43,6 +46,9 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          refund_requested_at?: string | null
+          refund_status?: string | null
+          refund_type?: string | null
           service_id?: string | null
           start_time: string
           status?: string | null
@@ -60,6 +66,9 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          refund_requested_at?: string | null
+          refund_status?: string | null
+          refund_type?: string | null
           service_id?: string | null
           start_time?: string
           status?: string | null

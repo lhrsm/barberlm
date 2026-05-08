@@ -12,7 +12,8 @@ import {
   X,
   AlertTriangle,
   Crown,
-  CheckCircle2
+  CheckCircle2,
+  RefreshCcw
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -725,15 +727,22 @@ function CalendarComponent() {
                               getStatusColor(app.status, app.barber_id)
                             )}
                           >
-                            <div className="flex items-center gap-2 mb-1">
-                              {customers.find(c => c.id === app.customer_id)?.avatar_url && (
-                                <img 
-                                  src={customers.find(c => c.id === app.customer_id)?.avatar_url} 
-                                  alt={app.customers?.name} 
-                                  className="h-5 w-5 rounded-full object-cover border border-white/20"
-                                />
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                {customers.find(c => c.id === app.customer_id)?.avatar_url && (
+                                  <img 
+                                    src={customers.find(c => c.id === app.customer_id)?.avatar_url} 
+                                    alt={app.customers?.name} 
+                                    className="h-5 w-5 rounded-full object-cover border border-white/20"
+                                  />
+                                )}
+                                <span className="font-bold truncate">{app.customers?.name}</span>
+                              </div>
+                              {app.refund_requested_at && app.refund_status === 'pending' && (
+                                <Badge className="bg-amber-500 hover:bg-amber-600 text-[8px] h-4 px-1">
+                                  {app.refund_type === 'refund' ? 'Estorno Pend.' : 'Crédito Pend.'}
+                                </Badge>
                               )}
-                              <span className="font-bold truncate">{app.customers?.name}</span>
                             </div>
                             <span className="opacity-90 flex items-center gap-1 text-[10px]">
                               <Scissors size={10} /> {app.services?.name}
@@ -760,6 +769,42 @@ function CalendarComponent() {
                                     <span>Pagar</span>
                                   </Button>
                                 )}
+                                
+                                {app.refund_requested_at && app.refund_status === 'pending' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 px-2 text-white bg-amber-500/30 hover:bg-amber-500/50 text-[10px] gap-1"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (confirm(`Confirmar ${app.refund_type === 'refund' ? 'estorno' : 'créditos'} para este cliente?`)) {
+                                        try {
+                                          if (app.refund_type === 'credits') {
+                                            // Handle credits if not already done by auto-cancel
+                                            const { data: currentCust } = await supabase
+                                              .from("customers")
+                                              .select("credits")
+                                              .eq("id", app.customer_id)
+                                              .single();
+                                            
+                                            const newCredits = Number(currentCust?.credits || 0) + Number(app.total_price || 0);
+                                            await supabase.from("customers").update({ credits: newCredits }).eq("id", app.customer_id);
+                                          }
+                                          
+                                          await supabase.from("appointments").update({ refund_status: 'completed' }).eq("id", app.id);
+                                          toast.success("Solicitação processada com sucesso");
+                                          fetchData();
+                                        } catch (err) {
+                                          toast.error("Erro ao processar solicitação");
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <RefreshCcw size={10} />
+                                    <span>Aprovar {app.refund_type === 'refund' ? 'Estorno' : 'Créditos'}</span>
+                                  </Button>
+                                )}
+
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
