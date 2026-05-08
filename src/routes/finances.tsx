@@ -376,13 +376,13 @@ function FinancesComponent() {
               <div className="text-2xl font-bold text-purple-700">R$ {totalCredits.toFixed(2)}</div>
             </CardContent>
           </Card>
-          <Card className="bg-green-50/50 border-green-100">
+          <Card className="bg-blue-50/50 border-blue-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-green-700">Entradas</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-medium text-blue-700">Entradas</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-700">R$ {summary.income.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-blue-700">R$ {summary.income.toFixed(2)}</div>
             </CardContent>
           </Card>
           <Card className="bg-red-50/50 border-red-100">
