@@ -528,26 +528,43 @@ function CalendarComponent() {
                         </div>
                       )}
 
-                      <Dialog open={isNewCustomerDialogOpen} onOpenChange={setIsNewCustomerDialogOpen}>
-                        <DialogContent className="sm:max-w-[425px]">
+                      <Dialog 
+                        open={isNewCustomerDialogOpen} 
+                        onOpenChange={(open) => {
+                          setIsNewCustomerDialogOpen(open);
+                          if (!open) {
+                            setNewCustomer({ name: "", phone: "" });
+                          }
+                        }}
+                      >
+                        <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()}>
                           <DialogHeader>
                             <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
                           </DialogHeader>
                           <div className="py-4 space-y-4">
                             <div className="space-y-2">
-                              <Label>Nome Completo</Label>
+                              <Label htmlFor="new-customer-name">Nome Completo</Label>
                               <Input 
+                                id="new-customer-name"
                                 placeholder="Nome do cliente"
                                 value={newCustomer.name}
-                                onChange={(e) => setNewCustomer(prev => ({ ...prev, name: e.target.value }))}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setNewCustomer(prev => ({ ...prev, name: val }));
+                                }}
+                                autoFocus
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label>Telefone</Label>
+                              <Label htmlFor="new-customer-phone">Telefone</Label>
                               <Input 
+                                id="new-customer-phone"
                                 placeholder="(00) 00000-0000"
                                 value={newCustomer.phone}
-                                onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setNewCustomer(prev => ({ ...prev, phone: val }));
+                                }}
                               />
                             </div>
                           </div>
