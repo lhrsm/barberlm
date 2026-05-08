@@ -592,7 +592,8 @@ function ClientPortalComponent() {
     const startTime = parseISO(startTimeStr);
     const minutesUntil = differenceInMinutes(startTime, now);
     // Only allow cancellation if it's at least 10 minutes before the appointment
-    return minutesUntil >= 10;
+    // Allow cancellation anytime as long as it's in the future
+    return minutesUntil > 0;
   };
 
   const handleRequestRefund = async (saleId: string) => {
