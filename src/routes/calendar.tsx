@@ -533,76 +533,7 @@ function CalendarComponent() {
                         </div>
                       )}
 
-                      <Dialog 
-                        open={isNewCustomerDialogOpen} 
-                        onOpenChange={(open) => {
-                          setIsNewCustomerDialogOpen(open);
-                          if (!open) {
-                            setNewCustomer({ name: "", phone: "" });
-                          }
-                        }}
-                      >
-                        <DialogContent 
-                          className="sm:max-w-[425px]" 
-                          onOpenAutoFocus={(e) => e.preventDefault()}
-                          onPointerDownOutside={(e) => e.preventDefault()}
-                          onInteractOutside={(e) => e.preventDefault()}
-                        >
-                          <DialogHeader>
-                            <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
-                          </DialogHeader>
-                          <div className="py-4 space-y-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="new-customer-name">Nome Completo</Label>
-                              <Input 
-                                id="new-customer-name"
-                                placeholder="Nome do cliente"
-                                value={newCustomer.name}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setNewCustomer(prev => ({ ...prev, name: val }));
-                                }}
-                                onKeyDown={(e) => {
-                                  e.stopPropagation();
-                                }}
-                                autoFocus
-                                autoComplete="off"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="new-customer-phone">Telefone</Label>
-                              <Input 
-                                id="new-customer-phone"
-                                placeholder="(00) 00000-0000"
-                                value={newCustomer.phone}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setNewCustomer(prev => ({ ...prev, phone: val }));
-                                }}
-                                onKeyDown={(e) => {
-                                  e.stopPropagation();
-                                }}
-                                autoComplete="off"
-                              />
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button 
-                              type="button"
-                              variant="outline" 
-                              onClick={() => {
-                                setIsNewCustomerDialogOpen(false);
-                                setNewCustomer({ name: "", phone: "" });
-                              }}
-                            >
-                              Cancelar
-                            </Button>
-                            <Button onClick={handleCreateCustomer} disabled={isLoading || !newCustomer.name}>
-                              {isLoading ? "Salvando..." : "Cadastrar Cliente"}
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+
 
                       {currentStep === 4 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
