@@ -1102,18 +1102,17 @@ function ShopPageComponent() {
 
             {bookingStep === 2 && (
               <div className="space-y-3">
-                {customerName ? (
+                <div className="grid gap-2 mb-4 animate-in fade-in slide-in-from-top-2">
+                  <Label>Como podemos te chamar?</Label>
+                  <Input 
+                    placeholder="Seu nome" 
+                    value={customerName} 
+                    onChange={(e) => setCustomerName(e.target.value)}
+                  />
+                </div>
+                {customerName && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
                     <p className="text-sm font-medium mb-2">Olá, <span style={{ color: primaryColor }}>{customerName}</span>! O que faremos hoje?</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-2 mb-4 animate-in fade-in slide-in-from-top-2">
-                    <Label>Como podemos te chamar?</Label>
-                    <Input 
-                      placeholder="Seu nome" 
-                      value={customerName} 
-                      onChange={(e) => setCustomerName(e.target.value)}
-                    />
                   </div>
                 )}
                 <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
