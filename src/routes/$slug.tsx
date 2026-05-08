@@ -466,24 +466,7 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
-      // 2.5 Update customer credits if used
-      if (useCredits) {
-        const amountToDeduct = Math.min(customerCredits, calculateTotalBeforeCredits());
-        await supabase
-          .from("customers")
-          .update({ credits: customerCredits - amountToDeduct })
-          .eq("id", customerId);
-
-        // Se o valor debitado for maior que 0, NÃO criamos transação aqui.
-        // A transação será única com o valor TOTAL (serviço + produtos) abatendo os créditos
-        // para que a receita reflita apenas o que entrou de dinheiro novo ou o total correto.
-        // O gerenciamento de créditos é um fluxo interno.
-        /* 
-        if (amountToDeduct > 0) {
-          // ... logic removed to avoid duplicate or inflated revenue
-        }
-        */
-      }
+      // 2.5 Update customer credits if used (moved to handle after cashback/points logic for consistency)
 
       // 3. Create transactions for products and services if paid via PIX OR cashback (credits handled above)
       // 3. Create transaction for the appointment (remaining amount or total)
@@ -559,7 +542,15 @@ function ShopPageComponent() {
 
         await supabase
           .from("customers")
-          .update({ cashback_balance: newBalance })
+          .update({ 
+            cashback_balance: newBalance,
+            credits: useCredits ? (customerCredits - Math.min(customerCredits, calculateTotalBeforeCredits())) : customerCredits
+          })
+          .eq("id", customerId);
+      } else if (useCredits) {
+        await supabase
+          .from("customers")
+          .update({ credits: customerCredits - Math.min(customerCredits, calculateTotalBeforeCredits()) })
           .eq("id", customerId);
       }
 
@@ -1074,7 +1065,7 @@ function ShopPageComponent() {
             setCustomerPhone("");
           }
           setUseCashback(false);
-          // setUseCredits removed
+          setUseCredits(false);
           setPaymentMethod(null);
         }
       }}>
