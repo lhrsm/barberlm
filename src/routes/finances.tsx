@@ -159,7 +159,7 @@ function FinancesComponent() {
       return acc + (bTotal * (commissionRate / 100));
     }, 0);
 
-    const barbershopPart = income - freelancersPart;
+    const barbershopPart = income - freelancersPart - creditsUsedAmount;
 
     return { income, expense, pending, balance: income - expense, creditsUsedAmount, freelancersPart, barbershopPart };
   }, [transactions, appointments, barbers]);
