@@ -362,7 +362,8 @@ function DashboardComponent() {
       totalCust,
       totalServ,
       barbersData,
-      profileData
+      profileData,
+      walletData
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", monthStart).lte("start_time", monthEnd),
@@ -373,8 +374,11 @@ function DashboardComponent() {
       supabase.from("customers").select("*", { count: "exact", head: true }),
       supabase.from("services").select("*", { count: "exact", head: true }),
       supabase.from("barbers").select("*").eq("active", true).limit(5),
-      supabase.from("profiles").select("*").eq("id", user.id).single()
+      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      supabase.from("wallet").select("balance")
     ]);
+
+    const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
 
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);

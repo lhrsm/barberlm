@@ -88,6 +88,7 @@ function CalendarComponent() {
   const [selectedBarber, setSelectedBarber] = useState("");
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("08:00");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
