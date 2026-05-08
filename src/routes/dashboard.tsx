@@ -547,6 +547,17 @@ function DashboardComponent() {
                   </div>
                   <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1" />
                 </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Créditos Clientes</span>
+                  <div className="flex items-end gap-1">
+                    <span className="text-lg font-bold leading-none">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary w-fit">
+                    <Wallet size={14} />
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
