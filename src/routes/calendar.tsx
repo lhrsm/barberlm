@@ -530,7 +530,12 @@ function CalendarComponent() {
 
                       <Dialog 
                         open={isNewCustomerDialogOpen} 
-                        onOpenChange={setIsNewCustomerDialogOpen}
+                        onOpenChange={(open) => {
+                          setIsNewCustomerDialogOpen(open);
+                          if (!open) {
+                            setNewCustomer({ name: "", phone: "" });
+                          }
+                        }}
                       >
                         <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
                           <DialogHeader>
@@ -547,6 +552,7 @@ function CalendarComponent() {
                                   const val = e.target.value;
                                   setNewCustomer(prev => ({ ...prev, name: val }));
                                 }}
+                                onKeyDown={(e) => e.stopPropagation()}
                                 autoFocus
                               />
                             </div>
@@ -560,6 +566,7 @@ function CalendarComponent() {
                                   const val = e.target.value;
                                   setNewCustomer(prev => ({ ...prev, phone: val }));
                                 }}
+                                onKeyDown={(e) => e.stopPropagation()}
                               />
                             </div>
                           </div>
