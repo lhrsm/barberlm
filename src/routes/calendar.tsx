@@ -262,8 +262,8 @@ function CalendarComponent() {
             appointment_id: appointmentData.id,
             type: "income",
             category: "Serviço",
-            amount: remainingToPay > 0 ? remainingToPay : totalPrice,
-            description: `Agendamento${creditText}: ${service?.name} - Cliente: ${currentCustomer?.name}`,
+            amount: remainingToPay, // Agora registra apenas o que sobra para pagar, refletindo a receita real (dinheiro novo)
+            description: `Agendamento${creditText}: ${service?.name} - Cliente: ${customerData?.name}`,
             date: selectedDate,
             time: selectedTime + ":00"
           });
