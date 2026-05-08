@@ -473,11 +473,31 @@ function ShopPageComponent() {
           .from("customers")
           .update({ credits: customerCredits - amountToDeduct })
           .eq("id", customerId);
+
+        // Se o valor debitado for maior que 0, registramos como entrada financeira
+        // distribuindo entre barbearia e freelancer
+        if (amountToDeduct > 0) {
+          const commissionRate = Number(selectedBarber.commission_rate || 0);
+          const freelancerPart = amountToDeduct * (commissionRate / 100);
+          const barbershopPart = amountToDeduct - freelancerPart;
+
+          // No financeiro, registramos a entrada total, o sistema de resumo já calcula as partes baseado na comissão
+          await supabase.from("transactions").insert({
+            user_id: shop.id,
+            barber_id: selectedBarber.id,
+            appointment_id: appointment.id,
+            type: "income",
+            category: "Serviço (Uso de Crédito)",
+            amount: amountToDeduct,
+            description: `Uso de Crédito: ${selectedService.name} - Cliente: ${customerName} (Total: R$ ${amountToDeduct.toFixed(2)})`,
+            date: new Date().toISOString().split('T')[0]
+          });
+        }
       }
 
-      // 3. Create transactions for products and services if paid via PIX OR credits/cashback
-      if (paymentMethod === 'pix' || (calculateTotal() === 0)) {
-        const finalPaymentMethod = calculateTotal() === 0 ? (useCredits ? 'CRÉDITOS' : (useCashback ? 'CASHBACK' : 'PIX')) : 'PIX';
+      // 3. Create transactions for products and services if paid via PIX OR cashback (credits handled above)
+      if (paymentMethod === 'pix' || (calculateTotal() === 0 && useCashback)) {
+        const finalPaymentMethod = calculateTotal() === 0 ? (useCashback ? 'CASHBACK' : 'PIX') : 'PIX';
         
         // Add service transaction
         await supabase.from("transactions").insert({
@@ -490,8 +510,6 @@ function ShopPageComponent() {
           description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
-
-        // Credits logic removed
 
         // 4. Create transactions and sales records for products if any
         for (const item of selectedProducts) {

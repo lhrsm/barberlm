@@ -493,6 +493,12 @@ function ClientPortalComponent() {
           .from("customers")
           .update({ credits: newCredits })
           .eq("id", cancellingAppointment.customer_id);
+
+        // Remove the income from transactions as it's now credits (not realized revenue yet)
+        await supabase
+          .from("transactions")
+          .delete()
+          .eq("appointment_id", cancellingAppointment.id);
           
         await supabase
           .from("appointments")
@@ -500,11 +506,12 @@ function ClientPortalComponent() {
             status: 'cancelled',
             refund_requested_at: new Date().toISOString(),
             refund_type: 'credits',
-            refund_status: 'completed'
+            refund_status: 'completed',
+            payment_status: 'refunded'
           })
           .eq("id", cancellingAppointment.id);
           
-        toast.success(`Cancelado! R$ ${amount.toFixed(2)} foi adicionado aos seus créditos.`);
+        toast.success(`Cancelado! R$ ${amount.toFixed(2)} foi adicionado aos seus créditos e removido das entradas.`);
       } else {
         // Request manual refund
         await supabase
@@ -548,32 +555,39 @@ function ClientPortalComponent() {
       // If the appointment was paid via PIX and no refund/credit choice was made, auto-convert to credits
       if (app.payment_status === 'paid' && app.payment_method === 'pix' && !app.refund_requested_at) {
         const amount = Number(app.total_price || 0);
-        if (amount > 0 && app.customer_id) {
-          const { data: currentCust } = await supabase
-            .from("customers")
-            .select("credits")
-            .eq("id", app.customer_id)
-            .single();
-          
-          const newCredits = Number(currentCust?.credits || 0) + amount;
-          
-          await supabase
-            .from("customers")
-            .update({ credits: newCredits })
-            .eq("id", app.customer_id);
-          
-          await supabase
-            .from("appointments")
-            .update({ 
-              status: 'cancelled',
-              refund_requested_at: new Date().toISOString(),
-              refund_type: 'credits',
-              refund_status: 'completed'
-            })
-            .eq("id", app.id);
+      if (amount > 0 && app.customer_id) {
+        const { data: currentCust } = await supabase
+          .from("customers")
+          .select("credits")
+          .eq("id", app.customer_id)
+          .single();
+        
+        const newCredits = Number(currentCust?.credits || 0) + amount;
+        
+        await supabase
+          .from("customers")
+          .update({ credits: newCredits })
+          .eq("id", app.customer_id);
 
-          toast.info(`Agendamento expirado. R$ ${amount.toFixed(2)} foi adicionado aos seus créditos.`);
-        }
+        // Remove the income from transactions
+        await supabase
+          .from("transactions")
+          .delete()
+          .eq("appointment_id", app.id);
+        
+        await supabase
+          .from("appointments")
+          .update({ 
+            status: 'cancelled',
+            refund_requested_at: new Date().toISOString(),
+            refund_type: 'credits',
+            refund_status: 'completed',
+            payment_status: 'refunded'
+          })
+          .eq("id", app.id);
+
+        toast.info(`Agendamento expirado. R$ ${amount.toFixed(2)} foi adicionado aos seus créditos e removido das entradas.`);
+      }
       } else {
         await supabase
           .from("appointments")
