@@ -240,7 +240,7 @@ function CalendarComponent() {
         const currentCustomer = customers.find(c => c.id === selectedCustomer);
         const availableCredits = Number(currentCustomer?.credits || 0);
 
-        // Se for pagamento via créditos, debitar do saldo
+        // Se for pagamento via créditos ou cliente possuir créditos, debitar do saldo
         if (isWalletPayment || availableCredits > 0) {
           const usedCredits = Math.min(availableCredits, totalPrice);
           const remainingToPay = totalPrice - usedCredits;
@@ -251,35 +251,22 @@ function CalendarComponent() {
               .from("customers")
               .update({ credits: availableCredits - usedCredits })
               .eq("id", selectedCustomer);
-            
-            // Quando créditos são usados, movemos para a receita real (transactions)
-            await supabase.from("transactions").insert({
-              user_id: user.id,
-              barber_id: selectedBarber,
-              appointment_id: appointmentData.id,
-              type: "income",
-              category: "Serviço (Uso de Crédito)",
-              amount: usedCredits,
-              description: `Agendamento (Créditos: R$ ${usedCredits.toFixed(2)}): ${service?.name} - Cliente: ${currentCustomer?.name}`,
-              date: selectedDate,
-              time: selectedTime + ":00"
-            });
           }
 
-          if (remainingToPay > 0) {
-            // Se ainda sobrou algo para pagar (pagamento misto ou crédito insuficiente)
-            await supabase.from("transactions").insert({
-              user_id: user.id,
-              barber_id: selectedBarber,
-              appointment_id: appointmentData.id,
-              type: "income",
-              category: "Serviço",
-              amount: remainingToPay,
-              description: `Agendamento (Diferença: R$ ${remainingToPay.toFixed(2)}): ${service?.name} - Cliente: ${currentCustomer?.name}`,
-              date: selectedDate,
-              time: selectedTime + ":00"
-            });
-          }
+          // Criar uma ÚNICA transação com o valor total, detalhando o uso de créditos na descrição se houver
+          const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)}${remainingToPay > 0 ? `, Restante: R$ ${remainingToPay.toFixed(2)}` : ""})` : "";
+          
+          await supabase.from("transactions").insert({
+            user_id: user.id,
+            barber_id: selectedBarber,
+            appointment_id: appointmentData.id,
+            type: "income",
+            category: "Serviço",
+            amount: totalPrice,
+            description: `Agendamento${creditText}: ${service?.name} - Cliente: ${currentCustomer?.name}`,
+            date: selectedDate,
+            time: selectedTime + ":00"
+          });
         } else {
           // Pagamento normal (não crédito)
           await supabase.from("transactions").insert({
@@ -382,22 +369,8 @@ function CalendarComponent() {
             appointment_id: appointment.id,
             type: "income",
             category: "Serviço (Uso de Crédito)",
-            amount: usedCredits,
-            description: `Pagamento (Créditos: R$ ${usedCredits.toFixed(2)}): ${serviceItem.name} - Cliente: ${customerData?.name}`,
-            date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
-            time: format(parseISO(appointment.start_time), "HH:mm:ss")
-          });
-        }
-
-        if (remainingToPay > 0) {
-          await supabase.from("transactions").insert({
-            user_id: user.id,
-            barber_id: appointment.barber_id,
-            appointment_id: appointment.id,
-            type: "income",
-            category: "Serviço",
-            amount: remainingToPay,
-            description: `Pagamento (Local - Diferença: R$ ${remainingToPay.toFixed(2)}): ${serviceItem.name} - Cliente: ${customerData?.name}`,
+            amount: totalPrice,
+            description: `Pagamento${usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)}${remainingToPay > 0 ? `, Restante: R$ ${remainingToPay.toFixed(2)}` : ""})` : ""}: ${serviceItem.name} - Cliente: ${customerData?.name}`,
             date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
             time: format(parseISO(appointment.start_time), "HH:mm:ss")
           });
@@ -412,7 +385,7 @@ function CalendarComponent() {
           type: "income",
           category: "Produtos",
           amount: item.price * (item.quantity || 1),
-          description: `Venda de Produto (Local): ${item.name} (x${item.quantity || 1}) - Cliente: ${appointment.customers?.name}`,
+          description: `Venda de Produto (Local): ${item.name} (x${item.quantity || 1}) - Cliente: ${customerData?.name}`,
           date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
           time: format(parseISO(appointment.start_time), "HH:mm:ss")
         });
