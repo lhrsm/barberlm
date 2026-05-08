@@ -322,14 +322,23 @@ function FinancesComponent() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           <Card className="bg-yellow-50/50 border-yellow-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-yellow-700">Pendente (Agendamentos)</CardTitle>
+              <CardTitle className="text-sm font-medium text-yellow-700">Pendente</CardTitle>
               <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-yellow-700">R$ {summary.pending.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-purple-50/50 border-purple-100">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-purple-700">Créditos Clientes</CardTitle>
+              <Wallet className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-700">R$ {totalCredits.toFixed(2)}</div>
             </CardContent>
           </Card>
           <Card className="bg-green-50/50 border-green-100">
