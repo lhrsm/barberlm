@@ -740,6 +740,79 @@ function DashboardComponent() {
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="flex flex-wrap items-center gap-2">
+                            {app.refund_requested_at && app.refund_status === 'pending' && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 px-2 text-white bg-amber-500/80 hover:bg-amber-500 text-[10px] gap-1"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const type = app.refund_type === 'refund' ? 'estorno' : 'créditos';
+                                  if (confirm(`Confirmar ${type} para este cliente?`)) {
+                                    try {
+                                      if (app.refund_type === 'credits') {
+                                        let { data: wallet } = await supabase
+                                          .from("wallet")
+                                          .select("id")
+                                          .eq("customer_id", app.customer_id)
+                                          .maybeSingle();
+                                          
+                                        if (!wallet) {
+                                          const { data: newWallet } = await supabase
+                                            .from("wallet")
+                                            .insert({ 
+                                              customer_id: app.customer_id, 
+                                              user_id: user?.id || "",
+                                              balance: 0 
+                                            })
+                                            .select()
+                                            .single();
+                                          wallet = newWallet;
+                                        }
+
+                                        await supabase.from("wallet_transactions").insert({
+                                          wallet_id: wallet.id,
+                                          amount: app.total_price,
+                                          type: "credit",
+                                          description: `Crédito por cancelamento: ${app.services?.name}`,
+                                          appointment_id: app.id,
+                                          user_id: user?.id || ""
+                                        });
+
+                                        toast.success("Valor convertido em créditos!");
+                                      } else if (app.refund_type === 'refund') {
+                                        await supabase.from("transactions").insert({
+                                          user_id: user.id,
+                                          barber_id: app.barber_id,
+                                          appointment_id: app.id,
+                                          type: "expense",
+                                          category: "Estorno",
+                                          amount: app.total_price,
+                                          description: `Estorno de Pagamento: ${app.services?.name} - Cliente: ${app.customers?.name}`,
+                                          date: format(new Date(), "yyyy-MM-dd")
+                                        });
+
+                                        await supabase
+                                          .from("appointments")
+                                          .update({ status: 'cancelled' })
+                                          .eq("id", app.id);
+                                          
+                                        toast.success("Estorno registrado como saída!");
+                                      }
+                                      
+                                      await supabase.from("appointments").update({ refund_status: 'completed' }).eq("id", app.id);
+                                      fetchTodayAppointments();
+                                      fetchStats();
+                                    } catch (err) {
+                                      toast.error("Erro ao processar solicitação");
+                                    }
+                                  }
+                                }}
+                              >
+                                <RefreshCcw size={14} />
+                                <span>Aprovar {app.refund_type === 'refund' ? 'Estorno' : 'Créditos'}</span>
+                              </Button>
+                            )}
                             {app.status === 'scheduled' && (
                               <Button 
                                 variant="default"
