@@ -797,6 +797,10 @@ function DashboardComponent() {
                                           .from("appointments")
                                           .delete()
                                           .eq("id", app.id);
+                                        
+                                        toast.success("Estorno registrado como saída!");
+                                      }
+                                      
                                       fetchTodayAppointments();
                                       fetchStats();
                                     } catch (err) {
