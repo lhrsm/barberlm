@@ -770,16 +770,17 @@ function DashboardComponent() {
                                           wallet = newWallet;
                                         }
 
-                                        await supabase.from("wallet_transactions").insert({
-                                          wallet_id: wallet.id,
-                                          amount: app.total_price,
-                                          type: "credit",
-                                          description: `Crédito por cancelamento: ${app.services?.name}`,
-                                          appointment_id: app.id,
-                                          user_id: user?.id || ""
-                                        });
-
-                                        toast.success("Valor convertido em créditos!");
+                                        if (wallet) {
+                                          await supabase.from("wallet_transactions").insert({
+                                            wallet_id: wallet.id,
+                                            amount: app.total_price,
+                                            type: "credit",
+                                            description: `Crédito por cancelamento: ${app.services?.name}`,
+                                            appointment_id: app.id,
+                                            user_id: user?.id || ""
+                                          });
+                                          toast.success("Valor convertido em créditos!");
+                                        }
                                       } else if (app.refund_type === 'refund') {
                                         await supabase.from("transactions").insert({
                                           user_id: user.id,
