@@ -638,7 +638,7 @@ function ClientPortalComponent() {
       } else {
         await supabase
           .from("appointments")
-          .update({ status: 'cancelled' })
+          .delete()
           .eq("id", app.id);
       }
     }
