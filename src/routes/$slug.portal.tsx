@@ -630,7 +630,16 @@ function ClientPortalComponent() {
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold">Olá, {client.name}!</h2>
+            <div className="flex items-center gap-3">
+              {customerData?.avatar_url && (
+                <img 
+                  src={customerData.avatar_url} 
+                  alt={client.name} 
+                  className="h-10 w-10 rounded-full object-cover border border-primary/20"
+                />
+              )}
+              <h2 className="text-2xl font-bold">Olá, {client.name}!</h2>
+            </div>
             <p className="text-muted-foreground">Bem-vindo à sua área exclusiva na {shop?.business_name}.</p>
           </div>
           <Button onClick={() => setIsBookingOpen(true)} className="gap-2">
