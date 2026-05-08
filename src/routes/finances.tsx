@@ -408,7 +408,7 @@ function FinancesComponent() {
           </Card>
           <Card className="bg-blue-50/50 border-blue-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-700">Entradas</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-700">Receita Bruta</CardTitle>
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
