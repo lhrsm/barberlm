@@ -149,8 +149,26 @@ function DashboardComponent() {
 
     // 3. Handle financial registration (Only if paid)
     if (appointment.payment_status === 'paid') {
-      const isCreditOrCashback = appointment.payment_method === 'credits' || appointment.payment_method === 'cashback';
       const totalPrice = Number(appointment.total_price || 0);
+      
+      // Check for available credits
+      const { data: customerData } = await supabase
+        .from("customers")
+        .select("credits, name")
+        .eq("id", appointment.customer_id)
+        .single();
+      
+      const availableCredits = Number(customerData?.credits || 0);
+      const usedCredits = Math.min(availableCredits, totalPrice);
+      const remainingToPay = totalPrice - usedCredits;
+
+      if (usedCredits > 0) {
+        // Atualizar créditos do cliente
+        await supabase
+          .from("customers")
+          .update({ credits: availableCredits - usedCredits })
+          .eq("id", appointment.customer_id);
+      }
       
       // Check if a transaction for this appointment already exists to avoid duplicates
       const { data: existingTrans } = await supabase
