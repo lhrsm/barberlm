@@ -87,6 +87,50 @@ function ClientPortalComponent() {
     }
   }, [slug]);
   
+  // Real-time update for loyalty points and credits when an admin completes a service
+  useEffect(() => {
+    if (!client?.customer_id) return;
+
+    // Subscribe to changes in the customers table for this specific client
+    const customerChannel = supabase
+      .channel('customer-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'customers',
+          filter: `id=eq.${client.customer_id}`
+        },
+        () => {
+          fetchClientData(client.customer_id);
+        }
+      )
+      .subscribe();
+
+    // Also subscribe to changes in appointments
+    const appointmentChannel = supabase
+      .channel('appointment-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'appointments',
+          filter: `customer_id=eq.${client.customer_id}`
+        },
+        () => {
+          fetchClientData(client.customer_id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(customerChannel);
+      supabase.removeChannel(appointmentChannel);
+    };
+  }, [client?.customer_id]);
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'BOOKING_SUCCESS') {
