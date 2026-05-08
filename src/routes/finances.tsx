@@ -101,6 +101,8 @@ function FinancesComponent() {
     setAppointments(data || []);
   }
 
+  const [totalCredits, setTotalCredits] = useState(0);
+
   const summary = useMemo(() => {
     const income = transactions
       .filter((t) => t.type === "income")
@@ -114,6 +116,20 @@ function FinancesComponent() {
 
     return { income, expense, pending, balance: income - expense };
   }, [transactions, appointments]);
+
+  useEffect(() => {
+    async function fetchCredits() {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('credits');
+      
+      if (!error && data) {
+        const total = data.reduce((acc, curr) => acc + (Number(curr.credits) || 0), 0);
+        setTotalCredits(total);
+      }
+    }
+    if (user) fetchCredits();
+  }, [user, transactions]); // Refresh when transactions change as they might involve credits
 
   async function handleAddTransaction(e: React.FormEvent) {
     e.preventDefault();
