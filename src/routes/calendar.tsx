@@ -111,7 +111,8 @@ function CalendarComponent() {
         .from("appointments")
         .select("*, customers(name), services(name, duration_minutes), barbers(name)")
         .gte("start_time", start.toISOString())
-        .lte("start_time", end.toISOString()),
+        .lte("start_time", end.toISOString())
+        .neq("status", "cancelled"),
       supabase.from("barbers").select("*").eq("active", true).order("name"),
       supabase.from("customers").select("*").order("name"),
       supabase.from("services").select("*").eq("active", true).order("name"),
