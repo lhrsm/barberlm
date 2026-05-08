@@ -557,10 +557,11 @@ function CalendarComponent() {
                                   const val = e.target.value;
                                   setNewCustomer(prev => ({ ...prev, name: val }));
                                 }}
-                                 onKeyDown={(e) => {
-                                  if (e.key !== 'Enter') e.stopPropagation();
+                                onKeyDown={(e) => {
+                                  e.stopPropagation();
                                 }}
                                 autoFocus
+                                autoComplete="off"
                               />
                             </div>
                             <div className="space-y-2">
