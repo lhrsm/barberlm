@@ -50,6 +50,7 @@ function FinancesComponent() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: "12:00" });
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
   
