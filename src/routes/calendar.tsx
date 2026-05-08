@@ -353,21 +353,55 @@ function CalendarComponent() {
         }];
       }
 
+      // Check for available credits
+      const { data: customerData } = await supabase
+        .from("customers")
+        .select("loyalty_points, credits, name")
+        .eq("id", appointment.customer_id)
+        .single();
+      
+      const availableCredits = Number(customerData?.credits || 0);
       const serviceItem = items.find((i: any) => i.type === 'service');
       const productItems = items.filter((i: any) => i.type === 'product');
 
       if (serviceItem) {
-        await supabase.from("transactions").insert({
-          user_id: user.id,
-          barber_id: appointment.barber_id,
-          appointment_id: appointment.id,
-          type: "income",
-          category: "Serviço",
-          amount: serviceItem.price,
-          description: `Pagamento (Local): ${serviceItem.name} - Cliente: ${appointment.customers?.name} - R$ ${serviceItem.price}`,
-          date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
-          time: format(parseISO(appointment.start_time), "HH:mm:ss")
-        });
+        const totalPrice = serviceItem.price;
+        const usedCredits = Math.min(availableCredits, totalPrice);
+        const remainingToPay = totalPrice - usedCredits;
+
+        if (usedCredits > 0) {
+          // Atualizar créditos do cliente
+          await supabase
+            .from("customers")
+            .update({ credits: availableCredits - usedCredits })
+            .eq("id", appointment.customer_id);
+          
+          await supabase.from("transactions").insert({
+            user_id: user.id,
+            barber_id: appointment.barber_id,
+            appointment_id: appointment.id,
+            type: "income",
+            category: "Serviço (Uso de Crédito)",
+            amount: usedCredits,
+            description: `Pagamento (Créditos: R$ ${usedCredits.toFixed(2)}): ${serviceItem.name} - Cliente: ${customerData?.name}`,
+            date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
+            time: format(parseISO(appointment.start_time), "HH:mm:ss")
+          });
+        }
+
+        if (remainingToPay > 0) {
+          await supabase.from("transactions").insert({
+            user_id: user.id,
+            barber_id: appointment.barber_id,
+            appointment_id: appointment.id,
+            type: "income",
+            category: "Serviço",
+            amount: remainingToPay,
+            description: `Pagamento (Local - Diferença: R$ ${remainingToPay.toFixed(2)}): ${serviceItem.name} - Cliente: ${customerData?.name}`,
+            date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
+            time: format(parseISO(appointment.start_time), "HH:mm:ss")
+          });
+        }
       }
 
       for (const item of productItems) {
