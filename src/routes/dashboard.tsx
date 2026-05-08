@@ -24,7 +24,11 @@ import {
   User as UserIcon,
   Copy,
   Globe,
-  Wallet
+  Wallet,
+  RefreshCcw,
+  CheckCircle2, 
+  XCircle,
+  Check
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
