@@ -78,7 +78,8 @@ function FinancesComponent() {
       .from("transactions")
       .select(`
         *,
-        barber:barbers(name)
+        barber:barbers(name),
+        appointment:appointments(status, payment_method)
       `)
       .order("created_at", { ascending: false });
     setTransactions(data || []);
@@ -117,7 +118,10 @@ function FinancesComponent() {
       }, 0);
     const expense = transactions
       .filter((t) => t.type === "expense")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+      .reduce((acc, t) => {
+        // Se a transação for vinculada a um agendamento cancelado, garantimos que ela some na saída
+        return acc + (parseFloat(String(t.amount)) || 0);
+      }, 0);
     
     // Calcular créditos usados (transações com valor 0 mas que representam serviço)
     const creditsUsedAmount = transactions
@@ -410,6 +414,8 @@ function FinancesComponent() {
                     <TableHead className="w-[100px]">Hora</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Barbeiro</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Pagamento</TableHead>
                     <TableHead>Categoria</TableHead>
                     <TableHead className="text-right">Valor</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
@@ -418,7 +424,7 @@ function FinancesComponent() {
                 <TableBody>
                   {transactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                         Nenhuma transação encontrada.
                       </TableCell>
                     </TableRow>
@@ -433,6 +439,28 @@ function FinancesComponent() {
                         </TableCell>
                         <TableCell className="font-medium">{t.description || "-"}</TableCell>
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
+                        <TableCell>
+                          {t.appointment ? (
+                            <Badge className={cn(
+                              t.appointment.status === 'completed' ? 'bg-emerald-600 text-white' : 
+                              t.appointment.status === 'cancelled' ? 'bg-destructive text-white' : 
+                              'bg-blue-100 text-blue-700'
+                            )} variant="outline">
+                              {t.appointment.status === 'completed' ? 'Concluído' : 
+                               t.appointment.status === 'cancelled' ? 'Cancelado' : 'Agendado'}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-100">Manual</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs font-medium uppercase">
+                            {t.appointment?.payment_method === 'pix' ? 'PIX' : 
+                             t.appointment?.payment_method === 'credits' ? 'Créditos' : 
+                             t.appointment?.payment_method === 'cashback' ? 'Cashback' : 
+                             t.appointment?.payment_method || '-'}
+                          </span>
+                        </TableCell>
                         <TableCell>{t.category || "-"}</TableCell>
                         <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>
                           {t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "+" : "★") : "-"} R$ {(() => {
