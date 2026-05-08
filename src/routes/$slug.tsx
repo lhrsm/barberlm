@@ -401,9 +401,10 @@ function ShopPageComponent() {
             phone: customerPhone
           })
           .select("id")
-          .single();
+          .maybeSingle();
         
         if (createError) throw createError;
+        if (!newCustomer) throw new Error("Falha ao criar cliente");
         customerId = newCustomer.id;
         setCustomerCashback(0);
       }
