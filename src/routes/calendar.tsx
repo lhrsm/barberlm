@@ -259,7 +259,7 @@ function CalendarComponent() {
 
       if (updateErr) throw updateErr;
 
-      // 2. Create transactions for items
+      // 2. Create transactions for items (Now that it's paid and completed)
       let items = appointment.items || [];
       
       // Fallback for old appointments without items
@@ -327,7 +327,7 @@ function CalendarComponent() {
           .eq("id", appointment.customer_id);
       }
 
-      toast.success("Pagamento registrado com sucesso!");
+      toast.success("Pagamento registrado e agendamento concluído!");
       fetchData();
     } catch (error: any) {
       toast.error("Erro ao registrar pagamento: " + error.message);
