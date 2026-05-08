@@ -62,6 +62,7 @@ function ClientPortalComponent() {
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [fetchingTimes, setFetchingTimes] = useState(false);
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
   const [cancellingAppointment, setCancellingAppointment] = useState<any>(null);
 
