@@ -474,14 +474,14 @@ function FinancesComponent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.length === 0 ? (
+                  {filteredTransactions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                        Nenhuma transação encontrada.
+                        Nenhuma transação encontrada com os filtros selecionados.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    transactions.map((t) => (
+                    filteredTransactions.map((t) => (
                       <TableRow key={t.id}>
                         <TableCell className="whitespace-nowrap">
                           {t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
