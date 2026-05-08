@@ -23,7 +23,8 @@ import {
   Clock,
   User as UserIcon,
   Copy,
-  Globe
+  Globe,
+  Wallet
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -63,7 +64,8 @@ function DashboardComponent() {
     },
     total: {
       customers: 0,
-      services: 0
+      services: 0,
+      customerCredits: 0
     }
   });
   const [barbers, setBarbers] = useState<any[]>([]);
@@ -238,6 +240,9 @@ function DashboardComponent() {
   async function cancelAppointment(appointmentId: string) {
     if (!confirm("Deseja realmente cancelar este agendamento?")) return;
 
+    const appointment = todayAppointments.find(a => a.id === appointmentId);
+    if (!appointment) return;
+
     const { error } = await supabase
       .from("appointments")
       .update({ status: 'cancelled' })
@@ -248,23 +253,94 @@ function DashboardComponent() {
       return;
     }
 
-    // Register cancellation as expense in transactions as requested
-    const appointment = todayAppointments.find(a => a.id === appointmentId);
-    if (appointment) {
+    // Se o agendamento foi pago via Pix e o cliente solicitou reembolso/crédito
+    if (appointment.payment_status === 'paid') {
       const totalPrice = Number(appointment.total_price || 0);
-      await supabase.from("transactions").insert({
-        amount: totalPrice,
-        type: "expense",
-        description: `Cancelamento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-        category: "Cancelamento",
-        barber_id: appointment.barber_id,
-        appointment_id: appointment.id,
-        user_id: user?.id || "",
-        date: new Date().toISOString().split('T')[0]
-      });
+      
+      if (appointment.refund_type === 'refund') {
+        // Estorno: Remove da receita (cria uma saída/despesa para abater)
+        await supabase.from("transactions").insert({
+          amount: totalPrice,
+          type: "expense",
+          description: `Estorno (Cancelamento Pix): ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+          category: "Estorno",
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          user_id: user?.id || "",
+          date: new Date().toISOString().split('T')[0]
+        });
+        toast.success("Agendamento cancelado e estorno registrado como saída!");
+      } else if (appointment.refund_type === 'credits') {
+        // Créditos: Adiciona ao saldo do cliente
+        try {
+          // 1. Garantir que o cliente tem uma carteira
+          let { data: wallet } = await supabase
+            .from("wallet")
+            .select("id")
+            .eq("customer_id", appointment.customer_id)
+            .maybeSingle();
+            
+          if (!wallet) {
+            const { data: newWallet, error: walletErr } = await supabase
+              .from("wallet")
+              .insert({ 
+                customer_id: appointment.customer_id, 
+                user_id: user?.id || "",
+                balance: 0 
+              })
+              .select()
+              .single();
+            if (walletErr) throw walletErr;
+            wallet = newWallet;
+          }
+
+          // 2. Adicionar crédito à carteira
+          await supabase.from("wallet_transactions").insert({
+            wallet_id: wallet.id,
+            amount: totalPrice,
+            type: "credit",
+            description: `Crédito por cancelamento: ${appointment.services?.name || 'Serviço'}`,
+            appointment_id: appointment.id,
+            user_id: user?.id || ""
+          });
+
+          // 3. Registrar na transação como 0 para não contar como receita nova nem saída, 
+          // mas documentar o movimento. O valor original de 'income' continua lá, 
+          // mas agora o cliente tem o crédito para usar.
+          await supabase.from("transactions").insert({
+            amount: 0,
+            type: "income",
+            description: `Crédito Gerado: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+            category: "Crédito Cliente",
+            barber_id: appointment.barber_id,
+            appointment_id: appointment.id,
+            user_id: user?.id || "",
+            date: new Date().toISOString().split('T')[0]
+          });
+
+          toast.success("Agendamento cancelado e valor convertido em créditos!");
+        } catch (err) {
+          console.error("Erro ao gerar créditos:", err);
+          toast.error("Erro ao converter valor em créditos.");
+        }
+      } else {
+        // Fallback: se não tiver tipo de reembolso definido, registra como despesa (estorno padrão)
+        await supabase.from("transactions").insert({
+          amount: totalPrice,
+          type: "expense",
+          description: `Cancelamento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+          category: "Cancelamento",
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          user_id: user?.id || "",
+          date: new Date().toISOString().split('T')[0]
+        });
+        toast.success("Agendamento cancelado!");
+      }
+    } else {
+      toast.success("Agendamento cancelado!");
     }
 
-    toast.success("Agendamento cancelado e registrado como saída!");
     fetchTodayAppointments();
     fetchStats();
   }
@@ -319,7 +395,8 @@ function DashboardComponent() {
       },
       total: {
         customers: totalCust.count || 0,
-        services: totalServ.count || 0
+        services: totalServ.count || 0,
+        customerCredits: totalCredits
       }
     });
   }

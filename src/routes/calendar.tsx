@@ -229,24 +229,63 @@ function CalendarComponent() {
 
       // Only create transaction and sales records if paid
       if (paymentStatus === 'paid') {
-        // Create finance transaction for the schedule
-        await supabase.from("transactions").insert({
-          user_id: user.id,
-          barber_id: selectedBarber,
-          appointment_id: appointmentData.id,
-          type: "income",
-          category: "Serviço",
-          amount: service?.price || 0,
-          description: `Agendamento: ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
-          date: selectedDate,
-          time: selectedTime + ":00"
-        });
+        const isWalletPayment = paymentMethod === 'wallet'; // Assumindo que adicionaremos 'wallet' como método
+        const totalPrice = service?.price || 0;
+
+        // Se for pagamento via carteira (usando créditos), debitar do saldo
+        if (isWalletPayment) {
+          const { data: wallet } = await supabase
+            .from("wallet")
+            .select("id, balance")
+            .eq("customer_id", selectedCustomer)
+            .maybeSingle();
+
+          if (wallet && wallet.balance >= totalPrice) {
+            await supabase.from("wallet_transactions").insert({
+              wallet_id: wallet.id,
+              amount: totalPrice,
+              type: "debit",
+              description: `Uso de créditos: ${service?.name}`,
+              appointment_id: appointmentData.id,
+              user_id: user.id
+            });
+            
+            // Quando créditos são usados, agora movemos para a receita real (transactions)
+            await supabase.from("transactions").insert({
+              user_id: user.id,
+              barber_id: selectedBarber,
+              appointment_id: appointmentData.id,
+              type: "income",
+              category: "Serviço (Uso de Crédito)",
+              amount: totalPrice,
+              description: `Agendamento (Créditos): ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
+              date: selectedDate,
+              time: selectedTime + ":00"
+            });
+          } else {
+            toast.error("Saldo insuficiente na carteira do cliente.");
+            // Reverter ou tratar erro de saldo
+          }
+        } else {
+          // Pagamento normal (não crédito)
+          await supabase.from("transactions").insert({
+            user_id: user.id,
+            barber_id: selectedBarber,
+            appointment_id: appointmentData.id,
+            type: "income",
+            category: "Serviço",
+            amount: totalPrice,
+            description: `Agendamento: ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
+            date: selectedDate,
+            time: selectedTime + ":00"
+          });
+        }
 
         // Registrar também no faturamento de produtos (como um item de serviço)
         await supabase.from("product_sales").insert({
           user_id: user.id,
-          items: [{ id: selectedService, name: service?.name, quantity: 1, price: service?.price }],
-          total_amount: service?.price || 0,
+          items: [{ id: selectedService, name: service?.name, quantity: 1, price: totalPrice }],
+          total_amount: totalPrice,
           status: 'completed'
         });
 
