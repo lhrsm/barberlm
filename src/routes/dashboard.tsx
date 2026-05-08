@@ -145,36 +145,45 @@ function DashboardComponent() {
       const isCreditOrCashback = appointment.payment_method === 'credits' || appointment.payment_method === 'cashback';
       const totalPrice = Number(appointment.total_price || 0);
       
-      // Only register income in transactions if it wasn't paid via credit/cashback
-      if (!isCreditOrCashback) {
-        const { error: transError } = await supabase
-          .from("transactions")
-          .insert({
-            amount: totalPrice,
-            type: "income",
-            description: `Atendimento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-            category: "Serviço",
-            barber_id: appointment.barber_id,
-            appointment_id: appointment.id,
-            user_id: user?.id || "",
-            date: new Date().toISOString().split('T')[0]
-          });
-        
-        if (transError) console.error("Error creating transaction:", transError);
-      } else {
-        // For credits/cashback, we log it with 0 revenue to not inflate the dashboard revenue
-        await supabase
-          .from("transactions")
-          .insert({
-            amount: 0, 
-            type: "income",
-            description: `[${appointment.payment_method.toUpperCase()}] ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-            category: "Serviço (Uso de Crédito/Cashback)",
-            barber_id: appointment.barber_id,
-            appointment_id: appointment.id,
-            user_id: user?.id || "",
-            date: new Date().toISOString().split('T')[0]
-          });
+      // Check if a transaction for this appointment already exists to avoid duplicates
+      const { data: existingTrans } = await supabase
+        .from("transactions")
+        .select("id")
+        .eq("appointment_id", appointment.id)
+        .maybeSingle();
+
+      if (!existingTrans) {
+        // Only register income in transactions if it wasn't paid via credit/cashback
+        if (!isCreditOrCashback) {
+          const { error: transError } = await supabase
+            .from("transactions")
+            .insert({
+              amount: totalPrice,
+              type: "income",
+              description: `Atendimento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+              category: "Serviço",
+              barber_id: appointment.barber_id,
+              appointment_id: appointment.id,
+              user_id: user?.id || "",
+              date: new Date().toISOString().split('T')[0]
+            });
+          
+          if (transError) console.error("Error creating transaction:", transError);
+        } else {
+          // For credits/cashback, we log it with 0 revenue to not inflate the dashboard revenue
+          await supabase
+            .from("transactions")
+            .insert({
+              amount: 0, 
+              type: "income",
+              description: `[${appointment.payment_method.toUpperCase()}] ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+              category: "Serviço (Uso de Crédito/Cashback)",
+              barber_id: appointment.barber_id,
+              appointment_id: appointment.id,
+              user_id: user?.id || "",
+              date: new Date().toISOString().split('T')[0]
+            });
+        }
       }
     }
 
@@ -239,7 +248,23 @@ function DashboardComponent() {
       return;
     }
 
-    toast.success("Agendamento cancelado com sucesso!");
+    // Register cancellation as expense in transactions as requested
+    const appointment = todayAppointments.find(a => a.id === appointmentId);
+    if (appointment) {
+      const totalPrice = Number(appointment.total_price || 0);
+      await supabase.from("transactions").insert({
+        amount: totalPrice,
+        type: "expense",
+        description: `Cancelamento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+        category: "Cancelamento",
+        barber_id: appointment.barber_id,
+        appointment_id: appointment.id,
+        user_id: user?.id || "",
+        date: new Date().toISOString().split('T')[0]
+      });
+    }
+
+    toast.success("Agendamento cancelado e registrado como saída!");
     fetchTodayAppointments();
     fetchStats();
   }
