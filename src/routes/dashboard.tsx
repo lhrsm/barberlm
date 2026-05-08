@@ -43,7 +43,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Check, CheckCircle2, XCircle } from "lucide-react";
+// Removidos duplicados importados acima
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardComponent,
