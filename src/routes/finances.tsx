@@ -51,6 +51,8 @@ function FinancesComponent() {
   const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: "12:00" });
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("");
   
   useEffect(() => {
     if (!authLoading && !user) {
@@ -105,8 +107,20 @@ function FinancesComponent() {
 
   const [totalCredits, setTotalCredits] = useState(0);
 
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(t => {
+      const matchStatus = statusFilter === "all" || 
+        (statusFilter === "manual" && !t.appointment) ||
+        (t.appointment?.status === statusFilter);
+      
+      const matchDate = !dateFilter || t.date === dateFilter;
+      
+      return matchStatus && matchDate;
+    });
+  }, [transactions, statusFilter, dateFilter]);
+
   const summary = useMemo(() => {
-    const income = transactions
+    const income = filteredTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
@@ -406,7 +420,44 @@ function FinancesComponent() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="transactions" className="pt-4">
+          <TabsContent value="transactions" className="pt-4 space-y-4">
+            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border rounded-xl">
+              <div className="space-y-2">
+                <Label htmlFor="filter-status">Status</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger id="filter-status" className="w-[180px]">
+                    <SelectValue placeholder="Filtrar por status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    <SelectItem value="completed">Concluídos</SelectItem>
+                    <SelectItem value="cancelled">Cancelados</SelectItem>
+                    <SelectItem value="manual">Lançamentos Manuais</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="filter-date">Data</Label>
+                <Input 
+                  id="filter-date" 
+                  type="date" 
+                  className="w-[180px]" 
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                />
+              </div>
+              <Button 
+                variant="ghost" 
+                onClick={() => {
+                  setStatusFilter("all");
+                  setDateFilter("");
+                }}
+                className="h-10"
+              >
+                Limpar Filtros
+              </Button>
+            </div>
+
             <div className="border rounded-xl bg-card">
               <Table>
                 <TableHeader>
@@ -423,14 +474,14 @@ function FinancesComponent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.length === 0 ? (
+                  {filteredTransactions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                        Nenhuma transação encontrada.
+                        Nenhuma transação encontrada com os filtros selecionados.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    transactions.map((t) => (
+                    filteredTransactions.map((t) => (
                       <TableRow key={t.id}>
                         <TableCell className="whitespace-nowrap">
                           {t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
