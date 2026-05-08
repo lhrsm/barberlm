@@ -537,7 +537,12 @@ function CalendarComponent() {
                           }
                         }}
                       >
-                        <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()}>
+                        <DialogContent 
+                          className="sm:max-w-[425px]" 
+                          onOpenAutoFocus={(e) => e.preventDefault()}
+                          onPointerDownOutside={(e) => e.preventDefault()}
+                          onInteractOutside={(e) => e.preventDefault()}
+                        >
                           <DialogHeader>
                             <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
                           </DialogHeader>
