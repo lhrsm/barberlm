@@ -366,8 +366,8 @@ function DashboardComponent() {
       profileData,
       walletData
     ] = await Promise.all([
-      supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("*", { count: "exact", head: true }).gte("start_time", monthStart).lte("start_time", monthEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
       supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
