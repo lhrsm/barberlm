@@ -430,7 +430,12 @@ function CalendarComponent() {
                   <Plus size={18} /> <span className="hidden md:inline">Novo Agendamento</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()}>
+              <DialogContent 
+                className="sm:max-w-[425px]" 
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onPointerDownOutside={(e) => e.preventDefault()}
+                onInteractOutside={(e) => e.preventDefault()}
+              >
                 {canAddAppointment ? (
                   <>
                     <DialogHeader>
@@ -537,7 +542,12 @@ function CalendarComponent() {
                           }
                         }}
                       >
-                        <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()}>
+                        <DialogContent 
+                          className="sm:max-w-[425px]" 
+                          onOpenAutoFocus={(e) => e.preventDefault()}
+                          onPointerDownOutside={(e) => e.preventDefault()}
+                          onInteractOutside={(e) => e.preventDefault()}
+                        >
                           <DialogHeader>
                             <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
                           </DialogHeader>
@@ -552,10 +562,11 @@ function CalendarComponent() {
                                   const val = e.target.value;
                                   setNewCustomer(prev => ({ ...prev, name: val }));
                                 }}
-                                 onKeyDown={(e) => {
-                                  if (e.key !== 'Enter') e.stopPropagation();
+                                onKeyDown={(e) => {
+                                  e.stopPropagation();
                                 }}
                                 autoFocus
+                                autoComplete="off"
                               />
                             </div>
                             <div className="space-y-2">
@@ -568,9 +579,10 @@ function CalendarComponent() {
                                   const val = e.target.value;
                                   setNewCustomer(prev => ({ ...prev, phone: val }));
                                 }}
-                                 onKeyDown={(e) => {
-                                  if (e.key !== 'Enter') e.stopPropagation();
+                                onKeyDown={(e) => {
+                                  e.stopPropagation();
                                 }}
+                                autoComplete="off"
                               />
                             </div>
                           </div>
