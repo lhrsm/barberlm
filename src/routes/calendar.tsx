@@ -369,22 +369,8 @@ function CalendarComponent() {
             appointment_id: appointment.id,
             type: "income",
             category: "Serviço (Uso de Crédito)",
-            amount: usedCredits,
-            description: `Pagamento (Créditos: R$ ${usedCredits.toFixed(2)}): ${serviceItem.name} - Cliente: ${customerData?.name}`,
-            date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
-            time: format(parseISO(appointment.start_time), "HH:mm:ss")
-          });
-        }
-
-        if (remainingToPay > 0) {
-          await supabase.from("transactions").insert({
-            user_id: user.id,
-            barber_id: appointment.barber_id,
-            appointment_id: appointment.id,
-            type: "income",
-            category: "Serviço",
-            amount: remainingToPay,
-            description: `Pagamento (Local - Diferença: R$ ${remainingToPay.toFixed(2)}): ${serviceItem.name} - Cliente: ${customerData?.name}`,
+            amount: totalPrice,
+            description: `Pagamento${usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)}${remainingToPay > 0 ? `, Restante: R$ ${remainingToPay.toFixed(2)}` : ""})` : ""}: ${serviceItem.name} - Cliente: ${customerData?.name}`,
             date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
             time: format(parseISO(appointment.start_time), "HH:mm:ss")
           });
@@ -399,7 +385,7 @@ function CalendarComponent() {
           type: "income",
           category: "Produtos",
           amount: item.price * (item.quantity || 1),
-          description: `Venda de Produto (Local): ${item.name} (x${item.quantity || 1}) - Cliente: ${appointment.customers?.name}`,
+          description: `Venda de Produto (Local): ${item.name} (x${item.quantity || 1}) - Cliente: ${customerData?.name}`,
           date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
           time: format(parseISO(appointment.start_time), "HH:mm:ss")
         });
