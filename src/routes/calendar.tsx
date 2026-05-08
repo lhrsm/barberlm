@@ -263,7 +263,7 @@ function CalendarComponent() {
             type: "income",
             category: "Serviço",
             amount: remainingToPay, // Agora registra apenas o que sobra para pagar, refletindo a receita real (dinheiro novo)
-            description: `Agendamento${creditText}: ${service?.name} - Cliente: ${customerData?.name}`,
+            description: `Agendamento${creditText}: ${service?.name} - Cliente: ${currentCustomer?.name}`,
             date: selectedDate,
             time: selectedTime + ":00"
           });
