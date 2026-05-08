@@ -1111,7 +1111,7 @@ function ShopPageComponent() {
                     onChange={(e) => setCustomerName(e.target.value)}
                   />
                 </div>
-                {customerName && (
+                {customerName && customerName.length >= 3 && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
                     <p className="text-sm font-medium mb-2">Olá, <span style={{ color: primaryColor }}>{customerName}</span>! O que faremos hoje?</p>
                   </div>
