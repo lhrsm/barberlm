@@ -27,8 +27,9 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow } from "date-fns";
+import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { 
   Popover,
   PopoverContent,
@@ -68,6 +69,7 @@ function DashboardComponent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
     if (!loading && !user) {
@@ -81,7 +83,7 @@ function DashboardComponent() {
       fetchNotifications();
       fetchTodayAppointments();
     }
-  }, [user, statusFilter]);
+  }, [user, statusFilter, selectedDate]);
 
   async function fetchNotifications() {
     const { data } = await supabase
@@ -93,14 +95,14 @@ function DashboardComponent() {
   }
 
   async function fetchTodayAppointments() {
-    const todayStart = startOfDay(new Date()).toISOString();
-    const todayEnd = endOfDay(new Date()).toISOString();
+    const dayStart = startOfDay(selectedDate).toISOString();
+    const dayEnd = endOfDay(selectedDate).toISOString();
     
     let query = supabase
       .from("appointments")
       .select("*, customers(name, phone, loyalty_points), services(name), barbers(name)")
-      .gte("start_time", todayStart)
-      .lte("start_time", todayEnd);
+      .gte("start_time", dayStart)
+      .lte("start_time", dayEnd);
 
     if (statusFilter !== "all") {
       query = query.eq("status", statusFilter);
@@ -443,8 +445,29 @@ function DashboardComponent() {
           </TabsList>
 
           <TabsContent value="daily" className="space-y-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Agendamentos de Hoje</h3>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold">
+                  {isSameDay(selectedDate, new Date()) ? "Agendamentos de Hoje" : `Agendamentos de ${format(selectedDate, "dd/MM")}`}
+                </h3>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Calendar size={14} />
+                      Filtrar Data
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarUI
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                      initialFocus
+                      locale={ptBR}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
               <div className="flex gap-2">
                 <Button 
                   variant={statusFilter === "all" ? "default" : "outline"} 
@@ -516,8 +539,14 @@ function DashboardComponent() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Agendamentos de Hoje</CardTitle>
-                <CardDescription>Consulte os detalhes dos horários marcados para hoje.</CardDescription>
+                <CardTitle>
+                  {isSameDay(selectedDate, new Date()) ? "Agendamentos de Hoje" : `Agendamentos de ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`}
+                </CardTitle>
+                <CardDescription>
+                  {isSameDay(selectedDate, new Date()) 
+                    ? "Consulte os detalhes dos horários marcados para hoje." 
+                    : `Consulte os detalhes dos horários marcados para o dia ${format(selectedDate, "dd/MM/yyyy")}.`}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
