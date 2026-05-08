@@ -210,7 +210,8 @@ function CalendarComponent() {
           category: "Serviço",
           amount: service?.price || 0,
           description: `Agendamento: ${service?.name} - Cliente: ${customers.find(c => c.id === selectedCustomer)?.name}`,
-          date: new Date().toISOString().split('T')[0]
+          date: selectedDate,
+          time: selectedTime + ":00"
         });
 
         // Registrar também no faturamento de produtos (como um item de serviço)
@@ -284,7 +285,8 @@ function CalendarComponent() {
           category: "Serviço",
           amount: serviceItem.price,
           description: `Pagamento (Local): ${serviceItem.name} - Cliente: ${appointment.customers?.name}`,
-          date: new Date().toISOString().split('T')[0]
+          date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
+          time: format(parseISO(appointment.start_time), "HH:mm:ss")
         });
       }
 
@@ -297,7 +299,8 @@ function CalendarComponent() {
           category: "Produtos",
           amount: item.price * (item.quantity || 1),
           description: `Venda de Produto (Local): ${item.name} (x${item.quantity || 1}) - Cliente: ${appointment.customers?.name}`,
-          date: new Date().toISOString().split('T')[0]
+          date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
+          time: format(parseISO(appointment.start_time), "HH:mm:ss")
         });
 
         await supabase.from("product_sales").insert({
