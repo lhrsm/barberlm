@@ -704,11 +704,7 @@ function FinancesComponent() {
                 const barberTransactions = transactions.filter(t => t.barber_id === barber.id && t.type === 'income');
                 const totalReceived = barberTransactions.reduce((acc, t) => {
                   const val = parseFloat(String(t.amount)) || 0;
-                  // Se o valor for 0 mas houver descrição de agendamento, buscar o preço original do serviço se necessário
-                  // No entanto, o usuário pediu para mover créditos para receita quando usados.
-                  // Vamos garantir que se for crédito, o valor original seja considerado para cálculo de comissão.
-                  if (val === 0 && t.description?.includes("CRÉDITOS")) {
-                    // Tentar extrair valor da descrição "R$ 30.00"
+                  if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
                     const match = t.description.match(/R\$\s*([\d.]+)/);
                     if (match) return acc + parseFloat(match[1]);
                   }
@@ -755,7 +751,7 @@ function FinancesComponent() {
                       const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
                       const totalGeneral = generalTransactions.reduce((acc, t) => {
                         const val = parseFloat(String(t.amount)) || 0;
-                        if (val === 0 && t.description?.includes("CRÉDITOS")) {
+                        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
                           const match = t.description.match(/R\$\s*([\d.]+)/);
                           if (match) return acc + parseFloat(match[1]);
                         }
