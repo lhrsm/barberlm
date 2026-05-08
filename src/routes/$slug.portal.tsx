@@ -62,7 +62,8 @@ function ClientPortalComponent() {
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  const [fetchingTimes, setFetchingTimes] = useState(false);
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [cancellingAppointment, setCancellingAppointment] = useState<any>(null);
 
   useEffect(() => {
     if (slug) {
@@ -451,8 +452,11 @@ function ClientPortalComponent() {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
     
     try {
-      // Credits generation removed on cancellation
-      toast.success("Agendamento cancelado");
+      if (app.payment_status === 'paid' && app.payment_method === 'pix' && !app.refund_requested_at) {
+        setCancellingAppointment(app);
+        setIsRefundModalOpen(true);
+        return;
+      }
 
       const { error } = await supabase
         .from("appointments")
@@ -460,9 +464,69 @@ function ClientPortalComponent() {
         .eq("id", app.id);
       
       if (error) throw error;
+      toast.success("Agendamento cancelado");
       fetchClientData(client.customer_id);
     } catch (e) {
       toast.error("Erro ao cancelar agendamento");
+    }
+  };
+
+  const handleProcessRefundChoice = async (type: 'credits' | 'refund') => {
+    if (!cancellingAppointment) return;
+    
+    setSubmitting(true);
+    try {
+      const amount = Number(cancellingAppointment.total_price || 0);
+      
+      if (type === 'credits' && amount > 0) {
+        // Immediate credit addition
+        const { data: currentCust } = await supabase
+          .from("customers")
+          .select("credits")
+          .eq("id", cancellingAppointment.customer_id)
+          .single();
+        
+        const newCredits = Number(currentCust?.credits || 0) + amount;
+        
+        await supabase
+          .from("customers")
+          .update({ credits: newCredits })
+          .eq("id", cancellingAppointment.customer_id);
+          
+        await supabase
+          .from("appointments")
+          .update({ 
+            status: 'cancelled',
+            refund_requested_at: new Date().toISOString(),
+            refund_type: 'credits',
+            refund_status: 'completed'
+          })
+          .eq("id", cancellingAppointment.id);
+          
+        toast.success(`Cancelado! R$ ${amount.toFixed(2)} foi adicionado aos seus créditos.`);
+      } else {
+        // Request manual refund
+        await supabase
+          .from("appointments")
+          .update({ 
+            status: 'cancelled',
+            refund_requested_at: new Date().toISOString(),
+            refund_type: 'refund',
+            refund_status: 'pending'
+          })
+          .eq("id", cancellingAppointment.id);
+          
+        toast.success("Cancelado! O pedido de estorno foi enviado para análise da barbearia.");
+      }
+      
+      setIsRefundModalOpen(false);
+      setCancellingAppointment(null);
+      fetchClientData(client.customer_id);
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao processar cancelamento");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -480,11 +544,10 @@ function ClientPortalComponent() {
     if (toCancel.length === 0) return;
 
     for (const app of toCancel) {
-      // If the appointment was paid via PIX, convert the value to credits
-      if (app.payment_status === 'paid' && app.payment_method === 'pix') {
+      // If the appointment was paid via PIX and no refund/credit choice was made, auto-convert to credits
+      if (app.payment_status === 'paid' && app.payment_method === 'pix' && !app.refund_requested_at) {
         const amount = Number(app.total_price || 0);
         if (amount > 0 && app.customer_id) {
-          // Fetch current credits to avoid race conditions (simplified here)
           const { data: currentCust } = await supabase
             .from("customers")
             .select("credits")
@@ -498,14 +561,24 @@ function ClientPortalComponent() {
             .update({ credits: newCredits })
             .eq("id", app.customer_id);
           
+          await supabase
+            .from("appointments")
+            .update({ 
+              status: 'cancelled',
+              refund_requested_at: new Date().toISOString(),
+              refund_type: 'credits',
+              refund_status: 'completed'
+            })
+            .eq("id", app.id);
+
           toast.info(`Agendamento expirado. R$ ${amount.toFixed(2)} foi adicionado aos seus créditos.`);
         }
+      } else {
+        await supabase
+          .from("appointments")
+          .update({ status: 'cancelled' })
+          .eq("id", app.id);
       }
-
-      await supabase
-        .from("appointments")
-        .update({ status: 'cancelled' })
-        .eq("id", app.id);
     }
     
     if (toCancel.length > 0) {
@@ -725,6 +798,14 @@ function ClientPortalComponent() {
                                </Badge>
                                {app.notes && app.notes.includes('Pagamento:') && (
                                  <span className="text-[10px] text-primary font-medium">{app.notes}</span>
+                               )}
+                               {app.status === 'cancelled' && app.refund_requested_at && (
+                                 <Badge variant="outline" className={cn(
+                                   "text-[10px] ml-2",
+                                   app.refund_status === 'completed' ? 'text-green-600 border-green-200 bg-green-50' : 'text-amber-600 border-amber-200 bg-amber-50'
+                                 )}>
+                                   {app.refund_type === 'credits' ? 'Créditos' : 'Estorno'}: {app.refund_status === 'completed' ? 'Concluído' : 'Pendente'}
+                                 </Badge>
                                )}
                              </div>
                            </div>
@@ -1056,6 +1137,49 @@ function ClientPortalComponent() {
               title="Agendamento"
             />
           </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isRefundModalOpen} onOpenChange={setIsRefundModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Opções de Reembolso</DialogTitle>
+            <DialogDescription>
+              Este agendamento foi pago via Pix. Como deseja receber o valor de 
+              <span className="font-bold text-foreground"> R$ {Number(cancellingAppointment?.total_price || 0).toFixed(2)}</span>?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-4 py-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-start gap-1 border-green-200 hover:bg-green-50 hover:border-green-300 transition-all"
+              onClick={() => handleProcessRefundChoice('credits')}
+              disabled={submitting}
+            >
+              <div className="flex items-center gap-2">
+                <RefreshCcw className="h-5 w-5 text-green-600" />
+                <span className="font-bold text-green-700">Créditos na Barbearia</span>
+              </div>
+              <span className="text-xs text-green-600/80 text-left">O valor cai na hora na sua conta para usar no próximo agendamento.</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-start gap-1 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all"
+              onClick={() => handleProcessRefundChoice('refund')}
+              disabled={submitting}
+            >
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-blue-600" />
+                <span className="font-bold text-blue-700">Estorno (Pix)</span>
+              </div>
+              <span className="text-xs text-blue-600/80 text-left">Solicitar o estorno manual do valor. Sujeito à análise da barbearia.</span>
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsRefundModalOpen(false)} disabled={submitting}>
+              Cancelar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
