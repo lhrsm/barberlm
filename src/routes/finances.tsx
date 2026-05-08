@@ -126,11 +126,6 @@ function FinancesComponent() {
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
-        // Se o valor for 0 mas for um uso de crédito, tentamos extrair o valor da descrição
-        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
-          const match = t.description.match(/R\$\s*([\d.]+)/);
-          if (match) return acc + parseFloat(match[1]);
-        }
         return acc + val;
       }, 0);
     const expense = transactions
@@ -140,11 +135,11 @@ function FinancesComponent() {
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
     
-    // Calcular créditos usados (transações com valor 0 mas que representam serviço)
+    // Calcular créditos usados (extraídos da descrição das transações)
     const creditsUsedAmount = transactions
-      .filter((t) => t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito")))
+      .filter((t) => t.type === "income" && t.description?.includes("Créditos: R$"))
       .reduce((acc, t) => {
-        const match = t.description?.match(/R\$\s*([\d.]+)/);
+        const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
         return acc + (match ? parseFloat(match[1]) : 0);
       }, 0);
 
@@ -158,17 +153,13 @@ function FinancesComponent() {
       );
       const bTotal = bTransactions.reduce((tAcc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
-        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
-          const match = t.description.match(/R\$\s*([\d.]+)/);
-          if (match) return tAcc + parseFloat(match[1]);
-        }
         return tAcc + val;
       }, 0);
       const commissionRate = Number(barber.commission_rate || 0);
       return acc + (bTotal * (commissionRate / 100));
     }, 0);
 
-    const barbershopPart = income - freelancersPart;
+    const barbershopPart = income - freelancersPart - creditsUsedAmount;
 
     return { income, expense, pending, balance: income - expense, creditsUsedAmount, freelancersPart, barbershopPart };
   }, [transactions, appointments, barbers]);

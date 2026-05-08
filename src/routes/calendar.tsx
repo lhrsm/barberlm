@@ -362,19 +362,22 @@ function CalendarComponent() {
             .from("customers")
             .update({ credits: availableCredits - usedCredits })
             .eq("id", appointment.customer_id);
-          
-          await supabase.from("transactions").insert({
-            user_id: user.id,
-            barber_id: appointment.barber_id,
-            appointment_id: appointment.id,
-            type: "income",
-            category: "Serviço (Uso de Crédito)",
-            amount: totalPrice,
-            description: `Pagamento${usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)}${remainingToPay > 0 ? `, Restante: R$ ${remainingToPay.toFixed(2)}` : ""})` : ""}: ${serviceItem.name} - Cliente: ${customerData?.name}`,
-            date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
-            time: format(parseISO(appointment.start_time), "HH:mm:ss")
-          });
         }
+
+        // Criar uma ÚNICA transação com o valor total, detalhando o uso de créditos na descrição se houver
+        const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)}${remainingToPay > 0 ? `, Restante: R$ ${remainingToPay.toFixed(2)}` : ""})` : "";
+        
+        await supabase.from("transactions").insert({
+          user_id: user.id,
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          type: "income",
+          category: "Serviço",
+          amount: totalPrice,
+          description: `Pagamento${creditText}: ${serviceItem.name} - Cliente: ${customerData?.name}`,
+          date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
+          time: format(parseISO(appointment.start_time), "HH:mm:ss")
+        });
       }
 
       for (const item of productItems) {
