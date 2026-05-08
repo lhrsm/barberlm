@@ -795,13 +795,8 @@ function DashboardComponent() {
 
                                         await supabase
                                           .from("appointments")
-                                          .update({ status: 'cancelled' })
+                                          .delete()
                                           .eq("id", app.id);
-                                          
-                                        toast.success("Estorno registrado como saída!");
-                                      }
-                                      
-                                      await supabase.from("appointments").update({ refund_status: 'completed' }).eq("id", app.id);
                                       fetchTodayAppointments();
                                       fetchStats();
                                     } catch (err) {
