@@ -537,7 +537,7 @@ function CalendarComponent() {
                           }
                         }}
                       >
-                        <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+                        <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()}>
                           <DialogHeader>
                             <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
                           </DialogHeader>
@@ -552,7 +552,9 @@ function CalendarComponent() {
                                   const val = e.target.value;
                                   setNewCustomer(prev => ({ ...prev, name: val }));
                                 }}
-                                onKeyDown={(e) => e.stopPropagation()}
+                                 onKeyDown={(e) => {
+                                  if (e.key !== 'Enter') e.stopPropagation();
+                                }}
                                 autoFocus
                               />
                             </div>
@@ -566,7 +568,9 @@ function CalendarComponent() {
                                   const val = e.target.value;
                                   setNewCustomer(prev => ({ ...prev, phone: val }));
                                 }}
-                                onKeyDown={(e) => e.stopPropagation()}
+                                 onKeyDown={(e) => {
+                                  if (e.key !== 'Enter') e.stopPropagation();
+                                }}
                               />
                             </div>
                           </div>
