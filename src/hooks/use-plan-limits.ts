@@ -73,6 +73,7 @@ export function usePlanLimits() {
       supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
       supabase.from("appointments").select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
+        .neq("status", "cancelled")
         .gte("start_time", monthStart)
         .lte("start_time", monthEnd),
       supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("user_id", user.id),
