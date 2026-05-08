@@ -73,6 +73,7 @@ function CalendarComponent() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isNewCustomerDialogOpen, setIsNewCustomerDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -80,6 +81,7 @@ function CalendarComponent() {
 
   // Form State
   const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [newCustomer, setNewCustomer] = useState({ name: "", phone: "" });
   const [selectedService, setSelectedService] = useState("");
   const [selectedBarber, setSelectedBarber] = useState("");
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -167,6 +169,30 @@ function CalendarComponent() {
       }
     }
     setCurrentStep(prev => prev + 1);
+  };
+
+  const handleCreateCustomer = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.from("customers").insert({
+        user_id: user.id,
+        name: newCustomer.name,
+        phone: newCustomer.phone,
+      }).select().single();
+
+      if (error) throw error;
+
+      toast.success("Cliente cadastrado com sucesso!");
+      setCustomers(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+      setSelectedCustomer(data.id);
+      setIsNewCustomerDialogOpen(false);
+      setNewCustomer({ name: "", phone: "" });
+    } catch (error: any) {
+      toast.error("Erro ao cadastrar cliente: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCreateAppointment = async (paymentStatus: string = "pending") => {
@@ -473,33 +499,66 @@ function CalendarComponent() {
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                           <div className="space-y-2">
                             <Label>Cliente</Label>
-                            <Select 
-                              value={selectedCustomer} 
-                              onValueChange={(val) => {
-                                if (val === "new") {
-                                  navigate({ to: "/customers" });
-                                  setIsDialogOpen(false);
-                                } else {
-                                  setSelectedCustomer(val);
-                                }
-                              }} 
-                              required
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione um cliente" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="new" className="text-primary font-bold">
-                                  <Plus className="h-4 w-4 mr-2" /> Cadastrar Novo Cliente
-                                </SelectItem>
-                                {customers.map((c) => (
-                                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <div className="flex gap-2">
+                              <Select 
+                                value={selectedCustomer} 
+                                onValueChange={setSelectedCustomer} 
+                                required
+                              >
+                                <SelectTrigger className="flex-1">
+                                  <SelectValue placeholder="Selecione um cliente" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {customers.map((c) => (
+                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="icon"
+                                onClick={() => setIsNewCustomerDialogOpen(true)}
+                                title="Cadastrar Novo Cliente"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       )}
+
+                      <Dialog open={isNewCustomerDialogOpen} onOpenChange={setIsNewCustomerDialogOpen}>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
+                          </DialogHeader>
+                          <div className="py-4 space-y-4">
+                            <div className="space-y-2">
+                              <Label>Nome Completo</Label>
+                              <Input 
+                                placeholder="Nome do cliente"
+                                value={newCustomer.name}
+                                onChange={(e) => setNewCustomer(prev => ({ ...prev, name: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Telefone</Label>
+                              <Input 
+                                placeholder="(00) 00000-0000"
+                                value={newCustomer.phone}
+                                onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsNewCustomerDialogOpen(false)}>Cancelar</Button>
+                            <Button onClick={handleCreateCustomer} disabled={isLoading || !newCustomer.name}>
+                              {isLoading ? "Salvando..." : "Cadastrar Cliente"}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
 
                       {currentStep === 4 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
