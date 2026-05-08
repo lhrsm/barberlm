@@ -20,7 +20,11 @@ import {
   XCircle,
   RefreshCcw,
   AlertTriangle,
-  Edit2
+  Edit2,
+  Upload,
+  Camera,
+  Save,
+  Mail
 } from "lucide-react";
 import { format, isAfter, subDays, parseISO, addMinutes, differenceInMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
