@@ -178,37 +178,23 @@ function DashboardComponent() {
         .maybeSingle();
 
       if (!existingTrans) {
-        // Only register income in transactions if it wasn't paid via credit/cashback
-        if (!isCreditOrCashback) {
-          const { error: transError } = await supabase
-            .from("transactions")
-            .insert({
-              amount: totalPrice,
-              type: "income",
-              description: `Atendimento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-              category: "Serviço",
-              barber_id: appointment.barber_id,
-              appointment_id: appointment.id,
-              user_id: user?.id || "",
-              date: new Date().toISOString().split('T')[0]
-            });
-          
-          if (transError) console.error("Error creating transaction:", transError);
-        } else {
-          // For credits/cashback, we log it with 0 revenue to not inflate the dashboard revenue
-          await supabase
-            .from("transactions")
-            .insert({
-              amount: 0, 
-              type: "income",
-              description: `[${appointment.payment_method.toUpperCase()}] ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'} - R$ ${totalPrice}`,
-              category: "Serviço (Uso de Crédito/Cashback)",
-              barber_id: appointment.barber_id,
-              appointment_id: appointment.id,
-              user_id: user?.id || "",
-              date: new Date().toISOString().split('T')[0]
-            });
-        }
+        // Criar uma ÚNICA transação com o valor total, detalhando o uso de créditos na descrição se houver
+        const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)}${remainingToPay > 0 ? `, Restante: R$ ${remainingToPay.toFixed(2)}` : ""})` : "";
+        
+        const { error: transError } = await supabase
+          .from("transactions")
+          .insert({
+            amount: totalPrice,
+            type: "income",
+            description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+            category: "Serviço",
+            barber_id: appointment.barber_id,
+            appointment_id: appointment.id,
+            user_id: user?.id || "",
+            date: new Date().toISOString().split('T')[0]
+          });
+        
+        if (transError) console.error("Error creating transaction:", transError);
       }
     }
 
