@@ -754,13 +754,22 @@ function DashboardComponent() {
                                 variant="outline"
                                 size="sm" 
                                 className="h-8 gap-1 text-xs text-destructive border-destructive/20 hover:bg-destructive/10"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
-                                  cancelAppointment(app.id);
+                                  if (confirm("Deseja excluir permanentemente este agendamento?")) {
+                                    const { error } = await supabase.from("appointments").delete().eq("id", app.id);
+                                    if (error) {
+                                      toast.error("Erro ao excluir agendamento");
+                                    } else {
+                                      fetchTodayAppointments();
+                                      fetchStats();
+                                      toast.success("Agendamento excluído com sucesso");
+                                    }
+                                  }
                                 }}
                               >
                                 <XCircle className="h-4 w-4" />
-                                Cancelar
+                                Excluir
                               </Button>
                             )}
                             <Button 

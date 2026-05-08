@@ -851,10 +851,14 @@ function CalendarComponent() {
                                   className="h-5 w-5 text-white hover:bg-red-500/50"
                                   onClick={async (e) => {
                                     e.stopPropagation();
-                                    if (confirm("Deseja cancelar este agendamento?")) {
-                                      await supabase.from("appointments").update({ status: 'cancelled' }).eq("id", app.id);
-                                      fetchData();
-                                      toast.success("Agendamento cancelado");
+                                    if (confirm("Deseja excluir permanentemente este agendamento?")) {
+                                      const { error } = await supabase.from("appointments").delete().eq("id", app.id);
+                                      if (error) {
+                                        toast.error("Erro ao excluir agendamento");
+                                      } else {
+                                        fetchData();
+                                        toast.success("Agendamento excluído com sucesso");
+                                      }
                                     }
                                   }}
                                 >
