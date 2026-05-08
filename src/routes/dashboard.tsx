@@ -252,7 +252,6 @@ function DashboardComponent() {
       .from("appointments")
       .delete()
       .eq("id", appointmentId);
-      .eq("id", appointmentId);
 
     if (error) {
       toast.error("Erro ao cancelar agendamento");
