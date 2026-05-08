@@ -151,8 +151,27 @@ function FinancesComponent() {
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
 
-    return { income, expense, pending, balance: income - expense, creditsUsedAmount };
-  }, [transactions, appointments]);
+    const freelancersPart = barbers.reduce((acc, barber) => {
+      const bTransactions = transactions.filter(t => 
+        t.barber_id === barber.id && 
+        t.type === 'income'
+      );
+      const bTotal = bTransactions.reduce((tAcc, t) => {
+        const val = parseFloat(String(t.amount)) || 0;
+        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
+          const match = t.description.match(/R\$\s*([\d.]+)/);
+          if (match) return tAcc + parseFloat(match[1]);
+        }
+        return tAcc + val;
+      }, 0);
+      const commissionRate = Number(barber.commission_rate || 0);
+      return acc + (bTotal * (commissionRate / 100));
+    }, 0);
+
+    const barbershopPart = income - freelancersPart;
+
+    return { income, expense, pending, balance: income - expense, creditsUsedAmount, freelancersPart, barbershopPart };
+  }, [transactions, appointments, barbers]);
 
   useEffect(() => {
     async function fetchCredits() {
