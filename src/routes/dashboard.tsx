@@ -250,7 +250,8 @@ function DashboardComponent() {
 
     const { error } = await supabase
       .from("appointments")
-      .update({ status: 'cancelled' })
+      .delete()
+      .eq("id", appointmentId);
       .eq("id", appointmentId);
 
     if (error) {
