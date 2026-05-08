@@ -390,8 +390,8 @@ function FinancesComponent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Horário</TableHead>
+                    <TableHead className="w-[100px]">Data</TableHead>
+                    <TableHead className="w-[80px]">Hora</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Barbeiro</TableHead>
                     <TableHead>Categoria</TableHead>
@@ -409,11 +409,11 @@ function FinancesComponent() {
                   ) : (
                     transactions.map((t) => (
                       <TableRow key={t.id}>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm font-medium">{t.time?.substring(0, 5) || "--:--"}</span>
+                          <span className="text-sm font-medium">{t.time ? t.time.substring(0, 5) : "--:--"}</span>
                         </TableCell>
                         <TableCell className="font-medium">{t.description || "-"}</TableCell>
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
@@ -561,8 +561,8 @@ function FinancesComponent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Horário</TableHead>
+                    <TableHead className="w-[100px]">Data</TableHead>
+                    <TableHead className="w-[80px]">Hora</TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead>Serviço</TableHead>
                     <TableHead>Barbeiro</TableHead>
@@ -580,7 +580,7 @@ function FinancesComponent() {
                   ) : (
                     appointments.map((app) => (
                       <TableRow key={app.id}>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {new Date(app.start_time).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell>
