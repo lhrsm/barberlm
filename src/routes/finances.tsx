@@ -376,13 +376,13 @@ function FinancesComponent() {
               <div className="text-2xl font-bold text-purple-700">R$ {totalCredits.toFixed(2)}</div>
             </CardContent>
           </Card>
-          <Card className="bg-green-50/50 border-green-100">
+          <Card className="bg-blue-50/50 border-blue-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-green-700">Entradas</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-medium text-blue-700">Entradas</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-700">R$ {summary.income.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-blue-700">R$ {summary.income.toFixed(2)}</div>
             </CardContent>
           </Card>
           <Card className="bg-red-50/50 border-red-100">
@@ -394,13 +394,32 @@ function FinancesComponent() {
               <div className="text-2xl font-bold text-red-700">R$ {summary.expense.toFixed(2)}</div>
             </CardContent>
           </Card>
-          <Card className="bg-blue-50/50 border-blue-100">
+          <Card className={cn(
+            summary.balance > 0 ? "bg-green-50/50 border-green-100" : 
+            summary.balance < 0 ? "bg-red-50/50 border-red-100" : 
+            "bg-yellow-50/50 border-yellow-100"
+          )}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-700">Saldo Atual</CardTitle>
-              <Wallet className="h-4 w-4 text-blue-600" />
+              <CardTitle className={cn(
+                "text-sm font-medium",
+                summary.balance > 0 ? "text-green-700" : 
+                summary.balance < 0 ? "text-red-700" : 
+                "text-yellow-700"
+              )}>Saldo Atual</CardTitle>
+              <Wallet className={cn(
+                "h-4 w-4",
+                summary.balance > 0 ? "text-green-600" : 
+                summary.balance < 0 ? "text-red-600" : 
+                "text-yellow-600"
+              )} />
             </CardHeader>
             <CardContent>
-              <div className={cn("text-2xl font-bold", summary.balance >= 0 ? "text-blue-700" : "text-red-700")}>
+              <div className={cn(
+                "text-2xl font-bold", 
+                summary.balance > 0 ? "text-green-700" : 
+                summary.balance < 0 ? "text-red-700" : 
+                "text-yellow-700"
+              )}>
                 R$ {summary.balance.toFixed(2)}
               </div>
             </CardContent>
