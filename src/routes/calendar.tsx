@@ -530,14 +530,9 @@ function CalendarComponent() {
 
                       <Dialog 
                         open={isNewCustomerDialogOpen} 
-                        onOpenChange={(open) => {
-                          setIsNewCustomerDialogOpen(open);
-                          if (!open) {
-                            setNewCustomer({ name: "", phone: "" });
-                          }
-                        }}
+                        onOpenChange={setIsNewCustomerDialogOpen}
                       >
-                        <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()}>
+                        <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
                           <DialogHeader>
                             <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
                           </DialogHeader>
@@ -569,7 +564,16 @@ function CalendarComponent() {
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsNewCustomerDialogOpen(false)}>Cancelar</Button>
+                            <Button 
+                              type="button"
+                              variant="outline" 
+                              onClick={() => {
+                                setIsNewCustomerDialogOpen(false);
+                                setNewCustomer({ name: "", phone: "" });
+                              }}
+                            >
+                              Cancelar
+                            </Button>
                             <Button onClick={handleCreateCustomer} disabled={isLoading || !newCustomer.name}>
                               {isLoading ? "Salvando..." : "Cadastrar Cliente"}
                             </Button>
