@@ -390,7 +390,8 @@ function FinancesComponent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Horário</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Barbeiro</TableHead>
                     <TableHead>Categoria</TableHead>
@@ -409,10 +410,10 @@ function FinancesComponent() {
                     transactions.map((t) => (
                       <TableRow key={t.id}>
                         <TableCell>
-                          <div className="flex flex-col">
-                            <span>{t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}</span>
-                            <span className="text-xs text-muted-foreground">{t.time?.substring(0, 5) || "--:--"}</span>
-                          </div>
+                          {t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-medium">{t.time?.substring(0, 5) || "--:--"}</span>
                         </TableCell>
                         <TableCell className="font-medium">{t.description || "-"}</TableCell>
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
@@ -560,7 +561,8 @@ function FinancesComponent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Horário</TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead>Serviço</TableHead>
                     <TableHead>Barbeiro</TableHead>
@@ -579,10 +581,10 @@ function FinancesComponent() {
                     appointments.map((app) => (
                       <TableRow key={app.id}>
                         <TableCell>
-                          <div className="flex flex-col">
-                            <span>{new Date(app.start_time).toLocaleDateString('pt-BR')}</span>
-                            <span className="text-xs text-muted-foreground">{new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                          </div>
+                          {new Date(app.start_time).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-medium">{new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                         </TableCell>
                         <TableCell className="font-medium">{app.customers?.name || "Cliente"}</TableCell>
                         <TableCell>{app.services?.name || "Serviço"}</TableCell>
