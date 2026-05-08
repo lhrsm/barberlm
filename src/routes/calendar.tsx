@@ -848,8 +848,8 @@ function CalendarComponent() {
                                             const newCredits = Number(currentCust?.credits || 0) + Number(app.total_price || 0);
                                             await supabase.from("customers").update({ credits: newCredits }).eq("id", app.customer_id);
                                           } else if (app.refund_type === 'refund') {
-                                            // Se for estorno (dinheiro de volta), precisamos:
-                                            // 1. Criar uma transação de SAÍDA (expense)
+                                            // Estorno: cria uma SAÍDA equivalente à entrada original.
+                                            // Mantemos a entrada original (50) + saída (50) = saldo 0.
                                             await supabase.from("transactions").insert({
                                               user_id: user.id,
                                               barber_id: app.barber_id,
@@ -862,13 +862,11 @@ function CalendarComponent() {
                                               time: format(new Date(), "HH:mm:ss")
                                             });
 
-                                            // 2. Remover transações de ENTRADA anteriores vinculadas a este agendamento
-                                            // Isso remove o saldo da barbearia e do freelancer que foi registrado na conclusão
+                                            // Marca o agendamento como cancelado para refletir nos painéis (Hoje/Mês)
                                             await supabase
-                                              .from("transactions")
-                                              .delete()
-                                              .eq("appointment_id", app.id)
-                                              .eq("type", "income");
+                                              .from("appointments")
+                                              .update({ status: 'cancelled' })
+                                              .eq("id", app.id);
                                           }
                                           
                                           await supabase.from("appointments").update({ refund_status: 'completed' }).eq("id", app.id);
