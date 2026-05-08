@@ -108,7 +108,8 @@ function FinancesComponent() {
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
-        if (val === 0 && t.description?.includes("CRÉDITOS")) {
+        // Se o valor for 0 mas for um uso de crédito, tentamos extrair o valor da descrição
+        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
           const match = t.description.match(/R\$\s*([\d.]+)/);
           if (match) return acc + parseFloat(match[1]);
         }
@@ -120,7 +121,7 @@ function FinancesComponent() {
     
     // Calcular créditos usados (transações com valor 0 mas que representam serviço)
     const creditsUsedAmount = transactions
-      .filter((t) => t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && t.description?.includes("CRÉDITOS"))
+      .filter((t) => t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito")))
       .reduce((acc, t) => {
         const match = t.description?.match(/R\$\s*([\d.]+)/);
         return acc + (match ? parseFloat(match[1]) : 0);
@@ -434,7 +435,14 @@ function FinancesComponent() {
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
                         <TableCell>{t.category || "-"}</TableCell>
                         <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>
-                          {t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "+" : "★") : "-"} R$ {(parseFloat(String(t.amount)) || 0).toFixed(2)}
+                          {t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "+" : "★") : "-"} R$ {(() => {
+                            const val = parseFloat(String(t.amount)) || 0;
+                            if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
+                              const match = t.description.match(/R\$\s*([\d.]+)/);
+                              return match ? parseFloat(match[1]).toFixed(2) : "0.00";
+                            }
+                            return val.toFixed(2);
+                          })()}
                           {t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && <span className="block text-[10px] opacity-70">Crédito</span>}
                         </TableCell>
                         <TableCell className="text-right">
