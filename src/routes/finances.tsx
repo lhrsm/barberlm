@@ -107,8 +107,20 @@ function FinancesComponent() {
 
   const [totalCredits, setTotalCredits] = useState(0);
 
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(t => {
+      const matchStatus = statusFilter === "all" || 
+        (statusFilter === "manual" && !t.appointment) ||
+        (t.appointment?.status === statusFilter);
+      
+      const matchDate = !dateFilter || t.date === dateFilter;
+      
+      return matchStatus && matchDate;
+    });
+  }, [transactions, statusFilter, dateFilter]);
+
   const summary = useMemo(() => {
-    const income = transactions
+    const income = filteredTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
