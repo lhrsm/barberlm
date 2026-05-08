@@ -449,7 +449,7 @@ function ShopPageComponent() {
           barber_id: selectedBarber.id,
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
-          total_price: calculateTotal(),
+          total_price: calculateTotalBeforeCredits(), // Valor total original (descontando apenas cashback se houver)
           status: "scheduled",
           payment_method: paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop'),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
@@ -500,13 +500,14 @@ function ShopPageComponent() {
         const finalPaymentMethod = calculateTotal() === 0 ? (useCashback ? 'CASHBACK' : 'PIX') : 'PIX';
         
         // Add service transaction
+        const remainingAmount = calculateTotal();
         await supabase.from("transactions").insert({
           user_id: shop.id,
           barber_id: selectedBarber.id,
           appointment_id: appointment.id,
           type: "income",
           category: "Serviço",
-          amount: calculateTotal() === 0 ? 0 : selectedService.price,
+          amount: remainingAmount,
           description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}`,
           date: new Date().toISOString().split('T')[0]
         });
