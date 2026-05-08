@@ -13,7 +13,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2 } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,7 @@ function FinancesComponent() {
   const navigate = useNavigate();
   const { plan } = usePlanLimits();
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: "12:00" });
@@ -60,6 +61,7 @@ function FinancesComponent() {
     if (user) {
       fetchTransactions();
       fetchBarbers();
+      fetchAppointments();
     }
   }, [user]);
 
@@ -82,6 +84,23 @@ function FinancesComponent() {
     setTransactions(data || []);
   }
 
+  async function fetchAppointments() {
+    // Buscar agendamentos que ainda não foram pagos e que não têm transação vinculada
+    // Ou agendamentos com pagamento pendente
+    const { data } = await supabase
+      .from("appointments")
+      .select(`
+        *,
+        customers(name),
+        services(name),
+        barber:barbers(name)
+      `)
+      .eq("payment_status", "pending")
+      .neq("status", "cancelled")
+      .order("start_time", { ascending: false });
+    setAppointments(data || []);
+  }
+
   const summary = useMemo(() => {
     const income = transactions
       .filter((t) => t.type === "income")
@@ -89,8 +108,12 @@ function FinancesComponent() {
     const expense = transactions
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
-    return { income, expense, balance: income - expense };
-  }, [transactions]);
+    
+    const pending = appointments
+      .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
+
+    return { income, expense, pending, balance: income - expense };
+  }, [transactions, appointments]);
 
   async function handleAddTransaction(e: React.FormEvent) {
     e.preventDefault();
@@ -283,7 +306,16 @@ function FinancesComponent() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="bg-yellow-50/50 border-yellow-100">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-yellow-700">Pendente (Agendamentos)</CardTitle>
+              <Clock className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-700">R$ {summary.pending.toFixed(2)}</div>
+            </CardContent>
+          </Card>
           <Card className="bg-green-50/50 border-green-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-green-700">Entradas</CardTitle>
@@ -316,9 +348,12 @@ function FinancesComponent() {
         </div>
 
         <Tabs defaultValue="transactions" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+          <TabsList className="grid w-full grid-cols-3 max-w-[600px]">
             <TabsTrigger value="transactions" className="gap-2">
               <FileText size={16} /> Lançamentos
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="gap-2">
+              <Clock size={16} /> Pendentes
             </TabsTrigger>
             <TabsTrigger value="barbers" className="gap-2">
               <Users size={16} /> Por Barbeiro
@@ -484,6 +519,123 @@ function FinancesComponent() {
                               onClick={() => handleDeleteTransaction(t.id)}
                             >
                               <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="pending" className="pt-4">
+            <div className="border rounded-xl bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Serviço</TableHead>
+                    <TableHead>Barbeiro</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {appointments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        Nenhum agendamento pendente de pagamento.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    appointments.map((app) => (
+                      <TableRow key={app.id}>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span>{new Date(app.start_time).toLocaleDateString('pt-BR')}</span>
+                            <span className="text-xs text-muted-foreground">{new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">{app.customers?.name || "Cliente"}</TableCell>
+                        <TableCell>{app.services?.name || "Serviço"}</TableCell>
+                        <TableCell>{app.barber?.name || "Geral"}</TableCell>
+                        <TableCell className="text-right font-bold text-yellow-600">
+                          R$ {(parseFloat(String(app.total_price)) || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                              onClick={async () => {
+                                const { error } = await supabase
+                                  .from("appointments")
+                                  .update({ payment_status: 'paid', status: 'completed' })
+                                  .eq("id", app.id);
+                                
+                                if (error) {
+                                  toast.error("Erro ao confirmar pagamento");
+                                } else {
+                                  // Inserir na tabela de transações como Entrada
+                                  await supabase.from("transactions").insert({
+                                    amount: app.total_price,
+                                    type: "income",
+                                    description: `Atendimento: ${app.services?.name} - ${app.customers?.name}`,
+                                    category: "Serviço",
+                                    barber_id: app.barber_id,
+                                    appointment_id: app.id,
+                                    user_id: user.id,
+                                    date: new Date().toISOString().split('T')[0]
+                                  });
+                                  
+                                  toast.success("Pagamento confirmado e registrado!");
+                                  fetchAppointments();
+                                  fetchTransactions();
+                                }
+                              }}
+                            >
+                              <Check size={14} /> Confirmar
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={async () => {
+                                if (!confirm("Deseja cancelar este agendamento? O valor será registrado como saída se houver custo associado.")) return;
+                                
+                                const { error } = await supabase
+                                  .from("appointments")
+                                  .update({ status: 'cancelled' })
+                                  .eq("id", app.id);
+                                
+                                if (error) {
+                                  toast.error("Erro ao cancelar agendamento");
+                                } else {
+                                  // Se o usuário quiser registrar como saída, poderia haver um campo de custo, 
+                                  // mas conforme solicitado "se for cancelado vai para saida" 
+                                  // (assumindo o valor total como perda/saída se aplicável, ou apenas movendo lógica)
+                                  await supabase.from("transactions").insert({
+                                    amount: app.total_price,
+                                    type: "expense",
+                                    description: `Cancelamento: ${app.services?.name} - ${app.customers?.name}`,
+                                    category: "Cancelamento",
+                                    barber_id: app.barber_id,
+                                    appointment_id: app.id,
+                                    user_id: user.id,
+                                    date: new Date().toISOString().split('T')[0]
+                                  });
+
+                                  toast.success("Agendamento cancelado e registrado como saída!");
+                                  fetchAppointments();
+                                  fetchTransactions();
+                                }
+                              }}
+                            >
+                              <X size={14} /> Cancelar
                             </Button>
                           </div>
                         </TableCell>
