@@ -122,27 +122,30 @@ function FinancesComponent() {
   }, [transactions, statusFilter, dateFilter]);
 
   const summary = useMemo(() => {
-    const income = filteredTransactions
+    const income = transactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
-        return acc + val;
-      }, 0);
-    const expense = transactions
-      .filter((t) => t.type === "expense")
-      .reduce((acc, t) => {
-        // Se a transação for vinculada a um agendamento cancelado, garantimos que ela some na saída
-        return acc + (parseFloat(String(t.amount)) || 0);
-      }, 0);
-    
-    // Calcular créditos usados (extraídos da descrição das transações)
-    const creditsUsedAmount = transactions
-      .filter((t) => t.type === "income" && t.description?.includes("Créditos: R$"))
-      .reduce((acc, t) => {
-        const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
-        return acc + (match ? parseFloat(match[1]) : 0);
+        
+        // Se houver créditos abatidos na descrição, somamos eles à receita total
+        // para que o cálculo de comissões e divisão de lucros considere o valor cheio do serviço.
+        let creditedAmount = 0;
+        if (t.description?.includes("Créditos: R$")) {
+          const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
+          creditedAmount = match ? parseFloat(match[1]) : 0;
+        }
+        
+        return acc + val + creditedAmount;
       }, 0);
 
+    const realCashIncome = transactions
+      .filter((t) => t.type === "income")
+      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+
+    const expense = transactions
+      .filter((t) => t.type === "expense")
+      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+    
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
 
@@ -153,15 +156,30 @@ function FinancesComponent() {
       );
       const bTotal = bTransactions.reduce((tAcc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
-        return tAcc + val;
+        
+        // Incluir valor pago em créditos para o cálculo da comissão
+        let creditedAmount = 0;
+        if (t.description?.includes("Créditos: R$")) {
+          const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
+          creditedAmount = match ? parseFloat(match[1]) : 0;
+        }
+        
+        return tAcc + val + creditedAmount;
       }, 0);
       const commissionRate = Number(barber.commission_rate || 0);
       return acc + (bTotal * (commissionRate / 100));
     }, 0);
 
-    const barbershopPart = income - freelancersPart - creditsUsedAmount;
+    const barbershopPart = income - freelancersPart;
 
-    return { income, expense, pending, balance: income - expense, creditsUsedAmount, freelancersPart, barbershopPart };
+    return { 
+      income, 
+      expense, 
+      pending, 
+      balance: realCashIncome - expense, 
+      freelancersPart, 
+      barbershopPart 
+    };
   }, [transactions, appointments, barbers]);
 
   useEffect(() => {
@@ -390,7 +408,7 @@ function FinancesComponent() {
           </Card>
           <Card className="bg-blue-50/50 border-blue-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-700">Entradas</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-700">Receita Bruta</CardTitle>
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
