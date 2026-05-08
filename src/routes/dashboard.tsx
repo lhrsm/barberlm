@@ -100,7 +100,7 @@ function DashboardComponent() {
     
     let query = supabase
       .from("appointments")
-      .select("*, customers(name, phone, loyalty_points), services(name), barbers(name)")
+      .select("*, customers(name, phone, loyalty_points, avatar_url), services(name), barbers(name)")
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);
 
@@ -614,8 +614,16 @@ function DashboardComponent() {
                         className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group"
                       >
                         <div className="flex items-center gap-4 cursor-pointer flex-1" onClick={() => navigate({ to: "/calendar" })}>
-                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                            {app.customers?.name?.[0].toUpperCase()}
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+                            {app.customers?.avatar_url ? (
+                              <img 
+                                src={app.customers.avatar_url} 
+                                alt={app.customers.name} 
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              app.customers?.name?.[0].toUpperCase()
+                            )}
                           </div>
                           <div>
                             <p className="font-bold">{app.customers?.name}</p>
