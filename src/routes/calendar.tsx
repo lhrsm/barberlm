@@ -850,7 +850,6 @@ function CalendarComponent() {
                                             await supabase.from("customers").update({ credits: newCredits }).eq("id", app.customer_id);
                                           } else if (app.refund_type === 'refund') {
                                             // Estorno: cria uma SAÍDA equivalente à entrada original.
-                                            // Mantemos a entrada original (50) + saída (50) = saldo 0.
                                             await supabase.from("transactions").insert({
                                               user_id: user.id,
                                               barber_id: app.barber_id,
@@ -862,16 +861,12 @@ function CalendarComponent() {
                                               date: format(new Date(), "yyyy-MM-dd"),
                                               time: format(new Date(), "HH:mm:ss")
                                             });
-
-                                            // Marca o agendamento como cancelado para refletir nos painéis (Hoje/Mês)
-                                            await supabase
-                                              .from("appointments")
-                                              .update({ status: 'cancelled' })
-                                              .eq("id", app.id);
                                           }
                                           
-                                          await supabase.from("appointments").update({ refund_status: 'completed' }).eq("id", app.id);
-                                          toast.success("Solicitação processada com sucesso");
+                                          // Excluir permanentemente após processar estorno/crédito
+                                          await supabase.from("appointments").delete().eq("id", app.id);
+                                          
+                                          toast.success("Solicitação processada e agendamento removido");
                                           fetchData();
                                         } catch (err) {
                                           toast.error("Erro ao processar solicitação");
