@@ -1111,7 +1111,7 @@ function ShopPageComponent() {
                     <Label>Como podemos te chamar?</Label>
                     <Input 
                       placeholder="Seu nome" 
-                      value={customerName} 
+                      defaultValue={customerName} 
                       onBlur={(e) => setCustomerName(e.target.value)} 
                     />
                   </div>
