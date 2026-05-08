@@ -839,7 +839,7 @@ function CalendarComponent() {
                                       if (confirm(`Confirmar ${app.refund_type === 'refund' ? 'estorno' : 'créditos'} para este cliente?`)) {
                                         try {
                                           if (app.refund_type === 'credits') {
-                                            // Handle credits if not already done by auto-cancel
+                                            // Handle credits
                                             const { data: currentCust } = await supabase
                                               .from("customers")
                                               .select("credits")
@@ -848,6 +848,28 @@ function CalendarComponent() {
                                             
                                             const newCredits = Number(currentCust?.credits || 0) + Number(app.total_price || 0);
                                             await supabase.from("customers").update({ credits: newCredits }).eq("id", app.customer_id);
+                                          } else if (app.refund_type === 'refund') {
+                                            // Se for estorno (dinheiro de volta), precisamos:
+                                            // 1. Criar uma transação de SAÍDA (expense)
+                                            await supabase.from("transactions").insert({
+                                              user_id: user.id,
+                                              barber_id: app.barber_id,
+                                              appointment_id: app.id,
+                                              type: "expense",
+                                              category: "Estorno",
+                                              amount: app.total_price,
+                                              description: `Estorno de Pagamento: ${app.services?.name} - Cliente: ${app.customers?.name}`,
+                                              date: format(new Date(), "yyyy-MM-dd"),
+                                              time: format(new Date(), "HH:mm:ss")
+                                            });
+
+                                            // 2. Remover transações de ENTRADA anteriores vinculadas a este agendamento
+                                            // Isso remove o saldo da barbearia e do freelancer que foi registrado na conclusão
+                                            await supabase
+                                              .from("transactions")
+                                              .delete()
+                                              .eq("appointment_id", app.id)
+                                              .eq("type", "income");
                                           }
                                           
                                           await supabase.from("appointments").update({ refund_status: 'completed' }).eq("id", app.id);
