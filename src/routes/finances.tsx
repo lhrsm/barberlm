@@ -101,6 +101,8 @@ function FinancesComponent() {
     setAppointments(data || []);
   }
 
+  const [totalCredits, setTotalCredits] = useState(0);
+
   const summary = useMemo(() => {
     const income = transactions
       .filter((t) => t.type === "income")
@@ -114,6 +116,20 @@ function FinancesComponent() {
 
     return { income, expense, pending, balance: income - expense };
   }, [transactions, appointments]);
+
+  useEffect(() => {
+    async function fetchCredits() {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('credits');
+      
+      if (!error && data) {
+        const total = data.reduce((acc, curr) => acc + (Number(curr.credits) || 0), 0);
+        setTotalCredits(total);
+      }
+    }
+    if (user) fetchCredits();
+  }, [user, transactions]); // Refresh when transactions change as they might involve credits
 
   async function handleAddTransaction(e: React.FormEvent) {
     e.preventDefault();
@@ -306,14 +322,23 @@ function FinancesComponent() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           <Card className="bg-yellow-50/50 border-yellow-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-yellow-700">Pendente (Agendamentos)</CardTitle>
+              <CardTitle className="text-sm font-medium text-yellow-700">Pendente</CardTitle>
               <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-yellow-700">R$ {summary.pending.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-purple-50/50 border-purple-100">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-purple-700">Créditos Clientes</CardTitle>
+              <Wallet className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-700">R$ {totalCredits.toFixed(2)}</div>
             </CardContent>
           </Card>
           <Card className="bg-green-50/50 border-green-100">
@@ -365,7 +390,8 @@ function FinancesComponent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Horário</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Barbeiro</TableHead>
                     <TableHead>Categoria</TableHead>
@@ -384,10 +410,10 @@ function FinancesComponent() {
                     transactions.map((t) => (
                       <TableRow key={t.id}>
                         <TableCell>
-                          <div className="flex flex-col">
-                            <span>{t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}</span>
-                            <span className="text-xs text-muted-foreground">{t.time?.substring(0, 5) || "--:--"}</span>
-                          </div>
+                          {t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-medium">{t.time?.substring(0, 5) || "--:--"}</span>
                         </TableCell>
                         <TableCell className="font-medium">{t.description || "-"}</TableCell>
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
@@ -535,7 +561,8 @@ function FinancesComponent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Horário</TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead>Serviço</TableHead>
                     <TableHead>Barbeiro</TableHead>
@@ -554,10 +581,10 @@ function FinancesComponent() {
                     appointments.map((app) => (
                       <TableRow key={app.id}>
                         <TableCell>
-                          <div className="flex flex-col">
-                            <span>{new Date(app.start_time).toLocaleDateString('pt-BR')}</span>
-                            <span className="text-xs text-muted-foreground">{new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                          </div>
+                          {new Date(app.start_time).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-medium">{new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                         </TableCell>
                         <TableCell className="font-medium">{app.customers?.name || "Cliente"}</TableCell>
                         <TableCell>{app.services?.name || "Serviço"}</TableCell>
