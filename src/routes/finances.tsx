@@ -415,6 +415,24 @@ function FinancesComponent() {
               <div className="text-2xl font-bold text-red-700">R$ {summary.expense.toFixed(2)}</div>
             </CardContent>
           </Card>
+          <Card className="bg-indigo-50/50 border-indigo-100">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-indigo-700">Freelancers</CardTitle>
+              <Users className="h-4 w-4 text-indigo-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-indigo-700">R$ {summary.freelancersPart.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-emerald-50/50 border-emerald-100">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-emerald-700">Barbearia</CardTitle>
+              <TrendingUp className="h-4 w-4 text-emerald-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-700">R$ {summary.barbershopPart.toFixed(2)}</div>
+            </CardContent>
+          </Card>
           <Card className={cn(
             summary.balance > 0 ? "bg-green-50/50 border-green-100" : 
             summary.balance < 0 ? "bg-red-50/50 border-red-100" : 
