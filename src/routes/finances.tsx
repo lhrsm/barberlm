@@ -135,11 +135,11 @@ function FinancesComponent() {
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
     
-    // Calcular créditos usados (transações com valor 0 mas que representam serviço)
+    // Calcular créditos usados (extraídos da descrição das transações)
     const creditsUsedAmount = transactions
-      .filter((t) => t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito")))
+      .filter((t) => t.type === "income" && t.description?.includes("Créditos: R$"))
       .reduce((acc, t) => {
-        const match = t.description?.match(/R\$\s*([\d.]+)/);
+        const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
         return acc + (match ? parseFloat(match[1]) : 0);
       }, 0);
 
