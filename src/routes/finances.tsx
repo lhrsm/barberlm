@@ -53,6 +53,8 @@ function FinancesComponent() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
+  const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
+  
   
   useEffect(() => {
     if (!authLoading && !user) {
@@ -797,10 +799,34 @@ function FinancesComponent() {
             </div>
           </TabsContent>
 
-          <TabsContent value="barbers" className="pt-4">
+          <TabsContent value="barbers" className="pt-4 space-y-4">
+            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border rounded-xl">
+              <div className="space-y-2">
+                <Label htmlFor="barber-filter-date">Filtrar por Data</Label>
+                <input 
+                  id="barber-filter-date" 
+                  type="date" 
+                  className="flex h-10 w-[180px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={barberDateFilter}
+                  onChange={(e) => setBarberDateFilter(e.target.value)}
+                />
+              </div>
+              <Button 
+                variant="ghost" 
+                onClick={() => setBarberDateFilter("")}
+                className="h-10"
+              >
+                Todas as Datas
+              </Button>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {barbers.map((barber) => {
-                const barberTransactions = transactions.filter(t => t.barber_id === barber.id && t.type === 'income');
+                const barberTransactions = transactions.filter(t => 
+                  t.barber_id === barber.id && 
+                  t.type === 'income' &&
+                  (!barberDateFilter || t.date === barberDateFilter)
+                );
                 const totalReceived = barberTransactions.reduce((acc, t) => {
                   const val = parseFloat(String(t.amount)) || 0;
                   if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
@@ -840,15 +866,19 @@ function FinancesComponent() {
                 );
               })}
               
-              <Card className="bg-muted/50">
+              <Card className="bg-primary/5 border-primary/20">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg text-primary">Barbearia (Geral)</CardTitle>
-                  <p className="text-xs text-muted-foreground">Vendas e lançamentos sem barbeiro específico</p>
+                  <CardTitle className="text-lg text-primary">Barbearia Geral (Total)</CardTitle>
+                  <p className="text-xs text-muted-foreground">Soma de todos os ganhos da barbearia</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {(() => {
-                      const generalTransactions = transactions.filter(t => !t.barber_id && t.type === 'income');
-                      const totalGeneral = generalTransactions.reduce((acc, t) => {
+                      const generalTransactions = transactions.filter(t => 
+                        !t.barber_id && 
+                        t.type === 'income' &&
+                        (!barberDateFilter || t.date === barberDateFilter)
+                      );
+                      const totalGeneralOnly = generalTransactions.reduce((acc, t) => {
                         const val = parseFloat(String(t.amount)) || 0;
                         if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
                           const match = t.description.match(/R\$\s*([\d.]+)/);
@@ -856,11 +886,42 @@ function FinancesComponent() {
                         }
                         return acc + val;
                       }, 0);
+
+                      const totalFromBarbers = barbers.reduce((acc, barber) => {
+                        const bTransactions = transactions.filter(t => 
+                          t.barber_id === barber.id && 
+                          t.type === 'income' &&
+                          (!barberDateFilter || t.date === barberDateFilter)
+                        );
+                        const bTotal = bTransactions.reduce((tAcc, t) => {
+                          const val = parseFloat(String(t.amount)) || 0;
+                          if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
+                            const match = t.description.match(/R\$\s*([\d.]+)/);
+                            if (match) return tAcc + parseFloat(match[1]);
+                          }
+                          return tAcc + val;
+                        }, 0);
+                        const commissionRate = Number(barber.commission_rate || 0);
+                        return acc + (bTotal - (bTotal * (commissionRate / 100)));
+                      }, 0);
+
+                      const finalTotal = totalGeneralOnly + totalFromBarbers;
+
                       return (
-                        <div className="flex justify-between items-center border-b pb-2">
-                          <span className="text-sm font-medium">Total Geral</span>
-                          <span className="font-bold text-primary">R$ {totalGeneral.toFixed(2)}</span>
-                        </div>
+                        <>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">Lançamentos Gerais</span>
+                            <span>R$ {totalGeneralOnly.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">Vindo dos Barbeiros</span>
+                            <span>R$ {totalFromBarbers.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between items-center border-t pt-2 mt-2">
+                            <span className="font-bold text-primary">Total Acumulado</span>
+                            <span className="text-xl font-bold text-primary">R$ {finalTotal.toFixed(2)}</span>
+                          </div>
+                        </>
                       );
                     })()}
                 </CardContent>
