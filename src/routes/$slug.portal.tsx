@@ -673,12 +673,15 @@ function ClientPortalComponent() {
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+          <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
             <TabsTrigger value="appointments" className="gap-2">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
             <TabsTrigger value="purchases" className="gap-2">
               <ShoppingBag size={16} /> Compras
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2">
+              <UserIcon size={16} /> Perfil
             </TabsTrigger>
           </TabsList>
 
