@@ -111,10 +111,15 @@ function FinancesComponent() {
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
     
+    // Calcular créditos usados (transações com valor 0 mas que representam serviço)
+    const creditsUsed = transactions
+      .filter((t) => t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && t.description?.includes("CRÉDITOS"))
+      .length;
+
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
 
-    return { income, expense, pending, balance: income - expense };
+    return { income, expense, pending, balance: income - expense, creditsUsed };
   }, [transactions, appointments]);
 
   useEffect(() => {
@@ -390,8 +395,8 @@ function FinancesComponent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Horário</TableHead>
+                    <TableHead className="w-[100px]">Data</TableHead>
+                    <TableHead className="w-[80px]">Hora</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Barbeiro</TableHead>
                     <TableHead>Categoria</TableHead>
@@ -409,17 +414,18 @@ function FinancesComponent() {
                   ) : (
                     transactions.map((t) => (
                       <TableRow key={t.id}>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm font-medium">{t.time?.substring(0, 5) || "--:--"}</span>
+                          <span className="text-sm font-medium">{t.time ? t.time.substring(0, 5) : "--:--"}</span>
                         </TableCell>
                         <TableCell className="font-medium">{t.description || "-"}</TableCell>
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
                         <TableCell>{t.category || "-"}</TableCell>
-                        <TableCell className={cn("text-right font-bold", t.type === "income" ? "text-green-600" : "text-red-600")}>
-                          {t.type === "income" ? "+" : "-"} R$ {(parseFloat(String(t.amount)) || 0).toFixed(2)}
+                        <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>
+                          {t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "+" : "★") : "-"} R$ {(parseFloat(String(t.amount)) || 0).toFixed(2)}
+                          {t.type === "income" && (parseFloat(String(t.amount)) || 0) === 0 && <span className="block text-[10px] opacity-70">Crédito</span>}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -561,8 +567,8 @@ function FinancesComponent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Horário</TableHead>
+                    <TableHead className="w-[100px]">Data</TableHead>
+                    <TableHead className="w-[80px]">Hora</TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead>Serviço</TableHead>
                     <TableHead>Barbeiro</TableHead>
@@ -580,7 +586,7 @@ function FinancesComponent() {
                   ) : (
                     appointments.map((app) => (
                       <TableRow key={app.id}>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {new Date(app.start_time).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell>
