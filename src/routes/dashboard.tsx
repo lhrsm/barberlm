@@ -107,7 +107,7 @@ function DashboardComponent() {
     let query = supabase
       .from("appointments")
       .select("*, customers(name, phone, loyalty_points, avatar_url), services(name), barbers(name)")
-      .neq("status", "cancelled")
+      .or(`status.neq.cancelled,refund_status.eq.pending`)
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);
 
