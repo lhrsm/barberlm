@@ -779,6 +779,7 @@ function DashboardComponent() {
                                             appointment_id: app.id,
                                             user_id: user?.id || ""
                                           });
+                                          await supabase.from("appointments").delete().eq("id", app.id);
                                           toast.success("Valor convertido em créditos!");
                                         }
                                       } else if (app.refund_type === 'refund') {
