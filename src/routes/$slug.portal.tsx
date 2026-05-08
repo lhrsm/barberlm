@@ -184,6 +184,7 @@ function ClientPortalComponent() {
       .from("appointments")
       .select("*, services(name), barbers(name)")
       .eq("customer_id", customerId)
+      .neq("status", "cancelled")
       .order("start_time", { ascending: false });
     
     setAppointments(appts || []);
@@ -505,7 +506,7 @@ function ClientPortalComponent() {
 
       const { error } = await supabase
         .from("appointments")
-        .update({ status: 'cancelled' })
+        .delete()
         .eq("id", app.id);
       
       if (error) throw error;
@@ -638,7 +639,7 @@ function ClientPortalComponent() {
       } else {
         await supabase
           .from("appointments")
-          .update({ status: 'cancelled' })
+          .delete()
           .eq("id", app.id);
       }
     }

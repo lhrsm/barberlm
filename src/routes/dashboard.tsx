@@ -107,7 +107,7 @@ function DashboardComponent() {
     let query = supabase
       .from("appointments")
       .select("*, customers(name, phone, loyalty_points, avatar_url), services(name), barbers(name)")
-      .neq("status", "cancelled")
+      .or(`status.neq.cancelled,refund_status.eq.pending`)
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);
 
@@ -250,7 +250,7 @@ function DashboardComponent() {
 
     const { error } = await supabase
       .from("appointments")
-      .update({ status: 'cancelled' })
+      .delete()
       .eq("id", appointmentId);
 
     if (error) {
@@ -779,6 +779,7 @@ function DashboardComponent() {
                                             appointment_id: app.id,
                                             user_id: user?.id || ""
                                           });
+                                          await supabase.from("appointments").delete().eq("id", app.id);
                                           toast.success("Valor convertido em créditos!");
                                         }
                                       } else if (app.refund_type === 'refund') {
@@ -795,13 +796,12 @@ function DashboardComponent() {
 
                                         await supabase
                                           .from("appointments")
-                                          .update({ status: 'cancelled' })
+                                          .delete()
                                           .eq("id", app.id);
-                                          
+                                        
                                         toast.success("Estorno registrado como saída!");
                                       }
                                       
-                                      await supabase.from("appointments").update({ refund_status: 'completed' }).eq("id", app.id);
                                       fetchTodayAppointments();
                                       fetchStats();
                                     } catch (err) {
