@@ -29,7 +29,8 @@ import {
   Upload,
   Copy,
   Check,
-  ExternalLink
+  ExternalLink,
+  UserRound
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import {
