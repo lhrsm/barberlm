@@ -634,7 +634,16 @@ function CalendarComponent() {
                               getStatusColor(app.status, app.barber_id)
                             )}
                           >
-                            <span className="font-bold truncate">{app.customers?.name}</span>
+                            <div className="flex items-center gap-2 mb-1">
+                              {customers.find(c => c.id === app.customer_id)?.avatar_url && (
+                                <img 
+                                  src={customers.find(c => c.id === app.customer_id)?.avatar_url} 
+                                  alt={app.customers?.name} 
+                                  className="h-5 w-5 rounded-full object-cover border border-white/20"
+                                />
+                              )}
+                              <span className="font-bold truncate">{app.customers?.name}</span>
+                            </div>
                             <span className="opacity-90 flex items-center gap-1 text-[10px]">
                               <Scissors size={10} /> {app.services?.name}
                             </span>

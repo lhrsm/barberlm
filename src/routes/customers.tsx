@@ -277,7 +277,18 @@ function CustomersComponent() {
               ) : (
                 filteredCustomers.map((customer) => (
                   <TableRow key={customer.id}>
-                    <TableCell className="font-medium">{customer.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        {customer.avatar_url && (
+                          <img 
+                            src={customer.avatar_url} 
+                            alt={customer.name} 
+                            className="h-8 w-8 rounded-full object-cover border border-primary/10"
+                          />
+                        )}
+                        <span>{customer.name}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Phone size={14} className="text-muted-foreground" />
