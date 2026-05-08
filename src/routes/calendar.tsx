@@ -141,13 +141,17 @@ function CalendarComponent() {
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
-    const startTime = parseISO(`${date}T${time}:00`);
+    
+    // Ensure time has seconds for correct parsing
+    const timeWithSeconds = time.length === 5 ? `${time}:00` : time;
+    const startTime = parseISO(`${date}T${timeWithSeconds}`);
     const endTime = addMinutes(startTime, service?.duration_minutes || 30);
 
     const { data, error } = await supabase
       .from("appointments")
       .select("id")
       .eq("barber_id", barberId)
+      .neq("status", "cancelled")
       .or(`start_time.lte.${startTime.toISOString()},end_time.gte.${startTime.toISOString()}`)
       .or(`start_time.lt.${endTime.toISOString()},end_time.gt.${endTime.toISOString()}`)
       .limit(1);
@@ -204,7 +208,8 @@ function CalendarComponent() {
 
     try {
       const service = services.find(s => s.id === selectedService);
-      const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
+      const timeWithSeconds = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
+      const startTime = parseISO(`${selectedDate}T${timeWithSeconds}`);
       const endTime = addMinutes(startTime, service?.duration_minutes || 30);
 
       const { data: appointmentData, error } = await supabase.from("appointments").insert({
@@ -754,7 +759,7 @@ function CalendarComponent() {
                         onClick={() => {
                           setSelectedTime(`${hour.toString().padStart(2, '0')}:00`);
                           setSelectedDate(format(currentDate, "yyyy-MM-dd"));
-                          setCurrentStep(2); // Jump to date/time step as they are already set
+                          setCurrentStep(1); // Start from professional selection step
                           setIsDialogOpen(true);
                         }}
                       >
