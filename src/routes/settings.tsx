@@ -353,9 +353,12 @@ function SettingsComponent() {
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 max-w-[900px]">
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 max-w-[1000px]">
               <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
                 <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="gap-2 text-xs sm:text-sm">
+                <UserRound size={16} /> <span className="hidden sm:inline">Perfil</span>
               </TabsTrigger>
               <TabsTrigger value="appearance" className="gap-2 text-xs sm:text-sm">
                 <Palette size={16} /> <span className="hidden sm:inline">Aparência</span>
@@ -376,6 +379,78 @@ function SettingsComponent() {
                 <QrCode size={16} /> <span className="hidden sm:inline">Chave PIX</span>
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="profile" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Meu Perfil</CardTitle>
+                  <CardDescription>Gerencie suas informações pessoais e foto de perfil.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center gap-6">
+                    <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-primary/20">
+                      {formData.logo_url ? (
+                        <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
+                      ) : (
+                        <UserRound className="h-12 w-12 text-muted-foreground/30" />
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <Label htmlFor="profile_avatar">Alterar Foto de Perfil</Label>
+                      <Input 
+                        id="profile_avatar" 
+                        type="file" 
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !user) return;
+                          
+                          try {
+                            setSaving(true);
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `${user.id}-avatar-${Date.now()}.${fileExt}`;
+                            
+                            const { error: uploadError } = await supabase.storage
+                              .from('barber-avatars')
+                              .upload(fileName, file);
+                              
+                            if (uploadError) throw uploadError;
+                            
+                            const { data: { publicUrl } } = supabase.storage
+                              .from('barber-avatars')
+                              .getPublicUrl(fileName);
+                              
+                            setFormData({ ...formData, logo_url: publicUrl });
+                            toast.success("Foto de perfil atualizada!");
+                          } catch (error: any) {
+                            toast.error("Erro ao carregar imagem: " + error.message);
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label>E-mail (Login)</Label>
+                      <Input value={user?.email || ""} disabled className="bg-muted" />
+                      <p className="text-[10px] text-muted-foreground">O e-mail não pode ser alterado diretamente.</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="profile_name">Nome para Exibição</Label>
+                      <Input 
+                        id="profile_name" 
+                        value={formData.business_name} 
+                        onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                        placeholder="Seu nome"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             <TabsContent value="general" className="space-y-4">
               <Card>

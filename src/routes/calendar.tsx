@@ -473,11 +473,25 @@ function CalendarComponent() {
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                           <div className="space-y-2">
                             <Label>Cliente</Label>
-                            <Select value={selectedCustomer} onValueChange={setSelectedCustomer} required>
+                            <Select 
+                              value={selectedCustomer} 
+                              onValueChange={(val) => {
+                                if (val === "new") {
+                                  navigate({ to: "/customers" });
+                                  setIsDialogOpen(false);
+                                } else {
+                                  setSelectedCustomer(val);
+                                }
+                              }} 
+                              required
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Selecione um cliente" />
                               </SelectTrigger>
                               <SelectContent>
+                                <SelectItem value="new" className="text-primary font-bold">
+                                  <Plus className="h-4 w-4 mr-2" /> Cadastrar Novo Cliente
+                                </SelectItem>
                                 {customers.map((c) => (
                                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                                 ))}
