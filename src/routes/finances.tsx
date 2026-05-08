@@ -151,8 +151,27 @@ function FinancesComponent() {
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
 
-    return { income, expense, pending, balance: income - expense, creditsUsedAmount };
-  }, [transactions, appointments]);
+    const freelancersPart = barbers.reduce((acc, barber) => {
+      const bTransactions = transactions.filter(t => 
+        t.barber_id === barber.id && 
+        t.type === 'income'
+      );
+      const bTotal = bTransactions.reduce((tAcc, t) => {
+        const val = parseFloat(String(t.amount)) || 0;
+        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
+          const match = t.description.match(/R\$\s*([\d.]+)/);
+          if (match) return tAcc + parseFloat(match[1]);
+        }
+        return tAcc + val;
+      }, 0);
+      const commissionRate = Number(barber.commission_rate || 0);
+      return acc + (bTotal * (commissionRate / 100));
+    }, 0);
+
+    const barbershopPart = income - freelancersPart;
+
+    return { income, expense, pending, balance: income - expense, creditsUsedAmount, freelancersPart, barbershopPart };
+  }, [transactions, appointments, barbers]);
 
   useEffect(() => {
     async function fetchCredits() {
@@ -359,7 +378,7 @@ function FinancesComponent() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
           <Card className="bg-yellow-50/50 border-yellow-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-yellow-700">Pendente</CardTitle>
@@ -394,6 +413,24 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-700">R$ {summary.expense.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-indigo-50/50 border-indigo-100">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-indigo-700">Freelancers</CardTitle>
+              <Users className="h-4 w-4 text-indigo-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-indigo-700">R$ {summary.freelancersPart.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-emerald-50/50 border-emerald-100">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-emerald-700">Barbearia</CardTitle>
+              <TrendingUp className="h-4 w-4 text-emerald-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-700">R$ {summary.barbershopPart.toFixed(2)}</div>
             </CardContent>
           </Card>
           <Card className={cn(
