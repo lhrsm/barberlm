@@ -505,7 +505,7 @@ function ClientPortalComponent() {
 
       const { error } = await supabase
         .from("appointments")
-        .update({ status: 'cancelled' })
+        .delete()
         .eq("id", app.id);
       
       if (error) throw error;
