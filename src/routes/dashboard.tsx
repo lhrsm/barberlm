@@ -539,8 +539,14 @@ function DashboardComponent() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Agendamentos de Hoje</CardTitle>
-                <CardDescription>Consulte os detalhes dos horários marcados para hoje.</CardDescription>
+                <CardTitle>
+                  {isSameDay(selectedDate, new Date()) ? "Agendamentos de Hoje" : `Agendamentos de ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`}
+                </CardTitle>
+                <CardDescription>
+                  {isSameDay(selectedDate, new Date()) 
+                    ? "Consulte os detalhes dos horários marcados para hoje." 
+                    : `Consulte os detalhes dos horários marcados para o dia ${format(selectedDate, "dd/MM/yyyy")}.`}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
