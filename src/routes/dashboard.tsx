@@ -162,7 +162,7 @@ function DashboardComponent() {
 
       if (!existingTrans && remainingToPay > 0) {
         // Criar uma ÚNICA transação com o valor pago em dinheiro novo
-        const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+        const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
         
         const { error: transError } = await supabase
           .from("transactions")
@@ -191,21 +191,27 @@ function DashboardComponent() {
     
     // If marking as paid, and appointment is already completed, ensure it exists in transactions
     if (newStatus === 'paid' && appointment.status === 'completed') {
-      const totalPrice = Number(appointment.total_price || 0);
-      const { error: transError } = await supabase
-        .from("transactions")
-        .insert({
-          amount: totalPrice,
-          type: "income",
-          description: `Atendimento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-          category: "Serviço",
-          barber_id: appointment.barber_id,
-          appointment_id: appointment.id,
-          user_id: user?.id || "",
-          date: new Date().toISOString().split('T')[0]
-        });
+      const remainingToPay = Number(appointment.final_amount || appointment.total_price || 0);
+      const usedCredits = Number(appointment.credit_used || 0);
       
-      if (transError) console.error("Error creating transaction on payment status toggle:", transError);
+      if (remainingToPay > 0) {
+        const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+        
+        const { error: transError } = await supabase
+          .from("transactions")
+          .insert({
+            amount: remainingToPay,
+            type: "income",
+            description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+            category: "Serviço",
+            barber_id: appointment.barber_id,
+            appointment_id: appointment.id,
+            user_id: user?.id || "",
+            date: new Date().toISOString().split('T')[0]
+          });
+        
+        if (transError) console.error("Error creating transaction on payment status toggle:", transError);
+      }
     } else if (newStatus === 'pending') {
       // If marking as pending, remove from transactions
       await supabase

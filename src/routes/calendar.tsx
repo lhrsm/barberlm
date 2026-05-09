@@ -272,9 +272,9 @@ function CalendarComponent() {
             .eq("id", appointmentData.id);
         }
 
-        // Criar uma ÚNICA transação apenas se houver receita real
-        if (remainingToPay > 0) {
-          const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+        // Criar uma ÚNICA transação apenas se houver receita real (dinheiro novo)
+        if (remainingToPay > 0 && paymentMethod !== 'wallet') {
+          const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
           
           await supabase.from("transactions").insert({
             user_id: user.id,
@@ -389,9 +389,9 @@ function CalendarComponent() {
             .eq("id", appointment.id);
         }
 
-        // Criar uma ÚNICA transação apenas se houver receita real
+        // Criar uma ÚNICA transação apenas se houver receita real (dinheiro novo)
         if (remainingToPay > 0) {
-          const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+          const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
           
           await supabase.from("transactions").insert({
             user_id: user.id,
