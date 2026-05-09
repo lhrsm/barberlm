@@ -28,7 +28,9 @@ import { Route as AdminTenantsRouteImport } from './routes/admin.tenants'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
+import { Route as AdminErrorsRouteImport } from './routes/admin.errors'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 
 const SubscriptionRoute = SubscriptionRouteImport.update({
@@ -126,9 +128,19 @@ const AdminFinanceRoute = AdminFinanceRouteImport.update({
   path: '/finance',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminErrorsRoute = AdminErrorsRouteImport.update({
+  id: '/errors',
+  path: '/errors',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
 const SlugPortalRoute = SlugPortalRouteImport.update({
@@ -153,7 +165,9 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/errors': typeof AdminErrorsRoute
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/support': typeof AdminSupportRoute
@@ -175,7 +189,9 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/errors': typeof AdminErrorsRoute
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/support': typeof AdminSupportRoute
@@ -199,7 +215,9 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/errors': typeof AdminErrorsRoute
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/support': typeof AdminSupportRoute
@@ -224,7 +242,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/$slug/portal'
+    | '/admin/analytics'
     | '/admin/dashboard'
+    | '/admin/errors'
     | '/admin/finance'
     | '/admin/plans'
     | '/admin/support'
@@ -246,7 +266,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/$slug/portal'
+    | '/admin/analytics'
     | '/admin/dashboard'
+    | '/admin/errors'
     | '/admin/finance'
     | '/admin/plans'
     | '/admin/support'
@@ -269,7 +291,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/$slug/portal'
+    | '/admin/analytics'
     | '/admin/dashboard'
+    | '/admin/errors'
     | '/admin/finance'
     | '/admin/plans'
     | '/admin/support'
@@ -429,11 +453,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFinanceRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/errors': {
+      id: '/admin/errors'
+      path: '/errors'
+      fullPath: '/admin/errors'
+      preLoaderRoute: typeof AdminErrorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/dashboard': {
       id: '/admin/dashboard'
       path: '/dashboard'
       fullPath: '/admin/dashboard'
       preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/$slug/portal': {
@@ -457,7 +495,9 @@ const SlugRouteChildren: SlugRouteChildren = {
 const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
 
 interface AdminRouteChildren {
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminErrorsRoute: typeof AdminErrorsRoute
   AdminFinanceRoute: typeof AdminFinanceRoute
   AdminPlansRoute: typeof AdminPlansRoute
   AdminSupportRoute: typeof AdminSupportRoute
@@ -466,7 +506,9 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminErrorsRoute: AdminErrorsRoute,
   AdminFinanceRoute: AdminFinanceRoute,
   AdminPlansRoute: AdminPlansRoute,
   AdminSupportRoute: AdminSupportRoute,
@@ -495,3 +537,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
