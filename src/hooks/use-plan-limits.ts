@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./use-auth";
+import { useTenant } from "./use-tenant";
 import { startOfMonth, endOfMonth } from "date-fns";
 
 export type PlanType = "free" | "basic" | "intermediate" | "pro";
@@ -42,7 +42,7 @@ export const PLAN_LIMITS = {
 };
 
 export function usePlanLimits() {
-  const { user } = useAuth();
+  const { tenantId } = useTenant();
   const [plan, setPlan] = useState<PlanType>("free");
   const [usage, setUsage] = useState({
     barbers: 0,
@@ -54,10 +54,10 @@ export function usePlanLimits() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
+    if (tenantId) {
       fetchPlanAndUsage();
     }
-  }, [user]);
+  }, [tenantId]);
 
   async function fetchPlanAndUsage() {
     if (!user) return;
