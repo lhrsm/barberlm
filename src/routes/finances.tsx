@@ -238,17 +238,19 @@ function FinancesComponent() {
   }, [transactions, appointments, barbers]);
 
   useEffect(() => {
-    async function fetchCredits() {
+    async function fetchBalances() {
       const { data, error } = await supabase
         .from('customers')
-        .select('credits');
+        .select('credits, cashback_balance');
       
       if (!error && data) {
-        const total = data.reduce((acc, curr) => acc + (Number(curr.credits) || 0), 0);
-        setTotalCredits(total);
+        const totalCred = data.reduce((acc, curr) => acc + (Number(curr.credits) || 0), 0);
+        const totalCash = data.reduce((acc, curr) => acc + (Number(curr.cashback_balance) || 0), 0);
+        setTotalCredits(totalCred);
+        setTotalCashback(totalCash);
       }
     }
-    if (user) fetchCredits();
+    if (user) fetchBalances();
   }, [user, transactions]); // Refresh when transactions change as they might involve credits
 
   async function handleAddTransaction(e: React.FormEvent) {
