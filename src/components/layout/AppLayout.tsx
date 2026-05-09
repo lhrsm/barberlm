@@ -13,11 +13,15 @@ import {
   CreditCard,
   Settings,
   ShoppingBag,
-  ShieldCheck
+  ShieldCheck,
+  Eye,
+  StopCircle,
+  LifeBuoy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useTenant } from "@/hooks/use-tenant";
 
 const defaultNavItems = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
@@ -28,20 +32,38 @@ const defaultNavItems = [
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
   { label: "Produtos", icon: ShoppingBag, to: "/products" },
   { label: "Assinatura", icon: CreditCard, to: "/subscription" },
+  { label: "Suporte", icon: LifeBuoy, to: "/support" },
   { label: "Configurações", icon: Settings, to: "/settings" },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [businessName, setBusinessName] = useState<string>("BarberSaaS");
+  const { tenantProfile, isImpersonating, stopImpersonation, tenantId } = useTenant();
   const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
 
   const navItems = [...defaultNavItems];
-  if (userRole === 'admin') {
-    navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/platform-admin" });
+  
+  // Only show Admin SaaS link if user is NOT impersonating AND has super_admin role
+  useEffect(() => {
+    async function getMyRole() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (data?.role) setUserRole(data.role);
+      }
+    }
+    getMyRole();
+  }, []);
+
+  if (userRole === 'super_admin' || userRole === 'admin') {
+    navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/admin/dashboard" });
   }
 
   useEffect(() => {
@@ -54,21 +76,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, [pathname, navigate]);
 
-  useEffect(() => {
-    async function fetchProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("business_name, role")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (data?.business_name) setBusinessName(data.business_name);
-        if (data?.role) setUserRole(data.role);
-      }
-    }
-    fetchProfile();
-  }, []);
+  const businessName = tenantProfile?.business_name || "BarberSaaS";
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -76,9 +84,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
-      {/* Sidebar for desktop */}
-      <aside className="hidden md:flex flex-col w-64 border-r bg-card">
+    <div className="flex flex-col h-screen bg-background text-foreground">
+      {isImpersonating && (
+        <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between text-sm font-medium z-[60]">
+          <div className="flex items-center gap-2">
+            <Eye size={16} />
+            <span>Modo Visualização: Você está acessando <strong>{businessName}</strong></span>
+          </div>
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="h-7 bg-white/20 hover:bg-white/30 border-none text-white"
+            onClick={stopImpersonation}
+          >
+            <StopCircle size={14} className="mr-1.5" />
+            Parar Visualização
+          </Button>
+        </div>
+      )}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar for desktop */}
+        <aside className="hidden md:flex flex-col w-64 border-r bg-card">
         <div className="p-6">
           <h1 className="text-2xl font-bold text-primary truncate">{businessName}</h1>
         </div>
@@ -159,6 +185,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      </div>
     </div>
   );
 }

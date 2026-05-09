@@ -120,6 +120,44 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          target_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       barber_services: {
         Row: {
           barber_id: string | null
@@ -317,6 +355,45 @@ export type Database = {
         }
         Relationships: []
       }
+      plans: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          description: string | null
+          features: Json
+          id: string
+          limits: Json
+          name: string
+          price_monthly: number
+          price_yearly: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          limits?: Json
+          name: string
+          price_monthly?: number
+          price_yearly?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          limits?: Json
+          name?: string
+          price_monthly?: number
+          price_yearly?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_sales: {
         Row: {
           created_at: string
@@ -409,6 +486,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          blocked_at: string | null
           business_name: string | null
           cashback_enabled: boolean
           cashback_percentage: number
@@ -430,12 +508,15 @@ export type Database = {
           scheduling_mode: string | null
           secondary_color: string | null
           slug: string | null
+          status: string | null
+          suspension_reason: string | null
           updated_at: string
           whatsapp_enabled: boolean | null
           whatsapp_number: string | null
         }
         Insert: {
           address?: string | null
+          blocked_at?: string | null
           business_name?: string | null
           cashback_enabled?: boolean
           cashback_percentage?: number
@@ -457,12 +538,15 @@ export type Database = {
           scheduling_mode?: string | null
           secondary_color?: string | null
           slug?: string | null
+          status?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
         }
         Update: {
           address?: string | null
+          blocked_at?: string | null
           business_name?: string | null
           cashback_enabled?: boolean
           cashback_percentage?: number
@@ -484,6 +568,8 @@ export type Database = {
           scheduling_mode?: string | null
           secondary_color?: string | null
           slug?: string | null
+          status?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
@@ -584,6 +670,89 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      support_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_admin_reply: boolean | null
+          message: string
+          sender_id: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_admin_reply?: boolean | null
+          message: string
+          sender_id: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_admin_reply?: boolean | null
+          message?: string
+          sender_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          priority: string | null
+          status: string
+          subject: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          priority?: string | null
+          status?: string
+          subject: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          priority?: string | null
+          status?: string
+          subject?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {

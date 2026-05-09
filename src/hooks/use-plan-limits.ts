@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./use-auth";
+import { useTenant } from "./use-tenant";
 import { startOfMonth, endOfMonth } from "date-fns";
 
 export type PlanType = "free" | "basic" | "intermediate" | "pro";
@@ -42,7 +42,7 @@ export const PLAN_LIMITS = {
 };
 
 export function usePlanLimits() {
-  const { user } = useAuth();
+  const { tenantId } = useTenant();
   const [plan, setPlan] = useState<PlanType>("free");
   const [usage, setUsage] = useState({
     barbers: 0,
@@ -54,29 +54,29 @@ export function usePlanLimits() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
+    if (tenantId) {
       fetchPlanAndUsage();
     }
-  }, [user]);
+  }, [tenantId]);
 
   async function fetchPlanAndUsage() {
-    if (!user) return;
+    if (!tenantId) return;
     setLoading(true);
 
     const monthStart = startOfMonth(new Date()).toISOString();
     const monthEnd = endOfMonth(new Date()).toISOString();
 
     const [profileRes, barbRes, servRes, prodRes, appRes, whatsappRes] = await Promise.all([
-      supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle(),
-      supabase.from("barbers").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
-      supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
-      supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("active", true),
+      supabase.from("profiles").select("plan").eq("id", tenantId).maybeSingle(),
+      supabase.from("barbers").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
+      supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
+      supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
       supabase.from("appointments").select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
+        .eq("user_id", tenantId)
         .neq("status", "cancelled")
         .gte("start_time", monthStart)
         .lte("start_time", monthEnd),
-      supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("user_id", tenantId),
     ]);
 
     if (profileRes.data) {
