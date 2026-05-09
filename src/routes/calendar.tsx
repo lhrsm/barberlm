@@ -848,9 +848,9 @@ function CalendarComponent() {
                                           }
                                           
                                           // Excluir permanentemente após processar estorno/crédito
-                                          await supabase.from("appointments").delete().eq("id", app.id);
+                                          await supabase.from("appointments").update({ status: "cancelled" }).eq("id", app.id);
                                           
-                                          toast.success("Solicitação processada e agendamento removido");
+                                          toast.success("Solicitação processada e agendamento cancelado");
                                           fetchData();
                                         } catch (err) {
                                           toast.error("Erro ao processar solicitação");
@@ -898,7 +898,7 @@ function CalendarComponent() {
                                     if (confirm("Deseja cancelar este agendamento?")) {
                                       const { error } = await supabase
                                         .from("appointments")
-                                        .update({ status: 'cancelled' })
+                                        .update({ status: "cancelled" })
                                         .eq("id", app.id);
                                       if (error) {
                                         toast.error("Erro ao cancelar agendamento");
