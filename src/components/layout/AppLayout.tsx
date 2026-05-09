@@ -82,9 +82,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
-      {/* Sidebar for desktop */}
-      <aside className="hidden md:flex flex-col w-64 border-r bg-card">
+    <div className="flex flex-col h-screen bg-background text-foreground">
+      {isImpersonating && (
+        <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between text-sm font-medium z-[60]">
+          <div className="flex items-center gap-2">
+            <Eye size={16} />
+            <span>Modo Visualização: Você está acessando <strong>{businessName}</strong></span>
+          </div>
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="h-7 bg-white/20 hover:bg-white/30 border-none text-white"
+            onClick={stopImpersonation}
+          >
+            <StopCircle size={14} className="mr-1.5" />
+            Parar Visualização
+          </Button>
+        </div>
+      )}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar for desktop */}
+        <aside className="hidden md:flex flex-col w-64 border-r bg-card">
         <div className="p-6">
           <h1 className="text-2xl font-bold text-primary truncate">{businessName}</h1>
         </div>
