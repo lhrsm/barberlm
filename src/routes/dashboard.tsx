@@ -723,7 +723,7 @@ function DashboardComponent() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    R$ {stats.monthly.appointments > 0 ? (stats.monthly.revenue / stats.monthly.appointments).toFixed(2) : "0.00"}
+                    R$ {stats.monthly.appointments > 0 ? (stats.monthly.totalServicesValue / stats.monthly.appointments).toFixed(2) : "0.00"}
                   </div>
                   <p className="text-xs text-muted-foreground">Baseado no mês atual</p>
                 </CardContent>
