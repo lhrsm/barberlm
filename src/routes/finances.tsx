@@ -125,6 +125,7 @@ function FinancesComponent() {
   }
 
   const [totalCredits, setTotalCredits] = useState(0);
+  const [totalCashback, setTotalCashback] = useState(0);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
