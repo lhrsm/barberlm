@@ -58,12 +58,16 @@ function DashboardComponent() {
   const [stats, setStats] = useState({
     daily: {
       appointments: 0,
-      revenue: 0,
+      totalServicesValue: 0, // Valor total dos serviços (Receita Operacional)
+      realCashInflow: 0,     // Entrada real em caixa (PIX/Dinheiro)
+      creditsUsed: 0,        // Créditos utilizados
       newCustomers: 0
     },
     monthly: {
       appointments: 0,
-      revenue: 0,
+      totalServicesValue: 0,
+      realCashInflow: 0,
+      creditsUsed: 0,
       newCustomers: 0
     },
     total: {
