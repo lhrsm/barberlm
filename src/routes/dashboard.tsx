@@ -925,12 +925,32 @@ function DashboardComponent() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
-                  <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Serviços Vendidos (Mês)</CardTitle>
+                  <Scissors className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">R$ {stats.monthly.revenue.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Total faturado neste mês</p>
+                  <div className="text-2xl font-bold">R$ {stats.monthly.totalServicesValue.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Valor total dos serviços no mês</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-green-700">Entrada Real (Mês)</CardTitle>
+                  <CircleDollarSign className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-700">R$ {stats.monthly.realCashInflow.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Dinheiro novo em caixa no mês</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-purple-700">Créditos Usados (Mês)</CardTitle>
+                  <Wallet className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-700">R$ {stats.monthly.creditsUsed.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Abatido via créditos no mês</p>
                 </CardContent>
               </Card>
               <Card>
