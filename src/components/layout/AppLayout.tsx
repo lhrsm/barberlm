@@ -49,7 +49,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   
   // ... role is now from useAuth hook
 
-  if (userRole === 'super_admin' || userRole === 'admin') {
+  if (role === 'super_admin' || role === 'admin') {
     navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/admin/dashboard" });
   }
 
