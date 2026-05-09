@@ -865,7 +865,7 @@ function CalendarComponent() {
                                             });
                                           }
                                           
-                                          // Update status to cancelled and refund_status to approved
+                                          // Update status to cancelled and refund_status to completed
                                           await supabase.from("appointments").update({ 
                                             status: "cancelled",
                                             refund_status: "completed"
