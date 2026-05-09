@@ -31,7 +31,7 @@ export const Route = createFileRoute("/services")({
 });
 
 function ServicesComponent() {
-  const { user, loading } = useAuth();
+  const { user, loading, role } = useAuth();
   const navigate = useNavigate();
   const { limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [services, setServices] = useState<any[]>([]);
@@ -40,12 +40,20 @@ function ServicesComponent() {
   const canAddService = checkLimit("services");
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
-  }, [user, loading, navigate]);
+    if (!loading && !user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+
+    if (!loading && user && role === 'super_admin') {
+      navigate({ to: "/admin" });
+      return;
+    }
+  }, [user, loading, role, navigate]);
 
   useEffect(() => {
-    if (user) fetchServices();
-  }, [user]);
+    if (user && role !== 'super_admin') fetchServices();
+  }, [user, role]);
 
   async function fetchServices() {
     const { data, error } = await supabase
