@@ -513,30 +513,17 @@ function ShopPageComponent() {
         });
       }
 
-      // 5. Handle Cashback
-      if (shop.cashback_enabled) {
-        let newBalance = (customerData?.cashback_balance || 0);
-        
-        if (useCashback) {
-          const discount = Math.min(newBalance, calculateTotalBeforeCashback());
-          newBalance -= discount;
-        }
-
-        // Add new cashback earned
-        const earned = (calculateTotalBeforeCashback() * (shop.cashback_percentage / 100));
-        newBalance += earned;
-
+      // 5. Update Customer Wallet (Deductions only)
+      const cashbackToDeduct = useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0;
+      const creditsToDeduct = useCredits ? Math.min(customerCredits, calculateTotalBeforeCredits()) : 0;
+      
+      if (cashbackToDeduct > 0 || creditsToDeduct > 0) {
         await supabase
           .from("customers")
           .update({ 
-            cashback_balance: newBalance,
-            credits: useCredits ? (customerCredits - Math.min(customerCredits, calculateTotalBeforeCredits())) : customerCredits
+            cashback_balance: customerCashback - cashbackToDeduct,
+            credits: customerCredits - creditsToDeduct
           })
-          .eq("id", customerId);
-      } else if (useCredits) {
-        await supabase
-          .from("customers")
-          .update({ credits: customerCredits - Math.min(customerCredits, calculateTotalBeforeCredits()) })
           .eq("id", customerId);
       }
 
