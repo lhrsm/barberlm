@@ -491,43 +491,6 @@ function FinancesComponent() {
             </CardContent>
           </Card>
         </div>
-              <TrendingUp className="h-4 w-4 text-emerald-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-700">R$ {summary.barbershopPart.toFixed(2)}</div>
-            </CardContent>
-          </Card>
-          <Card className={cn(
-            summary.balance > 0 ? "bg-green-50/50 border-green-100" : 
-            summary.balance < 0 ? "bg-red-50/50 border-red-100" : 
-            "bg-yellow-50/50 border-yellow-100"
-          )}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={cn(
-                "text-sm font-medium",
-                summary.balance > 0 ? "text-green-700" : 
-                summary.balance < 0 ? "text-red-700" : 
-                "text-yellow-700"
-              )}>Saldo Atual</CardTitle>
-              <Wallet className={cn(
-                "h-4 w-4",
-                summary.balance > 0 ? "text-green-600" : 
-                summary.balance < 0 ? "text-red-600" : 
-                "text-yellow-600"
-              )} />
-            </CardHeader>
-            <CardContent>
-              <div className={cn(
-                "text-2xl font-bold", 
-                summary.balance > 0 ? "text-green-700" : 
-                summary.balance < 0 ? "text-red-700" : 
-                "text-yellow-700"
-              )}>
-                R$ {summary.balance.toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         <Tabs defaultValue="transactions" className="w-full">
           <TabsList className="grid w-full grid-cols-3 max-w-[600px]">
