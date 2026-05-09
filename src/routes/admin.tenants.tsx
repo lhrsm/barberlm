@@ -13,7 +13,8 @@ import {
   Users,
   CalendarDays,
   DollarSign,
-  Filter
+  Filter,
+  CreditCard
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
