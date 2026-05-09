@@ -67,6 +67,22 @@ function FinancesComponent() {
       fetchTransactions();
       fetchBarbers();
       fetchAppointments();
+
+      // Realtime subscription
+      const channel = supabase
+        .channel('finances-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+          fetchTransactions();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+          fetchAppointments();
+          fetchTransactions();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
