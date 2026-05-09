@@ -510,6 +510,7 @@ export type Database = {
           slug: string | null
           status: string | null
           suspension_reason: string | null
+          tenant_id: string | null
           updated_at: string
           whatsapp_enabled: boolean | null
           whatsapp_number: string | null
@@ -540,6 +541,7 @@ export type Database = {
           slug?: string | null
           status?: string | null
           suspension_reason?: string | null
+          tenant_id?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
@@ -570,11 +572,20 @@ export type Database = {
           slug?: string | null
           status?: string | null
           suspension_reason?: string | null
+          tenant_id?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_ratings: {
         Row: {
@@ -959,6 +970,7 @@ export type Database = {
         Returns: undefined
       }
       is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
       process_product_sale: {
         Args: {
           p_customer_id: string

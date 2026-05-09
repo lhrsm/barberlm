@@ -20,14 +20,24 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPageComponent() {
-  const { user, loading } = useAuth();
+  const { user, loading, role } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user) {
-      navigate({ to: "/dashboard" });
+    if (!loading && user && role) {
+      if (role === 'super_admin') {
+        navigate({ to: "/admin" });
+      } else if (role === 'tenant_admin') {
+        navigate({ to: "/dashboard" });
+      } else if (role === 'barber') {
+        navigate({ to: "/calendar" });
+      } else if (role === 'client') {
+        navigate({ to: "/customers" }); // Redirect to a safe place for clients for now
+      } else {
+        navigate({ to: "/dashboard" });
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, role, navigate]);
 
   if (loading) return null;
   if (user) return null;

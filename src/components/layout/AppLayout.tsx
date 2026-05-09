@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/hooks/use-tenant";
+import { useAuth } from "@/hooks/use-auth";
 
 const defaultNavItems = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
@@ -39,30 +40,16 @@ const defaultNavItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId } = useTenant();
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { role, user, loading } = useAuth();
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
 
   const navItems = [...defaultNavItems];
   
-  // Only show Admin SaaS link if user is NOT impersonating AND has super_admin role
-  useEffect(() => {
-    async function getMyRole() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (data?.role) setUserRole(data.role);
-      }
-    }
-    getMyRole();
-  }, []);
+  // ... role is now from useAuth hook
 
-  if (userRole === 'super_admin' || userRole === 'admin') {
+  if (role === 'super_admin' || role === 'admin') {
     navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/admin/dashboard" });
   }
 
