@@ -779,9 +779,12 @@ function CalendarComponent() {
                                 )}
                                 <span className="font-bold truncate">{app.customers?.name}</span>
                               </div>
-                              {app.refund_requested_at && app.refund_status === 'pending' && (
-                                <Badge className="bg-amber-500 hover:bg-amber-600 text-[8px] h-4 px-1">
-                                  {app.refund_type === 'refund' ? 'Estorno Pend.' : 'Crédito Pend.'}
+                              {app.refund_requested_at && (
+                                <Badge className={cn(
+                                  "text-[8px] h-4 px-1",
+                                  app.refund_status === 'completed' ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-500 hover:bg-amber-600'
+                                )}>
+                                  {app.refund_type === 'refund' ? 'Estorno' : 'Crédito'} {app.refund_status === 'completed' ? 'Conc.' : 'Pend.'}
                                 </Badge>
                               )}
                             </div>
@@ -865,7 +868,7 @@ function CalendarComponent() {
                                           // Update status to cancelled and refund_status to approved
                                           await supabase.from("appointments").update({ 
                                             status: "cancelled",
-                                            refund_status: "approved"
+                                            refund_status: "completed"
                                           }).eq("id", app.id);
                                           
                                           toast.success("Solicitação processada e agendamento cancelado");
