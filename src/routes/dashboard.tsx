@@ -125,21 +125,25 @@ function DashboardComponent() {
   }, [tenantId, statusFilter, selectedDate]);
 
   async function fetchNotifications() {
+    if (!tenantId) return;
     const { data } = await supabase
       .from("notifications")
       .select("*")
+      .eq("user_id", tenantId)
       .order("created_at", { ascending: false })
       .limit(10);
     if (data) setNotifications(data);
   }
 
   async function fetchTodayAppointments() {
+    if (!tenantId) return;
     const dayStart = startOfDay(selectedDate).toISOString();
     const dayEnd = endOfDay(selectedDate).toISOString();
     
     let query = supabase
       .from("appointments")
       .select("*, customers(name, phone, loyalty_points, avatar_url, credits), services(name), barbers(name)")
+      .eq("user_id", tenantId)
       .or(`status.neq.cancelled,refund_status.in.(pending,completed)`)
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);
@@ -252,9 +256,13 @@ function DashboardComponent() {
       const deductionText = `${creditText}${cashbackText}`;
 
       
+      if (!tenantId) {
+        toast.error("Tenant não identificado");
+        return;
+      }
+
       const { error: transError } = await supabase
         .from("transactions")
-      // @ts-ignore
         .insert({
           amount: remainingToPay,
           type: "income",
@@ -262,7 +270,7 @@ function DashboardComponent() {
           category: "Serviço",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          user_id: tenantId || "",
+          user_id: tenantId,
           date: new Date().toISOString().split('T')[0],
           time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
         });
@@ -286,9 +294,13 @@ function DashboardComponent() {
       // Criar transação mesmo que seja 0 para constar no financeiro
       const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
       
+      if (!tenantId) {
+        toast.error("Tenant não identificado");
+        return;
+      }
+
       const { error: transError } = await supabase
         .from("transactions")
-      // @ts-ignore
         .insert({
           amount: remainingToPay,
           type: "income",
@@ -296,7 +308,7 @@ function DashboardComponent() {
           category: "Serviço",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          user_id: tenantId || "",
+          user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
         });
       
@@ -345,8 +357,12 @@ function DashboardComponent() {
     if (appointment.payment_status === 'paid') {
       const totalPrice = Number(appointment.total_price || 0);
       
+      if (!tenantId) {
+        toast.error("Tenant não identificado");
+        return;
+      }
+
       if (appointment.refund_type === 'refund') {
-        // @ts-ignore
         // Estorno: Remove da receita (cria uma saída/despesa para abater)
         await supabase.from("transactions").insert({
           amount: totalPrice,
@@ -355,7 +371,7 @@ function DashboardComponent() {
           category: "Estorno",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          user_id: tenantId || "",
+          user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
         });
         toast.success("Agendamento cancelado e estorno registrado como saída!");
@@ -371,11 +387,10 @@ function DashboardComponent() {
             
           if (!wallet) {
             const { data: newWallet, error: walletErr } = await supabase
-              // @ts-ignore
               .from("wallet")
               .insert({ 
                 customer_id: appointment.customer_id, 
-                user_id: tenantId || "",
+                user_id: tenantId,
                 balance: 0 
               })
               .select()
@@ -392,12 +407,11 @@ function DashboardComponent() {
             type: "credit",
             description: `Crédito por cancelamento: ${appointment.services?.name || 'Serviço'}`,
             appointment_id: appointment.id,
-            user_id: tenantId || ""
+            user_id: tenantId
           });
 
           // 3. Registrar na transação como 0 para não contar como receita nova nem saída, 
           // mas documentar o movimento. O valor original de 'income' continua lá, 
-          // @ts-ignore
           // mas agora o cliente tem o crédito para usar.
           // Usando valor total original para o crédito
           await supabase.from("transactions").insert({
@@ -407,7 +421,7 @@ function DashboardComponent() {
             category: "Crédito Cliente",
             barber_id: appointment.barber_id,
             appointment_id: appointment.id,
-            user_id: tenantId || "",
+            user_id: tenantId,
             date: new Date().toISOString().split('T')[0]
           });
 
@@ -426,7 +440,7 @@ function DashboardComponent() {
           category: "Cancelamento",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          user_id: tenantId || "",
+          user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
         });
         toast.success("Agendamento cancelado!");
@@ -440,7 +454,7 @@ function DashboardComponent() {
   }
 
   async function fetchStats() {
-    if (!user) return;
+    if (!user || !tenantId) return;
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
     const monthStart = startOfMonth(new Date()).toISOString();
@@ -462,26 +476,28 @@ function DashboardComponent() {
       monthlyAppointmentsData,
       customersWithBalances
     ] = await Promise.all([
-      supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("user_id", tenantId).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("user_id", tenantId).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
       // Buscar todas as transações para filtrar em memória
-      supabase.from("transactions").select("amount, type, appointment:appointments(status)").gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("transactions").select("amount, type, appointment:appointments(status)").gte("created_at", monthStart).lte("created_at", monthEnd),
-      supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", monthStart).lte("created_at", monthEnd),
-      supabase.from("customers").select("*", { count: "exact", head: true }),
-      supabase.from("services").select("*", { count: "exact", head: true }),
-      supabase.from("barbers").select("*").eq("active", true).limit(5),
-      supabase.from("profiles").select("*").eq("id", tenantId || "").single(),
-      supabase.from("wallet").select("balance"),
+      supabase.from("transactions").select("amount, type, appointment:appointments(status)").eq("user_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
+      supabase.from("transactions").select("amount, type, appointment:appointments(status)").eq("user_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
+      supabase.from("customers").select("*", { count: "exact", head: true }).eq("user_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
+      supabase.from("customers").select("*", { count: "exact", head: true }).eq("user_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
+      supabase.from("customers").select("*", { count: "exact", head: true }).eq("user_id", tenantId),
+      supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", tenantId),
+      supabase.from("barbers").select("*").eq("user_id", tenantId).eq("active", true).limit(5),
+      supabase.from("profiles").select("*").eq("id", tenantId).single(),
+      supabase.from("wallet").select("balance").eq("user_id", tenantId),
       // Valor dos serviços: APENAS CONCLUÍDOS
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
+        .eq("user_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
+        .eq("user_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", monthStart).lte("start_time", monthEnd),
-      supabase.from("customers").select("credits, cashback_balance")
+      supabase.from("customers").select("credits, cashback_balance").eq("user_id", tenantId)
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
