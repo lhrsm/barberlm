@@ -58,9 +58,11 @@ function DashboardComponent() {
   const [stats, setStats] = useState({
     daily: {
       appointments: 0,
-      totalServicesValue: 0, // Valor total dos serviços (Receita Operacional)
-      realCashInflow: 0,     // Entrada real em caixa (PIX/Dinheiro)
-      creditsUsed: 0,        // Créditos utilizados
+      totalServicesValue: 0,
+      realCashInflow: 0,
+      creditsUsed: 0,
+      cashbackUsed: 0,
+      cashbackEarned: 0,
       newCustomers: 0
     },
     monthly: {
@@ -68,12 +70,15 @@ function DashboardComponent() {
       totalServicesValue: 0,
       realCashInflow: 0,
       creditsUsed: 0,
+      cashbackUsed: 0,
+      cashbackEarned: 0,
       newCustomers: 0
     },
     total: {
       customers: 0,
       services: 0,
-      customerCredits: 0
+      customerCredits: 0,
+      customerCashback: 0
     }
   });
   const [barbers, setBarbers] = useState<any[]>([]);
