@@ -40,7 +40,7 @@ const defaultNavItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId } = useTenant();
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { role, user, loading } = useAuth();
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
