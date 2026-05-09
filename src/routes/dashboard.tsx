@@ -412,7 +412,6 @@ function DashboardComponent() {
 
           // 3. Registrar na transação como 0 para não contar como receita nova nem saída, 
           // mas documentar o movimento. O valor original de 'income' continua lá, 
-          // @ts-ignore
           // mas agora o cliente tem o crédito para usar.
           // Usando valor total original para o crédito
           await supabase.from("transactions").insert({
@@ -422,7 +421,7 @@ function DashboardComponent() {
             category: "Crédito Cliente",
             barber_id: appointment.barber_id,
             appointment_id: appointment.id,
-            user_id: tenantId || "",
+            user_id: tenantId,
             date: new Date().toISOString().split('T')[0]
           });
 
