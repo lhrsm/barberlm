@@ -92,6 +92,25 @@ function DashboardComponent() {
       fetchStats();
       fetchNotifications();
       fetchTodayAppointments();
+
+      // Realtime subscription
+      const channel = supabase
+        .channel('dashboard-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+          fetchTodayAppointments();
+          fetchStats();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+          fetchStats();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+          fetchNotifications();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user, statusFilter, selectedDate]);
 
@@ -110,7 +129,7 @@ function DashboardComponent() {
     
     let query = supabase
       .from("appointments")
-      .select("*, customers(name, phone, loyalty_points, avatar_url), services(name), barbers(name)")
+      .select("*, customers(name, phone, loyalty_points, avatar_url, credits), services(name), barbers(name)")
       .or(`status.neq.cancelled,refund_status.eq.pending`)
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);
@@ -131,10 +150,42 @@ function DashboardComponent() {
   async function completeAppointment(appointment: any) {
     if (appointment.status === 'completed') return;
 
-    // 1. Update appointment status
+    // 1. Get available credits and current state
+    const { data: customerData } = await supabase
+      .from("customers")
+      .select("credits, loyalty_points, name")
+      .eq("id", appointment.customer_id)
+      .single();
+
+    const availableCredits = Number(customerData?.credits || 0);
+    const totalPrice = Number(appointment.original_total || appointment.total_price || 0);
+    
+    // Determine how much credit will be used (only if not already subtracted)
+    let usedCredits = Number(appointment.credit_used || 0);
+    let remainingToPay = Number(appointment.final_amount || (totalPrice - usedCredits));
+
+    // If credits haven't been applied yet and the customer has them
+    if (usedCredits === 0 && availableCredits > 0) {
+      usedCredits = Math.min(availableCredits, totalPrice);
+      remainingToPay = totalPrice - usedCredits;
+
+      // Deduct from customer wallet
+      await supabase
+        .from("customers")
+        .update({ credits: availableCredits - usedCredits })
+        .eq("id", appointment.customer_id);
+    }
+
+    // 2. Update appointment status and financial details
     const { error } = await supabase
       .from("appointments")
-      .update({ status: 'completed' })
+      .update({ 
+        status: 'completed',
+        payment_status: 'paid',
+        credit_used: usedCredits,
+        final_amount: remainingToPay,
+        barbershop_amount: remainingToPay
+      })
       .eq("id", appointment.id);
 
     if (error) {
@@ -142,50 +193,43 @@ function DashboardComponent() {
       return;
     }
 
-    // 2. Increment loyalty points for the customer
+    // 3. Increment loyalty points
     if (appointment.customer_id) {
-      const currentPoints = appointment.customers?.loyalty_points || 0;
+      const currentPoints = customerData?.loyalty_points || 0;
       await supabase
         .from("customers")
         .update({ loyalty_points: currentPoints + 1 })
         .eq("id", appointment.customer_id);
     }
 
-    // 3. Handle financial registration (Only if paid)
-    if (appointment.payment_status === 'paid') {
-      const totalPrice = Number(appointment.original_total || appointment.total_price || 0);
-      const usedCredits = Number(appointment.credit_used || 0);
-      const remainingToPay = Number(appointment.final_amount || 0);
-      
-      // Check if a transaction for this appointment already exists to avoid duplicates
-      const { data: existingTrans } = await supabase
-        .from("transactions")
-        .select("id")
-        .eq("appointment_id", appointment.id)
-        .maybeSingle();
+    // 4. Create Financial Transaction
+    const { data: existingTrans } = await supabase
+      .from("transactions")
+      .select("id")
+      .eq("appointment_id", appointment.id)
+      .maybeSingle();
 
-      if (!existingTrans) {
-        // Criar uma ÚNICA transação para registro financeiro (mesmo se valor for 0 para constar no operacional)
-        const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
-        
-        const { error: transError } = await supabase
-          .from("transactions")
-          .insert({
-            amount: remainingToPay,
-            type: "income",
-            description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-            category: "Serviço",
-            barber_id: appointment.barber_id,
-            appointment_id: appointment.id,
-            user_id: user?.id || "",
-            date: new Date().toISOString().split('T')[0]
-          });
-        
-        if (transError) console.error("Error creating transaction:", transError);
-      }
+    if (!existingTrans) {
+      const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+      
+      const { error: transError } = await supabase
+        .from("transactions")
+        .insert({
+          amount: remainingToPay,
+          type: "income",
+          description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+          category: "Serviço",
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          user_id: user?.id || "",
+          date: new Date().toISOString().split('T')[0],
+          time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
+        });
+      
+      if (transError) console.error("Error creating transaction:", transError);
     }
 
-    toast.success("Agendamento concluído e fidelidade incrementada!");
+    toast.success("Serviço concluído e registrado no financeiro!");
     fetchTodayAppointments();
     fetchStats();
   }
@@ -371,6 +415,7 @@ function DashboardComponent() {
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
+      // Transações agora vinculadas apenas a agendamentos concluídos ou manuais
       supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
@@ -380,8 +425,13 @@ function DashboardComponent() {
       supabase.from("barbers").select("*").eq("active", true).limit(5),
       supabase.from("profiles").select("*").eq("id", user.id).single(),
       supabase.from("wallet").select("balance"),
-      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount").neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount").neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd)
+      // Valor dos serviços: APENAS CONCLUÍDOS
+      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount")
+        .eq("status", "completed")
+        .gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount")
+        .eq("status", "completed")
+        .gte("start_time", monthStart).lte("start_time", monthEnd)
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;

@@ -97,6 +97,18 @@ function CalendarComponent() {
   useEffect(() => {
     if (user) {
       fetchData();
+
+      // Realtime subscription
+      const channel = supabase
+        .channel('calendar-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+          fetchData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user, currentDate, view]);
 
@@ -235,75 +247,10 @@ function CalendarComponent() {
 
       if (error) throw error;
 
-      // Only create transaction and sales records if paid
+      // Transações financeiras só devem ser criadas na conclusão (completeAppointment)
+      // Se for pagamento imediato, marcamos apenas como pago
       if (paymentStatus === 'paid') {
-        const isWalletPayment = paymentMethod === 'wallet';
-        const totalPrice = service?.price || 0;
-        const currentCustomer = customers.find(c => c.id === selectedCustomer);
-        const availableCredits = Number(currentCustomer?.credits || 0);
-
-        // Se for pagamento via créditos ou cliente possuir créditos, debitar do saldo
-        const usedCredits = (isWalletPayment || availableCredits > 0) ? Math.min(availableCredits, totalPrice) : 0;
-        const remainingToPay = totalPrice - usedCredits;
-
-        if (usedCredits > 0) {
-          // Atualizar créditos do cliente e agendamento
-          await Promise.all([
-            supabase
-              .from("customers")
-              .update({ credits: availableCredits - usedCredits })
-              .eq("id", selectedCustomer),
-            supabase
-              .from("appointments")
-              .update({ 
-                credit_used: usedCredits,
-                final_amount: remainingToPay,
-                barbershop_amount: remainingToPay
-              })
-              .eq("id", appointmentData.id)
-          ]);
-        } else {
-          await supabase
-            .from("appointments")
-            .update({ 
-              final_amount: totalPrice,
-              barbershop_amount: totalPrice
-            })
-            .eq("id", appointmentData.id);
-        }
-
-        // Criar uma ÚNICA transação para registro financeiro (mesmo se valor for 0 para constar no operacional)
-        const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
-        
-        await supabase.from("transactions").insert({
-          user_id: user.id,
-          barber_id: selectedBarber,
-          appointment_id: appointmentData.id,
-          type: "income",
-          category: "Serviço",
-          amount: remainingToPay,
-          description: `Agendamento${creditText}: ${service?.name} - Cliente: ${currentCustomer?.name}`,
-          date: selectedDate,
-          time: selectedTime + ":00"
-        });
-
-        // Registrar no faturamento de produtos (para estatísticas de vendas)
-        await supabase.from("product_sales").insert({
-          user_id: user.id,
-          items: [{ id: selectedService, name: service?.name, quantity: 1, price: totalPrice }],
-          total_amount: totalPrice,
-          status: 'completed',
-          customer_id: selectedCustomer
-        });
-
-        // Atualizar pontos de fidelidade
-        if (selectedCustomer) {
-          const currentPoints = currentCustomer?.loyalty_points || 0;
-          await supabase
-            .from("customers")
-            .update({ loyalty_points: currentPoints + 1 })
-            .eq("id", selectedCustomer);
-        }
+        toast.info("Pagamento marcado como concluído. A transação financeira será gerada ao finalizar o atendimento.");
       }
 
 
@@ -323,10 +270,22 @@ function CalendarComponent() {
     if (!user) return;
     setIsLoading(true);
     try {
-      // 1. Update appointment status
+      // Get customer data for credits
+      const { data: customerData } = await supabase
+        .from("customers")
+        .select("credits, name")
+        .eq("id", appointment.customer_id)
+        .single();
+      
+      const availableCredits = Number(customerData?.credits || 0);
+
+      // 1. Update appointment status (Concluído + Pago)
       const { error: updateErr } = await supabase
         .from("appointments")
-        .update({ payment_status: 'paid', status: 'completed' })
+        .update({ 
+          payment_status: 'paid', 
+          status: 'completed' 
+        })
         .eq("id", appointment.id);
 
       if (updateErr) throw updateErr;
@@ -348,14 +307,6 @@ function CalendarComponent() {
         }];
       }
 
-      // Check for available credits
-      const { data: customerData } = await supabase
-        .from("customers")
-        .select("loyalty_points, credits, name")
-        .eq("id", appointment.customer_id)
-        .single();
-      
-      const availableCredits = Number(customerData?.credits || 0);
       const serviceItem = items.find((i: any) => i.type === 'service');
       const productItems = items.filter((i: any) => i.type === 'product');
 
