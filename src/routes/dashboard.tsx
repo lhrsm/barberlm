@@ -153,28 +153,43 @@ function DashboardComponent() {
     // 1. Get available credits and current state
     const { data: customerData } = await supabase
       .from("customers")
-      .select("credits, loyalty_points, name")
+      .select("credits, loyalty_points, cashback_balance, name")
       .eq("id", appointment.customer_id)
       .single();
 
     const availableCredits = Number(customerData?.credits || 0);
+    const availableCashback = Number(customerData?.cashback_balance || 0);
     const totalPrice = Number(appointment.original_total || appointment.total_price || 0);
     
-    // Determine how much credit will be used (only if not already subtracted)
+    // Determine how much credit and cashback will be used (only if not already subtracted)
     let usedCredits = Number(appointment.credit_used || 0);
-    let remainingToPay = Number(appointment.final_amount || (totalPrice - usedCredits));
+    let usedCashback = Number(appointment.cashback_used || 0);
+    let remainingToPay = Number(appointment.final_amount || totalPrice);
 
-    // If credits haven't been applied yet and the customer has them
-    if (usedCredits === 0 && availableCredits > 0) {
-      usedCredits = Math.min(availableCredits, totalPrice);
-      remainingToPay = totalPrice - usedCredits;
+    // If credits/cashback haven't been applied yet (e.g., manual completion by admin)
+    // Priority: 1. Cashback, 2. Credits
+    if (usedCredits === 0 && usedCashback === 0 && remainingToPay === totalPrice) {
+      if (availableCashback > 0) {
+        usedCashback = Math.min(availableCashback, remainingToPay);
+        remainingToPay -= usedCashback;
+      }
+      if (remainingToPay > 0 && availableCredits > 0) {
+        usedCredits = Math.min(availableCredits, remainingToPay);
+        remainingToPay -= usedCredits;
+      }
 
       // Deduct from customer wallet
       await supabase
         .from("customers")
-        .update({ credits: availableCredits - usedCredits })
+        .update({ 
+          credits: availableCredits - usedCredits,
+          cashback_balance: availableCashback - usedCashback
+        })
         .eq("id", appointment.customer_id);
     }
+
+    // Calculate new cashback earned (R$ 10 for every R$ 100 paid in new money)
+    const cashbackEarned = Math.floor(remainingToPay / 100) * 10;
 
     // 2. Update appointment status and financial details
     const { error } = await supabase
@@ -183,6 +198,8 @@ function DashboardComponent() {
         status: 'completed',
         payment_status: 'paid',
         credit_used: usedCredits,
+        cashback_used: usedCashback,
+        cashback_earned: cashbackEarned,
         final_amount: remainingToPay,
         barbershop_amount: remainingToPay
       })
@@ -193,12 +210,22 @@ function DashboardComponent() {
       return;
     }
 
-    // 3. Increment loyalty points
+    // 3. Increment loyalty points and cashback balance
     if (appointment.customer_id) {
       const currentPoints = customerData?.loyalty_points || 0;
+      const currentCashback = Number(customerData?.cashback_balance || 0);
+      
+      // If we deducted usedCashback above, we use the updated value
+      const baseCashback = (usedCredits === 0 && usedCashback === 0 && totalPrice === remainingToPay + usedCredits + usedCashback) 
+        ? availableCashback - usedCashback 
+        : currentCashback;
+
       await supabase
         .from("customers")
-        .update({ loyalty_points: currentPoints + 1 })
+        .update({ 
+          loyalty_points: currentPoints + 1,
+          cashback_balance: baseCashback + cashbackEarned
+        })
         .eq("id", appointment.customer_id);
     }
 
