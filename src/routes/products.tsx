@@ -42,7 +42,7 @@ export const Route = createFileRoute("/products")({
 });
 
 function ProductsComponent() {
-  const { user, loading } = useAuth();
+  const { user, loading, role } = useAuth();
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [products, setProducts] = useState<any[]>([]);
@@ -60,12 +60,20 @@ function ProductsComponent() {
   const canAddProduct = usage.products < limits.products;
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
-  }, [user, loading, navigate]);
+    if (!loading && !user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+
+    if (!loading && user && role === 'super_admin') {
+      navigate({ to: "/admin" });
+      return;
+    }
+  }, [user, loading, role, navigate]);
 
   useEffect(() => {
-    if (user) fetchProducts();
-  }, [user]);
+    if (user && role !== 'super_admin') fetchProducts();
+  }, [user, role]);
 
   async function fetchProducts() {
     const { data, error } = await supabase
