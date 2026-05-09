@@ -899,9 +899,9 @@ function FinancesComponent() {
                   (!barberDateFilter || t.date === barberDateFilter)
                 );
                 const totalReceived = barberTransactions.reduce((acc, t) => {
-                  // Se houver agendamento vinculado, usamos o original_total para receita operacional do barbeiro
+                  // Se houver agendamento vinculado, usamos o valor total para receita operacional do barbeiro
                   if (t.appointment) {
-                    return acc + (Number(t.appointment.original_total || t.appointment.final_amount || t.amount) || 0);
+                    return acc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
                   }
                   
                   const val = parseFloat(String(t.amount)) || 0;
