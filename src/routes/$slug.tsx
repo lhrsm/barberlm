@@ -476,19 +476,17 @@ function ShopPageComponent() {
         const finalPaymentMethod = paymentMethod === 'pix' ? 'PIX' : (paymentMethod === 'barbershop' ? 'BARBEARIA' : 'CRÉDITOS/CASHBACK');
         const remainingAmount = calculateTotal();
         
-        // Only record transaction if there is actual new revenue
-        if (remainingAmount > 0) {
-          await supabase.from("transactions").insert({
-            user_id: shop.id,
-            barber_id: selectedBarber.id,
-            appointment_id: appointment.id,
-            type: "income",
-            category: "Serviço",
-            amount: remainingAmount,
-            description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}${useCredits ? ` (Abatimento Créditos: R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : ""}`,
-            date: new Date().toISOString().split('T')[0]
-          });
-        }
+        // Registrar transação para constar no operacional (mesmo se for 0 em dinheiro novo)
+        await supabase.from("transactions").insert({
+          user_id: shop.id,
+          barber_id: selectedBarber.id,
+          appointment_id: appointment.id,
+          type: "income",
+          category: "Serviço",
+          amount: remainingAmount,
+          description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}${useCredits ? ` (Abatimento Créditos: R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : ""}`,
+          date: new Date().toISOString().split('T')[0]
+        });
 
         // 4. Products faturamento (Products table tracks total sales regardless of credit use for stock/performance)
         for (const item of selectedProducts) {

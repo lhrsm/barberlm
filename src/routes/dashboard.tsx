@@ -164,8 +164,8 @@ function DashboardComponent() {
         .eq("appointment_id", appointment.id)
         .maybeSingle();
 
-      if (!existingTrans && remainingToPay > 0) {
-        // Criar uma ÚNICA transação com o valor pago em dinheiro novo
+      if (!existingTrans) {
+        // Criar uma ÚNICA transação para registro financeiro (mesmo se valor for 0 para constar no operacional)
         const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
         
         const { error: transError } = await supabase
@@ -198,24 +198,23 @@ function DashboardComponent() {
       const remainingToPay = Number(appointment.final_amount || appointment.total_price || 0);
       const usedCredits = Number(appointment.credit_used || 0);
       
-      if (remainingToPay > 0) {
-        const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
-        
-        const { error: transError } = await supabase
-          .from("transactions")
-          .insert({
-            amount: remainingToPay,
-            type: "income",
-            description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-            category: "Serviço",
-            barber_id: appointment.barber_id,
-            appointment_id: appointment.id,
-            user_id: user?.id || "",
-            date: new Date().toISOString().split('T')[0]
-          });
-        
-        if (transError) console.error("Error creating transaction on payment status toggle:", transError);
-      }
+      // Criar transação mesmo que seja 0 para constar no financeiro
+      const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+      
+      const { error: transError } = await supabase
+        .from("transactions")
+        .insert({
+          amount: remainingToPay,
+          type: "income",
+          description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+          category: "Serviço",
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          user_id: user?.id || "",
+          date: new Date().toISOString().split('T')[0]
+        });
+      
+      if (transError) console.error("Error creating transaction on payment status toggle:", transError);
     } else if (newStatus === 'pending') {
       // If marking as pending, remove from transactions
       await supabase
@@ -381,8 +380,8 @@ function DashboardComponent() {
       supabase.from("barbers").select("*").eq("active", true).limit(5),
       supabase.from("profiles").select("*").eq("id", user.id).single(),
       supabase.from("wallet").select("balance"),
-      supabase.from("appointments").select("total_price, credit_used, final_amount").neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("total_price, credit_used, final_amount").neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd)
+      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount").neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount").neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd)
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
@@ -391,12 +390,12 @@ function DashboardComponent() {
     setProfile(profileData.data);
 
     // Cálculos Diários
-    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
+    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
     const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
     const dailyCashInflow = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
 
     // Cálculos Mensais
-    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
+    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
     const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
     const monthlyCashInflow = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
 

@@ -84,7 +84,7 @@ function FinancesComponent() {
       .select(`
         *,
         barber:barbers(name),
-        appointment:appointments(status, payment_method, credit_used, original_total, final_amount)
+        appointment:appointments(status, payment_method, credit_used, original_total, final_amount, total_price)
       `)
       .order("created_at", { ascending: false });
     setTransactions(data || []);
@@ -126,13 +126,16 @@ function FinancesComponent() {
     const operationalRevenue = transactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
+        // Se houver agendamento, preferimos usar o valor total original
+        if (t.appointment) {
+          return acc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
+        }
+
         const val = parseFloat(String(t.amount)) || 0;
         
-        // Se o agendamento tiver credit_used, somamos ele para ter o valor TOTAL do serviço (receita operacional)
+        // Se não houver agendamento, tentamos extrair créditos da descrição (legado/manual)
         let creditedAmount = 0;
-        if (t.appointment?.credit_used) {
-          creditedAmount = Number(t.appointment.credit_used);
-        } else if (t.description?.includes("Abatimento Créditos: R$")) {
+        if (t.description?.includes("Abatimento Créditos: R$")) {
           const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
         } else if (t.description?.includes("Créditos: R$")) {
@@ -176,9 +179,9 @@ function FinancesComponent() {
         t.type === 'income'
       );
       const bTotal = bTransactions.reduce((tAcc, t) => {
-        // Se houver agendamento vinculado, usamos o original_total
+        // Se houver agendamento vinculado, usamos o valor total para comissão
         if (t.appointment) {
-          return tAcc + (Number(t.appointment.original_total || t.appointment.final_amount || t.amount) || 0);
+          return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
         }
         
         // Se não houver agendamento, tentamos extrair do texto (legado) ou usamos o valor da transação
@@ -896,9 +899,9 @@ function FinancesComponent() {
                   (!barberDateFilter || t.date === barberDateFilter)
                 );
                 const totalReceived = barberTransactions.reduce((acc, t) => {
-                  // Se houver agendamento vinculado, usamos o original_total para receita operacional do barbeiro
+                  // Se houver agendamento vinculado, usamos o valor total para receita operacional do barbeiro
                   if (t.appointment) {
-                    return acc + (Number(t.appointment.original_total || t.appointment.final_amount || t.amount) || 0);
+                    return acc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
                   }
                   
                   const val = parseFloat(String(t.amount)) || 0;
@@ -983,7 +986,7 @@ function FinancesComponent() {
                         );
                         const bTotal = bTransactions.reduce((tAcc, t) => {
                           if (t.appointment) {
-                            return tAcc + (Number(t.appointment.original_total || t.appointment.final_amount || t.amount) || 0);
+                            return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
                           }
                           const val = parseFloat(String(t.amount)) || 0;
                           if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito") || t.description?.includes("Abatimento"))) {
