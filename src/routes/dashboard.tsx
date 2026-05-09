@@ -92,6 +92,25 @@ function DashboardComponent() {
       fetchStats();
       fetchNotifications();
       fetchTodayAppointments();
+
+      // Realtime subscription
+      const channel = supabase
+        .channel('dashboard-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+          fetchTodayAppointments();
+          fetchStats();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+          fetchStats();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+          fetchNotifications();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user, statusFilter, selectedDate]);
 
