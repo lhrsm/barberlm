@@ -118,6 +118,9 @@ async function initializeAuth() {
 
 if (typeof window !== 'undefined') {
   initializeAuth();
+} else {
+  // In SSR/Node, we don't want to block
+  globalLoading = false;
 }
 
 export function useAuth() {
