@@ -610,7 +610,6 @@ function ClientPortalComponent() {
         .eq("id", cancellingAppointment.customer_id);
           
         toast.success("Cancelado! O pedido de estorno foi enviado para análise da barbearia.");
-      }
       
       setIsRefundModalOpen(false);
       setCancellingAppointment(null);
