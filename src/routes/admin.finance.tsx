@@ -175,7 +175,7 @@ function AdminFinance() {
               <TableBody>
                 {financeStats?.recentTransactions.map((t) => (
                   <TableRow key={t.id}>
-                    <TableCell className="font-medium text-xs">R$ {t.amount.toLocaleString('pt-BR')}</TableCell>
+                    <TableCell className="font-medium text-xs">R$ {(t.amount || 0).toLocaleString('pt-BR')}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[10px] h-5">Concluído</Badge>
                     </TableCell>
