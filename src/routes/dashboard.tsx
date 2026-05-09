@@ -164,8 +164,8 @@ function DashboardComponent() {
         .eq("appointment_id", appointment.id)
         .maybeSingle();
 
-      if (!existingTrans && remainingToPay > 0) {
-        // Criar uma ÚNICA transação com o valor pago em dinheiro novo
+      if (!existingTrans) {
+        // Criar uma ÚNICA transação para registro financeiro (mesmo se valor for 0 para constar no operacional)
         const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
         
         const { error: transError } = await supabase
