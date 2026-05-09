@@ -468,6 +468,7 @@ function DashboardComponent() {
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
+    const totalCashback = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_balance || 0), 0) || 0;
 
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);
@@ -487,13 +488,17 @@ function DashboardComponent() {
     };
 
     // Cálculos Diários
-    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
-    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
+    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const dailyCashbackUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_used || 0), 0) || 0;
+    const dailyCashbackEarned = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const dailyCashInflow = calculateCashInflow(dailyTrans.data);
 
     // Cálculos Mensais
-    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
-    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
+    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const monthlyCashbackUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_used || 0), 0) || 0;
+    const monthlyCashbackEarned = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const monthlyCashInflow = calculateCashInflow(monthlyTrans.data);
 
     setStats({
@@ -502,6 +507,8 @@ function DashboardComponent() {
         totalServicesValue: dailyServicesValue,
         realCashInflow: dailyCashInflow,
         creditsUsed: dailyCreditsUsed,
+        cashbackUsed: dailyCashbackUsed,
+        cashbackEarned: dailyCashbackEarned,
         newCustomers: dailyCust.count || 0
       },
       monthly: {
@@ -509,12 +516,15 @@ function DashboardComponent() {
         totalServicesValue: monthlyServicesValue,
         realCashInflow: monthlyCashInflow,
         creditsUsed: monthlyCreditsUsed,
+        cashbackUsed: monthlyCashbackUsed,
+        cashbackEarned: monthlyCashbackEarned,
         newCustomers: monthlyCust.count || 0
       },
       total: {
         customers: totalCust.count || 0,
         services: totalServ.count || 0,
-        customerCredits: totalCredits
+        customerCredits: totalCredits,
+        customerCashback: totalCashback
       }
     });
   }
