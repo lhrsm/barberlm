@@ -176,11 +176,15 @@ function FinancesComponent() {
         t.type === 'income'
       );
       const bTotal = bTransactions.reduce((tAcc, t) => {
+        // Se houver agendamento vinculado, usamos o original_total
+        if (t.appointment) {
+          return tAcc + (Number(t.appointment.original_total || t.appointment.final_amount || t.amount) || 0);
+        }
+        
+        // Se não houver agendamento, tentamos extrair do texto (legado) ou usamos o valor da transação
         const val = parseFloat(String(t.amount)) || 0;
         let creditedAmount = 0;
-        if (t.appointment?.credit_used) {
-          creditedAmount = Number(t.appointment.credit_used);
-        } else if (t.description?.includes("Abatimento Créditos: R$")) {
+        if (t.description?.includes("Abatimento Créditos: R$")) {
           const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
         }
@@ -892,11 +896,25 @@ function FinancesComponent() {
                   (!barberDateFilter || t.date === barberDateFilter)
                 );
                 const totalReceived = barberTransactions.reduce((acc, t) => {
+                  // Se houver agendamento vinculado, usamos o original_total para receita operacional do barbeiro
+                  if (t.appointment) {
+                    return acc + (Number(t.appointment.original_total || t.appointment.final_amount || t.amount) || 0);
+                  }
+                  
                   const val = parseFloat(String(t.amount)) || 0;
-                  if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
+                  // Tenta extrair créditos da descrição se o valor for 0 (legado ou manual)
+                  if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito") || t.description?.includes("Abatimento"))) {
                     const match = t.description.match(/R\$\s*([\d.]+)/);
                     if (match) return acc + parseFloat(match[1]);
                   }
+                  
+                  // Verifica se tem texto de abatimento mas o valor não é 0
+                  if (t.description?.includes("Abatimento Créditos: R$")) {
+                    const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
+                    const creditedAmount = match ? parseFloat(match[1]) : 0;
+                    return acc + val + creditedAmount;
+                  }
+                  
                   return acc + val;
                 }, 0);
                 
@@ -943,10 +961,16 @@ function FinancesComponent() {
                         (!barberDateFilter || t.date === barberDateFilter)
                       );
                       const totalGeneralOnly = generalTransactions.reduce((acc, t) => {
+                        // Para lançamentos gerais (sem barbeiro), usamos o valor da transação + créditos se houver
                         const val = parseFloat(String(t.amount)) || 0;
-                        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
+                        if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito") || t.description?.includes("Abatimento"))) {
                           const match = t.description.match(/R\$\s*([\d.]+)/);
                           if (match) return acc + parseFloat(match[1]);
+                        }
+                        if (t.description?.includes("Abatimento Créditos: R$")) {
+                          const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
+                          const creditedAmount = match ? parseFloat(match[1]) : 0;
+                          return acc + val + creditedAmount;
                         }
                         return acc + val;
                       }, 0);
@@ -958,10 +982,18 @@ function FinancesComponent() {
                           (!barberDateFilter || t.date === barberDateFilter)
                         );
                         const bTotal = bTransactions.reduce((tAcc, t) => {
+                          if (t.appointment) {
+                            return tAcc + (Number(t.appointment.original_total || t.appointment.final_amount || t.amount) || 0);
+                          }
                           const val = parseFloat(String(t.amount)) || 0;
-                          if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
+                          if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito") || t.description?.includes("Abatimento"))) {
                             const match = t.description.match(/R\$\s*([\d.]+)/);
                             if (match) return tAcc + parseFloat(match[1]);
+                          }
+                          if (t.description?.includes("Abatimento Créditos: R$")) {
+                            const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
+                            const creditedAmount = match ? parseFloat(match[1]) : 0;
+                            return tAcc + val + creditedAmount;
                           }
                           return tAcc + val;
                         }, 0);
