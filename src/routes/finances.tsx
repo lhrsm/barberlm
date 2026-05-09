@@ -201,16 +201,22 @@ function FinancesComponent() {
       );
       const bTotal = bTransactions.reduce((tAcc, t) => {
         if (t.appointment) {
-          return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
+          return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0) + Number(t.appointment.cashback_used || 0))) || 0);
         }
         
         const val = parseFloat(String(t.amount)) || 0;
         let creditedAmount = 0;
+        let cashbackUsedAmount = 0;
+        
         if (t.description?.includes("Abatimento Créditos: R$")) {
           const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
         }
-        return tAcc + val + creditedAmount;
+        if (t.description?.includes("Abatimento Cashback: R$")) {
+          const match = t.description?.match(/Abatimento Cashback: R\$\s*([\d.]+)/);
+          cashbackUsedAmount = match ? parseFloat(match[1]) : 0;
+        }
+        return tAcc + val + creditedAmount + cashbackUsedAmount;
       }, 0);
       const commissionRate = Number(barber.commission_rate || 0);
       return acc + (bTotal * (commissionRate / 100));
