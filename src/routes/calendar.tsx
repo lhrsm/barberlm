@@ -220,8 +220,10 @@ function CalendarComponent() {
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
         total_price: service?.price || 0,
+        original_total: service?.price || 0,
         status: "scheduled",
         payment_status: paymentStatus,
+        payment_method: paymentMethod === 'wallet' ? 'credits' : 'barbershop',
         items: [{
           id: selectedService,
           name: service?.name,
@@ -241,20 +243,38 @@ function CalendarComponent() {
         const availableCredits = Number(currentCustomer?.credits || 0);
 
         // Se for pagamento via créditos ou cliente possuir créditos, debitar do saldo
-        if (isWalletPayment || availableCredits > 0) {
-          const usedCredits = Math.min(availableCredits, totalPrice);
-          const remainingToPay = totalPrice - usedCredits;
+        const usedCredits = (isWalletPayment || availableCredits > 0) ? Math.min(availableCredits, totalPrice) : 0;
+        const remainingToPay = totalPrice - usedCredits;
 
-          if (usedCredits > 0) {
-            // Atualizar créditos do cliente
-            await supabase
+        if (usedCredits > 0) {
+          // Atualizar créditos do cliente e agendamento
+          await Promise.all([
+            supabase
               .from("customers")
               .update({ credits: availableCredits - usedCredits })
-              .eq("id", selectedCustomer);
-          }
+              .eq("id", selectedCustomer),
+            supabase
+              .from("appointments")
+              .update({ 
+                credit_used: usedCredits,
+                final_amount: remainingToPay,
+                barbershop_amount: remainingToPay
+              })
+              .eq("id", appointmentData.id)
+          ]);
+        } else {
+          await supabase
+            .from("appointments")
+            .update({ 
+              final_amount: totalPrice,
+              barbershop_amount: totalPrice
+            })
+            .eq("id", appointmentData.id);
+        }
 
-          // Criar uma ÚNICA transação com o valor total, detalhando o uso de créditos na descrição se houver
-          const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)}${remainingToPay > 0 ? `, Restante: R$ ${remainingToPay.toFixed(2)}` : ""})` : "";
+        // Criar uma ÚNICA transação apenas se houver receita real
+        if (remainingToPay > 0) {
+          const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)})` : "";
           
           await supabase.from("transactions").insert({
             user_id: user.id,
@@ -262,27 +282,14 @@ function CalendarComponent() {
             appointment_id: appointmentData.id,
             type: "income",
             category: "Serviço",
-            amount: remainingToPay, // Agora registra apenas o que sobra para pagar, refletindo a receita real (dinheiro novo)
+            amount: remainingToPay,
             description: `Agendamento${creditText}: ${service?.name} - Cliente: ${currentCustomer?.name}`,
-            date: selectedDate,
-            time: selectedTime + ":00"
-          });
-        } else {
-          // Pagamento normal (não crédito)
-          await supabase.from("transactions").insert({
-            user_id: user.id,
-            barber_id: selectedBarber,
-            appointment_id: appointmentData.id,
-            type: "income",
-            category: "Serviço",
-            amount: totalPrice,
-            description: `Agendamento: ${service?.name} - Cliente: ${currentCustomer?.name}`,
             date: selectedDate,
             time: selectedTime + ":00"
           });
         }
 
-        // Registrar também no faturamento de produtos (como um item de serviço)
+        // Registrar no faturamento de produtos (para estatísticas de vendas)
         await supabase.from("product_sales").insert({
           user_id: user.id,
           items: [{ id: selectedService, name: service?.name, quantity: 1, price: totalPrice }],
@@ -291,7 +298,7 @@ function CalendarComponent() {
           customer_id: selectedCustomer
         });
 
-        // Atualizar pontos de fidelidade do cliente
+        // Atualizar pontos de fidelidade
         if (selectedCustomer) {
           const currentPoints = currentCustomer?.loyalty_points || 0;
           await supabase
@@ -357,27 +364,47 @@ function CalendarComponent() {
         const remainingToPay = totalPrice - usedCredits;
 
         if (usedCredits > 0) {
-          // Atualizar créditos do cliente
+          // Atualizar créditos do cliente e agendamento
+          await Promise.all([
+            supabase
+              .from("customers")
+              .update({ credits: availableCredits - usedCredits })
+              .eq("id", appointment.customer_id),
+            supabase
+              .from("appointments")
+              .update({ 
+                credit_used: usedCredits,
+                final_amount: remainingToPay,
+                barbershop_amount: remainingToPay
+              })
+              .eq("id", appointment.id)
+          ]);
+        } else {
           await supabase
-            .from("customers")
-            .update({ credits: availableCredits - usedCredits })
-            .eq("id", appointment.customer_id);
+            .from("appointments")
+            .update({ 
+              final_amount: totalPrice,
+              barbershop_amount: totalPrice
+            })
+            .eq("id", appointment.id);
         }
 
-        // Criar uma ÚNICA transação com o valor total, detalhando o uso de créditos na descrição se houver
-        const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)}${remainingToPay > 0 ? `, Restante: R$ ${remainingToPay.toFixed(2)}` : ""})` : "";
-        
-        await supabase.from("transactions").insert({
-          user_id: user.id,
-          barber_id: appointment.barber_id,
-          appointment_id: appointment.id,
-          type: "income",
-          category: "Serviço",
-          amount: totalPrice,
-          description: `Pagamento${creditText}: ${serviceItem.name} - Cliente: ${customerData?.name}`,
-          date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
-          time: format(parseISO(appointment.start_time), "HH:mm:ss")
-        });
+        // Criar uma ÚNICA transação apenas se houver receita real
+        if (remainingToPay > 0) {
+          const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+          
+          await supabase.from("transactions").insert({
+            user_id: user.id,
+            barber_id: appointment.barber_id,
+            appointment_id: appointment.id,
+            type: "income",
+            category: "Serviço",
+            amount: remainingToPay,
+            description: `Pagamento${creditText}: ${serviceItem.name} - Cliente: ${customerData?.name}`,
+            date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
+            time: format(parseISO(appointment.start_time), "HH:mm:ss")
+          });
+        }
       }
 
       for (const item of productItems) {
