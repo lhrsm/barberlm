@@ -126,13 +126,16 @@ function FinancesComponent() {
     const operationalRevenue = transactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
+        // Se houver agendamento, preferimos usar o valor total original
+        if (t.appointment) {
+          return acc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
+        }
+
         const val = parseFloat(String(t.amount)) || 0;
         
-        // Se o agendamento tiver credit_used, somamos ele para ter o valor TOTAL do serviço (receita operacional)
+        // Se não houver agendamento, tentamos extrair créditos da descrição (legado/manual)
         let creditedAmount = 0;
-        if (t.appointment?.credit_used) {
-          creditedAmount = Number(t.appointment.credit_used);
-        } else if (t.description?.includes("Abatimento Créditos: R$")) {
+        if (t.description?.includes("Abatimento Créditos: R$")) {
           const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
         } else if (t.description?.includes("Créditos: R$")) {
