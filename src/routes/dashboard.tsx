@@ -380,8 +380,8 @@ function DashboardComponent() {
       supabase.from("barbers").select("*").eq("active", true).limit(5),
       supabase.from("profiles").select("*").eq("id", user.id).single(),
       supabase.from("wallet").select("balance"),
-      supabase.from("appointments").select("total_price, credit_used, final_amount").neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("total_price, credit_used, final_amount").neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd)
+      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount").neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount").neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd)
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
