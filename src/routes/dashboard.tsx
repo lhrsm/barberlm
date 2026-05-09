@@ -97,7 +97,7 @@ function DashboardComponent() {
       return;
     }
 
-    if (!loading && user && authProfile?.role === 'super_admin') {
+    if (!loading && user && role === 'super_admin') {
       navigate({ to: "/admin" });
     }
   }, [user, authProfile, loading, navigate]);
