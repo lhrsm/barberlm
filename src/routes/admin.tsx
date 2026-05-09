@@ -46,7 +46,7 @@ function AdminLayout() {
 
     if (!user) {
       console.log("Admin route guard: No session found, redirecting to /auth");
-      navigate({ to: "/auth" });
+      navigate({ to: "/auth", replace: true });
       return;
     }
 
