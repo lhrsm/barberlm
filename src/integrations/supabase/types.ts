@@ -17,15 +17,20 @@ export type Database = {
       appointments: {
         Row: {
           barber_id: string | null
+          barbershop_amount: number | null
           cancel_token: string | null
           created_at: string
+          credit_used: number | null
           customer_id: string | null
           end_time: string
+          final_amount: number | null
           id: string
           items: Json | null
           notes: string | null
+          original_total: number | null
           payment_method: string | null
           payment_status: string | null
+          pix_amount: number | null
           refund_requested_at: string | null
           refund_status: string | null
           refund_type: string | null
@@ -37,15 +42,20 @@ export type Database = {
         }
         Insert: {
           barber_id?: string | null
+          barbershop_amount?: number | null
           cancel_token?: string | null
           created_at?: string
+          credit_used?: number | null
           customer_id?: string | null
           end_time: string
+          final_amount?: number | null
           id?: string
           items?: Json | null
           notes?: string | null
+          original_total?: number | null
           payment_method?: string | null
           payment_status?: string | null
+          pix_amount?: number | null
           refund_requested_at?: string | null
           refund_status?: string | null
           refund_type?: string | null
@@ -57,15 +67,20 @@ export type Database = {
         }
         Update: {
           barber_id?: string | null
+          barbershop_amount?: number | null
           cancel_token?: string | null
           created_at?: string
+          credit_used?: number | null
           customer_id?: string | null
           end_time?: string
+          final_amount?: number | null
           id?: string
           items?: Json | null
           notes?: string | null
+          original_total?: number | null
           payment_method?: string | null
           payment_status?: string | null
+          pix_amount?: number | null
           refund_requested_at?: string | null
           refund_status?: string | null
           refund_type?: string | null
