@@ -48,7 +48,7 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsComponent() {
-  const { user, loading } = useAuth();
+  const { user, loading, role } = useAuth();
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [saving, setSaving] = useState(false);
@@ -87,15 +87,21 @@ function SettingsComponent() {
   useEffect(() => {
     if (!loading && !user) {
       navigate({ to: "/auth" });
+      return;
     }
-  }, [user, loading, navigate]);
+
+    if (!loading && user && role === 'super_admin') {
+      navigate({ to: "/admin" });
+      return;
+    }
+  }, [user, loading, role, navigate]);
 
   useEffect(() => {
-    if (user) {
+    if (user && role !== 'super_admin') {
       fetchProfile();
       fetchWhatsappInstances();
     }
-  }, [user]);
+  }, [user, role]);
 
   async function fetchProfile() {
     if (!user) {
