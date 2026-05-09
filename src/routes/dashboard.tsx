@@ -97,10 +97,10 @@ function DashboardComponent() {
       return;
     }
 
-    if (!loading && user && profile?.role === 'super_admin') {
+    if (!loading && user && authProfile?.role === 'super_admin') {
       navigate({ to: "/admin" });
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, authProfile, loading, navigate]);
 
   useEffect(() => {
     if (tenantId) {
