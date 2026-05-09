@@ -850,6 +850,9 @@ function DashboardComponent() {
                                   const type = app.refund_type === 'refund' ? 'estorno' : 'créditos';
                                   if (confirm(`Confirmar ${type} para este cliente?`)) {
                                     try {
+                                      const now = new Date();
+                                      const formattedDate = format(now, "yyyy-MM-dd");
+
                                       if (app.refund_type === 'credits') {
                                         let { data: wallet } = await supabase
                                           .from("wallet")
@@ -879,9 +882,28 @@ function DashboardComponent() {
                                             appointment_id: app.id,
                                             user_id: user?.id || ""
                                           });
+
+                                          // Update customer credits as well for consistency
+                                          const { data: customer } = await supabase.from("customers").select("credits").eq("id", app.customer_id).single();
+                                          await supabase.from("customers").update({ credits: (customer?.credits || 0) + app.total_price }).eq("id", app.customer_id);
+
                                           // Remove original income from transactions when converting to credits
-                                            await supabase.from("transactions").insert({ user_id: user.id, barber_id: app.barber_id, appointment_id: app.id, type: "expense", category: "Estorno (Créditos)", amount: app.total_price, description: `Conversão em Créditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, date: format(new Date(), "yyyy-MM-dd") });
-                                          await supabase.from("appointments").update({ status: "cancelled" }).eq("id", app.id);
+                                          await supabase.from("transactions").insert({ 
+                                            user_id: user.id, 
+                                            barber_id: app.barber_id, 
+                                            appointment_id: app.id, 
+                                            type: "expense", 
+                                            category: "Estorno (Créditos)", 
+                                            amount: app.total_price, 
+                                            description: `Conversão em Créditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, 
+                                            date: formattedDate 
+                                          });
+
+                                          await supabase.from("appointments").update({ 
+                                            status: "cancelled",
+                                            refund_status: "approved"
+                                          }).eq("id", app.id);
+
                                           toast.success("Valor convertido em créditos e agendamento cancelado!");
                                         }
                                       } else if (app.refund_type === 'refund') {
@@ -893,20 +915,28 @@ function DashboardComponent() {
                                           category: "Estorno",
                                           amount: app.total_price,
                                           description: `Estorno de Pagamento: ${app.services?.name} - Cliente: ${app.customers?.name}`,
-                                          date: format(new Date(), "yyyy-MM-dd")
+                                          date: formattedDate
                                         });
 
                                         await supabase
                                           .from("appointments")
-                                          .update({ status: "cancelled" })
+                                          .update({ 
+                                            status: "cancelled",
+                                            refund_status: "approved"
+                                          })
                                           .eq("id", app.id);
                                         
                                         toast.success("Estorno registrado como saída!");
                                       }
                                       
-                                      fetchTodayAppointments();
-                                      fetchStats();
+                                      // Trigger re-fetches for all related data
+                                      await Promise.all([
+                                        fetchTodayAppointments(),
+                                        fetchStats(),
+                                        fetchNotifications()
+                                      ]);
                                     } catch (err) {
+                                      console.error("Erro ao processar estorno:", err);
                                       toast.error("Erro ao processar solicitação");
                                     }
                                   }
