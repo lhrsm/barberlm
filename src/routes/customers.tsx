@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2 } from "lucide-react";
+import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2, CircleDollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -264,6 +264,7 @@ function CustomersComponent() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead className="hidden md:table-cell">Fidelidade</TableHead>
+                <TableHead className="hidden md:table-cell">Créditos</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -300,6 +301,12 @@ function CustomersComponent() {
                         <Gift size={14} className="text-primary" />
                         <span className="font-medium">{customer.loyalty_points || 0}</span>
                         <span className="text-muted-foreground text-xs">/ {shopProfile?.free_service_threshold || 10}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex items-center gap-2">
+                        <CircleDollarSign size={14} className="text-green-600" />
+                        <span className="font-medium text-green-700">R$ {(Number(customer.credits) || 0).toFixed(2)}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
