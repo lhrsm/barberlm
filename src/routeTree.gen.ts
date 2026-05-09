@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
@@ -32,6 +33,11 @@ import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/support': typeof SupportRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/support': typeof SupportRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/support': typeof SupportRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/subscription'
+    | '/support'
     | '/$slug/portal'
     | '/admin/analytics'
     | '/admin/dashboard'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/subscription'
+    | '/support'
     | '/$slug/portal'
     | '/admin/analytics'
     | '/admin/dashboard'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/subscription'
+    | '/support'
     | '/$slug/portal'
     | '/admin/analytics'
     | '/admin/dashboard'
@@ -303,10 +315,18 @@ export interface RootRouteChildren {
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
   SubscriptionRoute: typeof SubscriptionRoute
+  SupportRoute: typeof SupportRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/subscription': {
       id: '/subscription'
       path: '/subscription'
@@ -512,6 +532,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
   SubscriptionRoute: SubscriptionRoute,
+  SupportRoute: SupportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
