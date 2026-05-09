@@ -13,11 +13,14 @@ import {
   CreditCard,
   Settings,
   ShoppingBag,
-  ShieldCheck
+  ShieldCheck,
+  Eye,
+  StopCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useTenant } from "@/hooks/use-tenant";
 
 const defaultNavItems = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
