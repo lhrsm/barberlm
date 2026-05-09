@@ -880,55 +880,77 @@ function DashboardComponent() {
                                   e.stopPropagation();
                                   const type = app.refund_type === 'refund' ? 'estorno' : 'créditos';
                                   if (confirm(`Confirmar ${type} para este cliente?`)) {
-                                    try {
-                                      const now = new Date();
-                                      const formattedDate = format(now, "yyyy-MM-dd");
+                                      try {
+                                        const now = new Date();
+                                        const formattedDate = format(now, "yyyy-MM-dd");
 
-                                      if (app.refund_type === 'credits') {
-                                        let { data: wallet } = await supabase
-                                          .from("wallet")
-                                          .select("id")
-                                          .eq("customer_id", app.customer_id)
-                                          .maybeSingle();
-                                          
-                                        if (!wallet) {
-                                          const { data: newWallet } = await supabase
+                                        // Restore used cashback/credits and remove earned cashback
+                                        const { data: currentCustomer } = await supabase
+                                          .from("customers")
+                                          .select("credits, cashback_balance")
+                                          .eq("id", app.customer_id)
+                                          .single();
+
+                                        const restoredCredits = (currentCustomer?.credits || 0) + (app.credit_used || 0);
+                                        const restoredCashback = (currentCustomer?.cashback_balance || 0) + (app.cashback_used || 0) - (app.cashback_earned || 0);
+
+                                        await supabase
+                                          .from("customers")
+                                          .update({ 
+                                            credits: restoredCredits,
+                                            cashback_balance: Math.max(0, restoredCashback)
+                                          })
+                                          .eq("id", app.customer_id);
+
+                                        if (app.refund_type === 'credits') {
+                                          let { data: wallet } = await supabase
                                             .from("wallet")
-                                            .insert({ 
-                                              customer_id: app.customer_id, 
-                                              user_id: user?.id || "",
-                                              balance: 0 
-                                            })
-                                            .select()
-                                            .single();
-                                          wallet = newWallet;
-                                        }
+                                            .select("id")
+                                            .eq("customer_id", app.customer_id)
+                                            .maybeSingle();
+                                            
+                                          if (!wallet) {
+                                            const { data: newWallet } = await supabase
+                                              .from("wallet")
+                                              .insert({ 
+                                                customer_id: app.customer_id, 
+                                                user_id: user?.id || "",
+                                                balance: 0 
+                                              })
+                                              .select()
+                                              .single();
+                                            wallet = newWallet;
+                                          }
 
-                                        if (wallet) {
-                                          await supabase.from("wallet_transactions").insert({
-                                            wallet_id: wallet.id,
-                                            amount: app.total_price,
-                                            type: "credit",
-                                            description: `Crédito por cancelamento: ${app.services?.name}`,
-                                            appointment_id: app.id,
-                                            user_id: user?.id || ""
-                                          });
+                                          if (wallet) {
+                                            // The refund amount should be the final_amount (what was paid in new money)
+                                            const refundAmount = Number(app.final_amount || 0);
 
-                                          // Update customer credits as well for consistency
-                                          const { data: customer } = await supabase.from("customers").select("credits").eq("id", app.customer_id).single();
-                                          await supabase.from("customers").update({ credits: (customer?.credits || 0) + app.total_price }).eq("id", app.customer_id);
+                                            if (refundAmount > 0) {
+                                              await supabase.from("wallet_transactions").insert({
+                                                wallet_id: wallet.id,
+                                                amount: refundAmount,
+                                                type: "credit",
+                                                description: `Crédito por cancelamento (Estorno Real): ${app.services?.name}`,
+                                                appointment_id: app.id,
+                                                user_id: user?.id || ""
+                                              });
 
-                                          // Remove original income from transactions when converting to credits
-                                          await supabase.from("transactions").insert({ 
-                                            user_id: user.id, 
-                                            barber_id: app.barber_id, 
-                                            appointment_id: app.id, 
-                                            type: "expense", 
-                                            category: "Estorno (Créditos)", 
-                                            amount: app.total_price, 
-                                            description: `Conversão em Créditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, 
-                                            date: formattedDate 
-                                          });
+                                              // Update customer credits with the additional refund amount
+                                              await supabase.from("customers").update({ credits: restoredCredits + refundAmount }).eq("id", app.customer_id);
+
+                                              // Remove original income from transactions when converting to credits
+                                              await supabase.from("transactions").insert({ 
+                                                user_id: user.id, 
+                                                barber_id: app.barber_id, 
+                                                appointment_id: app.id, 
+                                                type: "expense", 
+                                                category: "Estorno (Créditos)", 
+                                                amount: refundAmount, 
+                                                description: `Conversão em Créditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, 
+                                                date: formattedDate 
+                                              });
+                                            }
 
                                           await supabase.from("appointments").update({ 
                                             status: "cancelled",
