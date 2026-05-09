@@ -92,15 +92,23 @@ function DashboardComponent() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) return;
+
+    if (!user) {
       navigate({ to: "/auth" });
       return;
     }
 
-    if (!loading && user && role === 'super_admin') {
-      navigate({ to: "/admin" });
+    // Redirect super_admin back to /admin if they accidentally land here
+    // and they are not in impersonation mode
+    if (role === 'super_admin') {
+      const impersonatedId = typeof window !== 'undefined' ? sessionStorage.getItem("impersonated_tenant_id") : null;
+      if (!impersonatedId) {
+        console.log("Dashboard route: Redirecting super_admin to /admin");
+        navigate({ to: "/admin/dashboard" });
+      }
     }
-  }, [user, authProfile, loading, navigate]);
+  }, [user, role, loading, navigate]);
 
   useEffect(() => {
     if (tenantId) {
