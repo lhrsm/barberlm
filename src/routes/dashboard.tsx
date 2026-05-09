@@ -441,9 +441,9 @@ function DashboardComponent() {
       barbersData,
       profileData,
       walletData,
-      customersWithBalances,
       dailyAppointmentsData,
-      monthlyAppointmentsData
+      monthlyAppointmentsData,
+      customersWithBalances
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
@@ -458,12 +458,13 @@ function DashboardComponent() {
       supabase.from("profiles").select("*").eq("id", user.id).single(),
       supabase.from("wallet").select("balance"),
       // Valor dos serviços: APENAS CONCLUÍDOS
-      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount")
+      supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
         .eq("status", "completed")
         .gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount")
+      supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
         .eq("status", "completed")
-        .gte("start_time", monthStart).lte("start_time", monthEnd)
+        .gte("start_time", monthStart).lte("start_time", monthEnd),
+      supabase.from("customers").select("credits, cashback_balance")
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
