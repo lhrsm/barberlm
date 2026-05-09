@@ -88,7 +88,7 @@ function AdminTenants() {
           .from("appointments")
           .select("final_amount")
           .eq("user_id", tenant.id)
-          .eq("status", "concluded");
+          .eq("status", "completed");
 
         const revenue = revenueData?.reduce((acc, curr) => acc + (curr.final_amount || 0), 0) || 0;
 
