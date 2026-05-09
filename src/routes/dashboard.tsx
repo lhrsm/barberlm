@@ -99,12 +99,11 @@ function DashboardComponent() {
       return;
     }
 
-    // Redirect super_admin back to /admin if they accidentally land here
-    // and they are not in impersonation mode
+    // Se for super_admin e não estiver personificando, redirecionar para o admin dashboard
     if (role === 'super_admin') {
       const impersonatedId = typeof window !== 'undefined' ? sessionStorage.getItem("impersonated_tenant_id") : null;
       if (!impersonatedId) {
-        console.log("Dashboard route: Redirecting super_admin to /admin");
+        console.log("Dashboard: Redirecting super_admin to admin portal");
         navigate({ to: "/admin/dashboard" });
       }
     }

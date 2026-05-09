@@ -14,6 +14,8 @@ export function useTenant() {
     ? null 
     : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || user?.id)));
 
+  console.log("useTenant resolved:", { tenantId, role: profile?.role, impersonatedId });
+
 
   const { data: tenantProfile, isLoading: queryLoading } = useQuery({
     queryKey: ["tenant-profile", tenantId],

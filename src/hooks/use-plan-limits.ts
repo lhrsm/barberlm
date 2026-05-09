@@ -54,6 +54,7 @@ export function usePlanLimits() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Se não houver tenantId, ou se for super_admin sem estar personificando, não carregar limites
     if (tenantId) {
       fetchPlanAndUsage();
     } else {

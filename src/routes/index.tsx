@@ -25,15 +25,11 @@ function LandingPageComponent() {
 
   useEffect(() => {
     if (!loading && user && role) {
-      console.log("Landing page redirection - User Role:", role);
+      console.log("Landing page redirection - Role:", role);
       if (role === 'super_admin') {
         navigate({ to: "/admin/dashboard" });
-      } else if (role === 'tenant_admin') {
-        navigate({ to: "/dashboard" });
       } else if (role === 'barber') {
         navigate({ to: "/calendar" });
-      } else if (role === 'client') {
-        navigate({ to: "/customers" }); // Redirect to a safe place for clients for now
       } else {
         navigate({ to: "/dashboard" });
       }
