@@ -65,7 +65,7 @@ function AdminLayout() {
     );
   }
 
-  if (!isAdmin) return null;
+  if (role !== 'super_admin') return null;
 
   return (
     <div className="flex h-screen bg-muted/30">
