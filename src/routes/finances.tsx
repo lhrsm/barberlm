@@ -986,7 +986,7 @@ function FinancesComponent() {
                         );
                         const bTotal = bTransactions.reduce((tAcc, t) => {
                           if (t.appointment) {
-                            return tAcc + (Number(t.appointment.original_total || t.appointment.final_amount || t.amount) || 0);
+                            return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
                           }
                           const val = parseFloat(String(t.amount)) || 0;
                           if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito") || t.description?.includes("Abatimento"))) {
