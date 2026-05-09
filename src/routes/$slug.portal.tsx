@@ -505,7 +505,7 @@ function ClientPortalComponent() {
 
       const { error } = await supabase
         .from("appointments")
-        .delete()
+        .update({ status: "cancelled" })
         .eq("id", app.id);
       
       if (error) throw error;
@@ -548,7 +548,7 @@ function ClientPortalComponent() {
           
         await supabase
           .from("appointments")
-          .delete()
+          .update({ status: "cancelled" })
           .eq("id", cancellingAppointment.id);
           
         toast.success(`Cancelado! R$ ${amount.toFixed(2)} foi adicionado aos seus créditos e removido das entradas.`);
@@ -631,7 +631,7 @@ function ClientPortalComponent() {
       } else {
         await supabase
           .from("appointments")
-          .delete()
+          .update({ status: "cancelled" })
           .eq("id", app.id);
       }
     }
