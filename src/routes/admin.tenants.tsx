@@ -67,6 +67,7 @@ function AdminTenants() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      if (!profiles) return [];
 
       // Filter out super admins
       const onlyTenants = profiles.filter(p => p.role !== 'super_admin');
@@ -87,7 +88,7 @@ function AdminTenants() {
           .from("appointments")
           .select("final_amount")
           .eq("user_id", tenant.id)
-          .eq("status", "concluded");
+          .eq("status", "completed");
 
         const revenue = revenueData?.reduce((acc, curr) => acc + (curr.final_amount || 0), 0) || 0;
 

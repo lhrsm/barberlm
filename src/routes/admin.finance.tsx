@@ -85,7 +85,7 @@ function AdminFinance() {
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ {financeStats?.totalMRR.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div className="text-2xl font-bold">R$ {(financeStats?.totalMRR ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <ArrowUpRight size={12} className="text-green-500" /> +12.5% em relação ao mês anterior
             </p>
@@ -98,7 +98,7 @@ function AdminFinance() {
             <DollarSign className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ {financeStats?.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div className="text-2xl font-bold">R$ {(financeStats?.totalRevenue ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <p className="text-xs text-muted-foreground italic">Projeção baseada no MRR atual</p>
           </CardContent>
         </Card>
@@ -175,7 +175,7 @@ function AdminFinance() {
               <TableBody>
                 {financeStats?.recentTransactions.map((t) => (
                   <TableRow key={t.id}>
-                    <TableCell className="font-medium text-xs">R$ {t.amount.toLocaleString('pt-BR')}</TableCell>
+                    <TableCell className="font-medium text-xs">R$ {(t.amount || 0).toLocaleString('pt-BR')}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[10px] h-5">Concluído</Badge>
                     </TableCell>
