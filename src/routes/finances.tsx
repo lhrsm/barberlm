@@ -100,7 +100,7 @@ function FinancesComponent() {
       .select(`
         *,
         barber:barbers(name),
-        appointment:appointments(status, payment_method, credit_used, original_total, final_amount, total_price)
+        appointment:appointments(status, payment_method, credit_used, original_total, final_amount, total_price, start_time, customers(name))
       `)
       .order("created_at", { ascending: false });
     setTransactions(data || []);
