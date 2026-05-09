@@ -15,7 +15,7 @@ export function useTenant() {
     : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || user?.id)));
 
 
-  const { data: tenantProfile, isLoading } = useQuery({
+  const { data: tenantProfile, isLoading: queryLoading } = useQuery({
     queryKey: ["tenant-profile", tenantId],
     queryFn: async () => {
       if (!tenantId) return null;
@@ -66,7 +66,7 @@ export function useTenant() {
     tenantId,
     tenantProfile,
     planDetails,
-    isLoading,
+    isLoading: authLoading || queryLoading,
     isFeatureEnabled,
     getLimit,
     isImpersonating: !!impersonatedId,
