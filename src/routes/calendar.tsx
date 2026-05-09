@@ -112,7 +112,7 @@ function CalendarComponent() {
         .select("*, customers(name), services(name, duration_minutes), barbers(name)")
         .gte("start_time", start.toISOString())
         .lte("start_time", end.toISOString())
-        .neq("status", "cancelled"),
+        .order("start_time", { ascending: true }),
       supabase.from("barbers").select("*").eq("active", true).order("name"),
       supabase.from("customers").select("*").order("name"),
       supabase.from("services").select("*").eq("active", true).order("name"),
@@ -469,7 +469,9 @@ function CalendarComponent() {
 
   const getStatusColor = (status: string, barberId: string) => {
     if (status === 'completed') return "bg-emerald-600 hover:bg-emerald-700";
+    if (status === 'confirmed') return "bg-blue-600 hover:bg-blue-700";
     if (status === 'cancelled') return "bg-red-600 hover:bg-red-700";
+    if (status === 'scheduled') return "bg-amber-600 hover:bg-amber-700";
     
     // Default to barber color (scheduled is blue/purple/etc as before)
     const index = barbers.findIndex(b => b.id === barberId);
