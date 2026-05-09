@@ -960,16 +960,20 @@ function DashboardComponent() {
                                           toast.success("Valor convertido em créditos e agendamento cancelado!");
                                         }
                                       } else if (app.refund_type === 'refund') {
-                                        await supabase.from("transactions").insert({
-                                          user_id: user.id,
-                                          barber_id: app.barber_id,
-                                          appointment_id: app.id,
-                                          type: "expense",
-                                          category: "Estorno",
-                                          amount: app.total_price,
-                                          description: `Estorno de Pagamento: ${app.services?.name} - Cliente: ${app.customers?.name}`,
-                                          date: formattedDate
-                                        });
+                                        const refundAmount = Number(app.final_amount || 0);
+
+                                        if (refundAmount > 0) {
+                                          await supabase.from("transactions").insert({
+                                            user_id: user.id,
+                                            barber_id: app.barber_id,
+                                            appointment_id: app.id,
+                                            type: "expense",
+                                            category: "Estorno",
+                                            amount: refundAmount,
+                                            description: `Estorno de Pagamento: ${app.services?.name} - Cliente: ${app.customers?.name}`,
+                                            date: formattedDate
+                                          });
+                                        }
 
                                         await supabase
                                           .from("appointments")
