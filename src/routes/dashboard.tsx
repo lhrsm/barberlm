@@ -18,17 +18,18 @@ import {
   Target,
   Crown,
   Zap,
-  Bell,
-  ExternalLink,
-  Clock,
-  User as UserIcon,
-  Copy,
   Globe,
+  ExternalLink,
+  Copy,
   Wallet,
-  RefreshCcw,
-  CheckCircle2, 
+  CheckCircle2,
   XCircle,
-  Check
+  Clock,
+  Check,
+  Bell,
+  User as UserIcon,
+  RefreshCcw,
+  Gift
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
