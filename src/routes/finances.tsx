@@ -13,7 +13,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -122,8 +122,7 @@ function FinancesComponent() {
   }, [transactions, statusFilter, dateFilter]);
 
   const summary = useMemo(() => {
-    // 1. Receita Operacional (Valor Total dos Serviços Prestados)
-    // Isso é usado para calcular comissões e performance, mas NÃO é o saldo real do caixa.
+    // 1. Receita Operacional (Faturamento Operacional) - Valor Total dos Serviços Vendidos
     const operationalRevenue = transactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
@@ -144,10 +143,24 @@ function FinancesComponent() {
         return acc + val + creditedAmount;
       }, 0);
 
-    // 2. Entrada Financeira Real (Dinheiro novo no caixa)
+    // 2. Fluxo de Caixa (Entrada Financeira Real) - Dinheiro novo no caixa
     const realCashIncome = transactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+
+    // 3. Créditos Consumidos
+    const creditsConsumed = transactions
+      .filter((t) => t.type === "income")
+      .reduce((acc, t) => {
+        let creditedAmount = 0;
+        if (t.appointment?.credit_used) {
+          creditedAmount = Number(t.appointment.credit_used);
+        } else if (t.description?.includes("Abatimento Créditos: R$")) {
+          const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
+          creditedAmount = match ? parseFloat(match[1]) : 0;
+        }
+        return acc + creditedAmount;
+      }, 0);
 
     const expense = transactions
       .filter((t) => t.type === "expense")
@@ -156,7 +169,7 @@ function FinancesComponent() {
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
 
-    // 3. Parte dos Freelancers (Comissão baseada no Valor Total do Serviço)
+    // Parte dos Freelancers (Comissão baseada no Valor Total do Serviço)
     const freelancersPart = barbers.reduce((acc, barber) => {
       const bTransactions = transactions.filter(t => 
         t.barber_id === barber.id && 
@@ -164,30 +177,25 @@ function FinancesComponent() {
       );
       const bTotal = bTransactions.reduce((tAcc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
-        
-        // Incluir valor abatido em créditos para o cálculo da comissão
         let creditedAmount = 0;
         if (t.appointment?.credit_used) {
           creditedAmount = Number(t.appointment.credit_used);
         } else if (t.description?.includes("Abatimento Créditos: R$")) {
           const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
-        } else if (t.description?.includes("Créditos: R$")) {
-          const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
-          creditedAmount = match ? parseFloat(match[1]) : 0;
         }
-        
         return tAcc + val + creditedAmount;
       }, 0);
       const commissionRate = Number(barber.commission_rate || 0);
       return acc + (bTotal * (commissionRate / 100));
     }, 0);
 
-    // 4. Lucro da Barbearia (Receita Operacional - Parte dos Freelancers)
     const barbershopPart = operationalRevenue - freelancersPart;
 
     return { 
       income: operationalRevenue, 
+      realCashIncome,
+      creditsConsumed,
       expense, 
       pending, 
       balance: realCashIncome - expense, // Saldo Atual é Dinheiro Real - Despesas
@@ -401,32 +409,35 @@ function FinancesComponent() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
-          <Card className="bg-yellow-50/50 border-yellow-100">
+        <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-8">
+          <Card className="bg-blue-50/50 border-blue-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-yellow-700">Pendente</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <CardTitle className="text-sm font-medium text-blue-700">Faturamento Operacional</CardTitle>
+              <Scissors className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-700">R$ {summary.pending.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-blue-700">R$ {summary.income.toFixed(2)}</div>
+              <p className="text-[10px] text-blue-600/70">Total de serviços vendidos</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-green-50/50 border-green-100">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-green-700">Fluxo de Caixa (Entrada)</CardTitle>
+              <CircleDollarSign className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-700">R$ {summary.realCashIncome.toFixed(2)}</div>
+              <p className="text-[10px] text-green-600/70">Dinheiro novo recebido</p>
             </CardContent>
           </Card>
           <Card className="bg-purple-50/50 border-purple-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-purple-700">Créditos Clientes</CardTitle>
+              <CardTitle className="text-sm font-medium text-purple-700">Créditos Consumidos</CardTitle>
               <Wallet className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-700">R$ {totalCredits.toFixed(2)}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-blue-50/50 border-blue-100">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-700">Receita Bruta</CardTitle>
-              <TrendingUp className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-700">R$ {summary.income.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-purple-700">R$ {summary.creditsConsumed.toFixed(2)}</div>
+              <p className="text-[10px] text-purple-600/70">Abatido via créditos</p>
             </CardContent>
           </Card>
           <Card className="bg-red-50/50 border-red-100">
@@ -436,6 +447,7 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-700">R$ {summary.expense.toFixed(2)}</div>
+              <p className="text-[10px] text-red-600/70">Despesas e estornos</p>
             </CardContent>
           </Card>
           <Card className="bg-indigo-50/50 border-indigo-100">
@@ -445,6 +457,7 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-indigo-700">R$ {summary.freelancersPart.toFixed(2)}</div>
+              <p className="text-[10px] text-indigo-600/70">Comissões (Total serviços)</p>
             </CardContent>
           </Card>
           <Card className="bg-emerald-50/50 border-emerald-100">
@@ -454,36 +467,27 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-emerald-700">R$ {summary.barbershopPart.toFixed(2)}</div>
+              <p className="text-[10px] text-emerald-600/70">Receita operacional líquida</p>
             </CardContent>
           </Card>
-          <Card className={cn(
-            summary.balance > 0 ? "bg-green-50/50 border-green-100" : 
-            summary.balance < 0 ? "bg-red-50/50 border-red-100" : 
-            "bg-yellow-50/50 border-yellow-100"
-          )}>
+          <Card className="bg-yellow-50/50 border-yellow-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={cn(
-                "text-sm font-medium",
-                summary.balance > 0 ? "text-green-700" : 
-                summary.balance < 0 ? "text-red-700" : 
-                "text-yellow-700"
-              )}>Saldo Atual</CardTitle>
-              <Wallet className={cn(
-                "h-4 w-4",
-                summary.balance > 0 ? "text-green-600" : 
-                summary.balance < 0 ? "text-red-600" : 
-                "text-yellow-600"
-              )} />
+              <CardTitle className="text-sm font-medium text-yellow-700">Pendente</CardTitle>
+              <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className={cn(
-                "text-2xl font-bold", 
-                summary.balance > 0 ? "text-green-700" : 
-                summary.balance < 0 ? "text-red-700" : 
-                "text-yellow-700"
-              )}>
-                R$ {summary.balance.toFixed(2)}
-              </div>
+              <div className="text-2xl font-bold text-yellow-700">R$ {summary.pending.toFixed(2)}</div>
+              <p className="text-[10px] text-yellow-600/70">Aguardando pagamento</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-orange-50/50 border-orange-100">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-orange-700">Saldo Atual</CardTitle>
+              <CircleDollarSign className="h-4 w-4 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-700">R$ {summary.balance.toFixed(2)}</div>
+              <p className="text-[10px] text-orange-600/70">Real em caixa (Entrada - Saída)</p>
             </CardContent>
           </Card>
         </div>

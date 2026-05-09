@@ -58,12 +58,16 @@ function DashboardComponent() {
   const [stats, setStats] = useState({
     daily: {
       appointments: 0,
-      revenue: 0,
+      totalServicesValue: 0, // Valor total dos serviços (Receita Operacional)
+      realCashInflow: 0,     // Entrada real em caixa (PIX/Dinheiro)
+      creditsUsed: 0,        // Créditos utilizados
       newCustomers: 0
     },
     monthly: {
       appointments: 0,
-      revenue: 0,
+      totalServicesValue: 0,
+      realCashInflow: 0,
+      creditsUsed: 0,
       newCustomers: 0
     },
     total: {
@@ -362,7 +366,9 @@ function DashboardComponent() {
       totalServ,
       barbersData,
       profileData,
-      walletData
+      walletData,
+      dailyAppointmentsData,
+      monthlyAppointmentsData
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
@@ -374,7 +380,9 @@ function DashboardComponent() {
       supabase.from("services").select("*", { count: "exact", head: true }),
       supabase.from("barbers").select("*").eq("active", true).limit(5),
       supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase.from("wallet").select("balance")
+      supabase.from("wallet").select("balance"),
+      supabase.from("appointments").select("total_price, credit_used, final_amount").neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("total_price, credit_used, final_amount").neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd)
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
@@ -382,18 +390,29 @@ function DashboardComponent() {
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);
 
-    const dailyRevenue = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-    const monthlyRevenue = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+    // Cálculos Diários
+    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
+    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const dailyCashInflow = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+
+    // Cálculos Mensais
+    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
+    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const monthlyCashInflow = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
 
     setStats({
       daily: {
         appointments: dailyApp.count || 0,
-        revenue: dailyRevenue,
+        totalServicesValue: dailyServicesValue,
+        realCashInflow: dailyCashInflow,
+        creditsUsed: dailyCreditsUsed,
         newCustomers: dailyCust.count || 0
       },
       monthly: {
         appointments: monthlyApp.count || 0,
-        revenue: monthlyRevenue,
+        totalServicesValue: monthlyServicesValue,
+        realCashInflow: monthlyCashInflow,
+        creditsUsed: monthlyCreditsUsed,
         newCustomers: monthlyCust.count || 0
       },
       total: {
@@ -643,17 +662,40 @@ function DashboardComponent() {
                 </Button>
               </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <Card className="bg-blue-50/50 border-blue-100">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Receita de Hoje</CardTitle>
-                  <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-blue-700">Serviços Vendidos Hoje</CardTitle>
+                  <Scissors className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">R$ {stats.daily.revenue.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Faturamento bruto do dia</p>
+                  <div className="text-2xl font-bold text-blue-700">R$ {stats.daily.totalServicesValue.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Valor total dos serviços</p>
                 </CardContent>
               </Card>
+              <Card className="bg-green-50/50 border-green-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-green-700">Entrada em Caixa Hoje</CardTitle>
+                  <CircleDollarSign className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-700">R$ {stats.daily.realCashInflow.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Dinheiro novo (PIX/Dinheiro)</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-purple-50/50 border-purple-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-purple-700">Créditos Utilizados Hoje</CardTitle>
+                  <Wallet className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-700">R$ {stats.daily.creditsUsed.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Abatido de saldos anteriores</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pt-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Agendamentos Hoje</CardTitle>
@@ -681,7 +723,7 @@ function DashboardComponent() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    R$ {stats.monthly.appointments > 0 ? (stats.monthly.revenue / stats.monthly.appointments).toFixed(2) : "0.00"}
+                    R$ {stats.monthly.appointments > 0 ? (stats.monthly.totalServicesValue / stats.monthly.appointments).toFixed(2) : "0.00"}
                   </div>
                   <p className="text-xs text-muted-foreground">Baseado no mês atual</p>
                 </CardContent>
@@ -883,12 +925,32 @@ function DashboardComponent() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
-                  <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Serviços Vendidos (Mês)</CardTitle>
+                  <Scissors className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">R$ {stats.monthly.revenue.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Total faturado neste mês</p>
+                  <div className="text-2xl font-bold">R$ {stats.monthly.totalServicesValue.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Valor total dos serviços no mês</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-green-700">Entrada Real (Mês)</CardTitle>
+                  <CircleDollarSign className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-700">R$ {stats.monthly.realCashInflow.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Dinheiro novo em caixa no mês</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-purple-700">Créditos Usados (Mês)</CardTitle>
+                  <Wallet className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-700">R$ {stats.monthly.creditsUsed.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Abatido via créditos no mês</p>
                 </CardContent>
               </Card>
               <Card>
