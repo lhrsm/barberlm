@@ -622,8 +622,6 @@ function ClientPortalComponent() {
     }
   };
 
-  // handleCompleteAppointment removed - only admin can complete appointments
-
   const checkAutoCancellation = async (appts: any[]) => {
     const now = new Date();
     const toCancel = appts.filter(app => {
