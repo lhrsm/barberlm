@@ -910,19 +910,48 @@ function CalendarComponent() {
                                   </Button>
                                 )}
 
+                                {app.status === 'scheduled' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 px-2 text-white bg-blue-500/30 hover:bg-blue-500/50 text-[10px] gap-1"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (confirm("Deseja confirmar este agendamento?")) {
+                                        const { error } = await supabase
+                                          .from("appointments")
+                                          .update({ status: 'confirmed' })
+                                          .eq("id", app.id);
+                                        if (error) {
+                                          toast.error("Erro ao confirmar agendamento");
+                                        } else {
+                                          fetchData();
+                                          toast.success("Agendamento confirmado com sucesso");
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <CheckCircle2 size={10} />
+                                    <span>Confirmar</span>
+                                  </Button>
+                                )}
+
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
                                   className="h-5 w-5 text-white hover:bg-red-500/50"
                                   onClick={async (e) => {
                                     e.stopPropagation();
-                                    if (confirm("Deseja excluir permanentemente este agendamento?")) {
-                                      const { error } = await supabase.from("appointments").delete().eq("id", app.id);
+                                    if (confirm("Deseja cancelar este agendamento?")) {
+                                      const { error } = await supabase
+                                        .from("appointments")
+                                        .update({ status: 'cancelled' })
+                                        .eq("id", app.id);
                                       if (error) {
-                                        toast.error("Erro ao excluir agendamento");
+                                        toast.error("Erro ao cancelar agendamento");
                                       } else {
                                         fetchData();
-                                        toast.success("Agendamento excluído com sucesso");
+                                        toast.success("Agendamento cancelado");
                                       }
                                     }
                                   }}
