@@ -72,6 +72,7 @@ async function initializeAuth() {
     globalUser = session?.user ?? null;
     
     if (session?.user) {
+      console.log("Auth init: User found, fetching profile...");
       await fetchProfileData(session.user.id);
     }
     
@@ -81,11 +82,13 @@ async function initializeAuth() {
     updateGlobalState({ loading: false });
   }
 
-  supabase.auth.onAuthStateChange(async (_event, session) => {
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log("Auth state change event:", event, "User:", session?.user?.id);
+    
     updateGlobalState({ 
       session, 
       user: session?.user ?? null,
-      loading: true // Set loading while fetching profile
+      loading: session?.user ? true : false
     });
 
     if (session?.user) {
@@ -93,6 +96,7 @@ async function initializeAuth() {
     } else {
       updateGlobalState({ profile: null });
     }
+    
     updateGlobalState({ loading: false });
   });
 }
