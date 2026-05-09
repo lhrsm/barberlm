@@ -594,12 +594,27 @@ function FinancesComponent() {
                     filteredTransactions.map((t) => (
                       <TableRow key={t.id}>
                         <TableCell className="whitespace-nowrap">
-                          {t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
+                          {t.appointment?.start_time 
+                            ? new Date(t.appointment.start_time).toLocaleDateString('pt-BR')
+                            : (t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-")}
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm font-medium">{t.time ? t.time.substring(0, 5) : "--:--"}</span>
+                          <span className="text-sm font-medium">
+                            {t.appointment?.start_time 
+                              ? format(new Date(t.appointment.start_time), 'HH:mm')
+                              : (t.time ? t.time.substring(0, 5) : "--:--")}
+                          </span>
                         </TableCell>
-                        <TableCell className="font-medium">{t.description || "-"}</TableCell>
+                        <TableCell className="font-medium">
+                          {t.appointment?.customers?.name ? (
+                            <div className="flex flex-col">
+                              <span className="text-xs text-muted-foreground">Cliente: {t.appointment.customers.name}</span>
+                              <span>{t.description || "-"}</span>
+                            </div>
+                          ) : (
+                            t.description || "-"
+                          )}
+                        </TableCell>
                         <TableCell>{t.barber?.name || "Geral"}</TableCell>
                         <TableCell>
                           {t.appointment ? (
