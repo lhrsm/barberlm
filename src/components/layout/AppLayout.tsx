@@ -36,15 +36,32 @@ const defaultNavItems = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [businessName, setBusinessName] = useState<string>("BarberSaaS");
+  const { tenantProfile, isImpersonating, stopImpersonation, tenantId } = useTenant();
   const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
 
   const navItems = [...defaultNavItems];
-  if (userRole === 'admin') {
-    navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/platform-admin" });
+  
+  // Only show Admin SaaS link if user is NOT impersonating AND has super_admin role
+  useEffect(() => {
+    async function getMyRole() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (data?.role) setUserRole(data.role);
+      }
+    }
+    getMyRole();
+  }, []);
+
+  if (userRole === 'super_admin' || userRole === 'admin') {
+    navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/admin/dashboard" });
   }
 
   useEffect(() => {
@@ -57,21 +74,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, [pathname, navigate]);
 
-  useEffect(() => {
-    async function fetchProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("business_name, role")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (data?.business_name) setBusinessName(data.business_name);
-        if (data?.role) setUserRole(data.role);
-      }
-    }
-    fetchProfile();
-  }, []);
+  const businessName = tenantProfile?.business_name || "BarberSaaS";
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
