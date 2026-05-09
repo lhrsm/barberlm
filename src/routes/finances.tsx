@@ -179,9 +179,9 @@ function FinancesComponent() {
         t.type === 'income'
       );
       const bTotal = bTransactions.reduce((tAcc, t) => {
-        // Se houver agendamento vinculado, usamos o original_total
+        // Se houver agendamento vinculado, usamos o valor total para comissão
         if (t.appointment) {
-          return tAcc + (Number(t.appointment.original_total || t.appointment.final_amount || t.amount) || 0);
+          return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
         }
         
         // Se não houver agendamento, tentamos extrair do texto (legado) ou usamos o valor da transação
