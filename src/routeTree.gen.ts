@@ -24,6 +24,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 
 const SubscriptionRoute = SubscriptionRouteImport.update({
@@ -101,6 +102,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminRoute,
+} as any)
 const SlugPortalRoute = SlugPortalRouteImport.update({
   id: '/portal',
   path: '/portal',
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/$slug/portal'
+    | '/admin/dashboard'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/$slug/portal'
+    | '/admin/dashboard'
     | '/admin'
   id:
     | '__root__'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/$slug/portal'
+    | '/admin/dashboard'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -341,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/$slug/portal': {
       id: '/$slug/portal'
       path: '/portal'
@@ -362,10 +381,12 @@ const SlugRouteChildren: SlugRouteChildren = {
 const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
 
 interface AdminRouteChildren {
+  AdminDashboardRoute: typeof AdminDashboardRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminDashboardRoute: AdminDashboardRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
