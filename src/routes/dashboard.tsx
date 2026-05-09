@@ -1003,7 +1003,7 @@ function DashboardComponent() {
 
                                               // Remove original income from transactions when converting to credits
                                               await supabase.from("transactions").insert({ 
-                                                user_id: tenantId, 
+                                                user_id: tenantId || "", 
                                                 barber_id: app.barber_id, 
                                                 appointment_id: app.id, 
                                                 type: "expense", 
@@ -1026,7 +1026,7 @@ function DashboardComponent() {
 
                                         if (refundAmount > 0) {
                                           await supabase.from("transactions").insert({
-                                            user_id: tenantId,
+                                            user_id: tenantId || "",
                                             barber_id: app.barber_id,
                                             appointment_id: app.id,
                                             type: "expense",
