@@ -678,13 +678,24 @@ function DashboardComponent() {
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground">Créditos Clientes</span>
-                  <div className="flex items-end gap-1">
+                  <div className="flex items-center gap-1">
                     <span className="text-lg font-bold leading-none">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
                     </span>
                   </div>
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary w-fit">
+                  <div className="p-2 bg-purple-100 rounded-lg text-purple-600 w-fit">
                     <Wallet size={14} />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Cashback Clientes</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-lg font-bold leading-none">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-orange-100 rounded-lg text-orange-600 w-fit">
+                    <Gift size={14} />
                   </div>
                 </div>
               </div>
