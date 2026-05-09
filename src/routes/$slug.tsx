@@ -452,6 +452,7 @@ function ShopPageComponent() {
           total_price: selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0),
           original_total: selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0),
           credit_used: useCredits ? Math.min(customerCredits, calculateTotalBeforeCredits()) : 0,
+          cashback_used: useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0,
           pix_amount: paymentMethod === 'pix' ? calculateTotal() : 0,
           barbershop_amount: paymentMethod === 'barbershop' ? calculateTotal() : 0,
           final_amount: calculateTotal(),
