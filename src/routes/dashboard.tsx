@@ -662,17 +662,40 @@ function DashboardComponent() {
                 </Button>
               </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <Card className="bg-blue-50/50 border-blue-100">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Receita de Hoje</CardTitle>
-                  <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-blue-700">Serviços Vendidos Hoje</CardTitle>
+                  <Scissors className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">R$ {stats.daily.revenue.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Faturamento bruto do dia</p>
+                  <div className="text-2xl font-bold text-blue-700">R$ {stats.daily.totalServicesValue.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Valor total dos serviços</p>
                 </CardContent>
               </Card>
+              <Card className="bg-green-50/50 border-green-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-green-700">Entrada em Caixa Hoje</CardTitle>
+                  <CircleDollarSign className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-700">R$ {stats.daily.realCashInflow.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Dinheiro novo (PIX/Dinheiro)</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-purple-50/50 border-purple-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-purple-700">Créditos Utilizados Hoje</CardTitle>
+                  <Wallet className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-700">R$ {stats.daily.creditsUsed.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Abatido de saldos anteriores</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pt-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Agendamentos Hoje</CardTitle>
