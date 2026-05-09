@@ -441,6 +441,7 @@ function DashboardComponent() {
       barbersData,
       profileData,
       walletData,
+      customersWithBalances,
       dailyAppointmentsData,
       monthlyAppointmentsData
     ] = await Promise.all([
