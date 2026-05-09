@@ -53,7 +53,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function DashboardComponent() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile: authProfile, role, loading: authLoading } = useAuth();
   const { tenantId, isLoading: tenantLoading } = useTenant();
   const navigate = useNavigate();
   const { plan, usage, limits } = usePlanLimits();
@@ -92,10 +92,15 @@ function DashboardComponent() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    if (!loading && !user && !tenantId) {
+    if (!loading && !user) {
       navigate({ to: "/auth" });
+      return;
     }
-  }, [user, tenantId, loading, navigate]);
+
+    if (!loading && user && role === 'super_admin') {
+      navigate({ to: "/admin" });
+    }
+  }, [user, authProfile, loading, navigate]);
 
   useEffect(() => {
     if (tenantId) {

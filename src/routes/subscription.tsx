@@ -27,7 +27,7 @@ export const Route = createFileRoute("/subscription")({
 });
 
 function SubscriptionComponent() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, role } = useAuth();
   const navigate = useNavigate();
   const { plan, usage, limits, refresh } = usePlanLimits();
   const [updating, setUpdating] = useState(false);
@@ -90,8 +90,14 @@ function SubscriptionComponent() {
   useEffect(() => {
     if (!authLoading && !user) {
       navigate({ to: "/auth" });
+      return;
     }
-  }, [user, authLoading, navigate]);
+
+    if (!authLoading && user && role === 'super_admin') {
+      navigate({ to: "/admin" });
+      return;
+    }
+  }, [user, authLoading, role, navigate]);
 
   if (authLoading || !user) return null;
 

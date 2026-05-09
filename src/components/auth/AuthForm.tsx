@@ -51,7 +51,8 @@ export function AuthForm() {
         password,
       });
       if (error) throw error;
-      navigate({ to: "/dashboard" });
+      // We don't navigate here anymore, we let the Auth page or global guard handle redirection based on role
+
     } catch (error: any) {
       toast.error(error.message);
     } finally {

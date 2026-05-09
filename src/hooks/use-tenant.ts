@@ -3,18 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export function useTenant() {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   
   // Check for impersonation in sessionStorage
   const impersonatedId = typeof window !== 'undefined' ? sessionStorage.getItem("impersonated_tenant_id") : null;
   
   // The actual tenant ID being viewed/managed
-  // For tenant_admin, it's their own ID. 
-  // For barber/client, it's the tenant_id from their profile.
-  // For super_admin, it's null unless impersonating.
-  const tenantId = impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || user?.id));
+  // We MUST wait for auth to load before deciding if we are a super_admin
+  const tenantId = authLoading 
+    ? null 
+    : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || user?.id)));
 
-  const { data: tenantProfile, isLoading } = useQuery({
+
+  const { data: tenantProfile, isLoading: queryLoading } = useQuery({
     queryKey: ["tenant-profile", tenantId],
     queryFn: async () => {
       if (!tenantId) return null;
@@ -65,7 +66,7 @@ export function useTenant() {
     tenantId,
     tenantProfile,
     planDetails,
-    isLoading,
+    isLoading: authLoading || queryLoading,
     isFeatureEnabled,
     getLimit,
     isImpersonating: !!impersonatedId,

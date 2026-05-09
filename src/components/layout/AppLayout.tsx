@@ -58,10 +58,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session && pathname !== "/auth" && pathname !== "/") {
         navigate({ to: "/auth" });
+        return;
+      }
+
+      // Redirect super_admin to /admin if they are on a non-admin route and not impersonating
+      if (role === 'super_admin' && !pathname.startsWith('/admin') && pathname !== '/auth' && !isImpersonating) {
+        navigate({ to: "/admin" });
       }
     }
     checkAuth();
-  }, [pathname, navigate]);
+  }, [pathname, navigate, role, isImpersonating]);
 
   const businessName = tenantProfile?.business_name || "BarberSaaS";
 

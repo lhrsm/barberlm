@@ -52,7 +52,7 @@ const DAY_LABELS: Record<string, string> = {
 };
 
 function BarbersComponent() {
-  const { user, loading } = useAuth();
+  const { user, loading, role } = useAuth();
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
@@ -74,15 +74,23 @@ function BarbersComponent() {
   const canAddBarber = checkLimit("barbers");
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
-  }, [user, loading, navigate]);
+    if (!loading && !user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+
+    if (!loading && user && role === 'super_admin') {
+      navigate({ to: "/admin" });
+      return;
+    }
+  }, [user, loading, role, navigate]);
 
   useEffect(() => {
-    if (user) {
+    if (user && role !== 'super_admin') {
       fetchBarbers();
       fetchServices();
     }
-  }, [user]);
+  }, [user, role]);
 
   async function fetchServices() {
     const { data, error } = await supabase

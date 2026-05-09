@@ -56,6 +56,8 @@ export function usePlanLimits() {
   useEffect(() => {
     if (tenantId) {
       fetchPlanAndUsage();
+    } else {
+      setLoading(false);
     }
   }, [tenantId]);
 
