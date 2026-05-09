@@ -840,7 +840,8 @@ function DashboardComponent() {
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="flex flex-wrap items-center gap-2">
-                            {app.refund_requested_at && app.refund_status === 'pending' && (
+                             {app.refund_requested_at && (
+                               app.refund_status === 'pending' ? (
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
@@ -945,7 +946,12 @@ function DashboardComponent() {
                                 <RefreshCcw size={14} />
                                 <span>Aprovar {app.refund_type === 'refund' ? 'Estorno' : 'Créditos'}</span>
                               </Button>
-                            )}
+                                ) : (
+                                  <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 text-[10px]">
+                                    {app.refund_type === 'credits' ? 'Créditos' : 'Estorno'} Concluído
+                                  </Badge>
+                                )
+                              )}
                             {app.status === 'scheduled' && (
                               <Button 
                                 variant="default"
