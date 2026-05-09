@@ -36,12 +36,13 @@ export const Route = createFileRoute("/support")({
 });
 
 function TenantSupport() {
-  const { user } = useAuth();
+  const { user, role, loading } = useAuth();
   const queryClient = useQueryClient();
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [newTicket, setNewTicket] = useState({ subject: "", description: "" });
   const [reply, setReply] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
 
   const { data: tickets, isLoading } = useQuery({
     queryKey: ["tenant-tickets", user?.id],
@@ -56,7 +57,7 @@ function TenantSupport() {
       if (error) throw error;
       return data;
     },
-    enabled: !!user
+    enabled: !!user && role !== 'super_admin'
   });
 
   const { data: messages } = useQuery({
