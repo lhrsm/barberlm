@@ -940,11 +940,11 @@ function DashboardComponent() {
                                   if (confirm("Deseja cancelar este agendamento?")) {
                                     const { error } = await supabase.from("appointments").update({ status: "cancelled" }).eq("id", app.id);
                                     if (error) {
-                                      toast.error("Erro ao excluir agendamento");
+                                      toast.error("Erro ao cancelar agendamento");
                                     } else {
                                       fetchTodayAppointments();
                                       fetchStats();
-                                      toast.success("Agendamento excluído com sucesso");
+                                      toast.success("Agendamento cancelado com sucesso");
                                     }
                                   }
                                 }}
