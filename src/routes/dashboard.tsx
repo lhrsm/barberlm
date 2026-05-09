@@ -416,9 +416,9 @@ function DashboardComponent() {
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
-      // Transações agora vinculadas apenas a agendamentos concluídos ou manuais
-      supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", monthStart).lte("created_at", monthEnd),
+      // Buscar todas as transações para filtrar em memória
+      supabase.from("transactions").select("amount, type, appointment:appointments(status)").gte("created_at", todayStart).lte("created_at", todayEnd),
+      supabase.from("transactions").select("amount, type, appointment:appointments(status)").gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }),
@@ -440,15 +440,29 @@ function DashboardComponent() {
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);
 
+    // Função auxiliar para calcular entrada real desconsiderando agendamentos cancelados
+    const calculateCashInflow = (transData: any[] | null) => {
+      return transData?.reduce((acc, curr: any) => {
+        if (curr.type === 'income') {
+          // Ignorar se vinculado a agendamento cancelado
+          if (curr.appointment && curr.appointment.status === 'cancelled') {
+            return acc;
+          }
+          return acc + Number(curr.amount);
+        }
+        return acc;
+      }, 0) || 0;
+    };
+
     // Cálculos Diários
     const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
     const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
-    const dailyCashInflow = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+    const dailyCashInflow = calculateCashInflow(dailyTrans.data);
 
     // Cálculos Mensais
     const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
     const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
-    const monthlyCashInflow = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+    const monthlyCashInflow = calculateCashInflow(monthlyTrans.data);
 
     setStats({
       daily: {
