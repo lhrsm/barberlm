@@ -53,7 +53,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function DashboardComponent() {
-  const { user, profile: authProfile, loading: authLoading } = useAuth();
+  const { user, profile: authProfile, role, loading: authLoading } = useAuth();
   const { tenantId, isLoading: tenantLoading } = useTenant();
   const navigate = useNavigate();
   const { plan, usage, limits } = usePlanLimits();
