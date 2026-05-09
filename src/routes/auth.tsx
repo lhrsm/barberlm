@@ -12,19 +12,21 @@ function AuthPageComponent() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user && role) {
-      console.log("Auth redirection - User Role:", role);
-      if (role === 'super_admin') {
-        navigate({ to: "/admin/dashboard" });
-      } else if (role === 'tenant_admin') {
-        navigate({ to: "/dashboard" });
-      } else if (role === 'barber') {
-        navigate({ to: "/barbers" });
-      } else if (role === 'client') {
-        navigate({ to: "/portal" });
-      } else {
-        navigate({ to: "/dashboard" });
+    if (!loading && user) {
+      console.log("Auth route check - User:", user.email, "Role:", role);
+      
+      if (!role) {
+        console.log("User logged in but role not yet available in Auth route");
+        return;
       }
+
+      const destination = 
+        role === 'super_admin' ? "/admin/dashboard" :
+        role === 'barber' ? "/barbers" :
+        role === 'client' ? "/portal" : "/dashboard";
+
+      console.log("Redirecting to:", destination);
+      navigate({ to: destination });
     }
   }, [user, loading, role, navigate]);
 

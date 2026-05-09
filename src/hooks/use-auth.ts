@@ -41,11 +41,21 @@ async function fetchProfileData(userId: string) {
       .eq("id", userId)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching profile from DB:", error);
+      throw error;
+    }
+    
+    if (!data) {
+      console.error("No profile found for user:", userId);
+      return null;
+    }
+
+    console.log("Profile fetched successfully for user:", userId, "Role:", data.role);
     updateGlobalState({ profile: data as Profile });
     return data;
   } catch (error) {
-    console.error("Error fetching profile:", error);
+    console.error("Critical error in fetchProfileData:", error);
     return null;
   }
 }
