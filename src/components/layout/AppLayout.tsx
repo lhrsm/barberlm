@@ -47,21 +47,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [...defaultNavItems];
   
-  // Only show Admin SaaS link if user is NOT impersonating AND has super_admin role
-  useEffect(() => {
-    async function getMyRole() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (data?.role) setUserRole(data.role);
-      }
-    }
-    getMyRole();
-  }, []);
+  // ... role is now from useAuth hook
 
   if (userRole === 'super_admin' || userRole === 'admin') {
     navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/admin/dashboard" });
