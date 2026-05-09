@@ -20,8 +20,10 @@ import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BarbersRouteImport } from './routes/barbers'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 
 const SubscriptionRoute = SubscriptionRouteImport.update({
@@ -79,6 +81,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SlugRoute = SlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -89,6 +96,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const SlugPortalRoute = SlugPortalRouteImport.update({
   id: '/portal',
   path: '/portal',
@@ -98,6 +110,7 @@ const SlugPortalRoute = SlugPortalRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -110,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,11 +140,13 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
@@ -143,12 +159,14 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/$slug'
+    | '/admin'
     | '/auth'
     | '/barbers'
     | '/calendar'
@@ -161,6 +179,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/$slug/portal'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,10 +196,12 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/$slug/portal'
+    | '/admin'
   id:
     | '__root__'
     | '/'
     | '/$slug'
+    | '/admin'
     | '/auth'
     | '/barbers'
     | '/calendar'
@@ -193,11 +214,13 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/$slug/portal'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   BarbersRoute: typeof BarbersRoute
   CalendarRoute: typeof CalendarRoute
@@ -290,6 +313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$slug': {
       id: '/$slug'
       path: '/$slug'
@@ -303,6 +333,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/$slug/portal': {
       id: '/$slug/portal'
@@ -324,9 +361,20 @@ const SlugRouteChildren: SlugRouteChildren = {
 
 const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   BarbersRoute: BarbersRoute,
   CalendarRoute: CalendarRoute,
@@ -342,3 +390,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
