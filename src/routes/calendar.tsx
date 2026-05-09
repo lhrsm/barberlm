@@ -331,6 +331,9 @@ function CalendarComponent() {
 
       if (updateErr) throw updateErr;
 
+      // Ensure realtime listeners are aware of the update by fetching fresh data
+      await fetchData();
+
       // 2. Create transactions for items (Now that it's paid and completed)
       let items = appointment.items || [];
       
