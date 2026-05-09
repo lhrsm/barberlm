@@ -15,8 +15,10 @@ function AuthPageComponent() {
     if (!loading && user) {
       console.log("Auth route check - User:", user.email, "Role:", role);
       
-      if (!role) {
-        console.log("User logged in but role not yet available in Auth route");
+      // Se o usuário está logado mas o perfil ainda não carregou, esperamos um pouco
+      // mas se demorar demais (role indefinido), redirecionamos para o default
+      if (role === undefined) {
+        console.log("User logged in but role is undefined. Waiting...");
         return;
       }
 
