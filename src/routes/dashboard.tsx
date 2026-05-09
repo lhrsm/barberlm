@@ -105,7 +105,14 @@ function DashboardComponent() {
       if (!impersonatedId) {
         console.log("Dashboard: Redirecting super_admin to admin portal");
         navigate({ to: "/admin/dashboard" });
+        return;
       }
+    }
+
+    // Se for tenant_admin sem tenantId resolvido, temos um problema de dados
+    if (role === 'tenant_admin' && !tenantId) {
+      console.warn("Dashboard: tenant_admin without tenantId");
+      // toast.error("Erro ao carregar dados da barbearia.");
     }
   }, [user, role, loading, navigate]);
 
