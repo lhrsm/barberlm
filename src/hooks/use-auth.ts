@@ -12,75 +12,106 @@ interface Profile {
   slug: string | null;
 }
 
-export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+// Global state to share between useAuth instances
+let globalUser: User | null = null;
+let globalSession: Session | null = null;
+let globalProfile: Profile | null = null;
+let globalLoading = true;
+const listeners = new Set<(state: { user: User | null; session: Session | null; profile: Profile | null; loading: boolean }) => void>();
 
-  useEffect(() => {
-    let mounted = true;
+function updateGlobalState(newState: Partial<{ user: User | null; session: Session | null; profile: Profile | null; loading: boolean }>) {
+  if ('user' in newState) globalUser = newState.user!;
+  if ('session' in newState) globalSession = newState.session!;
+  if ('profile' in newState) globalProfile = newState.profile!;
+  if ('loading' in newState) globalLoading = newState.loading!;
+  
+  listeners.forEach(listener => listener({ 
+    user: globalUser, 
+    session: globalSession, 
+    profile: globalProfile, 
+    loading: globalLoading 
+  }));
+}
 
-    async function fetchProfile(userId: string) {
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("id, role, tenant_id, business_name, slug")
-          .eq("id", userId)
-          .maybeSingle();
+async function fetchProfileData(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, role, tenant_id, business_name, slug")
+      .eq("id", userId)
+      .maybeSingle();
 
-        if (error) throw error;
-        if (mounted) {
-          setProfile(data as Profile);
-        }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      }
+    if (error) throw error;
+    updateGlobalState({ profile: data as Profile });
+    return data;
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    return null;
+  }
+}
+
+// Initialize global session
+let initialized = false;
+async function initializeAuth() {
+  if (initialized) return;
+  initialized = true;
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    globalSession = session;
+    globalUser = session?.user ?? null;
+    
+    if (session?.user) {
+      await fetchProfileData(session.user.id);
     }
+    
+    updateGlobalState({ loading: false });
+  } catch (error) {
+    console.error("Error getting initial session:", error);
+    updateGlobalState({ loading: false });
+  }
 
-    async function getInitialSession() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          if (session?.user) {
-            await fetchProfile(session.user.id);
-          }
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error("Error getting initial session:", error);
-        if (mounted) setLoading(false);
-      }
-    }
-
-    getInitialSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-        setLoading(false);
-      }
+  supabase.auth.onAuthStateChange(async (_event, session) => {
+    updateGlobalState({ 
+      session, 
+      user: session?.user ?? null,
+      loading: true // Set loading while fetching profile
     });
 
+    if (session?.user) {
+      await fetchProfileData(session.user.id);
+    } else {
+      updateGlobalState({ profile: null });
+    }
+    updateGlobalState({ loading: false });
+  });
+}
+
+if (typeof window !== 'undefined') {
+  initializeAuth();
+}
+
+export function useAuth() {
+  const [state, setState] = useState({
+    user: globalUser,
+    session: globalSession,
+    profile: globalProfile,
+    loading: globalLoading
+  });
+
+  useEffect(() => {
+    const listener = (newState: typeof state) => setState(newState);
+    listeners.add(listener);
     return () => {
-      mounted = false;
-      subscription.unsubscribe();
+      listeners.delete(listener);
     };
   }, []);
 
   return { 
-    user, 
-    session, 
-    profile, 
-    role: profile?.role,
-    loading 
+    user: state.user, 
+    session: state.session, 
+    profile: state.profile, 
+    role: state.profile?.role,
+    loading: state.loading 
   };
 }

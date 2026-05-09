@@ -92,15 +92,23 @@ function DashboardComponent() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) return;
+
+    if (!user) {
       navigate({ to: "/auth" });
       return;
     }
 
-    if (!loading && user && role === 'super_admin') {
-      navigate({ to: "/admin" });
+    // Redirect super_admin back to /admin if they accidentally land here
+    // and they are not in impersonation mode
+    if (role === 'super_admin') {
+      const impersonatedId = typeof window !== 'undefined' ? sessionStorage.getItem("impersonated_tenant_id") : null;
+      if (!impersonatedId) {
+        console.log("Dashboard route: Redirecting super_admin to /admin");
+        navigate({ to: "/admin/dashboard" });
+      }
     }
-  }, [user, authProfile, loading, navigate]);
+  }, [user, role, loading, navigate]);
 
   useEffect(() => {
     if (tenantId) {
@@ -992,12 +1000,12 @@ function DashboardComponent() {
                                             .eq("customer_id", app.customer_id)
                                             .maybeSingle();
                                             
-                                          if (!wallet) {
+                                          if (!wallet && tenantId) {
                                             const { data: newWallet } = await supabase
                                               .from("wallet")
                                               .insert({ 
                                                 customer_id: app.customer_id, 
-                                                user_id: tenantId || "",
+                                                user_id: tenantId,
                                                 balance: 0 
                                               })
                                               .select()
@@ -1005,7 +1013,7 @@ function DashboardComponent() {
                                             wallet = newWallet;
                                           }
 
-                                          if (wallet) {
+                                          if (wallet && tenantId) {
                                             // The refund amount should be the final_amount (what was paid in new money)
                                             const refundAmount = Number(app.final_amount || 0);
 
@@ -1016,7 +1024,7 @@ function DashboardComponent() {
                                                 type: "credit",
                                                 description: `Crédito por cancelamento (Estorno Real): ${app.services?.name}`,
                                                 appointment_id: app.id,
-                                                user_id: tenantId || ""
+                                                user_id: tenantId
                                               });
 
                                               // Update customer credits with the additional refund amount
@@ -1024,7 +1032,7 @@ function DashboardComponent() {
 
                                               // Remove original income from transactions when converting to credits
                                               await supabase.from("transactions").insert({ 
-                                                user_id: tenantId || "", 
+                                                user_id: tenantId, 
                                                 barber_id: app.barber_id, 
                                                 appointment_id: app.id, 
                                                 type: "expense", 
@@ -1042,12 +1050,12 @@ function DashboardComponent() {
 
                                           toast.success("Valor convertido em créditos e agendamento cancelado!");
                                         }
-                                      } else if (app.refund_type === 'refund') {
+                                      } else if (app.refund_type === 'refund' && tenantId) {
                                         const refundAmount = Number(app.final_amount || 0);
 
                                         if (refundAmount > 0) {
                                           await supabase.from("transactions").insert({
-                                            user_id: tenantId || "",
+                                            user_id: tenantId,
                                             barber_id: app.barber_id,
                                             appointment_id: app.id,
                                             type: "expense",
