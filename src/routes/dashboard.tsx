@@ -395,7 +395,7 @@ function DashboardComponent() {
     const dailyCashInflow = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
 
     // Cálculos Mensais
-    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
+    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
     const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
     const monthlyCashInflow = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
 
