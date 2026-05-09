@@ -42,17 +42,32 @@ function AdminLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    // Wait for auth to finish loading before making any redirection decisions
     if (loading) return;
+
+    // If no user is logged in, send to auth
     if (!user) {
+      console.log("Admin route guard: No user found, redirecting to /auth");
       navigate({ to: "/auth" });
       return;
     }
 
+    // If user is logged in but profile is not loaded, we might be in an error state
+    // but we'll wait for the profile to be fetched by useAuth
+    if (!role) {
+      console.log("Admin route guard: User found but role not yet loaded");
+      return;
+    }
+
+    // Finally, check if the role is allowed
     if (role !== 'super_admin') {
+      console.log("Admin route guard: Role is not super_admin, it is:", role);
       toast.error("Acesso negado. Apenas super administradores.");
       navigate({ to: "/dashboard" });
       return;
     }
+    
+    console.log("Admin route guard: Access granted for super_admin");
   }, [user, loading, role, navigate]);
 
   const checking = loading || !role;
