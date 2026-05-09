@@ -92,10 +92,15 @@ function DashboardComponent() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    if (!loading && !user && !tenantId) {
+    if (!loading && !user) {
       navigate({ to: "/auth" });
+      return;
     }
-  }, [user, tenantId, loading, navigate]);
+
+    if (!loading && user && profile?.role === 'super_admin') {
+      navigate({ to: "/admin" });
+    }
+  }, [user, profile, loading, navigate]);
 
   useEffect(() => {
     if (tenantId) {
