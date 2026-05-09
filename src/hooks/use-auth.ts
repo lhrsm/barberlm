@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
-export type UserRole = 'super_admin' | 'tenant_admin' | 'barber' | 'client';
+export type UserRole = 'super_admin' | 'admin' | 'tenant_admin' | 'barber' | 'client';
 
 interface Profile {
   id: string;
