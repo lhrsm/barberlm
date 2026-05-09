@@ -183,6 +183,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      </div>
     </div>
   );
 }
