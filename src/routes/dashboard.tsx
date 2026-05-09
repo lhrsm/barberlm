@@ -261,7 +261,7 @@ function DashboardComponent() {
           category: "Serviço",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          tenantId: tenantId || "",
+          user_id: tenantId || "",
           date: new Date().toISOString().split('T')[0],
           time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
         });
@@ -294,7 +294,7 @@ function DashboardComponent() {
           category: "Serviço",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          tenantId: tenantId || "",
+          user_id: tenantId || "",
           date: new Date().toISOString().split('T')[0]
         });
       
@@ -352,7 +352,7 @@ function DashboardComponent() {
           category: "Estorno",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          tenantId: tenantId || "",
+          user_id: tenantId || "",
           date: new Date().toISOString().split('T')[0]
         });
         toast.success("Agendamento cancelado e estorno registrado como saída!");
@@ -371,7 +371,7 @@ function DashboardComponent() {
               .from("wallet")
               .insert({ 
                 customer_id: appointment.customer_id, 
-                tenantId: tenantId || "",
+                user_id: tenantId || "",
                 balance: 0 
               })
               .select()
@@ -387,7 +387,7 @@ function DashboardComponent() {
             type: "credit",
             description: `Crédito por cancelamento: ${appointment.services?.name || 'Serviço'}`,
             appointment_id: appointment.id,
-            tenantId: tenantId || ""
+            user_id: tenantId || ""
           });
 
           // 3. Registrar na transação como 0 para não contar como receita nova nem saída, 
@@ -401,7 +401,7 @@ function DashboardComponent() {
             category: "Crédito Cliente",
             barber_id: appointment.barber_id,
             appointment_id: appointment.id,
-            tenantId: tenantId || "",
+            user_id: tenantId || "",
             date: new Date().toISOString().split('T')[0]
           });
 
@@ -419,7 +419,7 @@ function DashboardComponent() {
           category: "Cancelamento",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          tenantId: tenantId || "",
+          user_id: tenantId || "",
           date: new Date().toISOString().split('T')[0]
         });
         toast.success("Agendamento cancelado!");
@@ -969,7 +969,7 @@ function DashboardComponent() {
                                               .from("wallet")
                                               .insert({ 
                                                 customer_id: app.customer_id, 
-                                                tenantId: tenantId || "",
+                                                user_id: tenantId || "",
                                                 balance: 0 
                                               })
                                               .select()
@@ -988,7 +988,7 @@ function DashboardComponent() {
                                                 type: "credit",
                                                 description: `Crédito por cancelamento (Estorno Real): ${app.services?.name}`,
                                                 appointment_id: app.id,
-                                                tenantId: tenantId || ""
+                                                user_id: tenantId || ""
                                               });
 
                                               // Update customer credits with the additional refund amount
@@ -996,7 +996,7 @@ function DashboardComponent() {
 
                                               // Remove original income from transactions when converting to credits
                                               await supabase.from("transactions").insert({ 
-                                                tenantId: tenantId, 
+                                                user_id: tenantId, 
                                                 barber_id: app.barber_id, 
                                                 appointment_id: app.id, 
                                                 type: "expense", 
@@ -1019,7 +1019,7 @@ function DashboardComponent() {
 
                                         if (refundAmount > 0) {
                                           await supabase.from("transactions").insert({
-                                            tenantId: tenantId,
+                                            user_id: tenantId,
                                             barber_id: app.barber_id,
                                             appointment_id: app.id,
                                             type: "expense",
