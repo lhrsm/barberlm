@@ -556,7 +556,12 @@ function ClientPortalComponent() {
 
         await supabase
           .from("appointments")
-          .update({ status: "cancelled" })
+          .update({ 
+            status: "cancelled",
+            refund_status: 'completed',
+            refund_requested_at: new Date().toISOString(),
+            refund_type: 'credits'
+          })
           .eq("id", cancellingAppointment.id);
           
         toast.success(`Cancelado! R$ ${amount.toFixed(2)} foi adicionado aos seus créditos e removido das entradas.`);

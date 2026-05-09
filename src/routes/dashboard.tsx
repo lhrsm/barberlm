@@ -130,7 +130,7 @@ function DashboardComponent() {
     let query = supabase
       .from("appointments")
       .select("*, customers(name, phone, loyalty_points, avatar_url, credits), services(name), barbers(name)")
-      .or(`status.neq.cancelled,refund_status.eq.pending`)
+      .or(`status.neq.cancelled,refund_status.in.(pending,completed)`)
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);
 
@@ -840,7 +840,8 @@ function DashboardComponent() {
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="flex flex-wrap items-center gap-2">
-                            {app.refund_requested_at && app.refund_status === 'pending' && (
+                             {app.refund_requested_at && (
+                               app.refund_status === 'pending' ? (
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
@@ -901,7 +902,7 @@ function DashboardComponent() {
 
                                           await supabase.from("appointments").update({ 
                                             status: "cancelled",
-                                            refund_status: "approved"
+                                            refund_status: "completed"
                                           }).eq("id", app.id);
 
                                           toast.success("Valor convertido em créditos e agendamento cancelado!");
@@ -922,7 +923,7 @@ function DashboardComponent() {
                                           .from("appointments")
                                           .update({ 
                                             status: "cancelled",
-                                            refund_status: "approved"
+                                            refund_status: "completed"
                                           })
                                           .eq("id", app.id);
                                         
@@ -945,7 +946,12 @@ function DashboardComponent() {
                                 <RefreshCcw size={14} />
                                 <span>Aprovar {app.refund_type === 'refund' ? 'Estorno' : 'Créditos'}</span>
                               </Button>
-                            )}
+                                ) : (
+                                  <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 text-[10px]">
+                                    {app.refund_type === 'credits' ? 'Créditos' : 'Estorno'} Concluído
+                                  </Badge>
+                                )
+                              )}
                             {app.status === 'scheduled' && (
                               <Button 
                                 variant="default"
