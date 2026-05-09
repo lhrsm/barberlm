@@ -1,36 +1,14 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/hooks/use-tenant";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Users, 
-  Scissors, 
-  Calendar, 
-  CircleDollarSign,
-  TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
-  Target,
-  Crown,
-  Zap,
-  Globe,
-  ExternalLink,
-  Copy,
-  Wallet,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  Check,
-  Bell,
-  User as UserIcon,
-  RefreshCcw,
-  Gift
-} from "lucide-react";
+// ... (imports remain the same)
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow, isSameDay } from "date-fns";
@@ -44,16 +22,17 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-// Removidos duplicados importados acima
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardComponent,
 });
 
 function DashboardComponent() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { tenantId, isLoading: tenantLoading } = useTenant();
   const navigate = useNavigate();
   const { plan, usage, limits } = usePlanLimits();
+  const loading = authLoading || tenantLoading;
   const [notifications, setNotifications] = useState<any[]>([]);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [stats, setStats] = useState({
