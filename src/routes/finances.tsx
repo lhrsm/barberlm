@@ -122,16 +122,20 @@ function FinancesComponent() {
   }, [transactions, statusFilter, dateFilter]);
 
   const summary = useMemo(() => {
-    const income = transactions
+    // 1. Receita Operacional (Valor Total dos Serviços Prestados)
+    // Isso é usado para calcular comissões e performance, mas NÃO é o saldo real do caixa.
+    const operationalRevenue = transactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
         
-        // Se houver créditos abatidos, somamos eles à receita bruta (income)
-        // para que o cálculo de comissões e divisão de lucros considere o valor cheio do serviço.
+        // Se o agendamento tiver credit_used, somamos ele para ter o valor TOTAL do serviço (receita operacional)
         let creditedAmount = 0;
         if (t.appointment?.credit_used) {
           creditedAmount = Number(t.appointment.credit_used);
+        } else if (t.description?.includes("Abatimento Créditos: R$")) {
+          const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
+          creditedAmount = match ? parseFloat(match[1]) : 0;
         } else if (t.description?.includes("Créditos: R$")) {
           const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
@@ -140,6 +144,7 @@ function FinancesComponent() {
         return acc + val + creditedAmount;
       }, 0);
 
+    // 2. Entrada Financeira Real (Dinheiro novo no caixa)
     const realCashIncome = transactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
@@ -151,6 +156,7 @@ function FinancesComponent() {
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
 
+    // 3. Parte dos Freelancers (Comissão baseada no Valor Total do Serviço)
     const freelancersPart = barbers.reduce((acc, barber) => {
       const bTransactions = transactions.filter(t => 
         t.barber_id === barber.id && 
@@ -159,10 +165,13 @@ function FinancesComponent() {
       const bTotal = bTransactions.reduce((tAcc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
         
-        // Incluir valor pago em créditos para o cálculo da comissão
+        // Incluir valor abatido em créditos para o cálculo da comissão
         let creditedAmount = 0;
         if (t.appointment?.credit_used) {
           creditedAmount = Number(t.appointment.credit_used);
+        } else if (t.description?.includes("Abatimento Créditos: R$")) {
+          const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
+          creditedAmount = match ? parseFloat(match[1]) : 0;
         } else if (t.description?.includes("Créditos: R$")) {
           const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
@@ -174,13 +183,14 @@ function FinancesComponent() {
       return acc + (bTotal * (commissionRate / 100));
     }, 0);
 
-    const barbershopPart = income - freelancersPart;
+    // 4. Lucro da Barbearia (Receita Operacional - Parte dos Freelancers)
+    const barbershopPart = operationalRevenue - freelancersPart;
 
     return { 
-      income, 
+      income: operationalRevenue, 
       expense, 
       pending, 
-      balance: realCashIncome - expense, 
+      balance: realCashIncome - expense, // Saldo Atual é Dinheiro Real - Despesas
       freelancersPart, 
       barbershopPart 
     };
