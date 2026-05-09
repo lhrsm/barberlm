@@ -288,9 +288,10 @@ function DashboardComponent() {
     const appointment = todayAppointments.find(a => a.id === appointmentId);
     if (!appointment) return;
 
+    // Em vez de deletar, atualizamos o status para cancelado
     const { error } = await supabase
       .from("appointments")
-      .delete()
+      .update({ status: 'cancelled' })
       .eq("id", appointmentId);
 
     if (error) {
