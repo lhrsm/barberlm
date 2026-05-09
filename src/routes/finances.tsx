@@ -122,18 +122,21 @@ function FinancesComponent() {
   }, [transactions, statusFilter, dateFilter]);
 
   const summary = useMemo(() => {
+    // FILTRAR APENAS TRANSAÇÕES DE AGENDAMENTOS CONCLUÍDOS OU MANUAIS
+    const effectiveTransactions = transactions.filter(t => 
+      !t.appointment || t.appointment.status === 'completed'
+    );
+
     // 1. Receita Operacional (Faturamento Operacional) - Valor Total dos Serviços Vendidos
-    const operationalRevenue = transactions
+    const operationalRevenue = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
-        // Se houver agendamento, preferimos usar o valor total original
         if (t.appointment) {
           return acc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
         }
 
         const val = parseFloat(String(t.amount)) || 0;
         
-        // Se não houver agendamento, tentamos extrair créditos da descrição (legado/manual)
         let creditedAmount = 0;
         if (t.description?.includes("Abatimento Créditos: R$")) {
           const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
@@ -147,12 +150,12 @@ function FinancesComponent() {
       }, 0);
 
     // 2. Fluxo de Caixa (Entrada Financeira Real) - Dinheiro novo no caixa
-    const realCashIncome = transactions
+    const realCashIncome = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
 
     // 3. Créditos Consumidos
-    const creditsConsumed = transactions
+    const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         let creditedAmount = 0;
@@ -165,26 +168,25 @@ function FinancesComponent() {
         return acc + creditedAmount;
       }, 0);
 
-    const expense = transactions
+    const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
     
+    // Pendentes são agendamentos que ainda não foram concluídos
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
 
     // Parte dos Freelancers (Comissão baseada no Valor Total do Serviço)
     const freelancersPart = barbers.reduce((acc, barber) => {
-      const bTransactions = transactions.filter(t => 
+      const bTransactions = effectiveTransactions.filter(t => 
         t.barber_id === barber.id && 
         t.type === 'income'
       );
       const bTotal = bTransactions.reduce((tAcc, t) => {
-        // Se houver agendamento vinculado, usamos o valor total para comissão
         if (t.appointment) {
           return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
         }
         
-        // Se não houver agendamento, tentamos extrair do texto (legado) ou usamos o valor da transação
         const val = parseFloat(String(t.amount)) || 0;
         let creditedAmount = 0;
         if (t.description?.includes("Abatimento Créditos: R$")) {
