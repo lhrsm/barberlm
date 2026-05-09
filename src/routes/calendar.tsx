@@ -387,22 +387,20 @@ function CalendarComponent() {
             .eq("id", appointment.id);
         }
 
-        // Criar uma ÚNICA transação apenas se houver receita real (dinheiro novo)
-        if (remainingToPay > 0) {
-          const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
-          
-          await supabase.from("transactions").insert({
-            user_id: user.id,
-            barber_id: appointment.barber_id,
-            appointment_id: appointment.id,
-            type: "income",
-            category: "Serviço",
-            amount: remainingToPay,
-            description: `Pagamento${creditText}: ${serviceItem.name} - Cliente: ${customerData?.name}`,
-            date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
-            time: format(parseISO(appointment.start_time), "HH:mm:ss")
-          });
-        }
+        // Criar uma ÚNICA transação para registro financeiro (mesmo se valor for 0 para constar no operacional)
+        const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+        
+        await supabase.from("transactions").insert({
+          user_id: user.id,
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          type: "income",
+          category: "Serviço",
+          amount: remainingToPay,
+          description: `Pagamento${creditText}: ${serviceItem.name} - Cliente: ${customerData?.name}`,
+          date: format(parseISO(appointment.start_time), "yyyy-MM-dd"),
+          time: format(parseISO(appointment.start_time), "HH:mm:ss")
+        });
       }
 
       for (const item of productItems) {
