@@ -149,26 +149,9 @@ function DashboardComponent() {
 
     // 3. Handle financial registration (Only if paid)
     if (appointment.payment_status === 'paid') {
-      const totalPrice = Number(appointment.total_price || 0);
-      
-      // Check for available credits
-      const { data: customerData } = await supabase
-        .from("customers")
-        .select("credits, name")
-        .eq("id", appointment.customer_id)
-        .single();
-      
-      const availableCredits = Number(customerData?.credits || 0);
-      const usedCredits = Math.min(availableCredits, totalPrice);
-      const remainingToPay = totalPrice - usedCredits;
-
-      if (usedCredits > 0) {
-        // Atualizar créditos do cliente
-        await supabase
-          .from("customers")
-          .update({ credits: availableCredits - usedCredits })
-          .eq("id", appointment.customer_id);
-      }
+      const totalPrice = Number(appointment.original_total || appointment.total_price || 0);
+      const usedCredits = Number(appointment.credit_used || 0);
+      const remainingToPay = Number(appointment.final_amount || 0);
       
       // Check if a transaction for this appointment already exists to avoid duplicates
       const { data: existingTrans } = await supabase
@@ -177,14 +160,14 @@ function DashboardComponent() {
         .eq("appointment_id", appointment.id)
         .maybeSingle();
 
-      if (!existingTrans) {
-        // Criar uma ÚNICA transação com o valor total, detalhando o uso de créditos na descrição se houver
-        const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)}${remainingToPay > 0 ? `, Restante: R$ ${remainingToPay.toFixed(2)}` : ""})` : "";
+      if (!existingTrans && remainingToPay > 0) {
+        // Criar uma ÚNICA transação com o valor pago em dinheiro novo
+        const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)})` : "";
         
         const { error: transError } = await supabase
           .from("transactions")
           .insert({
-            amount: totalPrice,
+            amount: remainingToPay,
             type: "income",
             description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
             category: "Serviço",
