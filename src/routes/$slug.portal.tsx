@@ -541,11 +541,19 @@ function ClientPortalComponent() {
         // Remove any realized revenue from transactions for this appointment
         // We delete all transactions for this appointment because they will be re-recorded
         // only when the client actually uses these credits for a future service.
+        // Registramos a saída para manter histórico e zerar o impacto líquido
         await supabase
           .from("transactions")
-          .delete()
-          .eq("appointment_id", cancellingAppointment.id);
-          
+          .insert({
+            user_id: cancellingAppointment.user_id,
+            appointment_id: cancellingAppointment.id,
+            type: "expense",
+            category: "Estorno (Créditos)",
+            amount: amount,
+            description: `Cancelamento: ${cancellingAppointment.services?.name} - Convertido em Créditos`,
+            date: new Date().toISOString().split('T')[0]
+          });
+
         await supabase
           .from("appointments")
           .update({ status: "cancelled" })
