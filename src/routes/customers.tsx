@@ -46,7 +46,7 @@ export const Route = createFileRoute("/customers")({
 });
 
 function CustomersComponent() {
-  const { user, loading } = useAuth();
+  const { user, loading, role } = useAuth();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -62,15 +62,23 @@ function CustomersComponent() {
   const [editingCustomer, setEditingCustomer] = useState({ id: "", name: "", phone: "", email: "", notes: "" });
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
-  }, [user, loading, navigate]);
+    if (!loading && !user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+
+    if (!loading && user && role === 'super_admin') {
+      navigate({ to: "/admin" });
+      return;
+    }
+  }, [user, loading, role, navigate]);
 
   useEffect(() => {
-    if (user) {
+    if (user && role !== 'super_admin') {
       fetchCustomers();
       fetchShopProfile();
     }
-  }, [user]);
+  }, [user, role]);
 
   async function fetchShopProfile() {
     if (!user) return;
