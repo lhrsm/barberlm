@@ -35,40 +35,27 @@ const adminNavItems = [
 ];
 
 function AdminLayout() {
-  const { user, loading } = useAuth();
+  const { user, loading, role } = useAuth();
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checking, setChecking] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    async function checkAdmin() {
-      if (loading) return;
-      if (!user) {
-        navigate({ to: "/auth" });
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (profile?.role !== 'super_admin' && profile?.role !== 'admin') {
-        toast.error("Acesso negado. Apenas super administradores.");
-        navigate({ to: "/dashboard" });
-        return;
-      }
-
-      setIsAdmin(true);
-      setChecking(false);
+    if (loading) return;
+    if (!user) {
+      navigate({ to: "/auth" });
+      return;
     }
 
-    checkAdmin();
-  }, [user, loading, navigate]);
+    if (role !== 'super_admin') {
+      toast.error("Acesso negado. Apenas super administradores.");
+      navigate({ to: "/dashboard" });
+      return;
+    }
+  }, [user, loading, role, navigate]);
+
+  const checking = loading || !role;
 
   if (loading || checking) {
     return (
