@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin/dashboard")({
 });
 
 function AdminDashboard() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading, isError, error } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
       // Fetch Tenants (Profiles)
@@ -29,6 +29,7 @@ function AdminDashboard() {
         .select("id, plan, created_at, role");
       
       if (pError) throw pError;
+      if (!profiles) return null;
 
       // Filter out super admins if any
       const tenants = profiles.filter(p => p.role !== 'super_admin');
@@ -40,7 +41,7 @@ function AdminDashboard() {
       const { data: appointments } = await supabase
         .from("appointments")
         .select("final_amount, cashback_earned, credit_used")
-        .eq("status", "concluded");
+        .eq("status", "completed"); // Fixed: status is 'completed', not 'concluded'
 
       // Fetch Customers (for credits and total count)
       const { data: customers } = await supabase
@@ -55,14 +56,10 @@ function AdminDashboard() {
       // Calculations
       const totalTenants = tenants.length;
       const activeSubs = tenants.filter(t => t.plan && t.plan.toLowerCase() !== 'free').length;
-      const canceledSubs = 0; // In a real system, we'd check a subscription status column
-
-      // Estimate MRR
-      let mrr = 0;
-      tenants.forEach(t => {
+      const mrr = tenants.reduce((acc, t) => {
         const plan = plans?.find(p => p.name.toLowerCase() === t.plan?.toLowerCase());
-        if (plan) mrr += Number(plan.price_monthly);
-      });
+        return acc + (plan ? Number(plan.price_monthly) : 0);
+      }, 0);
 
       const totalTransacted = appointments?.reduce((acc, curr) => acc + (curr.final_amount || 0), 0) || 0;
       const totalCashback = appointments?.reduce((acc, curr) => acc + (curr.cashback_earned || 0), 0) || 0;
@@ -72,7 +69,6 @@ function AdminDashboard() {
       return {
         totalTenants,
         activeSubs,
-        canceledSubs,
         mrr,
         totalTransacted,
         totalCashback,
@@ -83,15 +79,24 @@ function AdminDashboard() {
     }
   });
 
+  if (isError) {
+    return (
+      <div className="p-8 text-center bg-destructive/10 rounded-xl border border-destructive/20">
+        <h3 className="text-xl font-bold text-destructive mb-2">Erro ao carregar métricas</h3>
+        <p className="text-muted-foreground">{(error as Error)?.message || "Ocorreu um erro inesperado."}</p>
+      </div>
+    );
+  }
+
   const statCards = [
-    { label: "Total Barbearias", value: stats?.totalTenants, icon: Building2, color: "text-blue-600" },
-    { label: "Assinaturas Ativas", value: stats?.activeSubs, icon: CreditCard, color: "text-green-600" },
-    { label: "MRR Estimado", value: `R$ ${stats?.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: "text-emerald-600" },
-    { label: "Total Transacionado", value: `R$ ${stats?.totalTransacted.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: CircleDollarSign, color: "text-amber-600" },
-    { label: "Cashback Emitido", value: `R$ ${stats?.totalCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: Award, color: "text-purple-600" },
-    { label: "Créditos Ativos", value: `R$ ${stats?.totalCredits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: Wallet, color: "text-orange-600" },
-    { label: "Total de Clientes", value: stats?.totalCustomers, icon: Users, color: "text-cyan-600" },
-    { label: "Total de Barbeiros", value: stats?.totalBarbers, icon: CalendarCheck, color: "text-rose-600" },
+    { label: "Total Barbearias", value: stats?.totalTenants ?? 0, icon: Building2, color: "text-blue-600" },
+    { label: "Assinaturas Ativas", value: stats?.activeSubs ?? 0, icon: CreditCard, color: "text-green-600" },
+    { label: "MRR Estimado", value: `R$ ${(stats?.mrr ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: "text-emerald-600" },
+    { label: "Total Transacionado", value: `R$ ${(stats?.totalTransacted ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: CircleDollarSign, color: "text-amber-600" },
+    { label: "Cashback Emitido", value: `R$ ${(stats?.totalCashback ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: Award, color: "text-purple-600" },
+    { label: "Créditos Ativos", value: `R$ ${(stats?.totalCredits ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: Wallet, color: "text-orange-600" },
+    { label: "Total de Clientes", value: stats?.totalCustomers ?? 0, icon: Users, color: "text-cyan-600" },
+    { label: "Total de Barbeiros", value: stats?.totalBarbers ?? 0, icon: CalendarCheck, color: "text-rose-600" },
   ];
 
   return (
