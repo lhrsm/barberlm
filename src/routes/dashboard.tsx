@@ -366,7 +366,9 @@ function DashboardComponent() {
       totalServ,
       barbersData,
       profileData,
-      walletData
+      walletData,
+      dailyAppointmentsData,
+      monthlyAppointmentsData
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
@@ -378,7 +380,9 @@ function DashboardComponent() {
       supabase.from("services").select("*", { count: "exact", head: true }),
       supabase.from("barbers").select("*").eq("active", true).limit(5),
       supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase.from("wallet").select("balance")
+      supabase.from("wallet").select("balance"),
+      supabase.from("appointments").select("total_price, credit_used, final_amount").neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("total_price, credit_used, final_amount").neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd)
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
@@ -386,18 +390,29 @@ function DashboardComponent() {
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);
 
-    const dailyRevenue = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
-    const monthlyRevenue = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+    // Cálculos Diários
+    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
+    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const dailyCashInflow = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+
+    // Cálculos Mensais
+    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.total_price || 0), 0) || 0;
+    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const monthlyCashInflow = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
 
     setStats({
       daily: {
         appointments: dailyApp.count || 0,
-        revenue: dailyRevenue,
+        totalServicesValue: dailyServicesValue,
+        realCashInflow: dailyCashInflow,
+        creditsUsed: dailyCreditsUsed,
         newCustomers: dailyCust.count || 0
       },
       monthly: {
         appointments: monthlyApp.count || 0,
-        revenue: monthlyRevenue,
+        totalServicesValue: monthlyServicesValue,
+        realCashInflow: monthlyCashInflow,
+        creditsUsed: monthlyCreditsUsed,
         newCustomers: monthlyCust.count || 0
       },
       total: {
