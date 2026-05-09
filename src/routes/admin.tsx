@@ -100,7 +100,7 @@ function AdminLayout() {
           <Button 
             variant="outline" 
             className="w-full justify-start gap-3"
-            onClick={() => navigate({ to: "/dashboard" })}
+            onClick={() => navigate({ to: "/admin/dashboard" })}
           >
             <ChevronLeft size={18} />
             Voltar ao App
@@ -154,7 +154,7 @@ function AdminLayout() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start gap-4 px-4 py-4 text-lg mb-2"
-                  onClick={() => navigate({ to: "/dashboard" })}
+                  onClick={() => navigate({ to: "/admin/dashboard" })}
                 >
                   <ChevronLeft size={24} />
                   Voltar ao App
