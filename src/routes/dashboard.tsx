@@ -472,7 +472,7 @@ function DashboardComponent() {
       supabase.from("customers").select("*", { count: "exact", head: true }),
       supabase.from("services").select("*", { count: "exact", head: true }),
       supabase.from("barbers").select("*").eq("active", true).limit(5),
-      supabase.from("profiles").select("*").eq("id", tenantId).single(),
+      supabase.from("profiles").select("*").eq("id", tenantId || "").single(),
       supabase.from("wallet").select("balance"),
       // Valor dos serviços: APENAS CONCLUÍDOS
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
@@ -1003,7 +1003,7 @@ function DashboardComponent() {
 
                                               // Remove original income from transactions when converting to credits
                                               await supabase.from("transactions").insert({ 
-                                                user_id: tenantId, 
+                                                user_id: tenantId || "", 
                                                 barber_id: app.barber_id, 
                                                 appointment_id: app.id, 
                                                 type: "expense", 
@@ -1026,7 +1026,7 @@ function DashboardComponent() {
 
                                         if (refundAmount > 0) {
                                           await supabase.from("transactions").insert({
-                                            user_id: tenantId,
+                                            user_id: tenantId || "",
                                             barber_id: app.barber_id,
                                             appointment_id: app.id,
                                             type: "expense",
