@@ -67,6 +67,7 @@ function AdminTenants() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      if (!profiles) return [];
 
       // Filter out super admins
       const onlyTenants = profiles.filter(p => p.role !== 'super_admin');
