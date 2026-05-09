@@ -880,9 +880,9 @@ function DashboardComponent() {
                                             user_id: user?.id || ""
                                           });
                                           // Remove original income from transactions when converting to credits
-                                          await supabase.from("transactions").delete().eq("appointment_id", app.id);
-                                          await supabase.from("appointments").delete().eq("id", app.id);
-                                          toast.success("Valor convertido em créditos e removido do saldo!");
+                                            await supabase.from("transactions").insert({ user_id: user.id, barber_id: app.barber_id, appointment_id: app.id, type: "expense", category: "Estorno (Cru00e9ditos)", amount: app.total_price, description: `Conversu00e3o em Cru00e9ditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, date: format(new Date(), "yyyy-MM-dd") });
+                                          await supabase.from("appointments").update({ status: "cancelled" }).eq("id", app.id);
+                                          toast.success("Valor convertido em créditos e agendamento cancelado!");
                                         }
                                       } else if (app.refund_type === 'refund') {
                                         await supabase.from("transactions").insert({
