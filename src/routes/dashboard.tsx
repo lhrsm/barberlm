@@ -247,7 +247,7 @@ function DashboardComponent() {
         .insert({
           amount: remainingToPay,
           type: "income",
-          description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+          description: `Atendimento${deductionText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
           category: "Serviço",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
