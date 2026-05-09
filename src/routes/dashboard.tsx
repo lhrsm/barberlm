@@ -8,7 +8,32 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-// ... (imports remain the same)
+import { 
+  Users, 
+  Scissors, 
+  Calendar, 
+  CircleDollarSign,
+  TrendingUp,
+  ArrowUpRight,
+  ArrowDownRight,
+  Target,
+  Crown,
+  Zap,
+  Globe,
+  ExternalLink,
+  Copy,
+  Wallet,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Check,
+  Bell,
+  User as UserIcon,
+  RefreshCcw,
+  Gift,
+  Eye,
+  StopCircle
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow, isSameDay } from "date-fns";
