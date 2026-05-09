@@ -27,11 +27,11 @@ function LandingPageComponent() {
     if (!loading && user && role) {
       console.log("Landing page redirection - Role:", role);
       if (role === 'super_admin') {
-        navigate({ to: "/admin/dashboard" });
+        navigate({ to: "/admin/dashboard", replace: true });
       } else if (role === 'barber') {
-        navigate({ to: "/calendar" });
+        navigate({ to: "/calendar", replace: true });
       } else {
-        navigate({ to: "/dashboard" });
+        navigate({ to: "/dashboard", replace: true });
       }
     }
   }, [user, loading, role, navigate]);
