@@ -185,7 +185,6 @@ function ClientPortalComponent() {
       .select("*, services(name), barbers(name)")
       .eq("customer_id", customerId)
       .order("start_time", { ascending: false });
-      .order("start_time", { ascending: false });
     
     setAppointments(appts || []);
     if (appts) checkAutoCancellation(appts);
