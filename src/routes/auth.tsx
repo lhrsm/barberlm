@@ -15,8 +15,6 @@ function AuthPageComponent() {
     if (!loading && user) {
       console.log("Auth route check - User:", user.email, "Role:", role);
       
-      // Se o usuário está logado mas o perfil ainda não carregou, esperamos um pouco
-      // mas se demorar demais (role indefinido), redirecionamos para o default
       if (role === undefined) {
         console.log("User logged in but role is undefined. Waiting...");
         return;
@@ -24,11 +22,11 @@ function AuthPageComponent() {
 
       const destination = 
         role === 'super_admin' ? "/admin/dashboard" :
-        role === 'barber' ? "/barbers" :
+        role === 'barber' ? "/calendar" :
         role === 'client' ? "/portal" : "/dashboard";
 
       console.log("Redirecting to:", destination);
-      navigate({ to: destination });
+      navigate({ to: destination, replace: true });
     }
   }, [user, loading, role, navigate]);
 
