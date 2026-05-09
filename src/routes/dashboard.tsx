@@ -454,7 +454,7 @@ function DashboardComponent() {
   }
 
   async function fetchStats() {
-    if (!user) return;
+    if (!user || !tenantId) return;
     const todayStart = startOfDay(new Date()).toISOString();
     const todayEnd = endOfDay(new Date()).toISOString();
     const monthStart = startOfMonth(new Date()).toISOString();
@@ -476,26 +476,28 @@ function DashboardComponent() {
       monthlyAppointmentsData,
       customersWithBalances
     ] = await Promise.all([
-      supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("user_id", tenantId).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("user_id", tenantId).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
       // Buscar todas as transações para filtrar em memória
-      supabase.from("transactions").select("amount, type, appointment:appointments(status)").gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("transactions").select("amount, type, appointment:appointments(status)").gte("created_at", monthStart).lte("created_at", monthEnd),
-      supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", monthStart).lte("created_at", monthEnd),
-      supabase.from("customers").select("*", { count: "exact", head: true }),
-      supabase.from("services").select("*", { count: "exact", head: true }),
-      supabase.from("barbers").select("*").eq("active", true).limit(5),
-      supabase.from("profiles").select("*").eq("id", tenantId || "").single(),
-      supabase.from("wallet").select("balance"),
+      supabase.from("transactions").select("amount, type, appointment:appointments(status)").eq("user_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
+      supabase.from("transactions").select("amount, type, appointment:appointments(status)").eq("user_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
+      supabase.from("customers").select("*", { count: "exact", head: true }).eq("user_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
+      supabase.from("customers").select("*", { count: "exact", head: true }).eq("user_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
+      supabase.from("customers").select("*", { count: "exact", head: true }).eq("user_id", tenantId),
+      supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", tenantId),
+      supabase.from("barbers").select("*").eq("user_id", tenantId).eq("active", true).limit(5),
+      supabase.from("profiles").select("*").eq("id", tenantId).single(),
+      supabase.from("wallet").select("balance").eq("user_id", tenantId),
       // Valor dos serviços: APENAS CONCLUÍDOS
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
+        .eq("user_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
+        .eq("user_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", monthStart).lte("start_time", monthEnd),
-      supabase.from("customers").select("credits, cashback_balance")
+      supabase.from("customers").select("credits, cashback_balance").eq("user_id", tenantId)
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
