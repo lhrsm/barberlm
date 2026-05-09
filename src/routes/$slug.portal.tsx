@@ -503,13 +503,34 @@ function ClientPortalComponent() {
         return;
       }
 
+      // Restore used credits and cashback
+      const { data: customer } = await supabase
+        .from("customers")
+        .select("credits, cashback_balance")
+        .eq("id", app.customer_id)
+        .single();
+
+      if (customer) {
+        await supabase
+          .from("customers")
+          .update({
+            credits: (customer.credits || 0) + (app.credit_used || 0),
+            cashback_balance: (customer.cashback_balance || 0) + (app.cashback_used || 0)
+          })
+          .eq("id", app.customer_id);
+      }
+
       const { error } = await supabase
         .from("appointments")
-        .update({ status: "cancelled" })
+        .update({ 
+          status: "cancelled",
+          credit_used: 0,
+          cashback_used: 0
+        })
         .eq("id", app.id);
       
       if (error) throw error;
-      toast.success("Agendamento cancelado");
+      toast.success("Agendamento cancelado e saldos restaurados");
       fetchClientData(client.customer_id);
     } catch (e) {
       toast.error("Erro ao cancelar agendamento");
@@ -521,27 +542,23 @@ function ClientPortalComponent() {
     
     setSubmitting(true);
     try {
-      const amount = Number(cancellingAppointment.total_price || 0);
-      
-      if (type === 'credits' && amount > 0) {
-        // Immediate credit addition
-        const { data: currentCust } = await supabase
-          .from("customers")
-          .select("credits")
-          .eq("id", cancellingAppointment.customer_id)
-          .single();
-        
-        const newCredits = Number(currentCust?.credits || 0) + amount;
-        
-        await supabase
-          .from("customers")
-          .update({ credits: newCredits })
-          .eq("id", cancellingAppointment.customer_id);
+      // 1. Restore used credits and cashback first
+      const { data: customer } = await supabase
+        .from("customers")
+        .select("credits, cashback_balance")
+        .eq("id", cancellingAppointment.customer_id)
+        .single();
 
-        // Remove any realized revenue from transactions for this appointment
-        // We delete all transactions for this appointment because they will be re-recorded
-        // only when the client actually uses these credits for a future service.
-        // Registramos a saída para manter histórico e zerar o impacto líquido
+      let restoredCredits = (customer?.credits || 0) + (cancellingAppointment.credit_used || 0);
+      let restoredCashback = (customer?.cashback_balance || 0) + (cancellingAppointment.cashback_used || 0);
+
+      // 2. Handle the "new money" part (final_amount)
+      const amountToRefund = Number(cancellingAppointment.final_amount || 0);
+      
+      if (type === 'credits' && amountToRefund > 0) {
+        restoredCredits += amountToRefund;
+
+        // Registrar saída financeira para compensar a entrada original
         await supabase
           .from("transactions")
           .insert({
@@ -549,7 +566,7 @@ function ClientPortalComponent() {
             appointment_id: cancellingAppointment.id,
             type: "expense",
             category: "Estorno (Créditos)",
-            amount: amount,
+            amount: amountToRefund,
             description: `Cancelamento: ${cancellingAppointment.services?.name} - Convertido em Créditos`,
             date: new Date().toISOString().split('T')[0]
           });
@@ -558,27 +575,41 @@ function ClientPortalComponent() {
           .from("appointments")
           .update({ 
             status: "cancelled",
-            refund_status: 'completed',
-            refund_requested_at: new Date().toISOString(),
-            refund_type: 'credits'
+            refund_status: "completed",
+            refund_type: "credits",
+            credit_used: 0,
+            cashback_used: 0
           })
           .eq("id", cancellingAppointment.id);
-          
-        toast.success(`Cancelado! R$ ${amount.toFixed(2)} foi adicionado aos seus créditos e removido das entradas.`);
+
+        toast.success(`Cancelado! R$ ${amountToRefund.toFixed(2)} foi convertido em créditos.`);
       } else {
-        // Request manual refund
+        // Request actual refund for the final_amount
         await supabase
           .from("appointments")
           .update({ 
-            status: 'cancelled',
+            status: "cancelled",
             refund_requested_at: new Date().toISOString(),
-            refund_type: 'refund',
-            refund_status: 'pending'
+            refund_status: "pending",
+            refund_type: "refund",
+            credit_used: 0,
+            cashback_used: 0
           })
           .eq("id", cancellingAppointment.id);
+        
+        toast.success("Solicitação de estorno enviada!");
+      }
+
+      // Update customer with restored amounts
+      await supabase
+        .from("customers")
+        .update({ 
+          credits: restoredCredits,
+          cashback_balance: restoredCashback
+        })
+        .eq("id", cancellingAppointment.customer_id);
           
         toast.success("Cancelado! O pedido de estorno foi enviado para análise da barbearia.");
-      }
       
       setIsRefundModalOpen(false);
       setCancellingAppointment(null);
@@ -590,8 +621,6 @@ function ClientPortalComponent() {
       setSubmitting(false);
     }
   };
-
-  // handleCompleteAppointment removed - only admin can complete appointments
 
   const checkAutoCancellation = async (appts: any[]) => {
     const now = new Date();

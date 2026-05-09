@@ -125,6 +125,7 @@ function FinancesComponent() {
   }
 
   const [totalCredits, setTotalCredits] = useState(0);
+  const [totalCashback, setTotalCashback] = useState(0);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -201,16 +202,22 @@ function FinancesComponent() {
       );
       const bTotal = bTransactions.reduce((tAcc, t) => {
         if (t.appointment) {
-          return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
+          return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0) + Number(t.appointment.cashback_used || 0))) || 0);
         }
         
         const val = parseFloat(String(t.amount)) || 0;
         let creditedAmount = 0;
+        let cashbackUsedAmount = 0;
+        
         if (t.description?.includes("Abatimento Créditos: R$")) {
           const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
         }
-        return tAcc + val + creditedAmount;
+        if (t.description?.includes("Abatimento Cashback: R$")) {
+          const match = t.description?.match(/Abatimento Cashback: R\$\s*([\d.]+)/);
+          cashbackUsedAmount = match ? parseFloat(match[1]) : 0;
+        }
+        return tAcc + val + creditedAmount + cashbackUsedAmount;
       }, 0);
       const commissionRate = Number(barber.commission_rate || 0);
       return acc + (bTotal * (commissionRate / 100));
@@ -231,17 +238,19 @@ function FinancesComponent() {
   }, [transactions, appointments, barbers]);
 
   useEffect(() => {
-    async function fetchCredits() {
+    async function fetchBalances() {
       const { data, error } = await supabase
         .from('customers')
-        .select('credits');
+        .select('credits, cashback_balance');
       
       if (!error && data) {
-        const total = data.reduce((acc, curr) => acc + (Number(curr.credits) || 0), 0);
-        setTotalCredits(total);
+        const totalCred = data.reduce((acc, curr) => acc + (Number(curr.credits) || 0), 0);
+        const totalCash = data.reduce((acc, curr) => acc + (Number(curr.cashback_balance) || 0), 0);
+        setTotalCredits(totalCred);
+        setTotalCashback(totalCash);
       }
     }
-    if (user) fetchCredits();
+    if (user) fetchBalances();
   }, [user, transactions]); // Refresh when transactions change as they might involve credits
 
   async function handleAddTransaction(e: React.FormEvent) {

@@ -18,17 +18,18 @@ import {
   Target,
   Crown,
   Zap,
-  Bell,
-  ExternalLink,
-  Clock,
-  User as UserIcon,
-  Copy,
   Globe,
+  ExternalLink,
+  Copy,
   Wallet,
-  RefreshCcw,
-  CheckCircle2, 
+  CheckCircle2,
   XCircle,
-  Check
+  Clock,
+  Check,
+  Bell,
+  User as UserIcon,
+  RefreshCcw,
+  Gift
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -58,9 +59,11 @@ function DashboardComponent() {
   const [stats, setStats] = useState({
     daily: {
       appointments: 0,
-      totalServicesValue: 0, // Valor total dos serviços (Receita Operacional)
-      realCashInflow: 0,     // Entrada real em caixa (PIX/Dinheiro)
-      creditsUsed: 0,        // Créditos utilizados
+      totalServicesValue: 0,
+      realCashInflow: 0,
+      creditsUsed: 0,
+      cashbackUsed: 0,
+      cashbackEarned: 0,
       newCustomers: 0
     },
     monthly: {
@@ -68,12 +71,15 @@ function DashboardComponent() {
       totalServicesValue: 0,
       realCashInflow: 0,
       creditsUsed: 0,
+      cashbackUsed: 0,
+      cashbackEarned: 0,
       newCustomers: 0
     },
     total: {
       customers: 0,
       services: 0,
-      customerCredits: 0
+      customerCredits: 0,
+      customerCashback: 0
     }
   });
   const [barbers, setBarbers] = useState<any[]>([]);
@@ -153,28 +159,43 @@ function DashboardComponent() {
     // 1. Get available credits and current state
     const { data: customerData } = await supabase
       .from("customers")
-      .select("credits, loyalty_points, name")
+      .select("credits, loyalty_points, cashback_balance, name")
       .eq("id", appointment.customer_id)
       .single();
 
     const availableCredits = Number(customerData?.credits || 0);
+    const availableCashback = Number(customerData?.cashback_balance || 0);
     const totalPrice = Number(appointment.original_total || appointment.total_price || 0);
     
-    // Determine how much credit will be used (only if not already subtracted)
+    // Determine how much credit and cashback will be used (only if not already subtracted)
     let usedCredits = Number(appointment.credit_used || 0);
-    let remainingToPay = Number(appointment.final_amount || (totalPrice - usedCredits));
+    let usedCashback = Number(appointment.cashback_used || 0);
+    let remainingToPay = Number(appointment.final_amount || totalPrice);
 
-    // If credits haven't been applied yet and the customer has them
-    if (usedCredits === 0 && availableCredits > 0) {
-      usedCredits = Math.min(availableCredits, totalPrice);
-      remainingToPay = totalPrice - usedCredits;
+    // If credits/cashback haven't been applied yet (e.g., manual completion by admin)
+    // Priority: 1. Cashback, 2. Credits
+    if (usedCredits === 0 && usedCashback === 0 && remainingToPay === totalPrice) {
+      if (availableCashback > 0) {
+        usedCashback = Math.min(availableCashback, remainingToPay);
+        remainingToPay -= usedCashback;
+      }
+      if (remainingToPay > 0 && availableCredits > 0) {
+        usedCredits = Math.min(availableCredits, remainingToPay);
+        remainingToPay -= usedCredits;
+      }
 
       // Deduct from customer wallet
       await supabase
         .from("customers")
-        .update({ credits: availableCredits - usedCredits })
+        .update({ 
+          credits: availableCredits - usedCredits,
+          cashback_balance: availableCashback - usedCashback
+        })
         .eq("id", appointment.customer_id);
     }
+
+    // Calculate new cashback earned (R$ 10 for every R$ 100 paid in new money)
+    const cashbackEarned = Math.floor(remainingToPay / 100) * 10;
 
     // 2. Update appointment status and financial details
     const { error } = await supabase
@@ -183,6 +204,8 @@ function DashboardComponent() {
         status: 'completed',
         payment_status: 'paid',
         credit_used: usedCredits,
+        cashback_used: usedCashback,
+        cashback_earned: cashbackEarned,
         final_amount: remainingToPay,
         barbershop_amount: remainingToPay
       })
@@ -193,12 +216,22 @@ function DashboardComponent() {
       return;
     }
 
-    // 3. Increment loyalty points
+    // 3. Increment loyalty points and cashback balance
     if (appointment.customer_id) {
       const currentPoints = customerData?.loyalty_points || 0;
+      const currentCashback = Number(customerData?.cashback_balance || 0);
+      
+      // If we deducted usedCashback above, we use the updated value
+      const baseCashback = (usedCredits === 0 && usedCashback === 0 && totalPrice === remainingToPay + usedCredits + usedCashback) 
+        ? availableCashback - usedCashback 
+        : currentCashback;
+
       await supabase
         .from("customers")
-        .update({ loyalty_points: currentPoints + 1 })
+        .update({ 
+          loyalty_points: currentPoints + 1,
+          cashback_balance: baseCashback + cashbackEarned
+        })
         .eq("id", appointment.customer_id);
     }
 
@@ -211,13 +244,16 @@ function DashboardComponent() {
 
     if (!existingTrans) {
       const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+      const cashbackText = usedCashback > 0 ? ` (Abatimento Cashback: R$ ${usedCashback.toFixed(2)})` : "";
+      const deductionText = `${creditText}${cashbackText}`;
+
       
       const { error: transError } = await supabase
         .from("transactions")
         .insert({
           amount: remainingToPay,
           type: "income",
-          description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+          description: `Atendimento${deductionText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
           category: "Serviço",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
@@ -412,7 +448,8 @@ function DashboardComponent() {
       profileData,
       walletData,
       dailyAppointmentsData,
-      monthlyAppointmentsData
+      monthlyAppointmentsData,
+      customersWithBalances
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
@@ -427,15 +464,17 @@ function DashboardComponent() {
       supabase.from("profiles").select("*").eq("id", user.id).single(),
       supabase.from("wallet").select("balance"),
       // Valor dos serviços: APENAS CONCLUÍDOS
-      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount")
+      supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
         .eq("status", "completed")
         .gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount")
+      supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
         .eq("status", "completed")
-        .gte("start_time", monthStart).lte("start_time", monthEnd)
+        .gte("start_time", monthStart).lte("start_time", monthEnd),
+      supabase.from("customers").select("credits, cashback_balance")
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
+    const totalCashback = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_balance || 0), 0) || 0;
 
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);
@@ -455,13 +494,17 @@ function DashboardComponent() {
     };
 
     // Cálculos Diários
-    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
-    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
+    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const dailyCashbackUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_used || 0), 0) || 0;
+    const dailyCashbackEarned = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const dailyCashInflow = calculateCashInflow(dailyTrans.data);
 
     // Cálculos Mensais
-    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
-    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
+    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const monthlyCashbackUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_used || 0), 0) || 0;
+    const monthlyCashbackEarned = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const monthlyCashInflow = calculateCashInflow(monthlyTrans.data);
 
     setStats({
@@ -470,6 +513,8 @@ function DashboardComponent() {
         totalServicesValue: dailyServicesValue,
         realCashInflow: dailyCashInflow,
         creditsUsed: dailyCreditsUsed,
+        cashbackUsed: dailyCashbackUsed,
+        cashbackEarned: dailyCashbackEarned,
         newCustomers: dailyCust.count || 0
       },
       monthly: {
@@ -477,12 +522,15 @@ function DashboardComponent() {
         totalServicesValue: monthlyServicesValue,
         realCashInflow: monthlyCashInflow,
         creditsUsed: monthlyCreditsUsed,
+        cashbackUsed: monthlyCashbackUsed,
+        cashbackEarned: monthlyCashbackEarned,
         newCustomers: monthlyCust.count || 0
       },
       total: {
         customers: totalCust.count || 0,
         services: totalServ.count || 0,
-        customerCredits: totalCredits
+        customerCredits: totalCredits,
+        customerCashback: totalCashback
       }
     });
   }
@@ -631,13 +679,24 @@ function DashboardComponent() {
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground">Créditos Clientes</span>
-                  <div className="flex items-end gap-1">
+                  <div className="flex items-center gap-1">
                     <span className="text-lg font-bold leading-none">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
                     </span>
                   </div>
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary w-fit">
+                  <div className="p-2 bg-purple-100 rounded-lg text-purple-600 w-fit">
                     <Wallet size={14} />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Cashback Clientes</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-lg font-bold leading-none">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-orange-100 rounded-lg text-orange-600 w-fit">
+                    <Gift size={14} />
                   </div>
                 </div>
               </div>
@@ -758,6 +817,28 @@ function DashboardComponent() {
                 </CardContent>
               </Card>
             </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 pt-2">
+              <Card className="bg-orange-50/50 border-orange-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-orange-700">Cashback Utilizado Hoje</CardTitle>
+                  <ArrowUpRight className="h-4 w-4 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-700">R$ {stats.daily.cashbackUsed.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Abatimento via cashback</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-yellow-50/50 border-yellow-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-yellow-700">Cashback Gerado Hoje</CardTitle>
+                  <ArrowDownRight className="h-4 w-4 text-yellow-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-yellow-700">R$ {stats.daily.cashbackEarned.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Novos saldos de cashback</p>
+                </CardContent>
+              </Card>
+            </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pt-4">
               <Card>
@@ -850,55 +931,77 @@ function DashboardComponent() {
                                   e.stopPropagation();
                                   const type = app.refund_type === 'refund' ? 'estorno' : 'créditos';
                                   if (confirm(`Confirmar ${type} para este cliente?`)) {
-                                    try {
-                                      const now = new Date();
-                                      const formattedDate = format(now, "yyyy-MM-dd");
+                                      try {
+                                        const now = new Date();
+                                        const formattedDate = format(now, "yyyy-MM-dd");
 
-                                      if (app.refund_type === 'credits') {
-                                        let { data: wallet } = await supabase
-                                          .from("wallet")
-                                          .select("id")
-                                          .eq("customer_id", app.customer_id)
-                                          .maybeSingle();
-                                          
-                                        if (!wallet) {
-                                          const { data: newWallet } = await supabase
+                                        // Restore used cashback/credits and remove earned cashback
+                                        const { data: currentCustomer } = await supabase
+                                          .from("customers")
+                                          .select("credits, cashback_balance")
+                                          .eq("id", app.customer_id)
+                                          .single();
+
+                                        const restoredCredits = (currentCustomer?.credits || 0) + (app.credit_used || 0);
+                                        const restoredCashback = (currentCustomer?.cashback_balance || 0) + (app.cashback_used || 0) - (app.cashback_earned || 0);
+
+                                        await supabase
+                                          .from("customers")
+                                          .update({ 
+                                            credits: restoredCredits,
+                                            cashback_balance: Math.max(0, restoredCashback)
+                                          })
+                                          .eq("id", app.customer_id);
+
+                                        if (app.refund_type === 'credits') {
+                                          let { data: wallet } = await supabase
                                             .from("wallet")
-                                            .insert({ 
-                                              customer_id: app.customer_id, 
-                                              user_id: user?.id || "",
-                                              balance: 0 
-                                            })
-                                            .select()
-                                            .single();
-                                          wallet = newWallet;
-                                        }
+                                            .select("id")
+                                            .eq("customer_id", app.customer_id)
+                                            .maybeSingle();
+                                            
+                                          if (!wallet) {
+                                            const { data: newWallet } = await supabase
+                                              .from("wallet")
+                                              .insert({ 
+                                                customer_id: app.customer_id, 
+                                                user_id: user?.id || "",
+                                                balance: 0 
+                                              })
+                                              .select()
+                                              .single();
+                                            wallet = newWallet;
+                                          }
 
-                                        if (wallet) {
-                                          await supabase.from("wallet_transactions").insert({
-                                            wallet_id: wallet.id,
-                                            amount: app.total_price,
-                                            type: "credit",
-                                            description: `Crédito por cancelamento: ${app.services?.name}`,
-                                            appointment_id: app.id,
-                                            user_id: user?.id || ""
-                                          });
+                                          if (wallet) {
+                                            // The refund amount should be the final_amount (what was paid in new money)
+                                            const refundAmount = Number(app.final_amount || 0);
 
-                                          // Update customer credits as well for consistency
-                                          const { data: customer } = await supabase.from("customers").select("credits").eq("id", app.customer_id).single();
-                                          await supabase.from("customers").update({ credits: (customer?.credits || 0) + app.total_price }).eq("id", app.customer_id);
+                                            if (refundAmount > 0) {
+                                              await supabase.from("wallet_transactions").insert({
+                                                wallet_id: wallet.id,
+                                                amount: refundAmount,
+                                                type: "credit",
+                                                description: `Crédito por cancelamento (Estorno Real): ${app.services?.name}`,
+                                                appointment_id: app.id,
+                                                user_id: user?.id || ""
+                                              });
 
-                                          // Remove original income from transactions when converting to credits
-                                          await supabase.from("transactions").insert({ 
-                                            user_id: user.id, 
-                                            barber_id: app.barber_id, 
-                                            appointment_id: app.id, 
-                                            type: "expense", 
-                                            category: "Estorno (Créditos)", 
-                                            amount: app.total_price, 
-                                            description: `Conversão em Créditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, 
-                                            date: formattedDate 
-                                          });
+                                              // Update customer credits with the additional refund amount
+                                              await supabase.from("customers").update({ credits: restoredCredits + refundAmount }).eq("id", app.customer_id);
+
+                                              // Remove original income from transactions when converting to credits
+                                              await supabase.from("transactions").insert({ 
+                                                user_id: user.id, 
+                                                barber_id: app.barber_id, 
+                                                appointment_id: app.id, 
+                                                type: "expense", 
+                                                category: "Estorno (Créditos)", 
+                                                amount: refundAmount, 
+                                                description: `Conversão em Créditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, 
+                                                date: formattedDate 
+                                              });
+                                            }
 
                                           await supabase.from("appointments").update({ 
                                             status: "cancelled",
@@ -908,16 +1011,20 @@ function DashboardComponent() {
                                           toast.success("Valor convertido em créditos e agendamento cancelado!");
                                         }
                                       } else if (app.refund_type === 'refund') {
-                                        await supabase.from("transactions").insert({
-                                          user_id: user.id,
-                                          barber_id: app.barber_id,
-                                          appointment_id: app.id,
-                                          type: "expense",
-                                          category: "Estorno",
-                                          amount: app.total_price,
-                                          description: `Estorno de Pagamento: ${app.services?.name} - Cliente: ${app.customers?.name}`,
-                                          date: formattedDate
-                                        });
+                                        const refundAmount = Number(app.final_amount || 0);
+
+                                        if (refundAmount > 0) {
+                                          await supabase.from("transactions").insert({
+                                            user_id: user.id,
+                                            barber_id: app.barber_id,
+                                            appointment_id: app.id,
+                                            type: "expense",
+                                            category: "Estorno",
+                                            amount: refundAmount,
+                                            description: `Estorno de Pagamento: ${app.services?.name} - Cliente: ${app.customers?.name}`,
+                                            date: formattedDate
+                                          });
+                                        }
 
                                         await supabase
                                           .from("appointments")
@@ -974,13 +1081,33 @@ function DashboardComponent() {
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   if (confirm("Deseja cancelar este agendamento?")) {
-                                    const { error } = await supabase.from("appointments").update({ status: "cancelled" }).eq("id", app.id);
-                                    if (error) {
-                                      toast.error("Erro ao cancelar agendamento");
-                                    } else {
+                                    try {
+                                      // Restore used credits and cashback
+                                      const { data: customer } = await supabase
+                                        .from("customers")
+                                        .select("credits, cashback_balance")
+                                        .eq("id", app.customer_id)
+                                        .single();
+
+                                      if (customer) {
+                                        await supabase
+                                          .from("customers")
+                                          .update({
+                                            credits: (customer.credits || 0) + (app.credit_used || 0),
+                                            cashback_balance: (customer.cashback_balance || 0) + (app.cashback_used || 0)
+                                          })
+                                          .eq("id", app.customer_id);
+                                      }
+
+                                      const { error } = await supabase.from("appointments").update({ status: "cancelled" }).eq("id", app.id);
+                                      if (error) throw error;
+
                                       fetchTodayAppointments();
                                       fetchStats();
-                                      toast.success("Agendamento cancelado com sucesso");
+                                      toast.success("Agendamento cancelado e saldos restaurados");
+                                    } catch (err) {
+                                      console.error("Erro ao cancelar:", err);
+                                      toast.error("Erro ao cancelar agendamento");
                                     }
                                   }
                                 }}
@@ -1051,6 +1178,26 @@ function DashboardComponent() {
                 <CardContent>
                   <div className="text-2xl font-bold text-purple-700">R$ {stats.monthly.creditsUsed.toFixed(2)}</div>
                   <p className="text-xs text-muted-foreground">Abatido via créditos no mês</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-orange-50/50 border-orange-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-orange-700">Cashback Utilizado (Mês)</CardTitle>
+                  <ArrowUpRight className="h-4 w-4 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-700">R$ {stats.monthly.cashbackUsed.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Abatimento via cashback</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-yellow-50/50 border-yellow-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-yellow-700">Cashback Gerado (Mês)</CardTitle>
+                  <ArrowDownRight className="h-4 w-4 text-yellow-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-yellow-700">R$ {stats.monthly.cashbackEarned.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Novos saldos de cashback</p>
                 </CardContent>
               </Card>
               <Card>

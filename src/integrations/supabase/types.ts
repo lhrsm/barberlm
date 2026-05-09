@@ -19,6 +19,8 @@ export type Database = {
           barber_id: string | null
           barbershop_amount: number | null
           cancel_token: string | null
+          cashback_earned: number | null
+          cashback_used: number | null
           created_at: string
           credit_used: number | null
           customer_id: string | null
@@ -44,6 +46,8 @@ export type Database = {
           barber_id?: string | null
           barbershop_amount?: number | null
           cancel_token?: string | null
+          cashback_earned?: number | null
+          cashback_used?: number | null
           created_at?: string
           credit_used?: number | null
           customer_id?: string | null
@@ -69,6 +73,8 @@ export type Database = {
           barber_id?: string | null
           barbershop_amount?: number | null
           cancel_token?: string | null
+          cashback_earned?: number | null
+          cashback_used?: number | null
           created_at?: string
           credit_used?: number | null
           customer_id?: string | null
