@@ -898,7 +898,7 @@ function DashboardComponent() {
 
                                         await supabase
                                           .from("appointments")
-                                          .delete()
+                                          .update({ status: "cancelled" })
                                           .eq("id", app.id);
                                         
                                         toast.success("Estorno registrado como saída!");
@@ -937,8 +937,8 @@ function DashboardComponent() {
                                 className="h-8 gap-1 text-xs text-destructive border-destructive/20 hover:bg-destructive/10"
                                 onClick={async (e) => {
                                   e.stopPropagation();
-                                  if (confirm("Deseja excluir permanentemente este agendamento?")) {
-                                    const { error } = await supabase.from("appointments").delete().eq("id", app.id);
+                                  if (confirm("Deseja cancelar este agendamento?")) {
+                                    const { error } = await supabase.from("appointments").update({ status: "cancelled" }).eq("id", app.id);
                                     if (error) {
                                       toast.error("Erro ao excluir agendamento");
                                     } else {
@@ -950,7 +950,7 @@ function DashboardComponent() {
                                 }}
                               >
                                 <XCircle className="h-4 w-4" />
-                                Excluir
+                                Cancelar
                               </Button>
                             )}
                             <Button 
