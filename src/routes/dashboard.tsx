@@ -472,7 +472,7 @@ function DashboardComponent() {
       supabase.from("customers").select("*", { count: "exact", head: true }),
       supabase.from("services").select("*", { count: "exact", head: true }),
       supabase.from("barbers").select("*").eq("active", true).limit(5),
-      supabase.from("profiles").select("*").eq("id", tenantId).single(),
+      supabase.from("profiles").select("*").eq("id", tenantId || "").single(),
       supabase.from("wallet").select("balance"),
       // Valor dos serviços: APENAS CONCLUÍDOS
       supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
