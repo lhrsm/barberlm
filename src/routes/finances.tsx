@@ -42,7 +42,7 @@ export const Route = createFileRoute("/finances")({
 });
 
 function FinancesComponent() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, role } = useAuth();
   const navigate = useNavigate();
   const { plan } = usePlanLimits();
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -60,11 +60,17 @@ function FinancesComponent() {
   useEffect(() => {
     if (!authLoading && !user) {
       navigate({ to: "/auth" });
+      return;
     }
-  }, [user, authLoading, navigate]);
+
+    if (!authLoading && user && role === 'super_admin') {
+      navigate({ to: "/admin" });
+      return;
+    }
+  }, [user, authLoading, role, navigate]);
 
   useEffect(() => {
-    if (user) {
+    if (user && role !== 'super_admin') {
       fetchTransactions();
       fetchBarbers();
       fetchAppointments();
@@ -85,7 +91,7 @@ function FinancesComponent() {
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user, role]);
 
   async function fetchBarbers() {
     const { data } = await supabase
