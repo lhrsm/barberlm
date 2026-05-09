@@ -618,11 +618,19 @@ function ClientPortalComponent() {
           .eq("id", app.customer_id);
 
         // Remove the income from transactions
+        // Registramos a saída para manter histórico e zerar o impacto líquido
         await supabase
           .from("transactions")
-          .delete()
-          .eq("appointment_id", app.id);
-        
+          .insert({
+            user_id: app.user_id,
+            appointment_id: app.id,
+            type: "expense",
+            category: "Estorno (Expiraçao)",
+            amount: amount,
+            description: `Agendamento expirado: ${app.services?.name} - Convertido em Créditos`,
+            date: new Date().toISOString().split('T')[0]
+          });
+
         await supabase
           .from("appointments")
           .update({ 
