@@ -12,7 +12,7 @@ export function useTenant() {
   // We MUST wait for auth to load before deciding if we are a super_admin
   const tenantId = authLoading 
     ? null 
-    : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || user?.id)));
+    : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || (profile?.role === 'tenant_admin' ? user?.id : null))));
 
   console.log("useTenant resolved:", { tenantId, role: profile?.role, impersonatedId });
 

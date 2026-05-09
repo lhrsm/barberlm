@@ -35,6 +35,7 @@ function updateGlobalState(newState: Partial<{ user: User | null; session: Sessi
 
 async function fetchProfileData(userId: string) {
   try {
+    console.log("Fetching profile for user:", userId);
     const { data, error } = await supabase
       .from("profiles")
       .select("id, role, tenant_id, business_name, slug")
@@ -43,12 +44,26 @@ async function fetchProfileData(userId: string) {
 
     if (error) {
       console.error("Error fetching profile from DB:", error);
-      throw error;
+      // In case of error, we don't want to block the user if they have a session
+      return null;
     }
     
     if (!data) {
-      console.error("No profile found for user:", userId);
-      return null;
+      console.warn("No profile found for user:", userId, ". Creating default profile...");
+      // Try to create a default profile if it doesn't exist
+      const { data: newProfile, error: insertError } = await supabase
+        .from("profiles")
+        .insert({ id: userId, role: 'client' })
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error("Failed to create fallback profile:", insertError);
+        return null;
+      }
+      
+      updateGlobalState({ profile: newProfile as Profile });
+      return newProfile;
     }
 
     console.log("Profile fetched successfully for user:", userId, "Role:", data.role);

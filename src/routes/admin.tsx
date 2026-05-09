@@ -50,8 +50,8 @@ function AdminLayout() {
       return;
     }
 
-    if (!role) {
-      console.log("Admin route guard: Session exists but role is missing");
+    if (role === undefined) {
+      console.log("Admin route guard: Session exists but role is still loading");
       return;
     }
 
