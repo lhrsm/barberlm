@@ -831,7 +831,7 @@ function CalendarComponent() {
                                             const newCredits = Number(currentCust?.credits || 0) + Number(app.total_price || 0);
                                             await supabase.from("customers").update({ credits: newCredits }).eq("id", app.customer_id);
                                             // Remove original income from transactions when converting to credits
-                                            await supabase.from("transactions").delete().eq("appointment_id", app.id);
+                                            await supabase.from("transactions").insert({ user_id: user.id, barber_id: app.barber_id, appointment_id: app.id, type: "expense", category: "Estorno (Cru00e9ditos)", amount: app.total_price, description: `Conversu00e3o em Cru00e9ditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, date: format(new Date(), "yyyy-MM-dd"), time: format(new Date(), "HH:mm:ss") });
                                           } else if (app.refund_type === 'refund') {
                                             // Estorno: cria uma SAÍDA equivalente à entrada original.
                                             await supabase.from("transactions").insert({
