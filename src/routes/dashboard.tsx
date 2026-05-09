@@ -238,6 +238,9 @@ function DashboardComponent() {
 
     if (!existingTrans) {
       const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+      const cashbackText = usedCashback > 0 ? ` (Abatimento Cashback: R$ ${usedCashback.toFixed(2)})` : "";
+      const deductionText = `${creditText}${cashbackText}`;
+
       
       const { error: transError } = await supabase
         .from("transactions")
