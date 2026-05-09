@@ -449,7 +449,12 @@ function ShopPageComponent() {
           barber_id: selectedBarber.id,
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
-          total_price: calculateTotalBeforeCredits(), // Valor total original (descontando apenas cashback se houver)
+          total_price: selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0),
+          original_total: selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0),
+          credit_used: useCredits ? Math.min(customerCredits, calculateTotalBeforeCredits()) : 0,
+          pix_amount: paymentMethod === 'pix' ? calculateTotal() : 0,
+          barbershop_amount: paymentMethod === 'barbershop' ? calculateTotal() : 0,
+          final_amount: calculateTotal(),
           status: "scheduled",
           payment_method: paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop'),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
@@ -466,45 +471,27 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
-      // 2.5 Update customer credits if used (moved to handle after cashback/points logic for consistency)
-
-      // 3. Create transactions for products and services if paid via PIX OR cashback (credits handled above)
-      // 3. Create transaction for the appointment (remaining amount or total)
+      // 3. Create transaction for the appointment (remaining amount - new revenue)
       if (paymentMethod === 'pix' || paymentMethod === 'barbershop' || calculateTotal() === 0) {
         const finalPaymentMethod = paymentMethod === 'pix' ? 'PIX' : (paymentMethod === 'barbershop' ? 'BARBEARIA' : 'CRÉDITOS/CASHBACK');
-        
-        // Add service transaction
         const remainingAmount = calculateTotal();
         
-        // Se sobrou algo para pagar (Pix/Barbearia) ou se foi totalmente pago com créditos/cashback
-        // Criamos uma única transação que representa a "receita" desse agendamento.
-        // O usuário quer que se o serviço é 50 e usou 20 de crédito, a receita seja 30 (o que entrou).
-        await supabase.from("transactions").insert({
-          user_id: shop.id,
-          barber_id: selectedBarber.id,
-          appointment_id: appointment.id,
-          type: "income",
-          category: "Serviço",
-          amount: remainingAmount,
-          description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}${useCredits ? ` (Abatido R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)} em créditos)` : ""}`,
-          date: new Date().toISOString().split('T')[0]
-        });
-
-        // 4. Create transactions and sales records for products if any
-        for (const item of selectedProducts) {
-          // Create general transaction for the finance tab
+        // Only record transaction if there is actual new revenue
+        if (remainingAmount > 0) {
           await supabase.from("transactions").insert({
             user_id: shop.id,
             barber_id: selectedBarber.id,
             appointment_id: appointment.id,
             type: "income",
-            category: "Produtos",
-            amount: item.price * (item.quantity || 1),
-            description: `Venda de Produto (PIX): ${item.name} (x${item.quantity || 1}) - Cliente: ${customerName}`,
+            category: "Serviço",
+            amount: remainingAmount,
+            description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}${useCredits ? ` (Créditos: R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : ""}`,
             date: new Date().toISOString().split('T')[0]
           });
+        }
 
-          // Add to product_sales table for the Products -> Faturamento tab
+        // 4. Products faturamento (Products table tracks total sales regardless of credit use for stock/performance)
+        for (const item of selectedProducts) {
           await supabase.from("product_sales").insert({
             user_id: shop.id,
             total_amount: item.price * (item.quantity || 1),

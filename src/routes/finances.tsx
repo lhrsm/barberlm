@@ -84,7 +84,7 @@ function FinancesComponent() {
       .select(`
         *,
         barber:barbers(name),
-        appointment:appointments(status, payment_method)
+        appointment:appointments(status, payment_method, credit_used, original_total, final_amount)
       `)
       .order("created_at", { ascending: false });
     setTransactions(data || []);
@@ -127,10 +127,12 @@ function FinancesComponent() {
       .reduce((acc, t) => {
         const val = parseFloat(String(t.amount)) || 0;
         
-        // Se houver créditos abatidos na descrição, somamos eles à receita total
+        // Se houver créditos abatidos, somamos eles à receita bruta (income)
         // para que o cálculo de comissões e divisão de lucros considere o valor cheio do serviço.
         let creditedAmount = 0;
-        if (t.description?.includes("Créditos: R$")) {
+        if (t.appointment?.credit_used) {
+          creditedAmount = Number(t.appointment.credit_used);
+        } else if (t.description?.includes("Créditos: R$")) {
           const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
         }
@@ -159,7 +161,9 @@ function FinancesComponent() {
         
         // Incluir valor pago em créditos para o cálculo da comissão
         let creditedAmount = 0;
-        if (t.description?.includes("Créditos: R$")) {
+        if (t.appointment?.credit_used) {
+          creditedAmount = Number(t.appointment.credit_used);
+        } else if (t.description?.includes("Créditos: R$")) {
           const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
         }
