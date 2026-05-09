@@ -503,13 +503,34 @@ function ClientPortalComponent() {
         return;
       }
 
+      // Restore used credits and cashback
+      const { data: customer } = await supabase
+        .from("customers")
+        .select("credits, cashback_balance")
+        .eq("id", app.customer_id)
+        .single();
+
+      if (customer) {
+        await supabase
+          .from("customers")
+          .update({
+            credits: (customer.credits || 0) + (app.credit_used || 0),
+            cashback_balance: (customer.cashback_balance || 0) + (app.cashback_used || 0)
+          })
+          .eq("id", app.customer_id);
+      }
+
       const { error } = await supabase
         .from("appointments")
-        .update({ status: "cancelled" })
+        .update({ 
+          status: "cancelled",
+          credit_used: 0,
+          cashback_used: 0
+        })
         .eq("id", app.id);
       
       if (error) throw error;
-      toast.success("Agendamento cancelado");
+      toast.success("Agendamento cancelado e saldos restaurados");
       fetchClientData(client.customer_id);
     } catch (e) {
       toast.error("Erro ao cancelar agendamento");
