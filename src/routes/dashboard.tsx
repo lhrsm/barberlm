@@ -288,9 +288,10 @@ function DashboardComponent() {
     const appointment = todayAppointments.find(a => a.id === appointmentId);
     if (!appointment) return;
 
+    // Em vez de deletar, atualizamos o status para cancelado
     const { error } = await supabase
       .from("appointments")
-      .delete()
+      .update({ status: 'cancelled' })
       .eq("id", appointmentId);
 
     if (error) {
@@ -415,9 +416,9 @@ function DashboardComponent() {
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
-      // Transações agora vinculadas apenas a agendamentos concluídos ou manuais
-      supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", monthStart).lte("created_at", monthEnd),
+      // Buscar todas as transações para filtrar em memória
+      supabase.from("transactions").select("amount, type, appointment:appointments(status)").gte("created_at", todayStart).lte("created_at", todayEnd),
+      supabase.from("transactions").select("amount, type, appointment:appointments(status)").gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }),
@@ -439,15 +440,29 @@ function DashboardComponent() {
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);
 
+    // Função auxiliar para calcular entrada real desconsiderando agendamentos cancelados
+    const calculateCashInflow = (transData: any[] | null) => {
+      return transData?.reduce((acc, curr: any) => {
+        if (curr.type === 'income') {
+          // Ignorar se vinculado a agendamento cancelado
+          if (curr.appointment && curr.appointment.status === 'cancelled') {
+            return acc;
+          }
+          return acc + Number(curr.amount);
+        }
+        return acc;
+      }, 0) || 0;
+    };
+
     // Cálculos Diários
     const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
     const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
-    const dailyCashInflow = dailyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+    const dailyCashInflow = calculateCashInflow(dailyTrans.data);
 
     // Cálculos Mensais
     const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
     const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc, curr) => acc + Number(curr.credit_used || 0), 0) || 0;
-    const monthlyCashInflow = monthlyTrans.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+    const monthlyCashInflow = calculateCashInflow(monthlyTrans.data);
 
     setStats({
       daily: {
@@ -865,9 +880,9 @@ function DashboardComponent() {
                                             user_id: user?.id || ""
                                           });
                                           // Remove original income from transactions when converting to credits
-                                          await supabase.from("transactions").delete().eq("appointment_id", app.id);
-                                          await supabase.from("appointments").delete().eq("id", app.id);
-                                          toast.success("Valor convertido em créditos e removido do saldo!");
+                                            await supabase.from("transactions").insert({ user_id: user.id, barber_id: app.barber_id, appointment_id: app.id, type: "expense", category: "Estorno (Créditos)", amount: app.total_price, description: `Conversão em Créditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, date: format(new Date(), "yyyy-MM-dd") });
+                                          await supabase.from("appointments").update({ status: "cancelled" }).eq("id", app.id);
+                                          toast.success("Valor convertido em créditos e agendamento cancelado!");
                                         }
                                       } else if (app.refund_type === 'refund') {
                                         await supabase.from("transactions").insert({
@@ -883,7 +898,7 @@ function DashboardComponent() {
 
                                         await supabase
                                           .from("appointments")
-                                          .delete()
+                                          .update({ status: "cancelled" })
                                           .eq("id", app.id);
                                         
                                         toast.success("Estorno registrado como saída!");
@@ -922,20 +937,20 @@ function DashboardComponent() {
                                 className="h-8 gap-1 text-xs text-destructive border-destructive/20 hover:bg-destructive/10"
                                 onClick={async (e) => {
                                   e.stopPropagation();
-                                  if (confirm("Deseja excluir permanentemente este agendamento?")) {
-                                    const { error } = await supabase.from("appointments").delete().eq("id", app.id);
+                                  if (confirm("Deseja cancelar este agendamento?")) {
+                                    const { error } = await supabase.from("appointments").update({ status: "cancelled" }).eq("id", app.id);
                                     if (error) {
-                                      toast.error("Erro ao excluir agendamento");
+                                      toast.error("Erro ao cancelar agendamento");
                                     } else {
                                       fetchTodayAppointments();
                                       fetchStats();
-                                      toast.success("Agendamento excluído com sucesso");
+                                      toast.success("Agendamento cancelado com sucesso");
                                     }
                                   }
                                 }}
                               >
                                 <XCircle className="h-4 w-4" />
-                                Excluir
+                                Cancelar
                               </Button>
                             )}
                             <Button 
