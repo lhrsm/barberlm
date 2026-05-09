@@ -3,13 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export function useTenant() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   // Check for impersonation in sessionStorage
   const impersonatedId = typeof window !== 'undefined' ? sessionStorage.getItem("impersonated_tenant_id") : null;
   
   // The actual tenant ID being viewed/managed
-  const tenantId = impersonatedId || user?.id;
+  // For tenant_admin, it's their own ID. 
+  // For barber/client, it's the tenant_id from their profile.
+  // For super_admin, it's null unless impersonating.
+  const tenantId = impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || user?.id));
 
   const { data: tenantProfile, isLoading } = useQuery({
     queryKey: ["tenant-profile", tenantId],
@@ -45,8 +48,6 @@ export function useTenant() {
 
   const isFeatureEnabled = (featureKey: string) => {
     if (!planDetails) return false;
-    // Super Admin sees all features in their own shop if they want, 
-    // but usually they want to see what the tenant sees.
     return !!(planDetails.features as any)?.[featureKey];
   };
 
