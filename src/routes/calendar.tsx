@@ -270,10 +270,22 @@ function CalendarComponent() {
     if (!user) return;
     setIsLoading(true);
     try {
-      // 1. Update appointment status
+      // Get customer data for credits
+      const { data: customerData } = await supabase
+        .from("customers")
+        .select("credits, name")
+        .eq("id", appointment.customer_id)
+        .single();
+      
+      const availableCredits = Number(customerData?.credits || 0);
+
+      // 1. Update appointment status (Concluído + Pago)
       const { error: updateErr } = await supabase
         .from("appointments")
-        .update({ payment_status: 'paid', status: 'completed' })
+        .update({ 
+          payment_status: 'paid', 
+          status: 'completed' 
+        })
         .eq("id", appointment.id);
 
       if (updateErr) throw updateErr;
@@ -295,14 +307,6 @@ function CalendarComponent() {
         }];
       }
 
-      // Check for available credits
-      const { data: customerData } = await supabase
-        .from("customers")
-        .select("loyalty_points, credits, name")
-        .eq("id", appointment.customer_id)
-        .single();
-      
-      const availableCredits = Number(customerData?.credits || 0);
       const serviceItem = items.find((i: any) => i.type === 'service');
       const productItems = items.filter((i: any) => i.type === 'product');
 
