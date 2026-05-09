@@ -92,28 +92,28 @@ function DashboardComponent() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !tenantId) {
       navigate({ to: "/auth" });
     }
-  }, [user, loading, navigate]);
+  }, [user, tenantId, loading, navigate]);
 
   useEffect(() => {
-    if (user) {
+    if (tenantId) {
       fetchStats();
       fetchNotifications();
       fetchTodayAppointments();
 
       // Realtime subscription
       const channel = supabase
-        .channel('dashboard-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+        .channel(`dashboard-realtime-${tenantId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `user_id=eq.${tenantId}` }, () => {
           fetchTodayAppointments();
           fetchStats();
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${tenantId}` }, () => {
           fetchStats();
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${tenantId}` }, () => {
           fetchNotifications();
         })
         .subscribe();
@@ -122,7 +122,7 @@ function DashboardComponent() {
         supabase.removeChannel(channel);
       };
     }
-  }, [user, statusFilter, selectedDate]);
+  }, [tenantId, statusFilter, selectedDate]);
 
   async function fetchNotifications() {
     const { data } = await supabase
