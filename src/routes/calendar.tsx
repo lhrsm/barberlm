@@ -112,7 +112,7 @@ function CalendarComponent() {
         .select("*, customers(name), services(name, duration_minutes), barbers(name)")
         .gte("start_time", start.toISOString())
         .lte("start_time", end.toISOString())
-        .neq("status", "cancelled"),
+        .order("start_time", { ascending: true }),
       supabase.from("barbers").select("*").eq("active", true).order("name"),
       supabase.from("customers").select("*").order("name"),
       supabase.from("services").select("*").eq("active", true).order("name"),
@@ -331,6 +331,9 @@ function CalendarComponent() {
 
       if (updateErr) throw updateErr;
 
+      // Ensure realtime listeners are aware of the update by fetching fresh data
+      await fetchData();
+
       // 2. Create transactions for items (Now that it's paid and completed)
       let items = appointment.items || [];
       
@@ -466,7 +469,9 @@ function CalendarComponent() {
 
   const getStatusColor = (status: string, barberId: string) => {
     if (status === 'completed') return "bg-emerald-600 hover:bg-emerald-700";
+    if (status === 'confirmed') return "bg-blue-600 hover:bg-blue-700";
     if (status === 'cancelled') return "bg-red-600 hover:bg-red-700";
+    if (status === 'scheduled') return "bg-amber-600 hover:bg-amber-700";
     
     // Default to barber color (scheduled is blue/purple/etc as before)
     const index = barbers.findIndex(b => b.id === barberId);
@@ -907,19 +912,48 @@ function CalendarComponent() {
                                   </Button>
                                 )}
 
+                                {app.status === 'scheduled' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 px-2 text-white bg-blue-500/30 hover:bg-blue-500/50 text-[10px] gap-1"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (confirm("Deseja confirmar este agendamento?")) {
+                                        const { error } = await supabase
+                                          .from("appointments")
+                                          .update({ status: 'confirmed' })
+                                          .eq("id", app.id);
+                                        if (error) {
+                                          toast.error("Erro ao confirmar agendamento");
+                                        } else {
+                                          fetchData();
+                                          toast.success("Agendamento confirmado com sucesso");
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <CheckCircle2 size={10} />
+                                    <span>Confirmar</span>
+                                  </Button>
+                                )}
+
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
                                   className="h-5 w-5 text-white hover:bg-red-500/50"
                                   onClick={async (e) => {
                                     e.stopPropagation();
-                                    if (confirm("Deseja excluir permanentemente este agendamento?")) {
-                                      const { error } = await supabase.from("appointments").delete().eq("id", app.id);
+                                    if (confirm("Deseja cancelar este agendamento?")) {
+                                      const { error } = await supabase
+                                        .from("appointments")
+                                        .update({ status: 'cancelled' })
+                                        .eq("id", app.id);
                                       if (error) {
-                                        toast.error("Erro ao excluir agendamento");
+                                        toast.error("Erro ao cancelar agendamento");
                                       } else {
                                         fetchData();
-                                        toast.success("Agendamento excluído com sucesso");
+                                        toast.success("Agendamento cancelado");
                                       }
                                     }
                                   }}

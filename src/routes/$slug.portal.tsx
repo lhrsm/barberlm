@@ -184,7 +184,6 @@ function ClientPortalComponent() {
       .from("appointments")
       .select("*, services(name), barbers(name)")
       .eq("customer_id", customerId)
-      .neq("status", "cancelled")
       .order("start_time", { ascending: false });
     
     setAppointments(appts || []);
