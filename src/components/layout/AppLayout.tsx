@@ -54,20 +54,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session && pathname !== "/auth" && pathname !== "/") {
-        navigate({ to: "/auth" });
-        return;
-      }
+    if (loading) return;
 
-      // Redirect super_admin to /admin if they are on a non-admin route and not impersonating
-      if (role === 'super_admin' && !pathname.startsWith('/admin') && pathname !== '/auth' && !isImpersonating) {
-        navigate({ to: "/admin" });
-      }
+    if (!user && pathname !== "/auth" && pathname !== "/") {
+      navigate({ to: "/auth" });
+      return;
     }
-    checkAuth();
-  }, [pathname, navigate, role, isImpersonating]);
+
+    // Redirect super_admin to /admin if they are on a non-admin route and not impersonating
+    if (user && role === 'super_admin' && !pathname.startsWith('/admin') && pathname !== '/auth' && !isImpersonating) {
+      console.log("AppLayout: Redirecting super_admin to /admin/dashboard");
+      navigate({ to: "/admin/dashboard" });
+    }
+  }, [pathname, navigate, role, user, loading, isImpersonating]);
 
   const businessName = tenantProfile?.business_name || "BarberSaaS";
 
