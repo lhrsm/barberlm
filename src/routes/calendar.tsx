@@ -97,6 +97,18 @@ function CalendarComponent() {
   useEffect(() => {
     if (user) {
       fetchData();
+
+      // Realtime subscription
+      const channel = supabase
+        .channel('calendar-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+          fetchData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user, currentDate, view]);
 
