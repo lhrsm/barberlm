@@ -82,7 +82,10 @@ async function initializeAuth() {
   initialized = true;
 
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error("Auth init error:", sessionError);
+    }
     globalSession = session;
     globalUser = session?.user ?? null;
     
@@ -118,6 +121,9 @@ async function initializeAuth() {
 
 if (typeof window !== 'undefined') {
   initializeAuth();
+} else {
+  // In SSR/Node, we don't want to block
+  globalLoading = false;
 }
 
 export function useAuth() {

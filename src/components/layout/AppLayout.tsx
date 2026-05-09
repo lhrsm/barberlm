@@ -57,7 +57,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     if (loading) return;
 
     if (!user && pathname !== "/auth" && pathname !== "/") {
-      navigate({ to: "/auth" });
+      navigate({ to: "/auth", replace: true });
       return;
     }
 
