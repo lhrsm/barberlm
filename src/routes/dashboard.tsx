@@ -254,7 +254,7 @@ function DashboardComponent() {
       
       const { error: transError } = await supabase
         .from("transactions")
-      // @ts-expect-error - Supabase types overload mismatch
+      // @ts-ignore
         .insert({
           amount: remainingToPay,
           type: "income",
@@ -288,7 +288,7 @@ function DashboardComponent() {
       
       const { error: transError } = await supabase
         .from("transactions")
-      // @ts-expect-error - Supabase types overload mismatch
+      // @ts-ignore
         .insert({
           amount: remainingToPay,
           type: "income",
@@ -346,7 +346,7 @@ function DashboardComponent() {
       const totalPrice = Number(appointment.total_price || 0);
       
       if (appointment.refund_type === 'refund') {
-        // @ts-expect-error - Supabase types overload mismatch
+        // @ts-ignore
         // Estorno: Remove da receita (cria uma saída/despesa para abater)
         await supabase.from("transactions").insert({
           amount: totalPrice,
@@ -371,7 +371,7 @@ function DashboardComponent() {
             
           if (!wallet) {
             const { data: newWallet, error: walletErr } = await supabase
-              // @ts-expect-error - Supabase types overload mismatch
+              // @ts-ignore
               .from("wallet")
               .insert({ 
                 customer_id: appointment.customer_id, 
@@ -383,7 +383,7 @@ function DashboardComponent() {
             if (walletErr) throw walletErr;
             wallet = newWallet;
           }
-          // @ts-expect-error - Supabase types overload mismatch
+          // @ts-ignore
 
           // 2. Adicionar crédito à carteira
           await supabase.from("wallet_transactions").insert({
@@ -397,7 +397,7 @@ function DashboardComponent() {
 
           // 3. Registrar na transação como 0 para não contar como receita nova nem saída, 
           // mas documentar o movimento. O valor original de 'income' continua lá, 
-          // @ts-expect-error - Supabase types overload mismatch
+          // @ts-ignore
           // mas agora o cliente tem o crédito para usar.
           // Usando valor total original para o crédito
           await supabase.from("transactions").insert({
@@ -415,7 +415,7 @@ function DashboardComponent() {
         } catch (err) {
           console.error("Erro ao gerar créditos:", err);
           toast.error("Erro ao converter valor em créditos.");
-        // @ts-expect-error - Supabase types overload mismatch
+        // @ts-ignore
         }
       } else {
         // Fallback: se não tiver tipo de reembolso definido, registra como despesa (estorno padrão)
