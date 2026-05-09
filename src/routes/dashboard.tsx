@@ -95,7 +95,7 @@ function DashboardComponent() {
     if (loading) return;
 
     if (!user) {
-      navigate({ to: "/auth" });
+      navigate({ to: "/auth", replace: true });
       return;
     }
 
