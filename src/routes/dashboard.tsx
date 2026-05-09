@@ -371,6 +371,7 @@ function DashboardComponent() {
     ] = await Promise.all([
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
+      // Transações agora vinculadas apenas a agendamentos concluídos ou manuais
       supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("transactions").select("amount").eq("type", "income").gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
@@ -380,8 +381,13 @@ function DashboardComponent() {
       supabase.from("barbers").select("*").eq("active", true).limit(5),
       supabase.from("profiles").select("*").eq("id", user.id).single(),
       supabase.from("wallet").select("balance"),
-      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount").neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount").neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd)
+      // Valor dos serviços: APENAS CONCLUÍDOS
+      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount")
+        .eq("status", "completed")
+        .gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("total_price, original_total, credit_used, final_amount")
+        .eq("status", "completed")
+        .gte("start_time", monthStart).lte("start_time", monthEnd)
     ]);
 
     const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
