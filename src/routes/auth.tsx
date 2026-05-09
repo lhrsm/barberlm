@@ -13,14 +13,15 @@ function AuthPageComponent() {
 
   useEffect(() => {
     if (!loading && user && role) {
+      console.log("Auth redirection - User Role:", role);
       if (role === 'super_admin') {
-        navigate({ to: "/admin" });
+        navigate({ to: "/admin/dashboard" });
       } else if (role === 'tenant_admin') {
         navigate({ to: "/dashboard" });
       } else if (role === 'barber') {
-        navigate({ to: "/barbers" }); // The user said /agenda, but I see /barbers.tsx in routes. Let me check.
+        navigate({ to: "/barbers" });
       } else if (role === 'client') {
-        navigate({ to: "/portal" }); // User said /cliente, but I see portal routes.
+        navigate({ to: "/portal" });
       } else {
         navigate({ to: "/dashboard" });
       }
