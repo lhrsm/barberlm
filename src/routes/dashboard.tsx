@@ -131,10 +131,42 @@ function DashboardComponent() {
   async function completeAppointment(appointment: any) {
     if (appointment.status === 'completed') return;
 
-    // 1. Update appointment status
+    // 1. Get available credits and current state
+    const { data: customerData } = await supabase
+      .from("customers")
+      .select("credits, loyalty_points, name")
+      .eq("id", appointment.customer_id)
+      .single();
+
+    const availableCredits = Number(customerData?.credits || 0);
+    const totalPrice = Number(appointment.original_total || appointment.total_price || 0);
+    
+    // Determine how much credit will be used (only if not already subtracted)
+    let usedCredits = Number(appointment.credit_used || 0);
+    let remainingToPay = Number(appointment.final_amount || (totalPrice - usedCredits));
+
+    // If credits haven't been applied yet and the customer has them
+    if (usedCredits === 0 && availableCredits > 0) {
+      usedCredits = Math.min(availableCredits, totalPrice);
+      remainingToPay = totalPrice - usedCredits;
+
+      // Deduct from customer wallet
+      await supabase
+        .from("customers")
+        .update({ credits: availableCredits - usedCredits })
+        .eq("id", appointment.customer_id);
+    }
+
+    // 2. Update appointment status and financial details
     const { error } = await supabase
       .from("appointments")
-      .update({ status: 'completed' })
+      .update({ 
+        status: 'completed',
+        payment_status: 'paid',
+        credit_used: usedCredits,
+        final_amount: remainingToPay,
+        barbershop_amount: remainingToPay
+      })
       .eq("id", appointment.id);
 
     if (error) {
@@ -142,50 +174,43 @@ function DashboardComponent() {
       return;
     }
 
-    // 2. Increment loyalty points for the customer
+    // 3. Increment loyalty points
     if (appointment.customer_id) {
-      const currentPoints = appointment.customers?.loyalty_points || 0;
+      const currentPoints = customerData?.loyalty_points || 0;
       await supabase
         .from("customers")
         .update({ loyalty_points: currentPoints + 1 })
         .eq("id", appointment.customer_id);
     }
 
-    // 3. Handle financial registration (Only if paid)
-    if (appointment.payment_status === 'paid') {
-      const totalPrice = Number(appointment.original_total || appointment.total_price || 0);
-      const usedCredits = Number(appointment.credit_used || 0);
-      const remainingToPay = Number(appointment.final_amount || 0);
-      
-      // Check if a transaction for this appointment already exists to avoid duplicates
-      const { data: existingTrans } = await supabase
-        .from("transactions")
-        .select("id")
-        .eq("appointment_id", appointment.id)
-        .maybeSingle();
+    // 4. Create Financial Transaction
+    const { data: existingTrans } = await supabase
+      .from("transactions")
+      .select("id")
+      .eq("appointment_id", appointment.id)
+      .maybeSingle();
 
-      if (!existingTrans) {
-        // Criar uma ÚNICA transação para registro financeiro (mesmo se valor for 0 para constar no operacional)
-        const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
-        
-        const { error: transError } = await supabase
-          .from("transactions")
-          .insert({
-            amount: remainingToPay,
-            type: "income",
-            description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-            category: "Serviço",
-            barber_id: appointment.barber_id,
-            appointment_id: appointment.id,
-            user_id: user?.id || "",
-            date: new Date().toISOString().split('T')[0]
-          });
-        
-        if (transError) console.error("Error creating transaction:", transError);
-      }
+    if (!existingTrans) {
+      const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+      
+      const { error: transError } = await supabase
+        .from("transactions")
+        .insert({
+          amount: remainingToPay,
+          type: "income",
+          description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+          category: "Serviço",
+          barber_id: appointment.barber_id,
+          appointment_id: appointment.id,
+          user_id: user?.id || "",
+          date: new Date().toISOString().split('T')[0],
+          time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
+        });
+      
+      if (transError) console.error("Error creating transaction:", transError);
     }
 
-    toast.success("Agendamento concluído e fidelidade incrementada!");
+    toast.success("Serviço concluído e registrado no financeiro!");
     fetchTodayAppointments();
     fetchStats();
   }
