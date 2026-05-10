@@ -21,20 +21,31 @@ export function AuthForm() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: {
+            business_name: businessName,
+          },
+        },
       });
 
       if (error) throw error;
 
-      if (data.user) {
+      if (data.user && data.session) {
         // Create profile
         const { error: profileError } = await supabase.from("profiles").insert({
           id: data.user.id,
           business_name: businessName,
+          role: "tenant_admin",
         });
         if (profileError) console.error("Error creating profile:", profileError);
       }
 
-      toast.success("Check your email for the confirmation link!");
+      toast.success(
+        data.session
+          ? "Conta criada com sucesso."
+          : "Verifique seu e-mail para confirmar o cadastro."
+      );
     } catch (error: any) {
       toast.error(error.message);
     } finally {
