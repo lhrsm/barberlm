@@ -78,120 +78,133 @@ function AdminLayout() {
   if (role !== 'super_admin') return null;
 
   return (
-    <div className="flex h-screen bg-muted/30">
-      {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col w-64 border-r bg-card">
-        <div className="p-6 flex items-center gap-2">
-          <div className="p-1.5 bg-primary rounded-lg">
-            <ShieldCheck className="text-primary-foreground h-5 w-5" />
-          </div>
-          <h1 className="text-xl font-bold tracking-tight">SaaS Admin</h1>
-        </div>
-        
-        <nav className="flex-1 px-4 space-y-1">
-          {adminNavItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-                pathname === item.to 
-                  ? "bg-primary text-primary-foreground shadow-sm" 
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              <item.icon size={18} />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t space-y-2">
-          <Button 
-            variant="outline" 
-            className="w-full justify-start gap-3"
-            onClick={() => navigate({ to: "/admin/dashboard" })}
-          >
-            <ChevronLeft size={18} />
-            Voltar ao App
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={async () => {
-              await supabase.auth.signOut();
-              navigate({ to: "/auth" });
-            }}
-          >
-            <LogOut size={18} />
-            Sair
-          </Button>
-        </div>
-      </aside>
-
+    <div className="flex flex-col h-screen bg-muted/30">
       {/* Mobile Top Header */}
-      <div className="md:hidden flex flex-col w-full">
-        <header className="flex items-center justify-between p-4 border-b bg-card">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="text-primary h-6 w-6" />
-            <h1 className="font-bold">SaaS Admin</h1>
-          </div>
-          <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            {isMobileMenuOpen ? <X /> : <Menu />}
-          </Button>
-        </header>
-
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 bg-background md:hidden pt-16">
-            <nav className="p-6 space-y-2">
-              {adminNavItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-4 px-4 py-4 rounded-xl text-lg font-medium",
-                    pathname === item.to 
-                      ? "bg-primary text-primary-foreground" 
-                      : "text-muted-foreground hover:bg-accent"
-                  )}
-                >
-                  <item.icon size={24} />
-                  {item.label}
-                </Link>
-              ))}
-              <div className="pt-4 mt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start gap-4 px-4 py-4 text-lg mb-2"
-                  onClick={() => navigate({ to: "/admin/dashboard" })}
-                >
-                  <ChevronLeft size={24} />
-                  Voltar ao App
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start gap-4 px-4 py-4 text-lg text-destructive"
-                  onClick={async () => {
-                    await supabase.auth.signOut();
-                    navigate({ to: "/auth" });
-                  }}
-                >
-                  <LogOut size={24} />
-                  Sair
-                </Button>
-              </div>
-            </nav>
-          </div>
-        )}
-      </div>
-
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-auto p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          <Outlet />
+      <header className="md:hidden flex items-center justify-between p-4 border-b bg-card sticky top-0 z-40">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="text-primary h-6 w-6" />
+          <h1 className="font-bold">SaaS Admin</h1>
         </div>
-      </main>
+        <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          {isMobileMenuOpen ? <X /> : <Menu />}
+        </Button>
+      </header>
+
+      {/* Mobile menu overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-background md:hidden overflow-auto">
+          <div className="flex items-center justify-between p-4 border-b bg-card">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="text-primary h-6 w-6" />
+              <h1 className="font-bold">SaaS Admin</h1>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+              <X />
+            </Button>
+          </div>
+          <nav className="p-4 space-y-2">
+            {adminNavItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={cn(
+                  "flex items-center gap-4 px-4 py-3 rounded-xl text-base font-medium",
+                  pathname === item.to
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent"
+                )}
+              >
+                <item.icon size={22} />
+                {item.label}
+              </Link>
+            ))}
+            <div className="pt-4 mt-4 border-t space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-4 px-4 py-3 text-base"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  navigate({ to: "/dashboard" });
+                }}
+              >
+                <ChevronLeft size={22} />
+                Voltar ao App
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-4 px-4 py-3 text-base text-destructive"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate({ to: "/auth" });
+                }}
+              >
+                <LogOut size={22} />
+                Sair
+              </Button>
+            </div>
+          </nav>
+        </div>
+      )}
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar Desktop */}
+        <aside className="hidden md:flex flex-col w-64 border-r bg-card shrink-0">
+          <div className="p-6 flex items-center gap-2">
+            <div className="p-1.5 bg-primary rounded-lg">
+              <ShieldCheck className="text-primary-foreground h-5 w-5" />
+            </div>
+            <h1 className="text-xl font-bold tracking-tight">SaaS Admin</h1>
+          </div>
+
+          <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+            {adminNavItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                  pathname === item.to
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <item.icon size={18} />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="p-4 border-t space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-3"
+              onClick={() => navigate({ to: "/dashboard" })}
+            >
+              <ChevronLeft size={18} />
+              Voltar ao App
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate({ to: "/auth" });
+              }}
+            >
+              <LogOut size={18} />
+              Sair
+            </Button>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 min-w-0 overflow-auto p-4 md:p-8">
+          <div className="max-w-7xl mx-auto w-full">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
