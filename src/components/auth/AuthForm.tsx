@@ -29,15 +29,8 @@ export function AuthForm() {
 
       if (error) throw error;
 
-      if (data.user && data.session) {
-        // Create profile
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: data.user.id,
-          business_name: businessName,
-          role: "tenant_admin",
-        });
-        if (profileError) console.error("Error creating profile:", profileError);
-      }
+      // Profile is auto-created by the handle_new_user database trigger
+      // using the business_name from user metadata.
 
       toast.success(
         data.session

@@ -12,31 +12,33 @@ interface Profile {
   slug: string | null;
 }
 
-// Global state to share between useAuth instances
+// Global state shared across useAuth instances.
+// IMPORTANT: initial values MUST be identical on server and client to avoid
+// hydration mismatches. We start with loading=false / null user, and switch to
+// loading=true only AFTER hydration when initializeAuth runs in a useEffect.
 let globalUser: User | null = null;
 let globalSession: Session | null = null;
 let globalProfile: Profile | null = null;
-let globalLoading = true;
-let authSubscription: { unsubscribe: () => void } | null = null;
+let globalLoading = false;
+let initialized = false;
 const listeners = new Set<(state: { user: User | null; session: Session | null; profile: Profile | null; loading: boolean }) => void>();
 
-function updateGlobalState(newState: Partial<{ user: User | null; session: Session | null; profile: Profile | null; loading: boolean }>) {
-  if ('user' in newState) globalUser = newState.user!;
-  if ('session' in newState) globalSession = newState.session!;
-  if ('profile' in newState) globalProfile = newState.profile!;
-  if ('loading' in newState) globalLoading = newState.loading!;
-  
-  listeners.forEach(listener => listener({ 
-    user: globalUser, 
-    session: globalSession, 
-    profile: globalProfile, 
-    loading: globalLoading 
-  }));
+function emit() {
+  listeners.forEach((l) =>
+    l({ user: globalUser, session: globalSession, profile: globalProfile, loading: globalLoading })
+  );
+}
+
+function setState(partial: Partial<{ user: User | null; session: Session | null; profile: Profile | null; loading: boolean }>) {
+  if ('user' in partial) globalUser = partial.user!;
+  if ('session' in partial) globalSession = partial.session!;
+  if ('profile' in partial) globalProfile = partial.profile!;
+  if ('loading' in partial) globalLoading = partial.loading!;
+  emit();
 }
 
 async function fetchProfileData(userId: string) {
   try {
-    console.log("Fetching profile for user:", userId);
     const { data, error } = await supabase
       .from("profiles")
       .select("id, role, tenant_id, business_name, slug")
@@ -44,110 +46,99 @@ async function fetchProfileData(userId: string) {
       .maybeSingle();
 
     if (error) {
-      console.error("Error fetching profile from DB:", error);
-      updateGlobalState({ profile: null });
+      console.error("[useAuth] Error fetching profile:", error);
+      setState({ profile: null });
       return null;
     }
-    
+
     if (!data) {
-      console.warn("No profile found for user:", userId, ". Creating default profile...");
-      // Try to create a default profile if it doesn't exist
-      const { data: newProfile, error: insertError } = await supabase
-        .from("profiles")
-        .insert({ id: userId, role: 'tenant_admin' })
-        .select()
-        .single();
-      
-      if (insertError) {
-        console.error("Failed to create fallback profile:", insertError);
-        return null;
-      }
-      
-      updateGlobalState({ profile: newProfile as Profile });
-      return newProfile;
+      // Profile is created automatically by the handle_new_user trigger.
+      // If for any reason it's still missing, we don't try to insert from
+      // the client (RLS / role triggers can block it). Just leave profile null.
+      console.warn("[useAuth] No profile row for user:", userId);
+      setState({ profile: null });
+      return null;
     }
 
-    console.log("Profile fetched successfully for user:", userId, "Role:", data.role);
-    updateGlobalState({ profile: data as Profile });
+    setState({ profile: data as Profile });
     return data;
-  } catch (error) {
-    console.error("Critical error in fetchProfileData:", error);
+  } catch (err) {
+    console.error("[useAuth] fetchProfileData crash:", err);
     return null;
   }
 }
 
-// Initialize global session
-let initialized = false;
-async function initializeAuth() {
+function initializeAuth() {
   if (initialized) return;
   initialized = true;
 
-  authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log("Auth state change event:", event, "User:", session?.user?.id);
+  setState({ loading: true });
 
-    updateGlobalState({
+  // 1. Subscribe FIRST so we don't miss events during getSession().
+  supabase.auth.onAuthStateChange((event, session) => {
+    setState({
       session,
       user: session?.user ?? null,
-      loading: !!session?.user,
     });
 
     if (session?.user) {
-      await fetchProfileData(session.user.id);
+      // Fire & forget — don't await inside the callback.
+      fetchProfileData(session.user.id);
     } else {
-      updateGlobalState({ profile: null });
+      setState({ profile: null });
     }
+  });
 
-    updateGlobalState({ loading: false });
-  }).data.subscription;
-
-  try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) {
-      console.error("Auth init error:", sessionError);
-    }
-    globalSession = session;
-    globalUser = session?.user ?? null;
-    
-    if (session?.user) {
-      console.log("Auth init: User found, fetching profile...");
-      await fetchProfileData(session.user.id);
-    }
-    
-    updateGlobalState({ loading: false });
-  } catch (error) {
-    console.error("Error getting initial session:", error);
-    updateGlobalState({ loading: false });
-  }
-}
-
-if (typeof window !== 'undefined') {
-  initializeAuth();
-} else {
-  // In SSR/Node, we don't want to block
-  globalLoading = false;
+  // 2. Then hydrate the existing session from storage.
+  supabase.auth
+    .getSession()
+    .then(async ({ data: { session } }) => {
+      setState({ session, user: session?.user ?? null });
+      if (session?.user) {
+        await fetchProfileData(session.user.id);
+      }
+    })
+    .catch((err) => console.error("[useAuth] getSession error:", err))
+    .finally(() => setState({ loading: false }));
 }
 
 export function useAuth() {
+  // Initial state is the same on server and on the client's first render →
+  // no hydration mismatch. We kick off initializeAuth() in useEffect so the
+  // global state only flips to loading=true AFTER hydration is complete.
   const [state, setState] = useState({
     user: globalUser,
     session: globalSession,
     profile: globalProfile,
-    loading: globalLoading
+    loading: globalLoading,
   });
 
   useEffect(() => {
-    const listener = (newState: typeof state) => setState(newState);
+    const listener = (next: typeof state) => setState(next);
     listeners.add(listener);
+
+    if (!initialized && typeof window !== 'undefined') {
+      initializeAuth();
+    } else {
+      // Sync once in case state already moved on.
+      listener({
+        user: globalUser,
+        session: globalSession,
+        profile: globalProfile,
+        loading: globalLoading,
+      });
+    }
+
     return () => {
       listeners.delete(listener);
     };
   }, []);
 
-  return { 
-    user: state.user, 
-    session: state.session, 
-    profile: state.profile, 
+  return {
+    user: state.user,
+    session: state.session,
+    profile: state.profile,
     role: state.profile?.role,
-    loading: state.loading 
+    loading: state.loading,
   };
 }
