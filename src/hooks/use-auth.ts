@@ -17,6 +17,7 @@ let globalUser: User | null = null;
 let globalSession: Session | null = null;
 let globalProfile: Profile | null = null;
 let globalLoading = true;
+let authSubscription: { unsubscribe: () => void } | null = null;
 const listeners = new Set<(state: { user: User | null; session: Session | null; profile: Profile | null; loading: boolean }) => void>();
 
 function updateGlobalState(newState: Partial<{ user: User | null; session: Session | null; profile: Profile | null; loading: boolean }>) {
@@ -44,7 +45,7 @@ async function fetchProfileData(userId: string) {
 
     if (error) {
       console.error("Error fetching profile from DB:", error);
-      // In case of error, we don't want to block the user if they have a session
+      updateGlobalState({ profile: null });
       return null;
     }
     
@@ -53,7 +54,7 @@ async function fetchProfileData(userId: string) {
       // Try to create a default profile if it doesn't exist
       const { data: newProfile, error: insertError } = await supabase
         .from("profiles")
-        .insert({ id: userId, role: 'client' })
+        .insert({ id: userId, role: 'tenant_admin' })
         .select()
         .single();
       
@@ -81,6 +82,24 @@ async function initializeAuth() {
   if (initialized) return;
   initialized = true;
 
+  authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log("Auth state change event:", event, "User:", session?.user?.id);
+
+    updateGlobalState({
+      session,
+      user: session?.user ?? null,
+      loading: !!session?.user,
+    });
+
+    if (session?.user) {
+      await fetchProfileData(session.user.id);
+    } else {
+      updateGlobalState({ profile: null });
+    }
+
+    updateGlobalState({ loading: false });
+  }).data.subscription;
+
   try {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) {
@@ -99,24 +118,6 @@ async function initializeAuth() {
     console.error("Error getting initial session:", error);
     updateGlobalState({ loading: false });
   }
-
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log("Auth state change event:", event, "User:", session?.user?.id);
-    
-    updateGlobalState({ 
-      session, 
-      user: session?.user ?? null,
-      loading: session?.user ? true : false
-    });
-
-    if (session?.user) {
-      await fetchProfileData(session.user.id);
-    } else {
-      updateGlobalState({ profile: null });
-    }
-    
-    updateGlobalState({ loading: false });
-  });
 }
 
 if (typeof window !== 'undefined') {
