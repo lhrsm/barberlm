@@ -969,8 +969,11 @@ export type Database = {
         Args: { amount: number; prod_id: string }
         Returns: undefined
       }
+      get_my_profile_role: { Args: never; Returns: string }
+      get_my_tenant_id: { Args: never; Returns: string }
       is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
+      is_super_admin_user: { Args: never; Returns: boolean }
       process_product_sale: {
         Args: {
           p_customer_id: string
