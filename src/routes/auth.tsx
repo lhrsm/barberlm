@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPageComponent,
@@ -10,9 +10,15 @@ export const Route = createFileRoute("/auth")({
 function AuthPageComponent() {
   const { user, loading, role } = useAuth();
   const navigate = useNavigate();
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated || loading || !user) return;
+
       console.log("Auth route check - User:", user.email, "Role:", role);
       
       if (role === undefined) {
@@ -27,10 +33,7 @@ function AuthPageComponent() {
 
       console.log("Redirecting to:", destination);
       navigate({ to: destination, replace: true });
-    }
-  }, [user, loading, role, navigate]);
-
-  if (loading) return null;
+  }, [hydrated, user, loading, role, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 px-4">
