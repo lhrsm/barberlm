@@ -83,9 +83,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <Eye size={16} />
             <span>Modo Visualização: Você está acessando <strong>{businessName}</strong></span>
           </div>
-          <Button 
-            variant="secondary" 
-            size="sm" 
+          <Button
+            variant="secondary"
+            size="sm"
             className="h-7 bg-white/20 hover:bg-white/30 border-none text-white"
             onClick={stopImpersonation}
           >
@@ -94,89 +94,94 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
       )}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar for desktop */}
-        <aside className="hidden md:flex flex-col w-64 border-r bg-card">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-primary truncate">{businessName}</h1>
-        </div>
-        <nav className="flex-1 px-4 space-y-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-                pathname === item.to 
-                  ? "bg-primary text-primary-foreground" 
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              <item.icon size={20} />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="p-4 border-t">
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={handleLogout}
-          >
-            <LogOut size={20} />
-            Sair
-          </Button>
-        </div>
-      </aside>
 
       {/* Mobile Top Header */}
-      <div className="md:hidden flex flex-col w-full">
-        <header className="flex items-center justify-between p-4 border-b bg-card">
-          <h1 className="text-xl font-bold text-primary truncate">{businessName}</h1>
-          <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            {isMobileMenuOpen ? <X /> : <Menu />}
-          </Button>
-        </header>
+      <header className="md:hidden flex items-center justify-between p-4 border-b bg-card sticky top-0 z-40">
+        <h1 className="text-xl font-bold text-primary truncate">{businessName}</h1>
+        <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          {isMobileMenuOpen ? <X /> : <Menu />}
+        </Button>
+      </header>
 
-        {/* Mobile menu overlay */}
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 bg-background md:hidden pt-16">
-            <nav className="p-6 space-y-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-4 px-4 py-4 rounded-xl text-lg font-medium",
-                    pathname === item.to 
-                      ? "bg-primary text-primary-foreground" 
-                      : "text-muted-foreground hover:bg-accent"
-                  )}
-                >
-                  <item.icon size={24} />
-                  {item.label}
-                </Link>
-              ))}
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start gap-4 px-4 py-4 text-lg text-destructive"
-                onClick={handleLogout}
-              >
-                <LogOut size={24} />
-                Sair
-              </Button>
-            </nav>
+      {/* Mobile menu overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-background md:hidden overflow-auto">
+          <div className="flex items-center justify-between p-4 border-b bg-card">
+            <h1 className="text-xl font-bold text-primary truncate">{businessName}</h1>
+            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+              <X />
+            </Button>
           </div>
-        )}
-      </div>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-auto p-4 md:p-8">
-        <div className="max-w-6xl mx-auto h-full">
-          {children}
+          <nav className="p-4 space-y-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={cn(
+                  "flex items-center gap-4 px-4 py-3 rounded-xl text-base font-medium",
+                  pathname === item.to
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent"
+                )}
+              >
+                <item.icon size={22} />
+                {item.label}
+              </Link>
+            ))}
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-4 px-4 py-3 text-base text-destructive"
+              onClick={handleLogout}
+            >
+              <LogOut size={22} />
+              Sair
+            </Button>
+          </nav>
         </div>
-      </main>
+      )}
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar for desktop */}
+        <aside className="hidden md:flex flex-col w-64 border-r bg-card shrink-0">
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-primary truncate">{businessName}</h1>
+          </div>
+          <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+            {navItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                  pathname === item.to
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <item.icon size={20} />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="p-4 border-t">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={handleLogout}
+            >
+              <LogOut size={20} />
+              Sair
+            </Button>
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 min-w-0 overflow-auto p-4 md:p-8">
+          <div className="max-w-6xl mx-auto w-full">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
