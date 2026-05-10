@@ -36,10 +36,22 @@ function AdminFinance() {
       const { data: plans } = await supabase.from("plans").select("*");
       
       // Fetch tenants and their plans
-      const { data: tenants } = await supabase
-        .from("profiles")
-        .select("id, plan, created_at, role")
-        .neq("role", "super_admin");
+      const [{ data: profiles }, { data: roles }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, plan, created_at"),
+        supabase
+          .from("user_roles")
+          .select("user_id, role"),
+      ]);
+
+      const tenantIds = new Set(
+        (roles || [])
+          .filter((entry) => entry.role === 'tenant_admin')
+          .map((entry) => entry.user_id)
+      );
+
+      const tenants = (profiles || []).filter((profile) => tenantIds.has(profile.id));
 
       // Calculate MRR
       let totalMRR = 0;

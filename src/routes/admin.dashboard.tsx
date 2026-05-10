@@ -26,13 +26,24 @@ function AdminDashboard() {
       // Fetch Tenants (Profiles)
       const { data: profiles, error: pError } = await supabase
         .from("profiles")
-        .select("id, plan, created_at, role");
+        .select("id, plan, created_at");
       
       if (pError) throw pError;
       if (!profiles) return null;
 
-      // Filter out super admins if any
-      const tenants = profiles.filter(p => p.role !== 'super_admin');
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+
+      if (rolesError) throw rolesError;
+
+      const tenantIds = new Set(
+        (roles || [])
+          .filter((entry) => entry.role === 'tenant_admin')
+          .map((entry) => entry.user_id)
+      );
+
+      const tenants = profiles.filter((profile) => tenantIds.has(profile.id));
       
       // Fetch Plans
       const { data: plans } = await supabase.from("plans").select("*");

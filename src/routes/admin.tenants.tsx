@@ -53,24 +53,34 @@ function AdminTenants() {
   const { data: tenants, isLoading } = useQuery({
     queryKey: ["admin-tenants"],
     queryFn: async () => {
-      const { data: profiles, error } = await supabase
-        .from("profiles")
-        .select(`
-          id, 
-          business_name, 
-          plan, 
-          status, 
-          created_at, 
-          role,
-          whatsapp_number
-        `)
-        .order('created_at', { ascending: false });
+      const [{ data: profiles, error }, { data: roles, error: rolesError }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select(`
+            id, 
+            business_name, 
+            plan, 
+            status, 
+            created_at,
+            whatsapp_number
+          `)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from("user_roles")
+          .select("user_id, role"),
+      ]);
 
       if (error) throw error;
+      if (rolesError) throw rolesError;
       if (!profiles) return [];
 
-      // Filter out super admins
-      const onlyTenants = profiles.filter(p => p.role !== 'super_admin');
+      const tenantIds = new Set(
+        (roles || [])
+          .filter((entry) => entry.role === 'tenant_admin')
+          .map((entry) => entry.user_id)
+      );
+
+      const onlyTenants = profiles.filter((profile) => tenantIds.has(profile.id));
 
       // Fetch additional stats for each tenant (in parallel)
       const tenantsWithStats = await Promise.all(onlyTenants.map(async (tenant) => {
