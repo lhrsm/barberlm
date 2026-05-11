@@ -104,12 +104,15 @@ export function usePlanLimits() {
       }
 
       if (subRes.data) {
+        console.log("[usePlanLimits] Subscription data found:", subRes.data);
         setSubscription({
           status: subRes.data.status || null,
           currentPeriodEnd: subRes.data.current_period_end || null,
           cancelAtPeriodEnd: !!subRes.data.cancel_at_period_end,
           stripeCustomerId: subRes.data.stripe_customer_id || null,
         });
+      } else {
+        console.log("[usePlanLimits] No subscription found for user");
       }
 
       setUsage({
