@@ -2,6 +2,7 @@ import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { createCheckoutSession } from "@/utils/payments.functions";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useState, useEffect } from "react";
 
 interface StripeEmbeddedCheckoutProps {
