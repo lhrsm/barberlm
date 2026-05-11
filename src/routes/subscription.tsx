@@ -371,9 +371,20 @@ function SubscriptionComponent() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {planConfigs.map((config) => {
-              const isCurrentPlan = plan === config.id;
-              const isUpgrade = planConfigs.findIndex(c => c.id === plan) < planConfigs.findIndex(c => c.id === config.id);
-              const isDowngrade = planConfigs.findIndex(c => c.id === plan) > planConfigs.findIndex(c => c.id === config.id);
+              let isCurrentPlan = false;
+              let isUpgrade = false;
+              let isDowngrade = false;
+
+              try {
+                const currentPlanIndex = planConfigs.findIndex(c => c.id === plan);
+                const configIndex = planConfigs.findIndex(c => c.id === config.id);
+                
+                isCurrentPlan = plan === config.id;
+                isUpgrade = currentPlanIndex < configIndex;
+                isDowngrade = currentPlanIndex > configIndex;
+              } catch (e) {
+                console.error("[Subscription] Error calculating plan status:", e);
+              }
 
               return (
                 <Card key={config.id} className={cn(
