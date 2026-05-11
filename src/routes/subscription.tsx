@@ -73,39 +73,52 @@ function SubscriptionComponent() {
   const [updating, setUpdating] = useState(false);
 
   const handlePlanChange = async (newPlan: PlanType) => {
-    console.log("[Subscription] 👆 Clique em handlePlanChange para o plano:", newPlan);
+    console.log("[Subscription] 👆 Clique em handlePlanChange:", { newPlan, currentPlan: plan });
+    
     if (!user) {
       console.warn("[Subscription] ❌ Usuário não logado");
       toast.error("Você precisa estar logado.");
       return;
     }
+
     if (newPlan === 'free') {
       console.log("[Subscription] ℹ️ Plano free selecionado, ignorando checkout");
       return;
     }
 
-    const priceId = PLAN_PRICE_IDS[newPlan];
-    console.log("[Subscription] 🆔 Price ID mapeado:", priceId);
-    
-    if (!priceId) {
-      console.error("[Subscription] ❌ Erro interno: ID do preço não configurado para:", newPlan);
-      toast.error("Erro interno: ID do preço não configurado.");
-      return;
-    }
+    setUpdating(true); // Ativa loading global para evitar múltiplos cliques
     
     try {
-      console.log("[Subscription] 🚀 Chamando openCheckout com userId:", user.id);
+      const env = getStripeEnvironment();
+      const planKey = newPlan as keyof typeof PLAN_PRICE_IDS['live'];
+      const priceId = PLAN_PRICE_IDS[env][planKey];
+      
+      console.log("[Subscription] 🆔 Configuração de checkout:", { 
+        env, 
+        plan: newPlan, 
+        priceId 
+      });
+      
+      if (!priceId) {
+        throw new Error(`Price ID não configurado para o plano ${newPlan} no ambiente ${env}`);
+      }
+      
+      console.log("[Subscription] 🚀 Abrindo modal de checkout...");
       openCheckout({
         priceId,
         customerEmail: user.email,
         userId: user.id,
         returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       });
-    } catch (err) {
-      console.error("[Subscription] ❌ Erro ao chamar openCheckout:", err);
-      toast.error("Erro ao iniciar o checkout.");
+    } catch (err: any) {
+      console.error("[Subscription] ❌ Erro ao iniciar o checkout:", err);
+      toast.error(err.message || "Erro ao iniciar o checkout.");
+    } finally {
+      // Pequeno delay para garantir que o modal abra antes de remover o loading do botão
+      setTimeout(() => setUpdating(false), 500);
     }
   };
+
 
   const handleManageSubscription = async () => {
     setUpdating(true);
