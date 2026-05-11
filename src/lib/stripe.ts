@@ -4,8 +4,9 @@ type StripeEnv = 'sandbox' | 'live';
 
 const clientToken = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN;
 
-// Em desenvolvimento (Lovable Preview), preferimos sandbox se for um token de teste
-const environment: StripeEnv = (clientToken?.startsWith('pk_test_') || import.meta.env.DEV) ? 'sandbox' : 'live';
+// Se o token começar com 'pk_live_', usamos o ambiente live. Caso contrário, sandbox.
+const environment: StripeEnv = clientToken?.startsWith('pk_live_') ? 'live' : 'sandbox';
+
 
 
 let stripePromise: Promise<Stripe | null> | null = null;
