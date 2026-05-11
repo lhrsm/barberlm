@@ -54,14 +54,6 @@ function SettingsComponent() {
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [saving, setSaving] = useState(false);
-  const [whatsappInstances, setWhatsappInstances] = useState<any[]>([]);
-  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  const [newInstanceName, setNewInstanceName] = useState("");
-  const [connectionType, setConnectionType] = useState<"qrcode" | "api_key">("qrcode");
-  const [apiUrl, setApiUrl] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [connectingInstance, setConnectingInstance] = useState<string | null>(null);
-  const [qrValue, setQrValue] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
 
   const [formData, setFormData] = useState({
