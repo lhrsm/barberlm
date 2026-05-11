@@ -552,7 +552,7 @@ function BarbersComponent() {
                       <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
                     ) : (
                       <AvatarFallback className="bg-primary/10 text-primary">
-                        {barber.name.substring(0, 2).toUpperCase()}
+                        {typeof barber.name === 'string' ? barber.name.substring(0, 2).toUpperCase() : "??"}
                       </AvatarFallback>
                     )}
                   </Avatar>
