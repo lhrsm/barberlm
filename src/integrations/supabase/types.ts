@@ -974,6 +974,62 @@ export type Database = {
           },
         ]
       }
+      whatsapp_connections: {
+        Row: {
+          access_token: string | null
+          business_name: string | null
+          connected_at: string | null
+          created_at: string | null
+          id: string
+          last_sync_at: string | null
+          phone_number: string | null
+          phone_number_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          waba_id: string | null
+          webhook_verify_token: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          business_name?: string | null
+          connected_at?: string | null
+          created_at?: string | null
+          id?: string
+          last_sync_at?: string | null
+          phone_number?: string | null
+          phone_number_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          waba_id?: string | null
+          webhook_verify_token?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          business_name?: string | null
+          connected_at?: string | null
+          created_at?: string | null
+          id?: string
+          last_sync_at?: string | null
+          phone_number?: string | null
+          phone_number_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          waba_id?: string | null
+          webhook_verify_token?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_connections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_instances: {
         Row: {
           api_key: string | null
@@ -1015,6 +1071,108 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      whatsapp_messages: {
+        Row: {
+          connection_id: string | null
+          content: string | null
+          created_at: string | null
+          customer_id: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          status: string
+          type: string
+          user_id: string
+          wa_id: string | null
+        }
+        Insert: {
+          connection_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          type: string
+          user_id: string
+          wa_id?: string | null
+        }
+        Update: {
+          connection_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          type?: string
+          user_id?: string
+          wa_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          event_type: string
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          event_type: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
