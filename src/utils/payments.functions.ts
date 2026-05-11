@@ -49,40 +49,59 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    console.log("[Checkout] Creating session for user:", userId, "price:", data.priceId);
+    console.log("[Checkout Server] Starting for userId:", userId, "priceId:", data.priceId);
+    
     const stripe = createStripeClient(data.environment);
+    
+    // Search for price
+    let stripePrice;
+    console.log("[Checkout Server] Searching price by lookup_key:", data.priceId);
+    try {
+      const prices = await stripe.prices.list({ 
+        lookup_keys: [data.priceId],
+        active: true,
+        limit: 1
+      });
 
-    // Use priceId as lookup_key as defined in the creation step
-    console.log("[Checkout] Searching for price with lookup_key:", data.priceId);
-    const prices = await stripe.prices.list({ 
-      lookup_keys: [data.priceId],
-      active: true,
-      limit: 1
-    });
-
-    if (!prices.data.length) {
-      console.error("[Checkout] Price not found for lookup_key:", data.priceId);
-      // Fallback: try to list all prices to see what's available
-      const allPrices = await stripe.prices.list({ limit: 10, active: true });
-      console.log("[Checkout] Available prices:", allPrices.data.map(p => ({ id: p.id, lookup_key: p.lookup_key })));
-      throw new Error(`Price not found: ${data.priceId}`);
+      if (prices.data.length > 0) {
+        stripePrice = prices.data[0];
+      } else {
+        console.warn("[Checkout Server] lookup_key not found, searching by product metadata or ID");
+        const allPrices = await stripe.prices.list({ 
+          active: true,
+          limit: 100,
+          expand: ['data.product']
+        });
+        
+        stripePrice = allPrices.data.find(p => {
+          const product = p.product as any;
+          return product.metadata?.plan_id === data.priceId || p.id === data.priceId || p.lookup_key === data.priceId;
+        });
+      }
+    } catch (err) {
+      console.error("[Checkout Server] Stripe API error during price search:", err);
+      throw err;
     }
 
-    const stripePrice = prices.data[0];
+    if (!stripePrice) {
+      console.error("[Checkout Server] No price found for:", data.priceId);
+      throw new Error(`Plano não encontrado no Stripe: ${data.priceId}. Certifique-se de que o preço existe no Stripe Dashboard.`);
+    }
+
     const isRecurring = stripePrice.type === "recurring";
-    console.log("[Checkout] Found price:", stripePrice.id, "recurring:", isRecurring);
+    console.log("[Checkout Server] Found price:", stripePrice.id, "recurring:", isRecurring);
 
     const customerId = await resolveOrCreateCustomer(stripe, {
       email: data.customerEmail,
       userId: userId,
     });
 
-    console.log("[Checkout] Customer ID:", customerId);
+    console.log("[Checkout Server] Customer ID:", customerId);
 
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: data.quantity || 1 }],
       mode: isRecurring ? "subscription" : "payment",
-      ui_mode: "embedded", // Changed from embedded_page to embedded
+      ui_mode: "embedded",
       return_url: data.returnUrl,
       ...(customerId && { customer: customerId }),
       ...(userId && {
@@ -91,7 +110,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       }),
     } as any);
 
-    console.log("[Checkout] Session created, client_secret available:", !!session.client_secret);
+    console.log("[Checkout Server] Session created, client_secret available:", !!session.client_secret);
     return session.client_secret;
   });
 
@@ -109,7 +128,23 @@ export const createPortalSession = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (subError || !sub?.stripe_customer_id) throw new Error("No subscription found");
+    
+    if (subError || !sub?.stripe_customer_id) {
+      // Fallback: search customer in Stripe by metadata
+      const stripe = createStripeClient(data.environment);
+      const found = await stripe.customers.search({
+        query: `metadata['userId']:'${userId}'`,
+        limit: 1,
+      });
+      if (found.data.length) {
+        const portal = await stripe.billingPortal.sessions.create({
+          customer: found.data[0].id,
+          ...(data.returnUrl && { return_url: data.returnUrl }),
+        });
+        return portal.url;
+      }
+      throw new Error("No subscription or customer found");
+    }
 
     const stripe = createStripeClient(data.environment);
     const portal = await stripe.billingPortal.sessions.create({

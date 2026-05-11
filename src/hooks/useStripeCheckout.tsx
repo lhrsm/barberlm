@@ -14,6 +14,7 @@ export function useStripeCheckout() {
   const [options, setOptions] = useState<CheckoutOptions | null>(null);
 
   const openCheckout = useCallback((opts: CheckoutOptions) => {
+    console.log("useStripeCheckout: openCheckout called with", opts);
     setOptions(opts);
     setIsOpen(true);
   }, []);

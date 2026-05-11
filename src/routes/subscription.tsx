@@ -9,6 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import { Check, Crown, Zap, ShieldAlert, Star, Rocket, Clock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
+import { getStripe } from "@/lib/stripe";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
@@ -45,19 +47,27 @@ function SubscriptionComponent() {
   const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
 
   const handlePlanChange = async (newPlan: PlanType) => {
+    console.log("handlePlanChange called for plan:", newPlan);
     if (!user) {
+      console.warn("User not logged in");
       toast.error("Você precisa estar logado.");
       return;
     }
     if (newPlan === 'free') return;
 
     const priceId = PLAN_PRICE_IDS[newPlan];
-    openCheckout({
-      priceId,
-      customerEmail: user.email,
-      // userId is now handled by server context middleware
-      returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
-    });
+    console.log("Opening checkout for priceId:", priceId);
+    
+    try {
+      openCheckout({
+        priceId,
+        customerEmail: user.email,
+        returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+      });
+    } catch (err) {
+      console.error("Error calling openCheckout:", err);
+      toast.error("Erro ao iniciar o checkout.");
+    }
   };
 
   const handleManageSubscription = async () => {
@@ -302,7 +312,7 @@ function SubscriptionComponent() {
           <DialogHeader className="p-6 pb-2 border-b shrink-0">
             <DialogTitle>Finalizar assinatura</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full overflow-y-auto bg-white custom-stripe-container">
+          <div className="flex-1 w-full overflow-y-auto bg-white custom-stripe-container min-h-[500px]">
             {checkoutElement}
           </div>
         </DialogContent>
