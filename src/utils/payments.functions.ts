@@ -116,12 +116,13 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       recurring: isRecurring
     });
 
+    console.log("[Checkout Server] 👤 Iniciando resolveOrCreateCustomer...");
     const customerId = await resolveOrCreateCustomer(stripe, {
       email: data.customerEmail,
       userId: userId,
     });
 
-    console.log("[Checkout Server] 👤 Customer ID:", customerId);
+    console.log("[Checkout Server] ✅ Customer ID obtido:", customerId);
 
     // Determinar se deve aplicar trial (Pro Plan)
     // Usamos price_1TVtOVPKG6q10Ujre6zMGYpk (LIVE) ou lookup_key pro_monthly
