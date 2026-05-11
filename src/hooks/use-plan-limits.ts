@@ -45,6 +45,12 @@ export function usePlanLimits() {
   const { tenantId } = useTenant();
   const [plan, setPlan] = useState<PlanType>("free");
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<{
+    status: string | null;
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+    stripeCustomerId: string | null;
+  } | null>(null);
   const [usage, setUsage] = useState({
     barbers: 0,
     services: 0,
@@ -69,42 +75,54 @@ export function usePlanLimits() {
     const monthStart = startOfMonth(new Date()).toISOString();
     const monthEnd = endOfMonth(new Date()).toISOString();
 
-    const [profileRes, barbRes, servRes, prodRes, appRes, whatsappRes] = await Promise.all([
-      supabase.from("profiles").select("plan, created_at").eq("id", tenantId).maybeSingle(),
-      supabase.from("barbers").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
-      supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
-      supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
-      supabase.from("appointments").select("*", { count: "exact", head: true })
-        .eq("user_id", tenantId)
-        .neq("status", "cancelled")
-        .gte("start_time", monthStart)
-        .lte("start_time", monthEnd),
-      supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("user_id", tenantId),
-    ]);
+    try {
+      const [profileRes, subRes, barbRes, servRes, prodRes, appRes, whatsappRes] = await Promise.all([
+        supabase.from("profiles").select("plan, created_at").eq("id", tenantId).maybeSingle(),
+        supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end, stripe_customer_id").eq("user_id", tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("barbers").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
+        supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
+        supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
+        supabase.from("appointments").select("*", { count: "exact", head: true })
+          .eq("user_id", tenantId)
+          .neq("status", "cancelled")
+          .gte("start_time", monthStart)
+          .lte("start_time", monthEnd),
+        supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("user_id", tenantId),
+      ]);
 
-    if (profileRes.data) {
-      console.log("[usePlanLimits] Profile data:", profileRes.data);
-      const currentPlan = (profileRes.data.plan as string)?.toLowerCase() as PlanType || "free";
-      setPlan(currentPlan);
-      
-      // Calculate trial end (15 days from creation)
-      if (currentPlan === "free" || currentPlan === "pro") {
+      if (profileRes.data) {
+        console.log("[usePlanLimits] Profile data:", profileRes.data);
+        const currentPlan = (profileRes.data.plan as string)?.toLowerCase() as PlanType || "free";
+        setPlan(currentPlan);
+        
+        // Calculate trial end (15 days from creation)
         const createdAt = new Date(profileRes.data.created_at);
         const trialEnd = new Date(createdAt);
         trialEnd.setDate(createdAt.getDate() + 15);
         setTrialEndsAt(trialEnd.toISOString());
       }
+
+      if (subRes.data) {
+        setSubscription({
+          status: subRes.data.status || null,
+          currentPeriodEnd: subRes.data.current_period_end || null,
+          cancelAtPeriodEnd: !!subRes.data.cancel_at_period_end,
+          stripeCustomerId: subRes.data.stripe_customer_id || null,
+        });
+      }
+
+      setUsage({
+        barbers: barbRes.count || 0,
+        services: servRes.count || 0,
+        products: prodRes.count || 0,
+        monthlyAppointments: appRes.count || 0,
+        whatsappConnections: whatsappRes.count || 0,
+      });
+    } catch (error) {
+      console.error("[usePlanLimits] Error fetching data:", error);
+    } finally {
+      setLoading(false);
     }
-
-    setUsage({
-      barbers: barbRes.count || 0,
-      services: servRes.count || 0,
-      products: prodRes.count || 0,
-      monthlyAppointments: appRes.count || 0,
-      whatsappConnections: whatsappRes.count || 0,
-    });
-
-    setLoading(false);
   }
 
   const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
@@ -128,6 +146,7 @@ export function usePlanLimits() {
     loading,
     trialDaysRemaining,
     isTrial,
+    subscription,
     checkLimit,
     refresh: fetchPlanAndUsage,
   };
