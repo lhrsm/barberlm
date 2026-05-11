@@ -68,7 +68,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, navigate, role, user, loading, isImpersonating]);
 
-  const businessName = tenantProfile?.business_name || "BarberSaaS";
+  const businessName = String(tenantProfile?.business_name || "BarberSaaS");
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
