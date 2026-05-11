@@ -6,7 +6,7 @@ import { usePlanLimits, PLAN_LIMITS, PlanType } from "@/hooks/use-plan-limits";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Check, Crown, Zap, ShieldAlert, Star, Rocket, Clock, Loader2 } from "lucide-react";
+import { Check, Crown, Zap, ShieldAlert, Star, Rocket, Clock, Loader2, AlertCircle, AlertTriangle, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
@@ -42,21 +42,27 @@ export const Route = createFileRoute("/subscription")({
 function SubscriptionComponent() {
   const { user, loading: authLoading, role, profile } = useAuth();
   const navigate = useNavigate();
-  const { plan, usage, limits, trialDaysRemaining, isTrial, refresh, loading: planLoading } = usePlanLimits();
+  const { plan, usage, limits, trialDaysRemaining, isTrial, refresh, loading: planLoading, subscription } = usePlanLimits();
   const [updating, setUpdating] = useState(false);
   const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
 
   const handlePlanChange = async (newPlan: PlanType) => {
-    console.log("handlePlanChange called for plan:", newPlan);
+    console.log("[Subscription] handlePlanChange called for plan:", newPlan);
     if (!user) {
-      console.warn("User not logged in");
+      console.warn("[Subscription] User not logged in");
       toast.error("Você precisa estar logado.");
       return;
     }
     if (newPlan === 'free') return;
 
     const priceId = PLAN_PRICE_IDS[newPlan];
-    console.log("Opening checkout for priceId:", priceId);
+    if (!priceId) {
+      console.error("[Subscription] Price ID not found for plan:", newPlan);
+      toast.error("Erro interno: ID do preço não configurado.");
+      return;
+    }
+    
+    console.log("[Subscription] Opening checkout for priceId:", priceId);
     
     try {
       openCheckout({
@@ -65,7 +71,7 @@ function SubscriptionComponent() {
         returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       });
     } catch (err) {
-      console.error("Error calling openCheckout:", err);
+      console.error("[Subscription] Error calling openCheckout:", err);
       toast.error("Erro ao iniciar o checkout.");
     }
   };
@@ -182,6 +188,7 @@ function SubscriptionComponent() {
         </div>
 
         <div className="grid gap-6">
+          {/* Status Alerts */}
           {isTrial && (
             <Card className="border-blue-500/30 bg-blue-50/50">
               <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -194,11 +201,82 @@ function SubscriptionComponent() {
                     <p className="text-sm text-blue-700/70">Assine agora para garantir que sua barbearia não pare e continue com todos os recursos Pro!</p>
                   </div>
                 </div>
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 whitespace-nowrap" onClick={() => {
-                  const proConfig = planConfigs.find(c => c.id === 'pro');
-                  if (proConfig) handlePlanChange('pro');
-                }}>
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 whitespace-nowrap" onClick={() => handlePlanChange('pro')}>
                   Assinar Plano Pro Agora
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {subscription?.status === 'past_due' && (
+            <Card className="border-yellow-500/30 bg-yellow-50/50">
+              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-yellow-100 rounded-full text-yellow-600">
+                    <AlertTriangle className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-yellow-900">Pagamento Pendente</h3>
+                    <p className="text-sm text-yellow-700/70">Houve um problema com a sua última cobrança. Atualize sua forma de pagamento para evitar a suspensão dos recursos premium.</p>
+                  </div>
+                </div>
+                <Button variant="outline" className="border-yellow-500 text-yellow-700 hover:bg-yellow-100" onClick={handleManageSubscription}>
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Atualizar Cartão
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {subscription?.status === 'unpaid' && (
+            <Card className="border-red-500/30 bg-red-50/50">
+              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-red-100 rounded-full text-red-600">
+                    <ShieldAlert className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-red-900">Assinatura Suspensa</h3>
+                    <p className="text-sm text-red-700/70">Sua assinatura está inativa devido a falhas recorrentes no pagamento. Seus recursos premium foram temporariamente bloqueados.</p>
+                  </div>
+                </div>
+                <Button className="bg-red-600 hover:bg-red-700" onClick={handleManageSubscription}>
+                  Regularizar Agora
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {subscription?.status === 'canceled' && (
+            <Card className="border-gray-500/30 bg-gray-50/50">
+              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gray-100 rounded-full text-gray-600">
+                    <AlertCircle className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Assinatura Cancelada</h3>
+                    <p className="text-sm text-gray-700/70">Sua assinatura anterior foi cancelada. Escolha um novo plano abaixo para continuar aproveitando os benefícios.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {subscription?.status === 'incomplete' && (
+            <Card className="border-blue-500/30 bg-blue-50/50">
+              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-100 rounded-full text-blue-600">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-900">Checkout Pendente</h3>
+                    <p className="text-sm text-blue-700/70">Você tem uma assinatura que ainda não foi concluída. Por favor, finalize o pagamento.</p>
+                  </div>
+                </div>
+                <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleManageSubscription}>
+                  Finalizar Pagamento
                 </Button>
               </CardContent>
             </Card>
@@ -209,49 +287,61 @@ function SubscriptionComponent() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  Plano Atual: <span className="capitalize text-primary font-bold">{(plan || 'free') === 'free' ? 'Teste Grátis' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
+                  Plano Atual: <span className="capitalize text-primary font-bold">{(!plan || plan === 'free') ? 'Grátis' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
                   {plan === 'pro' && <Crown className="text-yellow-500 w-5 h-5" />}
                   {plan === 'elite' && <Rocket className="text-purple-500 w-5 h-5" />}
                 </CardTitle>
                 <CardDescription>Acompanhe o uso dos seus recursos.</CardDescription>
               </div>
-              <div className="bg-background/50 px-3 py-1 rounded-full border text-xs font-medium">
-                {plan === 'free' ? 'Período de Experiência' : 'Assinatura Ativa'}
+              <div className={cn(
+                "px-3 py-1 rounded-full border text-xs font-medium",
+                subscription?.status === 'active' ? "bg-green-100 text-green-700 border-green-200" :
+                subscription?.status === 'trialing' ? "bg-blue-100 text-blue-700 border-blue-200" :
+                subscription?.status === 'past_due' ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
+                subscription?.status === 'unpaid' ? "bg-red-100 text-red-700 border-red-200" :
+                "bg-background/50"
+              )}>
+                {subscription?.status === 'active' ? 'Assinatura Ativa' :
+                 subscription?.status === 'trialing' ? 'Período de Teste' :
+                 subscription?.status === 'past_due' ? 'Pagamento Pendente' :
+                 subscription?.status === 'unpaid' ? 'Inadimplente' :
+                 subscription?.status === 'canceled' ? 'Cancelada' :
+                 plan === 'free' ? 'Plano Gratuito' : 'Assinatura Ativa'}
               </div>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-5">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Profissionais</span>
-                  <span className="font-bold">{usage?.barbers ?? 0} / {(limits?.barbers === Infinity ? "∞" : limits?.barbers) ?? "∞"}</span>
+                  <span className="font-bold">{usage?.barbers ?? 0} / {limits?.barbers === Infinity ? "∞" : (limits?.barbers ?? 0)}</span>
                 </div>
                 <Progress value={limits?.barbers === Infinity ? 100 : Math.min(((usage?.barbers || 0) / (limits?.barbers || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Serviços</span>
-                  <span className="font-bold">{usage?.services ?? 0} / {(limits?.services === Infinity ? "∞" : limits?.services) ?? "∞"}</span>
+                  <span className="font-bold">{usage?.services ?? 0} / {limits?.services === Infinity ? "∞" : (limits?.services ?? 0)}</span>
                 </div>
                 <Progress value={limits?.services === Infinity ? 100 : Math.min(((usage?.services || 0) / (limits?.services || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Produtos</span>
-                  <span className="font-bold">{usage?.products ?? 0} / {(limits?.products === Infinity ? "∞" : limits?.products) ?? "∞"}</span>
+                  <span className="font-bold">{usage?.products ?? 0} / {limits?.products === Infinity ? "∞" : (limits?.products ?? 0)}</span>
                 </div>
                 <Progress value={limits?.products === Infinity ? 100 : Math.min(((usage?.products || 0) / (limits?.products || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Agendamentos</span>
-                  <span className="font-bold">{usage?.monthlyAppointments ?? 0} / {(limits?.monthlyAppointments === Infinity ? "∞" : limits?.monthlyAppointments) ?? "∞"}</span>
+                  <span className="font-bold">{usage?.monthlyAppointments ?? 0} / {limits?.monthlyAppointments === Infinity ? "∞" : (limits?.monthlyAppointments ?? 0)}</span>
                 </div>
                 <Progress value={limits?.monthlyAppointments === Infinity ? 100 : Math.min(((usage?.monthlyAppointments || 0) / (limits?.monthlyAppointments || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">WhatsApp</span>
-                  <span className="font-bold">{usage?.whatsappConnections ?? 0} / {(limits?.whatsappConnections === Infinity ? "∞" : limits?.whatsappConnections) ?? "∞"}</span>
+                  <span className="font-bold">{usage?.whatsappConnections ?? 0} / {limits?.whatsappConnections === Infinity ? "∞" : (limits?.whatsappConnections ?? 0)}</span>
                 </div>
                 <Progress value={limits?.whatsappConnections === Infinity ? 100 : Math.min(((usage?.whatsappConnections || 0) / (limits?.whatsappConnections || 1)) * 100, 100)} className="h-1.5" />
               </div>
