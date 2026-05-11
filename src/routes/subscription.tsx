@@ -40,9 +40,9 @@ export const Route = createFileRoute("/subscription")({
 });
 
 function SubscriptionComponent() {
-  const { user, loading: authLoading, role } = useAuth();
+  const { user, loading: authLoading, role, profile } = useAuth();
   const navigate = useNavigate();
-  const { plan, usage, limits, trialDaysRemaining, isTrial, refresh } = usePlanLimits();
+  const { plan, usage, limits, trialDaysRemaining, isTrial, refresh, loading: planLoading } = usePlanLimits();
   const [updating, setUpdating] = useState(false);
   const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
 
