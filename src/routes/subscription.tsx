@@ -223,37 +223,37 @@ function SubscriptionComponent() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Profissionais</span>
-                  <span className="font-bold">{usage.barbers} / {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
+                  <span className="font-bold">{usage?.barbers ?? 0} / {(limits?.barbers === Infinity ? "∞" : limits?.barbers) ?? "∞"}</span>
                 </div>
-                <Progress value={limits.barbers === Infinity ? 100 : Math.min((usage.barbers / limits.barbers) * 100, 100)} className="h-1.5" />
+                <Progress value={limits?.barbers === Infinity ? 100 : Math.min(((usage?.barbers || 0) / (limits?.barbers || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Serviços</span>
-                  <span className="font-bold">{usage.services} / {limits.services === Infinity ? "∞" : limits.services}</span>
+                  <span className="font-bold">{usage?.services ?? 0} / {(limits?.services === Infinity ? "∞" : limits?.services) ?? "∞"}</span>
                 </div>
-                <Progress value={limits.services === Infinity ? 100 : Math.min((usage.services / limits.services) * 100, 100)} className="h-1.5" />
+                <Progress value={limits?.services === Infinity ? 100 : Math.min(((usage?.services || 0) / (limits?.services || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Produtos</span>
-                  <span className="font-bold">{usage.products} / {limits.products === Infinity ? "∞" : limits.products}</span>
+                  <span className="font-bold">{usage?.products ?? 0} / {(limits?.products === Infinity ? "∞" : limits?.products) ?? "∞"}</span>
                 </div>
-                <Progress value={limits.products === Infinity ? 100 : Math.min((usage.products / limits.products) * 100, 100)} className="h-1.5" />
+                <Progress value={limits?.products === Infinity ? 100 : Math.min(((usage?.products || 0) / (limits?.products || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Agendamentos</span>
-                  <span className="font-bold">{usage.monthlyAppointments} / {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
+                  <span className="font-bold">{usage?.monthlyAppointments ?? 0} / {(limits?.monthlyAppointments === Infinity ? "∞" : limits?.monthlyAppointments) ?? "∞"}</span>
                 </div>
-                <Progress value={limits.monthlyAppointments === Infinity ? 100 : Math.min((usage.monthlyAppointments / limits.monthlyAppointments) * 100, 100)} className="h-1.5" />
+                <Progress value={limits?.monthlyAppointments === Infinity ? 100 : Math.min(((usage?.monthlyAppointments || 0) / (limits?.monthlyAppointments || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">WhatsApp</span>
-                  <span className="font-bold">{usage.whatsappConnections} / {limits.whatsappConnections === Infinity ? "∞" : limits.whatsappConnections}</span>
+                  <span className="font-bold">{usage?.whatsappConnections ?? 0} / {(limits?.whatsappConnections === Infinity ? "∞" : limits?.whatsappConnections) ?? "∞"}</span>
                 </div>
-                <Progress value={limits.whatsappConnections === Infinity ? 100 : Math.min((usage.whatsappConnections / limits.whatsappConnections) * 100, 100)} className="h-1.5" />
+                <Progress value={limits?.whatsappConnections === Infinity ? 100 : Math.min(((usage?.whatsappConnections || 0) / (limits?.whatsappConnections || 1)) * 100, 100)} className="h-1.5" />
               </div>
             </CardContent>
           </Card>
