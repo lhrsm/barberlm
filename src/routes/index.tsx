@@ -91,7 +91,7 @@ function LandingPageComponent() {
           
           <h1 className="text-5xl lg:text-[84px] font-black tracking-tighter mb-8 text-white leading-[1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
             A plataforma completa para transformar sua <br className="hidden lg:block" />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-400 to-primary bg-[length:200%_auto] animate-pulse">negócio profissional.</span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-400 to-primary bg-[length:200%_auto] animate-pulse">barbearia em um negócio profissional.</span>
           </h1>
           
           <p className="text-xl text-white/60 max-w-3xl mx-auto mb-12 leading-relaxed animate-in fade-in slide-in-from-bottom-10 duration-700 delay-200">
