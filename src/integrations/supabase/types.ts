@@ -1081,6 +1081,7 @@ export type Database = {
           error_message: string | null
           id: string
           metadata: Json | null
+          scheduled_for: string | null
           status: string
           type: string
           user_id: string
@@ -1094,6 +1095,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           metadata?: Json | null
+          scheduled_for?: string | null
           status?: string
           type: string
           user_id: string
@@ -1107,6 +1109,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           metadata?: Json | null
+          scheduled_for?: string | null
           status?: string
           type?: string
           user_id?: string
