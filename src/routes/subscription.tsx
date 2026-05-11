@@ -102,10 +102,10 @@ function SubscriptionComponent() {
   const handleManageSubscription = async () => {
     setUpdating(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const token = authSession?.access_token;
 
-      if (!token) throw new Error(\"Você precisa estar logado.\");
+      if (!token) throw new Error("Você precisa estar logado.");
 
       const url = await createPortalSession({
         data: {
