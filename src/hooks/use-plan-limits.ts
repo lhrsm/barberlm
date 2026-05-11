@@ -36,7 +36,7 @@ export const PLAN_LIMITS = {
     services: Infinity,
     products: Infinity,
     monthlyAppointments: Infinity,
-    whatsappConnections: Infinity,
+    whatsappConnections: 5,
     price: 59.90,
   },
 };
