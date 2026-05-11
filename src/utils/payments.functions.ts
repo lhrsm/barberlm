@@ -16,17 +16,24 @@ async function resolveOrCreateCustomer(
   if (options.userId) {
     console.log("[resolveOrCreateCustomer] 🔍 Buscando cliente por metadata.userId:", options.userId);
     try {
-      const found = await stripe.customers.search({
+      console.log(\"[resolveOrCreateCustomer] 📡 Chamando stripe.customers.search...\");
+      
+      const searchPromise = stripe.customers.search({
         query: `metadata['userId']:'${options.userId}'`,
         limit: 1,
       });
-      console.log("[resolveOrCreateCustomer] 📡 Resposta do Stripe Search:", found.data.length, "encontrados");
+
+      // Timeout de 10s para busca no Stripe
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error(\"Stripe Search Timeout\")), 10000));
+      const found = await Promise.race([searchPromise, timeout]) as any;
+      
+      console.log(\"[resolveOrCreateCustomer] 📡 Resposta do Stripe Search:\", found.data.length, \"encontrados\");
       if (found.data.length) {
-        console.log("[resolveOrCreateCustomer] ✅ Cliente encontrado por metadata:", found.data[0].id);
+        console.log(\"[resolveOrCreateCustomer] ✅ Cliente encontrado por metadata:\", found.data[0].id);
         return found.data[0].id;
       }
     } catch (err) {
-      console.error("[resolveOrCreateCustomer] ⚠️ Erro ao buscar por metadata (pode ser delay de indexação):", err);
+      console.error(\"[resolveOrCreateCustomer] ⚠️ Erro ao buscar por metadata:\", err instanceof Error ? err.message : err);
     }
   }
   
