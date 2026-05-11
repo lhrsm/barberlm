@@ -29,7 +29,7 @@ export const Route = createFileRoute("/subscription")({
 function SubscriptionComponent() {
   const { user, loading: authLoading, role } = useAuth();
   const navigate = useNavigate();
-  const { plan, usage, limits, refresh } = usePlanLimits();
+  const { plan, usage, limits, trialDaysRemaining, isTrial, refresh } = usePlanLimits();
   const [updating, setUpdating] = useState(false);
 
   const handlePlanChange = async (newPlan: PlanType) => {
