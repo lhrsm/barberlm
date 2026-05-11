@@ -22,8 +22,8 @@ async function resolveOrCreateCustomer(
         limit: 1,
       });
 
-      // Timeout de 10s para busca no Stripe
-      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Stripe Search Timeout")), 10000));
+      // Timeout de 30s para busca no Stripe
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Stripe Search Timeout (30s)")), 30000));
       const found = await Promise.race([searchPromise, timeout]) as any;
       
       console.log("[resolveOrCreateCustomer] 📡 Resposta do Stripe Search:", found.data?.length || 0, "encontrados");

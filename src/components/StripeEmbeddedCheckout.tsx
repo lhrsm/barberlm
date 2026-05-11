@@ -59,7 +59,7 @@ export function StripeEmbeddedCheckout({
       });
 
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("A requisição ao servidor expirou (timeout de 15s).")), 15000)
+        setTimeout(() => reject(new Error("A requisição ao servidor expirou (timeout de 60s).")), 60000)
       );
 
       const secret = await Promise.race([sessionPromise, timeoutPromise]) as string;
