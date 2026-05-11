@@ -473,6 +473,23 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
+      // Send WhatsApp Confirmation
+      if (shop.whatsapp_enabled) {
+        triggerWhatsAppMessage({
+          userId: shop.id,
+          eventType: 'appointment_confirmation',
+          phone: customerPhone,
+          placeholders: {
+            cliente: customerName,
+            horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
+            barbeiro: selectedBarber.name,
+            valor: (selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0)).toFixed(2),
+            customer_id: customerId
+          },
+          appointmentId: appointment.id
+        });
+      }
+
       // 3. Create transaction for the appointment (remaining amount - new revenue)
       if (paymentMethod === 'pix' || paymentMethod === 'barbershop' || calculateTotal() === 0) {
         const finalPaymentMethod = paymentMethod === 'pix' ? 'PIX' : (paymentMethod === 'barbershop' ? 'BARBEARIA' : 'CRÉDITOS/CASHBACK');
