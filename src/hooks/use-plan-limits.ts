@@ -83,7 +83,8 @@ export function usePlanLimits() {
     ]);
 
     if (profileRes.data) {
-      const currentPlan = profileRes.data.plan as PlanType || "free";
+      console.log("[usePlanLimits] Profile data:", profileRes.data);
+      const currentPlan = (profileRes.data.plan as string)?.toLowerCase() as PlanType || "free";
       setPlan(currentPlan);
       
       // Calculate trial end (15 days from creation)
