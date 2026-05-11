@@ -322,8 +322,12 @@ function SubscriptionComponent() {
           <DialogHeader className="p-6 pb-2 border-b shrink-0">
             <DialogTitle>Finalizar assinatura</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full overflow-y-auto bg-white custom-stripe-container min-h-[500px]">
-            {checkoutElement}
+          <div className="flex-1 w-full overflow-y-auto bg-white custom-stripe-container min-h-[500px] p-4 sm:p-6">
+            {checkoutElement || (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
