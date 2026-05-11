@@ -264,7 +264,7 @@ function SettingsComponent() {
 
     // Prevent saving gateway config for free plan
     const updatedData = { ...formData };
-    if (plan === "free" || plan === "basic") {
+    if (plan === "free" || plan === "starter") {
       updatedData.payment_gateway_provider = "none";
       updatedData.payment_gateway_key = "";
     }
