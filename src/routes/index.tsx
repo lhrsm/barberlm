@@ -175,12 +175,85 @@ function LandingPageComponent() {
             <div className="text-white/50 font-medium uppercase tracking-widest text-sm">Agendamentos realizados</div>
           </div>
           <div className="space-y-2">
-            <div className="text-5xl font-black text-white">+R$80 mil</div>
-            <div className="text-white/50 font-medium uppercase tracking-widest text-sm">Gerenciados no sistema</div>
+            <div className="text-5xl font-black text-white">Milhares</div>
+            <div className="text-white/50 font-medium uppercase tracking-widest text-sm">De clientes atendidos</div>
           </div>
           <div className="space-y-2">
             <div className="text-5xl font-black text-white">Dezenas</div>
-            <div className="text-white/50 font-medium uppercase tracking-widest text-sm">De barbearias ativas</div>
+            <div className="text-white/50 font-medium uppercase tracking-widest text-sm">De barbearias utilizando</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trial Exclusive Benefits */}
+      <section className="py-32 px-4 relative overflow-hidden bg-primary/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <div className="flex-1 space-y-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/20 text-primary text-sm font-bold uppercase tracking-widest">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>O que está incluso no teste</span>
+              </div>
+              <h2 className="text-4xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+                Tudo liberado por <span className="text-primary">15 dias grátis.</span>
+              </h2>
+              <p className="text-xl text-white/50 font-medium leading-relaxed">
+                Durante os 15 dias de teste do plano Pro, você terá acesso total a todas as ferramentas premium do sistema, sem limitações.
+              </p>
+              
+              <div className="grid sm:grid-cols-2 gap-6 pt-4">
+                {[
+                  "WhatsApp automático",
+                  "Sistema de Cashback",
+                  "Financeiro completo",
+                  "Comissão automática",
+                  "Agenda inteligente",
+                  "Relatórios avançados",
+                  "Dashboard em tempo real",
+                  "Gestão de estoque"
+                ].map((benefit, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                      <Check className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-white font-bold">{benefit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex-1 relative">
+              <div className="absolute -inset-4 bg-primary/20 blur-[60px] rounded-full animate-pulse"></div>
+              <div className="relative glass p-8 lg:p-12 rounded-[3rem] border border-white/10 shadow-2xl">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                        <Zap className="text-primary h-6 w-6" />
+                      </div>
+                      <div className="font-bold text-white text-lg">Plano Pro Liberado</div>
+                    </div>
+                    <div className="text-primary font-black text-xl">GRÁTIS</div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-primary w-1/3 animate-pulse"></div>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold uppercase tracking-widest text-white/40">
+                      <span>Início do teste</span>
+                      <span>15 dias</span>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <Button className="w-full h-16 text-lg font-black bg-primary hover:bg-primary/90" asChild>
+                      <Link to="/auth">Começar agora</Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
