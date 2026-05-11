@@ -84,9 +84,9 @@ function LandingPageComponent() {
         <div className="absolute top-1/4 -right-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] -z-10 animate-glow" style={{ animationDelay: '2s' }}></div>
 
         <div className="max-w-7xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-white/10 text-primary text-sm font-medium mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full glass border border-primary/30 text-primary text-sm font-bold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 shadow-[0_0_20px_rgba(var(--primary),0.2)]">
             <Zap className="h-4 w-4 fill-current" />
-            <span>A plataforma definitiva para barbeiros</span>
+            <span>Teste o plano Pro grátis por 15 dias</span>
           </div>
           
           <h1 className="text-5xl lg:text-[84px] font-black tracking-tighter mb-8 text-white leading-[1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
@@ -98,15 +98,33 @@ function LandingPageComponent() {
             Agendamentos online, WhatsApp, financeiro, cashback, comissões e automações em um único sistema simples de usar.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-20 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-300">
-            <Button size="lg" className="h-16 px-10 text-lg font-bold bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(var(--primary),0.4)] group" asChild>
-              <Link to="/auth">
-                Começar agora <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="h-16 px-10 text-lg font-semibold border-white/10 hover:bg-white/5 text-white" asChild>
-              <a href="#funcionalidades">Agendar demonstração</a>
-            </Button>
+          <div className="flex flex-col items-center gap-6 mb-20 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-300">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <Button size="lg" className="h-20 px-12 text-xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_40px_rgba(var(--primary),0.5)] group relative overflow-hidden" asChild>
+                <Link to="/auth">
+                  <div className="flex flex-col items-center leading-tight">
+                    <span>Começar teste grátis</span>
+                    <span className="text-xs font-medium opacity-80">Acesse o plano Pro grátis por 15 dias</span>
+                  </div>
+                  <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="h-20 px-12 text-xl font-bold border-white/10 hover:bg-white/5 text-white" asChild>
+                <a href="#funcionalidades">Ver funcionalidades</a>
+              </Button>
+            </div>
+            
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-white/40 text-sm font-bold uppercase tracking-widest">
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary" /> Sem cartão de crédito
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary" /> Acesso imediato
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary" /> Cancele quando quiser
+              </div>
+            </div>
           </div>
           
           {/* Dashboard Mockup */}
