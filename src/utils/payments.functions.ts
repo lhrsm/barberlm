@@ -161,6 +161,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         line_items: [{ price: stripePrice.id, quantity: data.quantity || 1 }],
         mode: isRecurring ? "subscription" : "payment",
         ui_mode: "embedded",
+        customer_update: {
+          address: 'auto',
+          name: 'auto',
+        },
+        billing_address_collection: 'required',
         return_url: data.returnUrl,
         ...(customerId && { customer: customerId }),
         ...(userId && {
