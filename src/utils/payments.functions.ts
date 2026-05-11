@@ -79,10 +79,12 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { userId } = context;
+    const startTime = Date.now();
     console.log("[Checkout Server] 🚀 INICIANDO handler de createCheckoutSession", {
       priceId: data.priceId,
       environment: data.environment,
-      userId: userId
+      userId: userId,
+      timestamp: new Date().toISOString()
     });
     
     try {
@@ -121,7 +123,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       const product = stripePrice.product as any;
       const productName = product?.name || "Plano";
       
-      console.log("[Checkout Server] ✅ Preço identificado:", stripePrice.id, "Product:", productName);
+      console.log(`[Checkout Server] ✅ Preço identificado em ${Date.now() - startTime}ms:`, stripePrice.id, "Product:", productName);
 
       console.log("[Checkout Server] 👤 Chamando resolveOrCreateCustomer...");
       const customerId = await resolveOrCreateCustomer(stripe, {
@@ -129,7 +131,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         userId: userId,
       });
 
-      console.log("[Checkout Server] ✅ Customer ID obtido:", customerId);
+      console.log(`[Checkout Server] ✅ Customer ID obtido em ${Date.now() - startTime}ms:`, customerId);
 
       // Aplicar trial de 15 dias para todos os planos pagos recorrentes (conforme solicitado)
       const trialDays = isRecurring ? 15 : undefined;
@@ -167,10 +169,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         }),
       } as any);
 
-      console.log("[Checkout Server] ✨ Checkout Session criada com sucesso:", {
+      console.log(`[Checkout Server] ✨ Checkout Session criada com sucesso em ${Date.now() - startTime}ms:`, {
         id: session.id,
-        livemode: session.livemode,
-        url: session.url
+        livemode: session.livemode
       });
       
       return session.client_secret;
