@@ -30,8 +30,10 @@ import {
   Copy,
   Check,
   ExternalLink,
-  UserRound
+  UserRound,
+  History
 } from "lucide-react";
+import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
 import { QRCodeSVG } from "qrcode.react";
 import {
   Dialog,
