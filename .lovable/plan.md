@@ -1,28 +1,20 @@
-I will refactor the landing page to create a premium, modern, and high-converting SaaS experience for BarberLM.
+Para implementar a estrutura de pagamentos com Stripe, seguiremos estes passos:
 
-### Visual Strategy
-- **Dark Mode Aesthetic**: The page will use a sophisticated dark theme by default (using `dark` class) to convey a premium "tech startup" feel.
-- **Modern UI Elements**: I will implement soft gradients, glow effects (using CSS shadows and radial gradients), and glassmorphism (backdrop filters).
-- **Responsive Layout**: Ensuring perfect display on all screen sizes, with optimized spacing for mobile.
+1. **Sincronização do Banco de Dados**: Atualizaremos a tabela `plans` para refletir os novos planos (Starter, Pro e Elite) e seus respectivos preços (19.90, 39.90 e 59.90), alinhando o banco de dados com o que já foi alterado na interface.
+2. **Integração com Stripe**: 
+    - Recomendo o uso do **Stripe via Lovable**, que é uma integração simplificada onde você não precisa configurar chaves de API manualmente ou lidar com Webhooks complexos.
+    - Se você preferir usar sua própria conta Stripe (BYOK), precisaremos configurar as chaves de API e criar Edge Functions para lidar com os eventos de pagamento.
+3. **Checkout e Portal**:
+    - Substituiremos a lógica atual (que apenas atualiza o banco local) por uma chamada para criar uma sessão de Checkout do Stripe.
+    - Adicionaremos um botão para o usuário gerenciar sua assinatura através do Portal do Cliente do Stripe.
+4. **Fluxo de Webhook**: Configuraremos a atualização automática do plano do usuário assim que o pagamento for confirmado pelo Stripe.
 
-### Sections Implementation
-1.  **Header**: Premium glassmorphism navigation with a clear CTA.
-2.  **Hero Section**: 
-    - High-impact headline and subheadline.
-    - Dual CTAs: "Começar agora" (Primary) and "Agendar demonstração" (Secondary).
-    - Large system mockup with subtle floating animations and a glow background.
-3.  **Metrics Bar**: Premium layout for social proof showing "+1.200 agendamentos", "+R$80 mil gerenciados", etc.
-4.  **Problem Section**: "Você ainda perde clientes por..." highlighting pain points like disorganization and manual confirmations.
-5.  **Solution Section**: Modern grid of cards with glassmorphism and custom icons for key features (Agenda, WhatsApp Auto, Cashback, etc.).
-6.  **Pricing Section**: 
-    - 3-tier paid-only pricing: Starter (R$19.90), Pro (R$39.90 - Highlighted), Elite (R$59.90).
-    - Premium visuals for the "Pro" plan with a "MAIS POPULAR" badge and subtle glow.
-    - Explicit mention of "Sem taxa por agendamento".
-7.  **FAQ Section**: Modern accordion-style FAQ with smooth transitions.
-8.  **Final CTA**: High-conversion footer section to drive sign-ups.
+**Decisão técnica necessária:**
+Você deseja usar a integração simplificada do Lovable (mais rápida e sem configuração técnica) ou conectar sua própria conta do Stripe com suas chaves de API?
 
-### Technical Details
-- Use `lucide-react` for modern iconography.
-- Implement custom CSS animations in `src/styles.css` for floating effects and smooth fades.
-- Leverage Tailwind 4 features for the glassmorphism and gradient effects.
-- Clean up the existing `src/routes/index.tsx` to remove the outdated sections and replace them with the new components.
+Para começar, vou primeiro atualizar os planos no banco de dados.
+
+### Detalhes Técnicos
+- Migração SQL para atualizar a tabela `plans`.
+- Uso do hook `use-payments` ou integração direta com o Stripe via Edge Functions.
+- Atualização do componente `SubscriptionComponent` para invocar o checkout.
