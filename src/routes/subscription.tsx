@@ -189,19 +189,41 @@ function SubscriptionComponent() {
         </div>
 
         <div className="grid gap-6">
+          {isTrial && (
+            <Card className="border-blue-500/30 bg-blue-50/50">
+              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-100 rounded-full text-blue-600">
+                    <Clock className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-900">Seu período de teste expira em {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'}</h3>
+                    <p className="text-sm text-blue-700/70">Assine agora para garantir que sua barbearia não pare e continue com todos os recursos Pro!</p>
+                  </div>
+                </div>
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 whitespace-nowrap" onClick={() => {
+                  const proConfig = planConfigs.find(c => c.id === 'pro');
+                  if (proConfig) handlePlanChange('pro');
+                }}>
+                  Assinar Plano Pro Agora
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Plan Status */}
           <Card className="border-primary/20 bg-primary/5">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  Plano Atual: <span className="capitalize text-primary font-bold">{plan === 'free' ? 'Teste Grátis (Expirando)' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
+                  Plano Atual: <span className="capitalize text-primary font-bold">{plan === 'free' ? 'Teste Grátis' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
                   {plan === 'pro' && <Crown className="text-yellow-500 w-5 h-5" />}
                   {plan === 'elite' && <Rocket className="text-purple-500 w-5 h-5" />}
                 </CardTitle>
                 <CardDescription>Acompanhe o uso dos seus recursos.</CardDescription>
               </div>
               <div className="bg-background/50 px-3 py-1 rounded-full border text-xs font-medium">
-                {plan === 'free' ? 'Período de Experiência Expirando' : 'Assinatura Ativa'}
+                {plan === 'free' ? 'Período de Experiência' : 'Assinatura Ativa'}
               </div>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-5">
