@@ -47,6 +47,7 @@ export function WhatsAppSettings() {
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
   const [testingConnection, setTestingConnection] = useState<string | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
   
   const [newConnection, setNewConnection] = useState({
     business_name: "",
