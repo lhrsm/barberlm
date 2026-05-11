@@ -3,7 +3,8 @@ import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { createCheckoutSession } from "@/utils/payments.functions";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StripeEmbeddedCheckoutProps {
   priceId: string;
@@ -32,9 +33,17 @@ export function StripeEmbeddedCheckout({
         throw new Error("Price ID is missing in StripeEmbeddedCheckout component.");
       }
 
-      console.log("[StripeEmbeddedCheckout] 📡 Invocando server function: createCheckoutSession");
+      // Obtendo o token de acesso do Supabase para autenticar a chamada do servidor
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       
-      // Adicionando um timeout de segurança para a chamada do servidor
+      if (!token) {
+        console.error("[StripeEmbeddedCheckout] ❌ Token de acesso não encontrado");
+        throw new Error("Você precisa estar autenticado para realizar esta operação.");
+      }
+
+      console.log("[StripeEmbeddedCheckout] 📡 Invocando server function com token");
+      
       const sessionPromise = createCheckoutSession({
         data: {
           priceId,
@@ -43,6 +52,9 @@ export function StripeEmbeddedCheckout({
           userId,
           returnUrl: returnUrl || `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
           environment: getStripeEnvironment(),
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -57,20 +69,25 @@ export function StripeEmbeddedCheckout({
         throw new Error("Não foi possível gerar a sessão de pagamento (secret vazio).");
       }
       
-      console.log("[StripeEmbeddedCheckout] ✅ Client secret obtido com sucesso:", typeof secret === 'string' ? secret.substring(0, 10) + "..." : "VALOR NÃO É STRING");
+      console.log("[StripeEmbeddedCheckout] ✅ Client secret obtido com sucesso");
       return secret;
     } catch (err: any) {
-      console.error("[StripeEmbeddedCheckout] 💥 CRASH em fetchClientSecret:", err);
-      // Log more details about the error if it's a Response object (common in TanStack Start server functions)
+      console.error("[StripeEmbeddedCheckout] 💥 Erro em fetchClientSecret:", err);
+      
+      let message = "Erro ao carregar o checkout do Stripe.";
+      
       if (err instanceof Response) {
         try {
           const body = await err.text();
-          console.error("[StripeEmbeddedCheckout] 🔍 Response body do erro:", body);
+          console.error("[StripeEmbeddedCheckout] 🔍 Erro do Servidor (Body):", body);
+          message = body || `Erro do Servidor (${err.status})`;
         } catch (e) {
-          console.error("[StripeEmbeddedCheckout] 🔍 Não foi possível ler o corpo do erro");
+          message = `Erro do Servidor (${err.status})`;
         }
+      } else if (err.message) {
+        message = err.message;
       }
-      const message = err.message || "Erro desconhecido ao carregar o checkout do Stripe.";
+      
       setError(message);
       toast.error(message);
       throw err;
@@ -89,9 +106,9 @@ export function StripeEmbeddedCheckout({
   return (
     <div id="checkout" className="w-full">
       <EmbeddedCheckoutProvider stripe={getStripe()} options={{ fetchClientSecret }}>
-        <div className="min-h-[400px] flex flex-col items-center justify-center">
+        <div className="min-h-[400px] flex flex-col items-center justify-center relative">
           <EmbeddedCheckout />
-          {/* Overlay loader while Stripe is initializing */}
+          {/* Loader suave */}
           <div className="absolute inset-0 flex items-center justify-center bg-background/50 pointer-events-none z-0">
              <Loader2 className="w-8 h-8 animate-spin text-primary opacity-20" />
           </div>
