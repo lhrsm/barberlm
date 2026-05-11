@@ -24,8 +24,13 @@ export function StripeEmbeddedCheckout({
 
   const fetchClientSecret = async (): Promise<string> => {
     try {
-      console.log("StripeEmbeddedCheckout: Fetching client secret for price:", priceId);
+      console.log("[StripeEmbeddedCheckout] fetchClientSecret started for:", priceId);
       setError(null);
+      
+      if (!priceId) {
+        throw new Error("Price ID is missing in StripeEmbeddedCheckout component.");
+      }
+
       const secret = await createCheckoutSession({
         data: {
           priceId,
@@ -38,16 +43,15 @@ export function StripeEmbeddedCheckout({
       });
       
       if (!secret) {
-        console.error("Empty client_secret received");
+        console.error("[StripeEmbeddedCheckout] Received null/empty client_secret");
         throw new Error("Não foi possível gerar a sessão de pagamento (secret vazio).");
       }
-      console.log("Stripe Session Secret received, length:", secret.length);
+      
+      console.log("[StripeEmbeddedCheckout] Client secret fetched successfully");
       return secret;
     } catch (err: any) {
-      console.error("Checkout error in fetchClientSecret:", err);
-      // Extra details for debugging
-      const details = err.message || JSON.stringify(err);
-      const message = `Erro ao carregar o checkout do Stripe: ${details}`;
+      console.error("[StripeEmbeddedCheckout] fetchClientSecret CRASH:", err);
+      const message = err.message || "Erro desconhecido ao carregar o checkout do Stripe.";
       setError(message);
       toast.error(message);
       throw err;
