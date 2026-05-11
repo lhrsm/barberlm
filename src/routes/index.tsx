@@ -350,7 +350,7 @@ function LandingPageComponent() {
           
           <div className="grid lg:grid-cols-3 gap-8 items-center max-w-6xl mx-auto">
             {/* Starter Plan */}
-            <div className="glass p-10 rounded-3xl border border-white/5 flex flex-col h-full relative group hover:border-white/10 transition-all">
+            <div className="glass p-10 rounded-3xl border border-white/5 flex flex-col h-full relative group hover:border-white/10 transition-all opacity-80 hover:opacity-100">
               <div className="mb-8">
                 <h3 className="text-2xl font-black text-white mb-2">Starter</h3>
                 <p className="text-white/50 font-medium">Ideal para barbeiros iniciantes.</p>
@@ -371,16 +371,22 @@ function LandingPageComponent() {
             </div>
 
             {/* Pro Plan */}
-            <div className="glass p-10 rounded-3xl border-2 border-primary bg-primary/5 flex flex-col h-full relative scale-105 shadow-[0_0_50px_rgba(var(--primary),0.2)]">
-              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-black px-6 py-2 rounded-full uppercase tracking-widest">
-                MAIS POPULAR
+            <div className="glass p-10 rounded-3xl border-2 border-primary bg-primary/10 flex flex-col h-full relative scale-110 z-10 shadow-[0_0_80px_rgba(var(--primary),0.3)] ring-1 ring-primary/50 animate-in fade-in zoom-in duration-700">
+              <div className="absolute -top-5 left-1/2 -translate-x-1/2 flex gap-2">
+                <div className="bg-primary text-primary-foreground text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">
+                  MAIS POPULAR
+                </div>
+                <div className="bg-blue-500 text-white text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">
+                  15 DIAS GRÁTIS
+                </div>
               </div>
               <div className="mb-8">
-                <h3 className="text-2xl font-black text-white mb-2">Pro</h3>
-                <p className="text-white/50 font-medium">Para barbearias em crescimento.</p>
+                <h3 className="text-3xl font-black text-white mb-2">Pro</h3>
+                <p className="text-white/60 font-bold">Para barbearias em crescimento.</p>
               </div>
               <div className="mb-10">
-                <div className="text-6xl font-black text-white">R$ 39,90<span className="text-lg font-bold text-white/40">/mês</span></div>
+                <div className="text-7xl font-black text-white tracking-tighter">R$ 39,90<span className="text-lg font-bold text-white/40">/mês</span></div>
+                <div className="text-primary font-black text-sm uppercase tracking-widest mt-2">Teste grátis por 15 dias</div>
               </div>
               <ul className="space-y-4 mb-10 flex-1">
                 <PricingItem text="Até 5 Profissionais" />
@@ -390,13 +396,13 @@ function LandingPageComponent() {
                 <PricingItem text="Relatórios de desempenho" />
                 <PricingItem text="Automações inteligentes" />
               </ul>
-              <Button className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(var(--primary),0.4)]" asChild>
-                <Link to="/auth">Assinar agora</Link>
+              <Button className="w-full h-16 text-xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_40px_rgba(var(--primary),0.5)] animate-pulse" asChild>
+                <Link to="/auth">Começar teste grátis</Link>
               </Button>
             </div>
 
             {/* Elite Plan */}
-            <div className="glass p-10 rounded-3xl border border-white/5 flex flex-col h-full relative group hover:border-white/10 transition-all">
+            <div className="glass p-10 rounded-3xl border border-white/5 flex flex-col h-full relative group hover:border-white/10 transition-all opacity-80 hover:opacity-100">
               <div className="mb-8">
                 <h3 className="text-2xl font-black text-white mb-2">Elite</h3>
                 <p className="text-white/50 font-medium">Solução definitiva sem limites.</p>
@@ -416,6 +422,43 @@ function LandingPageComponent() {
                 <Link to="/auth">Assinar agora</Link>
               </Button>
             </div>
+          </div>
+          
+          <div className="text-center mt-20">
+            <p className="text-xl text-white/60 font-medium">
+              Teste gratuitamente o plano Pro por 15 dias e descubra como profissionalizar sua barbearia.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-32 px-4 relative overflow-hidden bg-white/[0.01]">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-base font-bold text-primary uppercase tracking-[0.2em] mb-4">Depoimentos</h2>
+            <p className="text-4xl lg:text-6xl font-black text-white tracking-tight">Quem usa, recomenda</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <TestimonialCard 
+              name="Carlos Henrique"
+              business="Barbearia Prime"
+              text="Depois que comecei a usar o BarberLM minha agenda ficou muito mais organizada."
+              avatar="CH"
+            />
+            <TestimonialCard 
+              name="Rafael Mendes"
+              business="Barber Studio"
+              text="O financeiro e as automações economizaram muito tempo no dia a dia."
+              avatar="RM"
+            />
+            <TestimonialCard 
+              name="João Victor"
+              business="Barbearia Imperial"
+              text="O WhatsApp automático reduziu muito as faltas dos clientes."
+              avatar="JV"
+            />
           </div>
         </div>
       </section>
