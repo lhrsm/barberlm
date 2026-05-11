@@ -36,7 +36,7 @@ async function resolveOrCreateCustomer(
 }
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  // .middleware([requireSupabaseAuth]) // Temporariamente desativado para depuração
   .inputValidator((data: {
     priceId: string;
     quantity?: number;
