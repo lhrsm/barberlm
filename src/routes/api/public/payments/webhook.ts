@@ -110,19 +110,26 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
 
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
+  console.log(`[Webhook] 📥 Evento recebido: ${event.type} (${env})`);
 
   switch (event.type) {
     case "customer.subscription.created":
+      console.log("[Webhook] Processing subscription.created");
       await handleSubscriptionCreated(event.data.object, env);
       break;
     case "customer.subscription.updated":
+      console.log("[Webhook] Processing subscription.updated");
       await handleSubscriptionUpdated(event.data.object, env);
       break;
     case "customer.subscription.deleted":
+      console.log("[Webhook] Processing subscription.deleted");
       await handleSubscriptionDeleted(event.data.object, env);
       break;
+    case "checkout.session.completed":
+      console.log("[Webhook] Checkout session completed");
+      break;
     default:
-      console.log("Unhandled event:", event.type);
+      console.log("[Webhook] Unhandled event:", event.type);
   }
 }
 
