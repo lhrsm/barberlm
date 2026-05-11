@@ -108,10 +108,8 @@ export function StripeEmbeddedCheckout({
       <EmbeddedCheckoutProvider stripe={getStripe()} options={{ fetchClientSecret }}>
         <div className="min-h-[400px] flex flex-col items-center justify-center relative">
           <EmbeddedCheckout />
-          {/* Loader suave */}
-          <div className="absolute inset-0 flex items-center justify-center bg-background/50 pointer-events-none z-0">
-             <Loader2 className="w-8 h-8 animate-spin text-primary opacity-20" />
-          </div>
+          {/* Stripe EmbeddedCheckout gerencia seu próprio carregamento */}
+
         </div>
       </EmbeddedCheckoutProvider>
     </div>
