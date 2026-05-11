@@ -298,11 +298,11 @@ function SubscriptionComponent() {
       </div>
 
       <Dialog open={isOpen} onOpenChange={(o) => { if (!o) closeCheckout(); }}>
-        <DialogContent className="max-w-3xl min-h-[500px] max-h-[90vh] overflow-y-auto p-0 flex flex-col">
-          <DialogHeader className="p-6 pb-2 border-b">
+        <DialogContent className="max-w-3xl min-h-[600px] h-[80vh] overflow-y-auto p-0 flex flex-col sm:rounded-xl">
+          <DialogHeader className="p-6 pb-2 border-b shrink-0">
             <DialogTitle>Finalizar assinatura</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full bg-white">
+          <div className="flex-1 w-full overflow-y-auto bg-white custom-stripe-container">
             {checkoutElement}
           </div>
         </DialogContent>
