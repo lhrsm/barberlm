@@ -44,16 +44,31 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     returnUrl: string;
     environment: StripeEnv;
   }) => {
-    if (!/^[a-zA-Z0-9_-]+$/.test(data.priceId)) throw new Error("Invalid priceId");
     return data;
   })
   .handler(async ({ data }) => {
+    console.log("[Checkout] Creating session for:", data.priceId);
     const stripe = createStripeClient(data.environment);
 
-    const prices = await stripe.prices.list({ lookup_keys: [data.priceId] });
-    if (!prices.data.length) throw new Error("Price not found");
+    // Use priceId as lookup_key as defined in the creation step
+    console.log("[Checkout] Searching for price with lookup_key:", data.priceId);
+    const prices = await stripe.prices.list({ 
+      lookup_keys: [data.priceId],
+      active: true,
+      limit: 1
+    });
+
+    if (!prices.data.length) {
+      console.error("[Checkout] Price not found for lookup_key:", data.priceId);
+      // Fallback: try to list all prices to see what's available
+      const allPrices = await stripe.prices.list({ limit: 10, active: true });
+      console.log("[Checkout] Available prices:", allPrices.data.map(p => ({ id: p.id, lookup_key: p.lookup_key })));
+      throw new Error(`Price not found: ${data.priceId}`);
+    }
+
     const stripePrice = prices.data[0];
     const isRecurring = stripePrice.type === "recurring";
+    console.log("[Checkout] Found price:", stripePrice.id, "recurring:", isRecurring);
 
     const customerId = (data.customerEmail || data.userId)
       ? await resolveOrCreateCustomer(stripe, {
@@ -62,10 +77,12 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         })
       : undefined;
 
+    console.log("[Checkout] Customer ID:", customerId);
+
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: data.quantity || 1 }],
       mode: isRecurring ? "subscription" : "payment",
-      ui_mode: "embedded_page",
+      ui_mode: "embedded", // Changed from embedded_page to embedded
       return_url: data.returnUrl,
       ...(customerId && { customer: customerId }),
       ...(data.userId && {
@@ -74,6 +91,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       }),
     } as any);
 
+    console.log("[Checkout] Session created, client_secret available:", !!session.client_secret);
     return session.client_secret;
   });
 
