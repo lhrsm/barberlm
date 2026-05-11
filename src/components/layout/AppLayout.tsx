@@ -36,7 +36,9 @@ const defaultNavItems = [
   { label: "Produtos", icon: ShoppingBag, to: "/products" },
   { label: "Assinatura", icon: CreditCard, to: "/subscription" },
   { label: "Suporte", icon: LifeBuoy, to: "/support" },
+  { label: "Tutoriais", icon: HelpCircle, to: "/support" },
   { label: "Configurações", icon: Settings, to: "/settings" },
+
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
