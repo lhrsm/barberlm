@@ -308,7 +308,13 @@ function SubscriptionComponent() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  Plano Atual: <span className="capitalize text-primary font-bold">{(!plan || plan === 'free') ? 'Grátis' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
+                  Plano Atual: <span className="capitalize text-primary font-bold">{
+                    plan === 'starter' ? 'Starter' : 
+                    plan === 'pro' ? 'Pro' : 
+                    plan === 'elite' ? 'Elite' : 
+                    (!plan || plan === 'free') ? 'Grátis' : 
+                    plan
+                  }</span>
                   {plan === 'pro' && <Crown className="text-yellow-500 w-5 h-5" />}
                   {plan === 'elite' && <Rocket className="text-purple-500 w-5 h-5" />}
                 </CardTitle>
