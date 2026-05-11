@@ -14,9 +14,14 @@ function getSupabase(): any {
 }
 
 const PRICE_TO_PLAN: Record<string, string> = {
+  // Lookup keys
   starter_monthly: "starter",
   pro_monthly: "pro",
   elite_monthly: "elite",
+  // Real IDs (LIVE)
+  price_1TVtOWPKG6q10UjrQErPgyKO: "starter", // Starter LIVE
+  price_1TVtOVPKG6q10Ujre6zMGYpk: "pro",     // Pro LIVE
+  price_1TVsefPKG6q10UjrKpTaUe71: "elite",   // Elite LIVE
 };
 
 async function syncProfilePlan(userId: string, priceId: string | undefined, status: string) {
