@@ -6,10 +6,10 @@ dotenv.config();
 async function listLiveProducts() {
   try {
     const stripe = createStripeClient('live');
-    const products = await stripe.products.list({ active: true, expand: ['data.default_price'] });
-    console.log("LIVE PRODUCTS:");
+    const products = await stripe.products.list({ expand: ['data.default_price'] });
+    console.log("ALL PRODUCTS (Active & Inactive):");
     products.data.forEach(p => {
-      console.log(`- Product: ${p.name} (${p.id})`);
+      console.log(`- Product: ${p.name} (${p.id}) [Active: ${p.active}]`);
       console.log(`  Metadata: ${JSON.stringify(p.metadata)}`);
       // @ts-ignore
       const price = p.default_price;
@@ -18,11 +18,11 @@ async function listLiveProducts() {
       }
     });
 
-    const prices = await stripe.prices.list({ active: true, expand: ['data.product'] });
-    console.log("\nLIVE PRICES:");
+    const prices = await stripe.prices.list({ expand: ['data.product'] });
+    console.log("\nALL PRICES:");
     prices.data.forEach(p => {
       const prod = p.product as any;
-      console.log(`- Price: ${p.id} for Product: ${prod.name} (${prod.id})`);
+      console.log(`- Price: ${p.id} for Product: ${prod.name} (${prod.id}) [Active: ${p.active}]`);
       console.log(`  lookup_key: ${p.lookup_key}`);
       console.log(`  unit_amount: ${p.unit_amount}`);
     });
