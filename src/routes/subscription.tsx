@@ -47,16 +47,22 @@ function SubscriptionComponent() {
   const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
 
   const handlePlanChange = async (newPlan: PlanType) => {
-    console.log("handlePlanChange called for plan:", newPlan);
+    console.log("[Subscription] handlePlanChange called for plan:", newPlan);
     if (!user) {
-      console.warn("User not logged in");
+      console.warn("[Subscription] User not logged in");
       toast.error("Você precisa estar logado.");
       return;
     }
     if (newPlan === 'free') return;
 
     const priceId = PLAN_PRICE_IDS[newPlan];
-    console.log("Opening checkout for priceId:", priceId);
+    if (!priceId) {
+      console.error("[Subscription] Price ID not found for plan:", newPlan);
+      toast.error("Erro interno: ID do preço não configurado.");
+      return;
+    }
+    
+    console.log("[Subscription] Opening checkout for priceId:", priceId);
     
     try {
       openCheckout({
@@ -65,7 +71,7 @@ function SubscriptionComponent() {
         returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       });
     } catch (err) {
-      console.error("Error calling openCheckout:", err);
+      console.error("[Subscription] Error calling openCheckout:", err);
       toast.error("Erro ao iniciar o checkout.");
     }
   };

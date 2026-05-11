@@ -96,7 +96,8 @@ export function usePlanLimits() {
         setPlan(currentPlan);
         
         // Calculate trial end (15 days from creation)
-        const createdAt = new Date(profileRes.data.created_at);
+        const createdAtStr = profileRes.data.created_at;
+        const createdAt = createdAtStr ? new Date(createdAtStr) : new Date();
         const trialEnd = new Date(createdAt);
         trialEnd.setDate(createdAt.getDate() + 15);
         setTrialEndsAt(trialEnd.toISOString());
