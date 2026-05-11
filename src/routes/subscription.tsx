@@ -295,6 +295,17 @@ function SubscriptionComponent() {
           </div>
         </div>
       </div>
+
+      <Dialog open={isOpen} onOpenChange={(o) => { if (!o) closeCheckout(); }}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>Finalizar assinatura</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            {checkoutElement}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
