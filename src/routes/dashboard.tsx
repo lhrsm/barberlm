@@ -32,7 +32,8 @@ import {
   RefreshCcw,
   Gift,
   Eye,
-  StopCircle
+  StopCircle,
+  Rocket
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
