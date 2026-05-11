@@ -36,7 +36,7 @@ async function resolveOrCreateCustomer(
 }
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
-  // .middleware([requireSupabaseAuth]) // Temporariamente desativado para depuração
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: {
     priceId: string;
     quantity?: number;
@@ -48,9 +48,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     return data;
   })
   .handler(async ({ data, context }) => {
-    const userId = (context as any)?.userId || data.userId;
+    const { userId } = context;
     console.log("[Checkout Server] 🚀 INICIANDO handler de createCheckoutSession");
-    console.log("[Checkout Server] 🆔 User ID final:", userId);
+    console.log("[Checkout Server] 🆔 User ID do contexto:", userId);
     console.log("[Checkout Server] 📦 Input data:", { 
       priceId: data.priceId, 
       environment: data.environment,
