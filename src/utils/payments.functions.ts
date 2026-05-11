@@ -49,54 +49,86 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    console.log("[Checkout Server] Starting for userId:", userId, "priceId:", data.priceId);
+    console.log("[Checkout Server] 🚀 Iniciando checkout para userId:", userId);
+    console.log("[Checkout Server] 📦 Detalhes:", { 
+      priceId: data.priceId, 
+      environment: data.environment,
+      email: data.customerEmail 
+    });
     
     const stripe = createStripeClient(data.environment);
     
     // Search for price
     let stripePrice;
-    console.log("[Checkout Server] Searching price by lookup_key:", data.priceId);
     try {
-      const prices = await stripe.prices.list({ 
-        lookup_keys: [data.priceId],
-        active: true,
-        limit: 1
-      });
-
-      if (prices.data.length > 0) {
-        stripePrice = prices.data[0];
+      // Tentamos buscar por ID direto primeiro (mais seguro para LIVE)
+      if (data.priceId.startsWith('price_')) {
+        console.log("[Checkout Server] 🔍 Buscando preço por ID direto:", data.priceId);
+        stripePrice = await stripe.prices.retrieve(data.priceId, { expand: ['product'] });
       } else {
-        console.warn("[Checkout Server] lookup_key not found, searching by product metadata or ID");
-        const allPrices = await stripe.prices.list({ 
+        console.log("[Checkout Server] 🔍 Buscando preço por lookup_key:", data.priceId);
+        const prices = await stripe.prices.list({ 
+          lookup_keys: [data.priceId],
           active: true,
-          limit: 100,
+          limit: 1,
           expand: ['data.product']
         });
-        
-        stripePrice = allPrices.data.find(p => {
-          const product = p.product as any;
-          return product.metadata?.plan_id === data.priceId || p.id === data.priceId || p.lookup_key === data.priceId;
-        });
+
+        if (prices.data.length > 0) {
+          stripePrice = prices.data[0];
+        } else {
+          // Fallback: search by product metadata
+          console.warn("[Checkout Server] ⚠️ lookup_key não encontrada, buscando por metadata do produto");
+          const allPrices = await stripe.prices.list({ 
+            active: true,
+            limit: 100,
+            expand: ['data.product']
+          });
+          
+          stripePrice = allPrices.data.find(p => {
+            const product = p.product as any;
+            return product.metadata?.plan_id === data.priceId || p.lookup_key === data.priceId;
+          });
+        }
       }
     } catch (err) {
-      console.error("[Checkout Server] Stripe API error during price search:", err);
+      console.error("[Checkout Server] ❌ Erro na API do Stripe ao buscar preço:", err);
       throw err;
     }
 
     if (!stripePrice) {
-      console.error("[Checkout Server] No price found for:", data.priceId);
-      throw new Error(`Plano não encontrado no Stripe: ${data.priceId}. Certifique-se de que o preço existe no Stripe Dashboard.`);
+      console.error("[Checkout Server] ❌ Nenhum preço encontrado para:", data.priceId);
+      throw new Error(`Plano não encontrado no Stripe (${data.priceId}). Por favor, verifique se o produto e o preço estão configurados corretamente como ATIVOS no Stripe Dashboard.`);
     }
 
     const isRecurring = stripePrice.type === "recurring";
-    console.log("[Checkout Server] Found price:", stripePrice.id, "recurring:", isRecurring);
+    const product = stripePrice.product as any;
+    const productName = product?.name || "Plano";
+    
+    console.log("[Checkout Server] ✅ Preço encontrado:", {
+      id: stripePrice.id,
+      product: productName,
+      amount: stripePrice.unit_amount,
+      recurring: isRecurring
+    });
 
     const customerId = await resolveOrCreateCustomer(stripe, {
       email: data.customerEmail,
       userId: userId,
     });
 
-    console.log("[Checkout Server] Customer ID:", customerId);
+    console.log("[Checkout Server] 👤 Customer ID:", customerId);
+
+    // Determinar se deve aplicar trial (Pro Plan)
+    // Usamos price_1TVtOVPKG6q10Ujre6zMGYpk (LIVE) ou lookup_key pro_monthly
+    const isProPlan = stripePrice.id === "price_1TVtOVPKG6q10Ujre6zMGYpk" || 
+                     stripePrice.lookup_key === "pro_monthly" || 
+                     productName.toLowerCase().includes("pro");
+    
+    const trialDays = isProPlan ? 15 : undefined;
+    if (trialDays) {
+      console.log(`[Checkout Server] 🎁 Aplicando ${trialDays} dias de teste grátis (Plano Pro)`);
+    }
 
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: data.quantity || 1 }],
@@ -105,12 +137,17 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       return_url: data.returnUrl,
       ...(customerId && { customer: customerId }),
       ...(userId && {
-        metadata: { userId: userId },
-        ...(isRecurring && { subscription_data: { metadata: { userId: userId } } }),
+        metadata: { userId: userId, plan: productName },
+        ...(isRecurring && { 
+          subscription_data: { 
+            metadata: { userId: userId },
+            ...(trialDays && { trial_period_days: trialDays })
+          } 
+        }),
       }),
     } as any);
 
-    console.log("[Checkout Server] Session created, client_secret available:", !!session.client_secret);
+    console.log("[Checkout Server] ✨ Sessão criada com sucesso. LiveMode:", session.livemode);
     return session.client_secret;
   });
 
