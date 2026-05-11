@@ -122,12 +122,13 @@ export function usePlanLimits() {
     } catch (error) {
       console.error("[usePlanLimits] Error fetching data:", error);
     } finally {
+      console.log("[usePlanLimits] Fetch complete");
       setLoading(false);
     }
   }
 
-  const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
-  console.log("[usePlanLimits] Resolved plan:", plan, "limits:", limits);
+  const limits = (plan && PLAN_LIMITS[plan]) ? PLAN_LIMITS[plan] : PLAN_LIMITS.free;
+  console.log("[usePlanLimits] Resolved plan:", plan, "limits:", !!limits);
 
   const trialDaysRemaining = trialEndsAt 
     ? Math.max(0, differenceInDays(new Date(trialEndsAt), new Date()))
@@ -136,13 +137,14 @@ export function usePlanLimits() {
   const isTrial = (plan === "free" || plan === "pro") && trialDaysRemaining > 0 && subscription?.status !== 'active';
 
   const checkLimit = (type: keyof typeof usage) => {
+    if (!limits) return false;
     // @ts-ignore
     return usage[type] < limits[type];
   };
 
   return {
     plan,
-    limits,
+    limits: limits || PLAN_LIMITS.free,
     usage,
     loading,
     trialDaysRemaining,
