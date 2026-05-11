@@ -30,9 +30,11 @@ import {
   Copy,
   Check,
   ExternalLink,
-  UserRound
+  UserRound,
+  History
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
+import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
+
 import {
   Dialog,
   DialogContent,
@@ -52,14 +54,6 @@ function SettingsComponent() {
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [saving, setSaving] = useState(false);
-  const [whatsappInstances, setWhatsappInstances] = useState<any[]>([]);
-  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  const [newInstanceName, setNewInstanceName] = useState("");
-  const [connectionType, setConnectionType] = useState<"qrcode" | "api_key">("qrcode");
-  const [apiUrl, setApiUrl] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [connectingInstance, setConnectingInstance] = useState<string | null>(null);
-  const [qrValue, setQrValue] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -99,7 +93,6 @@ function SettingsComponent() {
   useEffect(() => {
     if (user && role !== 'super_admin') {
       fetchProfile();
-      fetchWhatsappInstances();
     }
   }, [user, role]);
 
@@ -171,91 +164,6 @@ function SettingsComponent() {
     }
   }
 
-  async function fetchWhatsappInstances() {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from("whatsapp_instances")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: true });
-
-    if (data) setWhatsappInstances(data);
-  }
-
-  async function handleAddWhatsapp() {
-    if (!user) return;
-    if (!checkLimit("whatsappConnections")) {
-      toast.error(`Seu plano ${plan === "free" ? "Grátis" : "Pro"} permite apenas ${limits.whatsappConnections} conexão(ões).`);
-      return;
-    }
-
-    const trimmedName = newInstanceName.trim();
-    if (!trimmedName) {
-      toast.error("Dê um nome para esta conexão (ex: Principal, Recepção)");
-      return;
-    }
-
-    if (connectionType === "api_key") {
-      if (!apiUrl.trim() || !apiKey.trim()) {
-        toast.error("Preencha a URL e a Chave da API");
-        return;
-      }
-    }
-
-    console.log("Creating WhatsApp instance for user:", user.id);
-
-    const { data, error } = await supabase
-      .from("whatsapp_instances")
-      .insert({
-        user_id: user.id,
-        name: trimmedName,
-        status: connectionType === "api_key" ? "connected" : "pending",
-        connection_type: connectionType,
-        api_url: connectionType === "api_key" ? apiUrl : null,
-        api_key: connectionType === "api_key" ? apiKey : null
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating WhatsApp connection:", error);
-      toast.error("Erro ao criar conexão: " + error.message);
-      return;
-    }
-
-    setNewInstanceName("");
-    setApiUrl("");
-    setApiKey("");
-    setWhatsappInstances([...whatsappInstances, data]);
-    
-    if (connectionType === "qrcode") {
-      setConnectingInstance(data.id);
-      setQrValue(`https://meu-saas.com/connect/${data.id}-${Math.random().toString(36).substr(2, 9)}`);
-      setIsQrModalOpen(true);
-    } else {
-      toast.success("Conexão via API configurada com sucesso!");
-    }
-    
-    refreshLimits();
-  }
-
-  async function handleDeleteWhatsapp(id: string) {
-    const { error } = await supabase
-      .from("whatsapp_instances")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      console.error("Error deleting WhatsApp connection:", error);
-      toast.error("Erro ao remover conexão");
-      return;
-    }
-
-    setWhatsappInstances(whatsappInstances.filter(i => i.id !== id));
-    toast.success("Conexão removida");
-    refreshLimits();
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
@@ -308,38 +216,6 @@ function SettingsComponent() {
 
     toast.success("Configurações salvas com sucesso!");
   }
-
-  // Simulated QR Code connection
-  const simulateConnection = async () => {
-    if (!connectingInstance) return;
-    
-    setSaving(true);
-    const toastId = toast.loading("Autenticando com o WhatsApp...");
-    
-    // Simulate network delay
-    setTimeout(async () => {
-      const { error } = await supabase
-        .from("whatsapp_instances")
-        .update({ 
-          status: "connected",
-          phone: "+55 (11) 9" + Math.floor(Math.random() * 90000000 + 10000000)
-        })
-        .eq("id", connectingInstance);
-
-      setSaving(false);
-      
-      if (error) {
-        console.error("Error updating connection status:", error);
-        toast.error("Erro ao finalizar conexão", { id: toastId });
-      } else {
-        setIsQrModalOpen(false);
-        setConnectingInstance(null);
-        await fetchWhatsappInstances();
-        await refreshLimits();
-        toast.success("WhatsApp conectado com sucesso!", { id: toastId });
-      }
-    }, 2000);
-  };
 
   if (loading || !user) return null;
 
@@ -768,215 +644,7 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="whatsapp" className="space-y-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <div>
-                    <CardTitle>Instâncias de WhatsApp</CardTitle>
-                    <CardDescription>Conecte seus números para notificações automáticas.</CardDescription>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-bold uppercase text-muted-foreground">Uso do Plano</span>
-                    <p className="text-sm font-bold">{usage.whatsappConnections} / {limits.whatsappConnections === Infinity ? "∞" : limits.whatsappConnections}</p>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between space-x-2 border p-4 rounded-lg bg-muted/50 mb-4">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Ativar Notificações</Label>
-                      <p className="text-sm text-muted-foreground">Habilite globalmente as mensagens automáticas.</p>
-                    </div>
-                    <Switch 
-                      checked={formData.whatsapp_enabled} 
-                      onCheckedChange={(checked) => setFormData({ ...formData, whatsapp_enabled: checked })}
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    {whatsappInstances.map((instance) => (
-                      <div key={instance.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-full ${instance.status === 'connected' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>
-                            <MessageSquare size={18} />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-sm">{instance.name}</p>
-                              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground uppercase">
-                                {instance.connection_type === 'api_key' ? 'API' : 'QR Code'}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${instance.status === 'connected' ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
-                              <span className="text-xs text-muted-foreground">
-                                {instance.status === 'connected' ? 'Conectado' : 'Aguardando QR Code'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {instance.status !== 'connected' && instance.connection_type === 'qrcode' && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => {
-                                setConnectingInstance(instance.id);
-                                setIsQrModalOpen(true);
-                              }}
-                              className="gap-2"
-                            >
-                              <QrCode size={14} /> Conectar
-                            </Button>
-                          )}
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleDeleteWhatsapp(instance.id)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-
-                    {whatsappInstances.length === 0 && (
-                      <div className="text-center py-6 border-2 border-dashed rounded-lg text-muted-foreground">
-                        Nenhum número conectado.
-                      </div>
-                    )}
-
-                    <div className="space-y-4 pt-4 border-t">
-                      <div className="grid gap-2">
-                        <Label>Nova Conexão</Label>
-                        <div className="flex gap-2">
-                          <Input 
-                            placeholder="Nome da conexão (ex: Principal)" 
-                            value={newInstanceName}
-                            onChange={(e) => setNewInstanceName(e.target.value)}
-                            disabled={!checkLimit("whatsappConnections")}
-                          />
-                          <Select 
-                            value={connectionType} 
-                            onValueChange={(value: any) => setConnectionType(value)}
-                            disabled={!checkLimit("whatsappConnections")}
-                          >
-                            <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder="Tipo de conexão" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="qrcode">QR Code</SelectItem>
-                              <SelectItem value="api_key">Chave de API</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      {connectionType === "api_key" && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
-                          <div className="grid gap-2">
-                            <Label htmlFor="api_url">URL da API</Label>
-                            <Input 
-                              id="api_url"
-                              placeholder="https://api.whatsapp.com/v1" 
-                              value={apiUrl}
-                              onChange={(e) => setApiUrl(e.target.value)}
-                            />
-                          </div>
-                          <div className="grid gap-2">
-                            <Label htmlFor="api_key">Chave da API</Label>
-                            <Input 
-                              id="api_key"
-                              type="password"
-                              placeholder="Sua chave secreta" 
-                              value={apiKey}
-                              onChange={(e) => setApiKey(e.target.value)}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <Button 
-                        type="button" 
-                        onClick={handleAddWhatsapp} 
-                        disabled={!checkLimit("whatsappConnections")}
-                        className="w-full gap-2"
-                      >
-                        <Plus size={18} /> Adicionar e Conectar
-                      </Button>
-                    </div>
-
-                    {!checkLimit("whatsappConnections") && (
-                      <p className="text-xs text-destructive font-medium text-center">
-                        Você atingiu o limite de conexões do seu plano. {plan === "free" && "Faça upgrade para adicionar mais."}
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Conectar WhatsApp</DialogTitle>
-                    <DialogDescription>
-                      Abra o WhatsApp no seu celular, vá em Aparelhos Conectados e escaneie o código abaixo.
-                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-amber-700 text-xs">
-                        <b>Ambiente de Teste:</b> O QR Code abaixo é figurativo. Para prosseguir com a demonstração, clique no botão "Simular Leitura" abaixo.
-                      </div>
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="flex flex-col items-center justify-center p-6 space-y-6">
-                    <div className="relative p-6 border-4 border-primary rounded-xl bg-white shadow-lg">
-                      {/* Dynamic QR Code */}
-                      <div className="w-48 h-48 bg-white flex items-center justify-center relative overflow-hidden group">
-                        {qrValue ? (
-                          <QRCodeSVG 
-                            value={qrValue} 
-                            size={192}
-                            level="H"
-                            includeMargin={false}
-                            imageSettings={{
-                              src: formData.logo_url || "/placeholder.svg",
-                              x: undefined,
-                              y: undefined,
-                              height: 40,
-                              width: 40,
-                              excavate: true,
-                            }}
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                            <RefreshCw className="animate-spin" />
-                            <p className="text-xs">Gerando código...</p>
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => setQrValue(qrValue + "1")}>
-                           <RefreshCw size={32} className="text-primary" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="w-full space-y-4">
-                      <div className="flex items-start gap-3 text-sm">
-                        <div className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold">1</div>
-                        <p>Abra o WhatsApp no seu celular</p>
-                      </div>
-                      <div className="flex items-start gap-3 text-sm">
-                        <div className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold">2</div>
-                        <p>Toque em <b>Menu</b> ou <b>Configurações</b> e selecione <b>Aparelhos Conectados</b></p>
-                      </div>
-                      <div className="flex items-start gap-3 text-sm">
-                        <div className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold">3</div>
-                        <p>Toque em <b>Conectar um aparelho</b> e aponte para esta tela</p>
-                      </div>
-                    </div>
-
-                    <Button className="w-full gap-2" onClick={simulateConnection}>
-                      <CheckCircle2 size={18} /> Simular Leitura do QR Code
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <WhatsAppSettings />
             </TabsContent>
 
             <TabsContent value="payments" className="space-y-4">

@@ -48,6 +48,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 
 export const Route = createFileRoute("/calendar")({
   component: CalendarComponent,
@@ -254,6 +255,29 @@ function CalendarComponent() {
       }).select().single();
 
       if (error) throw error;
+
+      // Send WhatsApp Confirmation
+      const customer = customers.find(c => c.id === selectedCustomer);
+      const barber = barbers.find(b => b.id === selectedBarber);
+      
+      // We check if notifications are enabled in profile
+      const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", user.id).single();
+
+      if (profile?.whatsapp_enabled && customer?.phone) {
+        triggerWhatsAppMessage({
+          userId: user.id,
+          eventType: 'appointment_confirmation',
+          phone: customer.phone,
+          placeholders: {
+            cliente: customer.name,
+            horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
+            barbeiro: barber?.name || "Barbeiro",
+            valor: (service?.price || 0).toFixed(2),
+            customer_id: selectedCustomer
+          },
+          appointmentId: appointmentData.id
+        });
+      }
 
       // Transações financeiras só devem ser criadas na conclusão (completeAppointment)
       // Se for pagamento imediato, marcamos apenas como pago

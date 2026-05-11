@@ -36,7 +36,7 @@ export const PLAN_LIMITS = {
     services: Infinity,
     products: Infinity,
     monthlyAppointments: Infinity,
-    whatsappConnections: Infinity,
+    whatsappConnections: 5,
     price: 59.90,
   },
 };
@@ -87,7 +87,7 @@ export function usePlanLimits() {
           .neq("status", "cancelled")
           .gte("start_time", monthStart)
           .lte("start_time", monthEnd),
-        supabase.from("whatsapp_instances").select("*", { count: "exact", head: true }).eq("user_id", tenantId),
+        supabase.from("whatsapp_connections").select("*", { count: "exact", head: true }).eq("user_id", tenantId),
       ]);
 
       if (profileRes.data) {

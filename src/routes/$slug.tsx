@@ -12,6 +12,7 @@ import { format, addMinutes, parseISO, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
@@ -471,6 +472,23 @@ function ShopPageComponent() {
         .single();
 
       if (appError) throw appError;
+
+      // Send WhatsApp Confirmation
+      if (shop.whatsapp_enabled) {
+        triggerWhatsAppMessage({
+          userId: shop.id,
+          eventType: 'appointment_confirmation',
+          phone: customerPhone,
+          placeholders: {
+            cliente: customerName,
+            horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
+            barbeiro: selectedBarber.name,
+            valor: (selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0)).toFixed(2),
+            customer_id: customerId
+          },
+          appointmentId: appointment.id
+        });
+      }
 
       // 3. Create transaction for the appointment (remaining amount - new revenue)
       if (paymentMethod === 'pix' || paymentMethod === 'barbershop' || calculateTotal() === 0) {
