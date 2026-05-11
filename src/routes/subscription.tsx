@@ -6,10 +6,15 @@ import { usePlanLimits, PLAN_LIMITS, PlanType } from "@/hooks/use-plan-limits";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Check, Crown, Zap, ShieldAlert, Star, Rocket, Clock } from "lucide-react";
+import { Check, Crown, Zap, ShieldAlert, Star, Rocket, Clock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { createPortalSession } from "@/utils/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +27,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+const PLAN_PRICE_IDS: Record<Exclude<PlanType, 'free'>, string> = {
+  starter: "starter_monthly",
+  pro: "pro_monthly",
+  elite: "elite_monthly",
+};
+
 export const Route = createFileRoute("/subscription")({
   component: SubscriptionComponent,
 });
@@ -31,59 +42,38 @@ function SubscriptionComponent() {
   const navigate = useNavigate();
   const { plan, usage, limits, trialDaysRemaining, isTrial, refresh } = usePlanLimits();
   const [updating, setUpdating] = useState(false);
+  const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
 
   const handlePlanChange = async (newPlan: PlanType) => {
     if (!user) {
       toast.error("Você precisa estar logado.");
       return;
     }
-    setUpdating(true);
-    
-    console.log("Attempting to change plan to:", newPlan, "for user:", user.id);
-    
-    try {
-      const { error, status } = await supabase
-        .from("profiles")
-        .update({ plan: newPlan })
-        .eq("id", user.id);
+    if (newPlan === 'free') return;
 
-      if (error) {
-        console.error("Plan update error:", error.message, "Code:", error.code, "Status:", status);
-        toast.error(`Erro ao atualizar plano: ${error.message}`);
-      } else {
-        const planNames = {
-          free: "Grátis",
-          starter: "Starter",
-          pro: "Pro",
-          elite: "Elite"
-        };
-        toast.success(`Plano alterado para ${planNames[newPlan]}!`);
-        await refresh();
-      }
-    } catch (e: any) {
-      console.error("Plan update exception:", e);
-      toast.error("Erro inesperado ao atualizar plano.");
-    } finally {
-      setUpdating(false);
-    }
+    const priceId = PLAN_PRICE_IDS[newPlan];
+    openCheckout({
+      priceId,
+      customerEmail: user.email,
+      userId: user.id,
+      returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+    });
   };
 
-  const handleCancelSubscription = async () => {
-    if (!user) return;
+  const handleManageSubscription = async () => {
     setUpdating(true);
-    
-    const { error } = await supabase
-      .from("profiles")
-      .update({ plan: "free" })
-      .eq("id", user.id);
-
-    setUpdating(false);
-
-    if (error) {
-      toast.error("Erro ao cancelar assinatura");
-    } else {
-      toast.success("Assinatura cancelada com sucesso.");
-      refresh();
+    try {
+      const url = await createPortalSession({
+        data: {
+          returnUrl: `${window.location.origin}/subscription`,
+          environment: getStripeEnvironment(),
+        },
+      });
+      window.open(url, "_blank");
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível abrir o portal.");
+    } finally {
+      setUpdating(false);
     }
   };
 
