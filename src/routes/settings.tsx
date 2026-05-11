@@ -93,7 +93,6 @@ function SettingsComponent() {
   useEffect(() => {
     if (user && role !== 'super_admin') {
       fetchProfile();
-      fetchWhatsappInstances();
     }
   }, [user, role]);
 
