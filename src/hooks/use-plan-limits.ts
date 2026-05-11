@@ -108,6 +108,7 @@ export function usePlanLimits() {
   }
 
   const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+  console.log("[usePlanLimits] Resolved plan:", plan, "limits:", limits);
 
   const trialDaysRemaining = trialEndsAt 
     ? Math.max(0, differenceInDays(new Date(trialEndsAt), new Date()))
