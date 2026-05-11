@@ -6,7 +6,7 @@ import { usePlanLimits, PLAN_LIMITS, PlanType } from "@/hooks/use-plan-limits";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Check, Crown, Zap, ShieldAlert, Star, Rocket } from "lucide-react";
+import { Check, Crown, Zap, ShieldAlert, Star, Rocket, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
