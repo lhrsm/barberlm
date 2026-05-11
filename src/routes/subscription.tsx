@@ -99,7 +99,17 @@ function SubscriptionComponent() {
     }
   }, [user, authLoading, role, navigate]);
 
-  if (authLoading || !user) return null;
+  if (authLoading || planLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!user) return null;
 
   const planConfigs = [
     {
