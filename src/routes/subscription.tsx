@@ -211,13 +211,14 @@ function SubscriptionComponent() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  Plano Atual: <span className="capitalize text-primary font-bold">{plan === 'free' ? 'Grátis' : plan === 'basic' ? 'Básico' : plan === 'intermediate' ? 'Intermediário' : 'Pró'}</span>
+                  Plano Atual: <span className="capitalize text-primary font-bold">{plan === 'free' ? 'Teste Grátis' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
                   {plan === 'pro' && <Crown className="text-yellow-500 w-5 h-5" />}
+                  {plan === 'elite' && <Rocket className="text-purple-500 w-5 h-5" />}
                 </CardTitle>
                 <CardDescription>Acompanhe o uso dos seus recursos.</CardDescription>
               </div>
               <div className="bg-background/50 px-3 py-1 rounded-full border text-xs font-medium">
-                {plan === 'free' ? '7 Dias de Teste Ativos' : 'Assinatura Ativa'}
+                {plan === 'free' ? 'Período de Experiência' : 'Assinatura Ativa'}
               </div>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-5">
