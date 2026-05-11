@@ -6,10 +6,15 @@ import { usePlanLimits, PLAN_LIMITS, PlanType } from "@/hooks/use-plan-limits";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Check, Crown, Zap, ShieldAlert, Star, Rocket, Clock } from "lucide-react";
+import { Check, Crown, Zap, ShieldAlert, Star, Rocket, Clock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { createPortalSession } from "@/utils/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +27,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+const PLAN_PRICE_IDS: Record<Exclude<PlanType, 'free'>, string> = {
+  starter: "starter_monthly",
+  pro: "pro_monthly",
+  elite: "elite_monthly",
+};
+
 export const Route = createFileRoute("/subscription")({
   component: SubscriptionComponent,
 });
@@ -31,59 +42,38 @@ function SubscriptionComponent() {
   const navigate = useNavigate();
   const { plan, usage, limits, trialDaysRemaining, isTrial, refresh } = usePlanLimits();
   const [updating, setUpdating] = useState(false);
+  const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
 
   const handlePlanChange = async (newPlan: PlanType) => {
     if (!user) {
       toast.error("Você precisa estar logado.");
       return;
     }
-    setUpdating(true);
-    
-    console.log("Attempting to change plan to:", newPlan, "for user:", user.id);
-    
-    try {
-      const { error, status } = await supabase
-        .from("profiles")
-        .update({ plan: newPlan })
-        .eq("id", user.id);
+    if (newPlan === 'free') return;
 
-      if (error) {
-        console.error("Plan update error:", error.message, "Code:", error.code, "Status:", status);
-        toast.error(`Erro ao atualizar plano: ${error.message}`);
-      } else {
-        const planNames = {
-          free: "Grátis",
-          starter: "Starter",
-          pro: "Pro",
-          elite: "Elite"
-        };
-        toast.success(`Plano alterado para ${planNames[newPlan]}!`);
-        await refresh();
-      }
-    } catch (e: any) {
-      console.error("Plan update exception:", e);
-      toast.error("Erro inesperado ao atualizar plano.");
-    } finally {
-      setUpdating(false);
-    }
+    const priceId = PLAN_PRICE_IDS[newPlan];
+    openCheckout({
+      priceId,
+      customerEmail: user.email,
+      userId: user.id,
+      returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+    });
   };
 
-  const handleCancelSubscription = async () => {
-    if (!user) return;
+  const handleManageSubscription = async () => {
     setUpdating(true);
-    
-    const { error } = await supabase
-      .from("profiles")
-      .update({ plan: "free" })
-      .eq("id", user.id);
-
-    setUpdating(false);
-
-    if (error) {
-      toast.error("Erro ao cancelar assinatura");
-    } else {
-      toast.success("Assinatura cancelada com sucesso.");
-      refresh();
+    try {
+      const url = await createPortalSession({
+        data: {
+          returnUrl: `${window.location.origin}/subscription`,
+          environment: getStripeEnvironment(),
+        },
+      });
+      window.open(url, "_blank");
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível abrir o portal.");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -156,35 +146,18 @@ function SubscriptionComponent() {
 
   return (
     <AppLayout>
+      <PaymentTestModeBanner />
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Assinatura</h2>
             <p className="text-muted-foreground">Gerencie seu plano e limites do sistema.</p>
           </div>
-          {plan !== 'free' && plan !== 'starter' && plan !== 'pro' && plan !== 'elite' && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">
-                  Cancelar Assinatura
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Tem certeza que deseja cancelar?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Sua assinatura será cancelada e você voltará ao plano gratuito ao final do período.
-                    Seus dados e configurações serão mantidos, mas as limitações do plano grátis serão aplicadas.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Voltar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleCancelSubscription} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                    Confirmar Cancelamento
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+          {(plan === 'starter' || plan === 'pro' || plan === 'elite') && (
+            <Button variant="outline" onClick={handleManageSubscription} disabled={updating}>
+              {updating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Gerenciar Assinatura
+            </Button>
           )}
         </div>
 
@@ -323,6 +296,17 @@ function SubscriptionComponent() {
           </div>
         </div>
       </div>
+
+      <Dialog open={isOpen} onOpenChange={(o) => { if (!o) closeCheckout(); }}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>Finalizar assinatura</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            {checkoutElement}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
