@@ -473,34 +473,34 @@ function LandingPageComponent() {
           
           <Accordion type="single" collapsible className="w-full space-y-4">
             <FaqItem 
+              value="item-test-1"
+              question="O teste realmente é gratuito?"
+              answer="Sim! O teste do plano Pro é totalmente gratuito por 15 dias e não exige cartão de crédito. Você terá acesso a todas as funcionalidades premium para testar na prática."
+            />
+            <FaqItem 
+              value="item-test-2"
+              question="Precisa de cartão de crédito para testar?"
+              answer="Não! Você pode começar seu teste imediatamente sem informar nenhum dado de pagamento. Queremos que você conheça o sistema primeiro."
+            />
+            <FaqItem 
+              value="item-test-3"
+              question="Posso cancelar antes de terminar os 15 dias?"
+              answer="Com certeza. Você tem total liberdade para cancelar a qualquer momento, embora não haja cobrança automática durante o período de teste."
+            />
+            <FaqItem 
+              value="item-test-4"
+              question="O que acontece após os 15 dias de teste?"
+              answer="Após os 15 dias, você poderá escolher um dos nossos planos pagos para continuar utilizando o sistema. Seus dados e configurações permanecem salvos para que você não perca nada."
+            />
+            <FaqItem 
               value="item-1"
               question="Funciona no celular?"
               answer="Sim! O BarberLM é 100% responsivo e funciona perfeitamente em qualquer dispositivo: celular, tablet ou computador."
             />
             <FaqItem 
-              value="item-2"
-              question="Preciso instalar alguma coisa?"
-              answer="Não. O sistema é totalmente online (SaaS). Você acessa através do navegador de qualquer lugar."
-            />
-            <FaqItem 
-              value="item-3"
-              question="Posso cancelar quando quiser?"
-              answer="Com certeza. Não temos fidelidade. Se não estiver satisfeito, pode cancelar sua assinatura a qualquer momento sem multas."
-            />
-            <FaqItem 
               value="item-4"
               question="Como funciona o WhatsApp?"
               answer="O sistema se conecta ao seu WhatsApp para enviar lembretes automáticos de agendamento, confirmações e mensagens de marketing."
-            />
-            <FaqItem 
-              value="item-5"
-              question="Como funciona o cashback?"
-              answer="Você define uma porcentagem de retorno para o cliente. A cada serviço, ele acumula um saldo que pode ser usado em cortes futuros, aumentando a fidelização."
-            />
-            <FaqItem 
-              value="item-6"
-              question="Tem suporte?"
-              answer="Sim! Temos uma equipe de suporte dedicada via chat e WhatsApp para te ajudar em qualquer dúvida ou configuração."
             />
           </Accordion>
         </div>
@@ -516,12 +516,13 @@ function LandingPageComponent() {
             Sua barbearia merece um <br />
             <span className="text-primary">sistema profissional.</span>
           </h2>
-          <p className="text-xl text-white/60 max-w-2xl mx-auto mb-12">
-            Junte-se a dezenas de barbeiros que já profissionalizaram sua gestão e aumentaram seu faturamento.
+          <p className="text-xl text-white/60 max-w-2xl mx-auto mb-12 font-bold">
+            Comece agora seu teste grátis de 15 dias no plano Pro. <br className="hidden md:block" />
+            Sem compromisso e sem cartão de crédito.
           </p>
           <Button size="lg" className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_50px_rgba(var(--primary),0.5)] group" asChild>
             <Link to="/auth">
-              Começar agora <ArrowRight className="ml-3 h-8 w-8 group-hover:translate-x-2 transition-transform" />
+              Começar teste grátis <ArrowRight className="ml-3 h-8 w-8 group-hover:translate-x-2 transition-transform" />
             </Link>
           </Button>
         </div>
@@ -572,6 +573,28 @@ function LandingPageComponent() {
   );
 }
 
+function TestimonialCard({ name, business, text, avatar }: { name: string, business: string, text: string, avatar: string }) {
+  return (
+    <div className="p-8 rounded-3xl glass border border-white/5 hover:border-primary/20 transition-all flex flex-col h-full">
+      <div className="flex gap-1 mb-6">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <Zap key={s} className="h-4 w-4 text-primary fill-current" />
+        ))}
+      </div>
+      <p className="text-white/80 text-lg italic mb-8 flex-1 leading-relaxed">"{text}"</p>
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-black">
+          {avatar}
+        </div>
+        <div>
+          <div className="font-bold text-white">{name}</div>
+          <div className="text-white/40 text-sm uppercase tracking-widest font-bold">{business}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SolutionCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
   return (
     <div className="p-8 rounded-3xl glass border border-white/5 hover:border-primary/30 hover:bg-primary/[0.03] transition-all group group cursor-default">
@@ -596,7 +619,7 @@ function PricingItem({ text }: { text: string }) {
 function FaqItem({ value, question, answer }: { value: string, question: string, answer: string }) {
   return (
     <AccordionItem value={value} className="border-none glass rounded-2xl px-6 mb-4">
-      <AccordionTrigger className="text-xl font-bold text-white hover:no-underline py-6">
+      <AccordionTrigger className="text-xl font-bold text-white hover:no-underline py-6 text-left">
         {question}
       </AccordionTrigger>
       <AccordionContent className="text-white/60 text-lg leading-relaxed pb-6">
