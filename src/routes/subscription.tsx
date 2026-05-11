@@ -32,7 +32,7 @@ import {
 const PLAN_PRICE_IDS: Record<Exclude<PlanType, 'free'>, string> = {
   starter: "price_1TVtOWPKG6q10UjrQErPgyKO",
   pro: "price_1TVtOVPKG6q10Ujre6zMGYpk",
-  elite: "price_1TVsefPKG6q10UjrKpTaUe71",
+  elite: "price_1TVtgWPKG6q10UjrxRUCnyg1",
 };
 
 export const Route = createFileRoute("/subscription")({
@@ -86,10 +86,11 @@ function SubscriptionComponent() {
     }
     
     try {
-      console.log("[Subscription] 🚀 Chamando openCheckout...");
+      console.log("[Subscription] 🚀 Chamando openCheckout com userId:", user.id);
       openCheckout({
         priceId,
         customerEmail: user.email,
+        userId: user.id,
         returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       });
     } catch (err) {
