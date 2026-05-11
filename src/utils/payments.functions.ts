@@ -79,12 +79,15 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    console.log("[Checkout Server] 🚀 INICIANDO handler de createCheckoutSession");
-    console.log("[Checkout Server] 🆔 User ID do contexto:", userId);
+    console.log("[Checkout Server] 🚀 INICIANDO handler de createCheckoutSession", {
+      priceId: data.priceId,
+      environment: data.environment,
+      userId: userId
+    });
     
     try {
       const stripe = createStripeClient(data.environment);
-      console.log("[Checkout Server] 💳 Cliente Stripe criado");
+      console.log("[Checkout Server] 💳 Cliente Stripe criado para ambiente:", data.environment);
     
       let stripePrice;
       try {
@@ -104,21 +107,21 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
             stripePrice = prices.data[0];
           }
         }
-      } catch (err) {
-        console.error("[Checkout Server] ❌ Erro na API do Stripe ao buscar preço:", err);
-        throw err;
+      } catch (err: any) {
+        console.error("[Checkout Server] ❌ Erro na API do Stripe ao buscar preço:", err.message);
+        throw new Error(`Erro ao buscar preço no Stripe: ${err.message}`);
       }
 
       if (!stripePrice) {
         console.error("[Checkout Server] ❌ Nenhum preço encontrado para:", data.priceId);
-        throw new Error(`Plano não encontrado no Stripe (${data.priceId})`);
+        throw new Error(`Plano não encontrado no Stripe (${data.priceId}). Verifique se o ID ou lookup_key está correto no ambiente ${data.environment}.`);
       }
 
       const isRecurring = stripePrice.type === "recurring";
       const product = stripePrice.product as any;
       const productName = product?.name || "Plano";
       
-      console.log("[Checkout Server] ✅ Preço identificado:", stripePrice.id);
+      console.log("[Checkout Server] ✅ Preço identificado:", stripePrice.id, "Product:", productName);
 
       console.log("[Checkout Server] 👤 Chamando resolveOrCreateCustomer...");
       const customerId = await resolveOrCreateCustomer(stripe, {
@@ -126,16 +129,18 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         userId: userId,
       });
 
-      console.log("[Checkout Server] ✅ Customer ID:", customerId);
+      console.log("[Checkout Server] ✅ Customer ID obtido:", customerId);
 
-      // Determinar se deve aplicar trial (Pro Plan)
-      const isProPlan = stripePrice.id === "price_1TVtOVPKG6q10Ujre6zMGYpk" || 
-                       stripePrice.lookup_key === "pro_monthly" || 
-                       productName.toLowerCase().includes("pro");
-      
-      const trialDays = isProPlan ? 15 : undefined;
+      // Aplicar trial de 15 dias para todos os planos pagos recorrentes (conforme solicitado)
+      const trialDays = isRecurring ? 15 : undefined;
 
-      console.log("[Checkout Server] 🏗️ Criando sessão de checkout...");
+      console.log("[Checkout Server] 🏗️ Criando sessão de checkout...", {
+        priceId: stripePrice.id,
+        customerId,
+        trialDays,
+        mode: isRecurring ? "subscription" : "payment"
+      });
+
       const session = await stripe.checkout.sessions.create({
         line_items: [{ price: stripePrice.id, quantity: data.quantity || 1 }],
         mode: isRecurring ? "subscription" : "payment",
@@ -148,22 +153,32 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         return_url: data.returnUrl,
         ...(customerId && { customer: customerId }),
         ...(userId && {
-          metadata: { userId: userId, plan: productName },
+          metadata: { 
+            userId: userId, 
+            plan: productName,
+            environment: data.environment 
+          },
           ...(isRecurring && { 
             subscription_data: { 
-              metadata: { userId: userId },
+              metadata: { userId: userId, environment: data.environment },
               ...(trialDays && { trial_period_days: trialDays })
             } 
           }),
         }),
       } as any);
 
-      console.log("[Checkout Server] ✨ Sessão criada ID:", session.id);
+      console.log("[Checkout Server] ✨ Checkout Session criada com sucesso:", {
+        id: session.id,
+        livemode: session.livemode,
+        url: session.url
+      });
+      
       return session.client_secret;
     } catch (err: any) {
-      console.error("[Checkout Server] 💥 Erro no handler:", err.message);
+      console.error("[Checkout Server] 💥 Erro crítico no handler:", err.message);
       throw err;
     }
+
   });
 
 export const createPortalSession = createServerFn({ method: "POST" })
