@@ -618,7 +618,7 @@ function FinancesComponent() {
                           <span className="text-sm font-medium">
                             {t.appointment?.start_time 
                               ? format(new Date(t.appointment.start_time), 'HH:mm')
-                              : (t.time ? t.time.substring(0, 5) : "--:--")}
+                              : (typeof t.time === 'string' ? t.time.substring(0, 5) : "--:--")}
                           </span>
                         </TableCell>
                         <TableCell className="font-medium">

@@ -15,7 +15,7 @@ export function getStripe(): Promise<Stripe | null> {
       // Ao invés de throw, retornamos uma promise que resolve para null para evitar crash no render
       return Promise.resolve(null);
     }
-    console.log("[Stripe JS] 🔋 Inicializando loadStripe com token:", clientToken.substring(0, 10) + "...");
+    console.log("[Stripe JS] 🔋 Inicializando loadStripe com token:", typeof clientToken === 'string' ? clientToken.substring(0, 10) + "..." : "TOKEN NÃO É STRING");
     stripePromise = loadStripe(clientToken);
   }
   return stripePromise;

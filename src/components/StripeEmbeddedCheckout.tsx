@@ -49,7 +49,7 @@ export function StripeEmbeddedCheckout({
         throw new Error("Não foi possível gerar a sessão de pagamento (secret vazio).");
       }
       
-      console.log("[StripeEmbeddedCheckout] ✅ Client secret obtido com sucesso:", secret.substring(0, 10) + "...");
+      console.log("[StripeEmbeddedCheckout] ✅ Client secret obtido com sucesso:", typeof secret === 'string' ? secret.substring(0, 10) + "..." : "VALOR NÃO É STRING");
       return secret;
     } catch (err: any) {
       console.error("[StripeEmbeddedCheckout] 💥 CRASH em fetchClientSecret:", err);

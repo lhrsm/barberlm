@@ -1360,7 +1360,7 @@ function DashboardComponent() {
                     {barber.avatar_url ? (
                       <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
                     ) : (
-                      <span className="text-primary font-bold text-xs">{barber.name.substring(0, 2).toUpperCase()}</span>
+                      <span className="text-primary font-bold text-xs">{typeof barber.name === 'string' ? barber.name.substring(0, 2).toUpperCase() : "??"}</span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
