@@ -103,28 +103,11 @@ function SubscriptionComponent() {
 
   const planConfigs = [
     {
-      id: "free" as PlanType,
-      name: "Teste Grátis",
-      price: "0",
-      description: "Comece agora com 15 dias de acesso total ao Pro.",
-      icon: <Zap className="text-blue-500 w-5 h-5" />,
-      features: [
-        `Até 5 Profissionais`,
-        `Serviços Ilimitados`,
-        `Produtos Ilimitados`,
-        `Agendamentos Ilimitados`,
-        "2 Conexões WhatsApp",
-        "Acesso por 15 dias",
-      ],
-      buttonText: "Plano Atual",
-      color: "blue"
-    },
-    {
       id: "starter" as PlanType,
       name: "Starter",
       price: "19,90",
       description: "Ideal para profissionais individuais.",
-      icon: <Star className="text-green-500 w-5 h-5" />,
+      icon: <Zap className="text-green-500 w-5 h-5" />,
       features: [
         `${PLAN_LIMITS.starter.barbers} Profissional`,
         `Serviços Ilimitados`,
@@ -179,7 +162,7 @@ function SubscriptionComponent() {
             <h2 className="text-3xl font-bold tracking-tight">Assinatura</h2>
             <p className="text-muted-foreground">Gerencie seu plano e limites do sistema.</p>
           </div>
-          {plan !== 'free' && (
+          {plan !== 'free' && plan !== 'starter' && plan !== 'pro' && plan !== 'elite' && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">
@@ -211,14 +194,14 @@ function SubscriptionComponent() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  Plano Atual: <span className="capitalize text-primary font-bold">{plan === 'free' ? 'Teste Grátis' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
+                  Plano Atual: <span className="capitalize text-primary font-bold">{plan === 'free' ? 'Teste Grátis (Expirando)' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
                   {plan === 'pro' && <Crown className="text-yellow-500 w-5 h-5" />}
                   {plan === 'elite' && <Rocket className="text-purple-500 w-5 h-5" />}
                 </CardTitle>
                 <CardDescription>Acompanhe o uso dos seus recursos.</CardDescription>
               </div>
               <div className="bg-background/50 px-3 py-1 rounded-full border text-xs font-medium">
-                {plan === 'free' ? 'Período de Experiência' : 'Assinatura Ativa'}
+                {plan === 'free' ? 'Período de Experiência Expirando' : 'Assinatura Ativa'}
               </div>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-5">
