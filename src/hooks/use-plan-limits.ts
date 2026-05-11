@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "./use-tenant";
-import { startOfMonth, endOfMonth } from "date-fns";
+import { startOfMonth, endOfMonth, differenceInDays } from "date-fns";
 
-export type PlanType = "free" | "basic" | "intermediate" | "pro";
+export type PlanType = "starter" | "pro" | "elite" | "free";
 
 export const PLAN_LIMITS = {
   free: {
@@ -11,27 +11,27 @@ export const PLAN_LIMITS = {
     services: 5,
     products: 5,
     monthlyAppointments: 30,
-    whatsappConnections: 1,
+    whatsappConnections: 0,
     hasTrial: true,
-    trialDays: 7,
+    trialDays: 15,
   },
-  basic: {
-    barbers: 2,
-    services: 10,
-    products: 25,
-    monthlyAppointments: 100,
+  starter: {
+    barbers: 1,
+    services: Infinity,
+    products: Infinity,
+    monthlyAppointments: Infinity,
     whatsappConnections: 1,
     price: 19.90,
   },
-  intermediate: {
+  pro: {
     barbers: 5,
-    services: 25,
-    products: 100,
-    monthlyAppointments: 500,
-    whatsappConnections: 3,
+    services: Infinity,
+    products: Infinity,
+    monthlyAppointments: Infinity,
+    whatsappConnections: 2,
     price: 39.90,
   },
-  pro: {
+  elite: {
     barbers: Infinity,
     services: Infinity,
     products: Infinity,
@@ -44,6 +44,7 @@ export const PLAN_LIMITS = {
 export function usePlanLimits() {
   const { tenantId } = useTenant();
   const [plan, setPlan] = useState<PlanType>("free");
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
   const [usage, setUsage] = useState({
     barbers: 0,
     services: 0,
@@ -54,7 +55,6 @@ export function usePlanLimits() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Se não houver tenantId, ou se for super_admin sem estar personificando, não carregar limites
     if (tenantId) {
       fetchPlanAndUsage();
     } else {
@@ -70,7 +70,7 @@ export function usePlanLimits() {
     const monthEnd = endOfMonth(new Date()).toISOString();
 
     const [profileRes, barbRes, servRes, prodRes, appRes, whatsappRes] = await Promise.all([
-      supabase.from("profiles").select("plan").eq("id", tenantId).maybeSingle(),
+      supabase.from("profiles").select("plan, created_at").eq("id", tenantId).maybeSingle(),
       supabase.from("barbers").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
       supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
       supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
@@ -83,7 +83,16 @@ export function usePlanLimits() {
     ]);
 
     if (profileRes.data) {
-      setPlan(profileRes.data.plan as PlanType || "free");
+      const currentPlan = profileRes.data.plan as PlanType || "free";
+      setPlan(currentPlan);
+      
+      // Calculate trial end (15 days from creation)
+      if (currentPlan === "free" || currentPlan === "pro") {
+        const createdAt = new Date(profileRes.data.created_at);
+        const trialEnd = new Date(createdAt);
+        trialEnd.setDate(createdAt.getDate() + 15);
+        setTrialEndsAt(trialEnd.toISOString());
+      }
     }
 
     setUsage({
@@ -97,9 +106,16 @@ export function usePlanLimits() {
     setLoading(false);
   }
 
-  const limits = PLAN_LIMITS[plan];
+  const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+
+  const trialDaysRemaining = trialEndsAt 
+    ? Math.max(0, differenceInDays(new Date(trialEndsAt), new Date()))
+    : 0;
+
+  const isTrial = plan === "free" || (plan === "pro" && trialDaysRemaining > 0);
 
   const checkLimit = (type: keyof typeof usage) => {
+    // @ts-ignore
     return usage[type] < limits[type];
   };
 
@@ -108,6 +124,8 @@ export function usePlanLimits() {
     limits,
     usage,
     loading,
+    trialDaysRemaining,
+    isTrial,
     checkLimit,
     refresh: fetchPlanAndUsage,
   };
