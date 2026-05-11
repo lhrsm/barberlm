@@ -134,26 +134,36 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       console.log(`[Checkout Server] 🎁 Aplicando ${trialDays} dias de teste grátis (Plano Pro)`);
     }
 
-    const session = await stripe.checkout.sessions.create({
-      line_items: [{ price: stripePrice.id, quantity: data.quantity || 1 }],
-      mode: isRecurring ? "subscription" : "payment",
-      ui_mode: "embedded",
-      return_url: data.returnUrl,
-      ...(customerId && { customer: customerId }),
-      ...(userId && {
-        metadata: { userId: userId, plan: productName },
-        ...(isRecurring && { 
-          subscription_data: { 
-            metadata: { userId: userId },
-            ...(trialDays && { trial_period_days: trialDays })
-          } 
+    console.log("[Checkout Server] 🏗️ Criando sessão de checkout Stripe...");
+    try {
+      const session = await stripe.checkout.sessions.create({
+        line_items: [{ price: stripePrice.id, quantity: data.quantity || 1 }],
+        mode: isRecurring ? "subscription" : "payment",
+        ui_mode: "embedded",
+        return_url: data.returnUrl,
+        ...(customerId && { customer: customerId }),
+        ...(userId && {
+          metadata: { userId: userId, plan: productName },
+          ...(isRecurring && { 
+            subscription_data: { 
+              metadata: { userId: userId },
+              ...(trialDays && { trial_period_days: trialDays })
+            } 
+          }),
         }),
-      }),
-    } as any);
+      } as any);
 
-    console.log("[Checkout Server] ✨ Sessão criada com sucesso. LiveMode:", session.livemode);
-    return session.client_secret;
-  });
+      console.log("[Checkout Server] ✨ Sessão criada com sucesso. ID:", session.id, "LiveMode:", session.livemode);
+      return session.client_secret;
+    } catch (err: any) {
+      console.error("[Checkout Server] ❌ Erro ao criar sessão no Stripe:", err);
+      throw err;
+    }
+  } catch (err: any) {
+    console.error("[Checkout Server] 💥 Erro fatal no handler:", err);
+    throw err;
+  }
+});
 
 export const createPortalSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
