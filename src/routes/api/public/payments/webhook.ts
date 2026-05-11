@@ -109,30 +109,77 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
   if (userId) await syncProfilePlan(userId, undefined, "canceled");
 }
 
+async function handleCheckoutSessionCompleted(session: any, env: StripeEnv) {
+  const userId = session.metadata?.userId;
+  const customerId = session.customer;
+  const status = session.status;
+  const paymentStatus = session.payment_status;
+
+  console.log("[Webhook] ✅ Checkout Session Completed:", {
+    sessionId: session.id,
+    userId,
+    customerId,
+    status,
+    paymentStatus,
+    livemode: session.livemode,
+    environment: env
+  });
+
+  // Se o pagamento já estiver concluído, podemos registrar algo se necessário.
+  // Mas o Stripe geralmente dispara invoice.paid e subscription.created depois.
+}
+
+async function handleInvoicePaid(invoice: any, env: StripeEnv) {
+  const userId = invoice.subscription_details?.metadata?.userId || invoice.metadata?.userId;
+  const subscriptionId = invoice.subscription;
+  const amountPaid = invoice.amount_paid;
+  const customerId = invoice.customer;
+
+  console.log("[Webhook] 💰 Invoice Paid:", {
+    invoiceId: invoice.id,
+    subscriptionId,
+    userId,
+    customerId,
+    amount: amountPaid / 100,
+    environment: env
+  });
+}
+
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
-  console.log(`[Webhook] 📥 Evento recebido: ${event.type} (${env})`);
+  console.log(`[Webhook] 📥 Evento recebido: ${event.type} (${env})`, {
+    id: event.id,
+    livemode: event.livemode
+  });
+
+  const object = event.data.object;
 
   switch (event.type) {
     case "customer.subscription.created":
-      console.log("[Webhook] Processing subscription.created");
-      await handleSubscriptionCreated(event.data.object, env);
+      console.log("[Webhook] 🟢 Processando subscription.created");
+      await handleSubscriptionCreated(object, env);
       break;
     case "customer.subscription.updated":
-      console.log("[Webhook] Processing subscription.updated");
-      await handleSubscriptionUpdated(event.data.object, env);
+      console.log("[Webhook] 🟡 Processando subscription.updated");
+      await handleSubscriptionUpdated(object, env);
       break;
     case "customer.subscription.deleted":
-      console.log("[Webhook] Processing subscription.deleted");
-      await handleSubscriptionDeleted(event.data.object, env);
+      console.log("[Webhook] 🔴 Processando subscription.deleted");
+      await handleSubscriptionDeleted(object, env);
       break;
     case "checkout.session.completed":
-      console.log("[Webhook] Checkout session completed");
+      console.log("[Webhook] 🏁 Processando checkout.session.completed");
+      await handleCheckoutSessionCompleted(object, env);
+      break;
+    case "invoice.paid":
+      console.log("[Webhook] 💸 Processando invoice.paid");
+      await handleInvoicePaid(object, env);
       break;
     default:
-      console.log("[Webhook] Unhandled event:", event.type);
+      console.log("[Webhook] ⚪ Evento não tratado explicitamente:", event.type);
   }
 }
+
 
 export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
