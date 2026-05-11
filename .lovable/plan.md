@@ -1,20 +1,26 @@
-Para implementar a estrutura de pagamentos com Stripe, seguiremos estes passos:
+I will investigate why the Stripe checkout session creation is not reaching Stripe. I'll add extensive logging to both the frontend and backend to trace the execution flow and identify the exact point of failure.
 
-1. **Sincronização do Banco de Dados**: Atualizaremos a tabela `plans` para refletir os novos planos (Starter, Pro e Elite) e seus respectivos preços (19.90, 39.90 e 59.90), alinhando o banco de dados com o que já foi alterado na interface.
-2. **Integração com Stripe**: 
-    - Recomendo o uso do **Stripe via Lovable**, que é uma integração simplificada onde você não precisa configurar chaves de API manualmente ou lidar com Webhooks complexos.
-    - Se você preferir usar sua própria conta Stripe (BYOK), precisaremos configurar as chaves de API e criar Edge Functions para lidar com os eventos de pagamento.
-3. **Checkout e Portal**:
-    - Substituiremos a lógica atual (que apenas atualiza o banco local) por uma chamada para criar uma sessão de Checkout do Stripe.
-    - Adicionaremos um botão para o usuário gerenciar sua assinatura através do Portal do Cliente do Stripe.
-4. **Fluxo de Webhook**: Configuraremos a atualização automática do plano do usuário assim que o pagamento for confirmado pelo Stripe.
+### Implementation Plan
 
-**Decisão técnica necessária:**
-Você deseja usar a integração simplificada do Lovable (mais rápida e sem configuração técnica) ou conectar sua própria conta do Stripe com suas chaves de API?
+1. **Frontend Instrumentation**:
+    - Add logs to `handlePlanChange` in `src/routes/subscription.tsx`.
+    - Add logs to `openCheckout` in `src/hooks/useStripeCheckout.tsx`.
+    - Add extensive logs to `StripeEmbeddedCheckout` in `src/components/StripeEmbeddedCheckout.tsx`, specifically inside `fetchClientSecret`.
 
-Para começar, vou primeiro atualizar os planos no banco de dados.
+2. **Backend/Server Instrumentation**:
+    - Add logs to the very beginning of `createCheckoutSession` in `src/utils/payments.functions.ts`.
+    - Add logs to `requireSupabaseAuth` in `src/integrations/supabase/auth-middleware.ts` to see if it's blocking the request.
 
-### Detalhes Técnicos
-- Migração SQL para atualizar a tabela `plans`.
-- Uso do hook `use-payments` ou integração direta com o Stripe via Edge Functions.
-- Atualização do componente `SubscriptionComponent` para invocar o checkout.
+3. **Error Handling**:
+    - Replace generic `console.log(error)` with `console.error(error)` and throw errors where they might be swallowed.
+    - Ensure the `StripeEmbeddedCheckout` component correctly displays the error message if `fetchClientSecret` fails.
+
+4. **Verification**:
+    - After adding logs, I'll ask the user to try again (or I would if I could see their console in real-time, but I can check the server logs).
+
+### Technical Details
+- Using `console.error` to ensure errors are visible in logs.
+- Checking for environment variables like `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` which are required by the auth middleware.
+- Verifying the `ui_mode` and `apiVersion` compatibility.
+
+If I find that the server function is indeed not being called, I will investigate the TanStack Start configuration or the way the server function is being invoked.

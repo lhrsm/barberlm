@@ -21,7 +21,8 @@ const PRICE_TO_PLAN: Record<string, string> = {
   // Real IDs (LIVE)
   price_1TVtOWPKG6q10UjrQErPgyKO: "starter", // Starter LIVE
   price_1TVtOVPKG6q10Ujre6zMGYpk: "pro",     // Pro LIVE
-  price_1TVsefPKG6q10UjrKpTaUe71: "elite",   // Elite LIVE
+  price_1TVtgWPKG6q10UjrxRUCnyg1: "elite",   // Elite LIVE (com lookup key)
+  price_1TVsefPKG6q10UjrKpTaUe71: "elite",   // Elite LIVE (sem lookup key)
 };
 
 async function syncProfilePlan(userId: string, priceId: string | undefined, status: string) {
