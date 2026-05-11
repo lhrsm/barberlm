@@ -401,9 +401,43 @@ export function WhatsAppSettings() {
             <Card>
               <CardContent className="p-0">
                  <div className="divide-y">
-                   <div className="p-4 text-center text-muted-foreground text-sm">
-                     Nenhuma mensagem enviada nos últimos 7 dias.
-                   </div>
+                   {messages.map((msg) => (
+                     <div key={msg.id} className="p-4 flex items-center justify-between text-sm">
+                       <div className="space-y-1">
+                         <div className="flex items-center gap-2">
+                           <Badge variant={msg.type === 'sent' ? "outline" : "default"} className="text-[10px] uppercase">
+                             {msg.type === 'sent' ? "Enviada" : "Recebida"}
+                           </Badge>
+                           <span className="text-muted-foreground text-xs">
+                             {new Date(msg.created_at).toLocaleString()}
+                           </span>
+                         </div>
+                         <p className="line-clamp-1 max-w-md">{msg.content}</p>
+                         {msg.metadata?.phone && <p className="text-[10px] text-muted-foreground">Para: {msg.metadata.phone}</p>}
+                       </div>
+                       <div className="text-right">
+                         <Badge 
+                           variant={msg.status === 'read' || msg.status === 'delivered' ? "default" : "secondary"}
+                           className={
+                             msg.status === 'read' ? "bg-blue-500 hover:bg-blue-600" : 
+                             msg.status === 'delivered' ? "bg-green-500 hover:bg-green-600" : ""
+                           }
+                         >
+                           {msg.status}
+                         </Badge>
+                         {msg.error_message && (
+                           <p className="text-[10px] text-destructive mt-1 max-w-[150px] truncate" title={msg.error_message}>
+                             {msg.error_message}
+                           </p>
+                         )}
+                       </div>
+                     </div>
+                   ))}
+                   {messages.length === 0 && (
+                     <div className="p-8 text-center text-muted-foreground text-sm">
+                       Nenhuma mensagem enviada nos últimos 7 dias.
+                     </div>
+                   )}
                  </div>
               </CardContent>
             </Card>
