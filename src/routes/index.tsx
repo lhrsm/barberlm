@@ -12,8 +12,20 @@ import {
   BarChart3,
   Smartphone,
   ShieldCheck,
-  Star
+  Zap,
+  MessageSquare,
+  TrendingUp,
+  Settings,
+  HelpCircle,
+  XCircle,
+  Check
 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/")({
   component: LandingPageComponent,
@@ -25,7 +37,6 @@ function LandingPageComponent() {
 
   useEffect(() => {
     if (!loading && user && role) {
-      console.log("Landing page redirection - Role:", role);
       if (role === 'super_admin') {
         navigate({ to: "/admin/dashboard", replace: true });
       } else if (role === 'barber') {
@@ -40,275 +51,386 @@ function LandingPageComponent() {
   if (user) return null;
 
   return (
-    <div className="min-h-screen bg-background font-sans selection:bg-primary/20">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 dark overflow-x-hidden">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Scissors className="text-primary h-6 w-6" />
-            <span className="text-xl font-bold tracking-tight text-primary">BarberSaaS</span>
+      <nav className="fixed top-0 w-full z-50 glass border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2 group cursor-pointer">
+            <div className="p-2 bg-primary/20 rounded-lg group-hover:bg-primary/30 transition-colors">
+              <Scissors className="text-primary h-6 w-6" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight text-white">Barber<span className="text-primary">LM</span></span>
           </div>
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#funcionalidades" className="text-sm font-medium hover:text-primary transition-colors">Funcionalidades</a>
-            <a href="#precos" className="text-sm font-medium hover:text-primary transition-colors">Preços</a>
-            <a href="#depoimentos" className="text-sm font-medium hover:text-primary transition-colors">Depoimentos</a>
+          <div className="hidden lg:flex items-center gap-10">
+            <a href="#funcionalidades" className="text-sm font-medium text-white/70 hover:text-white transition-colors">Funcionalidades</a>
+            <a href="#precos" className="text-sm font-medium text-white/70 hover:text-white transition-colors">Preços</a>
+            <a href="#faq" className="text-sm font-medium text-white/70 hover:text-white transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" className="text-white hover:bg-white/10" asChild>
               <Link to="/auth">Entrar</Link>
             </Button>
-            <Button asChild>
-              <Link to="/auth">Começar Grátis</Link>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 shadow-[0_0_20px_rgba(var(--primary),0.3)]" asChild>
+              <Link to="/auth">Começar agora</Link>
             </Button>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 lg:pt-48 lg:pb-32 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 animate-fade-in">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span>
-            A solução definitiva para sua barbearia
+      <section className="relative pt-40 pb-20 lg:pt-56 lg:pb-32 px-4 overflow-hidden">
+        {/* Glow Effects */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/20 rounded-full blur-[120px] -z-10 animate-glow"></div>
+        <div className="absolute top-1/4 -right-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] -z-10 animate-glow" style={{ animationDelay: '2s' }}></div>
+
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-white/10 text-primary text-sm font-medium mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <Zap className="h-4 w-4 fill-current" />
+            <span>A plataforma definitiva para barbeiros</span>
           </div>
-          <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-6 text-foreground leading-[1.1]">
-            Gerencie sua barbearia <br className="hidden lg:block" />
-            <span className="text-primary">como um profissional.</span>
+          
+          <h1 className="text-5xl lg:text-[84px] font-black tracking-tighter mb-8 text-white leading-[1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+            A plataforma completa para transformar sua <br className="hidden lg:block" />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-400 to-primary bg-[length:200%_auto] animate-pulse">barbearia em um negócio profissional.</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            Agenda inteligente, controle financeiro, gestão de profissionais e muito mais. 
-            Tudo o que você precisa em um único lugar para focar no que importa: seus clientes.
+          
+          <p className="text-xl text-white/60 max-w-3xl mx-auto mb-12 leading-relaxed animate-in fade-in slide-in-from-bottom-10 duration-700 delay-200">
+            Agendamentos online, WhatsApp, financeiro, cashback, comissões e automações em um único sistema simples de usar.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="h-14 px-8 text-lg gap-2" asChild>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-20 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-300">
+            <Button size="lg" className="h-16 px-10 text-lg font-bold bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(var(--primary),0.4)] group" asChild>
               <Link to="/auth">
-                Começar agora gratuitamente <ArrowRight className="h-5 w-5" />
+                Começar agora <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="h-14 px-8 text-lg" asChild>
-              <a href="#funcionalidades">Ver todas as funções</a>
+            <Button size="lg" variant="outline" className="h-16 px-10 text-lg font-semibold border-white/10 hover:bg-white/5 text-white" asChild>
+              <a href="#funcionalidades">Agendar demonstração</a>
             </Button>
           </div>
           
-          {/* Dashboard Preview */}
-          <div className="mt-16 lg:mt-24 relative max-w-5xl mx-auto">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-blue-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
-            <div className="relative rounded-xl border bg-card shadow-2xl overflow-hidden animate-slide-up">
+          {/* Dashboard Mockup */}
+          <div className="relative max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-16 duration-1000 delay-500">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-blue-500/50 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+            <div className="relative rounded-2xl border border-white/10 glass p-2 lg:p-4 shadow-2xl overflow-hidden animate-float">
               <img 
-                src="https://images.unsplash.com/photo-1512690196162-458d9bc0a892?auto=format&fit=crop&q=80&w=2000" 
-                alt="Barber Dashboard Preview" 
-                className="w-full h-auto opacity-50 grayscale hover:grayscale-0 transition duration-700"
+                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=2000" 
+                alt="Barber Dashboard Mockup" 
+                className="w-full h-auto rounded-xl opacity-90"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-[2px]">
-                 <div className="bg-background/90 p-8 rounded-xl border shadow-xl max-w-md text-center">
-                    <BarChart3 className="w-12 h-12 text-primary mx-auto mb-4" />
-                    <h3 className="text-xl font-bold mb-2">Interface Simples e Poderosa</h3>
-                    <p className="text-muted-foreground">Otimizado para desktop e mobile. Gerencie tudo do seu celular ou tablet.</p>
-                 </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+              
+              {/* Floating UI Elements */}
+              <div className="absolute top-10 left-10 hidden lg:block glass p-4 rounded-xl border border-white/10 animate-float" style={{ animationDelay: '1s' }}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <TrendingUp className="text-green-500 h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Faturamento</div>
+                    <div className="text-lg font-bold text-white">R$ 12.450,00</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute bottom-20 right-10 hidden lg:block glass p-4 rounded-xl border border-white/10 animate-float" style={{ animationDelay: '2s' }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Calendar className="text-primary h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Próximo Agendamento</div>
+                    <div className="text-sm font-bold text-white">Corte Degradê - 14:30</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Social Proof */}
-      <section className="py-12 border-y bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-center gap-12 text-muted-foreground/60 font-medium">
-          <div className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> +500 Barbearias Ativas</div>
-          <div className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> 99.9% de Disponibilidade</div>
-          <div className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> Suporte 24/7 em Português</div>
+      {/* Metrics Bar */}
+      <section className="py-20 border-y border-white/5 bg-white/[0.02]">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+          <div className="space-y-2">
+            <div className="text-5xl font-black text-white">+1.200</div>
+            <div className="text-white/50 font-medium uppercase tracking-widest text-sm">Agendamentos realizados</div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-5xl font-black text-white">+R$80 mil</div>
+            <div className="text-white/50 font-medium uppercase tracking-widest text-sm">Gerenciados no sistema</div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-5xl font-black text-white">Dezenas</div>
+            <div className="text-white/50 font-medium uppercase tracking-widest text-sm">De barbearias ativas</div>
+          </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="funcionalidades" className="py-24 px-4 bg-muted/20">
+      {/* Problem Section */}
+      <section className="py-32 px-4 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center mb-20">
+          <h2 className="text-base font-bold text-primary uppercase tracking-[0.2em] mb-4">O Desafio</h2>
+          <p className="text-4xl lg:text-5xl font-black text-white tracking-tight">Você ainda perde clientes por:</p>
+        </div>
+        
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[
+            { title: "Agenda desorganizada", icon: <XCircle className="text-red-500" /> },
+            { title: "Esquecimentos de clientes", icon: <XCircle className="text-red-500" /> },
+            { title: "Confirmações manuais", icon: <XCircle className="text-red-500" /> },
+            { title: "Controle financeiro ruim", icon: <XCircle className="text-red-500" /> },
+            { title: "Falta de gestão dos barbeiros", icon: <XCircle className="text-red-500" /> },
+            { title: "Dificuldade em fidelizar", icon: <XCircle className="text-red-500" /> },
+          ].map((item, index) => (
+            <div key={index} className="glass p-8 rounded-2xl border border-white/5 flex items-center gap-6 hover:border-white/10 transition-colors">
+              <div className="p-3 bg-red-500/10 rounded-xl">
+                {item.icon}
+              </div>
+              <h3 className="text-xl font-bold text-white/90">{item.title}</h3>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Solution Section */}
+      <section id="funcionalidades" className="py-32 px-4 bg-primary/[0.02]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-base font-semibold text-primary uppercase tracking-wide mb-2">Funcionalidades</h2>
-            <p className="text-3xl lg:text-5xl font-bold tracking-tight text-foreground">Tudo o que você precisa para crescer</p>
+          <div className="text-center mb-20">
+            <h2 className="text-base font-bold text-primary uppercase tracking-[0.2em] mb-4">Soluções</h2>
+            <p className="text-4xl lg:text-6xl font-black text-white tracking-tight">Tudo o que sua barbearia precisa</p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard 
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <SolutionCard 
               icon={<Calendar className="h-8 w-8 text-primary" />}
-              title="Agenda Inteligente"
-              description="Visualização diária e semanal com sistema de arraste e solte. Evite conflitos de horário automaticamente."
+              title="Agenda inteligente"
+              description="Controle total dos horários com interface intuitiva."
             />
-            <FeatureCard 
-              icon={<Users className="h-8 w-8 text-primary" />}
-              title="Gestão de Clientes"
-              description="Histórico completo de atendimentos, preferências e dados de contato para fidelizar seus clientes."
+            <SolutionCard 
+              icon={<MessageSquare className="h-8 w-8 text-primary" />}
+              title="WhatsApp automático"
+              description="Lembretes e confirmações enviadas automaticamente."
             />
-            <FeatureCard 
+            <SolutionCard 
+              icon={<Zap className="h-8 w-8 text-primary" />}
+              title="Cashback"
+              description="Fidelize seus clientes com sistema de pontos e créditos."
+            />
+            <SolutionCard 
               icon={<CircleDollarSign className="h-8 w-8 text-primary" />}
-              title="Controle Financeiro"
-              description="Fluxo de caixa simplificado. Acompanhe entradas, saídas e comissões de forma automática."
+              title="Financeiro completo"
+              description="Controle de caixa, entradas e saídas em tempo real."
             />
-            <FeatureCard 
-              icon={<Smartphone className="h-8 w-8 text-primary" />}
-              title="100% Responsivo"
-              description="Acesse de qualquer lugar. O sistema funciona perfeitamente em celulares, tablets e computadores."
+            <SolutionCard 
+              icon={<Users className="h-8 w-8 text-primary" />}
+              title="Comissão automática"
+              description="Cálculo instantâneo de quanto cada barbeiro deve receber."
             />
-            <FeatureCard 
-              icon={<ShieldCheck className="h-8 w-8 text-primary" />}
-              title="Segurança SaaS"
-              description="Dados isolados por barbearia com criptografia de ponta a ponta e backups automáticos diários."
+            <SolutionCard 
+              icon={<Scissors className="h-8 w-8 text-primary" />}
+              title="Multi barbeiros"
+              description="Gestão individualizada para cada profissional da equipe."
             />
-            <FeatureCard 
-              icon={<BarChart3 className="h-8 w-8 text-primary" />}
-              title="Métricas em Tempo Real"
-              description="Dashboard completo com faturamento, ticket médio e novos clientes por dia e mês."
+            <SolutionCard 
+              icon={<TrendingUp className="h-8 w-8 text-primary" />}
+              title="Dashboard real time"
+              description="Acompanhe o crescimento do seu negócio de qualquer lugar."
+            />
+            <SolutionCard 
+              icon={<Settings className="h-8 w-8 text-primary" />}
+              title="Controle de clientes"
+              description="Base de dados completa com histórico de cada atendimento."
             />
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="precos" className="py-24 px-4">
+      <section id="precos" className="py-32 px-4 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[150px] -z-10"></div>
+
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-base font-semibold text-primary uppercase tracking-wide mb-2">Preços</h2>
-            <p className="text-3xl lg:text-5xl font-bold tracking-tight text-foreground">Planos que cabem no seu bolso</p>
-            <p className="mt-4 text-muted-foreground">Teste gratuitamente por 7 dias em qualquer modalidade.</p>
+          <div className="text-center mb-20">
+            <h2 className="text-base font-bold text-primary uppercase tracking-[0.2em] mb-4">Planos</h2>
+            <p className="text-4xl lg:text-6xl font-black text-white tracking-tight mb-6">Investimento que se paga</p>
+            <p className="text-xl text-white/50 font-bold">Sem taxa por agendamento. Pague apenas o valor fixo.</p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Free Plan */}
-            <div className="relative p-6 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all">
-              <h3 className="text-lg font-bold mb-1">Grátis</h3>
-              <p className="text-xs text-muted-foreground mb-4">Teste de 7 dias incluso.</p>
-              <div className="text-3xl font-extrabold mb-6">R$ 0<span className="text-sm font-normal text-muted-foreground">/mês</span></div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 1 Profissional</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> Até 5 Serviços</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 30 Agendamentos</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 1 WhatsApp</li>
+          <div className="grid lg:grid-cols-3 gap-8 items-center max-w-6xl mx-auto">
+            {/* Starter Plan */}
+            <div className="glass p-10 rounded-3xl border border-white/5 flex flex-col h-full relative group hover:border-white/10 transition-all">
+              <div className="mb-8">
+                <h3 className="text-2xl font-black text-white mb-2">Starter</h3>
+                <p className="text-white/50 font-medium">Ideal para barbeiros iniciantes.</p>
+              </div>
+              <div className="mb-10">
+                <div className="text-5xl font-black text-white">R$ 19,90<span className="text-lg font-bold text-white/40">/mês</span></div>
+              </div>
+              <ul className="space-y-4 mb-10 flex-1">
+                <PricingItem text="Agenda completa" />
+                <PricingItem text="1 Profissional" />
+                <PricingItem text="1 Conexão WhatsApp" />
+                <PricingItem text="Financeiro básico" />
+                <PricingItem text="Clientes ilimitados" />
               </ul>
-              <Button variant="outline" className="w-full" asChild>
-                <Link to="/auth">Começar Grátis</Link>
+              <Button variant="outline" className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" asChild>
+                <Link to="/auth">Começar agora</Link>
               </Button>
             </div>
 
-            {/* Basic Plan */}
-            <div className="relative p-6 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all border-green-500/20">
-              <h3 className="text-lg font-bold mb-1 text-green-600">Básico</h3>
-              <p className="text-xs text-muted-foreground mb-4">Para profissionais liberais.</p>
-              <div className="text-3xl font-extrabold mb-6">R$ 19,90<span className="text-sm font-normal text-muted-foreground">/mês</span></div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 2 Profissionais</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 10 Serviços</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 100 Agendamentos</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 1 WhatsApp</li>
-              </ul>
-              <Button className="w-full bg-green-600 hover:bg-green-700" asChild>
-                <Link to="/auth">Assinar Básico</Link>
-              </Button>
-            </div>
-
-            {/* Intermediate Plan */}
-            <div className="relative p-6 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all border-purple-500/30">
-              <div className="absolute -top-3 right-4 bg-purple-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">RECOMENDADO</div>
-              <h3 className="text-lg font-bold mb-1 text-purple-600">Intermediário</h3>
-              <p className="text-xs text-muted-foreground mb-4">Pequenas barbearias.</p>
-              <div className="text-3xl font-extrabold mb-6">R$ 39,90<span className="text-sm font-normal text-muted-foreground">/mês</span></div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 5 Profissionais</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 25 Serviços</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 500 Agendamentos</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> 3 WhatsApps</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> Gateway Pagto</li>
-              </ul>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700" asChild>
-                <Link to="/auth">Assinar Interm.</Link>
-              </Button>
-            </div>
-            
             {/* Pro Plan */}
-            <div className="relative p-6 rounded-2xl border-2 border-primary bg-card shadow-xl overflow-hidden transition-all">
-              <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-4 py-1 rounded-bl-lg">PRÓ</div>
-              <h3 className="text-lg font-bold mb-1">Profissional (Pró)</h3>
-              <p className="text-xs text-muted-foreground mb-4">Solução sem limites.</p>
-              <div className="text-3xl font-extrabold mb-6">R$ 59,90<span className="text-sm font-normal text-muted-foreground">/mês</span></div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2 text-sm font-medium"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> Tudo Ilimitado</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> WhatsApp Ilimitado</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> Gateway Pagto</li>
-                <li className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> Suporte Prioritário</li>
+            <div className="glass p-10 rounded-3xl border-2 border-primary bg-primary/5 flex flex-col h-full relative scale-105 shadow-[0_0_50px_rgba(var(--primary),0.2)]">
+              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-black px-6 py-2 rounded-full uppercase tracking-widest">
+                MAIS POPULAR
+              </div>
+              <div className="mb-8">
+                <h3 className="text-2xl font-black text-white mb-2">Pro</h3>
+                <p className="text-white/50 font-medium">Para barbearias em crescimento.</p>
+              </div>
+              <div className="mb-10">
+                <div className="text-6xl font-black text-white">R$ 39,90<span className="text-lg font-bold text-white/40">/mês</span></div>
+              </div>
+              <ul className="space-y-4 mb-10 flex-1">
+                <PricingItem text="Até 5 Profissionais" />
+                <PricingItem text="2 Conexões WhatsApp" />
+                <PricingItem text="Sistema de Cashback" />
+                <PricingItem text="Financeiro avançado" />
+                <PricingItem text="Relatórios de desempenho" />
+                <PricingItem text="Automações inteligentes" />
               </ul>
-              <Button className="w-full bg-primary hover:bg-primary/90" asChild>
-                <Link to="/auth">Assinar Pró</Link>
+              <Button className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(var(--primary),0.4)]" asChild>
+                <Link to="/auth">Assinar agora</Link>
+              </Button>
+            </div>
+
+            {/* Elite Plan */}
+            <div className="glass p-10 rounded-3xl border border-white/5 flex flex-col h-full relative group hover:border-white/10 transition-all">
+              <div className="mb-8">
+                <h3 className="text-2xl font-black text-white mb-2">Elite</h3>
+                <p className="text-white/50 font-medium">Solução definitiva sem limites.</p>
+              </div>
+              <div className="mb-10">
+                <div className="text-5xl font-black text-white">R$ 59,90<span className="text-lg font-bold text-white/40">/mês</span></div>
+              </div>
+              <ul className="space-y-4 mb-10 flex-1">
+                <PricingItem text="Profissionais ilimitados" />
+                <PricingItem text="WhatsApp ilimitado" />
+                <PricingItem text="Dashboard analítico" />
+                <PricingItem text="Automações premium" />
+                <PricingItem text="Suporte prioritário" />
+                <PricingItem text="Customização total" />
+              </ul>
+              <Button variant="outline" className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" asChild>
+                <Link to="/auth">Assinar agora</Link>
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="depoimentos" className="py-24 px-4 bg-primary/5">
-        <div className="max-w-7xl mx-auto">
+      {/* FAQ Section */}
+      <section id="faq" className="py-32 px-4 bg-white/[0.01]">
+        <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-base font-semibold text-primary uppercase tracking-wide mb-2">Depoimentos</h2>
-            <p className="text-3xl lg:text-5xl font-bold tracking-tight text-foreground">O que dizem os barbeiros</p>
+            <h2 className="text-base font-bold text-primary uppercase tracking-[0.2em] mb-4">Dúvidas</h2>
+            <p className="text-4xl font-black text-white tracking-tight">Perguntas Frequentes</p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <TestimonialCard 
-              name="Carlos Alberto"
-              business="Barbearia Estilo"
-              content="O sistema mudou a forma como gerencio meu tempo. O controle de conflitos na agenda é perfeito."
-              rating={5}
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            <FaqItem 
+              value="item-1"
+              question="Funciona no celular?"
+              answer="Sim! O BarberLM é 100% responsivo e funciona perfeitamente em qualquer dispositivo: celular, tablet ou computador."
             />
-            <TestimonialCard 
-              name="Ricardo Nunes"
-              business="The Barber Shop"
-              content="Saímos do papel para o digital em um dia. A interface é tão simples que nem precisei treinar minha equipe."
-              rating={5}
+            <FaqItem 
+              value="item-2"
+              question="Preciso instalar alguma coisa?"
+              answer="Não. O sistema é totalmente online (SaaS). Você acessa através do navegador de qualquer lugar."
             />
-            <TestimonialCard 
-              name="Marcos Souza"
-              business="Barba & Cia"
-              content="O controle financeiro é o diferencial. Agora sei exatamente quanto estou faturando e quais serviços rendem mais."
-              rating={5}
+            <FaqItem 
+              value="item-3"
+              question="Posso cancelar quando quiser?"
+              answer="Com certeza. Não temos fidelidade. Se não estiver satisfeito, pode cancelar sua assinatura a qualquer momento sem multas."
             />
-          </div>
+            <FaqItem 
+              value="item-4"
+              question="Como funciona o WhatsApp?"
+              answer="O sistema se conecta ao seu WhatsApp para enviar lembretes automáticos de agendamento, confirmações e mensagens de marketing."
+            />
+            <FaqItem 
+              value="item-5"
+              question="Como funciona o cashback?"
+              answer="Você define uma porcentagem de retorno para o cliente. A cada serviço, ele acumula um saldo que pode ser usado em cortes futuros, aumentando a fidelização."
+            />
+            <FaqItem 
+              value="item-6"
+              question="Tem suporte?"
+              answer="Sim! Temos uma equipe de suporte dedicada via chat e WhatsApp para te ajudar em qualquer dúvida ou configuração."
+            />
+          </Accordion>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-32 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/20 blur-[100px] -z-10 animate-pulse"></div>
+        <div className="max-w-5xl mx-auto glass p-16 lg:p-24 rounded-[4rem] border border-white/10 text-center relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] -z-10"></div>
+          
+          <h2 className="text-5xl lg:text-7xl font-black text-white mb-8 tracking-tighter leading-none">
+            Sua barbearia merece um <br />
+            <span className="text-primary">sistema profissional.</span>
+          </h2>
+          <p className="text-xl text-white/60 max-w-2xl mx-auto mb-12">
+            Junte-se a dezenas de barbeiros que já profissionalizaram sua gestão e aumentaram seu faturamento.
+          </p>
+          <Button size="lg" className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_50px_rgba(var(--primary),0.5)] group" asChild>
+            <Link to="/auth">
+              Começar agora <ArrowRight className="ml-3 h-8 w-8 group-hover:translate-x-2 transition-transform" />
+            </Link>
+          </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-background border-t py-12 px-4">
+      <footer className="bg-background border-t border-white/5 py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
+          <div className="grid md:grid-cols-4 gap-16 mb-20">
             <div className="col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <Scissors className="text-primary h-6 w-6" />
-                <span className="text-xl font-bold tracking-tight text-primary">BarberSaaS</span>
+              <div className="flex items-center gap-2 mb-6">
+                <Scissors className="text-primary h-8 w-8" />
+                <span className="text-3xl font-bold tracking-tight text-white">Barber<span className="text-primary">LM</span></span>
               </div>
-              <p className="text-muted-foreground max-w-sm mb-6">
-                Ajudamos barbeiros a profissionalizarem seus negócios através de tecnologia simples e acessível.
+              <p className="text-white/50 max-w-sm mb-8 text-lg leading-relaxed">
+                Ajudamos barbeiros a profissionalizarem seus negócios através de tecnologia simples, moderna e de alto impacto.
               </p>
             </div>
             <div>
-              <h4 className="font-bold mb-4">Produto</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-black text-white uppercase tracking-widest text-sm mb-8">Produto</h4>
+              <ul className="space-y-4 text-white/50">
                 <li><a href="#funcionalidades" className="hover:text-primary transition-colors">Funcionalidades</a></li>
                 <li><a href="#precos" className="hover:text-primary transition-colors">Preços</a></li>
-                <li><a href="/auth" className="hover:text-primary transition-colors">Cadastrar</a></li>
+                <li><a href="#faq" className="hover:text-primary transition-colors">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-4">Suporte</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">Central de Ajuda</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contato</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Termos de Uso</a></li>
+              <h4 className="font-black text-white uppercase tracking-widest text-sm mb-8">Links Úteis</h4>
+              <ul className="space-y-4 text-white/50">
+                <li><Link to="/auth" className="hover:text-primary transition-colors">Entrar</Link></li>
+                <li><Link to="/auth" className="hover:text-primary transition-colors">Criar conta</Link></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Suporte</a></li>
               </ul>
             </div>
           </div>
-          <div className="pt-8 border-t text-center text-sm text-muted-foreground">
-            © 2026 BarberSaaS. Todos os direitos reservados.
+          <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="text-white/40 font-medium">
+              © 2026 BarberLM. Todos os direitos reservados.
+            </div>
+            <div className="flex gap-8 text-white/40 text-sm font-medium">
+              <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>
+              <a href="#" className="hover:text-white transition-colors">Privacidade</a>
+            </div>
           </div>
         </div>
       </footer>
@@ -316,34 +438,36 @@ function LandingPageComponent() {
   );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+function SolutionCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
   return (
-    <div className="p-8 rounded-2xl bg-card border shadow-sm hover:shadow-md transition-shadow animate-fade-in">
-      <div className="mb-4">{icon}</div>
-      <h3 className="text-xl font-bold mb-2">{title}</h3>
-      <p className="text-muted-foreground leading-relaxed">{description}</p>
+    <div className="p-8 rounded-3xl glass border border-white/5 hover:border-primary/30 hover:bg-primary/[0.03] transition-all group group cursor-default">
+      <div className="mb-6 p-4 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 transition-colors">{icon}</div>
+      <h3 className="text-xl font-bold text-white mb-3 tracking-tight">{title}</h3>
+      <p className="text-white/50 leading-relaxed font-medium">{description}</p>
     </div>
   );
 }
 
-function TestimonialCard({ name, business, content, rating }: { name: string, business: string, content: string, rating: number }) {
+function PricingItem({ text }: { text: string }) {
   return (
-    <div className="p-8 rounded-2xl bg-card border shadow-sm animate-fade-in">
-      <div className="flex gap-1 mb-4 text-yellow-400">
-        {Array.from({ length: rating }).map((_, i) => (
-          <Star key={i} className="h-4 w-4 fill-current" />
-        ))}
+    <li className="flex items-center gap-3 text-white/70 font-medium">
+      <div className="p-1 bg-primary/20 rounded-full">
+        <Check className="h-4 w-4 text-primary" />
       </div>
-      <p className="text-lg italic mb-6 leading-relaxed">"{content}"</p>
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
-          {name.charAt(0)}
-        </div>
-        <div>
-          <div className="font-bold">{name}</div>
-          <div className="text-xs text-muted-foreground">{business}</div>
-        </div>
-      </div>
-    </div>
+      {text}
+    </li>
+  );
+}
+
+function FaqItem({ value, question, answer }: { value: string, question: string, answer: string }) {
+  return (
+    <AccordionItem value={value} className="border-none glass rounded-2xl px-6 mb-4">
+      <AccordionTrigger className="text-xl font-bold text-white hover:no-underline py-6">
+        {question}
+      </AccordionTrigger>
+      <AccordionContent className="text-white/60 text-lg leading-relaxed pb-6">
+        {answer}
+      </AccordionContent>
+    </AccordionItem>
   );
 }

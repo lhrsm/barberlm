@@ -1,30 +1,28 @@
-As melhorias focarão em garantir que agendamentos só afetem as finanças e dashboards após a conclusão pelo barbeiro, além de implementar a sincronização em tempo real.
+I will refactor the landing page to create a premium, modern, and high-converting SaaS experience for BarberLM.
 
-### 1. Refatoração da Lógica Financeira (Dashboard e Finanças)
-- **Dashboard**: Ajustar `fetchStats` para filtrar apenas agendamentos com `status = 'completed'` para os cálculos de "Serviços Vendidos", "Créditos Utilizados" e "Entrada em Caixa".
-- **Página de Finanças**: 
-  - Ajustar `fetchTransactions` para garantir que transações manuais e automáticas sejam exibidas corretamente.
-  - Adicionar as colunas de Data e Hora do agendamento (conforme solicitado).
-  - Garantir que o `summary` (Faturamento Operacional, Fluxo de Caixa, etc.) considere apenas o que foi efetivamente concluído.
-  - O cálculo de comissão de freelancers será movido para considerar apenas transações de agendamentos concluídos.
+### Visual Strategy
+- **Dark Mode Aesthetic**: The page will use a sophisticated dark theme by default (using `dark` class) to convey a premium "tech startup" feel.
+- **Modern UI Elements**: I will implement soft gradients, glow effects (using CSS shadows and radial gradients), and glassmorphism (backdrop filters).
+- **Responsive Layout**: Ensuring perfect display on all screen sizes, with optimized spacing for mobile.
 
-### 2. Fluxo de Agendamento e Conclusão
-- **Calendário**: 
-  - Impedir que a criação de um agendamento gere uma transação financeira imediata (mesmo se marcado como "pago"). A transação só deve ser criada no momento da conclusão (`completeAppointment`).
-  - No `handleMarkAsPaid`, garantir que o status também seja alterado para `completed` (isso já parece ocorrer em alguns lugares, mas será uniformizado).
-- **Dashboard**:
-  - No `completeAppointment`, garantir que a transação financeira seja registrada somente neste momento, independentemente de quando o pagamento foi feito.
-  - Implementar o consumo de créditos do cliente apenas na conclusão do serviço.
+### Sections Implementation
+1.  **Header**: Premium glassmorphism navigation with a clear CTA.
+2.  **Hero Section**: 
+    - High-impact headline and subheadline.
+    - Dual CTAs: "Começar agora" (Primary) and "Agendar demonstração" (Secondary).
+    - Large system mockup with subtle floating animations and a glow background.
+3.  **Metrics Bar**: Premium layout for social proof showing "+1.200 agendamentos", "+R$80 mil gerenciados", etc.
+4.  **Problem Section**: "Você ainda perde clientes por..." highlighting pain points like disorganization and manual confirmations.
+5.  **Solution Section**: Modern grid of cards with glassmorphism and custom icons for key features (Agenda, WhatsApp Auto, Cashback, etc.).
+6.  **Pricing Section**: 
+    - 3-tier paid-only pricing: Starter (R$19.90), Pro (R$39.90 - Highlighted), Elite (R$59.90).
+    - Premium visuals for the "Pro" plan with a "MAIS POPULAR" badge and subtle glow.
+    - Explicit mention of "Sem taxa por agendamento".
+7.  **FAQ Section**: Modern accordion-style FAQ with smooth transitions.
+8.  **Final CTA**: High-conversion footer section to drive sign-ups.
 
-### 3. Sincronização em Tempo Real (Realtime)
-- Implementar assinaturas do Supabase Realtime nas páginas de Dashboard, Finanças e Calendário.
-- Ouvir mudanças nas tabelas `appointments`, `transactions` e `customers`.
-- Garantir que, quando um barbeiro alterar um status, as telas de outros administradores e do Portal do Cliente reflitam a mudança instantaneamente.
-
-### 4. Portal do Cliente
-- Garantir que a lógica de atualização em tempo real (que já possui uma base) cubra todos os estados (confirmado, concluído, cancelado).
-
-### Detalhes Técnicos
-- Uso de `supabase.channel()` para subscrição em tempo real.
-- Filtros SQL rigorosos nas consultas (`.eq('status', 'completed')`) para os dashboards.
-- Inclusão de `start_time` nas consultas de transação para exibir o horário correto.
+### Technical Details
+- Use `lucide-react` for modern iconography.
+- Implement custom CSS animations in `src/styles.css` for floating effects and smooth fades.
+- Leverage Tailwind 4 features for the glassmorphism and gradient effects.
+- Clean up the existing `src/routes/index.tsx` to remove the outdated sections and replace them with the new components.
