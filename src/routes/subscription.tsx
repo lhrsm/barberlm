@@ -53,9 +53,9 @@ function SubscriptionComponent() {
       } else {
         const planNames = {
           free: "Grátis",
-          basic: "Básico",
-          intermediate: "Intermediário",
-          pro: "Pró"
+          starter: "Starter",
+          pro: "Pro",
+          elite: "Elite"
         };
         toast.success(`Plano alterado para ${planNames[newPlan]}!`);
         await refresh();
