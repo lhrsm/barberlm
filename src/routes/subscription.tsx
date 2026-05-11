@@ -30,9 +30,9 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const PLAN_PRICE_IDS: Record<Exclude<PlanType, 'free'>, string> = {
-  starter: "starter_monthly",
-  pro: "pro_monthly",
-  elite: "elite_monthly",
+  starter: "price_1TVtOWPKG6q10UjrQErPgyKO",
+  pro: "price_1TVtOVPKG6q10Ujre6zMGYpk",
+  elite: "price_1TVsefPKG6q10UjrKpTaUe71",
 };
 
 export const Route = createFileRoute("/subscription")({

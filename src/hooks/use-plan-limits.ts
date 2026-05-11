@@ -78,7 +78,7 @@ export function usePlanLimits() {
     try {
       const [profileRes, subRes, barbRes, servRes, prodRes, appRes, whatsappRes] = await Promise.all([
         supabase.from("profiles").select("plan, created_at").eq("id", tenantId).maybeSingle(),
-        supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end, stripe_customer_id").eq("user_id", tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end, stripe_customer_id, price_id").eq("user_id", tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from("barbers").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
         supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
         supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
@@ -104,12 +104,15 @@ export function usePlanLimits() {
       }
 
       if (subRes.data) {
+        console.log("[usePlanLimits] Subscription data found:", subRes.data);
         setSubscription({
           status: subRes.data.status || null,
           currentPeriodEnd: subRes.data.current_period_end || null,
           cancelAtPeriodEnd: !!subRes.data.cancel_at_period_end,
           stripeCustomerId: subRes.data.stripe_customer_id || null,
         });
+      } else {
+        console.log("[usePlanLimits] No subscription found for user");
       }
 
       setUsage({

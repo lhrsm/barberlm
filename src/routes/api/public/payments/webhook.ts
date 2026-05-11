@@ -14,9 +14,14 @@ function getSupabase(): any {
 }
 
 const PRICE_TO_PLAN: Record<string, string> = {
+  // Lookup keys
   starter_monthly: "starter",
   pro_monthly: "pro",
   elite_monthly: "elite",
+  // Real IDs (LIVE)
+  price_1TVtOWPKG6q10UjrQErPgyKO: "starter", // Starter LIVE
+  price_1TVtOVPKG6q10Ujre6zMGYpk: "pro",     // Pro LIVE
+  price_1TVsefPKG6q10UjrKpTaUe71: "elite",   // Elite LIVE
 };
 
 async function syncProfilePlan(userId: string, priceId: string | undefined, status: string) {
@@ -105,19 +110,26 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
 
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
+  console.log(`[Webhook] 📥 Evento recebido: ${event.type} (${env})`);
 
   switch (event.type) {
     case "customer.subscription.created":
+      console.log("[Webhook] Processing subscription.created");
       await handleSubscriptionCreated(event.data.object, env);
       break;
     case "customer.subscription.updated":
+      console.log("[Webhook] Processing subscription.updated");
       await handleSubscriptionUpdated(event.data.object, env);
       break;
     case "customer.subscription.deleted":
+      console.log("[Webhook] Processing subscription.deleted");
       await handleSubscriptionDeleted(event.data.object, env);
       break;
+    case "checkout.session.completed":
+      console.log("[Webhook] Checkout session completed");
+      break;
     default:
-      console.log("Unhandled event:", event.type);
+      console.log("[Webhook] Unhandled event:", event.type);
   }
 }
 
