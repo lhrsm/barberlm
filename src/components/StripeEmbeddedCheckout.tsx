@@ -59,7 +59,7 @@ export function StripeEmbeddedCheckout({
       });
 
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("A requisição ao servidor expirou (timeout de 15s).")), 15000)
+        setTimeout(() => reject(new Error("A requisição ao servidor expirou (timeout de 60s).")), 60000)
       );
 
       const secret = await Promise.race([sessionPromise, timeoutPromise]) as string;
@@ -96,9 +96,17 @@ export function StripeEmbeddedCheckout({
 
   if (error) {
     return (
-      <div className="p-8 text-center border border-destructive/20 bg-destructive/5 rounded-lg">
-        <p className="text-destructive font-medium mb-2">Ops! Algo deu errado.</p>
-        <p className="text-sm text-muted-foreground">{error}</p>
+      <div className="p-8 text-center border border-destructive/20 bg-destructive/5 rounded-lg flex flex-col items-center gap-4">
+        <div className="text-center">
+          <p className="text-destructive font-medium mb-2">Ops! Algo deu errado.</p>
+          <p className="text-sm text-muted-foreground">{error}</p>
+        </div>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          Tentar novamente
+        </button>
       </div>
     );
   }
