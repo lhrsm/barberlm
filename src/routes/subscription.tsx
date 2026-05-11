@@ -65,28 +65,35 @@ function SubscriptionComponent() {
   const [updating, setUpdating] = useState(false);
 
   const handlePlanChange = async (newPlan: PlanType) => {
-    // ... same code
-    console.log("[Subscription] handlePlanChange:", newPlan);
+    console.log("[Subscription] 👆 Clique em handlePlanChange para o plano:", newPlan);
     if (!user) {
+      console.warn("[Subscription] ❌ Usuário não logado");
       toast.error("Você precisa estar logado.");
       return;
     }
-    if (newPlan === 'free') return;
+    if (newPlan === 'free') {
+      console.log("[Subscription] ℹ️ Plano free selecionado, ignorando checkout");
+      return;
+    }
 
     const priceId = PLAN_PRICE_IDS[newPlan];
+    console.log("[Subscription] 🆔 Price ID mapeado:", priceId);
+    
     if (!priceId) {
+      console.error("[Subscription] ❌ Erro interno: ID do preço não configurado para:", newPlan);
       toast.error("Erro interno: ID do preço não configurado.");
       return;
     }
     
     try {
+      console.log("[Subscription] 🚀 Chamando openCheckout...");
       openCheckout({
         priceId,
         customerEmail: user.email,
         returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       });
     } catch (err) {
-      console.error("[Subscription] openCheckout error:", err);
+      console.error("[Subscription] ❌ Erro ao chamar openCheckout:", err);
       toast.error("Erro ao iniciar o checkout.");
     }
   };

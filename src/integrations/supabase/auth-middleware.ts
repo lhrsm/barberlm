@@ -8,6 +8,7 @@ import type { Database } from './types'
 
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
+    console.log("[Auth Middleware] 🔐 Verificando autenticação Supabase...");
     
     const SUPABASE_URL = process.env.SUPABASE_URL;
     const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
@@ -18,17 +19,19 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
         ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
       ];
       const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-      console.error(`[Supabase] ${message}`);
+      console.error(`[Supabase Auth Middleware] ❌ ${message}`);
       throw new Response(message, { status: 500 });
     }
     
     const request = getRequest();
 
     if (!request?.headers) {
+      console.error("[Supabase Auth Middleware] ❌ Sem headers na requisição");
       throw new Response('Unauthorized: No request headers available', { status: 401 });
     }
 
     const authHeader = request.headers.get('authorization');
+    console.log("[Supabase Auth Middleware] 📝 Authorization header presente:", !!authHeader);
 
     if (!authHeader) {
       throw new Response('Unauthorized: No authorization header provided', { status: 401 });

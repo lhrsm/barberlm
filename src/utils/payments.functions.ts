@@ -49,14 +49,18 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    console.log("[Checkout Server] 🚀 Iniciando checkout para userId:", userId);
-    console.log("[Checkout Server] 📦 Detalhes:", { 
+    console.log("[Checkout Server] 🚀 INICIANDO handler de createCheckoutSession");
+    console.log("[Checkout Server] 🆔 User ID do contexto:", userId);
+    console.log("[Checkout Server] 📦 Input data:", { 
       priceId: data.priceId, 
       environment: data.environment,
-      email: data.customerEmail 
+      email: data.customerEmail,
+      userId: data.userId 
     });
     
-    const stripe = createStripeClient(data.environment);
+    try {
+      const stripe = createStripeClient(data.environment);
+      console.log("[Checkout Server] 💳 Cliente Stripe criado com sucesso");
     
     // Search for price
     let stripePrice;

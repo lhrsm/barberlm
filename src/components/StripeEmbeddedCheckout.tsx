@@ -24,13 +24,15 @@ export function StripeEmbeddedCheckout({
 
   const fetchClientSecret = async (): Promise<string> => {
     try {
-      console.log("[StripeEmbeddedCheckout] fetchClientSecret started for:", priceId);
+      console.log("[StripeEmbeddedCheckout] 🏁 fetchClientSecret iniciado para priceId:", priceId);
       setError(null);
       
       if (!priceId) {
+        console.error("[StripeEmbeddedCheckout] ❌ Price ID ausente no componente");
         throw new Error("Price ID is missing in StripeEmbeddedCheckout component.");
       }
 
+      console.log("[StripeEmbeddedCheckout] 📡 Invocando server function: createCheckoutSession");
       const secret = await createCheckoutSession({
         data: {
           priceId,
@@ -43,14 +45,23 @@ export function StripeEmbeddedCheckout({
       });
       
       if (!secret) {
-        console.error("[StripeEmbeddedCheckout] Received null/empty client_secret");
+        console.error("[StripeEmbeddedCheckout] ❌ Erro: client_secret retornado é vazio/null");
         throw new Error("Não foi possível gerar a sessão de pagamento (secret vazio).");
       }
       
-      console.log("[StripeEmbeddedCheckout] Client secret fetched successfully");
+      console.log("[StripeEmbeddedCheckout] ✅ Client secret obtido com sucesso:", secret.substring(0, 10) + "...");
       return secret;
     } catch (err: any) {
-      console.error("[StripeEmbeddedCheckout] fetchClientSecret CRASH:", err);
+      console.error("[StripeEmbeddedCheckout] 💥 CRASH em fetchClientSecret:", err);
+      // Log more details about the error if it's a Response object (common in TanStack Start server functions)
+      if (err instanceof Response) {
+        try {
+          const body = await err.text();
+          console.error("[StripeEmbeddedCheckout] 🔍 Response body do erro:", body);
+        } catch (e) {
+          console.error("[StripeEmbeddedCheckout] 🔍 Não foi possível ler o corpo do erro");
+        }
+      }
       const message = err.message || "Erro desconhecido ao carregar o checkout do Stripe.";
       setError(message);
       toast.error(message);
