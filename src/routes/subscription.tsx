@@ -173,7 +173,7 @@ function SubscriptionComponent() {
             <h2 className="text-3xl font-bold tracking-tight">Assinatura</h2>
             <p className="text-muted-foreground">Gerencie seu plano e limites do sistema.</p>
           </div>
-          {(plan === 'starter' || plan === 'pro' || plan === 'elite') && (
+          {plan !== 'free' && (
             <Button variant="outline" onClick={handleManageSubscription} disabled={updating}>
               {updating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Gerenciar Assinatura
