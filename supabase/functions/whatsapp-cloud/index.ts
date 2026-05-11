@@ -146,9 +146,12 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: insertError.message }), { status: 500, headers: corsHeaders });
     }
 
-    // Trigger immediate process for this message (optional, but good for UX)
-    // We'll call the process-queue internally
-    // (In a real high-scale app, you'd do this via a background worker)
+    // Trigger immediate process for this message
+    // In production, this would be handled by a queue worker or cron
+    await fetch(`${supabaseUrl}/functions/v1/whatsapp-cloud/process-queue`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${supabaseKey}` }
+    });
     
     return new Response(JSON.stringify({ success: true, message_id: message.id }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
