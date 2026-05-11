@@ -55,7 +55,7 @@ function SubscriptionComponent() {
     openCheckout({
       priceId,
       customerEmail: user.email,
-      userId: user.id,
+      // userId is now handled by server context middleware
       returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
     });
   };
