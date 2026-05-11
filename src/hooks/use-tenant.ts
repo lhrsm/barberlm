@@ -14,7 +14,7 @@ export function useTenant() {
     ? null 
     : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || (profile?.role === 'tenant_admin' ? profile?.id || user?.id : null))));
 
-  console.log("useTenant resolved:", { tenantId, role: profile?.role, impersonatedId });
+  console.log("useTenant resolved:", { tenantId, role: profile?.role, impersonatedId, profileId: profile?.id });
 
 
   const { data: tenantProfile, isLoading: queryLoading } = useQuery({
