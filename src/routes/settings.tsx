@@ -217,38 +217,6 @@ function SettingsComponent() {
     toast.success("Configurações salvas com sucesso!");
   }
 
-  // Simulated QR Code connection
-  const simulateConnection = async () => {
-    if (!connectingInstance) return;
-    
-    setSaving(true);
-    const toastId = toast.loading("Autenticando com o WhatsApp...");
-    
-    // Simulate network delay
-    setTimeout(async () => {
-      const { error } = await supabase
-        .from("whatsapp_instances")
-        .update({ 
-          status: "connected",
-          phone: "+55 (11) 9" + Math.floor(Math.random() * 90000000 + 10000000)
-        })
-        .eq("id", connectingInstance);
-
-      setSaving(false);
-      
-      if (error) {
-        console.error("Error updating connection status:", error);
-        toast.error("Erro ao finalizar conexão", { id: toastId });
-      } else {
-        setIsQrModalOpen(false);
-        setConnectingInstance(null);
-        await fetchWhatsappInstances();
-        await refreshLimits();
-        toast.success("WhatsApp conectado com sucesso!", { id: toastId });
-      }
-    }, 2000);
-  };
-
   if (loading || !user) return null;
 
   return (
