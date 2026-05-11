@@ -53,9 +53,9 @@ function SubscriptionComponent() {
       } else {
         const planNames = {
           free: "Grátis",
-          basic: "Básico",
-          intermediate: "Intermediário",
-          pro: "Pró"
+          starter: "Starter",
+          pro: "Pro",
+          elite: "Elite"
         };
         toast.success(`Plano alterado para ${planNames[newPlan]}!`);
         await refresh();
@@ -104,58 +104,59 @@ function SubscriptionComponent() {
   const planConfigs = [
     {
       id: "free" as PlanType,
-      name: "Grátis",
+      name: "Teste Grátis",
       price: "0",
-      description: "Comece agora com 7 dias de teste gratuito.",
+      description: "Comece agora com 15 dias de acesso total ao Pro.",
       icon: <Zap className="text-blue-500 w-5 h-5" />,
       features: [
-        `${PLAN_LIMITS.free.barbers} Profissional`,
-        `${PLAN_LIMITS.free.services} Serviços`,
-        `${PLAN_LIMITS.free.products} Produtos`,
-        `${PLAN_LIMITS.free.monthlyAppointments} Agendamentos/mês`,
-        "1 Conexão WhatsApp",
+        `Até 5 Profissionais`,
+        `Serviços Ilimitados`,
+        `Produtos Ilimitados`,
+        `Agendamentos Ilimitados`,
+        "2 Conexões WhatsApp",
+        "Acesso por 15 dias",
       ],
       buttonText: "Plano Atual",
       color: "blue"
     },
     {
-      id: "basic" as PlanType,
-      name: "Básico",
+      id: "starter" as PlanType,
+      name: "Starter",
       price: "19,90",
-      description: "Ideal para profissionais liberais.",
+      description: "Ideal para profissionais individuais.",
       icon: <Star className="text-green-500 w-5 h-5" />,
       features: [
-        `${PLAN_LIMITS.basic.barbers} Profissionais`,
-        `${PLAN_LIMITS.basic.services} Serviços`,
-        `${PLAN_LIMITS.basic.products} Produtos`,
-        `${PLAN_LIMITS.basic.monthlyAppointments} Agendamentos/mês`,
+        `${PLAN_LIMITS.starter.barbers} Profissional`,
+        `Serviços Ilimitados`,
+        `Produtos Ilimitados`,
+        `Agendamentos Ilimitados`,
         "1 Conexão WhatsApp",
       ],
-      buttonText: "Upgrade para Básico",
+      buttonText: "Assinar Starter",
       color: "green"
     },
     {
-      id: "intermediate" as PlanType,
-      name: "Intermediário",
+      id: "pro" as PlanType,
+      name: "Pro",
       price: "39,90",
-      description: "Perfeito para pequenas barbearias.",
+      description: "Perfeito para barbearias em crescimento.",
       icon: <Rocket className="text-purple-500 w-5 h-5" />,
       features: [
-        `${PLAN_LIMITS.intermediate.barbers} Profissionais`,
-        `${PLAN_LIMITS.intermediate.services} Serviços`,
-        `${PLAN_LIMITS.intermediate.products} Produtos`,
-        `${PLAN_LIMITS.intermediate.monthlyAppointments} Agendamentos/mês`,
-        "Até 3 Conexões WhatsApp",
-        "Gateway de Pagamento",
+        `${PLAN_LIMITS.pro.barbers} Profissionais`,
+        `Serviços Ilimitados`,
+        `Produtos Ilimitados`,
+        `Agendamentos Ilimitados`,
+        "2 Conexões WhatsApp",
+        "Financeiro Completo",
       ],
-      buttonText: "Upgrade para Intermediário",
+      buttonText: "Assinar Pro",
       color: "purple"
     },
     {
-      id: "pro" as PlanType,
-      name: "Pró",
+      id: "elite" as PlanType,
+      name: "Elite",
       price: "59,90",
-      description: "A solução completa sem limites.",
+      description: "A solução definitiva sem limites.",
       icon: <Crown className="text-yellow-500 w-5 h-5" />,
       features: [
         "Profissionais Ilimitados",
@@ -163,9 +164,9 @@ function SubscriptionComponent() {
         "Produtos Ilimitados",
         "Agendamentos Ilimitados",
         "Conexões WhatsApp Ilimitadas",
-        "Gateway de Pagamento Liberado",
+        "Suporte Prioritário",
       ],
-      buttonText: "Upgrade para Pró",
+      buttonText: "Assinar Elite",
       color: "yellow"
     }
   ];
@@ -210,13 +211,14 @@ function SubscriptionComponent() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  Plano Atual: <span className="capitalize text-primary font-bold">{plan === 'free' ? 'Grátis' : plan === 'basic' ? 'Básico' : plan === 'intermediate' ? 'Intermediário' : 'Pró'}</span>
+                  Plano Atual: <span className="capitalize text-primary font-bold">{plan === 'free' ? 'Teste Grátis' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
                   {plan === 'pro' && <Crown className="text-yellow-500 w-5 h-5" />}
+                  {plan === 'elite' && <Rocket className="text-purple-500 w-5 h-5" />}
                 </CardTitle>
                 <CardDescription>Acompanhe o uso dos seus recursos.</CardDescription>
               </div>
               <div className="bg-background/50 px-3 py-1 rounded-full border text-xs font-medium">
-                {plan === 'free' ? '7 Dias de Teste Ativos' : 'Assinatura Ativa'}
+                {plan === 'free' ? 'Período de Experiência' : 'Assinatura Ativa'}
               </div>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-5">
