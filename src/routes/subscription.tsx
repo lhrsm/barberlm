@@ -40,16 +40,34 @@ export const Route = createFileRoute("/subscription")({
 });
 
 function SubscriptionComponent() {
-  const { user, loading: authLoading, role, profile } = useAuth();
+  console.log("[Subscription] Rendering SubscriptionComponent");
+  let auth, planLimits, checkout;
+  
+  try {
+    auth = useAuth();
+    planLimits = usePlanLimits();
+    checkout = useStripeCheckout();
+    console.log("[Subscription] Hooks loaded:", { 
+      authLoading: auth.loading, 
+      planLoading: planLimits.loading, 
+      plan: planLimits.plan 
+    });
+  } catch (err) {
+    console.error("[Subscription] Error loading hooks:", err);
+    throw err;
+  }
+
+  const { user, loading: authLoading, role } = auth;
+  const { plan, usage, limits, trialDaysRemaining, isTrial, loading: planLoading, subscription } = planLimits;
+  const { openCheckout, closeCheckout, isOpen, checkoutElement } = checkout;
+
   const navigate = useNavigate();
-  const { plan, usage, limits, trialDaysRemaining, isTrial, refresh, loading: planLoading, subscription } = usePlanLimits();
   const [updating, setUpdating] = useState(false);
-  const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
 
   const handlePlanChange = async (newPlan: PlanType) => {
-    console.log("[Subscription] handlePlanChange called for plan:", newPlan);
+    // ... same code
+    console.log("[Subscription] handlePlanChange:", newPlan);
     if (!user) {
-      console.warn("[Subscription] User not logged in");
       toast.error("Você precisa estar logado.");
       return;
     }
@@ -57,12 +75,9 @@ function SubscriptionComponent() {
 
     const priceId = PLAN_PRICE_IDS[newPlan];
     if (!priceId) {
-      console.error("[Subscription] Price ID not found for plan:", newPlan);
       toast.error("Erro interno: ID do preço não configurado.");
       return;
     }
-    
-    console.log("[Subscription] Opening checkout for priceId:", priceId);
     
     try {
       openCheckout({
@@ -71,7 +86,7 @@ function SubscriptionComponent() {
         returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       });
     } catch (err) {
-      console.error("[Subscription] Error calling openCheckout:", err);
+      console.error("[Subscription] openCheckout error:", err);
       toast.error("Erro ao iniciar o checkout.");
     }
   };
@@ -85,8 +100,11 @@ function SubscriptionComponent() {
           environment: getStripeEnvironment(),
         },
       });
-      window.open(url, "_blank");
+      if (url) {
+        window.open(url, "_blank");
+      }
     } catch (e: any) {
+      console.error("[Subscription] manageSubscription error:", e);
       toast.error(e?.message || "Não foi possível abrir o portal.");
     } finally {
       setUpdating(false);
@@ -115,7 +133,10 @@ function SubscriptionComponent() {
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    console.log("[Subscription] No user found after loading");
+    return null;
+  }
 
   const planConfigs = [
     {
