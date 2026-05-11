@@ -83,7 +83,8 @@ export function usePlanLimits() {
     ]);
 
     if (profileRes.data) {
-      const currentPlan = profileRes.data.plan as PlanType || "free";
+      console.log("[usePlanLimits] Profile data:", profileRes.data);
+      const currentPlan = (profileRes.data.plan as string)?.toLowerCase() as PlanType || "free";
       setPlan(currentPlan);
       
       // Calculate trial end (15 days from creation)
@@ -107,12 +108,13 @@ export function usePlanLimits() {
   }
 
   const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+  console.log("[usePlanLimits] Resolved plan:", plan, "limits:", limits);
 
   const trialDaysRemaining = trialEndsAt 
     ? Math.max(0, differenceInDays(new Date(trialEndsAt), new Date()))
     : 0;
 
-  const isTrial = plan === "free" || (plan === "pro" && trialDaysRemaining > 0);
+  const isTrial = (plan === "free" || plan === "pro") && trialDaysRemaining > 0;
 
   const checkLimit = (type: keyof typeof usage) => {
     // @ts-ignore

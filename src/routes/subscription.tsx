@@ -40,9 +40,9 @@ export const Route = createFileRoute("/subscription")({
 });
 
 function SubscriptionComponent() {
-  const { user, loading: authLoading, role } = useAuth();
+  const { user, loading: authLoading, role, profile } = useAuth();
   const navigate = useNavigate();
-  const { plan, usage, limits, trialDaysRemaining, isTrial, refresh } = usePlanLimits();
+  const { plan, usage, limits, trialDaysRemaining, isTrial, refresh, loading: planLoading } = usePlanLimits();
   const [updating, setUpdating] = useState(false);
   const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
 
@@ -99,7 +99,17 @@ function SubscriptionComponent() {
     }
   }, [user, authLoading, role, navigate]);
 
-  if (authLoading || !user) return null;
+  if (authLoading || planLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!user) return null;
 
   const planConfigs = [
     {
@@ -163,7 +173,7 @@ function SubscriptionComponent() {
             <h2 className="text-3xl font-bold tracking-tight">Assinatura</h2>
             <p className="text-muted-foreground">Gerencie seu plano e limites do sistema.</p>
           </div>
-          {(plan === 'starter' || plan === 'pro' || plan === 'elite') && (
+          {plan !== 'free' && (
             <Button variant="outline" onClick={handleManageSubscription} disabled={updating}>
               {updating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Gerenciar Assinatura
@@ -199,7 +209,7 @@ function SubscriptionComponent() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  Plano Atual: <span className="capitalize text-primary font-bold">{plan === 'free' ? 'Teste Grátis' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
+                  Plano Atual: <span className="capitalize text-primary font-bold">{(plan || 'free') === 'free' ? 'Teste Grátis' : plan === 'starter' ? 'Starter' : plan === 'pro' ? 'Pro' : 'Elite'}</span>
                   {plan === 'pro' && <Crown className="text-yellow-500 w-5 h-5" />}
                   {plan === 'elite' && <Rocket className="text-purple-500 w-5 h-5" />}
                 </CardTitle>
@@ -213,37 +223,37 @@ function SubscriptionComponent() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Profissionais</span>
-                  <span className="font-bold">{usage.barbers} / {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
+                  <span className="font-bold">{usage?.barbers ?? 0} / {(limits?.barbers === Infinity ? "∞" : limits?.barbers) ?? "∞"}</span>
                 </div>
-                <Progress value={limits.barbers === Infinity ? 100 : Math.min((usage.barbers / limits.barbers) * 100, 100)} className="h-1.5" />
+                <Progress value={limits?.barbers === Infinity ? 100 : Math.min(((usage?.barbers || 0) / (limits?.barbers || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Serviços</span>
-                  <span className="font-bold">{usage.services} / {limits.services === Infinity ? "∞" : limits.services}</span>
+                  <span className="font-bold">{usage?.services ?? 0} / {(limits?.services === Infinity ? "∞" : limits?.services) ?? "∞"}</span>
                 </div>
-                <Progress value={limits.services === Infinity ? 100 : Math.min((usage.services / limits.services) * 100, 100)} className="h-1.5" />
+                <Progress value={limits?.services === Infinity ? 100 : Math.min(((usage?.services || 0) / (limits?.services || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Produtos</span>
-                  <span className="font-bold">{usage.products} / {limits.products === Infinity ? "∞" : limits.products}</span>
+                  <span className="font-bold">{usage?.products ?? 0} / {(limits?.products === Infinity ? "∞" : limits?.products) ?? "∞"}</span>
                 </div>
-                <Progress value={limits.products === Infinity ? 100 : Math.min((usage.products / limits.products) * 100, 100)} className="h-1.5" />
+                <Progress value={limits?.products === Infinity ? 100 : Math.min(((usage?.products || 0) / (limits?.products || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Agendamentos</span>
-                  <span className="font-bold">{usage.monthlyAppointments} / {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
+                  <span className="font-bold">{usage?.monthlyAppointments ?? 0} / {(limits?.monthlyAppointments === Infinity ? "∞" : limits?.monthlyAppointments) ?? "∞"}</span>
                 </div>
-                <Progress value={limits.monthlyAppointments === Infinity ? 100 : Math.min((usage.monthlyAppointments / limits.monthlyAppointments) * 100, 100)} className="h-1.5" />
+                <Progress value={limits?.monthlyAppointments === Infinity ? 100 : Math.min(((usage?.monthlyAppointments || 0) / (limits?.monthlyAppointments || 1)) * 100, 100)} className="h-1.5" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">WhatsApp</span>
-                  <span className="font-bold">{usage.whatsappConnections} / {limits.whatsappConnections === Infinity ? "∞" : limits.whatsappConnections}</span>
+                  <span className="font-bold">{usage?.whatsappConnections ?? 0} / {(limits?.whatsappConnections === Infinity ? "∞" : limits?.whatsappConnections) ?? "∞"}</span>
                 </div>
-                <Progress value={limits.whatsappConnections === Infinity ? 100 : Math.min((usage.whatsappConnections / limits.whatsappConnections) * 100, 100)} className="h-1.5" />
+                <Progress value={limits?.whatsappConnections === Infinity ? 100 : Math.min(((usage?.whatsappConnections || 0) / (limits?.whatsappConnections || 1)) * 100, 100)} className="h-1.5" />
               </div>
             </CardContent>
           </Card>
@@ -312,8 +322,12 @@ function SubscriptionComponent() {
           <DialogHeader className="p-6 pb-2 border-b shrink-0">
             <DialogTitle>Finalizar assinatura</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full overflow-y-auto bg-white custom-stripe-container min-h-[500px]">
-            {checkoutElement}
+          <div className="flex-1 w-full overflow-y-auto bg-white custom-stripe-container min-h-[500px] p-4 sm:p-6">
+            {checkoutElement || (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
