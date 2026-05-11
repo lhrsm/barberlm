@@ -9,12 +9,15 @@ export function useTenant() {
   const impersonatedId = typeof window !== 'undefined' ? sessionStorage.getItem("impersonated_tenant_id") : null;
   
   // The actual tenant ID being viewed/managed
-  // We MUST wait for auth to load before deciding if we are a super_admin
-  const tenantId = authLoading 
-    ? null 
-    : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || (profile?.role === 'tenant_admin' ? profile?.id || user?.id : null))));
-
-  console.log("useTenant resolved:", { tenantId, role: profile?.role, impersonatedId, profileId: profile?.id });
+  let tenantId = null;
+  try {
+    tenantId = authLoading 
+      ? null 
+      : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || (profile?.role === 'tenant_admin' ? profile?.id || user?.id : null))));
+    console.log("[useTenant] Resolved tenantId:", tenantId);
+  } catch (err) {
+    console.error("[useTenant] Crash resolving tenantId:", err);
+  }
 
 
   const { data: tenantProfile, isLoading: queryLoading } = useQuery({
