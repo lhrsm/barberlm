@@ -103,28 +103,11 @@ function SubscriptionComponent() {
 
   const planConfigs = [
     {
-      id: "free" as PlanType,
-      name: "Teste Grátis",
-      price: "0",
-      description: "Comece agora com 15 dias de acesso total ao Pro.",
-      icon: <Zap className="text-blue-500 w-5 h-5" />,
-      features: [
-        `Até 5 Profissionais`,
-        `Serviços Ilimitados`,
-        `Produtos Ilimitados`,
-        `Agendamentos Ilimitados`,
-        "2 Conexões WhatsApp",
-        "Acesso por 15 dias",
-      ],
-      buttonText: "Plano Atual",
-      color: "blue"
-    },
-    {
       id: "starter" as PlanType,
       name: "Starter",
       price: "19,90",
       description: "Ideal para profissionais individuais.",
-      icon: <Star className="text-green-500 w-5 h-5" />,
+      icon: <Zap className="text-green-500 w-5 h-5" />,
       features: [
         `${PLAN_LIMITS.starter.barbers} Profissional`,
         `Serviços Ilimitados`,
