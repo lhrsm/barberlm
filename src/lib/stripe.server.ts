@@ -17,8 +17,11 @@ export function getConnectionApiKey(env: StripeEnv): string {
 }
 
 export function createStripeClient(env: StripeEnv): Stripe {
+  console.log(`[Stripe Server] 💳 Criando cliente para ambiente: ${env}`);
   const connectionApiKey = getConnectionApiKey(env);
   const lovableApiKey = getEnv('LOVABLE_API_KEY');
+
+  console.log(`[Stripe Server] 🔑 Usando API Key iniciada em: ${connectionApiKey.substring(0, 8)}...`);
 
   return new Stripe(connectionApiKey, {
     apiVersion: '2025-01-27.acacia' as any,
