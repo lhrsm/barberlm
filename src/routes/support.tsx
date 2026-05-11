@@ -28,6 +28,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 
 export const Route = createFileRoute("/support")({
   component: SupportComponent,

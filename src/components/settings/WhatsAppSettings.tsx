@@ -252,6 +252,19 @@ export function WhatsAppSettings() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          <Alert variant="default" className="bg-primary/5 border-primary/20 mb-6">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary font-bold">Dúvidas na configuração?</AlertTitle>
+            <AlertDescription className="text-muted-foreground text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+              <span>Acesse nossa central de suporte com tutoriais detalhados passo a passo para configurar sua Meta Cloud API.</span>
+              <Button size="sm" variant="outline" className="shrink-0 gap-2 border-primary/20 hover:bg-primary/10" asChild>
+                <Link to="/support">
+                  <BookOpen className="h-3.5 w-3.5" /> Acessar Tutoriais
+                </Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+
           <Alert variant="default" className="bg-blue-50 border-blue-200">
             <Info className="h-4 w-4 text-blue-600" />
             <AlertTitle className="text-blue-800">Atenção sobre Custos</AlertTitle>
