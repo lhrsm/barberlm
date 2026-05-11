@@ -62,6 +62,27 @@ export function AuthForm() {
     }
   };
 
+  const handleResetPassword = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("Por favor, insira seu e-mail para recuperar a senha.");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?type=recovery`,
+      });
+      if (error) throw error;
+      toast.success("E-mail de recuperação enviado com sucesso.");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md p-6 bg-card rounded-xl shadow-lg border">
       <Tabs defaultValue="login" className="w-full">
@@ -84,7 +105,16 @@ export function AuthForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="login-password">Senha</Label>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="login-password">Senha</Label>
+                <button 
+                  type="button"
+                  onClick={handleResetPassword}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
               <Input
                 id="login-password"
                 type="password"

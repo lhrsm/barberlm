@@ -1,7 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPageComponent,
@@ -36,9 +38,18 @@ function AuthPageComponent() {
   }, [hydrated, user, loading, role, navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 px-4 relative">
+      <div className="absolute top-8 left-8">
+        <Button variant="ghost" asChild className="gap-2">
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar para o início
+          </Link>
+        </Button>
+      </div>
+
       <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold text-primary mb-2">BarberSaaS</h1>
+        <h1 className="text-4xl font-bold text-primary mb-2">Barber<span className="text-foreground">SaaS</span></h1>
         <p className="text-muted-foreground">O sistema definitivo para sua barbearia</p>
       </div>
       <AuthForm />
