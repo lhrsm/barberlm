@@ -22,7 +22,7 @@ const PRICE_TO_PLAN: Record<string, string> = {
 async function syncProfilePlan(userId: string, priceId: string | undefined, status: string) {
   if (!userId) return;
   const plan = priceId ? PRICE_TO_PLAN[priceId] : undefined;
-  const isActive = status === "active" || status === "trialing";
+  const isActive = ["active", "trialing", "past_due"].includes(status);
   const newPlan = isActive && plan ? plan : "free";
   await getSupabase().from("profiles").update({ plan: newPlan }).eq("id", userId);
 }

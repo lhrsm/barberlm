@@ -132,7 +132,7 @@ export function usePlanLimits() {
     ? Math.max(0, differenceInDays(new Date(trialEndsAt), new Date()))
     : 0;
 
-  const isTrial = (plan === "free" || plan === "pro") && trialDaysRemaining > 0;
+  const isTrial = (plan === "free" || plan === "pro") && trialDaysRemaining > 0 && subscription?.status !== 'active';
 
   const checkLimit = (type: keyof typeof usage) => {
     // @ts-ignore
