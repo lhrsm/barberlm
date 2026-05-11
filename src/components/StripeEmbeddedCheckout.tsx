@@ -33,7 +33,9 @@ export function StripeEmbeddedCheckout({
       }
 
       console.log("[StripeEmbeddedCheckout] 📡 Invocando server function: createCheckoutSession");
-      const secret = await createCheckoutSession({
+      
+      // Adicionando um timeout de segurança para a chamada do servidor
+      const sessionPromise = createCheckoutSession({
         data: {
           priceId,
           quantity,
@@ -43,6 +45,12 @@ export function StripeEmbeddedCheckout({
           environment: getStripeEnvironment(),
         },
       });
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("A requisição ao servidor expirou (timeout de 15s).")), 15000)
+      );
+
+      const secret = await Promise.race([sessionPromise, timeoutPromise]) as string;
       
       if (!secret) {
         console.error("[StripeEmbeddedCheckout] ❌ Erro: client_secret retornado é vazio/null");

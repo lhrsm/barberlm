@@ -6,21 +6,38 @@ async function resolveOrCreateCustomer(
   stripe: ReturnType<typeof createStripeClient>,
   options: { email?: string; userId?: string },
 ): Promise<string> {
+  console.log("[resolveOrCreateCustomer] 🔍 Iniciando busca/criação de cliente para:", options);
+  
   if (options.userId && !/^[a-zA-Z0-9_-]+$/.test(options.userId)) {
+    console.error("[resolveOrCreateCustomer] ❌ UserID inválido:", options.userId);
     throw new Error("Invalid userId");
   }
+  
   if (options.userId) {
-    const found = await stripe.customers.search({
-      query: `metadata['userId']:'${options.userId}'`,
-      limit: 1,
-    });
-    if (found.data.length) return found.data[0].id;
+    console.log("[resolveOrCreateCustomer] 🔍 Buscando cliente por metadata.userId:", options.userId);
+    try {
+      const found = await stripe.customers.search({
+        query: `metadata['userId']:'${options.userId}'`,
+        limit: 1,
+      });
+      console.log("[resolveOrCreateCustomer] 📡 Resposta do Stripe Search:", found.data.length, "encontrados");
+      if (found.data.length) {
+        console.log("[resolveOrCreateCustomer] ✅ Cliente encontrado por metadata:", found.data[0].id);
+        return found.data[0].id;
+      }
+    } catch (err) {
+      console.error("[resolveOrCreateCustomer] ⚠️ Erro ao buscar por metadata (pode ser delay de indexação):", err);
+    }
   }
+  
   if (options.email) {
+    console.log("[resolveOrCreateCustomer] 🔍 Buscando cliente por email:", options.email);
     const existing = await stripe.customers.list({ email: options.email, limit: 1 });
     if (existing.data.length) {
       const customer = existing.data[0];
+      console.log("[resolveOrCreateCustomer] ✅ Cliente encontrado por email:", customer.id);
       if (options.userId && customer.metadata?.userId !== options.userId) {
+        console.log("[resolveOrCreateCustomer] 📝 Atualizando metadata.userId do cliente existente");
         await stripe.customers.update(customer.id, {
           metadata: { ...customer.metadata, userId: options.userId },
         });
@@ -28,10 +45,13 @@ async function resolveOrCreateCustomer(
       return customer.id;
     }
   }
+  
+  console.log("[resolveOrCreateCustomer] 🆕 Criando novo cliente no Stripe...");
   const created = await stripe.customers.create({
     ...(options.email && { email: options.email }),
     ...(options.userId && { metadata: { userId: options.userId } }),
   });
+  console.log("[resolveOrCreateCustomer] ✅ Novo cliente criado:", created.id);
   return created.id;
 }
 
@@ -116,12 +136,13 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       recurring: isRecurring
     });
 
+    console.log("[Checkout Server] 👤 Iniciando resolveOrCreateCustomer...");
     const customerId = await resolveOrCreateCustomer(stripe, {
       email: data.customerEmail,
       userId: userId,
     });
 
-    console.log("[Checkout Server] 👤 Customer ID:", customerId);
+    console.log("[Checkout Server] ✅ Customer ID obtido:", customerId);
 
     // Determinar se deve aplicar trial (Pro Plan)
     // Usamos price_1TVtOVPKG6q10Ujre6zMGYpk (LIVE) ou lookup_key pro_monthly
@@ -140,6 +161,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         line_items: [{ price: stripePrice.id, quantity: data.quantity || 1 }],
         mode: isRecurring ? "subscription" : "payment",
         ui_mode: "embedded",
+        customer_update: {
+          address: 'auto',
+          name: 'auto',
+        },
+        billing_address_collection: 'required',
         return_url: data.returnUrl,
         ...(customerId && { customer: customerId }),
         ...(userId && {
