@@ -683,14 +683,16 @@ function DashboardComponent() {
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-lg">Plano {plan === 'pro' ? 'Pro' : 'Grátis'}</CardTitle>
+                  <CardTitle className="text-lg">Plano {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}</CardTitle>
                   <CardDescription>Status dos recursos da sua barbearia</CardDescription>
                 </div>
-                {plan === 'pro' ? <Crown className="w-5 h-5 text-yellow-500" /> : <Zap className="w-5 h-5 text-blue-500" />}
+                {plan === 'elite' ? <Rocket className="w-5 h-5 text-purple-500" /> : 
+                 plan === 'pro' ? <Crown className="w-5 h-5 text-yellow-500" /> : 
+                 <Zap className="w-5 h-5 text-blue-500" />}
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground">Profissionais</span>
                   <div className="flex items-end gap-1">
@@ -708,7 +710,7 @@ function DashboardComponent() {
                   <Progress value={limits.services === Infinity ? 100 : (usage.services / limits.services) * 100} className="h-1" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Agenda (Mês)</span>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Agendamentos</span>
                   <div className="flex items-end gap-1">
                     <span className="text-lg font-bold leading-none">{usage.monthlyAppointments}</span>
                     <span className="text-[10px] text-muted-foreground">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
@@ -724,45 +726,73 @@ function DashboardComponent() {
                   <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Créditos Clientes</span>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Créditos</span>
                   <div className="flex items-center gap-1">
                     <span className="text-lg font-bold leading-none">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
                     </span>
                   </div>
-                  <div className="p-2 bg-purple-100 rounded-lg text-purple-600 w-fit">
-                    <Wallet size={14} />
+                  <div className="p-1.5 bg-purple-100 rounded-lg text-purple-600 w-fit">
+                    <Wallet size={12} />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Cashback Clientes</span>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Cashback</span>
                   <div className="flex items-center gap-1">
                     <span className="text-lg font-bold leading-none">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
                     </span>
                   </div>
-                  <div className="p-2 bg-orange-100 rounded-lg text-orange-600 w-fit">
-                    <Gift size={14} />
+                  <div className="p-1.5 bg-orange-100 rounded-lg text-orange-600 w-fit">
+                    <Gift size={12} />
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="col-span-3 flex flex-col justify-center bg-card">
-            <CardContent className="py-4 text-center space-y-2">
-              {plan === 'free' ? (
+          <Card className={cn(
+            "col-span-3 flex flex-col justify-center overflow-hidden border-2",
+            isTrial ? "border-blue-500/30 bg-blue-50/50" : "bg-card border-border"
+          )}>
+            <CardContent className="py-6 text-center space-y-4">
+              {isTrial ? (
                 <>
-                  <p className="text-sm font-medium">Precisando de mais recursos?</p>
-                  <Button size="sm" className="w-full" asChild>
-                    <Link to="/subscription">Fazer Upgrade para Pro</Link>
+                  <div className="flex justify-center mb-2">
+                    <div className="p-3 bg-blue-100 rounded-full text-blue-600 animate-pulse">
+                      <Clock size={24} />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg text-blue-900">
+                      {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'} de teste grátis
+                    </h4>
+                    <p className="text-sm text-blue-700/70">Aproveite todos os recursos do plano Pro!</p>
+                  </div>
+                  <Button size="lg" className="w-full bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200" asChild>
+                    <Link to="/subscription">Assinar Plano Profissional</Link>
+                  </Button>
+                </>
+              ) : plan === 'starter' || plan === 'pro' ? (
+                <>
+                  <div className="flex justify-center mb-2">
+                    <div className="p-3 bg-primary/10 rounded-full text-primary">
+                      <Crown size={24} />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg">Assinatura Ativa</h4>
+                    <p className="text-sm text-muted-foreground">Obrigado por utilizar o BarberLM!</p>
+                  </div>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/subscription">Gerenciar Assinatura</Link>
                   </Button>
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-medium text-primary">Você possui todos os recursos liberados!</p>
-                  <Button variant="outline" size="sm" className="w-full" asChild>
-                    <Link to="/subscription">Gerenciar Assinatura</Link>
+                  <p className="text-sm font-medium">Precisando de mais recursos?</p>
+                  <Button size="lg" className="w-full" asChild>
+                    <Link to="/subscription">Ver Planos de Assinatura</Link>
                   </Button>
                 </>
               )}
