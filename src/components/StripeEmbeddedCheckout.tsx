@@ -23,6 +23,7 @@ export function StripeEmbeddedCheckout({
 
   const fetchClientSecret = async (): Promise<string> => {
     try {
+      console.log("StripeEmbeddedCheckout: Fetching client secret for price:", priceId);
       setError(null);
       const secret = await createCheckoutSession({
         data: {
@@ -42,9 +43,12 @@ export function StripeEmbeddedCheckout({
       console.log("Stripe Session Secret received, length:", secret.length);
       return secret;
     } catch (err: any) {
-      console.error("Checkout error:", err);
-      const message = err.message || "Erro ao carregar o checkout do Stripe.";
+      console.error("Checkout error in fetchClientSecret:", err);
+      // Extra details for debugging
+      const details = err.message || JSON.stringify(err);
+      const message = `Erro ao carregar o checkout do Stripe: ${details}`;
       setError(message);
+      toast.error(message);
       throw err;
     }
   };
