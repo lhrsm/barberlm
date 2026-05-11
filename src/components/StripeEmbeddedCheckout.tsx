@@ -35,7 +35,11 @@ export function StripeEmbeddedCheckout({
         },
       });
       
-      if (!secret) throw new Error("Não foi possível gerar a sessão de pagamento.");
+      if (!secret) {
+        console.error("Empty client_secret received");
+        throw new Error("Não foi possível gerar a sessão de pagamento (secret vazio).");
+      }
+      console.log("Stripe Session Secret received, length:", secret.length);
       return secret;
     } catch (err: any) {
       console.error("Checkout error:", err);

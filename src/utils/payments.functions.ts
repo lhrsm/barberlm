@@ -36,6 +36,7 @@ async function resolveOrCreateCustomer(
 }
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: {
     priceId: string;
     quantity?: number;
@@ -46,8 +47,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   }) => {
     return data;
   })
-  .handler(async ({ data }) => {
-    console.log("[Checkout] Creating session for:", data.priceId);
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    console.log("[Checkout] Creating session for user:", userId, "price:", data.priceId);
     const stripe = createStripeClient(data.environment);
 
     // Use priceId as lookup_key as defined in the creation step
@@ -70,12 +72,10 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     const isRecurring = stripePrice.type === "recurring";
     console.log("[Checkout] Found price:", stripePrice.id, "recurring:", isRecurring);
 
-    const customerId = (data.customerEmail || data.userId)
-      ? await resolveOrCreateCustomer(stripe, {
-          email: data.customerEmail,
-          userId: data.userId,
-        })
-      : undefined;
+    const customerId = await resolveOrCreateCustomer(stripe, {
+      email: data.customerEmail,
+      userId: userId,
+    });
 
     console.log("[Checkout] Customer ID:", customerId);
 
@@ -85,9 +85,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       ui_mode: "embedded", // Changed from embedded_page to embedded
       return_url: data.returnUrl,
       ...(customerId && { customer: customerId }),
-      ...(data.userId && {
-        metadata: { userId: data.userId },
-        ...(isRecurring && { subscription_data: { metadata: { userId: data.userId } } }),
+      ...(userId && {
+        metadata: { userId: userId },
+        ...(isRecurring && { subscription_data: { metadata: { userId: userId } } }),
       }),
     } as any);
 

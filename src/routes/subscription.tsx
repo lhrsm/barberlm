@@ -55,7 +55,7 @@ function SubscriptionComponent() {
     openCheckout({
       priceId,
       customerEmail: user.email,
-      userId: user.id,
+      // userId is now handled by server context middleware
       returnUrl: `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
     });
   };
@@ -298,11 +298,11 @@ function SubscriptionComponent() {
       </div>
 
       <Dialog open={isOpen} onOpenChange={(o) => { if (!o) closeCheckout(); }}>
-        <DialogContent className="max-w-3xl min-h-[400px] max-h-[90vh] overflow-y-auto p-0">
-          <DialogHeader className="p-6 pb-0">
+        <DialogContent className="max-w-3xl min-h-[600px] h-[80vh] overflow-y-auto p-0 flex flex-col sm:rounded-xl">
+          <DialogHeader className="p-6 pb-2 border-b shrink-0">
             <DialogTitle>Finalizar assinatura</DialogTitle>
           </DialogHeader>
-          <div className="p-6 min-h-[300px] flex flex-col items-center justify-center">
+          <div className="flex-1 w-full overflow-y-auto bg-white custom-stripe-container">
             {checkoutElement}
           </div>
         </DialogContent>
