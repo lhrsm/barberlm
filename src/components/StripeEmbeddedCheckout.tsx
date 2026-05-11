@@ -18,18 +18,30 @@ export function StripeEmbeddedCheckout({
   returnUrl,
 }: StripeEmbeddedCheckoutProps) {
   const fetchClientSecret = async (): Promise<string> => {
-    const secret = await createCheckoutSession({
-      data: {
-        priceId,
-        quantity,
-        customerEmail,
-        userId,
-        returnUrl: returnUrl || window.location.href,
-        environment: getStripeEnvironment(),
-      },
-    });
-    if (!secret) throw new Error("Failed to create checkout session");
-    return secret;
+    try {
+      console.log("Fetching client secret for price:", priceId);
+      const secret = await createCheckoutSession({
+        data: {
+          priceId,
+          quantity,
+          customerEmail,
+          userId,
+          returnUrl: returnUrl || `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+          environment: getStripeEnvironment(),
+        },
+      });
+      
+      if (!secret) {
+        console.error("No secret returned from createCheckoutSession");
+        throw new Error("Failed to create checkout session");
+      }
+      
+      console.log("Client secret received successfully");
+      return secret;
+    } catch (error) {
+      console.error("Error in fetchClientSecret:", error);
+      throw error;
+    }
   };
 
   return (
