@@ -29,11 +29,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const PLAN_PRICE_IDS: Record<Exclude<PlanType, 'free'>, string> = {
-  starter: "price_1TVtOWPKG6q10UjrQErPgyKO",
-  pro: "price_1TVtOVPKG6q10Ujre6zMGYpk",
-  elite: "price_1TVtgWPKG6q10UjrxRUCnyg1",
+const PLAN_PRICE_IDS = {
+  sandbox: {
+    starter: "starter_monthly", // Lookup keys para ambiente de teste
+    pro: "pro_monthly",
+    elite: "elite_monthly",
+  },
+  live: {
+    starter: "price_1TVtOWPKG6q10UjrQErPgyKO",
+    pro: "price_1TVtOVPKG6q10Ujre6zMGYpk",
+    elite: "price_1TVtgWPKG6q10UjrxRUCnyg1",
+  }
 };
+
 
 export const Route = createFileRoute("/subscription")({
   component: SubscriptionComponent,
