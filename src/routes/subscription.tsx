@@ -201,7 +201,7 @@ function SubscriptionComponent() {
                 <CardDescription>Acompanhe o uso dos seus recursos.</CardDescription>
               </div>
               <div className="bg-background/50 px-3 py-1 rounded-full border text-xs font-medium">
-                {plan === 'free' ? 'Período de Experiência' : 'Assinatura Ativa'}
+                {plan === 'free' ? 'Período de Experiência Expirando' : 'Assinatura Ativa'}
               </div>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-5">
