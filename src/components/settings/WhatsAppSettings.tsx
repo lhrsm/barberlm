@@ -63,8 +63,35 @@ export function WhatsAppSettings() {
     if (user) {
       fetchConnections();
       fetchTemplates();
+      fetchMessages();
+
+      const channel = supabase
+        .channel('whatsapp-logs')
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'whatsapp_messages',
+          filter: `user_id=eq.${user.id}`
+        }, () => {
+          fetchMessages();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
+
+  async function fetchMessages() {
+    const { data } = await supabase
+      .from("whatsapp_messages")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (data) setMessages(data);
+  }
 
   async function fetchConnections() {
     setLoading(true);
