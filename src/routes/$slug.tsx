@@ -240,7 +240,28 @@ function ShopPageComponent() {
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
     } else {
       setIsBookingOpen(true);
+      setBookingStep(1);
     }
+  };
+
+  const handleSelectService = (service: any) => {
+    setSelectedService(service);
+    
+    // Verificamos se já temos sessão salva para pular etapas
+    const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
+    if (savedClient) {
+      try {
+        const parsedClient = JSON.parse(savedClient);
+        setCustomerPhone(parsedClient.phone);
+        setCustomerName(parsedClient.name);
+        setBookingStep(3); // Pula para escolha de profissional
+      } catch (e) {
+        setBookingStep(1);
+      }
+    } else {
+      setBookingStep(1);
+    }
+    setIsBookingOpen(true);
   };
 
   if (loading) {
@@ -780,29 +801,32 @@ function ShopPageComponent() {
 
   return (
     <div 
-      className="min-h-screen bg-background" 
+      className="dark min-h-screen bg-[#0a0a0a] text-slate-50 selection:bg-primary/30" 
       style={{ 
-        backgroundColor: shop.secondary_color || "#f4f4f5",
+        backgroundColor: shop.secondary_color && shop.secondary_color !== '#f4f4f5' ? shop.secondary_color : "#0a0a0a",
         fontFamily: shop.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
         fontSize: shop.font_size || '16px',
-        color: shop.font_color || '#000000'
       }}
     >
       {/* Header */}
       {!isEmbedded && (
-        <header className="bg-white border-b sticky top-0 z-50">
+        <header className="bg-card/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
           <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {shop.logo_url ? (
-                <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain" />
+                <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain rounded-lg" />
               ) : (
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
                   <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
                 </div>
               )}
-              <h1 className="font-bold text-lg">{shop.business_name}</h1>
+              <h1 className="font-bold text-lg tracking-tight">{shop.business_name}</h1>
             </div>
-            <Button style={{ backgroundColor: primaryColor }} className="text-white" onClick={handleBookingAction}>
+            <Button 
+              style={{ backgroundColor: primaryColor }} 
+              className="text-white shadow-[0_0_15px_rgba(0,0,0,0.1)] hover:brightness-110 transition-all" 
+              onClick={handleBookingAction}
+            >
               {shop.scheduling_mode === 'manual' ? 'Agendar via WhatsApp' : 'Agendar Agora'}
             </Button>
           </div>
@@ -826,12 +850,27 @@ function ShopPageComponent() {
         ) : (
           <>
             {/* Hero / About */}
-        <section className="text-center space-y-4">
-          <h2 className="text-3xl font-extrabold tracking-tight">Bem-vindo à {shop.business_name}</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Escolha o serviço desejado e o profissional de sua preferência para agendar seu horário.
+        <section className="text-center space-y-6 py-10 animate-in fade-in slide-in-from-top-4 duration-1000">
+          <div className="space-y-2">
+            <h2 className="text-4xl font-black tracking-tighter sm:text-5xl lg:text-6xl uppercase italic">
+              Bem-vindo à <span style={{ color: primaryColor }}>{shop.business_name}</span>
+            </h2>
+            <div className="h-1 w-20 bg-primary mx-auto rounded-full" style={{ backgroundColor: primaryColor }} />
+          </div>
+          <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
+            Excelência em cortes e cuidados masculinos. Escolha o serviço e agende sua experiência.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 text-sm font-medium">
+          <div className="flex justify-center">
+            <Button 
+              size="lg" 
+              style={{ backgroundColor: primaryColor }} 
+              className="h-12 px-8 text-lg font-bold rounded-full shadow-[0_0_20px_rgba(0,0,0,0.3)] hover:scale-105 transition-all"
+              onClick={handleBookingAction}
+            >
+              Agendar Agora
+            </Button>
+          </div>
+          <div className="flex flex-wrap justify-center gap-6 text-sm font-medium pt-4">
             {shop.whatsapp_enabled && shop.whatsapp_number && (
               <a 
                 href={`https://wa.me/${shop.whatsapp_number}`} 
@@ -877,22 +916,36 @@ function ShopPageComponent() {
         )}
 
         {/* Services */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
-            <h3 className="text-xl font-bold">Nossos Serviços</h3>
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
+            </div>
+            <h3 className="text-xl font-bold tracking-tight">Nossos Serviços</h3>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {services.map((service) => (
-              <Card key={service.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <CardContent className="p-4 flex justify-between items-center">
-                  <div>
-                    <h4 className="font-bold">{service.name}</h4>
-                    <p className="text-sm text-muted-foreground">{service.duration_minutes} min</p>
+              <Card key={service.id} className="overflow-hidden border-white/5 bg-card/40 hover:bg-card/60 transition-all hover:scale-[1.02] cursor-pointer group">
+                <CardContent className="p-5 flex justify-between items-center">
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-lg group-hover:text-primary transition-colors">{service.name}</h4>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Clock size={14} /> {service.duration_minutes} min
+                    </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-lg" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
-                    <Button variant="outline" size="sm" className="mt-2">Selecionar</Button>
+                  <div className="text-right space-y-2">
+                    <p className="font-bold text-xl" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="border-primary/20 hover:bg-primary hover:text-white transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectService(service);
+                      }}
+                    >
+                      Selecionar
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -901,12 +954,14 @@ function ShopPageComponent() {
         </section>
 
         {/* Barbers */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar className="h-5 w-5" style={{ color: primaryColor }} />
-            <h3 className="text-xl font-bold">Profissionais</h3>
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Calendar className="h-5 w-5" style={{ color: primaryColor }} />
+            </div>
+            <h3 className="text-xl font-bold tracking-tight">Profissionais</h3>
           </div>
-          <div className="flex flex-wrap gap-6 justify-center sm:justify-start">
+          <div className="flex flex-wrap gap-8 justify-center sm:justify-start">
             {barbers.map((barber) => (
               <div 
                 key={barber.id} 
@@ -916,22 +971,22 @@ function ShopPageComponent() {
                   setIsServicesModalOpen(true);
                 }}
               >
-                <div className="h-20 w-20 rounded-full bg-muted mx-auto mb-2 overflow-hidden border-2 transition-colors group-hover:border-primary">
+                <div className="h-24 w-24 rounded-2xl bg-muted mx-auto mb-3 overflow-hidden border-2 border-transparent transition-all group-hover:border-primary group-hover:scale-105 shadow-lg">
                   {barber.avatar_url ? (
                     <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center bg-primary/5">
-                      <span className="text-xl font-bold" style={{ color: primaryColor }}>{barber.name[0]}</span>
+                      <span className="text-2xl font-bold" style={{ color: primaryColor }}>{barber.name[0]}</span>
                     </div>
                   )}
                 </div>
-                <p className="font-medium text-sm">{barber.name}</p>
-                <div className="flex items-center justify-center gap-1 mt-0.5">
+                <p className="font-bold text-sm tracking-tight">{barber.name}</p>
+                <div className="flex items-center justify-center gap-1 mt-1">
                   <Star size={12} className="text-yellow-500" fill="currentColor" />
                   <span className="text-xs font-bold">{barber.average_rating || "5.0"}</span>
                   <span className="text-[10px] text-muted-foreground">({barber.total_ratings || 0})</span>
                 </div>
-                <p className="text-xs text-muted-foreground">{barber.specialty || 'Barbeiro'}</p>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">{barber.specialty || 'Barbeiro'}</p>
               </div>
             ))}
           </div>
@@ -1060,9 +1115,9 @@ function ShopPageComponent() {
           setPaymentMethod(null);
         }
       }}>
-        <DialogContent className={cn("sm:max-w-[425px]", isEmbedded && "w-full max-w-full m-0 h-[90vh] overflow-y-auto")}>
+        <DialogContent className={cn("sm:max-w-[425px] dark bg-card border-white/5", isEmbedded && "w-full max-w-full m-0 h-[90vh] overflow-y-auto")}>
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl font-bold tracking-tight">
               {bookingStep === 1 && "Informe seu WhatsApp"}
               {bookingStep === 2 && "Escolha o Serviço"}
               {bookingStep === 3 && "Escolha o Profissional"}
@@ -1591,9 +1646,9 @@ function ShopPageComponent() {
 
       {/* Services for Barber Modal */}
       <Dialog open={isServicesModalOpen} onOpenChange={setIsServicesModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] dark bg-card border-white/5">
           <DialogHeader>
-            <DialogTitle>Serviços de {modalBarber?.name}</DialogTitle>
+            <DialogTitle className="text-xl font-bold tracking-tight">Serviços de {modalBarber?.name}</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-3">
             {modalBarber && services
