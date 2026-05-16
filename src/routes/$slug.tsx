@@ -1093,11 +1093,108 @@ function ShopPageComponent() {
           </p>
         </section>
 
-            {/* Footer info */}
-            <section className="pt-8 border-t text-center text-sm text-muted-foreground">
-              <p>© 2026 {shop.business_name} - Todos os direitos reservados.</p>
-              <p className="mt-2">Desenvolvido por BarberSaaS</p>
-            </section>
+        {/* Localização e Mapa */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 rounded-full" style={{ backgroundColor: primaryColor }} />
+            <h3 className="text-xl font-bold">Onde estamos</h3>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 items-start">
+            <div className="space-y-6">
+              <Card className="bg-card/50 backdrop-blur-sm border-white/5 overflow-hidden">
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                      <MapPin className="h-5 w-5" style={{ color: primaryColor }} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-100 mb-1">Endereço</h4>
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        {shop.address || "Endereço não informado"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                      <Clock className="h-5 w-5" style={{ color: primaryColor }} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-100 mb-1">Horário de Atendimento</h4>
+                      <p className="text-muted-foreground text-sm">
+                        Consulte nossos profissionais disponíveis no agendamento.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                      <Phone className="h-5 w-5" style={{ color: primaryColor }} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-100 mb-1">Contato</h4>
+                      <p className="text-muted-foreground text-sm">
+                        {shop.whatsapp_number || "Não informado"}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Button 
+                variant="outline" 
+                className="w-full h-12 rounded-xl gap-2 hover:bg-primary/10 border-white/10"
+                asChild
+              >
+                <a 
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address || shop.business_name)}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <MapPin size={18} /> Abrir no Google Maps
+                </a>
+              </Button>
+            </div>
+
+            <div className="h-[300px] w-full rounded-2xl overflow-hidden border border-white/5 grayscale-[0.2] hover:grayscale-0 transition-all duration-500 shadow-2xl">
+              <iframe
+                title="Google Maps"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                src={`https://www.google.com/maps/embed/v1/place?key=REPLACE_WITH_YOUR_API_KEY&q=${encodeURIComponent(shop.address || "Barbearia")}`}
+              ></iframe>
+              {/* Note: I'm using a placeholder logic for the map. For a real production app without an API key, we often use the embed URL without key for specific addresses */}
+              <iframe
+                title="Google Maps Embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(shop.address || shop.business_name)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+              ></iframe>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer info */}
+        <section className="pt-12 pb-8 border-t border-white/5 text-center text-sm text-muted-foreground space-y-4">
+          <div className="flex justify-center gap-6 mb-4">
+            {shop.whatsapp_number && (
+              <a href={`https://wa.me/${shop.whatsapp_number}`} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">
+                <MessageSquare size={20} />
+              </a>
+            )}
+            <a href="#" className="hover:text-primary transition-colors">
+              <Star size={20} />
+            </a>
+          </div>
+          <p>© 2026 {shop.business_name} - Todos os direitos reservados.</p>
+          <p className="text-[10px] uppercase tracking-widest opacity-50">Desenvolvido por BarberSaaS</p>
+        </section>
           </>
         )}
       </main>
