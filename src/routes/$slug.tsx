@@ -803,7 +803,7 @@ function ShopPageComponent() {
     <div 
       className="dark min-h-screen bg-[#0a0a0a] text-slate-50 selection:bg-primary/30" 
       style={{ 
-        backgroundColor: shop.secondary_color && shop.secondary_color !== '#f4f4f5' ? shop.secondary_color : "#0a0a0a",
+        backgroundColor: "#0a0a0a",
         fontFamily: shop.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
         fontSize: shop.font_size || '16px',
       }}
