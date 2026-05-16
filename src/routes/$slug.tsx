@@ -801,12 +801,11 @@ function ShopPageComponent() {
 
   return (
     <div 
-      className="dark min-h-screen bg-background text-foreground selection:bg-primary/30" 
+      className="dark min-h-screen bg-[#0a0a0a] text-slate-50 selection:bg-primary/30" 
       style={{ 
-        backgroundColor: shop.secondary_color || "#0a0a0a",
+        backgroundColor: shop.secondary_color && shop.secondary_color !== '#f4f4f5' ? shop.secondary_color : "#0a0a0a",
         fontFamily: shop.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
         fontSize: shop.font_size || '16px',
-        color: shop.font_color || '#ffffff'
       }}
     >
       {/* Header */}
@@ -861,7 +860,17 @@ function ShopPageComponent() {
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
             Excelência em cortes e cuidados masculinos. Escolha o serviço e agende sua experiência.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 text-sm font-medium">
+          <div className="flex justify-center">
+            <Button 
+              size="lg" 
+              style={{ backgroundColor: primaryColor }} 
+              className="h-12 px-8 text-lg font-bold rounded-full shadow-[0_0_20px_rgba(0,0,0,0.3)] hover:scale-105 transition-all"
+              onClick={handleBookingAction}
+            >
+              Agendar Agora
+            </Button>
+          </div>
+          <div className="flex flex-wrap justify-center gap-6 text-sm font-medium pt-4">
             {shop.whatsapp_enabled && shop.whatsapp_number && (
               <a 
                 href={`https://wa.me/${shop.whatsapp_number}`} 
