@@ -1127,24 +1127,15 @@ function ShopPageComponent() {
               </Button>
             </div>
 
-            <div className="h-[300px] w-full rounded-2xl overflow-hidden border border-white/5 grayscale-[0.2] hover:grayscale-0 transition-all duration-500 shadow-2xl">
+            <div className="h-[350px] w-full rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative bg-muted/20">
               <iframe
                 title="Google Maps"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 loading="lazy"
-                allowFullScreen
-                src={`https://www.google.com/maps/embed/v1/place?key=REPLACE_WITH_YOUR_API_KEY&q=${encodeURIComponent(shop.address || "Barbearia")}`}
-              ></iframe>
-              {/* Note: I'm using a placeholder logic for the map. For a real production app without an API key, we often use the embed URL without key for specific addresses */}
-              <iframe
-                title="Google Maps Embed"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                loading="lazy"
                 src={`https://maps.google.com/maps?q=${encodeURIComponent(shop.address || shop.business_name)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                allowFullScreen
               ></iframe>
             </div>
           </div>
