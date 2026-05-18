@@ -157,6 +157,28 @@ function DashboardComponent() {
     if (data) setNotifications(data);
   }
 
+  async function fetchBirthdayCustomers() {
+    if (!tenantId) return;
+    const currentMonth = new Date().getMonth() + 1; // 1-12
+    
+    // We can't filter month easily in Supabase JS client without a raw SQL or a specific column
+    // but we can fetch all and filter locally for simplicity if not too many customers
+    const { data } = await supabase
+      .from("customers")
+      .select("id, name, phone, birth_date")
+      .eq("user_id", tenantId)
+      .not("birth_date", "is", null);
+
+    if (data) {
+      const currentMonthBirthdays = data.filter(c => {
+        if (!c.birth_date) return false;
+        const birthMonth = new Date(c.birth_date).getUTCMonth() + 1;
+        return birthMonth === currentMonth;
+      });
+      setBirthdayCustomers(currentMonthBirthdays);
+    }
+  }
+
   async function fetchTodayAppointments() {
     if (!tenantId) return;
     const dayStart = startOfDay(selectedDate).toISOString();
