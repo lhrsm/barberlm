@@ -1519,44 +1519,82 @@ function ShopPageComponent() {
                       ))}
                     </div>
                   )}
-                  <div className="flex justify-between"><span className="text-muted-foreground">Profissional:</span> <span>{selectedBarber?.name}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Data:</span> <span>{format(parseISO(selectedDate), "dd/MM/yyyy")}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Hora:</span> <span>{selectedTime}</span></div>
-                  {useCashback && (
-                    <div className="flex justify-between text-green-600 font-medium">
-                      <span>Desconto Cashback:</span> 
-                      <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {useCredits && (
-                    <div className="flex justify-between text-green-600 font-medium">
-                      <span>Desconto Créditos:</span> 
-                      <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between border-t pt-2 font-bold">
-                    <span className="text-muted-foreground">Total:</span> 
-                    <span style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
+                <div className="bg-[#111] p-4 rounded-xl space-y-3 text-sm border border-white/5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Serviço:</span> 
+                    <span className="font-bold text-slate-100">{selectedService?.name}</span>
                   </div>
+                  
+                  {selectedProducts.length > 0 && (
+                    <div className="space-y-2 py-2 border-y border-white/5 my-1">
+                      <p className="text-[10px] font-black text-primary uppercase tracking-wider">Produtos</p>
+                      {selectedProducts.map(p => (
+                        <div key={p.id} className="flex justify-between items-center text-xs">
+                          <span className="text-slate-300">{p.name} <span className="text-primary font-bold">x{p.quantity || 1}</span></span>
+                          <span className="text-slate-100 font-medium">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Profissional:</span> 
+                    <span className="font-bold text-slate-100">{selectedBarber?.name}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Data:</span> 
+                    <span className="font-bold text-slate-100">{format(parseISO(selectedDate), "dd/MM/yyyy")}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Hora:</span> 
+                    <span className="font-bold text-slate-100">{selectedTime}</span>
+                  </div>
+
+                  {(useCashback || useCredits) && (
+                    <div className="pt-2 border-t border-white/5 space-y-1">
+                      {useCashback && (
+                        <div className="flex justify-between text-green-500 font-bold text-xs">
+                          <span>Desconto Cashback:</span> 
+                          <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
+                        </div>
+                      )}
+                      {useCredits && (
+                        <div className="flex justify-between text-green-500 font-bold text-xs">
+                          <span>Desconto Créditos:</span> 
+                          <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center border-t border-white/10 pt-3 mt-2">
+                    <span className="text-slate-100 font-bold text-base">Total a pagar:</span> 
+                    <span className="text-2xl font-black" style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
+                  </div>
+                  
                   {shop.cashback_enabled && (
-                    <div className="text-[10px] text-muted-foreground text-center mt-2">
-                      Você ganhará R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)} de volta após o atendimento!
+                    <div className="bg-primary/10 p-2 rounded-lg text-[10px] text-center mt-2 border border-primary/20">
+                      <span className="text-slate-300">Você ganhará </span>
+                      <span className="text-primary font-bold">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
+                      <span className="text-slate-300"> de cashback!</span>
                     </div>
                   )}
                 </div>
 
                 {(!paymentMethod && calculateTotal() > 0) ? (
-                  <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="grid grid-cols-2 gap-3 mt-6">
                     <Button 
                       variant="outline" 
-                      className="flex flex-col h-auto py-4 gap-2"
+                      className="flex flex-col h-auto py-5 gap-3 bg-[#111] border-white/10 hover:border-primary/50 transition-all group"
                       onClick={() => setPaymentMethod('barbershop')}
                     >
-                      <Scissors size={20} />
-                      <div className="text-xs">Pagar na Barbearia</div>
+                      <Scissors size={24} className="text-slate-400 group-hover:text-primary transition-colors" />
+                      <div className="text-xs font-bold text-slate-100">Pagar na Barbearia</div>
                     </Button>
                     <Button 
-                      className="flex flex-col h-auto py-4 gap-2"
+                      className="flex flex-col h-auto py-5 gap-3 shadow-lg transition-all hover:scale-[1.02]"
                       style={{ backgroundColor: primaryColor }}
                       onClick={() => setPaymentMethod('pix')}
                     >
