@@ -857,7 +857,7 @@ function FinancesComponent() {
                         </TableCell>
                         <TableCell className="font-medium">{app.customers?.name || "Cliente"}</TableCell>
                         <TableCell>{app.services?.name || "Serviço"}</TableCell>
-                        <TableCell>{app.barber?.name || "Geral"}</TableCell>
+                        {role !== 'barber' && <TableCell>{app.barber?.name || "Geral"}</TableCell>}
                         <TableCell className="text-right font-bold text-yellow-600">
                           R$ {(parseFloat(String(app.total_price)) || 0).toFixed(2)}
                         </TableCell>
