@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
+import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 
 const defaultNavItems = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
@@ -55,16 +56,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const state = useRouterState();
   const pathname = state.location.pathname;
 
-  useEffect(() => {
-    const barberSession = localStorage.getItem('barber_session');
-    if (barberSession) {
-      setSession(JSON.parse(barberSession));
-    }
-  }, []);
+  // Removed redundant local session effect
 
   const user = authUser || (session ? { id: session.barber_id } : null);
   const role = authRole || (session ? 'barber' : null);
-  const loading = authLoading;
+  const loading = authLoading || profLoading;
 
   const navItems = role === 'barber' ? [...barberNavItems] : [...defaultNavItems];
   
