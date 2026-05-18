@@ -1584,37 +1584,53 @@ function ShopPageComponent() {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center border-t border-white/10 pt-3 mt-2">
-                    <span className="text-slate-100 font-bold text-base">Total a pagar:</span> 
-                    <span className="text-2xl font-black" style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
+                  <div className="flex justify-between items-center border-t border-white/10 pt-4 mt-3">
+                    <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
+                    <span className="text-3xl font-black" style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
                   </div>
                   
                   {shop.cashback_enabled && (
-                    <div className="bg-primary/10 p-2 rounded-lg text-[10px] text-center mt-2 border border-primary/20">
-                      <span className="text-slate-300">Você ganhará </span>
-                      <span className="text-primary font-bold">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
-                      <span className="text-slate-300"> de cashback!</span>
+                    <div className="bg-primary/5 p-3 rounded-xl text-[11px] text-center mt-3 border border-primary/20 shadow-inner">
+                      <span className="text-slate-300 font-medium">Você receberá </span>
+                      <span className="text-primary font-black">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
+                      <span className="text-slate-300 font-medium"> de volta nesta reserva!</span>
                     </div>
                   )}
                 </div>
 
                 {(!paymentMethod && calculateTotal() > 0) ? (
-                  <div className="grid grid-cols-2 gap-3 mt-6">
+                  <div className="grid grid-cols-1 gap-3 mt-6">
                     <Button 
                       variant="outline" 
-                      className="flex flex-col h-auto py-5 gap-3 bg-[#111] border-white/10 hover:border-primary/50 transition-all group"
+                      className="flex items-center justify-between h-20 px-6 bg-[#111] border-white/10 hover:border-primary/50 transition-all group rounded-2xl"
                       onClick={() => setPaymentMethod('barbershop')}
                     >
-                      <Scissors size={24} className="text-slate-400 group-hover:text-primary transition-colors" />
-                      <div className="text-xs font-bold text-slate-100">Pagar na Barbearia</div>
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                          <Scissors size={24} className="text-slate-400 group-hover:text-primary" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-black text-white">Pagar na Barbearia</p>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Pague após o serviço</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={20} className="text-slate-600 group-hover:text-primary transition-colors" />
                     </Button>
                     <Button 
-                      className="flex flex-col h-auto py-5 gap-3 shadow-lg transition-all hover:scale-[1.02]"
+                      className="flex items-center justify-between h-20 px-6 shadow-xl transition-all hover:scale-[1.01] rounded-2xl group"
                       style={{ backgroundColor: primaryColor }}
                       onClick={() => setPaymentMethod('pix')}
                     >
-                      <QrCode size={20} />
-                      <div className="text-xs">Pagar Agora (PIX)</div>
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                          <QrCode size={24} className="text-white" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-black text-white">Pagar Agora (PIX)</p>
+                          <p className="text-[10px] text-white/70 font-bold uppercase tracking-wider">Confirmação instantânea</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={20} className="text-white/70 group-hover:text-white transition-colors" />
                     </Button>
                   </div>
                 ) : (calculateTotal() === 0 && !paymentMethod) ? (
