@@ -1130,6 +1130,23 @@ function ClientPortalComponent() {
                     </div>
                   </div>
                   <div className="grid gap-2">
+                    <Label htmlFor="profile-birthdate">Data de Nascimento</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="profile-birthdate" 
+                        type="date"
+                        className="pl-10"
+                        value={customerData?.birth_date || ""}
+                        onChange={async (e) => {
+                          if (!customerData?.id) return;
+                          const birth_date = e.target.value;
+                          setCustomerData({ ...customerData, birth_date });
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
                     <Label htmlFor="profile-phone">WhatsApp</Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -1154,7 +1171,10 @@ function ClientPortalComponent() {
                     try {
                       const { error } = await supabase
                         .from('customers')
-                        .update({ name: customerName })
+                        .update({ 
+                          name: customerName,
+                          birth_date: customerData.birth_date
+                        })
                         .eq('id', customerData.id);
                       if (error) throw error;
                       

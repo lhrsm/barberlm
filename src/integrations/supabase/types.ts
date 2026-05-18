@@ -283,6 +283,7 @@ export type Database = {
       customers: {
         Row: {
           avatar_url: string | null
+          birth_date: string | null
           cashback_balance: number
           created_at: string
           credits: number | null
@@ -296,6 +297,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          birth_date?: string | null
           cashback_balance?: number
           created_at?: string
           credits?: number | null
@@ -309,6 +311,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          birth_date?: string | null
           cashback_balance?: number
           created_at?: string
           credits?: number | null

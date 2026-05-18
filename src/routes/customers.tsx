@@ -58,8 +58,8 @@ function CustomersComponent() {
   const [customerHistory, setCustomerHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [shopProfile, setShopProfile] = useState<any>(null);
-  const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "", notes: "" });
-  const [editingCustomer, setEditingCustomer] = useState({ id: "", name: "", phone: "", email: "", notes: "" });
+  const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "", notes: "", birth_date: "" });
+  const [editingCustomer, setEditingCustomer] = useState({ id: "", name: "", phone: "", email: "", notes: "", birth_date: "" });
 
   useEffect(() => {
     if (!loading && !user) {
@@ -127,7 +127,7 @@ function CustomersComponent() {
     } else {
       toast.success("Cliente adicionado com sucesso!");
       setIsAddDialogOpen(false);
-      setNewCustomer({ name: "", phone: "", email: "", notes: "" });
+      setNewCustomer({ name: "", phone: "", email: "", notes: "", birth_date: "" });
       fetchCustomers();
     }
   }
@@ -143,6 +143,7 @@ function CustomersComponent() {
         phone: editingCustomer.phone,
         email: editingCustomer.email,
         notes: editingCustomer.notes,
+        birth_date: editingCustomer.birth_date || null,
       })
       .eq("id", editingCustomer.id);
 
@@ -179,6 +180,7 @@ function CustomersComponent() {
       phone: customer.phone || "",
       email: customer.email || "",
       notes: customer.notes || "",
+      birth_date: customer.birth_date || "",
     });
     setIsEditDialogOpen(true);
   };
@@ -239,6 +241,15 @@ function CustomersComponent() {
                     type="email"
                     value={newCustomer.email} 
                     onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="birth_date">Data de Nascimento</Label>
+                  <Input 
+                    id="birth_date" 
+                    type="date"
+                    value={newCustomer.birth_date} 
+                    onChange={(e) => setNewCustomer({...newCustomer, birth_date: e.target.value})} 
                   />
                 </div>
                 <div className="space-y-2">
@@ -376,6 +387,15 @@ function CustomersComponent() {
                   type="email"
                   value={editingCustomer.email} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, email: e.target.value})} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-birth_date">Data de Nascimento</Label>
+                <Input 
+                  id="edit-birth_date" 
+                  type="date"
+                  value={editingCustomer.birth_date} 
+                  onChange={(e) => setEditingCustomer({...editingCustomer, birth_date: e.target.value})} 
                 />
               </div>
               <div className="space-y-2">
