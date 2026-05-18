@@ -1660,38 +1660,86 @@ function ShopPageComponent() {
                 ) : (
                   <div className="space-y-4 mt-4">
                     {paymentMethod === 'pix' && calculateTotal() > 0 && (
-                      <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-xl space-y-4 text-center">
-                        <p className="text-sm font-bold flex items-center justify-center gap-2">
-                          <QrCode size={18} className="text-primary" /> Pagamento via PIX
-                        </p>
+                      <div className="p-6 border border-primary/30 bg-primary/5 rounded-3xl space-y-6 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-1">
+                            <QrCode size={32} className="text-primary" />
+                          </div>
+                          <p className="text-lg font-black text-white uppercase tracking-tight">Pagamento Instantâneo</p>
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Escaneie ou copie o código</p>
+                        </div>
                         
                         {shop.pix_qr_code_url && (
-                          <div className="flex justify-center">
-                            <img src={shop.pix_qr_code_url} className="h-40 w-40 object-contain bg-white p-2 rounded-lg border shadow-sm" alt="PIX" />
+                          <div className="flex justify-center group">
+                            <div className="relative p-4 bg-white rounded-3xl shadow-xl transition-transform group-hover:scale-105 duration-300">
+                              <img src={shop.pix_qr_code_url} className="h-44 w-44 object-contain" alt="PIX QR Code" />
+                              <div className="absolute inset-0 border-4 border-primary/10 rounded-3xl pointer-events-none"></div>
+                            </div>
                           </div>
                         )}
                         
                         <div className="space-y-3">
-                          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Chave PIX</p>
-                          <div className="bg-[#111] p-4 rounded-xl border border-white/5 text-sm font-mono break-all flex items-center justify-between gap-3 shadow-inner group">
-                            <span className="flex-1 text-center text-slate-100 font-bold">{shop.pix_key || "Chave não cadastrada"}</span>
+                          <div className="bg-[#090909] p-5 rounded-2xl border border-white/5 text-sm font-mono break-all flex flex-col items-center gap-4 shadow-inner">
+                            <span className="text-center text-slate-100 font-bold text-base leading-relaxed">{shop.pix_key || "Chave não cadastrada"}</span>
                             {shop.pix_key && (
                               <Button 
                                 variant="secondary" 
-                                size="sm" 
-                                className="h-9 px-4 shrink-0 bg-white/5 hover:bg-white/10 text-white border-none"
+                                size="lg" 
+                                className="w-full h-12 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl font-black uppercase tracking-wider text-xs"
                                 onClick={() => {
                                   navigator.clipboard.writeText(shop.pix_key);
-                                  toast.success("Copiado!");
+                                  toast.success("Chave PIX copiada!");
                                 }}
                               >
-                                <CheckCircle2 size={16} className="mr-2" /> Copiar
+                                <CheckCircle2 size={18} className="mr-2" /> Copiar Chave PIX
                               </Button>
                             )}
                           </div>
                         </div>
                         <div className="pt-2">
-                          <p className="text-xs text-slate-400 leading-relaxed text-center">
+                          <p className="text-[11px] text-slate-500 font-bold leading-relaxed text-center uppercase tracking-wide">
+                            Após realizar o pagamento, clique no botão abaixo para finalizar seu agendamento.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {paymentMethod === 'barbershop' && (
+                      <div className="p-6 border border-white/10 bg-white/5 rounded-3xl space-y-6 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center mb-1">
+                            <Scissors size={32} className="text-slate-400" />
+                          </div>
+                          <p className="text-lg font-black text-white uppercase tracking-tight">Pagar na Unidade</p>
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Agendamento Presencial</p>
+                        </div>
+
+                        <div className="bg-[#090909] p-5 rounded-2xl border border-white/5 space-y-4 shadow-inner">
+                          <div className="flex items-center gap-4 text-left">
+                            <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                              <CheckCircle2 size={20} className="text-green-500" />
+                            </div>
+                            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                              Sua vaga será reservada imediatamente. O pagamento será feito diretamente na recepção.
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-4 text-left">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <Clock size={20} className="text-primary" />
+                            </div>
+                            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                              Chegue com 5 minutos de antecedência para garantir seu horário.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-2">
+                          <p className="text-[11px] text-slate-500 font-bold leading-relaxed text-center uppercase tracking-wide">
+                            Clique no botão abaixo para confirmar sua reserva na barbearia.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                             Após realizar o pagamento, clique no botão de confirmação abaixo para finalizar seu agendamento.
                           </p>
                         </div>
