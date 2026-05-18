@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Outlet } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Outlet, useLocation } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ export const Route = createFileRoute("/$slug")({
 function ShopPageComponent() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
   const isEmbedded = searchParams.get('embed') === 'true';
   const initialPhone = searchParams.get('phone') || "";
@@ -272,8 +273,8 @@ function ShopPageComponent() {
     );
   }
 
-  const isPortalRoute = window.location.pathname.endsWith('/portal');
-  const isProfissionalRoute = window.location.pathname.endsWith('/profissional');
+  const isPortalRoute = location.pathname.endsWith('/portal');
+  const isProfissionalRoute = location.pathname.endsWith('/profissional');
 
   if (isPortalRoute || isProfissionalRoute) {
     return <Outlet />;
