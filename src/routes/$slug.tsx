@@ -1380,7 +1380,7 @@ function ShopPageComponent() {
                   <Input 
                     value={customerPhone} 
                     readOnly 
-                    className="bg-muted text-muted-foreground"
+                    className="bg-[#111] border-white/10 text-slate-400 h-12 text-lg"
                   />
                 </div>
                 
