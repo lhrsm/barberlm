@@ -349,20 +349,22 @@ function FinancesComponent() {
             <p className="text-muted-foreground">Controle suas entradas e saídas.</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              className="gap-2" 
-              onClick={() => {
-                if (plan === 'free') {
-                  toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
-                  navigate({ to: "/subscription" });
-                } else {
-                  toast.info("Gerando relatório PDF...");
-                }
-              }}
-            >
-              <Wallet size={18} /> Exportar PDF
-            </Button>
+            {role !== 'barber' && (
+              <Button 
+                variant="outline" 
+                className="gap-2" 
+                onClick={() => {
+                  if (plan === 'free') {
+                    toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
+                    navigate({ to: "/subscription" });
+                  } else {
+                    toast.info("Gerando relatório PDF...");
+                  }
+                }}
+              >
+                <Wallet size={18} /> Exportar PDF
+              </Button>
+            )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
@@ -485,46 +487,52 @@ function FinancesComponent() {
               <p className="text-[10px] text-green-600/70">Dinheiro novo recebido</p>
             </CardContent>
           </Card>
-          <Card className="bg-purple-50/50 border-purple-100">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-purple-700">Créditos Consumidos</CardTitle>
-              <Wallet className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-700">R$ {summary.creditsConsumed.toFixed(2)}</div>
-              <p className="text-[10px] text-purple-600/70">Abatido via créditos</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-red-50/50 border-red-100">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-red-700">Saídas</CardTitle>
-              <TrendingDown className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-700">R$ {summary.expense.toFixed(2)}</div>
-              <p className="text-[10px] text-red-600/70">Despesas e estornos</p>
-            </CardContent>
-          </Card>
+          {role !== 'barber' && (
+            <>
+              <Card className="bg-purple-50/50 border-purple-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-purple-700">Créditos Consumidos</CardTitle>
+                  <Wallet className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-700">R$ {summary.creditsConsumed.toFixed(2)}</div>
+                  <p className="text-[10px] text-purple-600/70">Abatido via créditos</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-red-50/50 border-red-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-red-700">Saídas</CardTitle>
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-700">R$ {summary.expense.toFixed(2)}</div>
+                  <p className="text-[10px] text-red-600/70">Despesas e estornos</p>
+                </CardContent>
+              </Card>
+            </>
+          )}
           <Card className="bg-indigo-50/50 border-indigo-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-indigo-700">Freelancers</CardTitle>
+              <CardTitle className="text-sm font-medium text-indigo-700">{role === 'barber' ? 'Minha Comissão' : 'Freelancers'}</CardTitle>
               <Users className="h-4 w-4 text-indigo-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-indigo-700">R$ {summary.freelancersPart.toFixed(2)}</div>
-              <p className="text-[10px] text-indigo-600/70">Comissões (Total serviços)</p>
+              <p className="text-[10px] text-indigo-600/70">{role === 'barber' ? 'Minha parte garantida' : 'Comissões (Total serviços)'}</p>
             </CardContent>
           </Card>
-          <Card className="bg-emerald-50/50 border-emerald-100">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-emerald-700">Barbearia</CardTitle>
-              <TrendingUp className="h-4 w-4 text-emerald-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-700">R$ {summary.barbershopPart.toFixed(2)}</div>
-              <p className="text-[10px] text-emerald-600/70">Receita operacional líquida</p>
-            </CardContent>
-          </Card>
+          {role !== 'barber' && (
+            <Card className="bg-emerald-50/50 border-emerald-100">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-emerald-700">Barbearia</CardTitle>
+                <TrendingUp className="h-4 w-4 text-emerald-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-emerald-700">R$ {summary.barbershopPart.toFixed(2)}</div>
+                <p className="text-[10px] text-emerald-600/70">Receita operacional líquida</p>
+              </CardContent>
+            </Card>
+          )}
           <Card className="bg-yellow-50/50 border-yellow-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-yellow-700">Pendente</CardTitle>
@@ -555,9 +563,11 @@ function FinancesComponent() {
             <TabsTrigger value="pending" className="gap-2">
               <Clock size={16} /> Pendentes
             </TabsTrigger>
-            <TabsTrigger value="barbers" className="gap-2">
-              <Users size={16} /> Por Barbeiro
-            </TabsTrigger>
+            {role !== 'barber' && (
+              <TabsTrigger value="barbers" className="gap-2">
+                <Users size={16} /> Por Barbeiro
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="transactions" className="pt-4 space-y-4">
