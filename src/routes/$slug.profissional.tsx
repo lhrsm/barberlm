@@ -21,7 +21,8 @@ import {
   Bell,
   BarChart3,
   LogOut,
-  Check
+  Check,
+  RefreshCcw
 } from "lucide-react";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, parseISO, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
