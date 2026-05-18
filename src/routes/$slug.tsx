@@ -1128,7 +1128,7 @@ function ShopPageComponent() {
               </Button>
             </div>
 
-            <div className="h-[350px] w-full rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative bg-muted/20">
+            <div className="h-[280px] sm:h-[350px] w-full rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative bg-muted/20">
               <iframe
                 title="Google Maps"
                 width="100%"
