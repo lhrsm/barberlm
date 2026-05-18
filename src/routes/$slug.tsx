@@ -1672,13 +1672,13 @@ function ShopPageComponent() {
                     )}
                     
                     {paymentMethod === 'barbershop' && (
-                      <div className="p-6 border-2 border-dashed border-primary/30 rounded-xl text-center bg-muted/30 space-y-3">
-                        <div className="h-12 w-12 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
-                          <Scissors size={24} className="text-primary" />
+                      <div className="p-6 border-2 border-dashed border-primary/20 rounded-2xl text-center bg-primary/5 space-y-3">
+                        <div className="h-14 w-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                          <Scissors size={28} style={{ color: primaryColor }} />
                         </div>
                         <div className="space-y-1">
-                          <p className="text-base font-medium">Pagamento na Barbearia</p>
-                          <p className="text-sm text-muted-foreground">O pagamento será realizado no momento do atendimento.</p>
+                          <p className="text-lg font-bold text-slate-100">Pagamento na Barbearia</p>
+                          <p className="text-sm text-slate-400">O pagamento será realizado presencialmente no momento do atendimento.</p>
                         </div>
                       </div>
                     )}
