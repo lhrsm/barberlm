@@ -834,7 +834,7 @@ function ShopPageComponent() {
         </header>
       )}
 
-      <main className={cn("max-w-4xl mx-auto px-4 py-8 space-y-8", isEmbedded && "py-0")}>
+      <main className={cn("max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-8", isEmbedded && "py-0")}>
         {isEmbedded ? (
           <div className="flex flex-col items-center justify-center min-h-[400px]">
             {!isBookingOpen ? (
