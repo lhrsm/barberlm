@@ -330,9 +330,11 @@ export type Database = {
           barber_id: string | null
           created_at: string | null
           id: string
+          is_read: boolean | null
           link: string | null
           message: string
           read: boolean | null
+          read_at: string | null
           title: string
           type: string | null
           user_id: string
@@ -341,9 +343,11 @@ export type Database = {
           barber_id?: string | null
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
           link?: string | null
           message: string
           read?: boolean | null
+          read_at?: string | null
           title: string
           type?: string | null
           user_id: string
@@ -352,9 +356,11 @@ export type Database = {
           barber_id?: string | null
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
           link?: string | null
           message?: string
           read?: boolean | null
+          read_at?: string | null
           title?: string
           type?: string | null
           user_id?: string
