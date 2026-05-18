@@ -55,15 +55,18 @@ function FinancesComponent() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
+  const user = authUser || (session ? { id: session.barber_id } : null);
+  const role = authRole || (session ? 'barber' : null);
+  const loading = authLoading || profLoading;
   
-  
+
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!loading && !user) {
       navigate({ to: "/auth" });
       return;
     }
 
-    if (!authLoading && user && role === 'super_admin') {
+    if (!loading && user && role === 'super_admin') {
       navigate({ to: "/admin" });
       return;
     }
@@ -71,7 +74,7 @@ function FinancesComponent() {
 
   useEffect(() => {
     if (user && role !== 'super_admin') {
-      const barberIdFilter = role === 'barber' ? user.id : null;
+      const barberIdFilter = role === 'barber' ? user?.id : null;
       fetchTransactions(barberIdFilter);
       fetchBarbers();
       fetchAppointments(barberIdFilter);
