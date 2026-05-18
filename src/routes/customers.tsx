@@ -180,6 +180,7 @@ function CustomersComponent() {
       phone: customer.phone || "",
       email: customer.email || "",
       notes: customer.notes || "",
+      birth_date: customer.birth_date || "",
     });
     setIsEditDialogOpen(true);
   };
