@@ -586,7 +586,7 @@ function ShopPageComponent() {
             window.parent.location.href = portalUrl;
           }, 500);
         } else {
-          navigate(portalUrl);
+          window.location.href = portalUrl;
         }
       }, 2000);
       
