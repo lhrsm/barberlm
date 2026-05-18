@@ -205,25 +205,44 @@ function ProfessionalDashboard() {
 
   async function fetchNotifications() {
     if (!session?.barber_id) return;
-    const { data } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("barber_id", session.barber_id)
-      .order("created_at", { ascending: false })
-      .limit(10);
-    if (data) setNotifications(data);
+    try {
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("barber_id", session.barber_id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      
+      if (error) {
+        console.error("Error fetching notifications:", error);
+      } else if (data) {
+        setNotifications(data);
+      }
+    } catch (e) {
+      console.error("Exception in fetchNotifications:", e);
+    }
   }
 
   async function markAsRead(id: string) {
-    const { error } = await supabase
-      .from("notifications")
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq("id", id);
+    if (!id) return;
     
-    if (error) {
-      toast.error("Erro ao marcar como lida");
-    } else {
-      fetchNotifications();
+    try {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq("id", id);
+      
+      if (error) {
+        console.error("Error marking as read:", error);
+        toast.error("Erro ao marcar como lida");
+      } else {
+        // Update local state immediately for better UX
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        toast.success("Notificação lida");
+        fetchNotifications();
+      }
+    } catch (e) {
+      toast.error("Erro ao processar");
     }
   }
 
