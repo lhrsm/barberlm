@@ -1480,7 +1480,7 @@ function ShopPageComponent() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-black text-white uppercase tracking-wider">Produtos Exclusivos</Label>
-                    <span className="text-[10px] text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">Opcional</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ color: primaryColor, backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}>Opcional</span>
                   </div>
                   <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x scroll-smooth">
                     {products.map(p => {
