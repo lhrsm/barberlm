@@ -49,15 +49,25 @@ const barberNavItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId } = useTenant();
-  const { role, user, loading } = useAuth();
+  const { role: authRole, user: authUser, loading: authLoading } = useAuth();
+  const [session, setSession] = useState<any>(null);
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
 
+  useEffect(() => {
+    const barberSession = localStorage.getItem('barber_session');
+    if (barberSession) {
+      setSession(JSON.parse(barberSession));
+    }
+  }, []);
+
+  const user = authUser || (session ? { id: session.barber_id } : null);
+  const role = authRole || (session ? 'barber' : null);
+  const loading = authLoading;
+
   const navItems = role === 'barber' ? [...barberNavItems] : [...defaultNavItems];
   
-  // ... role is now from useAuth hook
-
   if (role === 'super_admin' || role === 'admin') {
     navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/admin/dashboard" });
   }
@@ -65,7 +75,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
 
-    if (!user && pathname !== "/auth" && pathname !== "/") {
+    if (!user && pathname !== "/auth" && pathname !== "/" && !pathname.endsWith("/portal")) {
       navigate({ to: "/auth", replace: true });
       return;
     }
@@ -80,6 +90,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const businessName = String(tenantProfile?.business_name || "BarberSaaS");
 
   const handleLogout = async () => {
+    if (localStorage.getItem('barber_session')) {
+      localStorage.removeItem('barber_session');
+    }
     await supabase.auth.signOut();
     navigate({ to: "/auth" });
   };
