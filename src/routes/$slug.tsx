@@ -1037,17 +1037,17 @@ function ShopPageComponent() {
         )}
 
         {/* Client Portal Access Section */}
-        <section className="bg-primary/5 p-8 rounded-3xl border border-primary/10 text-center space-y-6">
+        <section className="bg-primary/5 p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-primary/10 text-center space-y-5 sm:space-y-6">
           <div className="max-w-md mx-auto space-y-2">
-            <h4 className="text-2xl font-bold">Área do Cliente</h4>
-            <p className="text-muted-foreground">
+            <h4 className="text-xl sm:text-2xl font-bold">Área do Cliente</h4>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Acesse seu portal exclusivo para ver seu histórico de serviços, compras e gerenciar seus agendamentos em um só lugar.
             </p>
           </div>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 sm:gap-4">
             <Button 
               size="lg"
-              className="px-8 rounded-full shadow-lg hover:shadow-primary/20 transition-all gap-2"
+              className="px-6 sm:px-8 rounded-full shadow-lg hover:shadow-primary/20 transition-all gap-2 w-full sm:w-auto"
               style={{ backgroundColor: primaryColor }}
               asChild
             >
@@ -1055,7 +1055,7 @@ function ShopPageComponent() {
                 <UserIcon size={20} /> Entrar no Portal
               </a>
             </Button>
-            <Button variant="outline" size="lg" className="rounded-full px-8 gap-2" onClick={() => setIsCancelModalOpen(true)}>
+            <Button variant="outline" size="lg" className="rounded-full px-6 sm:px-8 gap-2 w-full sm:w-auto" onClick={() => setIsCancelModalOpen(true)}>
               <Star size={20} /> Avaliar Serviço
             </Button>
           </div>
