@@ -1233,8 +1233,8 @@ function ShopPageComponent() {
                     <div 
                       key={s.id} 
                       className={cn(
-                        "p-3 border rounded-lg cursor-pointer transition-colors flex justify-between items-center",
-                        selectedService?.id === s.id ? "border-primary bg-primary/5" : "hover:bg-muted"
+                        "p-4 border rounded-xl cursor-pointer transition-all flex justify-between items-center",
+                        selectedService?.id === s.id ? "border-primary bg-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.2)]" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a] hover:border-white/10"
                       )}
                       onClick={() => {
                         if (!customerName) {
@@ -1246,10 +1246,10 @@ function ShopPageComponent() {
                       }}
                     >
                       <div>
-                        <p className="font-bold">{s.name}</p>
-                        <p className="text-xs text-muted-foreground">{s.duration_minutes} min</p>
+                        <p className="font-bold text-slate-100">{s.name}</p>
+                        <p className="text-xs text-slate-400">{s.duration_minutes} min</p>
                       </div>
-                      <p className="font-bold" style={{ color: primaryColor }}>R$ {s.price.toFixed(2)}</p>
+                      <p className="font-bold text-lg" style={{ color: primaryColor }}>R$ {s.price.toFixed(2)}</p>
                     </div>
                   ))}
                 </div>
