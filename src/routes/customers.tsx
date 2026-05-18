@@ -143,6 +143,7 @@ function CustomersComponent() {
         phone: editingCustomer.phone,
         email: editingCustomer.email,
         notes: editingCustomer.notes,
+        birth_date: editingCustomer.birth_date || null,
       })
       .eq("id", editingCustomer.id);
 
