@@ -315,7 +315,7 @@ function BarbersComponent() {
                 <UserPlus size={18} /> Novo Barbeiro
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar sm:max-w-[500px]">
               {canAddBarber ? (
                 <>
                   <DialogHeader>
