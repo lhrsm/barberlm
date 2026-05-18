@@ -1220,6 +1220,7 @@ function ShopPageComponent() {
                     placeholder="Seu nome" 
                     value={customerName} 
                     onChange={(e) => setCustomerName(e.target.value)}
+                    className="bg-[#111] border-white/10 text-white placeholder:text-slate-500 h-12 text-lg focus-visible:ring-primary/50"
                   />
                 </div>
                 {customerName && customerName.length >= 3 && (
