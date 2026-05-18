@@ -216,7 +216,7 @@ function DashboardComponent() {
       query = query.eq("status", statusFilter);
     }
 
-    const { data } = await query.order("start_time", { ascending: true });
+    const { data } = await query.order("start_time", { ascending: false });
     if (data) setTodayAppointments(data);
   }
 
