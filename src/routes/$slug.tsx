@@ -811,23 +811,24 @@ function ShopPageComponent() {
       {/* Header */}
       {!isEmbedded && (
         <header className="bg-card/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
-          <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="max-w-4xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               {shop.logo_url ? (
-                <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain rounded-lg" />
+                <img src={shop.logo_url} alt={shop.business_name} className="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded-lg shrink-0" />
               ) : (
-                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <Scissors className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: primaryColor }} />
                 </div>
               )}
-              <h1 className="font-bold text-lg tracking-tight">{shop.business_name}</h1>
+              <h1 className="font-bold text-sm sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
             </div>
             <Button 
               style={{ backgroundColor: primaryColor }} 
-              className="text-white shadow-[0_0_15px_rgba(0,0,0,0.1)] hover:brightness-110 transition-all" 
+              className="text-white shadow-[0_0_15px_rgba(0,0,0,0.1)] hover:brightness-110 transition-all shrink-0 h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm" 
               onClick={handleBookingAction}
             >
-              {shop.scheduling_mode === 'manual' ? 'Agendar via WhatsApp' : 'Agendar Agora'}
+              <span className="sm:hidden">Agendar</span>
+              <span className="hidden sm:inline">{shop.scheduling_mode === 'manual' ? 'Agendar via WhatsApp' : 'Agendar Agora'}</span>
             </Button>
           </div>
         </header>
