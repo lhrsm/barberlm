@@ -1199,14 +1199,14 @@ function ShopPageComponent() {
 
           <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
             {bookingStep === 1 && (
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label>Seu WhatsApp</Label>
+              <div className="space-y-6 pt-2">
+                <div className="grid gap-3 p-4 bg-[#111] rounded-2xl border border-white/5">
+                  <Label className="text-sm font-bold text-slate-300 ml-1">Seu WhatsApp</Label>
                   <Input 
                     placeholder="(00) 00000-0000" 
                     value={customerPhone} 
                     onChange={(e) => setCustomerPhone(e.target.value)} 
-                    className="bg-[#111] border-white/10 text-white placeholder:text-slate-500 h-12 text-lg focus-visible:ring-primary/50"
+                    className="bg-[#090909] border-white/10 text-white placeholder:text-slate-600 h-14 text-xl font-medium focus-visible:ring-primary/50 rounded-xl"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && customerPhone) {
                         handlePhoneCheck();
