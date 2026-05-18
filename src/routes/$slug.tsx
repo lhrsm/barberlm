@@ -21,6 +21,7 @@ export const Route = createFileRoute("/$slug")({
 function ShopPageComponent() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
   const isEmbedded = searchParams.get('embed') === 'true';
   const initialPhone = searchParams.get('phone') || "";
