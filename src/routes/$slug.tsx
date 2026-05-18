@@ -1182,7 +1182,12 @@ function ShopPageComponent() {
                   variant="ghost" 
                   size="icon" 
                   className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/10 text-white" 
-                  onClick={() => setBookingStep(prev => prev - 1)}
+                  onClick={() => {
+                    if (bookingStep === 5 && paymentMethod) {
+                      setPaymentMethod(null);
+                    }
+                    setBookingStep(prev => prev - 1);
+                  }}
                 >
                   <ArrowLeft size={20} />
                 </Button>
