@@ -1182,7 +1182,12 @@ function ShopPageComponent() {
                   variant="ghost" 
                   size="icon" 
                   className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/10 text-white" 
-                  onClick={() => setBookingStep(prev => prev - 1)}
+                  onClick={() => {
+                    if (bookingStep === 5 && paymentMethod) {
+                      setPaymentMethod(null);
+                    }
+                    setBookingStep(prev => prev - 1);
+                  }}
                 >
                   <ArrowLeft size={20} />
                 </Button>
@@ -1788,7 +1793,16 @@ function ShopPageComponent() {
 
           {bookingStep > 1 && (
             <DialogFooter className="flex justify-between items-center sm:justify-between">
-              <Button variant="ghost" size="sm" onClick={() => setBookingStep(prev => prev - 1)}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  if (bookingStep === 5 && paymentMethod) {
+                    setPaymentMethod(null);
+                  }
+                  setBookingStep(prev => prev - 1);
+                }}
+              >
                 <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
               </Button>
               {bookingStep < 5 && (
