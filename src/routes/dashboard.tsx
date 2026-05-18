@@ -703,6 +703,44 @@ function DashboardComponent() {
           </Card>
         )}
 
+        {birthdayCustomers.length > 0 && (
+          <Card className="bg-gradient-to-r from-pink-500/10 to-purple-500/10 border-pink-500/20 mb-6">
+            <CardContent className="p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-pink-500/20 rounded-lg text-pink-600">
+                  <Gift size={24} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-pink-700">Aniversariantes do Mês! 🎂</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {birthdayCustomers.length} cliente{birthdayCustomers.length > 1 ? 's fazem' : ' faz'} aniversário este mês.
+                  </p>
+                </div>
+              </div>
+              <div className="flex -space-x-2 overflow-hidden">
+                {birthdayCustomers.slice(0, 5).map((customer, i) => (
+                  <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-pink-100 flex items-center justify-center text-[10px] font-bold text-pink-700">
+                    {customer.name.substring(0, 2).toUpperCase()}
+                  </div>
+                ))}
+                {birthdayCustomers.length > 5 && (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-muted text-[10px] font-medium">
+                    +{birthdayCustomers.length - 5}
+                  </div>
+                )}
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-pink-700 hover:text-pink-800 hover:bg-pink-500/10 gap-1 font-bold"
+                onClick={() => navigate({ to: "/customers" })}
+              >
+                Ver Clientes <ArrowUpRight size={14} />
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mb-6">
           <Card className="col-span-4 bg-primary/5 border-primary/20">
             <CardHeader className="pb-2">
