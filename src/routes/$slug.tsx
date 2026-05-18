@@ -851,21 +851,21 @@ function ShopPageComponent() {
         ) : (
           <>
             {/* Hero / About */}
-        <section className="text-center space-y-6 py-10 animate-in fade-in slide-in-from-top-4 duration-1000">
+        <section className="text-center space-y-4 sm:space-y-6 py-6 sm:py-10 animate-in fade-in slide-in-from-top-4 duration-1000">
           <div className="space-y-2">
-            <h2 className="text-4xl font-black tracking-tighter sm:text-5xl lg:text-6xl uppercase italic">
+            <h2 className="text-3xl font-black tracking-tighter sm:text-5xl lg:text-6xl uppercase italic leading-tight">
               Bem-vindo à <span style={{ color: primaryColor }}>{shop.business_name}</span>
             </h2>
-            <div className="h-1 w-20 bg-primary mx-auto rounded-full" style={{ backgroundColor: primaryColor }} />
+            <div className="h-1 w-16 sm:w-20 bg-primary mx-auto rounded-full" style={{ backgroundColor: primaryColor }} />
           </div>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
+          <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg leading-relaxed px-2">
             Excelência em cortes e cuidados masculinos. Escolha o serviço e agende sua experiência.
           </p>
-          <div className="flex justify-center">
+          <div className="flex justify-center px-4">
             <Button 
               size="lg" 
               style={{ backgroundColor: primaryColor }} 
-              className="h-12 px-8 text-lg font-bold rounded-full shadow-[0_0_20px_rgba(0,0,0,0.3)] hover:scale-105 transition-all"
+              className="h-12 px-8 text-base sm:text-lg font-bold rounded-full shadow-[0_0_20px_rgba(0,0,0,0.3)] hover:scale-105 transition-all w-full sm:w-auto"
               onClick={handleBookingAction}
             >
               Agendar Agora
