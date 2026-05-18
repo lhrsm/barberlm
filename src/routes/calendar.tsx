@@ -149,7 +149,10 @@ function CalendarComponent() {
       .lte("start_time", end.toISOString());
     
     if (role === 'barber') {
-      appQuery = appQuery.eq('barber_id', user.id);
+      const targetId = user?.id || session?.barber_id;
+      if (targetId) {
+        appQuery = appQuery.eq('barber_id', targetId);
+      }
     }
 
     const [appRes, barbRes, custRes, servRes] = await Promise.all([

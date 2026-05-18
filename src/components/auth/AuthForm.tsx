@@ -89,7 +89,11 @@ export function AuthForm() {
 
         localStorage.setItem(`barber_session`, JSON.stringify(sessionData));
         toast.success(`Bem-vindo, ${targetBarber.name}!`);
-        navigate({ to: "/calendar", replace: true });
+        
+        // Garantindo o redirecionamento
+        setTimeout(() => {
+          window.location.href = "/calendar";
+        }, 500);
       }
     } catch (error: any) {
       toast.error(error.message === "Invalid login credentials" ? "Credenciais inválidas" : error.message);
