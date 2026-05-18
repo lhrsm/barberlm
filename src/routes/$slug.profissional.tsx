@@ -107,6 +107,8 @@ function ProfessionalDashboard() {
 
     const bId = session.barber_id;
     const now = new Date();
+    
+    // Use local day bounds to avoid timezone issues
     const tStart = startOfDay(now).toISOString();
     const tEnd = endOfDay(now).toISOString();
     const wStart = startOfWeek(now, { weekStartsOn: 0 }).toISOString();
@@ -200,7 +202,10 @@ function ProfessionalDashboard() {
   }
 
   async function markAsRead(id: string) {
-    await supabase.from("notifications").update({ read: true }).eq("id", id);
+    await supabase
+      .from("notifications")
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq("id", id);
     fetchNotifications();
   }
 
@@ -277,9 +282,9 @@ function ProfessionalDashboard() {
               <PopoverTrigger asChild>
                 <Button variant="outline" size="icon" className="relative h-10 w-10 rounded-full border-primary/20 hover:bg-primary/5 transition-colors">
                   <Bell className="h-5 w-5 text-primary" />
-                  {notifications.filter(n => !n.read).length > 0 && (
+                  {notifications.filter(n => !n.is_read).length > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white border-2 border-background animate-pulse">
-                      {notifications.filter(n => !n.read).length}
+                      {notifications.filter(n => !n.is_read).length}
                     </span>
                   )}
                 </Button>
@@ -287,7 +292,7 @@ function ProfessionalDashboard() {
               <PopoverContent className="w-80 p-0 overflow-hidden rounded-2xl border shadow-2xl" align="end">
                 <div className="flex items-center justify-between bg-primary p-4 text-primary-foreground">
                   <h3 className="font-bold">Notificações</h3>
-                  {notifications.filter(n => !n.read).length > 0 && (
+                  {notifications.filter(n => !n.is_read).length > 0 && (
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -295,7 +300,7 @@ function ProfessionalDashboard() {
                       onClick={async () => {
                         await supabase
                           .from("notifications")
-                          .update({ read: true })
+                          .update({ is_read: true, read_at: new Date().toISOString() })
                           .eq("barber_id", session.barber_id);
                         fetchNotifications();
                       }}
@@ -319,11 +324,11 @@ function ProfessionalDashboard() {
                           key={n.id} 
                           className={cn(
                             "group relative flex flex-col gap-1 p-4 transition-colors hover:bg-muted/50",
-                            !n.read && "bg-primary/[0.03]"
+                            !n.is_read && "bg-primary/[0.03]"
                           )}
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <h4 className={cn("text-xs font-bold leading-none", !n.read ? "text-primary" : "text-foreground")}>
+                            <h4 className={cn("text-xs font-bold leading-none", !n.is_read ? "text-primary" : "text-foreground")}>
                               {n.title}
                             </h4>
                             <span className="shrink-0 text-[10px] text-muted-foreground">
@@ -331,7 +336,7 @@ function ProfessionalDashboard() {
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground leading-relaxed pr-6">{n.message}</p>
-                          {!n.read && (
+                          {!n.is_read && (
                             <button 
                               onClick={(e) => {
                                 e.preventDefault();
