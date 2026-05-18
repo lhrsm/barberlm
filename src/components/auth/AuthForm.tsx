@@ -71,7 +71,7 @@ export function AuthForm() {
         if (!targetBarber && cleanPhone) {
           const { data: barberByCleanPhone } = await supabase
             .from("barbers")
-            .select("id, name")
+            .select("id, name, user_id")
             .ilike("phone", `%${cleanPhone}%`)
             .maybeSingle();
           targetBarber = barberByCleanPhone;
