@@ -1334,6 +1334,9 @@ function ShopPageComponent() {
 
             {bookingStep === 4 && (
               <div className="space-y-4">
+                <div className="flex flex-col gap-1 mb-2">
+                  <p className="text-sm font-bold text-slate-100">Profissional Selecionado: {selectedBarber?.name}</p>
+                </div>
                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className="h-10 w-10 rounded-full bg-muted overflow-hidden">
