@@ -811,29 +811,30 @@ function ShopPageComponent() {
       {/* Header */}
       {!isEmbedded && (
         <header className="bg-card/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
-          <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="max-w-4xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               {shop.logo_url ? (
-                <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain rounded-lg" />
+                <img src={shop.logo_url} alt={shop.business_name} className="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded-lg shrink-0" />
               ) : (
-                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <Scissors className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: primaryColor }} />
                 </div>
               )}
-              <h1 className="font-bold text-lg tracking-tight">{shop.business_name}</h1>
+              <h1 className="font-bold text-sm sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
             </div>
             <Button 
               style={{ backgroundColor: primaryColor }} 
-              className="text-white shadow-[0_0_15px_rgba(0,0,0,0.1)] hover:brightness-110 transition-all" 
+              className="text-white shadow-[0_0_15px_rgba(0,0,0,0.1)] hover:brightness-110 transition-all shrink-0 h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm" 
               onClick={handleBookingAction}
             >
-              {shop.scheduling_mode === 'manual' ? 'Agendar via WhatsApp' : 'Agendar Agora'}
+              <span className="sm:hidden">Agendar</span>
+              <span className="hidden sm:inline">{shop.scheduling_mode === 'manual' ? 'Agendar via WhatsApp' : 'Agendar Agora'}</span>
             </Button>
           </div>
         </header>
       )}
 
-      <main className={cn("max-w-4xl mx-auto px-4 py-8 space-y-8", isEmbedded && "py-0")}>
+      <main className={cn("max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-8", isEmbedded && "py-0")}>
         {isEmbedded ? (
           <div className="flex flex-col items-center justify-center min-h-[400px]">
             {!isBookingOpen ? (
@@ -850,21 +851,21 @@ function ShopPageComponent() {
         ) : (
           <>
             {/* Hero / About */}
-        <section className="text-center space-y-6 py-10 animate-in fade-in slide-in-from-top-4 duration-1000">
+        <section className="text-center space-y-4 sm:space-y-6 py-6 sm:py-10 animate-in fade-in slide-in-from-top-4 duration-1000">
           <div className="space-y-2">
-            <h2 className="text-4xl font-black tracking-tighter sm:text-5xl lg:text-6xl uppercase italic">
+            <h2 className="text-3xl font-black tracking-tighter sm:text-5xl lg:text-6xl uppercase italic leading-tight">
               Bem-vindo à <span style={{ color: primaryColor }}>{shop.business_name}</span>
             </h2>
-            <div className="h-1 w-20 bg-primary mx-auto rounded-full" style={{ backgroundColor: primaryColor }} />
+            <div className="h-1 w-16 sm:w-20 bg-primary mx-auto rounded-full" style={{ backgroundColor: primaryColor }} />
           </div>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
+          <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg leading-relaxed px-2">
             Excelência em cortes e cuidados masculinos. Escolha o serviço e agende sua experiência.
           </p>
-          <div className="flex justify-center">
+          <div className="flex justify-center px-4">
             <Button 
               size="lg" 
               style={{ backgroundColor: primaryColor }} 
-              className="h-12 px-8 text-lg font-bold rounded-full shadow-[0_0_20px_rgba(0,0,0,0.3)] hover:scale-105 transition-all"
+              className="h-12 px-8 text-base sm:text-lg font-bold rounded-full shadow-[0_0_20px_rgba(0,0,0,0.3)] hover:scale-105 transition-all w-full sm:w-auto"
               onClick={handleBookingAction}
             >
               Agendar Agora
@@ -893,22 +894,22 @@ function ShopPageComponent() {
             </div>
             <h3 className="text-xl font-bold tracking-tight">Nossos Serviços</h3>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
             {services.map((service) => (
               <Card key={service.id} className="overflow-hidden border-white/5 bg-card/40 hover:bg-card/60 transition-all hover:scale-[1.02] cursor-pointer group">
-                <CardContent className="p-5 flex justify-between items-center">
-                  <div className="space-y-1">
-                    <h4 className="font-bold text-lg group-hover:text-primary transition-colors">{service.name}</h4>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <CardContent className="p-4 sm:p-5 flex justify-between items-center gap-3">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <h4 className="font-bold text-base sm:text-lg group-hover:text-primary transition-colors truncate">{service.name}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
                       <Clock size={14} /> {service.duration_minutes} min
                     </p>
                   </div>
-                  <div className="text-right space-y-2">
-                    <p className="font-bold text-xl" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
+                  <div className="text-right space-y-2 shrink-0">
+                    <p className="font-bold text-lg sm:text-xl" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="border-primary/20 hover:bg-primary hover:text-white transition-all"
+                      className="border-primary/20 hover:bg-primary hover:text-white transition-all h-8 text-xs sm:text-sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleSelectService(service);
@@ -1036,17 +1037,17 @@ function ShopPageComponent() {
         )}
 
         {/* Client Portal Access Section */}
-        <section className="bg-primary/5 p-8 rounded-3xl border border-primary/10 text-center space-y-6">
+        <section className="bg-primary/5 p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-primary/10 text-center space-y-5 sm:space-y-6">
           <div className="max-w-md mx-auto space-y-2">
-            <h4 className="text-2xl font-bold">Área do Cliente</h4>
-            <p className="text-muted-foreground">
+            <h4 className="text-xl sm:text-2xl font-bold">Área do Cliente</h4>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Acesse seu portal exclusivo para ver seu histórico de serviços, compras e gerenciar seus agendamentos em um só lugar.
             </p>
           </div>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 sm:gap-4">
             <Button 
               size="lg"
-              className="px-8 rounded-full shadow-lg hover:shadow-primary/20 transition-all gap-2"
+              className="px-6 sm:px-8 rounded-full shadow-lg hover:shadow-primary/20 transition-all gap-2 w-full sm:w-auto"
               style={{ backgroundColor: primaryColor }}
               asChild
             >
@@ -1054,7 +1055,7 @@ function ShopPageComponent() {
                 <UserIcon size={20} /> Entrar no Portal
               </a>
             </Button>
-            <Button variant="outline" size="lg" className="rounded-full px-8 gap-2" onClick={() => setIsCancelModalOpen(true)}>
+            <Button variant="outline" size="lg" className="rounded-full px-6 sm:px-8 gap-2 w-full sm:w-auto" onClick={() => setIsCancelModalOpen(true)}>
               <Star size={20} /> Avaliar Serviço
             </Button>
           </div>
@@ -1070,7 +1071,7 @@ function ShopPageComponent() {
             <h3 className="text-xl font-bold">Onde estamos</h3>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 items-start">
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 items-start">
             <div className="space-y-6">
               <Card className="bg-card/50 backdrop-blur-sm border-white/5 overflow-hidden">
                 <CardContent className="p-6 space-y-4">
@@ -1127,7 +1128,7 @@ function ShopPageComponent() {
               </Button>
             </div>
 
-            <div className="h-[350px] w-full rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative bg-muted/20">
+            <div className="h-[280px] sm:h-[350px] w-full rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative bg-muted/20">
               <iframe
                 title="Google Maps"
                 width="100%"
