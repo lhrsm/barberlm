@@ -615,7 +615,7 @@ function FinancesComponent() {
                     <TableHead className="w-[100px]">Data</TableHead>
                     <TableHead className="w-[100px]">Hora</TableHead>
                     <TableHead>Descrição</TableHead>
-                    <TableHead>Barbeiro</TableHead>
+                    {role !== 'barber' && <TableHead>Barbeiro</TableHead>}
                     <TableHead>Status</TableHead>
                     <TableHead>Pagamento</TableHead>
                     <TableHead>Categoria</TableHead>
