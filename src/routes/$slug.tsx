@@ -1292,10 +1292,14 @@ function ShopPageComponent() {
                             setBookingStep(4);
                           }}
                         >
-                          <div className="h-16 w-16 rounded-full bg-muted mx-auto overflow-hidden">
-                            {b.avatar_url ? <img src={b.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-bold text-lg">{b.name[0]}</div>}
+                          <div className="h-16 w-16 rounded-full bg-muted/20 mx-auto overflow-hidden border-2 border-white/5 group-hover:border-primary/50 transition-colors">
+                            {b.avatar_url ? (
+                              <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center font-bold text-lg text-slate-100">{b.name[0]}</div>
+                            )}
                           </div>
-                          <p className="font-medium text-sm">{b.name}</p>
+                          <p className="font-bold text-sm text-slate-100">{b.name}</p>
                         </div>
                       ))}
                       {barbers.filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments)).length === 0 && (
@@ -1335,15 +1339,21 @@ function ShopPageComponent() {
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                     </div>
                   ) : availableTimes.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto p-1">
+                    <div className="grid grid-cols-3 gap-3 max-h-[250px] overflow-y-auto p-1">
                       {availableTimes.map(time => (
                         <Button
                           key={time}
                           type="button"
                           variant={selectedTime === time ? "default" : "outline"}
-                          size="sm"
+                          size="lg"
                           onClick={() => setSelectedTime(time)}
-                          className={cn(selectedTime === time && "bg-primary")}
+                          className={cn(
+                            "h-12 text-base font-bold transition-all",
+                            selectedTime === time 
+                              ? "bg-primary text-white shadow-[0_0_15px_rgba(var(--primary),0.4)] scale-105" 
+                              : "bg-[#111] border-white/10 text-slate-100 hover:bg-[#1a1a1a] hover:border-primary/50"
+                          )}
+                          style={selectedTime === time ? { backgroundColor: primaryColor } : {}}
                         >
                           {time}
                         </Button>
