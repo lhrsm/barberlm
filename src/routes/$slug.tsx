@@ -1704,6 +1704,43 @@ function ShopPageComponent() {
                       </div>
                     )}
 
+                    {paymentMethod === 'barbershop' && (
+                      <div className="p-6 border border-white/10 bg-white/5 rounded-3xl space-y-6 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center mb-1">
+                            <Scissors size={32} className="text-slate-400" />
+                          </div>
+                          <p className="text-lg font-black text-white uppercase tracking-tight">Pagar na Unidade</p>
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Agendamento Presencial</p>
+                        </div>
+
+                        <div className="bg-[#090909] p-5 rounded-2xl border border-white/5 space-y-4 shadow-inner">
+                          <div className="flex items-center gap-4 text-left">
+                            <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                              <CheckCircle2 size={20} className="text-green-500" />
+                            </div>
+                            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                              Sua vaga será reservada imediatamente. O pagamento será feito diretamente na recepção.
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-4 text-left">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <Clock size={20} className="text-primary" />
+                            </div>
+                            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                              Chegue com 5 minutos de antecedência para garantir seu horário.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-2">
+                          <p className="text-[11px] text-slate-500 font-bold leading-relaxed text-center uppercase tracking-wide">
+                            Clique no botão abaixo para confirmar sua reserva na barbearia.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {paymentMethod === 'pix' && calculateTotal() === 0 && (
                       <div className="p-6 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center space-y-3">
                         <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
