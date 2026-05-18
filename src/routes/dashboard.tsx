@@ -128,14 +128,29 @@ function DashboardComponent() {
       // Realtime subscription
       const channel = supabase
         .channel(`dashboard-realtime-${tenantId}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `user_id=eq.${tenantId}` }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'appointments', 
+          filter: `user_id=eq.${tenantId}` 
+        }, () => {
           fetchTodayAppointments();
           fetchStats();
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${tenantId}` }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'transactions', 
+          filter: `user_id=eq.${tenantId}` 
+        }, () => {
           fetchStats();
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${tenantId}` }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'notifications', 
+          filter: `user_id=eq.${tenantId}` 
+        }, () => {
           fetchNotifications();
         })
         .subscribe();

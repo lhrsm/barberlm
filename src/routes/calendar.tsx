@@ -121,8 +121,15 @@ function CalendarComponent() {
       if (user) {
         channel = supabase
           .channel('calendar-realtime')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+          .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'appointments',
+            filter: role === 'barber' ? `barber_id=eq.${user.id}` : undefined
+          }, () => {
             fetchData();
+            // Also refresh limits
+            refreshLimits();
           })
           .subscribe();
       }
