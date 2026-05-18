@@ -62,7 +62,7 @@ export function AuthForm() {
         const cleanPhone = phone.replace(/\D/g, '');
         const { data: barber, error: barberError } = await supabase
           .from("barbers")
-          .select("id, name")
+          .select("id, name, user_id")
           .eq("phone", phone)
           .maybeSingle();
 
@@ -71,7 +71,7 @@ export function AuthForm() {
         if (!targetBarber && cleanPhone) {
           const { data: barberByCleanPhone } = await supabase
             .from("barbers")
-            .select("id, name")
+            .select("id, name, user_id")
             .ilike("phone", `%${cleanPhone}%`)
             .maybeSingle();
           targetBarber = barberByCleanPhone;
@@ -91,10 +91,19 @@ export function AuthForm() {
 
         login(sessionData);
         toast.success(`Bem-vindo, ${targetBarber.name}!`);
+        
+        // Obter o slug da barbearia para redirecionar corretamente
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("slug")
+          .eq("id", targetBarber.user_id)
+          .single();
+
+        const slug = profile?.slug || "general";
 
         // Garantindo o redirecionamento
         setTimeout(() => {
-          navigate({ to: "/calendar" });
+          navigate({ to: `/${slug}/profissional` });
         }, 500);
       }
     } catch (error: any) {
