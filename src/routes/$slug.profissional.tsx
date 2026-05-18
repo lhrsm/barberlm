@@ -163,13 +163,12 @@ function ProfessionalDashboard() {
       });
     }
 
-    // Recent Appointments
+    // Recent Appointments - Fetch ALL since we need for counts and dashboard
     const { data: recentApps } = await supabase
       .from("appointments")
       .select("*, customers(name, phone, avatar_url), services(name)")
       .eq("barber_id", bId)
-      .order("start_time", { ascending: false })
-      .limit(10);
+      .order("start_time", { ascending: false });
     setAppointments(recentApps || []);
 
     // Recent Transactions
@@ -327,7 +326,11 @@ function ProfessionalDashboard() {
                           <p className="text-xs text-muted-foreground leading-relaxed pr-6">{n.message}</p>
                           {!n.read && (
                             <button 
-                              onClick={() => markAsRead(n.id)}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                markAsRead(n.id);
+                              }}
                               className="absolute right-3 bottom-3 h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-white"
                               title="Marcar como lida"
                             >
