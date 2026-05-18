@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft } from "lucide-react";
+import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -1174,20 +1174,20 @@ function ShopPageComponent() {
           setPaymentMethod(null);
         }
       }}>
-        <DialogContent className={cn("sm:max-w-[425px] dark bg-card border-white/5", isEmbedded && "w-full max-w-full m-0 h-[90vh] overflow-y-auto")}>
-          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex items-center gap-2">
+        <DialogContent className={cn("sm:max-w-[425px] dark bg-card border-white/5 flex flex-col max-h-[90vh]", isEmbedded && "w-full max-w-full m-0 h-full")}>
+          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-4 shrink-0">
+            <div className="flex items-center gap-3">
               {bookingStep > 1 && (
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8 rounded-full hover:bg-white/10" 
+                  className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/10 text-white" 
                   onClick={() => setBookingStep(prev => prev - 1)}
                 >
-                  <ArrowLeft size={18} />
+                  <ArrowLeft size={20} />
                 </Button>
               )}
-              <DialogTitle className="text-xl font-bold tracking-tight">
+              <DialogTitle className="text-xl font-bold tracking-tight text-white">
                 {bookingStep === 1 && "Informe seu WhatsApp"}
                 {bookingStep === 2 && "Escolha o Serviço"}
                 {bookingStep === 3 && "Escolha o Profissional"}
@@ -1197,16 +1197,16 @@ function ShopPageComponent() {
             </div>
           </DialogHeader>
 
-          <div className="py-4">
+          <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
             {bookingStep === 1 && (
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label>Seu WhatsApp</Label>
+              <div className="space-y-6 pt-2">
+                <div className="grid gap-3 p-4 bg-[#111] rounded-2xl border border-white/5">
+                  <Label className="text-sm font-bold text-slate-300 ml-1">Seu WhatsApp</Label>
                   <Input 
                     placeholder="(00) 00000-0000" 
                     value={customerPhone} 
                     onChange={(e) => setCustomerPhone(e.target.value)} 
-                    className="bg-[#111] border-white/10 text-white placeholder:text-slate-500 h-12 text-lg focus-visible:ring-primary/50"
+                    className="bg-[#090909] border-white/10 text-white placeholder:text-slate-600 h-14 text-xl font-medium focus-visible:ring-primary/50 rounded-xl"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && customerPhone) {
                         handlePhoneCheck();
@@ -1396,29 +1396,32 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 5 && (
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label>WhatsApp</Label>
+              <div className="space-y-6">
+                <div className="grid gap-3 p-4 bg-[#111] rounded-2xl border border-white/5">
+                  <Label className="text-sm font-bold text-slate-300 ml-1">WhatsApp de Contato</Label>
                   <Input 
                     value={customerPhone} 
                     readOnly 
-                    className="bg-[#111] border-white/10 text-slate-400 h-12 text-lg"
+                    className="bg-[#090909] border-white/10 text-slate-400 h-14 text-xl font-medium rounded-xl"
                   />
                 </div>
                 
                 {shop.cashback_enabled && customerCashback > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Gift size={18} className="text-primary" />
+                  <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-2xl shadow-inner">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Gift size={22} className="text-primary" />
+                      </div>
                       <div>
-                        <p className="text-sm font-bold">Você tem cashback!</p>
-                        <p className="text-xs text-muted-foreground">Saldo: R$ {customerCashback.toFixed(2)}</p>
+                        <p className="text-sm font-black text-white">Você tem cashback!</p>
+                        <p className="text-xs font-bold text-primary">Saldo: R$ {customerCashback.toFixed(2)}</p>
                       </div>
                     </div>
                     <Button 
                       variant={useCashback ? "default" : "outline"} 
                       size="sm" 
                       onClick={() => setUseCashback(!useCashback)}
+                      className={cn("font-bold h-9 px-4 rounded-xl", useCashback ? "bg-primary" : "border-primary/30 text-primary hover:bg-primary/10")}
                     >
                       {useCashback ? "Usando" : "Usar"}
                     </Button>
@@ -1426,19 +1429,28 @@ function ShopPageComponent() {
                 )}
 
                 {customerLoyaltyPoints > 0 && (
-                  <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Gift size={18} className="text-primary" />
-                      <p className="text-sm font-bold">Seu Cartão Fidelidade</p>
+                  <div className="p-5 bg-[#111] border border-white/5 rounded-2xl shadow-lg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Gift size={22} className="text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-white">Cartão Fidelidade</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Acumule e ganhe serviços</p>
+                      </div>
                     </div>
                     <Progress 
                       value={((customerLoyaltyPoints % (shop.free_service_threshold || 10)) / (shop.free_service_threshold || 10)) * 100} 
-                      className="h-1.5" 
+                      className="h-3 bg-[#090909] border border-white/5" 
                     />
-                    <p className="text-[10px] text-muted-foreground mt-1 text-center">
-                      Você já completou {customerLoyaltyPoints} procedimento(s). 
-                      Faltam {(shop.free_service_threshold || 10) - (customerLoyaltyPoints % (shop.free_service_threshold || 10))} para o próximo gratuito!
-                    </p>
+                    <div className="mt-4 text-center space-y-1">
+                      <p className="text-xs font-bold text-slate-200">
+                        Você já completou <span className="text-primary text-sm">{customerLoyaltyPoints}</span> procedimento(s). 
+                      </p>
+                      <p className="text-[11px] text-primary/80 font-medium">
+                        Faltam <span className="font-black text-sm">{(shop.free_service_threshold || 10) - (customerLoyaltyPoints % (shop.free_service_threshold || 10))}</span> para o seu próximo <span className="uppercase tracking-tighter">serviço gratuito!</span>
+                      </p>
+                    </div>
                   </div>
                 )}
                 
@@ -1465,39 +1477,55 @@ function ShopPageComponent() {
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Label>Deseja adicionar algum produto?</Label>
-                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-black text-white uppercase tracking-wider">Produtos Exclusivos</Label>
+                    <span className="text-[10px] text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">Opcional</span>
+                  </div>
+                  <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x scroll-smooth">
                     {products.map(p => {
                       const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
                         <div 
                           key={p.id}
                           className={cn(
-                            "flex-shrink-0 w-28 p-2 border rounded-lg transition-all text-center relative",
-                            cartItem ? "border-primary bg-primary/5" : "hover:bg-muted"
+                            "flex-shrink-0 w-36 p-3 border rounded-2xl transition-all text-center relative snap-start group",
+                            cartItem ? "border-primary bg-primary/10 shadow-[0_4px_20px_rgba(var(--primary),0.15)]" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a] hover:border-white/10"
                           )}
                         >
                           <div 
-                            className="cursor-pointer"
+                            className="cursor-pointer space-y-2"
                             onClick={() => toggleProduct(p)}
                           >
-                            <div className="h-10 w-10 mx-auto mb-1">
-                              {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover rounded" /> : <Package size={20} className="mx-auto text-muted-foreground" />}
+                            <div className="h-20 w-20 mx-auto bg-[#090909] rounded-xl flex items-center justify-center overflow-hidden border border-white/5 group-hover:border-primary/30 transition-colors">
+                              {p.image_url ? (
+                                <img src={p.image_url} className="w-full h-full object-cover" />
+                              ) : (
+                                <Package size={32} className="text-slate-700 group-hover:text-primary transition-colors" />
+                              )}
                             </div>
-                            <p className="text-[10px] font-bold truncate">{p.name}</p>
-                            <p className="text-[10px] text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
+                            <div className="space-y-0.5">
+                              <p className="text-[11px] font-black text-white truncate px-1">{p.name}</p>
+                              <p className="text-xs font-black text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
+                            </div>
                           </div>
                           
                           {cartItem && (
-                            <div className="flex items-center justify-between mt-1 px-1">
-                              <button onClick={() => updateQuantity(p.id, -1)} className="text-primary hover:bg-primary/10 rounded h-4 w-4 flex items-center justify-center">-</button>
-                              <span className="text-[10px] font-bold">{cartItem.quantity}</span>
+                            <div className="flex items-center justify-between mt-3 bg-[#090909] rounded-lg p-1 border border-white/5">
                               <button 
-                                onClick={() => updateQuantity(p.id, 1)} 
-                                className="text-primary hover:bg-primary/10 rounded h-4 w-4 flex items-center justify-center"
+                                onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
+                                className="bg-white/5 hover:bg-white/10 text-white rounded-md h-7 w-7 flex items-center justify-center transition-colors"
+                              >
+                                <Minus size={14} />
+                              </button>
+                              <span className="text-xs font-black text-white">{cartItem.quantity}</span>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
+                                className="bg-primary hover:opacity-90 text-white rounded-md h-7 w-7 flex items-center justify-center transition-colors"
                                 disabled={cartItem.quantity >= p.stock_quantity}
-                              >+</button>
+                              >
+                                <Plus size={14} />
+                              </button>
                             </div>
                           )}
                         </div>
@@ -1556,37 +1584,53 @@ function ShopPageComponent() {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center border-t border-white/10 pt-3 mt-2">
-                    <span className="text-slate-100 font-bold text-base">Total a pagar:</span> 
-                    <span className="text-2xl font-black" style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
+                  <div className="flex justify-between items-center border-t border-white/10 pt-4 mt-3">
+                    <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
+                    <span className="text-3xl font-black" style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
                   </div>
                   
                   {shop.cashback_enabled && (
-                    <div className="bg-primary/10 p-2 rounded-lg text-[10px] text-center mt-2 border border-primary/20">
-                      <span className="text-slate-300">Você ganhará </span>
-                      <span className="text-primary font-bold">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
-                      <span className="text-slate-300"> de cashback!</span>
+                    <div className="bg-primary/5 p-3 rounded-xl text-[11px] text-center mt-3 border border-primary/20 shadow-inner">
+                      <span className="text-slate-300 font-medium">Você receberá </span>
+                      <span className="text-primary font-black">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
+                      <span className="text-slate-300 font-medium"> de volta nesta reserva!</span>
                     </div>
                   )}
                 </div>
 
                 {(!paymentMethod && calculateTotal() > 0) ? (
-                  <div className="grid grid-cols-2 gap-3 mt-6">
+                  <div className="grid grid-cols-1 gap-3 mt-6">
                     <Button 
                       variant="outline" 
-                      className="flex flex-col h-auto py-5 gap-3 bg-[#111] border-white/10 hover:border-primary/50 transition-all group"
+                      className="flex items-center justify-between h-20 px-6 bg-[#111] border-white/10 hover:border-primary/50 transition-all group rounded-2xl"
                       onClick={() => setPaymentMethod('barbershop')}
                     >
-                      <Scissors size={24} className="text-slate-400 group-hover:text-primary transition-colors" />
-                      <div className="text-xs font-bold text-slate-100">Pagar na Barbearia</div>
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                          <Scissors size={24} className="text-slate-400 group-hover:text-primary" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-black text-white">Pagar na Barbearia</p>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Pague após o serviço</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={20} className="text-slate-600 group-hover:text-primary transition-colors" />
                     </Button>
                     <Button 
-                      className="flex flex-col h-auto py-5 gap-3 shadow-lg transition-all hover:scale-[1.02]"
+                      className="flex items-center justify-between h-20 px-6 shadow-xl transition-all hover:scale-[1.01] rounded-2xl group"
                       style={{ backgroundColor: primaryColor }}
                       onClick={() => setPaymentMethod('pix')}
                     >
-                      <QrCode size={20} />
-                      <div className="text-xs">Pagar Agora (PIX)</div>
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                          <QrCode size={24} className="text-white" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-black text-white">Pagar Agora (PIX)</p>
+                          <p className="text-[10px] text-white/70 font-bold uppercase tracking-wider">Confirmação instantânea</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={20} className="text-white/70 group-hover:text-white transition-colors" />
                     </Button>
                   </div>
                 ) : (calculateTotal() === 0 && !paymentMethod) ? (
@@ -1616,44 +1660,87 @@ function ShopPageComponent() {
                 ) : (
                   <div className="space-y-4 mt-4">
                     {paymentMethod === 'pix' && calculateTotal() > 0 && (
-                      <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-xl space-y-4 text-center">
-                        <p className="text-sm font-bold flex items-center justify-center gap-2">
-                          <QrCode size={18} className="text-primary" /> Pagamento via PIX
-                        </p>
+                      <div className="p-6 border border-primary/30 bg-primary/5 rounded-3xl space-y-6 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-1">
+                            <QrCode size={32} className="text-primary" />
+                          </div>
+                          <p className="text-lg font-black text-white uppercase tracking-tight">Pagamento Instantâneo</p>
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Escaneie ou copie o código</p>
+                        </div>
                         
                         {shop.pix_qr_code_url && (
-                          <div className="flex justify-center">
-                            <img src={shop.pix_qr_code_url} className="h-40 w-40 object-contain bg-white p-2 rounded-lg border shadow-sm" alt="PIX" />
+                          <div className="flex justify-center group">
+                            <div className="relative p-4 bg-white rounded-3xl shadow-xl transition-transform group-hover:scale-105 duration-300">
+                              <img src={shop.pix_qr_code_url} className="h-44 w-44 object-contain" alt="PIX QR Code" />
+                              <div className="absolute inset-0 border-4 border-primary/10 rounded-3xl pointer-events-none"></div>
+                            </div>
                           </div>
                         )}
                         
                         <div className="space-y-3">
-                          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Chave PIX</p>
-                          <div className="bg-[#111] p-4 rounded-xl border border-white/5 text-sm font-mono break-all flex items-center justify-between gap-3 shadow-inner group">
-                            <span className="flex-1 text-center text-slate-100 font-bold">{shop.pix_key || "Chave não cadastrada"}</span>
+                          <div className="bg-[#090909] p-5 rounded-2xl border border-white/5 text-sm font-mono break-all flex flex-col items-center gap-4 shadow-inner">
+                            <span className="text-center text-slate-100 font-bold text-base leading-relaxed">{shop.pix_key || "Chave não cadastrada"}</span>
                             {shop.pix_key && (
                               <Button 
                                 variant="secondary" 
-                                size="sm" 
-                                className="h-9 px-4 shrink-0 bg-white/5 hover:bg-white/10 text-white border-none"
+                                size="lg" 
+                                className="w-full h-12 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl font-black uppercase tracking-wider text-xs"
                                 onClick={() => {
                                   navigator.clipboard.writeText(shop.pix_key);
-                                  toast.success("Copiado!");
+                                  toast.success("Chave PIX copiada!");
                                 }}
                               >
-                                <CheckCircle2 size={16} className="mr-2" /> Copiar
+                                <CheckCircle2 size={18} className="mr-2" /> Copiar Chave PIX
                               </Button>
                             )}
                           </div>
                         </div>
                         <div className="pt-2">
-                          <p className="text-xs text-slate-400 leading-relaxed text-center">
-                            Após realizar o pagamento, clique no botão de confirmação abaixo para finalizar seu agendamento.
+                          <p className="text-[11px] text-slate-500 font-bold leading-relaxed text-center uppercase tracking-wide">
+                            Após realizar o pagamento, clique no botão abaixo para finalizar seu agendamento.
                           </p>
                         </div>
                       </div>
                     )}
-                    
+
+                    {paymentMethod === 'barbershop' && (
+                      <div className="p-6 border border-white/10 bg-white/5 rounded-3xl space-y-6 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center mb-1">
+                            <Scissors size={32} className="text-slate-400" />
+                          </div>
+                          <p className="text-lg font-black text-white uppercase tracking-tight">Pagar na Unidade</p>
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Agendamento Presencial</p>
+                        </div>
+
+                        <div className="bg-[#090909] p-5 rounded-2xl border border-white/5 space-y-4 shadow-inner">
+                          <div className="flex items-center gap-4 text-left">
+                            <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                              <CheckCircle2 size={20} className="text-green-500" />
+                            </div>
+                            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                              Sua vaga será reservada imediatamente. O pagamento será feito diretamente na recepção.
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-4 text-left">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <Clock size={20} className="text-primary" />
+                            </div>
+                            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                              Chegue com 5 minutos de antecedência para garantir seu horário.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-2">
+                          <p className="text-[11px] text-slate-500 font-bold leading-relaxed text-center uppercase tracking-wide">
+                            Clique no botão abaixo para confirmar sua reserva na barbearia.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {paymentMethod === 'pix' && calculateTotal() === 0 && (
                       <div className="p-6 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center space-y-3">
                         <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
@@ -1667,18 +1754,6 @@ function ShopPageComponent() {
                           <p className="text-[11px] text-muted-foreground">
                             Clique no botão abaixo para concluir seu agendamento agora mesmo.
                           </p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {paymentMethod === 'barbershop' && (
-                      <div className="p-6 border-2 border-dashed border-primary/20 rounded-2xl text-center bg-primary/5 space-y-3">
-                        <div className="h-14 w-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                          <Scissors size={28} style={{ color: primaryColor }} />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-lg font-bold text-slate-100">Pagamento na Barbearia</p>
-                          <p className="text-sm text-slate-400">O pagamento será realizado presencialmente no momento do atendimento.</p>
                         </div>
                       </div>
                     )}
