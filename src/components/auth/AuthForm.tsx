@@ -133,24 +133,7 @@ export function AuthForm() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             {loginMethod === "email" ? (
-            {loginMethod === "phone" && showOtpInput && (
               <div className="space-y-2">
-                <Label htmlFor="login-otp">Código SMS</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="login-otp"
-                    type="text"
-                    className="pl-10"
-                    placeholder="123456"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-            <div className="space-y-2">
                 <Label htmlFor="login-email">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -166,22 +149,43 @@ export function AuthForm() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                <Label htmlFor="login-phone">Telefone</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="login-phone"
-                    type="tel"
-                    className="pl-10"
-                    placeholder="(00) 00000-0000"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                  />
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="login-phone">Telefone</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="login-phone"
+                      type="tel"
+                      className="pl-10"
+                      placeholder="(00) 00000-0000"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
+
+                {showOtpInput && (
+                  <div className="space-y-2">
+                    <Label htmlFor="login-otp">Código SMS</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="login-otp"
+                        type="text"
+                        className="pl-10"
+                        placeholder="123456"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
+
             {loginMethod === "email" && (
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
