@@ -273,8 +273,9 @@ function ShopPageComponent() {
   }
 
   const isPortalRoute = window.location.pathname.endsWith('/portal');
+  const isProfissionalRoute = window.location.pathname.endsWith('/profissional');
 
-  if (isPortalRoute) {
+  if (isPortalRoute || isProfissionalRoute) {
     return <Outlet />;
   }
 
