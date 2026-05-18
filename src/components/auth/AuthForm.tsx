@@ -55,20 +55,12 @@ export function AuthForm() {
         });
         if (error) throw error;
       } else {
-        // Para login por telefone, geralmente usa-se OTP ou uma lógica customizada.
-        // Como o usuário mencionou "o login dele pode ser via telefone cadastrado" para barbeiros,
-        // vamos implementar a tentativa de login por telefone (E.164 format).
-        // Nota: O Supabase exige que o telefone esteja confirmado para signInWithPassword se habilitado, 
-        // ou usa-se signInWithOtp. Por padrão, vamos tentar o signInWithPassword se houver senha.
-        
-        // Se for um barbeiro e usarmos a senha padrão ou algo similar.
-        // Mas a forma mais robusta no Supabase é OTP. 
-        // No entanto, se o sistema usa senhas para todos:
-        const { error } = await supabase.auth.signInWithPassword({
-          phone: phone.startsWith('+') ? phone : `+55${phone.replace(/\D/g, '')}`,
-          password,
+        const formattedPhone = phone.startsWith('+') ? phone : `+55${phone.replace(/\D/g, '')}`;
+        const { error } = await supabase.auth.signInWithOtp({
+          phone: formattedPhone,
         });
         if (error) throw error;
+        toast.success("Código de acesso enviado para o seu telefone!");
       }
     } catch (error: any) {
       toast.error(error.message === "Invalid login credentials" ? "Credenciais inválidas" : error.message);
@@ -160,10 +152,10 @@ export function AuthForm() {
                 </div>
               </div>
             )}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label htmlFor="login-password">Senha</Label>
-                {loginMethod === "email" && (
+            {loginMethod === "email" && (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="login-password">Senha</Label>
                   <button 
                     type="button"
                     onClick={handleResetPassword}
@@ -171,22 +163,22 @@ export function AuthForm() {
                   >
                     Esqueci minha senha
                   </button>
-                )}
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="login-password"
+                    type="password"
+                    className="pl-10"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="login-password"
-                  type="password"
-                  className="pl-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? "Entrando..." : loginMethod === "email" ? "Entrar" : "Receber Código"}
             </Button>
           </form>
         </TabsContent>
