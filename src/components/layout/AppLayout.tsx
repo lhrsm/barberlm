@@ -51,7 +51,7 @@ const barberNavItems = (slug: string) => [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId } = useTenant();
-  const { role: authRole, user: authUser, loading: authLoading } = useAuth();
+  const { role: authRole, user: authUser, loading: authLoading, profile: authProfile } = useAuth();
   const { session, loading: profLoading, logout: profLogout } = useProfessionalAuth();
   const navigate = useNavigate();
   const state = useRouterState();
@@ -61,7 +61,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const role = authRole || (session ? 'barber' : null);
   const loading = authLoading || profLoading;
 
-  const navItems = role === 'barber' ? [...barberNavItems] : [...defaultNavItems];
+  const slug = tenantProfile?.slug || authProfile?.slug || "general";
+
+  const navItems = role === 'barber' ? [...barberNavItems(slug)] : [...defaultNavItems];
   
   if (role === 'super_admin' || role === 'admin') {
     navItems.push({ label: "Admin SaaS", icon: ShieldCheck, to: "/admin/dashboard" });
