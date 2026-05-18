@@ -45,7 +45,6 @@ const barberNavItems = (slug: string) => [
   { label: "Meu Painel", icon: LayoutDashboard, to: `/${slug}/profissional` },
   { label: "Minha Agenda", icon: Calendar, to: "/calendar" },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
-  { label: "Suporte", icon: LifeBuoy, to: "/support" },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
