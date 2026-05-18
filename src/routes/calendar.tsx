@@ -496,6 +496,18 @@ function CalendarComponent() {
 
       toast.success("Pagamento registrado e agendamento concluído!");
       fetchData();
+      
+      // Invalidate queries for other views
+      const queryClient = (window as any).queryClient;
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      }
     } catch (error: any) {
       toast.error("Erro ao registrar pagamento: " + error.message);
     } finally {

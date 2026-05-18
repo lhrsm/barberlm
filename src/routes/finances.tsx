@@ -84,10 +84,20 @@ function FinancesComponent() {
       // Realtime subscription
       const channel = supabase
         .channel('finances-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'transactions',
+          filter: role === 'barber' ? `barber_id=eq.${user.id}` : undefined
+        }, () => {
           fetchTransactions(barberIdFilter);
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'appointments',
+          filter: role === 'barber' ? `barber_id=eq.${user.id}` : undefined
+        }, () => {
           fetchAppointments(barberIdFilter);
           fetchTransactions(barberIdFilter);
         })
