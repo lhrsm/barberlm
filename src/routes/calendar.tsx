@@ -300,6 +300,15 @@ function CalendarComponent() {
 
   const handleMarkAsPaid = async (appointment: any) => {
     if (!user) return;
+    
+    // Check if user is the barber assigned or an admin
+    const canManage = role === 'admin' || role === 'tenant_admin' || role === 'super_admin' || appointment.barber_id === user.id;
+    
+    if (!canManage) {
+      toast.error("Você não tem permissão para alterar este agendamento.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       // Get customer data for credits
