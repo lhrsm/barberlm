@@ -58,8 +58,8 @@ function CustomersComponent() {
   const [customerHistory, setCustomerHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [shopProfile, setShopProfile] = useState<any>(null);
-  const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "", notes: "" });
-  const [editingCustomer, setEditingCustomer] = useState({ id: "", name: "", phone: "", email: "", notes: "" });
+  const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "", notes: "", birth_date: "" });
+  const [editingCustomer, setEditingCustomer] = useState({ id: "", name: "", phone: "", email: "", notes: "", birth_date: "" });
 
   useEffect(() => {
     if (!loading && !user) {
