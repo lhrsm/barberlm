@@ -11,9 +11,11 @@ export function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
+  const [showOtpInput, setShowOtpInput] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,11 +58,22 @@ export function AuthForm() {
         if (error) throw error;
       } else {
         const formattedPhone = phone.startsWith('+') ? phone : `+55${phone.replace(/\D/g, '')}`;
-        const { error } = await supabase.auth.signInWithOtp({
-          phone: formattedPhone,
-        });
-        if (error) throw error;
-        toast.success("Código de acesso enviado para o seu telefone!");
+        
+        if (!showOtpInput) {
+          const { error } = await supabase.auth.signInWithOtp({
+            phone: formattedPhone,
+          });
+          if (error) throw error;
+          setShowOtpInput(true);
+          toast.success("Código de acesso enviado!");
+        } else {
+          const { error } = await supabase.auth.verifyOtp({
+            phone: formattedPhone,
+            token: otp,
+            type: 'sms'
+          });
+          if (error) throw error;
+        }
       }
     } catch (error: any) {
       toast.error(error.message === "Invalid login credentials" ? "Credenciais inválidas" : error.message);
@@ -136,22 +149,43 @@ export function AuthForm() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                <Label htmlFor="login-phone">Telefone</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="login-phone"
-                    type="tel"
-                    className="pl-10"
-                    placeholder="(00) 00000-0000"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                  />
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="login-phone">Telefone</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="login-phone"
+                      type="tel"
+                      className="pl-10"
+                      placeholder="(00) 00000-0000"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
+
+                {showOtpInput && (
+                  <div className="space-y-2">
+                    <Label htmlFor="login-otp">Código SMS</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="login-otp"
+                        type="text"
+                        className="pl-10"
+                        placeholder="123456"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
+
             {loginMethod === "email" && (
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
@@ -178,7 +212,9 @@ export function AuthForm() {
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Entrando..." : loginMethod === "email" ? "Entrar" : "Receber Código"}
+              {loading ? "Processando..." : (
+                loginMethod === "email" ? "Entrar" : (showOtpInput ? "Verificar Código" : "Entrar com Telefone")
+              )}
             </Button>
           </form>
         </TabsContent>
