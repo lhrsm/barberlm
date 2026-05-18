@@ -1174,20 +1174,20 @@ function ShopPageComponent() {
           setPaymentMethod(null);
         }
       }}>
-        <DialogContent className={cn("sm:max-w-[425px] dark bg-card border-white/5", isEmbedded && "w-full max-w-full m-0 h-[90vh] overflow-y-auto")}>
-          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex items-center gap-2">
+        <DialogContent className={cn("sm:max-w-[425px] dark bg-card border-white/5 flex flex-col max-h-[90vh]", isEmbedded && "w-full max-w-full m-0 h-full")}>
+          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-4 shrink-0">
+            <div className="flex items-center gap-3">
               {bookingStep > 1 && (
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8 rounded-full hover:bg-white/10" 
+                  className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/10 text-white" 
                   onClick={() => setBookingStep(prev => prev - 1)}
                 >
-                  <ArrowLeft size={18} />
+                  <ArrowLeft size={20} />
                 </Button>
               )}
-              <DialogTitle className="text-xl font-bold tracking-tight">
+              <DialogTitle className="text-xl font-bold tracking-tight text-white">
                 {bookingStep === 1 && "Informe seu WhatsApp"}
                 {bookingStep === 2 && "Escolha o Serviço"}
                 {bookingStep === 3 && "Escolha o Profissional"}
@@ -1197,7 +1197,7 @@ function ShopPageComponent() {
             </div>
           </DialogHeader>
 
-          <div className="py-4">
+          <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
             {bookingStep === 1 && (
               <div className="space-y-4">
                 <div className="grid gap-2">
