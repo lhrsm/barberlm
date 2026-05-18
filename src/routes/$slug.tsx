@@ -1793,7 +1793,16 @@ function ShopPageComponent() {
 
           {bookingStep > 1 && (
             <DialogFooter className="flex justify-between items-center sm:justify-between">
-              <Button variant="ghost" size="sm" onClick={() => setBookingStep(prev => prev - 1)}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  if (bookingStep === 5 && paymentMethod) {
+                    setPaymentMethod(null);
+                  }
+                  setBookingStep(prev => prev - 1);
+                }}
+              >
                 <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
               </Button>
               {bookingStep < 5 && (
