@@ -127,7 +127,7 @@ function CustomersComponent() {
     } else {
       toast.success("Cliente adicionado com sucesso!");
       setIsAddDialogOpen(false);
-      setNewCustomer({ name: "", phone: "", email: "", notes: "" });
+      setNewCustomer({ name: "", phone: "", email: "", notes: "", birth_date: "" });
       fetchCustomers();
     }
   }
