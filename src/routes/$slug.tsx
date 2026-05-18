@@ -1783,8 +1783,8 @@ function ShopPageComponent() {
                         </Button>
                         
                         <Button 
-                          variant="ghost" 
-                          className="w-full mt-2 text-xs h-10 border border-white/5 hover:bg-white/5" 
+                          variant="secondary" 
+                          className="w-full mt-3 h-12 text-sm font-bold border border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 rounded-xl" 
                           onClick={() => setPaymentMethod(null)}
                         >
                           Alterar forma de pagamento
