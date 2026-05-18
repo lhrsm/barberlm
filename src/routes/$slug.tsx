@@ -1194,6 +1194,7 @@ function ShopPageComponent() {
                     placeholder="(00) 00000-0000" 
                     value={customerPhone} 
                     onChange={(e) => setCustomerPhone(e.target.value)} 
+                    className="bg-[#111] border-white/10 text-white placeholder:text-slate-500 h-12 text-lg focus-visible:ring-primary/50"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && customerPhone) {
                         handlePhoneCheck();
