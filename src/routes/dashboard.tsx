@@ -123,6 +123,7 @@ function DashboardComponent() {
       fetchStats();
       fetchNotifications();
       fetchTodayAppointments();
+      fetchBirthdayCustomers();
 
       // Realtime subscription
       const channel = supabase
