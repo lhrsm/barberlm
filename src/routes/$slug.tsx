@@ -1175,7 +1175,8 @@ function ShopPageComponent() {
           setPaymentMethod(null);
         }
       }}>
-        <DialogContent className={cn("sm:max-w-[425px] dark bg-card border-white/5 flex flex-col max-h-[90vh]", isEmbedded && "w-full max-w-full m-0 h-full")}>
+        <DialogContent className={cn("sm:max-w-[425px] p-0 overflow-hidden dark bg-[#050505] border-white/5 h-[90vh] sm:h-auto flex flex-col", isEmbedded && "w-full max-w-full m-0 h-full")}>
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
           <DialogHeader className="flex-row items-center justify-between space-y-0 pb-4 shrink-0">
             <div className="flex items-center gap-3">
               {bookingStep > 1 && (
