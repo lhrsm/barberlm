@@ -629,8 +629,27 @@ function DashboardComponent() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-0" align="end">
-                <div className="p-4 border-b">
+                <div className="p-4 border-b flex justify-between items-center">
                   <h4 className="font-semibold">Notificações</h4>
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs h-8 text-primary"
+                      onClick={async () => {
+                        if (!tenantId) return;
+                        await supabase
+                          .from("notifications")
+                          .update({ read: true })
+                          .eq("user_id", tenantId)
+                          .eq("read", false);
+                        fetchNotifications();
+                        toast.success("Todas as notificações marcadas como lidas");
+                      }}
+                    >
+                      Ler todas
+                    </Button>
+                  )}
                 </div>
                 <ScrollArea className="h-[300px]">
                   {notifications.length === 0 ? (
@@ -641,19 +660,34 @@ function DashboardComponent() {
                     notifications.map((n) => (
                       <div 
                         key={n.id} 
-                        className={`p-4 border-b hover:bg-muted/50 transition-colors cursor-pointer ${!n.read ? 'bg-primary/5' : ''}`}
+                        className={`p-4 border-b hover:bg-muted/50 transition-colors group relative ${!n.read ? 'bg-primary/5' : ''}`}
                         onClick={() => {
-                          markAsRead(n.id);
+                          if (!n.read) markAsRead(n.id);
                           if (n.link) navigate({ to: n.link });
                         }}
                       >
                         <div className="flex justify-between items-start gap-2">
-                          <p className={`text-sm ${!n.read ? 'font-bold' : 'font-medium'}`}>{n.title}</p>
+                          <p className={`text-sm pr-6 ${!n.read ? 'font-bold' : 'font-medium'}`}>{n.title}</p>
                           <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                             {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
+                        
+                        {!n.read && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 bottom-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsRead(n.id);
+                            }}
+                            title="Marcar como lida"
+                          >
+                            <Check className="h-3 w-3 text-primary" />
+                          </Button>
+                        )}
                       </div>
                     ))
                   )}
