@@ -1175,14 +1175,26 @@ function ShopPageComponent() {
         }
       }}>
         <DialogContent className={cn("sm:max-w-[425px] dark bg-card border-white/5", isEmbedded && "w-full max-w-full m-0 h-[90vh] overflow-y-auto")}>
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold tracking-tight">
-              {bookingStep === 1 && "Informe seu WhatsApp"}
-              {bookingStep === 2 && "Escolha o Serviço"}
-              {bookingStep === 3 && "Escolha o Profissional"}
-              {bookingStep === 4 && "Data e Horário"}
-              {bookingStep === 5 && "Finalizar Agendamento"}
-            </DialogTitle>
+          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-2">
+            <div className="flex items-center gap-2">
+              {bookingStep > 1 && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 rounded-full hover:bg-white/10" 
+                  onClick={() => setBookingStep(prev => prev - 1)}
+                >
+                  <ArrowLeft size={18} />
+                </Button>
+              )}
+              <DialogTitle className="text-xl font-bold tracking-tight">
+                {bookingStep === 1 && "Informe seu WhatsApp"}
+                {bookingStep === 2 && "Escolha o Serviço"}
+                {bookingStep === 3 && "Escolha o Profissional"}
+                {bookingStep === 4 && "Data e Horário"}
+                {bookingStep === 5 && "Finalizar Agendamento"}
+              </DialogTitle>
+            </div>
           </DialogHeader>
 
           <div className="py-4">
