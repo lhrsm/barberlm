@@ -507,7 +507,7 @@ function ProfessionalDashboard() {
             </div>
             
             <div className="grid gap-4">
-                {appointments.filter(a => {
+               {appointments.filter(a => {
                   const appDate = new Date(a.start_time);
                   const today = new Date();
                   return (
@@ -516,12 +516,45 @@ function ProfessionalDashboard() {
                     appDate.getFullYear() === today.getFullYear()
                   );
                 }).length === 0 ? (
-                <Card className="border-dashed py-12">
-                  <CardContent className="flex flex-col items-center justify-center text-muted-foreground">
-                    <Calendar className="h-12 w-12 opacity-20 mb-4" />
-                    <p>Nenhum atendimento para hoje.</p>
-                  </CardContent>
-                </Card>
+                <div className="space-y-4">
+                  <Card className="border-dashed py-12">
+                    <CardContent className="flex flex-col items-center justify-center text-muted-foreground text-center">
+                      <Calendar className="h-12 w-12 opacity-20 mb-4" />
+                      <p className="font-medium">Nenhum atendimento para hoje.</p>
+                      <p className="text-xs mt-1">Veja abaixo os próximos agendamentos:</p>
+                    </CardContent>
+                  </Card>
+                  
+                  {appointments.filter(a => new Date(a.start_time) > new Date()).slice(0, 5).map(app => (
+                    <Card key={app.id} className="hover:shadow-md transition-shadow group overflow-hidden border-l-4 border-l-primary/30">
+                      <CardContent className="p-0">
+                        <div className="flex flex-col md:flex-row md:items-center">
+                          <div className="w-full md:w-32 bg-muted/30 p-4 flex flex-col items-center justify-center text-center border-b md:border-b-0 md:border-r">
+                            <span className="text-2xl font-black text-primary">{format(new Date(app.start_time), "HH:mm")}</span>
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground">{format(new Date(app.start_time), "EEE, d 'de' MMM", { locale: ptBR })}</span>
+                          </div>
+                          
+                          <div className="flex-1 p-4 flex items-center gap-4">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={app.customers?.avatar_url} />
+                              <AvatarFallback>{app.customers?.name?.substring(0, 2).toUpperCase() || "C"}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold truncate">{app.customers?.name || "Cliente"}</h4>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Scissors size={12} /> {app.services?.name}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                               <p className="font-bold text-sm text-primary">Próximo</p>
+                               <p className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(app.start_time), { addSuffix: true, locale: ptBR })}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               ) : (
                  appointments.filter(a => {
                    const appDate = new Date(a.start_time);
