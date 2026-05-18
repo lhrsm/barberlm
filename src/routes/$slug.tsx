@@ -1175,7 +1175,8 @@ function ShopPageComponent() {
           setPaymentMethod(null);
         }
       }}>
-        <DialogContent className={cn("sm:max-w-[425px] dark bg-card border-white/5 flex flex-col max-h-[90vh]", isEmbedded && "w-full max-w-full m-0 h-full")}>
+        <DialogContent className={cn("sm:max-w-[425px] p-0 overflow-hidden dark bg-[#050505] border-white/5 h-[90vh] sm:h-auto flex flex-col", isEmbedded && "w-full max-w-full m-0 h-full")}>
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
           <DialogHeader className="flex-row items-center justify-between space-y-0 pb-4 shrink-0">
             <div className="flex items-center gap-3">
               {bookingStep > 1 && (
@@ -1334,6 +1335,9 @@ function ShopPageComponent() {
 
             {bookingStep === 4 && (
               <div className="space-y-4">
+                <div className="flex flex-col gap-1 mb-2">
+                  <p className="text-sm font-bold text-slate-100">Profissional Selecionado: {selectedBarber?.name}</p>
+                </div>
                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className="h-10 w-10 rounded-full bg-muted overflow-hidden">
@@ -1764,30 +1768,30 @@ function ShopPageComponent() {
                       </div>
                     )}
 
-                    <div className="pt-2">
-                      <Button 
-                        id="btn-confirm-booking"
-                        className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
-                        style={{ backgroundColor: primaryColor }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleFinalizeBooking();
-                        }} 
-                        disabled={submitting}
-                      >
-                        {submitting ? "Finalizando..." : "Confirmar Agendamento"}
-                      </Button>
-                      
-                      <Button 
-                        variant="ghost" 
-                        className="w-full mt-2 text-xs h-10" 
-                        onClick={() => setPaymentMethod(null)}
-                      >
-                        Alterar forma de pagamento
-                      </Button>
+                      <div className="pt-2">
+                        <Button 
+                          id="btn-confirm-booking"
+                          className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
+                          style={{ backgroundColor: primaryColor }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleFinalizeBooking();
+                          }} 
+                          disabled={submitting}
+                        >
+                          {submitting ? "Finalizando..." : "Confirmar Agendamento"}
+                        </Button>
+                        
+                        <Button 
+                          variant="ghost" 
+                          className="w-full mt-2 text-xs h-10 border border-white/5 hover:bg-white/5" 
+                          onClick={() => setPaymentMethod(null)}
+                        >
+                          Alterar forma de pagamento
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             )}
           </div>
@@ -1813,6 +1817,7 @@ function ShopPageComponent() {
               )}
             </DialogFooter>
           )}
+          </div>
         </DialogContent>
       </Dialog>
 
