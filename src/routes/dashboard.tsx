@@ -91,6 +91,7 @@ function DashboardComponent() {
   const [profile, setProfile] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [birthdayCustomers, setBirthdayCustomers] = useState<any[]>([]);
 
   useEffect(() => {
     if (loading) return;
