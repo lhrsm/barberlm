@@ -86,8 +86,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const businessName = String(tenantProfile?.business_name || "BarberSaaS");
 
   const handleLogout = async () => {
-    if (localStorage.getItem('barber_session')) {
-      localStorage.removeItem('barber_session');
+    if (session) {
+      profLogout();
     }
     await supabase.auth.signOut();
     navigate({ to: "/auth" });
