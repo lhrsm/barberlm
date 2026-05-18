@@ -41,9 +41,10 @@ const defaultNavItems = [
   { label: "Configurações", icon: Settings, to: "/settings" },
 ];
 
-const barberNavItems = [
-  { label: "Agenda", icon: Calendar, to: "/calendar" },
-  { label: "Histórico Financeiro", icon: CircleDollarSign, to: "/finances" },
+const barberNavItems = (slug: string) => [
+  { label: "Meu Painel", icon: LayoutDashboard, to: `/${slug}/profissional` },
+  { label: "Minha Agenda", icon: Calendar, to: "/calendar" },
+  { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
   { label: "Suporte", icon: LifeBuoy, to: "/support" },
 ];
 
