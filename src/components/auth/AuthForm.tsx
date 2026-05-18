@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Phone, Mail, Lock } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 
 export function AuthForm() {
   const [loading, setLoading] = useState(false);
@@ -16,6 +17,7 @@ export function AuthForm() {
   const [businessName, setBusinessName] = useState("");
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const navigate = useNavigate();
+  const { login } = useProfessionalAuth();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,19 +82,19 @@ export function AuthForm() {
           return;
         }
 
-        const sessionData = {
+        const sessionData: any = {
           phone: phone,
           barber_id: targetBarber.id,
           name: targetBarber.name,
           role: 'barber'
         };
 
-        localStorage.setItem(`barber_session`, JSON.stringify(sessionData));
+        login(sessionData);
         toast.success(`Bem-vindo, ${targetBarber.name}!`);
-        
+
         // Garantindo o redirecionamento
         setTimeout(() => {
-          window.location.href = "/calendar";
+          navigate({ to: "/calendar" });
         }, 500);
       }
     } catch (error: any) {
