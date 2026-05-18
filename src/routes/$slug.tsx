@@ -1326,7 +1326,7 @@ function ShopPageComponent() {
                 </div>
                 <div className="grid gap-2">
                   <Label>Data</Label>
-                  <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={format(new Date(), "yyyy-MM-dd")} />
+                  <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={format(new Date(), "yyyy-MM-dd")} className="bg-[#111] border-white/10 text-white h-12 text-lg focus-visible:ring-primary/50" />
                 </div>
                 <div className="grid gap-2">
                   <Label>Horário</Label>
