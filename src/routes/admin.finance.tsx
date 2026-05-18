@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/admin/finance")({
 });
 
 function AdminFinance() {
+  const queryClient = useQueryClient();
   const { data: financeStats, isLoading } = useQuery({
     queryKey: ["admin-finance-stats"],
     queryFn: async () => {
@@ -82,6 +84,22 @@ function AdminFinance() {
       };
     }
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-finance-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-finance-stats"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-finance-stats"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   return (
     <div className="space-y-8">
