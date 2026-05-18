@@ -172,7 +172,8 @@ function DashboardComponent() {
     if (data) {
       const currentMonthBirthdays = data.filter(c => {
         if (!c.birth_date) return false;
-        const birthMonth = new Date(c.birth_date).getUTCMonth() + 1;
+        const birthDate = new Date(c.birth_date);
+        const birthMonth = birthDate.getUTCMonth() + 1;
         return birthMonth === currentMonth;
       });
       setBirthdayCustomers(currentMonthBirthdays);
