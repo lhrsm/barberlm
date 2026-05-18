@@ -273,8 +273,8 @@ function ShopPageComponent() {
     );
   }
 
-  const isPortalRoute = window.location.pathname.endsWith('/portal');
-  const isProfissionalRoute = window.location.pathname.endsWith('/profissional');
+  const isPortalRoute = location.pathname.endsWith('/portal');
+  const isProfissionalRoute = location.pathname.endsWith('/profissional');
 
   if (isPortalRoute || isProfissionalRoute) {
     return <Outlet />;
