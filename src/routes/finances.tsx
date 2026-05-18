@@ -71,19 +71,20 @@ function FinancesComponent() {
 
   useEffect(() => {
     if (user && role !== 'super_admin') {
-      fetchTransactions();
+      const barberIdFilter = role === 'barber' ? user.id : null;
+      fetchTransactions(barberIdFilter);
       fetchBarbers();
-      fetchAppointments();
+      fetchAppointments(barberIdFilter);
 
       // Realtime subscription
       const channel = supabase
         .channel('finances-realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
-          fetchTransactions();
+          fetchTransactions(barberIdFilter);
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
-          fetchAppointments();
-          fetchTransactions();
+          fetchAppointments(barberIdFilter);
+          fetchTransactions(barberIdFilter);
         })
         .subscribe();
 
@@ -101,22 +102,25 @@ function FinancesComponent() {
     setBarbers(data || []);
   }
 
-  async function fetchTransactions() {
-    const { data } = await supabase
+  async function fetchTransactions(bId: string | null = null) {
+    let query = supabase
       .from("transactions")
       .select(`
         *,
         barber:barbers(name),
         appointment:appointments(status, payment_method, credit_used, original_total, final_amount, total_price, start_time, customers(name))
-      `)
-      .order("created_at", { ascending: false });
+      `);
+    
+    if (bId) {
+      query = query.eq('barber_id', bId);
+    }
+
+    const { data } = await query.order("created_at", { ascending: false });
     setTransactions(data || []);
   }
 
-  async function fetchAppointments() {
-    // Buscar agendamentos que ainda não foram pagos e que não têm transação vinculada
-    // Ou agendamentos com pagamento pendente
-    const { data } = await supabase
+  async function fetchAppointments(bId: string | null = null) {
+    let query = supabase
       .from("appointments")
       .select(`
         *,
@@ -125,8 +129,13 @@ function FinancesComponent() {
         barber:barbers(name)
       `)
       .eq("payment_status", "pending")
-      .neq("status", "cancelled")
-      .order("start_time", { ascending: false });
+      .neq("status", "cancelled");
+    
+    if (bId) {
+      query = query.eq('barber_id', bId);
+    }
+
+    const { data } = await query.order("start_time", { ascending: false });
     setAppointments(data || []);
   }
 
