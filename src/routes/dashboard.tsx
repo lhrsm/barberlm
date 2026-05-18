@@ -128,14 +128,29 @@ function DashboardComponent() {
       // Realtime subscription
       const channel = supabase
         .channel(`dashboard-realtime-${tenantId}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `user_id=eq.${tenantId}` }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'appointments', 
+          filter: `user_id=eq.${tenantId}` 
+        }, () => {
           fetchTodayAppointments();
           fetchStats();
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${tenantId}` }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'transactions', 
+          filter: `user_id=eq.${tenantId}` 
+        }, () => {
           fetchStats();
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${tenantId}` }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'notifications', 
+          filter: `user_id=eq.${tenantId}` 
+        }, () => {
           fetchNotifications();
         })
         .subscribe();
@@ -330,6 +345,18 @@ function DashboardComponent() {
     toast.success("Serviço concluído e registrado no financeiro!");
     fetchTodayAppointments();
     fetchStats();
+
+    // Invalidate queries for other views
+    const queryClient = (window as any).queryClient;
+    if (queryClient) {
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+    }
   }
 
   async function togglePaymentStatus(appointment: any) {

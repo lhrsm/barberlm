@@ -121,8 +121,15 @@ function CalendarComponent() {
       if (user) {
         channel = supabase
           .channel('calendar-realtime')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+          .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'appointments',
+            filter: role === 'barber' ? `barber_id=eq.${user.id}` : undefined
+          }, () => {
             fetchData();
+            // Also refresh limits
+            refreshLimits();
           })
           .subscribe();
       }
@@ -331,6 +338,18 @@ function CalendarComponent() {
       setCurrentStep(1);
       fetchData();
       refreshLimits();
+      
+      // Realtime Invalidation for other tabs/dashboards
+      const queryClient = (window as any).queryClient;
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      }
     } catch (error: any) {
       toast.error("Erro ao criar agendamento: " + error.message);
     } finally {
@@ -477,6 +496,18 @@ function CalendarComponent() {
 
       toast.success("Pagamento registrado e agendamento concluído!");
       fetchData();
+      
+      // Invalidate queries for other views
+      const queryClient = (window as any).queryClient;
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      }
     } catch (error: any) {
       toast.error("Erro ao registrar pagamento: " + error.message);
     } finally {

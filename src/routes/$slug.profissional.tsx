@@ -70,13 +70,28 @@ function ProfessionalDashboard() {
       
       const channel = supabase
         .channel(`prof-realtime-${session.barber_id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments', filter: `barber_id=eq.${session.barber_id}` }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'appointments', 
+          filter: `barber_id=eq.${session.barber_id}` 
+        }, () => {
           fetchData();
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `barber_id=eq.${session.barber_id}` }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'transactions', 
+          filter: `barber_id=eq.${session.barber_id}` 
+        }, () => {
           fetchData();
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `barber_id=eq.${session.barber_id}` }, () => {
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'notifications', 
+          filter: `barber_id=eq.${session.barber_id}` 
+        }, () => {
           fetchNotifications();
         })
         .subscribe();
@@ -193,13 +208,24 @@ function ProfessionalDashboard() {
       if (error) throw error;
       
       if (status === 'completed') {
-        // Handle completion logic (financials etc - simplified here as main dashboard handles it)
         toast.success("Atendimento concluído!");
       } else if (status === 'cancelled') {
         toast.success("Atendimento cancelado");
       }
       
       fetchData();
+
+      // Realtime Invalidation
+      const queryClient = (window as any).queryClient;
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      }
     } catch (e: any) {
       toast.error("Erro: " + e.message);
     }
