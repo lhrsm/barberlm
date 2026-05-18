@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign } from "lucide-react";
+import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -1175,14 +1175,26 @@ function ShopPageComponent() {
         }
       }}>
         <DialogContent className={cn("sm:max-w-[425px] dark bg-card border-white/5", isEmbedded && "w-full max-w-full m-0 h-[90vh] overflow-y-auto")}>
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold tracking-tight">
-              {bookingStep === 1 && "Informe seu WhatsApp"}
-              {bookingStep === 2 && "Escolha o Serviço"}
-              {bookingStep === 3 && "Escolha o Profissional"}
-              {bookingStep === 4 && "Data e Horário"}
-              {bookingStep === 5 && "Finalizar Agendamento"}
-            </DialogTitle>
+          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-2">
+            <div className="flex items-center gap-2">
+              {bookingStep > 1 && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 rounded-full hover:bg-white/10" 
+                  onClick={() => setBookingStep(prev => prev - 1)}
+                >
+                  <ArrowLeft size={18} />
+                </Button>
+              )}
+              <DialogTitle className="text-xl font-bold tracking-tight">
+                {bookingStep === 1 && "Informe seu WhatsApp"}
+                {bookingStep === 2 && "Escolha o Serviço"}
+                {bookingStep === 3 && "Escolha o Profissional"}
+                {bookingStep === 4 && "Data e Horário"}
+                {bookingStep === 5 && "Finalizar Agendamento"}
+              </DialogTitle>
+            </div>
           </DialogHeader>
 
           <div className="py-4">
@@ -1494,57 +1506,82 @@ function ShopPageComponent() {
                   </div>
                 </div>
 
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Serviço:</span> <span>{selectedService?.name}</span></div>
+                <div className="bg-[#111] p-4 rounded-xl space-y-3 text-sm border border-white/5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Serviço:</span> 
+                    <span className="font-bold text-slate-100">{selectedService?.name}</span>
+                  </div>
+                  
                   {selectedProducts.length > 0 && (
-                    <div className="space-y-1 py-1 border-y border-dashed my-1">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase">Produtos</p>
+                    <div className="space-y-2 py-2 border-y border-white/5 my-1">
+                      <p className="text-[10px] font-black text-primary uppercase tracking-wider">Produtos</p>
                       {selectedProducts.map(p => (
-                        <div key={p.id} className="flex justify-between text-[11px]">
-                          <span>{p.name} (x{p.quantity || 1})</span>
-                          <span>R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
+                        <div key={p.id} className="flex justify-between items-center text-xs">
+                          <span className="text-slate-300">{p.name} <span className="text-primary font-bold">x{p.quantity || 1}</span></span>
+                          <span className="text-slate-100 font-medium">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
                   )}
-                  <div className="flex justify-between"><span className="text-muted-foreground">Profissional:</span> <span>{selectedBarber?.name}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Data:</span> <span>{format(parseISO(selectedDate), "dd/MM/yyyy")}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Hora:</span> <span>{selectedTime}</span></div>
-                  {useCashback && (
-                    <div className="flex justify-between text-green-600 font-medium">
-                      <span>Desconto Cashback:</span> 
-                      <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {useCredits && (
-                    <div className="flex justify-between text-green-600 font-medium">
-                      <span>Desconto Créditos:</span> 
-                      <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between border-t pt-2 font-bold">
-                    <span className="text-muted-foreground">Total:</span> 
-                    <span style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Profissional:</span> 
+                    <span className="font-bold text-slate-100">{selectedBarber?.name}</span>
                   </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Data:</span> 
+                    <span className="font-bold text-slate-100">{format(parseISO(selectedDate), "dd/MM/yyyy")}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Hora:</span> 
+                    <span className="font-bold text-slate-100">{selectedTime}</span>
+                  </div>
+
+                  {(useCashback || useCredits) && (
+                    <div className="pt-2 border-t border-white/5 space-y-1">
+                      {useCashback && (
+                        <div className="flex justify-between text-green-500 font-bold text-xs">
+                          <span>Desconto Cashback:</span> 
+                          <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
+                        </div>
+                      )}
+                      {useCredits && (
+                        <div className="flex justify-between text-green-500 font-bold text-xs">
+                          <span>Desconto Créditos:</span> 
+                          <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center border-t border-white/10 pt-3 mt-2">
+                    <span className="text-slate-100 font-bold text-base">Total a pagar:</span> 
+                    <span className="text-2xl font-black" style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
+                  </div>
+                  
                   {shop.cashback_enabled && (
-                    <div className="text-[10px] text-muted-foreground text-center mt-2">
-                      Você ganhará R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)} de volta após o atendimento!
+                    <div className="bg-primary/10 p-2 rounded-lg text-[10px] text-center mt-2 border border-primary/20">
+                      <span className="text-slate-300">Você ganhará </span>
+                      <span className="text-primary font-bold">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
+                      <span className="text-slate-300"> de cashback!</span>
                     </div>
                   )}
                 </div>
 
                 {(!paymentMethod && calculateTotal() > 0) ? (
-                  <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="grid grid-cols-2 gap-3 mt-6">
                     <Button 
                       variant="outline" 
-                      className="flex flex-col h-auto py-4 gap-2"
+                      className="flex flex-col h-auto py-5 gap-3 bg-[#111] border-white/10 hover:border-primary/50 transition-all group"
                       onClick={() => setPaymentMethod('barbershop')}
                     >
-                      <Scissors size={20} />
-                      <div className="text-xs">Pagar na Barbearia</div>
+                      <Scissors size={24} className="text-slate-400 group-hover:text-primary transition-colors" />
+                      <div className="text-xs font-bold text-slate-100">Pagar na Barbearia</div>
                     </Button>
                     <Button 
-                      className="flex flex-col h-auto py-4 gap-2"
+                      className="flex flex-col h-auto py-5 gap-3 shadow-lg transition-all hover:scale-[1.02]"
                       style={{ backgroundColor: primaryColor }}
                       onClick={() => setPaymentMethod('pix')}
                     >
@@ -1590,27 +1627,27 @@ function ShopPageComponent() {
                           </div>
                         )}
                         
-                        <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground font-medium">Chave PIX</p>
-                          <div className="bg-background p-3 rounded-lg border border-primary/20 text-xs font-mono break-all flex items-center justify-between gap-2 shadow-inner">
-                            <span className="flex-1 text-center">{shop.pix_key || "Chave não cadastrada"}</span>
+                        <div className="space-y-3">
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Chave PIX</p>
+                          <div className="bg-[#111] p-4 rounded-xl border border-white/5 text-sm font-mono break-all flex items-center justify-between gap-3 shadow-inner group">
+                            <span className="flex-1 text-center text-slate-100 font-bold">{shop.pix_key || "Chave não cadastrada"}</span>
                             {shop.pix_key && (
                               <Button 
                                 variant="secondary" 
                                 size="sm" 
-                                className="h-8 px-3 shrink-0"
+                                className="h-9 px-4 shrink-0 bg-white/5 hover:bg-white/10 text-white border-none"
                                 onClick={() => {
                                   navigator.clipboard.writeText(shop.pix_key);
                                   toast.success("Copiado!");
                                 }}
                               >
-                                <CheckCircle2 size={14} className="mr-1" /> Copiar
+                                <CheckCircle2 size={16} className="mr-2" /> Copiar
                               </Button>
                             )}
                           </div>
                         </div>
                         <div className="pt-2">
-                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                          <p className="text-xs text-slate-400 leading-relaxed text-center">
                             Após realizar o pagamento, clique no botão de confirmação abaixo para finalizar seu agendamento.
                           </p>
                         </div>
@@ -1635,13 +1672,13 @@ function ShopPageComponent() {
                     )}
                     
                     {paymentMethod === 'barbershop' && (
-                      <div className="p-6 border-2 border-dashed border-primary/30 rounded-xl text-center bg-muted/30 space-y-3">
-                        <div className="h-12 w-12 bg-primary/5 rounded-full flex items-center justify-center mx-auto">
-                          <Scissors size={24} className="text-primary" />
+                      <div className="p-6 border-2 border-dashed border-primary/20 rounded-2xl text-center bg-primary/5 space-y-3">
+                        <div className="h-14 w-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                          <Scissors size={28} style={{ color: primaryColor }} />
                         </div>
                         <div className="space-y-1">
-                          <p className="text-base font-medium">Pagamento na Barbearia</p>
-                          <p className="text-sm text-muted-foreground">O pagamento será realizado no momento do atendimento.</p>
+                          <p className="text-lg font-bold text-slate-100">Pagamento na Barbearia</p>
+                          <p className="text-sm text-slate-400">O pagamento será realizado presencialmente no momento do atendimento.</p>
                         </div>
                       </div>
                     )}
