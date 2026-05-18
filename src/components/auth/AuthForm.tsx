@@ -6,16 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Phone, Mail, Lock } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 
 export function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
-  const [showOtpInput, setShowOtpInput] = useState(false);
+  const navigate = useNavigate();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,23 +57,39 @@ export function AuthForm() {
         });
         if (error) throw error;
       } else {
-        const formattedPhone = phone.startsWith('+') ? phone : `+55${phone.replace(/\D/g, '')}`;
-        
-        if (!showOtpInput) {
-          const { error } = await supabase.auth.signInWithOtp({
-            phone: formattedPhone,
-          });
-          if (error) throw error;
-          setShowOtpInput(true);
-          toast.success("Código de acesso enviado!");
-        } else {
-          const { error } = await supabase.auth.verifyOtp({
-            phone: formattedPhone,
-            token: otp,
-            type: 'sms'
-          });
-          if (error) throw error;
+        const cleanPhone = phone.replace(/\D/g, '');
+        const { data: barber, error: barberError } = await supabase
+          .from("barbers")
+          .select("id, name")
+          .eq("phone", phone)
+          .maybeSingle();
+
+        let targetBarber = barber;
+
+        if (!targetBarber && cleanPhone) {
+          const { data: barberByCleanPhone } = await supabase
+            .from("barbers")
+            .select("id, name")
+            .ilike("phone", `%${cleanPhone}%`)
+            .maybeSingle();
+          targetBarber = barberByCleanPhone;
         }
+
+        if (!targetBarber) {
+          toast.error("Telefone não encontrado entre os barbeiros cadastrados.");
+          return;
+        }
+
+        const sessionData = {
+          phone: phone,
+          barber_id: targetBarber.id,
+          name: targetBarber.name,
+          role: 'barber'
+        };
+
+        localStorage.setItem(`barber_session`, JSON.stringify(sessionData));
+        toast.success(`Bem-vindo, ${targetBarber.name}!`);
+        navigate({ to: "/calendar", replace: true });
       }
     } catch (error: any) {
       toast.error(error.message === "Invalid login credentials" ? "Credenciais inválidas" : error.message);
@@ -149,41 +165,21 @@ export function AuthForm() {
                 </div>
               </div>
             ) : (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="login-phone">Telefone</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="login-phone"
-                      type="tel"
-                      className="pl-10"
-                      placeholder="(00) 00000-0000"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required
-                    />
-                  </div>
+              <div className="space-y-2">
+                <Label htmlFor="login-phone">Telefone</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="login-phone"
+                    type="tel"
+                    className="pl-10"
+                    placeholder="(00) 00000-0000"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                  />
                 </div>
-
-                {showOtpInput && (
-                  <div className="space-y-2">
-                    <Label htmlFor="login-otp">Código SMS</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="login-otp"
-                        type="text"
-                        className="pl-10"
-                        placeholder="123456"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
-              </>
+              </div>
             )}
 
             {loginMethod === "email" && (
@@ -213,7 +209,7 @@ export function AuthForm() {
             )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Processando..." : (
-                loginMethod === "email" ? "Entrar" : (showOtpInput ? "Verificar Código" : "Entrar com Telefone")
+                loginMethod === "email" ? "Entrar" : "Entrar com Telefone"
               )}
             </Button>
           </form>
@@ -262,4 +258,3 @@ export function AuthForm() {
     </div>
   );
 }
-
