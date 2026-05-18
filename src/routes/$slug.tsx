@@ -1233,8 +1233,8 @@ function ShopPageComponent() {
                     <div 
                       key={s.id} 
                       className={cn(
-                        "p-3 border rounded-lg cursor-pointer transition-colors flex justify-between items-center",
-                        selectedService?.id === s.id ? "border-primary bg-primary/5" : "hover:bg-muted"
+                        "p-4 border rounded-xl cursor-pointer transition-all flex justify-between items-center",
+                        selectedService?.id === s.id ? "border-primary bg-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.2)]" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a] hover:border-white/10"
                       )}
                       onClick={() => {
                         if (!customerName) {
@@ -1246,10 +1246,10 @@ function ShopPageComponent() {
                       }}
                     >
                       <div>
-                        <p className="font-bold">{s.name}</p>
-                        <p className="text-xs text-muted-foreground">{s.duration_minutes} min</p>
+                        <p className="font-bold text-slate-100">{s.name}</p>
+                        <p className="text-xs text-slate-400">{s.duration_minutes} min</p>
                       </div>
-                      <p className="font-bold" style={{ color: primaryColor }}>R$ {s.price.toFixed(2)}</p>
+                      <p className="font-bold text-lg" style={{ color: primaryColor }}>R$ {s.price.toFixed(2)}</p>
                     </div>
                   ))}
                 </div>
@@ -1265,6 +1265,7 @@ function ShopPageComponent() {
                     value={selectedDate} 
                     onChange={(e) => setSelectedDate(e.target.value)} 
                     min={format(new Date(), "yyyy-MM-dd")} 
+                    className="bg-[#111] border-white/10 text-white h-12 text-lg focus-visible:ring-primary/50"
                   />
                   <p className="text-[10px] text-muted-foreground">Selecione uma data para ver os profissionais disponíveis.</p>
                 </div>
@@ -1283,8 +1284,8 @@ function ShopPageComponent() {
                         <div 
                           key={b.id} 
                           className={cn(
-                            "p-4 border rounded-lg cursor-pointer text-center space-y-2 transition-colors",
-                            selectedBarber?.id === b.id ? "border-primary bg-primary/5" : "hover:bg-muted"
+                            "p-4 border rounded-xl cursor-pointer text-center space-y-2 transition-all",
+                            selectedBarber?.id === b.id ? "border-primary bg-primary/20" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a]"
                           )}
                           onClick={() => {
                             setSelectedBarber(b);
@@ -1325,7 +1326,7 @@ function ShopPageComponent() {
                 </div>
                 <div className="grid gap-2">
                   <Label>Data</Label>
-                  <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={format(new Date(), "yyyy-MM-dd")} />
+                  <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={format(new Date(), "yyyy-MM-dd")} className="bg-[#111] border-white/10 text-white h-12 text-lg focus-visible:ring-primary/50" />
                 </div>
                 <div className="grid gap-2">
                   <Label>Horário</Label>
@@ -1379,7 +1380,7 @@ function ShopPageComponent() {
                   <Input 
                     value={customerPhone} 
                     readOnly 
-                    className="bg-muted text-muted-foreground"
+                    className="bg-[#111] border-white/10 text-slate-400 h-12 text-lg"
                   />
                 </div>
                 
