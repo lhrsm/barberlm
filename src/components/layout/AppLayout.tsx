@@ -38,7 +38,12 @@ const defaultNavItems = [
   { label: "Suporte", icon: LifeBuoy, to: "/support" },
   { label: "Tutoriais", icon: HelpCircle, to: "/support" },
   { label: "Configurações", icon: Settings, to: "/settings" },
+];
 
+const barberNavItems = [
+  { label: "Agenda", icon: Calendar, to: "/calendar" },
+  { label: "Histórico Financeiro", icon: CircleDollarSign, to: "/finances" },
+  { label: "Suporte", icon: LifeBuoy, to: "/support" },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -49,7 +54,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const state = useRouterState();
   const pathname = state.location.pathname;
 
-  const navItems = [...defaultNavItems];
+  const navItems = role === 'barber' ? [...barberNavItems] : [...defaultNavItems];
   
   // ... role is now from useAuth hook
 

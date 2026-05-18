@@ -127,13 +127,18 @@ function CalendarComponent() {
     const start = startOfDay(view === "day" ? currentDate : startOfWeek(currentDate, { weekStartsOn: 0 }));
     const end = endOfDay(view === "day" ? currentDate : endOfWeek(currentDate, { weekStartsOn: 0 }));
 
+    let appQuery = supabase
+      .from("appointments")
+      .select("*, customers(name), services(name, duration_minutes), barbers(name)")
+      .gte("start_time", start.toISOString())
+      .lte("start_time", end.toISOString());
+    
+    if (role === 'barber') {
+      appQuery = appQuery.eq('barber_id', user.id);
+    }
+
     const [appRes, barbRes, custRes, servRes] = await Promise.all([
-      supabase
-        .from("appointments")
-        .select("*, customers(name), services(name, duration_minutes), barbers(name)")
-        .gte("start_time", start.toISOString())
-        .lte("start_time", end.toISOString())
-        .order("start_time", { ascending: true }),
+      appQuery.order("start_time", { ascending: true }),
       supabase.from("barbers").select("*").eq("active", true).order("name"),
       supabase.from("customers").select("*").order("name"),
       supabase.from("services").select("*").eq("active", true).order("name"),
@@ -143,7 +148,8 @@ function CalendarComponent() {
     if (barbRes.data) {
       setBarbers(barbRes.data);
       if (barbRes.data.length > 0 && !selectedBarber) {
-        setSelectedBarber(barbRes.data[0].id);
+        const initialBarber = role === 'barber' ? user.id : barbRes.data[0].id;
+        setSelectedBarber(initialBarber);
       }
     }
     if (custRes.data) {
@@ -300,6 +306,15 @@ function CalendarComponent() {
 
   const handleMarkAsPaid = async (appointment: any) => {
     if (!user) return;
+    
+    // Check if user is the barber assigned or an admin
+    const canManage = role === 'admin' || role === 'tenant_admin' || role === 'super_admin' || appointment.barber_id === user.id;
+    
+    if (!canManage) {
+      toast.error("Você não tem permissão para alterar este agendamento.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       // Get customer data for credits
