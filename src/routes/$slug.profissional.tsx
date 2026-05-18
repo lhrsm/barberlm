@@ -65,17 +65,19 @@ function ProfessionalDashboard() {
 
   useEffect(() => {
     if (session?.barber_id) {
+      console.log("ProfessionalDashboard: Loading data for barber", session.barber_id);
       fetchData();
       fetchNotifications();
       
       const channel = supabase
-        .channel(`prof-realtime-${session.barber_id}`)
+        .channel(`prof-realtime-${session.barber_id}-${Date.now()}`)
         .on('postgres_changes', { 
           event: '*', 
           schema: 'public', 
           table: 'appointments', 
           filter: `barber_id=eq.${session.barber_id}` 
-        }, () => {
+        }, (payload) => {
+          console.log("Realtime: Appointment change detected", payload);
           fetchData();
         })
         .on('postgres_changes', { 
@@ -83,7 +85,8 @@ function ProfessionalDashboard() {
           schema: 'public', 
           table: 'transactions', 
           filter: `barber_id=eq.${session.barber_id}` 
-        }, () => {
+        }, (payload) => {
+          console.log("Realtime: Transaction change detected", payload);
           fetchData();
         })
         .on('postgres_changes', { 
@@ -91,16 +94,26 @@ function ProfessionalDashboard() {
           schema: 'public', 
           table: 'notifications', 
           filter: `barber_id=eq.${session.barber_id}` 
-        }, () => {
+        }, (payload) => {
+          console.log("Realtime: Notification change detected", payload);
           fetchNotifications();
         })
-        .subscribe();
+        .subscribe((status) => {
+          console.log("Realtime subscription status:", status);
+        });
+
+      // Fallback polling every 20 seconds
+      const pollInterval = setInterval(() => {
+        fetchData();
+        fetchNotifications();
+      }, 20000);
 
       return () => {
         supabase.removeChannel(channel);
+        clearInterval(pollInterval);
       };
     }
-  }, [session]);
+  }, [session?.barber_id]);
 
   async function fetchData() {
     if (!session?.barber_id) return;
