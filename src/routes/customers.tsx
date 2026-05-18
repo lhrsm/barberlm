@@ -244,6 +244,15 @@ function CustomersComponent() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="birth_date">Data de Nascimento</Label>
+                  <Input 
+                    id="birth_date" 
+                    type="date"
+                    value={newCustomer.birth_date} 
+                    onChange={(e) => setNewCustomer({...newCustomer, birth_date: e.target.value})} 
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="notes">Notas / Preferências</Label>
                   <Input 
                     id="notes" 
