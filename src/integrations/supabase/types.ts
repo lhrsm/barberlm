@@ -327,6 +327,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          barber_id: string | null
           created_at: string | null
           id: string
           link: string | null
@@ -337,6 +338,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          barber_id?: string | null
           created_at?: string | null
           id?: string
           link?: string | null
@@ -347,6 +349,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          barber_id?: string | null
           created_at?: string | null
           id?: string
           link?: string | null
@@ -356,7 +359,15 @@ export type Database = {
           type?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plans: {
         Row: {

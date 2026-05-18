@@ -20,9 +20,10 @@ import {
   User as UserIcon,
   Bell,
   BarChart3,
-  LogOut
+  LogOut,
+  Check
 } from "lucide-react";
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, parseISO, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -30,6 +31,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export const Route = createFileRoute("/$slug/profissional")({
   component: ProfessionalDashboard,
@@ -41,6 +47,7 @@ function ProfessionalDashboard() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [barber, setBarber] = useState<any>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [stats, setStats] = useState({
     today: 0,
     week: 0,
@@ -59,6 +66,7 @@ function ProfessionalDashboard() {
   useEffect(() => {
     if (session?.barber_id) {
       fetchData();
+      fetchNotifications();
       
       const channel = supabase
         .channel(`prof-realtime-${session.barber_id}`)
@@ -67,6 +75,9 @@ function ProfessionalDashboard() {
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `barber_id=eq.${session.barber_id}` }, () => {
           fetchData();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `barber_id=eq.${session.barber_id}` }, () => {
+          fetchNotifications();
         })
         .subscribe();
 
@@ -156,6 +167,22 @@ function ProfessionalDashboard() {
     setTransactions(recentTrans || []);
   }
 
+  async function fetchNotifications() {
+    if (!session?.barber_id) return;
+    const { data } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("barber_id", session.barber_id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (data) setNotifications(data);
+  }
+
+  async function markAsRead(id: string) {
+    await supabase.from("notifications").update({ read: true }).eq("id", id);
+    fetchNotifications();
+  }
+
   const handleAction = async (app: any, status: string) => {
     try {
       const { error } = await supabase
@@ -214,7 +241,88 @@ function ProfessionalDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="relative h-10 w-10 rounded-full border-primary/20 hover:bg-primary/5 transition-colors">
+                  <Bell className="h-5 w-5 text-primary" />
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white border-2 border-background animate-pulse">
+                      {notifications.filter(n => !n.read).length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0 overflow-hidden rounded-2xl border shadow-2xl" align="end">
+                <div className="flex items-center justify-between bg-primary p-4 text-primary-foreground">
+                  <h3 className="font-bold">Notificações</h3>
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-white/20 px-2"
+                      onClick={async () => {
+                        await supabase
+                          .from("notifications")
+                          .update({ read: true })
+                          .eq("barber_id", session.barber_id);
+                        fetchNotifications();
+                      }}
+                    >
+                      Ler todas
+                    </Button>
+                  )}
+                </div>
+                <ScrollArea className="max-h-[350px]">
+                  {notifications.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                      <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                        <Bell className="h-6 w-6 text-muted-foreground opacity-20" />
+                      </div>
+                      <p className="text-sm font-medium text-muted-foreground">Nenhuma notificação por aqui.</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-border/50">
+                      {notifications.map((n) => (
+                        <div 
+                          key={n.id} 
+                          className={cn(
+                            "group relative flex flex-col gap-1 p-4 transition-colors hover:bg-muted/50",
+                            !n.read && "bg-primary/[0.03]"
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <h4 className={cn("text-xs font-bold leading-none", !n.read ? "text-primary" : "text-foreground")}>
+                              {n.title}
+                            </h4>
+                            <span className="shrink-0 text-[10px] text-muted-foreground">
+                              {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed pr-6">{n.message}</p>
+                          {!n.read && (
+                            <button 
+                              onClick={() => markAsRead(n.id)}
+                              className="absolute right-3 bottom-3 h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-white"
+                              title="Marcar como lida"
+                            >
+                              <Check className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+                {notifications.length > 0 && (
+                  <div className="bg-muted/30 p-2 text-center border-t">
+                    <Button variant="ghost" size="sm" className="w-full text-[10px] font-bold text-muted-foreground h-7" asChild>
+                      <Link to="/calendar">Ver toda a agenda</Link>
+                    </Button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+            <Button variant="outline" size="sm" asChild className="hidden sm:flex">
               <Link to="/calendar">
                 <Calendar className="mr-2 h-4 w-4" />
                 Minha Agenda
@@ -222,7 +330,7 @@ function ProfessionalDashboard() {
             </Button>
             <Button variant="ghost" size="sm" onClick={logout} className="text-destructive hover:text-destructive hover:bg-destructive/10">
               <LogOut className="mr-2 h-4 w-4" />
-              Sair
+              <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>

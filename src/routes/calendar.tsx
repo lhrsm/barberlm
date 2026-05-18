@@ -118,7 +118,7 @@ function CalendarComponent() {
 
       // Realtime subscription (only if we have a real supabase user)
       let channel: any;
-      if (authUser) {
+      if (user) {
         channel = supabase
           .channel('calendar-realtime')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
@@ -276,10 +276,30 @@ function CalendarComponent() {
 
       if (error) throw error;
 
-      // Send WhatsApp Confirmation
+      // Create notifications
       const customer = customers.find(c => c.id === selectedCustomer);
       const barber = barbers.find(b => b.id === selectedBarber);
+      const notificationMessage = `Agendamento manual: ${service?.name} para ${customer?.name} às ${selectedTime}`;
       
+      // Admin notification
+      await supabase.from("notifications").insert({
+        user_id: user.id,
+        title: "Novo Agendamento (Manual)",
+        message: notificationMessage,
+        type: "appointment",
+        link: "/calendar"
+      });
+
+      // Barber notification
+      await supabase.from("notifications").insert({
+        user_id: user.id,
+        barber_id: selectedBarber,
+        title: "Novo Agendamento Manual",
+        message: notificationMessage,
+        type: "appointment",
+        link: "/calendar"
+      });
+
       // We check if notifications are enabled in profile
       const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", user.id).single();
 
