@@ -5,12 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { Phone, Mail, Lock } from "lucide-react";
 
 export function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [businessName, setBusinessName] = useState("");
+  const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,9 +32,6 @@ export function AuthForm() {
 
       if (error) throw error;
 
-      // Profile is auto-created by the handle_new_user database trigger
-      // using the business_name from user metadata.
-
       toast.success(
         data.session
           ? "Conta criada com sucesso."
@@ -48,15 +48,30 @@ export function AuthForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      // We don't navigate here anymore, we let the Auth page or global guard handle redirection based on role
-
+      if (loginMethod === "email") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+      } else {
+        // Para login por telefone, geralmente usa-se OTP ou uma lógica customizada.
+        // Como o usuário mencionou "o login dele pode ser via telefone cadastrado" para barbeiros,
+        // vamos implementar a tentativa de login por telefone (E.164 format).
+        // Nota: O Supabase exige que o telefone esteja confirmado para signInWithPassword se habilitado, 
+        // ou usa-se signInWithOtp. Por padrão, vamos tentar o signInWithPassword se houver senha.
+        
+        // Se for um barbeiro e usarmos a senha padrão ou algo similar.
+        // Mas a forma mais robusta no Supabase é OTP. 
+        // No entanto, se o sistema usa senhas para todos:
+        const { error } = await supabase.auth.signInWithPassword({
+          phone: phone.startsWith('+') ? phone : `+55${phone.replace(/\D/g, '')}`,
+          password,
+        });
+        if (error) throw error;
+      }
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message === "Invalid login credentials" ? "Credenciais inválidas" : error.message);
     } finally {
       setLoading(false);
     }
@@ -92,36 +107,83 @@ export function AuthForm() {
         </TabsList>
         
         <TabsContent value="login">
+          <div className="flex justify-center gap-4 mb-6">
+            <Button 
+              variant={loginMethod === "email" ? "default" : "outline"} 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setLoginMethod("email")}
+            >
+              <Mail size={16} /> E-mail
+            </Button>
+            <Button 
+              variant={loginMethod === "phone" ? "default" : "outline"} 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setLoginMethod("phone")}
+            >
+              <Phone size={16} /> Telefone
+            </Button>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="login-email">Email</Label>
-              <Input
-                id="login-email"
-                type="email"
-                placeholder="exemplo@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+            {loginMethod === "email" ? (
+              <div className="space-y-2">
+                <Label htmlFor="login-email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="login-email"
+                    type="email"
+                    className="pl-10"
+                    placeholder="exemplo@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="login-phone">Telefone</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="login-phone"
+                    type="tel"
+                    className="pl-10"
+                    placeholder="(00) 00000-0000"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="login-password">Senha</Label>
-                <button 
-                  type="button"
-                  onClick={handleResetPassword}
-                  className="text-xs text-primary hover:underline"
-                >
-                  Esqueci minha senha
-                </button>
+                {loginMethod === "email" && (
+                  <button 
+                    type="button"
+                    onClick={handleResetPassword}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Esqueci minha senha
+                  </button>
+                )}
               </div>
-              <Input
-                id="login-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="login-password"
+                  type="password"
+                  className="pl-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
@@ -172,3 +234,4 @@ export function AuthForm() {
     </div>
   );
 }
+
