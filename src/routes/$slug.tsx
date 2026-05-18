@@ -1817,6 +1817,7 @@ function ShopPageComponent() {
               )}
             </DialogFooter>
           )}
+          </div>
         </DialogContent>
       </Dialog>
 
