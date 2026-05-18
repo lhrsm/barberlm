@@ -66,8 +66,21 @@ const PROFESSIONAL_COLORS: Record<string, string> = {
 };
 
 function CalendarComponent() {
-  const { user, loading, role } = useAuth();
+  const { user: authUser, loading: authLoading, role: authRole } = useAuth();
+  const [session, setSession] = useState<any>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const barberSession = localStorage.getItem('barber_session');
+    if (barberSession) {
+      setSession(JSON.parse(barberSession));
+    }
+  }, []);
+
+  const user = authUser || (session ? { id: session.barber_id, email: session.phone } : null);
+  const role = authRole || (session ? 'barber' : null);
+  const loading = authLoading;
+
   const { checkLimit, limits, usage, refresh: refreshLimits } = usePlanLimits();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week">("day");
@@ -107,14 +120,16 @@ function CalendarComponent() {
     if (user && role !== 'super_admin') {
       fetchData();
 
-      // Realtime subscription
-      const channel = supabase
-        .channel('calendar-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
-          fetchData();
-        })
-        .subscribe();
-
+      // Realtime subscription (only if we have a real supabase user)
+      let channel: any;
+      if (authUser) {
+        channel = supabase
+          .channel('calendar-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+            fetchData();
+          })
+          .subscribe();
+      }
       return () => {
         supabase.removeChannel(channel);
       };
