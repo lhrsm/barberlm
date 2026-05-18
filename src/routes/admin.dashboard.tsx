@@ -97,6 +97,7 @@ function AdminDashboard() {
       .channel('admin-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+        queryClient.invalidateQueries({ queryKey: ["appointments"] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-stats"] });

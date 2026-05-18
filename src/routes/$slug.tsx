@@ -496,6 +496,18 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
+      // Realtime Invalidation
+      const queryClient = (window as any).queryClient;
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      }
+
       // 2.5 Create notifications
       const notificationMessage = `Novo agendamento: ${selectedService.name} para ${customerName} em ${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`;
       

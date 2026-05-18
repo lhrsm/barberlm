@@ -73,9 +73,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
-  }));
+  const [queryClient] = useState(() => {
+    const client = new QueryClient({
+      defaultOptions: { 
+        queries: { 
+          staleTime: 1000, // Reduced staleTime for better realtime feel as requested
+          retry: 1 
+        } 
+      },
+    });
+    if (typeof window !== 'undefined') {
+      (window as any).queryClient = client;
+    }
+    return client;
+  });
   return (
     <QueryClientProvider client={queryClient}>
       <ProfessionalAuthProvider>
