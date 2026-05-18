@@ -303,15 +303,15 @@ function CalendarComponent() {
       // We check if notifications are enabled in profile
       const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", user.id).single();
 
-      if (profile?.whatsapp_enabled && targetCustomer?.phone) {
+      if (profile?.whatsapp_enabled && customer?.phone) {
         triggerWhatsAppMessage({
           userId: user.id,
           eventType: 'appointment_confirmation',
-          phone: targetCustomer.phone,
+          phone: customer.phone,
           placeholders: {
-            cliente: targetCustomer.name,
+            cliente: customer.name,
             horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
-            barbeiro: targetBarber?.name || "Barbeiro",
+            barbeiro: barber?.name || "Barbeiro",
             valor: (service?.price || 0).toFixed(2),
             customer_id: selectedCustomer
           },
