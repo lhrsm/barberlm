@@ -315,6 +315,19 @@ function ProfessionalDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => {
+                fetchData();
+                fetchNotifications();
+                toast.success("Dados atualizados");
+              }}
+              className="h-10 w-10 rounded-full border-primary/20 hover:bg-primary/5"
+              title="Atualizar dados"
+            >
+              <RefreshCcw className="h-5 w-5 text-primary" />
+            </Button>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="icon" className="relative h-10 w-10 rounded-full border-primary/20 hover:bg-primary/5 transition-colors">
