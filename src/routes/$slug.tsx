@@ -1265,6 +1265,7 @@ function ShopPageComponent() {
                     value={selectedDate} 
                     onChange={(e) => setSelectedDate(e.target.value)} 
                     min={format(new Date(), "yyyy-MM-dd")} 
+                    className="bg-[#111] border-white/10 text-white h-12 text-lg focus-visible:ring-primary/50"
                   />
                   <p className="text-[10px] text-muted-foreground">Selecione uma data para ver os profissionais disponíveis.</p>
                 </div>
