@@ -62,7 +62,7 @@ export function AuthForm() {
         const cleanPhone = phone.replace(/\D/g, '');
         const { data: barber, error: barberError } = await supabase
           .from("barbers")
-          .select("id, name")
+          .select("id, name, user_id")
           .eq("phone", phone)
           .maybeSingle();
 
