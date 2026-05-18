@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
+import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 
 const defaultNavItems = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
@@ -50,21 +51,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId } = useTenant();
   const { role: authRole, user: authUser, loading: authLoading } = useAuth();
-  const [session, setSession] = useState<any>(null);
+  const { session, loading: profLoading, logout: profLogout } = useProfessionalAuth();
   const navigate = useNavigate();
   const state = useRouterState();
   const pathname = state.location.pathname;
 
-  useEffect(() => {
-    const barberSession = localStorage.getItem('barber_session');
-    if (barberSession) {
-      setSession(JSON.parse(barberSession));
-    }
-  }, []);
-
   const user = authUser || (session ? { id: session.barber_id } : null);
   const role = authRole || (session ? 'barber' : null);
-  const loading = authLoading;
+  const loading = authLoading || profLoading;
 
   const navItems = role === 'barber' ? [...barberNavItems] : [...defaultNavItems];
   
@@ -90,8 +84,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const businessName = String(tenantProfile?.business_name || "BarberSaaS");
 
   const handleLogout = async () => {
-    if (localStorage.getItem('barber_session')) {
-      localStorage.removeItem('barber_session');
+    if (session) {
+      profLogout();
     }
     await supabase.auth.signOut();
     navigate({ to: "/auth" });

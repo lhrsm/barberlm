@@ -19,6 +19,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/use-auth";
+import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
@@ -67,19 +68,14 @@ const PROFESSIONAL_COLORS: Record<string, string> = {
 
 function CalendarComponent() {
   const { user: authUser, loading: authLoading, role: authRole } = useAuth();
-  const [session, setSession] = useState<any>(null);
+  const { session, loading: profLoading } = useProfessionalAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const barberSession = localStorage.getItem('barber_session');
-    if (barberSession) {
-      setSession(JSON.parse(barberSession));
-    }
-  }, []);
+  // Removed redundant local session effect
 
   const user = authUser || (session ? { id: session.barber_id, email: session.phone } : null);
   const role = authRole || (session ? 'barber' : null);
-  const loading = authLoading;
+  const loading = authLoading || profLoading;
 
   const { checkLimit, limits, usage, refresh: refreshLimits } = usePlanLimits();
   const [currentDate, setCurrentDate] = useState(new Date());
