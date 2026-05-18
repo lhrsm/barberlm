@@ -1506,19 +1506,6 @@ function ShopPageComponent() {
                   </div>
                 </div>
 
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Serviço:</span> <span>{selectedService?.name}</span></div>
-                  {selectedProducts.length > 0 && (
-                    <div className="space-y-1 py-1 border-y border-dashed my-1">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase">Produtos</p>
-                      {selectedProducts.map(p => (
-                        <div key={p.id} className="flex justify-between text-[11px]">
-                          <span>{p.name} (x{p.quantity || 1})</span>
-                          <span>R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 <div className="bg-[#111] p-4 rounded-xl space-y-3 text-sm border border-white/5">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">Serviço:</span> 
