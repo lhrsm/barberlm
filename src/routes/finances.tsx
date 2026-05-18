@@ -655,7 +655,7 @@ function FinancesComponent() {
                             t.description || "-"
                           )}
                         </TableCell>
-                        <TableCell>{t.barber?.name || "Geral"}</TableCell>
+                        {role !== 'barber' && <TableCell>{t.barber?.name || "Geral"}</TableCell>}
                         <TableCell>
                           {t.appointment ? (
                             <Badge className={cn(
