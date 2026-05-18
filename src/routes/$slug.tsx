@@ -1768,30 +1768,30 @@ function ShopPageComponent() {
                       </div>
                     )}
 
-                    <div className="pt-2">
-                      <Button 
-                        id="btn-confirm-booking"
-                        className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
-                        style={{ backgroundColor: primaryColor }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleFinalizeBooking();
-                        }} 
-                        disabled={submitting}
-                      >
-                        {submitting ? "Finalizando..." : "Confirmar Agendamento"}
-                      </Button>
-                      
-                      <Button 
-                        variant="ghost" 
-                        className="w-full mt-2 text-xs h-10" 
-                        onClick={() => setPaymentMethod(null)}
-                      >
-                        Alterar forma de pagamento
-                      </Button>
+                      <div className="pt-2">
+                        <Button 
+                          id="btn-confirm-booking"
+                          className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
+                          style={{ backgroundColor: primaryColor }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleFinalizeBooking();
+                          }} 
+                          disabled={submitting}
+                        >
+                          {submitting ? "Finalizando..." : "Confirmar Agendamento"}
+                        </Button>
+                        
+                        <Button 
+                          variant="ghost" 
+                          className="w-full mt-2 text-xs h-10 border border-white/5 hover:bg-white/5" 
+                          onClick={() => setPaymentMethod(null)}
+                        >
+                          Alterar forma de pagamento
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             )}
           </div>
