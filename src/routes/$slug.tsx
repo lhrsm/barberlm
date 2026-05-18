@@ -1396,29 +1396,32 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 5 && (
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label>WhatsApp</Label>
+              <div className="space-y-6">
+                <div className="grid gap-3 p-4 bg-[#111] rounded-2xl border border-white/5">
+                  <Label className="text-sm font-bold text-slate-300 ml-1">WhatsApp de Contato</Label>
                   <Input 
                     value={customerPhone} 
                     readOnly 
-                    className="bg-[#111] border-white/10 text-slate-400 h-12 text-lg"
+                    className="bg-[#090909] border-white/10 text-slate-400 h-14 text-xl font-medium rounded-xl"
                   />
                 </div>
                 
                 {shop.cashback_enabled && customerCashback > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Gift size={18} className="text-primary" />
+                  <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-2xl shadow-inner">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Gift size={22} className="text-primary" />
+                      </div>
                       <div>
-                        <p className="text-sm font-bold">Você tem cashback!</p>
-                        <p className="text-xs text-muted-foreground">Saldo: R$ {customerCashback.toFixed(2)}</p>
+                        <p className="text-sm font-black text-white">Você tem cashback!</p>
+                        <p className="text-xs font-bold text-primary">Saldo: R$ {customerCashback.toFixed(2)}</p>
                       </div>
                     </div>
                     <Button 
                       variant={useCashback ? "default" : "outline"} 
                       size="sm" 
                       onClick={() => setUseCashback(!useCashback)}
+                      className={cn("font-bold h-9 px-4 rounded-xl", useCashback ? "bg-primary" : "border-primary/30 text-primary hover:bg-primary/10")}
                     >
                       {useCashback ? "Usando" : "Usar"}
                     </Button>
@@ -1426,19 +1429,28 @@ function ShopPageComponent() {
                 )}
 
                 {customerLoyaltyPoints > 0 && (
-                  <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Gift size={18} className="text-primary" />
-                      <p className="text-sm font-bold">Seu Cartão Fidelidade</p>
+                  <div className="p-5 bg-[#111] border border-white/5 rounded-2xl shadow-lg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Gift size={22} className="text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-white">Cartão Fidelidade</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Acumule e ganhe serviços</p>
+                      </div>
                     </div>
                     <Progress 
                       value={((customerLoyaltyPoints % (shop.free_service_threshold || 10)) / (shop.free_service_threshold || 10)) * 100} 
-                      className="h-1.5" 
+                      className="h-3 bg-[#090909] border border-white/5" 
                     />
-                    <p className="text-[10px] text-muted-foreground mt-1 text-center">
-                      Você já completou {customerLoyaltyPoints} procedimento(s). 
-                      Faltam {(shop.free_service_threshold || 10) - (customerLoyaltyPoints % (shop.free_service_threshold || 10))} para o próximo gratuito!
-                    </p>
+                    <div className="mt-4 text-center space-y-1">
+                      <p className="text-xs font-bold text-slate-200">
+                        Você já completou <span className="text-primary text-sm">{customerLoyaltyPoints}</span> procedimento(s). 
+                      </p>
+                      <p className="text-[11px] text-primary/80 font-medium">
+                        Faltam <span className="font-black text-sm">{(shop.free_service_threshold || 10) - (customerLoyaltyPoints % (shop.free_service_threshold || 10))}</span> para o seu próximo <span className="uppercase tracking-tighter">serviço gratuito!</span>
+                      </p>
+                    </div>
                   </div>
                 )}
                 
