@@ -1292,10 +1292,14 @@ function ShopPageComponent() {
                             setBookingStep(4);
                           }}
                         >
-                          <div className="h-16 w-16 rounded-full bg-muted mx-auto overflow-hidden">
-                            {b.avatar_url ? <img src={b.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-bold text-lg">{b.name[0]}</div>}
+                          <div className="h-16 w-16 rounded-full bg-muted/20 mx-auto overflow-hidden border-2 border-white/5 group-hover:border-primary/50 transition-colors">
+                            {b.avatar_url ? (
+                              <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center font-bold text-lg text-slate-100">{b.name[0]}</div>
+                            )}
                           </div>
-                          <p className="font-medium text-sm">{b.name}</p>
+                          <p className="font-bold text-sm text-slate-100">{b.name}</p>
                         </div>
                       ))}
                       {barbers.filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments)).length === 0 && (
