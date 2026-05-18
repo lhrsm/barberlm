@@ -541,3 +541,5 @@ function cn(...classes: any[]) {
 }
 
 export default ProfessionalDashboard;
+
+export default ProfessionalDashboard;
