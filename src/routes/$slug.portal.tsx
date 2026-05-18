@@ -1171,7 +1171,10 @@ function ClientPortalComponent() {
                     try {
                       const { error } = await supabase
                         .from('customers')
-                        .update({ name: customerName })
+                        .update({ 
+                          name: customerName,
+                          birth_date: customerData.birth_date
+                        })
                         .eq('id', customerData.id);
                       if (error) throw error;
                       
