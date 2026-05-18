@@ -202,11 +202,16 @@ function ProfessionalDashboard() {
   }
 
   async function markAsRead(id: string) {
-    await supabase
+    const { error } = await supabase
       .from("notifications")
       .update({ is_read: true, read_at: new Date().toISOString() })
       .eq("id", id);
-    fetchNotifications();
+    
+    if (error) {
+      toast.error("Erro ao marcar como lida");
+    } else {
+      fetchNotifications();
+    }
   }
 
   const handleAction = async (app: any, status: string) => {
