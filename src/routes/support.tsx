@@ -128,6 +128,20 @@ const tutorials = [
 ];
 
 function SupportComponent() {
+  const { user: authUser, loading: authLoading, role: authRole } = useAuth();
+  const { session, loading: profLoading } = useProfessionalAuth();
+  const navigate = useNavigate();
+
+  const user = authUser || (session ? { id: session.barber_id } : null);
+  const role = authRole || (session ? 'barber' : null);
+  const loading = authLoading || profLoading;
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate({ to: "/auth" });
+    }
+  }, [loading, user, navigate]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTutorial, setSelectedTutorial] = useState<typeof tutorials[0] | null>(null);
 
