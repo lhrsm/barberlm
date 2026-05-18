@@ -163,13 +163,20 @@ function ProfessionalDashboard() {
       });
     }
 
-    // Recent Appointments - Fetch ALL since we need for counts and dashboard
-    const { data: recentApps } = await supabase
+    // Recent Appointments - Fetch ALL
+    const { data: recentApps, error: appError } = await supabase
       .from("appointments")
       .select("*, customers(name, phone, avatar_url), services(name)")
       .eq("barber_id", bId)
       .order("start_time", { ascending: false });
-    setAppointments(recentApps || []);
+
+    if (appError) {
+      console.error("Error fetching appointments:", appError);
+      toast.error("Erro ao carregar agendamentos.");
+    } else {
+      console.log("Professional Dashboard: Fetched", recentApps?.length, "appointments");
+      setAppointments(recentApps || []);
+    }
 
     // Recent Transactions
     const { data: recentTrans } = await supabase
@@ -331,7 +338,7 @@ function ProfessionalDashboard() {
                                 e.stopPropagation();
                                 markAsRead(n.id);
                               }}
-                              className="absolute right-3 bottom-3 h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-white"
+                              className="absolute right-3 bottom-3 h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-white"
                               title="Marcar como lida"
                             >
                               <Check className="h-3 w-3" />
@@ -444,7 +451,11 @@ function ProfessionalDashboard() {
             </div>
             
             <div className="grid gap-4">
-              {appointments.filter(a => isSameDay(parseISO(a.start_time), new Date())).length === 0 ? (
+               {appointments.filter(a => {
+                  const appDate = parseISO(a.start_time);
+                  const today = new Date();
+                  return isSameDay(appDate, today);
+                }).length === 0 ? (
                 <Card className="border-dashed py-12">
                   <CardContent className="flex flex-col items-center justify-center text-muted-foreground">
                     <Calendar className="h-12 w-12 opacity-20 mb-4" />
@@ -452,7 +463,11 @@ function ProfessionalDashboard() {
                   </CardContent>
                 </Card>
               ) : (
-                appointments.filter(a => isSameDay(parseISO(a.start_time), new Date())).map(app => (
+                 appointments.filter(a => {
+                   const appDate = parseISO(a.start_time);
+                   const today = new Date();
+                   return isSameDay(appDate, today);
+                 }).map(app => (
                   <Card key={app.id} className="hover:shadow-md transition-shadow group overflow-hidden">
                     <CardContent className="p-0">
                       <div className="flex flex-col md:flex-row md:items-center">
