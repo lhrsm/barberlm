@@ -99,7 +99,7 @@ function ProfessionalDashboard() {
     // Fetch Appointments for counts
     const { data: allApps } = await supabase
       .from("appointments")
-      .select("id, start_time, status, total_price, commission_amount, final_amount, payment_status")
+      .select("id, start_time, status, total_price, final_amount, payment_status")
       .eq("barber_id", bId)
       .neq("status", "cancelled");
 
