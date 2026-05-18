@@ -1284,8 +1284,8 @@ function ShopPageComponent() {
                         <div 
                           key={b.id} 
                           className={cn(
-                            "p-4 border rounded-lg cursor-pointer text-center space-y-2 transition-colors",
-                            selectedBarber?.id === b.id ? "border-primary bg-primary/5" : "hover:bg-muted"
+                            "p-4 border rounded-xl cursor-pointer text-center space-y-2 transition-all",
+                            selectedBarber?.id === b.id ? "border-primary bg-primary/20" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a]"
                           )}
                           onClick={() => {
                             setSelectedBarber(b);
