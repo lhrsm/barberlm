@@ -1071,7 +1071,7 @@ function ShopPageComponent() {
             <h3 className="text-xl font-bold">Onde estamos</h3>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 items-start">
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 items-start">
             <div className="space-y-6">
               <Card className="bg-card/50 backdrop-blur-sm border-white/5 overflow-hidden">
                 <CardContent className="p-6 space-y-4">
