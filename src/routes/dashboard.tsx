@@ -617,9 +617,24 @@ function DashboardComponent() {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Painel de Controle</h2>
-            <p className="text-muted-foreground">Visão geral do desempenho da sua barbearia.</p>
+          <div className="flex items-center gap-4">
+            {profile?.logo_url ? (
+              <img 
+                src={profile.logo_url} 
+                alt={profile.business_name} 
+                className="h-16 w-16 rounded-full object-cover border-2 border-primary/20"
+              />
+            ) : (
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary border-2 border-primary/20">
+                <UserIcon size={32} />
+              </div>
+            )}
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight">
+                {profile?.business_name ? `Olá, ${profile.business_name}!` : "Painel de Controle"}
+              </h2>
+              <p className="text-muted-foreground">Bem-vindo de volta ao seu painel administrativo.</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Popover>
