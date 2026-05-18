@@ -566,28 +566,29 @@ function ShopPageComponent() {
           .eq("id", customerId);
       }
 
-      toast.success("Agendamento realizado com sucesso!");
+      toast.success("Agendamento concluído com sucesso! Redirecionando para o seu painel...");
       
       // Reset state and close modal
       setIsBookingOpen(false);
       setBookingStep(1);
       setSelectedProducts([]);
       setPaymentMethod(null);
-    setUseCashback(false);
+      setUseCashback(false);
       
-      // Delay redirection slightly to ensure state is clear
+      // Delay redirection slightly to allow the toast message to be read
       setTimeout(() => {
+        const portalUrl = `/${slug}/portal`;
         if (window.self !== window.top) {
-          // If in iframe, tell parent to reload or redirect
-          window.parent.postMessage({ type: 'BOOKING_SUCCESS' }, '*');
+          // If in iframe, tell parent to redirect
+          window.parent.postMessage({ type: 'BOOKING_SUCCESS', redirectUrl: portalUrl }, '*');
           // Fallback if message not handled
           setTimeout(() => {
-            window.parent.location.href = `/${slug}/portal`;
-          }, 1000);
+            window.parent.location.href = portalUrl;
+          }, 500);
         } else {
-          window.location.href = `/${slug}/portal`;
+          window.location.href = portalUrl;
         }
-      }, 500);
+      }, 2000);
       
       
     } catch (error: any) {
