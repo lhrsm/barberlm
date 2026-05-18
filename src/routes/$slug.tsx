@@ -1477,39 +1477,55 @@ function ShopPageComponent() {
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Label>Deseja adicionar algum produto?</Label>
-                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-black text-white uppercase tracking-wider">Produtos Exclusivos</Label>
+                    <span className="text-[10px] text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">Opcional</span>
+                  </div>
+                  <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x scroll-smooth">
                     {products.map(p => {
                       const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
                         <div 
                           key={p.id}
                           className={cn(
-                            "flex-shrink-0 w-28 p-2 border rounded-lg transition-all text-center relative",
-                            cartItem ? "border-primary bg-primary/5" : "hover:bg-muted"
+                            "flex-shrink-0 w-36 p-3 border rounded-2xl transition-all text-center relative snap-start group",
+                            cartItem ? "border-primary bg-primary/10 shadow-[0_4px_20px_rgba(var(--primary),0.15)]" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a] hover:border-white/10"
                           )}
                         >
                           <div 
-                            className="cursor-pointer"
+                            className="cursor-pointer space-y-2"
                             onClick={() => toggleProduct(p)}
                           >
-                            <div className="h-10 w-10 mx-auto mb-1">
-                              {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover rounded" /> : <Package size={20} className="mx-auto text-muted-foreground" />}
+                            <div className="h-20 w-20 mx-auto bg-[#090909] rounded-xl flex items-center justify-center overflow-hidden border border-white/5 group-hover:border-primary/30 transition-colors">
+                              {p.image_url ? (
+                                <img src={p.image_url} className="w-full h-full object-cover" />
+                              ) : (
+                                <Package size={32} className="text-slate-700 group-hover:text-primary transition-colors" />
+                              )}
                             </div>
-                            <p className="text-[10px] font-bold truncate">{p.name}</p>
-                            <p className="text-[10px] text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
+                            <div className="space-y-0.5">
+                              <p className="text-[11px] font-black text-white truncate px-1">{p.name}</p>
+                              <p className="text-xs font-black text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
+                            </div>
                           </div>
                           
                           {cartItem && (
-                            <div className="flex items-center justify-between mt-1 px-1">
-                              <button onClick={() => updateQuantity(p.id, -1)} className="text-primary hover:bg-primary/10 rounded h-4 w-4 flex items-center justify-center">-</button>
-                              <span className="text-[10px] font-bold">{cartItem.quantity}</span>
+                            <div className="flex items-center justify-between mt-3 bg-[#090909] rounded-lg p-1 border border-white/5">
                               <button 
-                                onClick={() => updateQuantity(p.id, 1)} 
-                                className="text-primary hover:bg-primary/10 rounded h-4 w-4 flex items-center justify-center"
+                                onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
+                                className="bg-white/5 hover:bg-white/10 text-white rounded-md h-7 w-7 flex items-center justify-center transition-colors"
+                              >
+                                <Minus size={14} />
+                              </button>
+                              <span className="text-xs font-black text-white">{cartItem.quantity}</span>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
+                                className="bg-primary hover:opacity-90 text-white rounded-md h-7 w-7 flex items-center justify-center transition-colors"
                                 disabled={cartItem.quantity >= p.stock_quantity}
-                              >+</button>
+                              >
+                                <Plus size={14} />
+                              </button>
                             </div>
                           )}
                         </div>
