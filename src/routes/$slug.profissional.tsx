@@ -21,7 +21,8 @@ import {
   Bell,
   BarChart3,
   LogOut,
-  Check
+  Check,
+  RefreshCcw
 } from "lucide-react";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, parseISO, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -65,17 +66,19 @@ function ProfessionalDashboard() {
 
   useEffect(() => {
     if (session?.barber_id) {
+      console.log("ProfessionalDashboard: Loading data for barber", session.barber_id);
       fetchData();
       fetchNotifications();
       
       const channel = supabase
-        .channel(`prof-realtime-${session.barber_id}`)
+        .channel(`prof-realtime-${session.barber_id}-${Date.now()}`)
         .on('postgres_changes', { 
           event: '*', 
           schema: 'public', 
           table: 'appointments', 
           filter: `barber_id=eq.${session.barber_id}` 
-        }, () => {
+        }, (payload) => {
+          console.log("Realtime: Appointment change detected", payload);
           fetchData();
         })
         .on('postgres_changes', { 
@@ -83,7 +86,8 @@ function ProfessionalDashboard() {
           schema: 'public', 
           table: 'transactions', 
           filter: `barber_id=eq.${session.barber_id}` 
-        }, () => {
+        }, (payload) => {
+          console.log("Realtime: Transaction change detected", payload);
           fetchData();
         })
         .on('postgres_changes', { 
@@ -91,16 +95,26 @@ function ProfessionalDashboard() {
           schema: 'public', 
           table: 'notifications', 
           filter: `barber_id=eq.${session.barber_id}` 
-        }, () => {
+        }, (payload) => {
+          console.log("Realtime: Notification change detected", payload);
           fetchNotifications();
         })
-        .subscribe();
+        .subscribe((status) => {
+          console.log("Realtime subscription status:", status);
+        });
+
+      // Fallback polling every 20 seconds
+      const pollInterval = setInterval(() => {
+        fetchData();
+        fetchNotifications();
+      }, 20000);
 
       return () => {
         supabase.removeChannel(channel);
+        clearInterval(pollInterval);
       };
     }
-  }, [session]);
+  }, [session?.barber_id]);
 
   async function fetchData() {
     if (!session?.barber_id) return;
@@ -192,25 +206,44 @@ function ProfessionalDashboard() {
 
   async function fetchNotifications() {
     if (!session?.barber_id) return;
-    const { data } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("barber_id", session.barber_id)
-      .order("created_at", { ascending: false })
-      .limit(10);
-    if (data) setNotifications(data);
+    try {
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("barber_id", session.barber_id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      
+      if (error) {
+        console.error("Error fetching notifications:", error);
+      } else if (data) {
+        setNotifications(data);
+      }
+    } catch (e) {
+      console.error("Exception in fetchNotifications:", e);
+    }
   }
 
   async function markAsRead(id: string) {
-    const { error } = await supabase
-      .from("notifications")
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq("id", id);
+    if (!id) return;
     
-    if (error) {
-      toast.error("Erro ao marcar como lida");
-    } else {
-      fetchNotifications();
+    try {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq("id", id);
+      
+      if (error) {
+        console.error("Error marking as read:", error);
+        toast.error("Erro ao marcar como lida");
+      } else {
+        // Update local state immediately for better UX
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        toast.success("Notificação lida");
+        fetchNotifications();
+      }
+    } catch (e) {
+      toast.error("Erro ao processar");
     }
   }
 
@@ -283,6 +316,19 @@ function ProfessionalDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => {
+                fetchData();
+                fetchNotifications();
+                toast.success("Dados atualizados");
+              }}
+              className="h-10 w-10 rounded-full border-primary/20 hover:bg-primary/5"
+              title="Atualizar dados"
+            >
+              <RefreshCcw className="h-5 w-5 text-primary" />
+            </Button>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="icon" className="relative h-10 w-10 rounded-full border-primary/20 hover:bg-primary/5 transition-colors">
@@ -462,21 +508,62 @@ function ProfessionalDashboard() {
             
             <div className="grid gap-4">
                {appointments.filter(a => {
-                  const appDate = parseISO(a.start_time);
+                  const appDate = new Date(a.start_time);
                   const today = new Date();
-                  return isSameDay(appDate, today);
+                  return (
+                    appDate.getDate() === today.getDate() &&
+                    appDate.getMonth() === today.getMonth() &&
+                    appDate.getFullYear() === today.getFullYear()
+                  );
                 }).length === 0 ? (
-                <Card className="border-dashed py-12">
-                  <CardContent className="flex flex-col items-center justify-center text-muted-foreground">
-                    <Calendar className="h-12 w-12 opacity-20 mb-4" />
-                    <p>Nenhum atendimento para hoje.</p>
-                  </CardContent>
-                </Card>
+                <div className="space-y-4">
+                  <Card className="border-dashed py-12">
+                    <CardContent className="flex flex-col items-center justify-center text-muted-foreground text-center">
+                      <Calendar className="h-12 w-12 opacity-20 mb-4" />
+                      <p className="font-medium">Nenhum atendimento para hoje.</p>
+                      <p className="text-xs mt-1">Veja abaixo os próximos agendamentos:</p>
+                    </CardContent>
+                  </Card>
+                  
+                  {appointments.filter(a => new Date(a.start_time) > new Date()).slice(0, 5).map(app => (
+                    <Card key={app.id} className="hover:shadow-md transition-shadow group overflow-hidden border-l-4 border-l-primary/30">
+                      <CardContent className="p-0">
+                        <div className="flex flex-col md:flex-row md:items-center">
+                          <div className="w-full md:w-32 bg-muted/30 p-4 flex flex-col items-center justify-center text-center border-b md:border-b-0 md:border-r">
+                            <span className="text-2xl font-black text-primary">{format(new Date(app.start_time), "HH:mm")}</span>
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground">{format(new Date(app.start_time), "EEE, d 'de' MMM", { locale: ptBR })}</span>
+                          </div>
+                          
+                          <div className="flex-1 p-4 flex items-center gap-4">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={app.customers?.avatar_url} />
+                              <AvatarFallback>{app.customers?.name?.substring(0, 2).toUpperCase() || "C"}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold truncate">{app.customers?.name || "Cliente"}</h4>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Scissors size={12} /> {app.services?.name}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                               <p className="font-bold text-sm text-primary">Próximo</p>
+                               <p className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(app.start_time), { addSuffix: true, locale: ptBR })}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               ) : (
                  appointments.filter(a => {
-                   const appDate = parseISO(a.start_time);
+                   const appDate = new Date(a.start_time);
                    const today = new Date();
-                   return isSameDay(appDate, today);
+                   return (
+                     appDate.getDate() === today.getDate() &&
+                     appDate.getMonth() === today.getMonth() &&
+                     appDate.getFullYear() === today.getFullYear()
+                   );
                  }).map(app => (
                   <Card key={app.id} className="hover:shadow-md transition-shadow group overflow-hidden">
                     <CardContent className="p-0">
