@@ -461,10 +461,14 @@ function ProfessionalDashboard() {
             </div>
             
             <div className="grid gap-4">
-               {appointments.filter(a => {
-                  const appDate = parseISO(a.start_time);
+                {appointments.filter(a => {
+                  const appDate = new Date(a.start_time);
                   const today = new Date();
-                  return isSameDay(appDate, today);
+                  return (
+                    appDate.getDate() === today.getDate() &&
+                    appDate.getMonth() === today.getMonth() &&
+                    appDate.getFullYear() === today.getFullYear()
+                  );
                 }).length === 0 ? (
                 <Card className="border-dashed py-12">
                   <CardContent className="flex flex-col items-center justify-center text-muted-foreground">
@@ -474,9 +478,13 @@ function ProfessionalDashboard() {
                 </Card>
               ) : (
                  appointments.filter(a => {
-                   const appDate = parseISO(a.start_time);
+                   const appDate = new Date(a.start_time);
                    const today = new Date();
-                   return isSameDay(appDate, today);
+                   return (
+                     appDate.getDate() === today.getDate() &&
+                     appDate.getMonth() === today.getMonth() &&
+                     appDate.getFullYear() === today.getFullYear()
+                   );
                  }).map(app => (
                   <Card key={app.id} className="hover:shadow-md transition-shadow group overflow-hidden">
                     <CardContent className="p-0">
