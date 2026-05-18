@@ -1627,27 +1627,27 @@ function ShopPageComponent() {
                           </div>
                         )}
                         
-                        <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground font-medium">Chave PIX</p>
-                          <div className="bg-background p-3 rounded-lg border border-primary/20 text-xs font-mono break-all flex items-center justify-between gap-2 shadow-inner">
-                            <span className="flex-1 text-center">{shop.pix_key || "Chave não cadastrada"}</span>
+                        <div className="space-y-3">
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Chave PIX</p>
+                          <div className="bg-[#111] p-4 rounded-xl border border-white/5 text-sm font-mono break-all flex items-center justify-between gap-3 shadow-inner group">
+                            <span className="flex-1 text-center text-slate-100 font-bold">{shop.pix_key || "Chave não cadastrada"}</span>
                             {shop.pix_key && (
                               <Button 
                                 variant="secondary" 
                                 size="sm" 
-                                className="h-8 px-3 shrink-0"
+                                className="h-9 px-4 shrink-0 bg-white/5 hover:bg-white/10 text-white border-none"
                                 onClick={() => {
                                   navigator.clipboard.writeText(shop.pix_key);
                                   toast.success("Copiado!");
                                 }}
                               >
-                                <CheckCircle2 size={14} className="mr-1" /> Copiar
+                                <CheckCircle2 size={16} className="mr-2" /> Copiar
                               </Button>
                             )}
                           </div>
                         </div>
                         <div className="pt-2">
-                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                          <p className="text-xs text-slate-400 leading-relaxed text-center">
                             Após realizar o pagamento, clique no botão de confirmação abaixo para finalizar seu agendamento.
                           </p>
                         </div>
