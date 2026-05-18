@@ -894,22 +894,22 @@ function ShopPageComponent() {
             </div>
             <h3 className="text-xl font-bold tracking-tight">Nossos Serviços</h3>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
             {services.map((service) => (
               <Card key={service.id} className="overflow-hidden border-white/5 bg-card/40 hover:bg-card/60 transition-all hover:scale-[1.02] cursor-pointer group">
-                <CardContent className="p-5 flex justify-between items-center">
-                  <div className="space-y-1">
-                    <h4 className="font-bold text-lg group-hover:text-primary transition-colors">{service.name}</h4>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <CardContent className="p-4 sm:p-5 flex justify-between items-center gap-3">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <h4 className="font-bold text-base sm:text-lg group-hover:text-primary transition-colors truncate">{service.name}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
                       <Clock size={14} /> {service.duration_minutes} min
                     </p>
                   </div>
-                  <div className="text-right space-y-2">
-                    <p className="font-bold text-xl" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
+                  <div className="text-right space-y-2 shrink-0">
+                    <p className="font-bold text-lg sm:text-xl" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="border-primary/20 hover:bg-primary hover:text-white transition-all"
+                      className="border-primary/20 hover:bg-primary hover:text-white transition-all h-8 text-xs sm:text-sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleSelectService(service);
