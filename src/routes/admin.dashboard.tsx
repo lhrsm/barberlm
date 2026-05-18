@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 import { 
   Users, 
   Building2, 
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/admin/dashboard")({
 });
 
 function AdminDashboard() {
+  const queryClient = useQueryClient();
   const { data: stats, isLoading, isError, error } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
@@ -89,6 +91,25 @@ function AdminDashboard() {
       };
     }
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'barbers' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   if (isError) {
     return (

@@ -301,21 +301,41 @@ function CalendarComponent() {
       });
 
       // Send WhatsApp Confirmation
-      const customer = customers.find(c => c.id === selectedCustomer);
-      const barber = barbers.find(b => b.id === selectedBarber);
+      const targetCustomer = customers.find(c => c.id === selectedCustomer);
+      const targetBarber = barbers.find(b => b.id === selectedBarber);
+      const notificationMessage = `Agendamento manual: ${service?.name} para ${targetCustomer?.name} às ${selectedTime}`;
+      
+      // Admin notification
+      await supabase.from("notifications").insert({
+        user_id: user.id,
+        title: "Novo Agendamento (Manual)",
+        message: notificationMessage,
+        type: "appointment",
+        link: "/calendar"
+      });
+
+      // Barber notification
+      await supabase.from("notifications").insert({
+        user_id: user.id,
+        barber_id: selectedBarber,
+        title: "Novo Agendamento Manual",
+        message: notificationMessage,
+        type: "appointment",
+        link: "/calendar"
+      });
       
       // We check if notifications are enabled in profile
       const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", user.id).single();
 
-      if (profile?.whatsapp_enabled && customer?.phone) {
+      if (profile?.whatsapp_enabled && targetCustomer?.phone) {
         triggerWhatsAppMessage({
           userId: user.id,
           eventType: 'appointment_confirmation',
-          phone: customer.phone,
+          phone: targetCustomer.phone,
           placeholders: {
-            cliente: customer.name,
+            cliente: targetCustomer.name,
             horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
-            barbeiro: barber?.name || "Barbeiro",
+            barbeiro: targetBarber?.name || "Barbeiro",
             valor: (service?.price || 0).toFixed(2),
             customer_id: selectedCustomer
           },
