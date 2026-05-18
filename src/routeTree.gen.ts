@@ -32,6 +32,7 @@ import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminErrorsRouteImport } from './routes/admin.errors'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -150,6 +151,11 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
+const SlugProfissionalRoute = SlugProfissionalRouteImport.update({
+  id: '/profissional',
+  path: '/profissional',
+  getParentRoute: () => SlugRoute,
+} as any)
 const SlugPortalRoute = SlugPortalRouteImport.update({
   id: '/portal',
   path: '/portal',
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/subscription': typeof SubscriptionRoute
   '/support': typeof SupportRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/$slug/profissional': typeof SlugProfissionalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/subscription': typeof SubscriptionRoute
   '/support': typeof SupportRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/$slug/profissional': typeof SlugProfissionalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/subscription': typeof SubscriptionRoute
   '/support': typeof SupportRoute
   '/$slug/portal': typeof SlugPortalRoute
+  '/$slug/profissional': typeof SlugProfissionalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/errors': typeof AdminErrorsRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/support'
     | '/$slug/portal'
+    | '/$slug/profissional'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/errors'
@@ -287,6 +297,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/support'
     | '/$slug/portal'
+    | '/$slug/profissional'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/errors'
@@ -314,6 +325,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/support'
     | '/$slug/portal'
+    | '/$slug/profissional'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/errors'
@@ -508,6 +520,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/$slug/profissional': {
+      id: '/$slug/profissional'
+      path: '/profissional'
+      fullPath: '/$slug/profissional'
+      preLoaderRoute: typeof SlugProfissionalRouteImport
+      parentRoute: typeof SlugRoute
+    }
     '/$slug/portal': {
       id: '/$slug/portal'
       path: '/portal'
@@ -527,10 +546,12 @@ declare module '@tanstack/react-router' {
 
 interface SlugRouteChildren {
   SlugPortalRoute: typeof SlugPortalRoute
+  SlugProfissionalRoute: typeof SlugProfissionalRoute
 }
 
 const SlugRouteChildren: SlugRouteChildren = {
   SlugPortalRoute: SlugPortalRoute,
+  SlugProfissionalRoute: SlugProfissionalRoute,
 }
 
 const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
