@@ -496,6 +496,28 @@ function ShopPageComponent() {
 
       if (appError) throw appError;
 
+      // 2.5 Create notifications
+      const notificationMessage = `Novo agendamento: ${selectedService.name} para ${customerName} em ${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`;
+      
+      // Admin notification
+      await supabase.from("notifications").insert({
+        user_id: shop.id,
+        title: "Novo Agendamento",
+        message: notificationMessage,
+        type: "appointment",
+        link: "/calendar"
+      });
+
+      // Barber notification
+      await supabase.from("notifications").insert({
+        user_id: shop.id,
+        barber_id: selectedBarber.id,
+        title: "Novo Agendamento para Você",
+        message: notificationMessage,
+        type: "appointment",
+        link: `/${slug}/profissional`
+      });
+
       // Send WhatsApp Confirmation
       if (shop.whatsapp_enabled) {
         triggerWhatsAppMessage({
