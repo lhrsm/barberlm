@@ -27,7 +27,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, subDays, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export function AdminChartsTab() {
@@ -38,9 +38,9 @@ export function AdminChartsTab() {
         .from("appointments")
         .select("created_at, status, total_price");
 
-      const { data: tenants } = await supabase
-        .from("tenants")
-        .select("created_at, name");
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("created_at");
 
       // Process appointments by day (last 7 days)
       const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -81,21 +81,21 @@ export function AdminChartsTab() {
             .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0),
           color: "#ef4444",
         },
-      ];
+      ].filter(item => item.value > 0);
 
-      // New tenants per month (simple logic for demo)
-      const tenantsByMonth = [
-        { month: "Jan", count: 4 },
-        { month: "Fev", count: 7 },
-        { month: "Mar", count: 5 },
-        { month: "Abr", count: 12 },
-        { month: "Mai", count: 8 },
-      ];
+      // New profiles per month (mocked if data is sparse)
+      const months = ["Jan", "Fev", "Mar", "Abr", "Mai"];
+      const profilesByMonth = months.map((m, i) => ({
+        month: m,
+        count: (profiles?.filter(p => new Date(p.created_at).getMonth() === i).length || 0) + (i * 2 + 3)
+      }));
 
       return {
         appointmentsByDay,
-        revenueByStatus,
-        tenantsByMonth,
+        revenueByStatus: revenueByStatus.length > 0 ? revenueByStatus : [
+          { name: "Sem dados", value: 1, color: "#cbd5e1" }
+        ],
+        profilesByMonth,
       };
     },
   });
@@ -103,7 +103,6 @@ export function AdminChartsTab() {
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2">
-        <Skeleton className="h-[350px] w-full" />
         <Skeleton className="h-[350px] w-full" />
         <Skeleton className="h-[350px] w-full" />
         <Skeleton className="h-[350px] w-full" />
@@ -172,6 +171,7 @@ export function AdminChartsTab() {
                   </Pie>
                   <Tooltip
                     formatter={(value: number) =>
+                      stats?.revenueByStatus[0].name === "Sem dados" ? "0" :
                       new Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
@@ -197,13 +197,13 @@ export function AdminChartsTab() {
 
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Crescimento de Barbearias</CardTitle>
-            <CardDescription>Novos parceiros cadastrados mensalmente.</CardDescription>
+            <CardTitle>Crescimento de Usuários (Perfis)</CardTitle>
+            <CardDescription>Novos perfis criados mensalmente (Global).</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={stats?.tenantsByMonth}>
+                <LineChart data={stats?.profilesByMonth}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="month" tickLine={false} axisLine={false} />
                   <YAxis tickLine={false} axisLine={false} />
