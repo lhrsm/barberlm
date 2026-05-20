@@ -513,21 +513,56 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
             <History size={18} className="text-muted-foreground" />
             <h4 className="font-bold">Histórico de Atendimentos</h4>
           </div>
-                {selectedCustomer?.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
-              </span>
+          <ScrollArea className="flex-1 pr-4">
+            <div className="space-y-4">
+              {loadingHistory ? (
+                <div className="text-center py-8">Carregando histórico...</div>
+              ) : customerHistory.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">Nenhum agendamento encontrado.</div>
+              ) : (
+                customerHistory.map((app: any) => (
+                  <div key={app.id} className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors">
+                    <div>
+                      <p className="font-bold">{app.services?.name}</p>
+                      <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1"><Clock size={12} /> {format(new Date(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                        <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
+                        {app.payment_method && (
+                          <span className="flex items-center gap-1">
+                            <Badge variant="outline" className="text-[10px] py-0 h-4 uppercase">
+                              {app.payment_method === 'pix' ? 'PIX' : 
+                               app.payment_method === 'credits' ? 'Créditos' : 
+                               app.payment_method === 'cashback' ? 'Cashback' : 'Na Barbearia'}
+                            </Badge>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge className={cn(
+                        app.status === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white border-none' : 
+                        app.status === 'scheduled' ? 'bg-blue-100 text-blue-700 border-blue-200' : 
+                        'bg-red-50 text-red-700 border-red-100'
+                      )} variant={app.status === 'completed' ? 'default' : 'outline'}>
+                        {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
+                      </Badge>
+                      {app.service_ratings?.[0] && (
+                        <div className="flex items-center gap-1 text-yellow-500">
+                          <Star size={12} fill="currentColor" />
+                          <span className="text-xs font-bold">{app.service_ratings[0].rating}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-            <Progress 
-              value={((selectedCustomer?.loyalty_points || 0) % (shopProfile?.free_service_threshold || 10)) / (shopProfile?.free_service_threshold || 10) * 100} 
-              className="h-2" 
-            />
-            <p className="text-xs text-muted-foreground mt-2">
-              {selectedCustomer?.loyalty_points >= (shopProfile?.free_service_threshold || 10) 
-                ? "Este cliente já possui serviços gratuitos acumulados!" 
-                : `Faltam ${(shopProfile?.free_service_threshold || 10) - ((selectedCustomer?.loyalty_points || 0) % (shopProfile?.free_service_threshold || 10))} procedimentos para o próximo serviço gratuito.`}
-            </p>
-          </div>
-
-          <ScrollArea className="h-[400px] pr-4">
+          </ScrollArea>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
             <div className="space-y-4">
               {loadingHistory ? (
                 <div className="text-center py-8">Carregando histórico...</div>
