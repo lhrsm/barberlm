@@ -174,8 +174,12 @@ function DashboardComponent() {
 
   async function fetchBirthdayCustomers() {
     if (!tenantId) return;
-    const currentMonth = new Date().getMonth() + 1; // 1-12
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1; // 1-12
+    const todayDay = today.getDate();
     
+    console.log("Fetching birthdays for tenant:", tenantId, "Month:", currentMonth);
+
     const { data, error } = await supabase
       .from("customers")
       .select("id, name, phone, birth_date, avatar_url")
@@ -188,27 +192,23 @@ function DashboardComponent() {
     }
 
     if (data) {
-      const today = new Date();
-      // Criar data de comparação ignorando horas para ser preciso "hoje"
-      const todayCompare = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      
+      console.log("Total customers with birth_date:", data.length);
       const currentMonthBirthdays = data.filter(c => {
         if (!c.birth_date) return false;
-        const [year, month, day] = c.birth_date.split('-').map(Number);
+        // Handle format YYYY-MM-DD
+        const parts = c.birth_date.split('-');
+        const month = parseInt(parts[1]);
+        const day = parseInt(parts[2]);
         
-        // Month match
-        if (month !== currentMonth) return false;
-        
-        // Day match: day is today OR in the future
-        const birthdayThisYear = new Date(today.getFullYear(), month - 1, day);
-        return birthdayThisYear >= todayCompare;
+        // Month match AND day is today OR in the future
+        return month === currentMonth && day >= todayDay;
       }).sort((a, b) => {
-        // Sort by day of the month
         const dayA = parseInt(a.birth_date.split('-')[2]);
         const dayB = parseInt(b.birth_date.split('-')[2]);
         return dayA - dayB;
       });
-      console.log("Found birthdays for month", currentMonth, ":", currentMonthBirthdays);
+      
+      console.log("Filtered future birthdays this month:", currentMonthBirthdays.length);
       setBirthdayCustomers(currentMonthBirthdays);
     }
   }
