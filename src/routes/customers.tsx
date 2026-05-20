@@ -331,7 +331,7 @@ function CustomersComponent() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" size="sm" onClick={() => handleViewHistory(customer)}>
-                          Histórico
+                          Ver Cadastro
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => openEditDialog(customer)}>
                           <Edit size={16} className="text-muted-foreground" />
@@ -433,20 +433,86 @@ function CustomersComponent() {
 }
 
 function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, loadingHistory, customerHistory }: any) {
+  const handleWhatsApp = (phone: string) => {
+    if (!phone) {
+      toast.error("Cliente sem telefone cadastrado");
+      return;
+    }
+    const cleanPhone = phone.replace(/\D/g, "");
+    window.open(`https://wa.me/55${cleanPhone}`, "_blank");
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Histórico de {selectedCustomer?.name}</DialogTitle>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pr-6">
+          <DialogTitle>Informações de {selectedCustomer?.name}</DialogTitle>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="bg-green-500 hover:bg-green-600 text-white gap-2 border-none"
+            onClick={() => handleWhatsApp(selectedCustomer?.phone)}
+          >
+            <Phone size={14} /> WhatsApp
+          </Button>
         </DialogHeader>
-        <div className="space-y-6 py-4">
-          <div className="bg-primary/5 p-4 rounded-xl border border-primary/10">
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+          <Card className="bg-muted/30 border-none shadow-none">
+            <CardContent className="pt-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <UserIcon className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">{selectedCustomer?.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-primary" />
+                <span className="text-sm">{selectedCustomer?.phone || "Não informado"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                <span className="text-sm truncate">{selectedCustomer?.email || "Não informado"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Gift className="h-4 w-4 text-primary" />
+                <span className="text-sm">
+                  {selectedCustomer?.birth_date 
+                    ? format(new Date(selectedCustomer.birth_date + 'T12:00:00'), "dd/MM/yyyy") 
+                    : "Não informado"}
+                </span>
+              </div>
+              {selectedCustomer?.notes && (
+                <div className="mt-2 p-2 bg-background rounded border text-xs text-muted-foreground italic">
+                  "{selectedCustomer.notes}"
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 h-fit">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2 text-primary">
                 <Gift size={18} />
                 <span className="font-bold">Cartão Fidelidade</span>
               </div>
               <span className="text-sm font-medium">
+                {selectedCustomer?.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
+              </span>
+            </div>
+            <Progress 
+              value={((selectedCustomer?.loyalty_points || 0) % (shopProfile?.free_service_threshold || 10)) / (shopProfile?.free_service_threshold || 10) * 100} 
+              className="h-2" 
+            />
+            <p className="text-xs text-muted-foreground mt-2 font-medium">
+              Saldo em Créditos: <span className="text-green-600 font-bold">R$ {(Number(selectedCustomer?.credits) || 0).toFixed(2)}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col min-h-0 space-y-4">
+          <div className="flex items-center gap-2 border-b pb-2">
+            <History size={18} className="text-muted-foreground" />
+            <h4 className="font-bold">Histórico de Atendimentos</h4>
+          </div>
                 {selectedCustomer?.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
               </span>
             </div>
