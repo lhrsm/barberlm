@@ -478,7 +478,7 @@ function FinancesComponent() {
 
         <div className={cn(
           "grid gap-4",
-          role === 'barber' ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-4 lg:grid-cols-8"
+          role === 'barber' ? "md:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
         )}>
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
