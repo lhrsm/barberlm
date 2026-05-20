@@ -33,9 +33,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2, CircleDollarSign } from "lucide-react";
+import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2, CircleDollarSign, History as HistoryIcon, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -510,7 +515,7 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
 
         <div className="flex-1 flex flex-col min-h-0 space-y-4">
           <div className="flex items-center gap-2 border-b pb-2">
-            <History size={18} className="text-muted-foreground" />
+            <HistoryIcon size={18} className="text-muted-foreground" />
             <h4 className="font-bold">Histórico de Atendimentos</h4>
           </div>
           <ScrollArea className="flex-1 pr-4">
