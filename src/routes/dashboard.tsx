@@ -48,6 +48,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { TenantCharts } from "@/components/dashboard/TenantCharts";
+
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardComponent,
@@ -986,10 +988,12 @@ function DashboardComponent() {
         </div>
 
         <Tabs defaultValue="daily" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+          <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
             <TabsTrigger value="daily">Hoje</TabsTrigger>
             <TabsTrigger value="monthly">Este Mês</TabsTrigger>
+            <TabsTrigger value="analytics">Gráficos</TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="daily" className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
@@ -1409,7 +1413,12 @@ function DashboardComponent() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="analytics" className="space-y-6">
+            <TenantCharts tenantId={tenantId || ""} />
+          </TabsContent>
+
           <TabsContent value="monthly" className="space-y-6">
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
