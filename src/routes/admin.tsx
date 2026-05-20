@@ -30,7 +30,6 @@ const adminNavItems = [
   { label: "Planos", icon: CreditCard, to: "/admin/plans" },
   { label: "Financeiro SaaS", icon: Activity, to: "/admin/finance" },
   { label: "Gráficos Detalhados", icon: BarChart3, to: "/admin/analytics" },
-  { label: "Analytics", icon: Activity, to: "/admin/analytics/usage" },
   { label: "Erros", icon: AlertCircle, to: "/admin/errors" },
   { label: "Suporte", icon: LifeBuoy, to: "/admin/support" },
 ];
