@@ -195,29 +195,38 @@ function DashboardComponent() {
       const currentMonthBirthdays = data.filter(c => {
         if (!c.birth_date) return false;
         
-        // Handle YYYY-MM-DD or MM-DD or other formats
+        // Formatos comuns: YYYY-MM-DD, MM-DD, DD/MM/YYYY
         let month, day;
+        
         if (c.birth_date.includes('-')) {
           const parts = c.birth_date.split('-');
-          // If YYYY-MM-DD
-          if (parts.length === 3) {
+          if (parts.length === 3) { // YYYY-MM-DD
             month = parseInt(parts[1]);
             day = parseInt(parts[2]);
-          } else {
-            // Assume MM-DD
+          } else if (parts.length === 2) { // MM-DD
             month = parseInt(parts[0]);
             day = parseInt(parts[1]);
           }
+        } else if (c.birth_date.includes('/')) {
+          const parts = c.birth_date.split('/');
+          if (parts.length >= 2) { // DD/MM or DD/MM/YYYY
+            day = parseInt(parts[0]);
+            month = parseInt(parts[1]);
+          }
         }
         
-        if (!month || !day) return false;
+        if (isNaN(month) || isNaN(day)) return false;
 
-        // Month match AND day is today OR in the future
+        // Se o mês for igual e o dia for hoje ou futuro
         return month === currentMonth && day >= todayDay;
       }).sort((a, b) => {
-        const dayA = parseInt(a.birth_date?.split('-').reverse()[0] || "0");
-        const dayB = parseInt(b.birth_date?.split('-').reverse()[0] || "0");
-        return dayA - dayB;
+        const getDay = (dateStr: string) => {
+          if (!dateStr) return 0;
+          if (dateStr.includes('-')) return parseInt(dateStr.split('-').reverse()[0]);
+          if (dateStr.includes('/')) return parseInt(dateStr.split('/')[0]);
+          return 0;
+        };
+        return getDay(a.birth_date) - getDay(b.birth_date);
       });
       
       console.log("Filtered birthdays this month (today onwards):", currentMonthBirthdays.length);
