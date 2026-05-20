@@ -215,8 +215,8 @@ function DashboardComponent() {
         // Month match AND day is today OR in the future
         return month === currentMonth && day >= todayDay;
       }).sort((a, b) => {
-        const dayA = parseInt(a.birth_date.split('-').reverse()[0]);
-        const dayB = parseInt(b.birth_date.split('-').reverse()[0]);
+        const dayA = parseInt(a.birth_date?.split('-').reverse()[0] || "0");
+        const dayB = parseInt(b.birth_date?.split('-').reverse()[0] || "0");
         return dayA - dayB;
       });
       
