@@ -33,13 +33,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2, CircleDollarSign } from "lucide-react";
+import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2, CircleDollarSign, History as HistoryIcon, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/customers")({
   component: CustomersComponent,
@@ -331,7 +332,7 @@ function CustomersComponent() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" size="sm" onClick={() => handleViewHistory(customer)}>
-                          Histórico
+                          Ver Cadastro
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => openEditDialog(customer)}>
                           <Edit size={16} className="text-muted-foreground" />
@@ -433,14 +434,62 @@ function CustomersComponent() {
 }
 
 function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, loadingHistory, customerHistory }: any) {
+  const handleWhatsApp = (phone: string) => {
+    if (!phone) {
+      toast.error("Cliente sem telefone cadastrado");
+      return;
+    }
+    const cleanPhone = phone.replace(/\D/g, "");
+    window.open(`https://wa.me/55${cleanPhone}`, "_blank");
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Histórico de {selectedCustomer?.name}</DialogTitle>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pr-6">
+          <DialogTitle>Informações de {selectedCustomer?.name}</DialogTitle>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="bg-green-500 hover:bg-green-600 text-white gap-2 border-none"
+            onClick={() => handleWhatsApp(selectedCustomer?.phone)}
+          >
+            <Phone size={14} /> WhatsApp
+          </Button>
         </DialogHeader>
-        <div className="space-y-6 py-4">
-          <div className="bg-primary/5 p-4 rounded-xl border border-primary/10">
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+          <Card className="bg-muted/30 border-none shadow-none">
+            <CardContent className="pt-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <UserIcon className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">{selectedCustomer?.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-primary" />
+                <span className="text-sm">{selectedCustomer?.phone || "Não informado"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                <span className="text-sm truncate">{selectedCustomer?.email || "Não informado"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Gift className="h-4 w-4 text-primary" />
+                <span className="text-sm">
+                  {selectedCustomer?.birth_date 
+                    ? format(new Date(selectedCustomer.birth_date + 'T12:00:00'), "dd/MM/yyyy") 
+                    : "Não informado"}
+                </span>
+              </div>
+              {selectedCustomer?.notes && (
+                <div className="mt-2 p-2 bg-background rounded border text-xs text-muted-foreground italic">
+                  "{selectedCustomer.notes}"
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 h-fit">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2 text-primary">
                 <Gift size={18} />
@@ -454,14 +503,18 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
               value={((selectedCustomer?.loyalty_points || 0) % (shopProfile?.free_service_threshold || 10)) / (shopProfile?.free_service_threshold || 10) * 100} 
               className="h-2" 
             />
-            <p className="text-xs text-muted-foreground mt-2">
-              {selectedCustomer?.loyalty_points >= (shopProfile?.free_service_threshold || 10) 
-                ? "Este cliente já possui serviços gratuitos acumulados!" 
-                : `Faltam ${(shopProfile?.free_service_threshold || 10) - ((selectedCustomer?.loyalty_points || 0) % (shopProfile?.free_service_threshold || 10))} procedimentos para o próximo serviço gratuito.`}
+            <p className="text-xs text-muted-foreground mt-2 font-medium">
+              Saldo em Créditos: <span className="text-green-600 font-bold">R$ {(Number(selectedCustomer?.credits) || 0).toFixed(2)}</span>
             </p>
           </div>
+        </div>
 
-          <ScrollArea className="h-[400px] pr-4">
+        <div className="flex-1 flex flex-col min-h-0 space-y-4">
+          <div className="flex items-center gap-2 border-b pb-2">
+            <HistoryIcon size={18} className="text-muted-foreground" />
+            <h4 className="font-bold">Histórico de Atendimentos</h4>
+          </div>
+          <ScrollArea className="flex-1 pr-4">
             <div className="space-y-4">
               {loadingHistory ? (
                 <div className="text-center py-8">Carregando histórico...</div>
@@ -469,7 +522,7 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
                 <div className="text-center py-8 text-muted-foreground">Nenhum agendamento encontrado.</div>
               ) : (
                 customerHistory.map((app: any) => (
-                  <div key={app.id} className="flex items-center justify-between p-4 border rounded-xl">
+                  <div key={app.id} className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors">
                     <div>
                       <p className="font-bold">{app.services?.name}</p>
                       <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
@@ -477,24 +530,21 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
                         <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
                         {app.payment_method && (
                           <span className="flex items-center gap-1">
-                            <Badge variant="outline" className="text-[10px] py-0 h-4">
+                            <Badge variant="outline" className="text-[10px] py-0 h-4 uppercase">
                               {app.payment_method === 'pix' ? 'PIX' : 
                                app.payment_method === 'credits' ? 'Créditos' : 
                                app.payment_method === 'cashback' ? 'Cashback' : 'Na Barbearia'}
                             </Badge>
                           </span>
                         )}
-                        {app.notes && app.notes.includes('Pagamento:') && (
-                          <span className="text-[10px] text-primary font-medium">{app.notes}</span>
-                        )}
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       <Badge className={cn(
-                        app.status === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white' : 
-                        app.status === 'scheduled' ? 'bg-secondary text-secondary-foreground' : 
-                        'bg-destructive text-destructive-foreground'
-                      )}>
+                        app.status === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white border-none' : 
+                        app.status === 'scheduled' ? 'bg-blue-100 text-blue-700 border-blue-200' : 
+                        'bg-red-50 text-red-700 border-red-100'
+                      )} variant={app.status === 'completed' ? 'default' : 'outline'}>
                         {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
                       </Badge>
                       {app.service_ratings?.[0] && (

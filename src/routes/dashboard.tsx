@@ -188,11 +188,19 @@ function DashboardComponent() {
     }
 
     if (data) {
+      const today = new Date();
+      const todayDay = today.getDate();
       const currentMonthBirthdays = data.filter(c => {
         if (!c.birth_date) return false;
-        // O banco retorna YYYY-MM-DD. Pegamos o mês diretamente da string para evitar problemas de fuso
-        const birthMonth = parseInt(c.birth_date.split('-')[1]);
-        return birthMonth === currentMonth;
+        const [year, month, day] = c.birth_date.split('-').map(Number);
+        
+        // Month match AND day is today OR in the future
+        return month === currentMonth && day >= todayDay;
+      }).sort((a, b) => {
+        // Sort by day of the month
+        const dayA = parseInt(a.birth_date.split('-')[2]);
+        const dayB = parseInt(b.birth_date.split('-')[2]);
+        return dayA - dayB;
       });
       console.log("Found birthdays for month", currentMonth, ":", currentMonthBirthdays);
       setBirthdayCustomers(currentMonthBirthdays);
