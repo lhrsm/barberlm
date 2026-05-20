@@ -1147,6 +1147,23 @@ function ClientPortalComponent() {
                           const birth_date = e.target.value;
                           setCustomerData({ ...customerData, birth_date });
                         }}
+                        onBlur={async (e) => {
+                          if (!customerData?.id) return;
+                          const birth_date = e.target.value;
+                          try {
+                            const { error } = await supabase
+                              .from('customers')
+                              .update({ birth_date })
+                              .eq('id', customerData.id);
+                            if (!error) {
+                              toast.success("Data de nascimento atualizada!");
+                              fetchClientData(customerData.id);
+                            }
+                          } catch (err) {
+                            console.error("Erro ao salvar data de nascimento:", err);
+                          }
+                        }}
+
                       />
                     </div>
                   </div>
