@@ -43,7 +43,8 @@ export function TenantCharts({ tenantId }: TenantChartsProps) {
       
       const { data: appointments } = await supabase
         .from("appointments")
-        .select("start_time, status, final_amount, total_price")
+        .select("start_time, status, final_amount, total_price, barber_id")
+
         .eq("user_id", tenantId)
         .gte("start_time", thirtyDaysAgo);
 

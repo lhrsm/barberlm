@@ -48,6 +48,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { TenantCharts } from "@/components/dashboard/TenantCharts";
+
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardComponent,
