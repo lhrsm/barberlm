@@ -171,7 +171,7 @@ export function AdminChartsTab() {
                   </Pie>
                   <Tooltip
                     formatter={(value: number) =>
-                      stats?.revenueByStatus[0].name === "Sem dados" ? "0" :
+                      stats?.revenueByStatus[0]?.name === "Sem dados" ? "0" :
                       new Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
