@@ -29,7 +29,8 @@ const adminNavItems = [
   { label: "Barbearias", icon: Building2, to: "/admin/tenants" },
   { label: "Planos", icon: CreditCard, to: "/admin/plans" },
   { label: "Financeiro SaaS", icon: Activity, to: "/admin/finance" },
-  { label: "Analytics", icon: BarChart3, to: "/admin/analytics" },
+  { label: "Gráficos Detalhados", icon: BarChart3, to: "/admin/analytics" },
+  { label: "Analytics", icon: Activity, to: "/admin/analytics/usage" },
   { label: "Erros", icon: AlertCircle, to: "/admin/errors" },
   { label: "Suporte", icon: LifeBuoy, to: "/admin/support" },
 ];
