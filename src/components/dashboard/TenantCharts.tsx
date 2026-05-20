@@ -132,6 +132,10 @@ export function TenantCharts({ tenantId }: TenantChartsProps) {
       label: "Agendamentos",
       color: "hsl(var(--primary))",
     },
+    faturamento: {
+      label: "Faturamento",
+      color: "#3b82f6", // Azul royal
+    },
   };
 
   return (
@@ -239,7 +243,7 @@ export function TenantCharts({ tenantId }: TenantChartsProps) {
                       }).format(value)
                     }
                   />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
