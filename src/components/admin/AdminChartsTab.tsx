@@ -64,21 +64,21 @@ export function AdminChartsTab() {
           name: "Concluído",
           value: appointments
             ?.filter((a) => a.status === "completed")
-            .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0),
+            .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0) || 0,
           color: "#10b981",
         },
         {
           name: "Pendente",
           value: appointments
             ?.filter((a) => a.status === "pending" || a.status === "confirmed")
-            .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0),
+            .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0) || 0,
           color: "#f59e0b",
         },
         {
           name: "Cancelado",
           value: appointments
             ?.filter((a) => a.status === "cancelled")
-            .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0),
+            .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0) || 0,
           color: "#ef4444",
         },
       ].filter(item => item.value > 0);
