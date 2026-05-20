@@ -189,13 +189,19 @@ function DashboardComponent() {
 
     if (data) {
       const today = new Date();
-      const todayDay = today.getDate();
+      // Criar data de comparação ignorando horas para ser preciso "hoje"
+      const todayCompare = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
       const currentMonthBirthdays = data.filter(c => {
         if (!c.birth_date) return false;
         const [year, month, day] = c.birth_date.split('-').map(Number);
         
-        // Month match AND day is today OR in the future
-        return month === currentMonth && day >= todayDay;
+        // Month match
+        if (month !== currentMonth) return false;
+        
+        // Day match: day is today OR in the future
+        const birthdayThisYear = new Date(today.getFullYear(), month - 1, day);
+        return birthdayThisYear >= todayCompare;
       }).sort((a, b) => {
         // Sort by day of the month
         const dayA = parseInt(a.birth_date.split('-')[2]);
