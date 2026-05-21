@@ -78,124 +78,44 @@ function AdminLayout() {
   if (role !== 'super_admin') return null;
 
   return (
-    <div className="flex flex-col h-screen bg-muted/30">
-      {/* Mobile Top Header */}
-      <header className="md:hidden flex items-center justify-between p-4 border-b bg-card sticky top-0 z-40">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="text-primary h-6 w-6" />
-          <h1 className="font-bold">SaaS Admin</h1>
-        </div>
-        <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-          {isMobileMenuOpen ? <X /> : <Menu />}
-        </Button>
-      </header>
-
-      {/* Mobile menu overlay */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-background md:hidden overflow-auto">
-          <div className="flex items-center justify-between p-4 border-b bg-card">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="text-primary h-6 w-6" />
-              <h1 className="font-bold">SaaS Admin</h1>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
-              <X />
-            </Button>
+    <div className="flex flex-col h-screen bg-black text-white selection:bg-purple-500/30">
+      {/* Top Header */}
+      <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 glass bg-black/40 sticky top-0 z-40">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            <Menu className="w-5 h-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="text-purple-500 h-6 w-6" />
+            <span className="font-bold text-lg bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">SaaS Admin</span>
           </div>
-          <nav className="p-4 space-y-2">
-            {adminNavItems.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={cn(
-                  "flex items-center gap-4 px-4 py-3 rounded-xl text-base font-medium",
-                  pathname === item.to
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent"
-                )}
-              >
-                <item.icon size={22} />
-                {item.label}
-              </Link>
-            ))}
-            <div className="pt-4 mt-4 border-t space-y-2">
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-4 px-4 py-3 text-base"
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  navigate({ to: "/dashboard" });
-                }}
-              >
-                <ChevronLeft size={22} />
-                Voltar ao App
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-4 px-4 py-3 text-base text-destructive"
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  navigate({ to: "/auth" });
-                }}
-              >
-                <LogOut size={22} />
-                Sair
-              </Button>
-            </div>
-          </nav>
         </div>
-      )}
+        <div className="flex items-center gap-4">
+          <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30 transition-colors">SUPER ADMIN</Badge>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+        </div>
+      </header>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar Desktop */}
-        <aside className="hidden md:flex flex-col w-64 border-r bg-card shrink-0">
-          <div className="p-6 flex items-center gap-2">
-            <div className="p-1.5 bg-primary rounded-lg">
-              <ShieldCheck className="text-primary-foreground h-5 w-5" />
-            </div>
-            <h1 className="text-xl font-bold tracking-tight">SaaS Admin</h1>
-          </div>
-
-          <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+        <aside className="hidden md:flex flex-col w-64 border-r border-white/10 bg-black/20 shrink-0 backdrop-blur-xl">
+          <nav className="flex-1 px-4 py-6 space-y-1">
             {adminNavItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group",
                   pathname === item.to
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-white/10 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
                 )}
               >
-                <item.icon size={18} />
+                <item.icon size={18} className={cn("transition-colors", pathname === item.to ? "text-purple-400" : "group-hover:text-pink-400")} />
                 {item.label}
               </Link>
             ))}
           </nav>
-
-          <div className="p-4 border-t space-y-2">
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-3"
-              onClick={() => navigate({ to: "/dashboard" })}
-            >
-              <ChevronLeft size={18} />
-              Voltar ao App
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={async () => {
-                await supabase.auth.signOut();
-                navigate({ to: "/auth" });
-              }}
-            >
-              <LogOut size={18} />
-              Sair
-            </Button>
-          </div>
         </aside>
 
         {/* Main Content Area */}
