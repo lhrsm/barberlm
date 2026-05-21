@@ -833,6 +833,51 @@ export type Database = {
           },
         ]
       }
+      system_settings: {
+        Row: {
+          admin_access_level: string | null
+          audit_logs_enabled: boolean | null
+          id: string
+          integrations: Json | null
+          main_url: string | null
+          maintenance_mode: boolean | null
+          saas_logo: string | null
+          saas_name: string | null
+          stripe_secret_key: string | null
+          stripe_webhook_secret: string | null
+          two_factor_auth_enabled: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_access_level?: string | null
+          audit_logs_enabled?: boolean | null
+          id?: string
+          integrations?: Json | null
+          main_url?: string | null
+          maintenance_mode?: boolean | null
+          saas_logo?: string | null
+          saas_name?: string | null
+          stripe_secret_key?: string | null
+          stripe_webhook_secret?: string | null
+          two_factor_auth_enabled?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_access_level?: string | null
+          audit_logs_enabled?: boolean | null
+          id?: string
+          integrations?: Json | null
+          main_url?: string | null
+          maintenance_mode?: boolean | null
+          saas_logo?: string | null
+          saas_name?: string | null
+          stripe_secret_key?: string | null
+          stripe_webhook_secret?: string | null
+          two_factor_auth_enabled?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
