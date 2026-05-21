@@ -35,16 +35,19 @@ function AdminSettings() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("geral");
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading, error: queryError } = useQuery({
     queryKey: ["admin-system-settings"],
     queryFn: async () => {
+      console.log("Fetching system settings...");
       const { data, error } = await supabase
         .from("system_settings")
         .select("*")
-        .limit(1)
-        .single();
+        .maybeSingle(); // Usar maybeSingle para evitar erro se não existir
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error fetching settings:", error);
+        throw error;
+      }
       return data;
     }
   });
@@ -76,9 +79,32 @@ function AdminSettings() {
     }
   });
 
-  if (isLoading || !formData) {
-    return <div className="p-20 text-center animate-pulse text-gray-500 font-black italic uppercase tracking-widest">Acessando Nucleo do Sistema...</div>;
+  if (isLoading) {
+    return (
+      <div className="p-20 flex flex-col items-center justify-center gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+        <p className="text-gray-500 font-black italic uppercase tracking-widest">Acessando Nucleo do Sistema...</p>
+      </div>
+    );
   }
+
+  if (queryError || (!settings && !isLoading)) {
+    return (
+      <div className="p-20 text-center space-y-4">
+        <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
+        <h3 className="text-xl font-bold text-white uppercase italic">Erro de Conexão</h3>
+        <p className="text-gray-400">Não foi possível carregar as configurações do banco.</p>
+        <Button 
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-system-settings"] })}
+          className="bg-white/5 border border-white/10"
+        >
+          Tentar Novamente
+        </Button>
+      </div>
+    );
+  }
+
+  if (!formData) return null;
 
   const handleSave = () => {
     updateMutation.mutate(formData);
