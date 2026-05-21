@@ -160,5 +160,36 @@ function AdminLayout() {
           </nav>
         </div>
       )}
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar Desktop */}
+        <aside className="hidden md:flex flex-col w-64 border-r border-white/10 bg-black/20 shrink-0 backdrop-blur-xl">
+          <nav className="flex-1 px-4 py-6 space-y-1">
+            {adminNavItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group",
+                  pathname === item.to
+                    ? "bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-white/10 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                )}
+              >
+                <item.icon size={18} className={cn("transition-colors", pathname === item.to ? "text-purple-400" : "group-hover:text-pink-400")} />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 min-w-0 overflow-auto p-4 md:p-8">
+          <div className="max-w-7xl mx-auto w-full">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }
