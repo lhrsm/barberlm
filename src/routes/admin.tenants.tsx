@@ -14,10 +14,13 @@ import {
   CalendarDays,
   DollarSign,
   Filter,
-  CreditCard
+  CreditCard,
+  Building2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
