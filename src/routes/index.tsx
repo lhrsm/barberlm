@@ -444,7 +444,7 @@ function LandingPageComponent() {
             <TestimonialCard 
               name="Carlos Henrique"
               business="Barbearia Prime"
-              text="Depois que comecei a usar o BarberLM minha agenda ficou muito mais organizada."
+              text="Depois que comecei a usar o Barbex minha agenda ficou muito mais organizada."
               avatar="CH"
             />
             <TestimonialCard 
@@ -495,7 +495,7 @@ function LandingPageComponent() {
             <FaqItem 
               value="item-1"
               question="Funciona no celular?"
-              answer="Sim! O BarberLM é 100% responsivo e funciona perfeitamente em qualquer dispositivo: celular, tablet ou computador."
+              answer="Sim! O Barbex é 100% responsivo e funciona perfeitamente em qualquer dispositivo: celular, tablet ou computador."
             />
             <FaqItem 
               value="item-4"
@@ -560,7 +560,7 @@ function LandingPageComponent() {
           </div>
           <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-white/40 font-medium">
-              © 2026 BarberLM. Todos os direitos reservados.
+              © 2026 Barbex. Todos os direitos reservados.
             </div>
             <div className="flex gap-8 text-white/40 text-sm font-medium">
               <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>
