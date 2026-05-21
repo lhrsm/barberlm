@@ -34,9 +34,11 @@ export const Route = createFileRoute("/admin")({
 const adminNavItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard" },
   { label: "Barbearias", icon: Building2, to: "/admin/tenants" },
-  { label: "Planos", icon: CreditCard, to: "/admin/plans" },
+  { label: "Assinaturas", icon: CreditCard, to: "/admin/subscriptions" },
+  { label: "Planos", icon: Layout, to: "/admin/plans" },
   { label: "Receita", icon: TrendingUp, to: "/admin/finance" },
-  { label: "Analytics", icon: BarChart3, to: "/admin/analytics" },
+  { label: "Relatórios", icon: BarChart3, to: "/admin/reports" },
+  { label: "Analytics", icon: LineChartIcon, to: "/admin/analytics" },
   { label: "Logs do Sistema", icon: History, to: "/admin/errors" },
   { label: "Configurações", icon: Settings, to: "/admin/settings" },
   { label: "Suporte", icon: LifeBuoy, to: "/admin/support" },
