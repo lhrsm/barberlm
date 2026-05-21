@@ -119,38 +119,46 @@ export function AdminChartsTab() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="glass border-white/5 rounded-3xl overflow-hidden shadow-none">
           <CardHeader>
-            <CardTitle>Agendamentos (Últimos 7 dias)</CardTitle>
-            <CardDescription>Volume diário de agendamentos na plataforma.</CardDescription>
+            <CardTitle className="text-lg font-bold">Agendamentos (Últimos 7 dias)</CardTitle>
+            <CardDescription className="text-gray-500">Volume diário de agendamentos na plataforma.</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <BarChart data={stats?.appointmentsByDay}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <defs>
+                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="oklch(0.704 0.04 256.788)" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="oklch(0.704 0.04 256.788)" stopOpacity={0.2} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                 <XAxis
                   dataKey="day"
                   tickLine={false}
                   tickMargin={10}
                   axisLine={false}
+                  tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }}
                 />
-                <YAxis tickLine={false} axisLine={false} />
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
+                <ChartTooltip content={<ChartTooltipContent className="bg-black/80 backdrop-blur-md border-white/10" />} />
                 <Bar
                   dataKey="agendamentos"
-                  fill="var(--color-agendamentos)"
-                  radius={[4, 4, 0, 0]}
+                  fill="url(#barGradient)"
+                  radius={[6, 6, 0, 0]}
+                  className="filter drop-shadow-[0_0_8px_rgba(168,85,247,0.3)]"
                 />
               </BarChart>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass border-white/5 rounded-3xl overflow-hidden shadow-none">
           <CardHeader>
-            <CardTitle>Distribuição de Receita</CardTitle>
-            <CardDescription>Valor total por status de agendamento.</CardDescription>
+            <CardTitle className="text-lg font-bold">Market Share por Plano</CardTitle>
+            <CardDescription className="text-gray-500">Distribuição financeira por status.</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
             <div className="h-[300px] w-full">
@@ -161,15 +169,21 @@ export function AdminChartsTab() {
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
+                    outerRadius={90}
+                    paddingAngle={8}
                     dataKey="value"
+                    stroke="none"
                   >
                     {stats?.revenueByStatus.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.color} 
+                        className="filter drop-shadow-[0_0_10px_rgba(255,255,255,0.1)] transition-all duration-300 hover:opacity-80" 
+                      />
                     ))}
                   </Pie>
                   <Tooltip
+                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
                     formatter={(value: number) =>
                       stats?.revenueByStatus[0]?.name === "Sem dados" ? "0" :
                       new Intl.NumberFormat("pt-BR", {
@@ -180,14 +194,14 @@ export function AdminChartsTab() {
                   />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex justify-center gap-4 mt-4 text-sm">
+              <div className="flex flex-wrap justify-center gap-4 mt-4 text-[10px] font-bold uppercase tracking-widest">
                 {stats?.revenueByStatus.map((s) => (
-                  <div key={s.name} className="flex items-center gap-1">
+                  <div key={s.name} className="flex items-center gap-2">
                     <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: s.color }}
+                      className="w-2 h-2 rounded-full shadow-[0_0_5px_currentColor]"
+                      style={{ backgroundColor: s.color, color: s.color }}
                     />
-                    <span>{s.name}</span>
+                    <span className="text-gray-400">{s.name}</span>
                   </div>
                 ))}
               </div>
@@ -195,25 +209,37 @@ export function AdminChartsTab() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-2 glass border-white/5 rounded-3xl overflow-hidden shadow-none">
           <CardHeader>
-            <CardTitle>Crescimento de Usuários (Perfis)</CardTitle>
-            <CardDescription>Novos perfis criados mensalmente (Global).</CardDescription>
+            <CardTitle className="text-lg font-bold">Crescimento Mensal de MRR</CardTitle>
+            <CardDescription className="text-gray-500">Projeção e evolução da receita recorrente global.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={stats?.profilesByMonth}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                  <YAxis tickLine={false} axisLine={false} />
-                  <Tooltip />
+                  <defs>
+                    <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="oklch(0.704 0.04 256.788)" stopOpacity={0.2} />
+                      <stop offset="100%" stopColor="oklch(0.704 0.04 256.788)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis 
+                    dataKey="month" 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }}
+                  />
+                  <YAxis tickLine={false} axisLine={false} tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
+                  <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
                   <Line
                     type="monotone"
                     dataKey="count"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--primary))" }}
+                    stroke="oklch(0.704 0.04 256.788)"
+                    strokeWidth={4}
+                    dot={{ fill: "oklch(0.704 0.04 256.788)", r: 4, strokeWidth: 0 }}
+                    activeDot={{ r: 6, strokeWidth: 0, className: "filter drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" }}
                   />
                 </LineChart>
               </ResponsiveContainer>
