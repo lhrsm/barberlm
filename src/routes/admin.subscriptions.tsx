@@ -59,16 +59,18 @@ function AdminSubscriptions() {
     }
   });
 
-  const filteredSubscriptions = subscriptions?.filter((sub: any) => 
-    sub.profiles?.business_name?.toLowerCase().includes(search.toLowerCase()) ||
-    sub.stripe_subscription_id?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredSubscriptions = subscriptions?.filter((sub: any) => {
+    const bizName = sub.profiles?.business_name || \"\";
+    const stripeId = sub.stripe_subscription_id || \"\";
+    return bizName.toLowerCase().includes(search.toLowerCase()) ||
+           stripeId.toLowerCase().includes(search.toLowerCase());
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
         return <Badge className="bg-emerald-500/20 text-emerald-400 border-none shadow-[0_0_10px_rgba(16,185,129,0.2)]">Ativa</Badge>;
-      case 'trailing':
+      case 'trialing':
         return <Badge className="bg-blue-500/20 text-blue-400 border-none">Trial</Badge>;
       case 'past_due':
         return <Badge className="bg-amber-500/20 text-amber-400 border-none">Atrasada</Badge>;
