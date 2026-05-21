@@ -13,7 +13,11 @@ import {
   Zap,
   Layout,
   BarChart,
-  AlertTriangle
+  AlertTriangle,
+  Calendar,
+  DollarSign,
+  Activity,
+  LifeBuoy
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
