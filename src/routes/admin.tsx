@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   LogOut,
   ShieldCheck,
+  Layout,
   Menu,
   X,
   History,
