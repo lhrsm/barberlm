@@ -40,16 +40,17 @@ function AdminSettings() {
     queryKey: ["admin-system-settings"],
     queryFn: async () => {
       console.log("Fetching system settings...");
+      // Fetch settings with a simple select to avoid maybeSingle issues if data is inconsistent
       const { data, error } = await supabase
         .from("system_settings")
         .select("*")
-        .maybeSingle(); // Usar maybeSingle para evitar erro se não existir
+        .limit(1);
       
       if (error) {
         console.error("Supabase error fetching settings:", error);
         throw error;
       }
-      return data;
+      return data?.[0] || null;
     }
   });
 
