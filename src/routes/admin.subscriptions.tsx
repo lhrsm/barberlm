@@ -44,18 +44,18 @@ function AdminSubscriptions() {
         .from("subscriptions")
         .select(`
           *,
-          profiles (
+          profiles:user_id (
             business_name,
             whatsapp_number
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any;
 
       if (error) {
         console.error("Error fetching subscriptions:", error);
         throw error;
       }
-      return data as any[];
+      return data || [];
     }
   });
 
