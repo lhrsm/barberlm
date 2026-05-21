@@ -1,180 +1,174 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   BarChart3, 
   TrendingUp, 
   Users, 
   DollarSign, 
   Download,
+  Filter,
   Calendar,
-  ChevronRight,
-  PieChart as PieChartIcon,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Target,
+  PieChart,
+  Activity
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  BarChart, 
-  Bar, 
+  AreaChart, 
+  Area, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  LineChart,
-  Line,
-  AreaChart,
-  Area
+  BarChart,
+  Bar,
+  Cell
 } from "recharts";
 
 export const Route = createFileRoute("/admin/reports")({
   component: AdminReports,
 });
 
-const monthlyData = [
-  { name: "Jan", revenue: 4500, users: 12 },
-  { name: "Fev", revenue: 5200, users: 15 },
-  { name: "Mar", revenue: 4800, users: 18 },
-  { name: "Abr", revenue: 6100, users: 22 },
-  { name: "Mai", revenue: 7500, users: 30 },
-  { name: "Jun", revenue: 8900, users: 45 },
+const mockData = [
+  { name: "Jan", faturamento: 4000, churn: 240, growth: 10 },
+  { name: "Fev", faturamento: 3000, churn: 139, growth: 12 },
+  { name: "Mar", faturamento: 2000, churn: 980, growth: -5 },
+  { name: "Abr", faturamento: 2780, churn: 390, growth: 15 },
+  { name: "Mai", faturamento: 1890, churn: 480, growth: 8 },
+  { name: "Jun", faturamento: 2390, churn: 380, growth: 20 },
 ];
 
-const planDistribution = [
-  { name: "Basic", value: 40, color: "#8b5cf6" },
-  { name: "Pro", value: 35, color: "#ec4899" },
-  { name: "Enterprise", value: 25, color: "#3b82f6" },
-];
+const COLORS = ['#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B'];
 
 function AdminReports() {
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-4xl font-black tracking-tight text-white italic uppercase">Relatórios Analíticos</h2>
-          <p className="text-gray-400 font-medium text-lg">Visão estratégica e métricas de crescimento do SaaS.</p>
+          <h2 className="text-4xl font-black tracking-tight text-white italic uppercase tracking-tighter">Relatórios Enterprise</h2>
+          <p className="text-gray-400 font-medium">Visão analítica profunda da saúde do seu SaaS.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="h-12 px-6 rounded-2xl bg-white/5 border-white/10 text-white gap-2 font-bold uppercase tracking-wider text-xs italic transition-all hover:bg-white/10 hover:border-purple-500/50">
-            <Calendar className="w-4 h-4 text-purple-400" />
-            Últimos 30 Dias
+          <Button variant="outline" className="h-12 bg-white/5 border-white/10 rounded-xl gap-2 text-xs font-bold uppercase tracking-widest italic">
+            <Filter size={16} /> Filtrar
           </Button>
-          <Button className="h-12 px-8 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white gap-2 font-bold uppercase tracking-wider text-xs italic shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all hover:scale-105 active:scale-95">
-            <Download className="w-4 h-4" />
-            Exportar PDF
+          <Button className="h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-xl gap-2 text-xs font-bold uppercase tracking-widest italic shadow-[0_0_20px_rgba(168,85,247,0.3)]">
+            <Download size={16} /> Exportar
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Receita Total", value: "R$ 142.500", trend: "+12.5%", positive: true, icon: DollarSign, color: "from-emerald-500/20 to-teal-500/20" },
-          { label: "Novas Assinaturas", value: "+84", trend: "+5.2%", positive: true, icon: Users, color: "from-purple-500/20 to-indigo-500/20" },
-          { label: "Churn Rate", value: "2.1%", trend: "-0.5%", positive: true, icon: TrendingUp, color: "from-rose-500/20 to-orange-500/20" },
-          { label: "LTV Médio", value: "R$ 850", trend: "+8.4%", positive: true, icon: BarChart3, color: "from-blue-500/20 to-cyan-500/20" },
-        ].map((stat, i) => (
-          <Card key={i} className="glass border-white/5 rounded-3xl overflow-hidden group hover:border-white/10 transition-all duration-500">
+          { title: "MRR Atual", value: "R$ 12.450", icon: DollarSign, trend: "+12.5%", positive: true, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+          { title: "Churn Rate", value: "2.4%", icon: Activity, trend: "-0.8%", positive: true, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+          { title: "Novas Assinaturas", value: "124", icon: Users, trend: "+18%", positive: true, color: "text-purple-400", bg: "bg-purple-500/10" },
+          { title: "Ticket Médio", value: "R$ 49,90", icon: Target, trend: "-2.1%", positive: false, color: "text-rose-400", bg: "bg-rose-500/10" },
+        ].map((kpi, i) => (
+          <Card key={i} className="glass border-white/5 rounded-3xl overflow-hidden group hover:border-white/10 transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex justify-between items-start mb-4">
-                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br", stat.color)}>
-                  <stat.icon className="w-6 h-6 text-white" />
+                <div className={cn("p-3 rounded-2xl", kpi.bg)}>
+                  <kpi.icon className={cn("w-6 h-6", kpi.color)} />
                 </div>
-                <div className={cn(
-                  "flex items-center gap-1 text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-lg",
-                  stat.positive ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
-                )}>
-                  {stat.positive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-                  {stat.trend}
+                <div className={cn("flex items-center gap-1 text-[10px] font-black italic", kpi.positive ? "text-emerald-400" : "text-rose-400")}>
+                  {kpi.positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {kpi.trend}
                 </div>
               </div>
-              <p className="text-gray-400 text-[10px] uppercase font-bold tracking-widest mb-1">{stat.label}</p>
-              <h3 className="text-3xl font-black text-white italic tracking-tighter">{stat.value}</h3>
+              <div>
+                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1">{kpi.title}</p>
+                <h3 className="text-2xl font-black text-white italic tracking-tighter">{kpi.value}</h3>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 glass border-white/5 rounded-[2.5rem] p-8 shadow-none group overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-2 glass border-white/5 rounded-[2.5rem] p-8 overflow-hidden">
           <CardHeader className="p-0 mb-8 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-black text-white italic tracking-tighter uppercase">Crescimento de Receita</CardTitle>
-              <CardDescription className="text-gray-400 font-medium">Comparativo mensal de faturamento bruto.</CardDescription>
+              <CardTitle className="text-xl font-bold text-white italic tracking-tight uppercase flex items-center gap-2">
+                <TrendingUp className="text-purple-400 w-5 h-5" /> Crescimento Mensal
+              </CardTitle>
+              <CardDescription className="text-gray-500">Acompanhamento de receita e novos clientes.</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/20">MRR</Badge>
+              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Trial</Badge>
             </div>
           </CardHeader>
-          <div className="h-[350px] w-full">
+          <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthlyData}>
+              <AreaChart data={mockData}>
                 <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                  <linearGradient id="colorFaturamento" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                 <XAxis 
                   dataKey="name" 
-                  stroke="#6b7280" 
-                  fontSize={12} 
-                  tickLine={false} 
                   axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} 
+                  dy={10}
                 />
                 <YAxis 
-                  stroke="#6b7280" 
-                  fontSize={12} 
-                  tickLine={false} 
                   axisLine={false} 
-                  tickFormatter={(value) => `R$ ${value}`}
+                  tickLine={false} 
+                  tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} 
                 />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px' }}
-                  itemStyle={{ color: '#fff' }}
+                  contentStyle={{backgroundColor: '#111118', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px'}}
+                  itemStyle={{color: '#fff', fontSize: '12px', fontWeight: 700}}
                 />
                 <Area 
                   type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#8b5cf6" 
+                  dataKey="faturamento" 
+                  stroke="#8B5CF6" 
                   strokeWidth={4}
                   fillOpacity={1} 
-                  fill="url(#colorRevenue)" 
+                  fill="url(#colorFaturamento)" 
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        <Card className="glass border-white/5 rounded-[2.5rem] p-8 shadow-none group overflow-hidden">
+        <Card className="glass border-white/5 rounded-[2.5rem] p-8">
           <CardHeader className="p-0 mb-8">
-            <CardTitle className="text-2xl font-black text-white italic tracking-tighter uppercase">Distribuição de Planos</CardTitle>
-            <CardDescription className="text-gray-400 font-medium">Market share por nível de assinatura.</CardDescription>
+            <CardTitle className="text-xl font-bold text-white italic tracking-tight uppercase flex items-center gap-2">
+              <PieChart className="text-pink-400 w-5 h-5" /> Distribuição de Planos
+            </CardTitle>
+            <CardDescription className="text-gray-500">Onde está concentrado seu volume.</CardDescription>
           </CardHeader>
-          <div className="space-y-6">
-            {planDistribution.map((plan, i) => (
-              <div key={i} className="space-y-2">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-white font-bold italic uppercase tracking-wider text-xs">{plan.name}</span>
-                  <span className="text-gray-400 font-black">{plan.value}%</span>
-                </div>
-                <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
-                  <div 
-                    className="h-full rounded-full transition-all duration-1000" 
-                    style={{ 
-                      width: `${plan.value}%`,
-                      background: `linear-gradient(to right, ${plan.color}, ${plan.color}88)`
-                    }} 
-                  />
-                </div>
-              </div>
-            ))}
-            <div className="pt-8 mt-8 border-t border-white/5">
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-                <div className="flex items-center gap-3">
-                  <PieChartIcon className="text-pink-500 w-5 h-5" />
-                  <span className="text-sm text-gray-400 font-medium">Ver análise detalhada</span>
-                </div>
-                <ChevronRight className="text-gray-600 w-5 h-5" />
-              </div>
-            </div>
+          <div className="h-[300px] w-full flex flex-col justify-center">
+             <div className="space-y-6">
+                {[
+                  { name: "Elite", value: 45, color: "bg-purple-500" },
+                  { name: "Pro", value: 35, color: "bg-pink-500" },
+                  { name: "Starter", value: 20, color: "bg-blue-500" },
+                ].map((item, i) => (
+                  <div key={i} className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
+                      <span className="text-gray-400">{item.name}</span>
+                      <span className="text-white">{item.value}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className={cn("h-full rounded-full transition-all duration-1000", item.color)} style={{ width: `${item.value}%` }} />
+                    </div>
+                  </div>
+                ))}
+             </div>
           </div>
         </Card>
       </div>
@@ -185,3 +179,9 @@ function AdminReports() {
 function cn(...inputs: any[]) {
   return inputs.filter(Boolean).join(" ");
 }
+
+const Badge = ({ children, className, variant }: any) => (
+  <span className={cn("px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border", className)}>
+    {children}
+  </span>
+);

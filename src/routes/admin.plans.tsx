@@ -13,7 +13,11 @@ import {
   Zap,
   Layout,
   BarChart,
-  AlertTriangle
+  AlertTriangle,
+  Calendar,
+  DollarSign,
+  Activity,
+  LifeBuoy
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -161,56 +165,55 @@ function AdminPlans() {
               </div>
             </CardHeader>
             <CardContent className="flex-1 space-y-8 px-8 pb-8">
-              <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                  <Zap size={12} /> Recursos
+              <div className="space-y-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2 mb-4">
+                  <Zap size={12} className="text-purple-400" /> Vantagens Estratégicas
                 </p>
-                <div className="space-y-2">
-                  {Object.entries(plan.features || {}).map(([key, enabled]: [string, any]) => (
-                    <div key={key} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm capitalize">
-                        {key === 'whatsapp' && <MessageSquare size={14} className="text-green-500" />}
-                        {key === 'cashback' && <Award size={14} className="text-amber-500" />}
-                        {key === 'ia' && <Zap size={14} className="text-purple-500" />}
-                        {key === 'reports' && <BarChart size={14} className="text-blue-500" />}
-                        {key === 'advanced_analytics' && <Layout size={14} className="text-rose-500" />}
-                        <span>{key.replace('_', ' ')}</span>
+                <div className="space-y-3">
+                  {Object.entries(plan.features || {}).map(([key, value]: [string, any]) => (
+                    <div key={key} className="flex items-center justify-between group/item">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5 group-hover/item:border-purple-500/30 transition-colors">
+                          {key === 'whatsapp' && <MessageSquare size={14} className="text-emerald-400" />}
+                          {key === 'cashback' && <Award size={14} className="text-amber-400" />}
+                          {key === 'ia' && <Zap size={14} className="text-purple-400" />}
+                          {key === 'reports' && <BarChart size={14} className="text-blue-400" />}
+                          {key === 'analytics' && <Layout size={14} className="text-rose-400" />}
+                          {key === 'agenda' && <Calendar size={14} className="text-emerald-400" />}
+                          {key === 'financeiro' && <DollarSign size={14} className="text-amber-400" />}
+                          {key === 'automations' && <Activity size={14} className="text-purple-400" />}
+                          {key === 'support' && <LifeBuoy size={14} className="text-blue-400" />}
+                          {!['whatsapp', 'cashback', 'ia', 'reports', 'analytics', 'agenda', 'financeiro', 'automations', 'support'].includes(key) && <Check size={14} className="text-gray-400" />}
+                        </div>
+                        <span className="text-xs font-bold text-gray-300 capitalize group-hover/item:text-white transition-colors">{key.replace('_', ' ')}</span>
                       </div>
-                      {editingPlan === plan.id ? (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6" 
-                          onClick={() => toggleFeature(key)}
-                        >
-                          {editForm.features[key] ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-destructive" />}
-                        </Button>
-                      ) : (
-                        enabled ? <Check size={16} className="text-green-500" /> : <X size={16} className="text-muted-foreground/30" />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {typeof value === 'string' ? (
+                          <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/20 text-[8px] uppercase">{value}</Badge>
+                        ) : value ? (
+                          <Check size={14} className="text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.5)]" />
+                        ) : (
+                          <X size={14} className="text-gray-600" />
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                  <AlertTriangle size={12} /> Limites Mensais
+              <div className="space-y-4 mt-8">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2 mb-4">
+                  <AlertTriangle size={12} className="text-amber-400" /> Capacidade & Limites
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {Object.entries(plan.limits || {}).map(([key, val]: [string, any]) => (
-                    <div key={key} className="flex items-center justify-between text-sm">
-                      <span className="capitalize">{key === 'users' ? 'Usuários' : key === 'clients' ? 'Clientes' : 'Agendamentos'}</span>
-                      {editingPlan === plan.id ? (
-                        <Input 
-                          type="number" 
-                          className="h-7 w-20 text-right" 
-                          value={editForm.limits[key]}
-                          onChange={(e) => updateLimit(key, e.target.value)}
-                        />
-                      ) : (
-                        <span className="font-medium">{val === -1 ? 'Ilimitado' : val}</span>
-                      )}
+                    <div key={key} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 group-hover:border-white/10 transition-colors">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        {key === 'users' ? 'Profissionais' : key === 'clients' ? 'Clientes' : 'Agendamentos'}
+                      </span>
+                      <span className="text-sm font-black text-white italic">
+                        {val === -1 ? 'ILIMITADO' : val}
+                      </span>
                     </div>
                   ))}
                 </div>

@@ -39,6 +39,7 @@ function AdminSubscriptions() {
   const { data: subscriptions, isLoading } = useQuery({
     queryKey: ["admin-subscriptions"],
     queryFn: async () => {
+      // Usando query direta para garantir que o join funcione mesmo sem FK explícita no cliente
       const { data, error } = await supabase
         .from("subscriptions")
         .select(`
@@ -48,10 +49,13 @@ function AdminSubscriptions() {
             whatsapp_number
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any;
 
-      if (error) throw error;
-      return data as any[];
+      if (error) {
+        console.error("Error fetching subscriptions:", error);
+        throw error;
+      }
+      return data || [];
     }
   });
 
@@ -124,7 +128,7 @@ function AdminSubscriptions() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredSubscriptions?.map((sub) => (
+                filteredSubscriptions?.map((sub: any) => (
                   <TableRow key={sub.id} className="border-white/5 hover:bg-white/5 transition-colors group">
                     <TableCell className="py-6 pl-8">
                       <div className="flex items-center gap-4">
