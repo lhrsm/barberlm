@@ -59,7 +59,7 @@ function LandingPageComponent() {
             <div className="p-2 bg-primary/20 rounded-lg group-hover:bg-primary/30 transition-colors">
               <Scissors className="text-primary h-6 w-6" />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white">Barber<span className="text-primary">LM</span></span>
+            <span className="text-2xl font-extrabold tracking-tighter text-white italic uppercase">Barbe<span className="text-primary">x</span></span>
           </div>
           <div className="hidden lg:flex items-center gap-10">
             <a href="#funcionalidades" className="text-sm font-medium text-white/70 hover:text-white transition-colors">Funcionalidades</a>
@@ -444,7 +444,7 @@ function LandingPageComponent() {
             <TestimonialCard 
               name="Carlos Henrique"
               business="Barbearia Prime"
-              text="Depois que comecei a usar o BarberLM minha agenda ficou muito mais organizada."
+              text="Depois que comecei a usar o Barbex minha agenda ficou muito mais organizada."
               avatar="CH"
             />
             <TestimonialCard 
@@ -495,7 +495,7 @@ function LandingPageComponent() {
             <FaqItem 
               value="item-1"
               question="Funciona no celular?"
-              answer="Sim! O BarberLM é 100% responsivo e funciona perfeitamente em qualquer dispositivo: celular, tablet ou computador."
+              answer="Sim! O Barbex é 100% responsivo e funciona perfeitamente em qualquer dispositivo: celular, tablet ou computador."
             />
             <FaqItem 
               value="item-4"
@@ -535,7 +535,7 @@ function LandingPageComponent() {
             <div className="col-span-2">
               <div className="flex items-center gap-2 mb-6">
                 <Scissors className="text-primary h-8 w-8" />
-                <span className="text-3xl font-bold tracking-tight text-white">Barber<span className="text-primary">LM</span></span>
+                <span className="text-3xl font-extrabold tracking-tighter text-white italic uppercase">Barbe<span className="text-primary">x</span></span>
               </div>
               <p className="text-white/50 max-w-sm mb-8 text-lg leading-relaxed">
                 Ajudamos barbeiros a profissionalizarem seus negócios através de tecnologia simples, moderna e de alto impacto.
@@ -560,7 +560,7 @@ function LandingPageComponent() {
           </div>
           <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-white/40 font-medium">
-              © 2026 BarberLM. Todos os direitos reservados.
+              © 2026 Barbex. Todos os direitos reservados.
             </div>
             <div className="flex gap-8 text-white/40 text-sm font-medium">
               <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>

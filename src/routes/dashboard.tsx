@@ -969,7 +969,7 @@ function DashboardComponent() {
                   </div>
                   <div>
                     <h4 className="font-bold text-lg">Assinatura Ativa</h4>
-                    <p className="text-sm text-muted-foreground">Obrigado por utilizar o BarberLM!</p>
+                    <p className="text-sm text-muted-foreground">Obrigado por utilizar o Barbex!</p>
                   </div>
                   <Button variant="outline" className="w-full" asChild>
                     <Link to="/subscription">Gerenciar Assinatura</Link>

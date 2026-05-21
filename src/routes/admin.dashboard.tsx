@@ -168,7 +168,7 @@ function AdminDashboard() {
                 SAAS PERFORMANCE
               </h1>
               <p className="text-lg text-gray-400 max-w-xl font-medium">
-                Monitoramento global em tempo real da infraestrutura Barber SaaS.
+                Monitoramento global em tempo real da infraestrutura Barbex.
               </p>
             </div>
             

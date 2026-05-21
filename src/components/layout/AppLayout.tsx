@@ -81,7 +81,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, navigate, role, user, loading, isImpersonating]);
 
-  const businessName = String(tenantProfile?.business_name || "BarberSaaS");
+  const businessName = String(tenantProfile?.business_name || "Barbex");
 
   const handleLogout = async () => {
     if (session) {

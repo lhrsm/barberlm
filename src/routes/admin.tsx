@@ -98,7 +98,7 @@ function AdminLayout() {
           </Button>
           <div className="flex items-center gap-2">
             <ShieldCheck className="text-purple-500 h-6 w-6" />
-            <span className="font-bold text-lg bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">SaaS Admin</span>
+            <span className="font-bold text-lg bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Barbex Admin</span>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -113,7 +113,7 @@ function AdminLayout() {
           <div className="flex items-center justify-between p-6 border-b border-white/10">
             <div className="flex items-center gap-2">
               <ShieldCheck className="text-purple-500 h-6 w-6" />
-              <h1 className="font-bold text-white uppercase tracking-tighter">SaaS Admin</h1>
+              <h1 className="font-bold text-white uppercase tracking-tighter">Barbex Admin</h1>
             </div>
             <Button variant="ghost" size="icon" className="text-gray-400" onClick={() => setIsMobileMenuOpen(false)}>
               <X />
