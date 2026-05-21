@@ -10,11 +10,16 @@ import {
   TrendingUp, 
   Wallet,
   CalendarCheck,
-  Award
+  Award,
+  ArrowUpRight,
+  ArrowDownRight,
+  Plus
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { AdminChartsTab } from "@/components/admin/AdminChartsTab";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/admin/dashboard")({
   component: AdminDashboard,
@@ -122,23 +127,30 @@ function AdminDashboard() {
   }
 
   const statCards = [
-    { label: "Total Barbearias", value: stats?.totalTenants ?? 0, icon: Building2, color: "text-blue-600" },
-    { label: "Assinaturas Ativas", value: stats?.activeSubs ?? 0, icon: CreditCard, color: "text-green-600" },
-    { label: "MRR Estimado", value: `R$ ${(stats?.mrr ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: "text-emerald-600" },
-    { label: "Total Transacionado", value: `R$ ${(stats?.totalTransacted ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: CircleDollarSign, color: "text-amber-600" },
+    { label: "Total Barbearias", value: stats?.totalTenants ?? 0, icon: Building2, color: "text-blue-600", trend: "+3 este mês", isPositive: true },
+    { label: "Assinaturas Ativas", value: stats?.activeSubs ?? 0, icon: CreditCard, color: "text-green-600", trend: "+12%", isPositive: true },
+    { label: "MRR Estimado", value: `R$ ${(stats?.mrr ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: "text-emerald-600", trend: "+R$ 450", isPositive: true },
+    { label: "Total Transacionado", value: `R$ ${(stats?.totalTransacted ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: CircleDollarSign, color: "text-amber-600", trend: "+18%", isPositive: true },
     { label: "Cashback Emitido", value: `R$ ${(stats?.totalCashback ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: Award, color: "text-purple-600" },
     { label: "Créditos Ativos", value: `R$ ${(stats?.totalCredits ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: Wallet, color: "text-orange-600" },
-    { label: "Total de Clientes", value: stats?.totalCustomers ?? 0, icon: Users, color: "text-cyan-600" },
+    { label: "Total de Clientes", value: stats?.totalCustomers ?? 0, icon: Users, color: "text-cyan-600", trend: "+156", isPositive: true },
     { label: "Total de Barbeiros", value: stats?.totalBarbers ?? 0, icon: CalendarCheck, color: "text-rose-600" },
   ];
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard Global</h2>
-        <p className="text-muted-foreground underline decoration-primary/30 underline-offset-4">
-          Métricas consolidadas de toda a plataforma SaaS.
-        </p>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard Global</h2>
+          <p className="text-muted-foreground">
+            Métricas consolidadas da plataforma SaaS.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button className="bg-primary hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" /> Nova Barbearia
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -157,41 +169,40 @@ function AdminDashboard() {
           ))
         ) : (
           statCards.map((stat, i) => (
-            <Card key={i} className="hover:shadow-md transition-shadow cursor-default group">
+            <Card key={i} className="hover:shadow-lg transition-all cursor-default group border-primary/5 hover:border-primary/20">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
                   {stat.label}
                 </CardTitle>
-                <stat.icon className={cn("h-4 w-4", stat.color)} />
+                <div className={cn("p-2 rounded-lg bg-background shadow-sm border group-hover:scale-110 transition-transform")}>
+                  <stat.icon className={cn("h-4 w-4", stat.color)} />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-2xl font-bold tracking-tight">{stat.value}</div>
+                {stat.trend && (
+                  <div className="flex items-center mt-1">
+                    {stat.isPositive ? (
+                      <ArrowUpRight className="h-3 w-3 text-emerald-500 mr-1" />
+                    ) : (
+                      <ArrowDownRight className="h-3 w-3 text-rose-500 mr-1" />
+                    )}
+                    <span className={cn(
+                      "text-xs font-medium",
+                      stat.isPositive ? "text-emerald-500" : "text-rose-500"
+                    )}>
+                      {stat.trend}
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))
         )}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Crescimento</CardTitle>
-            <CardDescription>Visualização rápida de novas barbearias por mês.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[200px] flex items-center justify-center text-muted-foreground italic border-t mt-2">
-            Gráfico de barras (implementar com Recharts futuramente)
-          </CardContent>
-        </Card>
-        
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Distribuição de Planos</CardTitle>
-            <CardDescription>Porcentagem de usuários em cada nível.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[200px] flex items-center justify-center text-muted-foreground italic border-t mt-2">
-            Gráfico de pizza (implementar com Recharts futuramente)
-          </CardContent>
-        </Card>
+      <div className="grid gap-6">
+        <AdminChartsTab />
       </div>
     </div>
   );
