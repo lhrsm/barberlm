@@ -39,11 +39,12 @@ function AdminSubscriptions() {
   const { data: subscriptions, isLoading } = useQuery({
     queryKey: ["admin-subscriptions"],
     queryFn: async () => {
+      // Usando query direta para garantir que o join funcione mesmo sem FK explícita no cliente
       const { data, error } = await supabase
         .from("subscriptions")
         .select(`
           *,
-          profiles:user_id (
+          profiles (
             business_name,
             whatsapp_number
           )
@@ -54,7 +55,7 @@ function AdminSubscriptions() {
         console.error("Error fetching subscriptions:", error);
         throw error;
       }
-      return data || [];
+      return data as any[];
     }
   });
 
