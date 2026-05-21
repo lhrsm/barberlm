@@ -51,11 +51,11 @@ function AdminSubscriptions() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as any[];
     }
   });
 
-  const filteredSubscriptions = subscriptions?.filter(sub => 
+  const filteredSubscriptions = subscriptions?.filter((sub: any) => 
     sub.profiles?.business_name?.toLowerCase().includes(search.toLowerCase()) ||
     sub.stripe_subscription_id?.toLowerCase().includes(search.toLowerCase())
   );
