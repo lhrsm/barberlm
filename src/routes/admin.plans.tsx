@@ -17,7 +17,8 @@ import {
   Calendar,
   DollarSign,
   Activity,
-  LifeBuoy
+  LifeBuoy,
+  User
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -183,7 +184,8 @@ function AdminPlans() {
                           {key === 'financeiro' && <DollarSign size={14} className="text-amber-400" />}
                           {key === 'automations' && <Activity size={14} className="text-purple-400" />}
                           {key === 'support' && <LifeBuoy size={14} className="text-blue-400" />}
-                          {!['whatsapp', 'cashback', 'ia', 'reports', 'analytics', 'agenda', 'financeiro', 'automations', 'support'].includes(key) && <Check size={14} className="text-gray-400" />}
+                          {key === 'clientes' && <User size={14} className="text-cyan-400" />}
+                          {!['whatsapp', 'cashback', 'ia', 'reports', 'analytics', 'agenda', 'financeiro', 'automations', 'support', 'clientes'].includes(key) && <Check size={14} className="text-gray-400" />}
                         </div>
                         <span className="text-xs font-bold text-gray-300 capitalize group-hover/item:text-white transition-colors">{key.replace('_', ' ')}</span>
                       </div>
