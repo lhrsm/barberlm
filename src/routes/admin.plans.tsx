@@ -104,18 +104,21 @@ function AdminPlans() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Gestão de Planos</h2>
-          <p className="text-muted-foreground">Configure os recursos e limites de cada nível de assinatura.</p>
+          <h2 className="text-4xl font-black tracking-tight text-white italic uppercase">Níveis de Assinatura</h2>
+          <p className="text-gray-400 font-medium">Configure os recursos e limites de cada nível do SaaS.</p>
         </div>
-        <Button onClick={() => toast.info("Funcionalidade de criar planos em breve")}>
-          <Plus className="mr-2 h-4 w-4" /> Novo Plano
+        <Button 
+          onClick={() => toast.info("Funcionalidade de criar planos em breve")}
+          className="h-12 px-8 rounded-2xl bg-white/5 border-white/10 text-white gap-2 font-bold uppercase tracking-wider text-xs italic transition-all hover:bg-white/10"
+        >
+          <Plus className="mr-2 h-4 w-4 text-purple-400" /> Novo Plano
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-8 md:grid-cols-3">
         {plans?.map((plan) => (
           <Card key={plan.id} className={cn(
             "relative flex flex-col",
