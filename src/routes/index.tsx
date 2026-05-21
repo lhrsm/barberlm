@@ -59,7 +59,7 @@ function LandingPageComponent() {
             <div className="p-2 bg-primary/20 rounded-lg group-hover:bg-primary/30 transition-colors">
               <Scissors className="text-primary h-6 w-6" />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white">Barber<span className="text-primary">LM</span></span>
+            <span className="text-2xl font-extrabold tracking-tighter text-white italic uppercase">Barbe<span className="text-primary">x</span></span>
           </div>
           <div className="hidden lg:flex items-center gap-10">
             <a href="#funcionalidades" className="text-sm font-medium text-white/70 hover:text-white transition-colors">Funcionalidades</a>
