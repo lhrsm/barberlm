@@ -59,6 +59,7 @@ function AdminSettings() {
 
   const updateMutation = useMutation({
     mutationFn: async (newData: any) => {
+      if (!settings?.id) throw new Error("ID de configurações não encontrado");
       const { error } = await supabase
         .from("system_settings")
         .update(newData)
