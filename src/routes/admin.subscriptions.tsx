@@ -128,7 +128,7 @@ function AdminSubscriptions() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredSubscriptions?.map((sub) => (
+                filteredSubscriptions?.map((sub: any) => (
                   <TableRow key={sub.id} className="border-white/5 hover:bg-white/5 transition-colors group">
                     <TableCell className="py-6 pl-8">
                       <div className="flex items-center gap-4">
