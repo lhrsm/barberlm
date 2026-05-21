@@ -14,10 +14,13 @@ import {
   CalendarDays,
   DollarSign,
   Filter,
-  CreditCard
+  CreditCard,
+  Building2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -168,143 +171,136 @@ function AdminTenants() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-8 pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">Gestão de Barbearias</h2>
-          <p className="text-muted-foreground">Visualize e gerencie todos os clientes da plataforma.</p>
+          <h2 className="text-4xl font-black tracking-tight text-white italic">GESTOR DE BARBEARIAS</h2>
+          <p className="text-gray-400 font-medium">Controle total sobre os parceiros da plataforma.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-3">
+          <div className="relative w-full md:w-96 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-purple-400 transition-colors" />
             <Input 
-              placeholder="Buscar por nome ou WhatsApp..." 
-              className="pl-10"
+              placeholder="Buscar barbearia..." 
+              className="pl-12 h-12 bg-white/5 border-white/10 rounded-2xl focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon">
-            <Filter className="h-4 w-4" />
+          <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl bg-white/5 border-white/10 hover:bg-white/10">
+            <Filter className="h-5 w-5 text-gray-400" />
           </Button>
         </div>
       </div>
 
-      <Card>
+      <Card className="glass border-white/5 rounded-[2.5rem] overflow-hidden shadow-none">
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Barbearia</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Plano</TableHead>
-                <TableHead>Cadastro</TableHead>
-                <TableHead>Métricas</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+            <TableHeader className="bg-white/5">
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="text-gray-400 font-bold uppercase tracking-widest text-[10px] py-6 pl-8">Barbearia</TableHead>
+                <TableHead className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Status</TableHead>
+                <TableHead className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Plano</TableHead>
+                <TableHead className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Métricas</TableHead>
+                <TableHead className="text-right text-gray-400 font-bold uppercase tracking-widest text-[10px] pr-8">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><div className="h-5 w-32 bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><div className="h-5 w-20 bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><div className="h-5 w-16 bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><div className="h-5 w-24 bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell><div className="h-5 w-40 bg-muted animate-pulse rounded" /></TableCell>
-                    <TableCell className="text-right"><div className="h-8 w-8 bg-muted animate-pulse rounded ml-auto" /></TableCell>
+                  <TableRow key={i} className="border-white/5">
+                    <TableCell className="pl-8"><Skeleton className="h-10 w-40 bg-white/5 rounded-xl" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-20 bg-white/5 rounded-lg" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-16 bg-white/5 rounded-lg" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-32 bg-white/5 rounded-lg" /></TableCell>
+                    <TableCell className="pr-8"><Skeleton className="h-8 w-8 bg-white/5 rounded-lg ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : filteredTenants?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground italic">
+                  <TableCell colSpan={5} className="text-center py-20 text-gray-500 italic">
                     Nenhuma barbearia encontrada.
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredTenants?.map((tenant) => (
-                  <TableRow key={tenant.id} className="group">
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-foreground">{tenant.business_name || "Sem nome"}</span>
-                        <span className="text-xs text-muted-foreground">{tenant.whatsapp_number || "Sem WhatsApp"}</span>
+                  <TableRow key={tenant.id} className="border-white/5 hover:bg-white/5 transition-colors group">
+                    <TableCell className="py-6 pl-8">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border border-white/5">
+                          <Building2 className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-white group-hover:text-purple-400 transition-colors">{tenant.business_name || "Sem nome"}</span>
+                          <span className="text-xs text-gray-500 font-medium">{tenant.whatsapp_number || "Sem WhatsApp"}</span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={tenant.status === 'blocked' ? 'destructive' : 'default'} className="capitalize">
-                        {tenant.status === 'blocked' ? 'Bloqueado' : tenant.status || 'Ativo'}
+                      <Badge className={cn(
+                        "rounded-lg px-2 py-0.5 text-[10px] border-none font-bold uppercase tracking-tighter",
+                        tenant.status === 'blocked' 
+                          ? "bg-rose-500/20 text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.2)]" 
+                          : "bg-emerald-500/20 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                      )}>
+                        {tenant.status === 'blocked' ? 'Bloqueado' : 'Ativo'}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="capitalize bg-primary/5 text-primary border-primary/20">
+                      <Badge variant="outline" className="rounded-lg px-2 py-0.5 text-[10px] border-white/10 bg-white/5 text-purple-400 font-bold uppercase italic">
                         {tenant.plan || 'Free'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(tenant.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                    </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1" title="Clientes">
-                          <Users size={12} className="text-blue-500" />
-                          {tenant.stats.customers}
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-gray-500 font-bold uppercase">Clientes</span>
+                          <span className="text-sm font-bold text-white">{tenant.stats.customers}</span>
                         </div>
-                        <div className="flex items-center gap-1" title="Barbeiros">
-                          <CalendarDays size={12} className="text-green-500" />
-                          {tenant.stats.barbers}
-                        </div>
-                        <div className="flex items-center gap-1" title="Faturamento total">
-                          <DollarSign size={12} className="text-amber-500" />
-                          R$ {tenant.stats.revenue.toLocaleString('pt-BR')}
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-gray-500 font-bold uppercase">Receita</span>
+                          <span className="text-sm font-bold text-emerald-400">R$ {tenant.stats.revenue.toLocaleString('pt-BR')}</span>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right pr-8">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="hover:bg-purple-500/20 hover:text-purple-400 rounded-xl transition-all">
+                            <MoreVertical className="h-5 w-5" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                          <DropdownMenuLabel>Ações Administrativas</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => impersonate(tenant.id)}>
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Entrar como barbearia
+                        <DropdownMenuContent align="end" className="w-64 glass border-white/10 rounded-2xl p-2 text-white">
+                          <DropdownMenuLabel className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-3 py-2">Comandos do Sistema</DropdownMenuLabel>
+                          <DropdownMenuItem className="rounded-xl focus:bg-white/10 cursor-pointer transition-all" onClick={() => impersonate(tenant.id)}>
+                            <ExternalLink className="mr-3 h-4 w-4 text-purple-400" />
+                            <span className="font-medium">Modo Visualização</span>
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => navigate({ to: `/admin/plans` })}>
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            Alterar Plano
+                          <DropdownMenuSeparator className="bg-white/5 my-2" />
+                          <DropdownMenuItem className="rounded-xl focus:bg-white/10 cursor-pointer transition-all" onClick={() => navigate({ to: `/admin/plans` })}>
+                            <CreditCard className="mr-3 h-4 w-4 text-blue-400" />
+                            <span className="font-medium">Gestão de Plano</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toast.info("Funcionalidade em desenvolvimento")}>
-                            <KeyRound className="mr-2 h-4 w-4" />
-                            Resetar Senha
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate({ to: `/admin/analytics` })}>
-                            <History className="mr-2 h-4 w-4" />
-                            Ver Histórico
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
+                          <DropdownMenuSeparator className="bg-white/5 my-2" />
                           {tenant.status === 'blocked' ? (
                             <DropdownMenuItem 
-                              className="text-green-600 focus:text-green-600"
+                              className="rounded-xl focus:bg-emerald-500/20 text-emerald-400 cursor-pointer transition-all"
                               onClick={() => updateStatusMutation.mutate({ id: tenant.id, status: 'active' })}
                             >
-                              <Unlock className="mr-2 h-4 w-4" />
-                              Desbloquear Acesso
+                              <Unlock className="mr-3 h-4 w-4" />
+                              <span className="font-bold">Desbloquear</span>
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem 
-                              className="text-destructive focus:text-destructive"
+                              className="rounded-xl focus:bg-rose-500/20 text-rose-400 cursor-pointer transition-all"
                               onClick={() => {
-                                if (confirm(`Tem certeza que deseja bloquear o acesso de ${tenant.business_name}?`)) {
+                                if (confirm(`BLOQUEAR ACESSO: ${tenant.business_name}?`)) {
                                   updateStatusMutation.mutate({ id: tenant.id, status: 'blocked' });
                                 }
                               }}
                             >
-                              <Ban className="mr-2 h-4 w-4" />
-                              Bloquear Tenant
+                              <Ban className="mr-3 h-4 w-4" />
+                              <span className="font-bold">Suspender</span>
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -318,11 +314,14 @@ function AdminTenants() {
         </CardContent>
       </Card>
       
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3">
-        <AlertTriangle className="text-amber-500 shrink-0" />
-        <p className="text-sm text-amber-800">
-          <strong>Atenção:</strong> Bloquear um tenant impedirá que qualquer usuário associado a essa barbearia acesse o sistema. O faturamento e os dados permanecerão preservados.
-        </p>
+      <div className="bg-rose-500/10 border border-rose-500/20 rounded-3xl p-6 flex gap-4 backdrop-blur-md">
+        <AlertTriangle className="text-rose-400 shrink-0 w-6 h-6" />
+        <div className="space-y-1">
+          <p className="text-sm font-bold text-white uppercase tracking-tight">Protocolo de Segurança</p>
+          <p className="text-xs text-gray-400 leading-relaxed font-medium">
+            A suspensão de um tenant bloqueia imediatamente o acesso de todos os profissionais e clientes vinculados. Os dados financeiros e históricos permanecem criptografados e preservados no cluster.
+          </p>
+        </div>
       </div>
     </div>
   );
