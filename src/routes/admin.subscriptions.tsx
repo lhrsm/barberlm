@@ -7,12 +7,9 @@ import {
   Filter, 
   User, 
   Calendar,
-  CheckCircle2,
-  Clock,
-  XCircle,
   ExternalLink
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +24,6 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/subscriptions")({
   component: AdminSubscriptions,
@@ -39,17 +35,16 @@ function AdminSubscriptions() {
   const { data: subscriptions, isLoading } = useQuery({
     queryKey: ["admin-subscriptions"],
     queryFn: async () => {
-      // Usando query direta para garantir que o join funcione mesmo sem FK explícita no cliente
       const { data, error } = await supabase
         .from("subscriptions")
         .select(`
           *,
-          profiles:user_id (
+          profiles (
             business_name,
             whatsapp_number
           )
         `)
-        .order('created_at', { ascending: false }) as any;
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error("Error fetching subscriptions:", error);
@@ -59,16 +54,18 @@ function AdminSubscriptions() {
     }
   });
 
-  const filteredSubscriptions = subscriptions?.filter((sub: any) => 
-    sub.profiles?.business_name?.toLowerCase().includes(search.toLowerCase()) ||
-    sub.stripe_subscription_id?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredSubscriptions = subscriptions?.filter((sub: any) => {
+    const bizName = sub.profiles?.business_name?.toLowerCase() || "";
+    const stripeId = sub.stripe_subscription_id?.toLowerCase() || "";
+    const searchTerm = search.toLowerCase();
+    return bizName.includes(searchTerm) || stripeId.includes(searchTerm);
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
         return <Badge className="bg-emerald-500/20 text-emerald-400 border-none shadow-[0_0_10px_rgba(16,185,129,0.2)]">Ativa</Badge>;
-      case 'trailing':
+      case 'trialing':
         return <Badge className="bg-blue-500/20 text-blue-400 border-none">Trial</Badge>;
       case 'past_due':
         return <Badge className="bg-amber-500/20 text-amber-400 border-none">Atrasada</Badge>;
@@ -91,7 +88,7 @@ function AdminSubscriptions() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input 
               placeholder="Buscar por barbearia ou ID..." 
-              className="pl-12 h-12 bg-white/5 border-white/10 rounded-2xl"
+              className="pl-12 h-12 bg-white/5 border-white/10 rounded-2xl text-white"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

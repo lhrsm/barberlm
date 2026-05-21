@@ -115,8 +115,8 @@ function AdminSettings() {
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-4xl font-black tracking-tight text-white italic uppercase">Configurações de SaaS</h2>
-          <p className="text-gray-400 font-medium text-lg">Gerenciamento global de infraestrutura e segurança.</p>
+          <h2 className="text-4xl font-black tracking-tight text-white italic uppercase">{formData?.saas_name || "Configurações de SaaS"}</h2>
+          <p className="text-gray-400 font-medium text-lg">{formData?.main_url || "Gerenciamento global de infraestrutura e segurança."}</p>
         </div>
         <Button 
           onClick={handleSave} 
