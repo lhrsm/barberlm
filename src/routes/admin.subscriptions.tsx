@@ -32,14 +32,15 @@ export const Route = createFileRoute("/admin/subscriptions")({
 function AdminSubscriptions() {
   const [search, setSearch] = useState("");
 
-  const { data: subscriptions, isLoading } = useQuery({
+  const { data: subscriptions, isLoading, error } = useQuery({
     queryKey: ["admin-subscriptions"],
     queryFn: async () => {
+      console.log("Fetching subscriptions...");
       const { data, error } = await supabase
         .from("subscriptions")
         .select(`
           *,
-          profiles (
+          profiles:user_id (
             business_name,
             whatsapp_number
           )

@@ -37,11 +37,15 @@ function AdminPlans() {
   const [editingPlan, setEditingPlan] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
 
-  const { data: plans, isLoading } = useQuery({
+  const { data: plans, isLoading, error } = useQuery({
     queryKey: ["admin-plans"],
     queryFn: async () => {
+      console.log("Fetching plans for admin...");
       const { data, error } = await supabase.from("plans").select("*").order("price_monthly");
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching plans:", error);
+        throw error;
+      }
       return data;
     }
   });
