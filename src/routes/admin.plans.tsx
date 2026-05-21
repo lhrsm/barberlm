@@ -121,16 +121,22 @@ function AdminPlans() {
       <div className="grid gap-8 md:grid-cols-3">
         {plans?.map((plan) => (
           <Card key={plan.id} className={cn(
-            "relative flex flex-col",
-            editingPlan === plan.id ? "ring-2 ring-primary border-primary" : ""
+            "relative flex flex-col glass border-white/5 rounded-[2.5rem] overflow-hidden group hover:border-purple-500/30 transition-all duration-500",
+            editingPlan === plan.id ? "ring-2 ring-purple-500 border-purple-500" : ""
           )}>
-            <CardHeader>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader className="pt-8 px-8 pb-6">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
+                  <CardTitle className="text-2xl font-black text-white italic tracking-tighter uppercase">{plan.name}</CardTitle>
+                  <CardDescription className="text-gray-400 font-medium">{plan.description}</CardDescription>
                 </div>
-                <Badge variant={plan.active ? "default" : "secondary"}>
+                <Badge className={cn(
+                  "rounded-lg px-2 py-0.5 text-[10px] border-none font-bold uppercase tracking-tighter",
+                  plan.active 
+                    ? "bg-emerald-500/20 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]" 
+                    : "bg-gray-500/20 text-gray-400"
+                )}>
                   {plan.active ? "Ativo" : "Inativo"}
                 </Badge>
               </div>
