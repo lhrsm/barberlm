@@ -14,9 +14,16 @@ import {
   LogOut,
   ShieldCheck,
   Menu,
-  X
+  X,
+  History,
+  Settings,
+  ArrowUpRight,
+  TrendingUp,
+  LineChart as LineChartIcon,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -28,9 +35,10 @@ const adminNavItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard" },
   { label: "Barbearias", icon: Building2, to: "/admin/tenants" },
   { label: "Planos", icon: CreditCard, to: "/admin/plans" },
-  { label: "Financeiro SaaS", icon: Activity, to: "/admin/finance" },
-  { label: "Gráficos Detalhados", icon: BarChart3, to: "/admin/analytics" },
-  { label: "Erros", icon: AlertCircle, to: "/admin/errors" },
+  { label: "Receita", icon: TrendingUp, to: "/admin/finance" },
+  { label: "Analytics", icon: BarChart3, to: "/admin/analytics" },
+  { label: "Logs do Sistema", icon: History, to: "/admin/errors" },
+  { label: "Configurações", icon: Settings, to: "/admin/settings" },
   { label: "Suporte", icon: LifeBuoy, to: "/admin/support" },
 ];
 
