@@ -175,7 +175,11 @@ function AdminPlans() {
                           {key === 'ia' && <Zap size={14} className="text-purple-400" />}
                           {key === 'reports' && <BarChart size={14} className="text-blue-400" />}
                           {key === 'analytics' && <Layout size={14} className="text-rose-400" />}
-                          {!['whatsapp', 'cashback', 'ia', 'reports', 'analytics'].includes(key) && <Check size={14} className="text-gray-400" />}
+                          {key === 'agenda' && <Calendar size={14} className="text-emerald-400" />}
+                          {key === 'financeiro' && <DollarSign size={14} className="text-amber-400" />}
+                          {key === 'automations' && <Activity size={14} className="text-purple-400" />}
+                          {key === 'support' && <LifeBuoy size={14} className="text-blue-400" />}
+                          {!['whatsapp', 'cashback', 'ia', 'reports', 'analytics', 'agenda', 'financeiro', 'automations', 'support'].includes(key) && <Check size={14} className="text-gray-400" />}
                         </div>
                         <span className="text-xs font-bold text-gray-300 capitalize group-hover/item:text-white transition-colors">{key.replace('_', ' ')}</span>
                       </div>
