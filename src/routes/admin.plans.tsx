@@ -104,30 +104,39 @@ function AdminPlans() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Gestão de Planos</h2>
-          <p className="text-muted-foreground">Configure os recursos e limites de cada nível de assinatura.</p>
+          <h2 className="text-4xl font-black tracking-tight text-white italic uppercase">Níveis de Assinatura</h2>
+          <p className="text-gray-400 font-medium">Configure os recursos e limites de cada nível do SaaS.</p>
         </div>
-        <Button onClick={() => toast.info("Funcionalidade de criar planos em breve")}>
-          <Plus className="mr-2 h-4 w-4" /> Novo Plano
+        <Button 
+          onClick={() => toast.info("Funcionalidade de criar planos em breve")}
+          className="h-12 px-8 rounded-2xl bg-white/5 border-white/10 text-white gap-2 font-bold uppercase tracking-wider text-xs italic transition-all hover:bg-white/10"
+        >
+          <Plus className="mr-2 h-4 w-4 text-purple-400" /> Novo Plano
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-8 md:grid-cols-3">
         {plans?.map((plan) => (
           <Card key={plan.id} className={cn(
-            "relative flex flex-col",
-            editingPlan === plan.id ? "ring-2 ring-primary border-primary" : ""
+            "relative flex flex-col glass border-white/5 rounded-[2.5rem] overflow-hidden group hover:border-purple-500/30 transition-all duration-500",
+            editingPlan === plan.id ? "ring-2 ring-purple-500 border-purple-500" : ""
           )}>
-            <CardHeader>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <CardHeader className="pt-8 px-8 pb-6">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
+                  <CardTitle className="text-2xl font-black text-white italic tracking-tighter uppercase">{plan.name}</CardTitle>
+                  <CardDescription className="text-gray-400 font-medium">{plan.description}</CardDescription>
                 </div>
-                <Badge variant={plan.active ? "default" : "secondary"}>
+                <Badge className={cn(
+                  "rounded-lg px-2 py-0.5 text-[10px] border-none font-bold uppercase tracking-tighter",
+                  plan.active 
+                    ? "bg-emerald-500/20 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]" 
+                    : "bg-gray-500/20 text-gray-400"
+                )}>
                   {plan.active ? "Ativo" : "Inativo"}
                 </Badge>
               </div>
@@ -144,14 +153,14 @@ function AdminPlans() {
                     <span className="text-sm text-muted-foreground">/ mês</span>
                   </div>
                 ) : (
-                  <div className="flex items-baseline gap-1 text-2xl font-bold">
+                  <div className="flex items-baseline gap-1 text-4xl font-black text-white italic tracking-tighter">
                     R$ {plan.price_monthly}
-                    <span className="text-sm font-normal text-muted-foreground">/ mês</span>
+                    <span className="text-sm font-bold text-gray-500 ml-2 uppercase tracking-widest not-italic">/ mês</span>
                   </div>
                 )}
               </div>
             </CardHeader>
-            <CardContent className="flex-1 space-y-6">
+            <CardContent className="flex-1 space-y-8 px-8 pb-8">
               <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                   <Zap size={12} /> Recursos
@@ -207,22 +216,22 @@ function AdminPlans() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="border-t bg-muted/20 p-4">
+            <CardFooter className="bg-white/5 p-6 border-t border-white/5">
               {editingPlan === plan.id ? (
-                <div className="flex gap-2 w-full">
-                  <Button variant="outline" className="flex-1" onClick={() => setEditingPlan(null)}>
+                <div className="flex gap-3 w-full">
+                  <Button variant="ghost" className="flex-1 rounded-xl text-gray-400 font-bold uppercase tracking-widest text-[10px]" onClick={() => setEditingPlan(null)}>
                     Cancelar
                   </Button>
-                  <Button className="flex-1" onClick={() => updatePlanMutation.mutate(editForm)}>
+                  <Button className="flex-1 rounded-xl bg-purple-600 text-white font-bold uppercase tracking-widest text-[10px]" onClick={() => updatePlanMutation.mutate(editForm)}>
                     <Save className="mr-2 h-4 w-4" /> Salvar
                   </Button>
                 </div>
               ) : (
-                <div className="flex gap-2 w-full">
-                  <Button variant="outline" className="flex-1" onClick={() => startEditing(plan)}>
-                    <Edit2 className="mr-2 h-4 w-4" /> Editar
+                <div className="flex gap-3 w-full">
+                  <Button variant="outline" className="flex-1 rounded-xl border-white/10 bg-white/5 text-gray-300 font-bold uppercase tracking-widest text-[10px] hover:bg-white/10" onClick={() => startEditing(plan)}>
+                    <Edit2 className="mr-2 h-3 w-3" /> Editar Plano
                   </Button>
-                  <Button variant="ghost" className="px-2 text-destructive hover:bg-destructive/10" onClick={() => toast.error("Não é possível excluir planos em uso")}>
+                  <Button variant="ghost" className="px-3 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors" onClick={() => toast.error("Não é possível excluir planos em uso")}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
