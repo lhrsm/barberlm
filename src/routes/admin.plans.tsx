@@ -153,14 +153,14 @@ function AdminPlans() {
                     <span className="text-sm text-muted-foreground">/ mês</span>
                   </div>
                 ) : (
-                  <div className="flex items-baseline gap-1 text-2xl font-bold">
+                  <div className="flex items-baseline gap-1 text-4xl font-black text-white italic tracking-tighter">
                     R$ {plan.price_monthly}
-                    <span className="text-sm font-normal text-muted-foreground">/ mês</span>
+                    <span className="text-sm font-bold text-gray-500 ml-2 uppercase tracking-widest not-italic">/ mês</span>
                   </div>
                 )}
               </div>
             </CardHeader>
-            <CardContent className="flex-1 space-y-6">
+            <CardContent className="flex-1 space-y-8 px-8 pb-8">
               <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                   <Zap size={12} /> Recursos
@@ -216,22 +216,22 @@ function AdminPlans() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="border-t bg-muted/20 p-4">
+            <CardFooter className="bg-white/5 p-6 border-t border-white/5">
               {editingPlan === plan.id ? (
-                <div className="flex gap-2 w-full">
-                  <Button variant="outline" className="flex-1" onClick={() => setEditingPlan(null)}>
+                <div className="flex gap-3 w-full">
+                  <Button variant="ghost" className="flex-1 rounded-xl text-gray-400 font-bold uppercase tracking-widest text-[10px]" onClick={() => setEditingPlan(null)}>
                     Cancelar
                   </Button>
-                  <Button className="flex-1" onClick={() => updatePlanMutation.mutate(editForm)}>
+                  <Button className="flex-1 rounded-xl bg-purple-600 text-white font-bold uppercase tracking-widest text-[10px]" onClick={() => updatePlanMutation.mutate(editForm)}>
                     <Save className="mr-2 h-4 w-4" /> Salvar
                   </Button>
                 </div>
               ) : (
-                <div className="flex gap-2 w-full">
-                  <Button variant="outline" className="flex-1" onClick={() => startEditing(plan)}>
-                    <Edit2 className="mr-2 h-4 w-4" /> Editar
+                <div className="flex gap-3 w-full">
+                  <Button variant="outline" className="flex-1 rounded-xl border-white/10 bg-white/5 text-gray-300 font-bold uppercase tracking-widest text-[10px] hover:bg-white/10" onClick={() => startEditing(plan)}>
+                    <Edit2 className="mr-2 h-3 w-3" /> Editar Plano
                   </Button>
-                  <Button variant="ghost" className="px-2 text-destructive hover:bg-destructive/10" onClick={() => toast.error("Não é possível excluir planos em uso")}>
+                  <Button variant="ghost" className="px-3 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors" onClick={() => toast.error("Não é possível excluir planos em uso")}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
