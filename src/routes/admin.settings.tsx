@@ -148,18 +148,70 @@ function AdminSettings() {
                     className="h-12 bg-white/5 border-white/10 rounded-xl"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Logo do SaaS (URL)</Label>
-                  <div className="flex gap-4">
-                    <Input 
-                      value={formData.saas_logo}
-                      onChange={(e) => setFormData({...formData, saas_logo: e.target.value})}
-                      className="h-12 bg-white/5 border-white/10 rounded-xl flex-1"
-                      placeholder="https://..."
-                    />
-                    <Button variant="outline" className="h-12 w-12 rounded-xl bg-white/5 border-white/10 shrink-0">
-                      <Upload size={18} />
-                    </Button>
+                <div className="space-y-4">
+                  <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Logo do SaaS</Label>
+                  <div className="flex flex-col gap-4">
+                    {formData.saas_logo && (
+                      <div className="w-32 h-32 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-4">
+                        <img src={formData.saas_logo} alt="Logo preview" className="max-w-full max-h-full object-contain" />
+                      </div>
+                    )}
+                    <div className="flex gap-4">
+                      <Input 
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        id="logo-upload"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          
+                          const fileExt = file.name.split('.').pop();
+                          const filePath = `saas-logo-${Math.random()}.${fileExt}`;
+                          
+                          toast.promise(
+                            (async () => {
+                              const { data, error } = await supabase.storage
+                                .from('system-assets')
+                                .upload(filePath, file);
+                              
+                              if (error) throw error;
+                              
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('system-assets')
+                                .getPublicUrl(filePath);
+                                
+                              setFormData({ ...formData, saas_logo: publicUrl });
+                              return publicUrl;
+                            })(),
+                            {
+                              loading: 'Enviando logo...',
+                              success: 'Logo enviada com sucesso!',
+                              error: (err) => `Erro ao enviar: ${err.message}`
+                            }
+                          );
+                        }}
+                      />
+                      <Button 
+                        asChild
+                        variant="outline" 
+                        className="h-12 flex-1 rounded-xl bg-white/5 border-white/10 gap-2 font-bold uppercase tracking-widest text-[10px]"
+                      >
+                        <label htmlFor="logo-upload" className="cursor-pointer">
+                          <Upload size={18} />
+                          {formData.saas_logo ? "Alterar Logo" : "Upload Logo"}
+                        </label>
+                      </Button>
+                      {formData.saas_logo && (
+                        <Button 
+                          variant="ghost" 
+                          onClick={() => setFormData({...formData, saas_logo: null})}
+                          className="h-12 px-4 rounded-xl text-rose-500 hover:bg-rose-500/10"
+                        >
+                          Remover
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
