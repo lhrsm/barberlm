@@ -535,7 +535,7 @@ function LandingPageComponent() {
             <div className="col-span-2">
               <div className="flex items-center gap-2 mb-6">
                 <Scissors className="text-primary h-8 w-8" />
-                <span className="text-3xl font-bold tracking-tight text-white">Barber<span className="text-primary">LM</span></span>
+                <span className="text-3xl font-extrabold tracking-tighter text-white italic uppercase">Barbe<span className="text-primary">x</span></span>
               </div>
               <p className="text-white/50 max-w-sm mb-8 text-lg leading-relaxed">
                 Ajudamos barbeiros a profissionalizarem seus negócios através de tecnologia simples, moderna e de alto impacto.
