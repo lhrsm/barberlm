@@ -473,7 +473,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                   <p className="text-gray-400">Comece com o Pro e experimente tudo o que oferecemos.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                   {/* Starter */}
                   <div 
                     onClick={() => setSelectedPlan("starter")}
