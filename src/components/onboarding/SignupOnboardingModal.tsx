@@ -491,7 +491,8 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                   <div 
                     onClick={() => setSelectedPlan("pro")}
                     className={cn(
-                      "p-6 rounded-2xl border cursor-pointer transition-all space-y-4 relative scale-105",
+                      "p-6 rounded-2xl border cursor-pointer transition-all space-y-4 relative md:scale-105",
+
                       selectedPlan === "pro" 
                         ? "bg-primary/20 border-primary shadow-[0_0_40px_rgba(var(--primary),0.2)]" 
                         : "bg-white/5 border-white/5 hover:border-white/10"
