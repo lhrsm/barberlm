@@ -16,6 +16,12 @@ import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
+  head: ({ params }) => ({
+    meta: [
+      { title: `Barbearia | ${params.slug}` },
+      { name: "description", content: "Agende seu horário online de forma rápida e fácil." },
+    ],
+  }),
 });
 
 function ShopPageComponent() {
@@ -201,31 +207,74 @@ function ShopPageComponent() {
 
   async function fetchShopData(targetSlug: string) {
     setLoading(true);
-    // Fetch profile by slug
     try {
-      const { data: profile, error: profileError } = await supabase
+      // Normalização da slug
+      const normalizedSlug = targetSlug.trim().toLowerCase();
+      
+      // Busca pública do perfil (apenas colunas necessárias)
+      const { data: currentShop, error: profileError } = await supabase
         .from("profiles")
-        .select("*")
-        .eq("slug", targetSlug);
+        .select(`
+          id, 
+          business_name, 
+          slug, 
+          whatsapp_number, 
+          whatsapp_enabled, 
+          primary_color, 
+          secondary_color, 
+          logo_url, 
+          scheduling_mode, 
+          cashback_enabled, 
+          cashback_percentage, 
+          address, 
+          google_maps_url, 
+          free_service_threshold, 
+          font_family, 
+          font_size, 
+          font_color, 
+          pix_key, 
+          pix_qr_code_url, 
+          status,
+          trial_end
+        `)
+        .eq("slug", normalizedSlug)
+        .maybeSingle();
 
-      if (profileError || !profile || profile.length === 0) {
+      if (profileError || !currentShop) {
+        console.error("Shop not found or error:", profileError);
         setLoading(false);
         return;
       }
 
-      setShop(profile[0]);
-      const currentShop = profile[0];
+      setShop(currentShop);
 
-      // Fetch services and barbers for this shop
+      // Fetch services, barbers and products for this shop (all public now)
       const [servicesRes, barbersRes, productsRes] = await Promise.all([
-        supabase.from("services").select("*").eq("user_id", currentShop.id).eq("active", true),
-        supabase.from("barbers").select("*, barber_services(service_id)").eq("user_id", currentShop.id).eq("active", true),
-        supabase.from("products").select("*").eq("user_id", currentShop.id).eq("active", true),
+        supabase
+          .from("services")
+          .select("*")
+          .eq("user_id", currentShop.id)
+          .eq("active", true),
+        supabase
+          .from("barbers")
+          .select("*, barber_services(service_id)")
+          .eq("user_id", currentShop.id)
+          .eq("active", true),
+        supabase
+          .from("products")
+          .select("*")
+          .eq("user_id", currentShop.id)
+          .eq("active", true),
       ]);
 
       setServices(servicesRes.data || []);
       setBarbers(barbersRes.data || []);
       setProducts(productsRes.data || []);
+      
+      // Atualizar o título da página dinamicamente
+      if (typeof document !== 'undefined') {
+        document.title = `${currentShop.business_name} | Agendamento Online`;
+      }
     } catch (error) {
       console.error("Error fetching shop data:", error);
     } finally {
