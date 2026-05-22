@@ -93,7 +93,7 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-bold text-sm md:text-base">{ticket.title}</span>
-                {getStatusBadge(ticket.status)}
+                {getStatusBadge(ticket.status || 'open')}
                 {ticket.priority && getPriorityBadge(ticket.priority)}
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">

@@ -189,7 +189,7 @@ function AdminSupport() {
                     >
                       <div className="flex justify-between items-start w-full">
                         <span className="font-bold text-sm text-white line-clamp-1 flex-1 pr-2">{ticket.title}</span>
-                        {getStatusBadge(ticket.status)}
+                        {getStatusBadge(ticket.status || 'open')}
                       </div>
                       <div className="flex items-center justify-between text-[11px]">
                         <div className="flex items-center gap-1.5 text-gray-400">
