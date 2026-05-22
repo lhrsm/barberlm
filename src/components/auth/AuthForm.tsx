@@ -36,11 +36,17 @@ export function AuthForm() {
 
       if (error) throw error;
 
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        toast.error("Este e-mail já está cadastrado.");
+        return;
+      }
+
       toast.success(
         data.session
           ? "Conta criada com sucesso."
           : "Verifique seu e-mail para confirmar o cadastro."
       );
+
     } catch (error: any) {
       toast.error(error.message);
     } finally {

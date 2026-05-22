@@ -117,33 +117,9 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
         return true;
       }
 
-      // 2. Verificar diretamente no Supabase Auth usando a técnica solicitada
-      // Tentamos um login com senha inválida para capturar o erro
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: normalizedEmail,
-        password: 'invalid-password-check-123456'
-      });
+      // Remove the signInWithPassword hack as it fails with Supabase User Enumeration Protection
+      // We rely on the profiles table check and handling signUp errors
 
-      console.log('auth response', authData);
-      console.log('auth error', authError);
-
-      if (authError) {
-        const errorMessage = authError.message.toLowerCase();
-        
-        // Se o erro for "Invalid login credentials", significa que o e-mail EXISTE no Auth
-        // Se fosse "User not found", o Supabase retornaria isso se configurado, 
-        // ou retornaríamos false se o erro for genérico o suficiente.
-        if (
-          errorMessage.includes("invalid login credentials") || 
-          errorMessage.includes("email not confirmed") ||
-          errorMessage.includes("user already registered")
-        ) {
-          console.log('email existence detected via auth error:', authError.message);
-          setEmailExists(true);
-          setShowEmailExistsModal(true);
-          return true;
-        }
-      }
 
       // Se chegamos aqui e não houve erro impeditivo, o e-mail está disponível
       setEmailExists(false);
@@ -187,7 +163,17 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
 
       if (error) throw error;
 
+      // If identities is an empty array and we are using email/password, 
+      // it means the user already exists (with User Enumeration Protection enabled)
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        setEmailExists(true);
+        setShowEmailExistsModal(true);
+        setStep(1); // Go back to first step to show the error
+        return;
+      }
+
       nextStep(); // Go to summary step (Step 5)
+
     } catch (error: any) {
       toast.error(error.message);
     } finally {
