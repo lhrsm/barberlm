@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -115,7 +115,8 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
       toast.success("Ticket aberto com sucesso!");
       onSuccess();
     } catch (error: any) {
-      toast.error("Erro ao abrir ticket: " + error.message);
+      console.error("Erro ao abrir ticket:", error);
+      toast.error("Erro ao abrir ticket: " + (error.message || "Erro desconhecido"));
     } finally {
       setIsSubmitting(false);
       setIsUploading(false);
