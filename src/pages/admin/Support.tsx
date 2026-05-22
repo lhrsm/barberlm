@@ -215,13 +215,14 @@ export default function SuperAdminSupport() {
                       <TableCell className="text-right pr-6 py-4">
                         <div className="flex flex-col items-end">
                           <span className="text-xs font-bold text-foreground">
-                            {format(new Date(ticket.created_at), "dd 'de' MMM", { locale: ptBR })}
+                            {ticket.created_at ? format(new Date(ticket.created_at), "dd 'de' MMM", { locale: ptBR }) : '-'}
                           </span>
                           <span className="text-[10px] text-muted-foreground">
-                            {format(new Date(ticket.created_at), "HH:mm")}
+                            {ticket.created_at ? format(new Date(ticket.created_at), "HH:mm") : '-'}
                           </span>
                         </div>
                       </TableCell>
+
                     </TableRow>
                   ))
                 )}
