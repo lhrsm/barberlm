@@ -236,23 +236,8 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
 
                   <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                   
-                  {(msg.attachment_urls && msg.attachment_urls.length > 0) && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {msg.attachment_urls.map((url: string, i: number) => (
-                        <a 
-                          key={i} 
-                          href={url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className={`flex items-center gap-1.5 p-1.5 rounded-lg border text-[10px] transition-colors ${
-                            msg.is_admin_reply ? "bg-background hover:bg-accent" : "bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground"
-                          }`}
-                        >
-                          <Download size={10} /> Anexo {i + 1}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+                  {/* Attachment rendering removed for now as it needs DB alignment */}
+
 
                   <span className="text-[10px] opacity-60 mt-1 block text-right">
                     {(() => {
