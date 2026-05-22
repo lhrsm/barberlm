@@ -63,10 +63,16 @@ export function OnboardingModal() {
   });
 
   useEffect(() => {
-    if (!prefsLoading && settings && (!preferences || preferences.show_onboarding)) {
+    // Check session storage first to see if shown in this session
+    const hasBeenShownThisSession = sessionStorage.getItem(`onboarding_shown_${user?.id}`);
+    
+    if (!prefsLoading && settings && !hasBeenShownThisSession && (!preferences || preferences.show_onboarding)) {
       setIsOpen(true);
+      if (user?.id) {
+        sessionStorage.setItem(`onboarding_shown_${user.id}`, 'true');
+      }
     }
-  }, [prefsLoading, settings, preferences]);
+  }, [prefsLoading, settings, preferences, user?.id]);
 
   const updatePrefsMutation = useMutation({
     mutationFn: async (show: boolean) => {
