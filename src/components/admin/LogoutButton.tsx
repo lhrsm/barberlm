@@ -49,10 +49,11 @@ export function LogoutButton() {
       <AlertDialogTrigger asChild>
         <Button 
           variant="ghost" 
-          className="w-full justify-start gap-3 px-4 py-3 text-sm font-medium transition-all duration-300 rounded-lg group hover:bg-destructive/10 hover:text-destructive hover:shadow-[0_0_15px_rgba(239,68,68,0.2)] text-muted-foreground"
+          className="w-full md:w-auto justify-start md:justify-center gap-3 px-4 py-3 md:p-2 text-sm font-medium transition-all duration-300 rounded-lg group hover:bg-destructive/10 hover:text-destructive hover:shadow-[0_0_15px_rgba(239,68,68,0.2)] text-muted-foreground"
+          title="Sair do Sistema"
         >
           <LogOut size={20} className="transition-transform group-hover:-translate-x-1" />
-          <span>Sair do Painel</span>
+          <span className="md:hidden">Sair do Painel</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="bg-[#0A0A0A] border-white/10 backdrop-blur-xl shadow-2xl max-w-[400px]">
