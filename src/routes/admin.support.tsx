@@ -42,6 +42,44 @@ function AdminSupport() {
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
+  // Supabase Realtime for Admin
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-support-realtime')
+      .on('postgres_changes', { 
+        event: '*', 
+        table: 'support_tickets',
+        schema: 'public'
+      }, (payload) => {
+        console.log("Admin realtime ticket update:", payload);
+        queryClient.invalidateQueries({ queryKey: ["admin-tickets"] });
+        
+        if (payload.event === 'INSERT') {
+          toast("Novo Ticket", {
+            description: payload.new.title,
+            icon: <LifeBuoy className="h-4 w-4 text-purple-500" />
+          });
+        }
+      })
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        table: 'support_messages',
+        schema: 'public',
+        filter: 'is_admin_reply=eq.false'
+      }, (payload) => {
+        queryClient.invalidateQueries({ queryKey: ["admin-ticket-messages", payload.new.ticket_id] });
+        toast("Nova Mensagem", {
+          description: "Um cliente enviou uma resposta.",
+          icon: <MessageSquare className="h-4 w-4 text-purple-500" />
+        });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const { data: tickets, isLoading } = useQuery({
     queryKey: ["admin-tickets"],
     queryFn: async () => {
