@@ -498,12 +498,12 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                   <div 
                     onClick={() => setSelectedPlan("pro")}
                     className={cn(
-                      "p-6 rounded-2xl border cursor-pointer transition-all space-y-4 relative md:scale-105",
-
+                      "p-5 md:p-6 rounded-2xl border cursor-pointer transition-all space-y-3 md:space-y-4 relative md:scale-105",
                       selectedPlan === "pro" 
                         ? "bg-primary/20 border-primary shadow-[0_0_40px_rgba(var(--primary),0.2)]" 
                         : "bg-white/5 border-white/5 hover:border-white/10"
                     )}
+
                   >
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
                       15 dias grátis
