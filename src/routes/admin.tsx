@@ -182,13 +182,13 @@ function AdminLayout() {
             <div className="pt-8 mt-8 border-t border-white/10 space-y-3">
               <Button
                 variant="outline"
-                className="w-full justify-start gap-4 px-6 py-6 text-lg rounded-2xl border-white/10 bg-white/5 text-white"
+                className="w-full justify-start gap-4 px-6 py-6 text-lg rounded-2xl border-white/10 bg-white/5 text-white hover:bg-purple-500/10 hover:border-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)] transition-all duration-300"
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   navigate({ to: "/dashboard" });
                 }}
               >
-                <ChevronLeft size={22} />
+                <ChevronLeft size={22} className="text-purple-400" />
                 Voltar ao App
               </Button>
               <LogoutButton />
@@ -242,10 +242,10 @@ function AdminLayout() {
             <div className="mt-auto pt-4 border-t border-white/5 space-y-2">
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3 px-4 py-3 text-sm font-medium transition-all duration-300 rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
+                className="w-full justify-start gap-3 px-4 py-3 text-sm font-medium transition-all duration-300 rounded-lg text-gray-400 hover:text-white hover:bg-purple-500/10 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)] group"
                 onClick={() => navigate({ to: "/dashboard" })}
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={18} className="transition-transform group-hover:-translate-x-1 text-purple-400" />
                 <span>Voltar ao App</span>
               </Button>
               <LogoutButton />

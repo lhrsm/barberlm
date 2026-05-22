@@ -249,6 +249,97 @@ function AdminDashboard() {
            <AdminChartsTab />
         </div>
       </motion.div>
-    </div>
+
+      {/* Recent Activity Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.6 }}
+        className="grid gap-6 md:grid-cols-2"
+      >
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-pink-500/20 rounded-xl">
+              <Activity className="w-5 h-5 text-pink-400" />
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight">Atividade Recente</h2>
+          </div>
+          
+          <Card className="glass border-white/5 rounded-3xl overflow-hidden">
+            <CardContent className="p-0">
+              <div className="divide-y divide-white/5">
+                {stats?.totalTenants === 0 ? (
+                   <div className="p-8 text-center text-gray-500 italic">Nenhuma atividade registrada.</div>
+                ) : (
+                  [
+                    { title: "Nova Barbearia Cadastrada", time: "Há 5 minutos", type: "tenant", icon: Building2, color: "text-blue-400" },
+                    { title: "Assinatura Plano Pro Aprovada", time: "Há 12 minutos", type: "payment", icon: Zap, color: "text-purple-400" },
+                    { title: "Ticket de Suporte Resolvido", time: "Há 45 minutos", type: "support", icon: LifeBuoy, color: "text-emerald-400" },
+                    { title: "Novo Barbeiro Adicionado", time: "Há 1 hora", type: "staff", icon: Users, color: "text-amber-400" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors cursor-pointer group">
+                      <div className={cn("p-2 rounded-xl bg-white/5 group-hover:scale-110 transition-transform", item.color)}>
+                        <item.icon size={16} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">{item.title}</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-tighter font-bold">{item.time}</p>
+                      </div>
+                      <ArrowUpRight size={14} className="text-gray-600 group-hover:text-white transition-colors" />
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="p-4 border-t border-white/5 text-center">
+                <Button variant="ghost" size="sm" className="text-xs text-gray-400 hover:text-white">
+                  Ver log completo do sistema
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-cyan-500/20 rounded-xl">
+              <Target className="w-5 h-5 text-cyan-400" />
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight">Metas e Performance</h2>
+          </div>
+          
+          <Card className="glass border-white/5 rounded-3xl p-6 space-y-6">
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
+                <span className="text-gray-400">Meta de Novos Tenants</span>
+                <span className="text-purple-400">85%</span>
+              </div>
+              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full w-[85%] bg-gradient-to-r from-purple-600 to-pink-600 shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
+                <span className="text-gray-400">Taxa de Conversão Pro</span>
+                <span className="text-cyan-400">62%</span>
+              </div>
+              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full w-[62%] bg-gradient-to-r from-cyan-600 to-blue-600 shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center">
+                <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">Churn Rate</p>
+                <p className="text-xl font-black text-rose-400">1.2%</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center">
+                <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">LTV Médio</p>
+                <p className="text-xl font-black text-emerald-400">R$ 450</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </motion.div>
   );
 }
