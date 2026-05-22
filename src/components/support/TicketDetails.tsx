@@ -9,7 +9,8 @@ import {
   Download, 
   Loader2,
   ChevronLeft,
-  CheckCircle2
+  CheckCircle2,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -189,7 +190,7 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
                   </div>
                   <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                   
-                  {msg.attachment_urls?.length > 0 && (
+                  {(msg.attachment_urls && msg.attachment_urls.length > 0) && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {msg.attachment_urls.map((url: string, i: number) => (
                         <a 
