@@ -21,7 +21,8 @@ import {
   ArrowUpRight,
   TrendingUp,
   LineChart as LineChartIcon,
-  Download
+  Download,
+  GraduationCap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +43,7 @@ const adminNavItems = [
   { label: "Analytics", icon: LineChartIcon, to: "/admin/analytics" },
   { label: "Logs do Sistema", icon: History, to: "/admin/errors" },
   { label: "Suporte", icon: LifeBuoy, to: "/admin/support" },
+  { label: "Tutoriais", icon: GraduationCap, to: "/admin/tutorials" },
   { label: "Configurações", icon: Settings, to: "/admin/settings" },
 ];
 
