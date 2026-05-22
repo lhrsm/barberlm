@@ -77,9 +77,9 @@ export default function SuperAdminSupport() {
   }, [queryClient]);
 
   const filteredTickets = tickets?.filter(ticket => 
-    ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (ticket.title?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
     ticket.barbershops?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.id.toLowerCase().includes(searchTerm.toLowerCase())
+    (ticket.id?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
   const getStatusBadge = (status: string) => {
