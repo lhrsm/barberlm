@@ -165,7 +165,13 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
               )}
               
               <span className="text-[10px] opacity-60 mt-2 block text-right">
-                {format(new Date(ticket.created_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                {(() => {
+                  try {
+                    return ticket.created_at ? format(new Date(ticket.created_at), "dd/MM 'às' HH:mm", { locale: ptBR }) : "";
+                  } catch (e) {
+                    return "";
+                  }
+                })()}
               </span>
             </div>
           </div>
@@ -209,7 +215,13 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
                   )}
 
                   <span className="text-[10px] opacity-60 mt-1 block text-right">
-                    {format(new Date(msg.created_at), "HH:mm")}
+                    {(() => {
+                      try {
+                        return msg.created_at ? format(new Date(msg.created_at), "HH:mm") : "";
+                      } catch (e) {
+                        return "";
+                      }
+                    })()}
                   </span>
                 </div>
               </div>
