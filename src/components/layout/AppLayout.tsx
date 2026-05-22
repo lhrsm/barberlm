@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 
 const defaultNavItems = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
@@ -96,6 +97,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
+      <OnboardingModal />
       {isImpersonating && (
         <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between text-sm font-medium z-[60]">
           <div className="flex items-center gap-2">
