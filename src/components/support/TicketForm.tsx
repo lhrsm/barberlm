@@ -72,6 +72,14 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
 
   const onSubmit = async (values: TicketFormValues) => {
     console.log("Submitting ticket form", values);
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error("Erro: Usuário não autenticado.");
+      return;
+    }
+
     if (!tenantId) {
       console.error("Missing tenantId in TicketForm");
       toast.error("Erro: ID da barbearia não encontrado. Tente recarregar a página.");
@@ -107,7 +115,18 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
       }
 
       console.log("Inserting ticket into DB", { ...values, tenantId, attachmentUrls });
-      const { error } = await supabase
+      console.log("Inserindo ticket no DB", {
+        subject: values.subject,
+        category: values.category,
+        priority: values.priority,
+        description: values.description,
+        tenant_id: tenantId,
+        user_id: user.id,
+        status: 'open',
+        attachment_urls: attachmentUrls
+      });
+
+      const { data, error } = await supabase
         .from("support_tickets")
         .insert({
           subject: values.subject,
@@ -115,9 +134,13 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
           priority: values.priority,
           description: values.description,
           tenant_id: tenantId,
+          user_id: user.id,
           status: 'open',
           attachment_urls: attachmentUrls
-        });
+        })
+        .select();
+
+      console.log("Resposta do insert:", { data, error });
 
       if (error) throw error;
 
