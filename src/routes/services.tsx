@@ -56,9 +56,11 @@ function ServicesComponent() {
   }, [user, role]);
 
   async function fetchServices() {
+    if (!user) return;
     const { data, error } = await supabase
       .from("services")
       .select("*")
+      .eq("user_id", user.id)
       .eq("active", true)
       .order("name");
     if (error) toast.error("Erro ao buscar serviços");

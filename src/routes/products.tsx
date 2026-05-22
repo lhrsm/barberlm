@@ -76,9 +76,11 @@ function ProductsComponent() {
   }, [user, role]);
 
   async function fetchProducts() {
+    if (!user) return;
     const { data, error } = await supabase
       .from("products")
       .select("*")
+      .eq("user_id", user.id)
       .eq("active", true)
       .order("name");
     if (error) toast.error("Erro ao buscar produtos");

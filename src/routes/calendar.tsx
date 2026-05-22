@@ -148,6 +148,7 @@ function CalendarComponent() {
     let appQuery = supabase
       .from("appointments")
       .select("*, customers(name), services(name, duration_minutes), barbers(name)")
+      .eq("user_id", user.id)
       .gte("start_time", start.toISOString())
       .lte("start_time", end.toISOString());
     
@@ -160,9 +161,9 @@ function CalendarComponent() {
 
     const [appRes, barbRes, custRes, servRes] = await Promise.all([
       appQuery.order("start_time", { ascending: false }),
-      supabase.from("barbers").select("*").eq("active", true).order("name"),
-      supabase.from("customers").select("*").order("name"),
-      supabase.from("services").select("*").eq("active", true).order("name"),
+      supabase.from("barbers").select("*").eq("user_id", user.id).eq("active", true).order("name"),
+      supabase.from("customers").select("*").eq("user_id", user.id).order("name"),
+      supabase.from("services").select("*").eq("user_id", user.id).eq("active", true).order("name"),
     ]);
 
     if (appRes.data) setAppointments(appRes.data);

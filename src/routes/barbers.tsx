@@ -93,9 +93,11 @@ function BarbersComponent() {
   }, [user, role]);
 
   async function fetchServices() {
+    if (!user) return;
     const { data, error } = await supabase
       .from("services")
       .select("*")
+      .eq("user_id", user.id)
       .eq("active", true)
       .order("name");
     if (error) toast.error("Erro ao buscar serviços");
@@ -103,12 +105,14 @@ function BarbersComponent() {
   }
 
   async function fetchBarbers() {
+    if (!user) return;
     const { data, error } = await supabase
       .from("barbers")
       .select(`
         *,
         barber_services(service_id)
       `)
+      .eq("user_id", user.id)
       .order("name");
     
     if (error) {
