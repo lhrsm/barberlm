@@ -78,14 +78,21 @@ function AdminSupport() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !selectedTicket) return;
 
-      const { error } = await supabase
+      const payload = {
+        ticket_id: selectedTicket.id,
+        sender_id: user.id,
+        message: reply,
+        is_admin_reply: true
+      };
+
+      console.log('ADMIN MESSAGE PAYLOAD', payload);
+
+      const { data, error } = await supabase
         .from("support_messages")
-        .insert({
-          ticket_id: selectedTicket.id,
-          sender_id: user.id,
-          message: reply,
-          is_admin_reply: true
-        });
+        .insert(payload)
+        .select();
+      
+      console.log('SUPABASE RESPONSE (admin message)', { data, error });
       
       if (error) throw error;
 
