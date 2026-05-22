@@ -40,6 +40,7 @@ interface TicketFormProps {
 }
 
 export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
+  console.log("TicketForm rendering");
   const { tenantId } = useTenant();
   const [isUploading, setIsUploading] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);

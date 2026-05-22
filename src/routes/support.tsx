@@ -26,6 +26,7 @@ export const Route = createFileRoute("/support")({
 });
 
 function SupportPage() {
+  console.log("SupportPage rendering");
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const queryClient = useQueryClient();
