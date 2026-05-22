@@ -163,7 +163,17 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
 
       if (error) throw error;
 
+      // If identities is an empty array and we are using email/password, 
+      // it means the user already exists (with User Enumeration Protection enabled)
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        setEmailExists(true);
+        setShowEmailExistsModal(true);
+        setStep(1); // Go back to first step to show the error
+        return;
+      }
+
       nextStep(); // Go to summary step (Step 5)
+
     } catch (error: any) {
       toast.error(error.message);
     } finally {
