@@ -67,7 +67,10 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
   };
 
   const onSubmit = async (values: TicketFormValues) => {
-    if (!tenantId) return;
+    if (!tenantId) {
+      toast.error("Erro: ID da barbearia não encontrado. Tente recarregar a página.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -143,7 +146,7 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Categoria</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
@@ -170,7 +173,7 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Prioridade</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
