@@ -19,7 +19,8 @@ import {
   StopCircle,
   LifeBuoy,
   HelpCircle,
-  GraduationCap
+  GraduationCap,
+  Headset
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ const defaultNavItems = [
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
   { label: "Produtos", icon: ShoppingBag, to: "/products" },
   { label: "Tutoriais", icon: GraduationCap, to: "/tutorials" },
-  { label: "Suporte", icon: LifeBuoy, to: "/support" },
+  { label: "Suporte", icon: Headset, to: "/support" },
   { label: "Assinatura", icon: CreditCard, to: "/subscription" },
   { label: "Configurações", icon: Settings, to: "/settings" },
 ];

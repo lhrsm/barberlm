@@ -17,7 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { TicketList } from "@/components/support/TicketList";
-import { TicketForm } from "@/components/support/TicketForm";
+import { CreateTicketModal } from "@/components/support/CreateTicketModal";
 import { TicketDetails } from "@/components/support/TicketDetails";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -103,24 +103,11 @@ function SupportPage() {
           />
         )}
 
-        {isNewTicketOpen && (
-          <Dialog open={isNewTicketOpen} onOpenChange={setIsNewTicketOpen}>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Abrir Novo Chamado</DialogTitle>
-                <DialogDescription>
-                  Descreva sua dúvida ou problema e nossa equipe responderá o mais breve possível.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4 overflow-y-auto max-h-[80vh]">
-                <TicketForm 
-                  onSuccess={handleTicketCreated} 
-                  onCancel={() => setIsNewTicketOpen(false)} 
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
+        <CreateTicketModal
+          isOpen={isNewTicketOpen}
+          onClose={() => setIsNewTicketOpen(false)}
+          onSuccess={handleTicketCreated}
+        />
       </div>
     </AppLayout>
   );

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   MessageSquare, 
@@ -9,12 +10,13 @@ import {
   MoreVertical,
   User,
   Send,
-  Building2,
+  Building2, 
   ShieldCheck,
   Search,
   Filter,
   Download,
-  Trash2
+  Trash2,
+  LifeBuoy
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +28,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -57,6 +58,44 @@ function AdminSupport() {
     }
   });
 
+  // Supabase Realtime for Admin
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-support-realtime')
+      .on('postgres_changes', { 
+        event: '*', 
+        table: 'support_tickets',
+        schema: 'public'
+      }, (payload: any) => {
+        console.log("Admin realtime ticket update:", payload);
+        queryClient.invalidateQueries({ queryKey: ["admin-tickets"] });
+        
+        if (payload.eventType === 'INSERT') {
+          toast("Novo Ticket", {
+            description: payload.new.title,
+            icon: <LifeBuoy className="h-4 w-4 text-purple-500" />
+          });
+        }
+      })
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        table: 'support_messages',
+        schema: 'public',
+        filter: 'is_admin_reply=eq.false'
+      }, (payload: any) => {
+        queryClient.invalidateQueries({ queryKey: ["admin-ticket-messages", payload.new.ticket_id] });
+        toast("Nova Mensagem", {
+          description: "Um cliente enviou uma resposta.",
+          icon: <MessageSquare className="h-4 w-4 text-purple-500" />
+        });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const { data: messages } = useQuery({
     queryKey: ["admin-ticket-messages", selectedTicket?.id],
     queryFn: async () => {
@@ -85,14 +124,10 @@ function AdminSupport() {
         is_admin_reply: true
       };
 
-      console.log('ADMIN MESSAGE PAYLOAD', payload);
-
       const { data, error } = await supabase
         .from("support_messages")
         .insert(payload)
         .select();
-      
-      console.log('SUPABASE RESPONSE (admin message)', { data, error });
       
       if (error) throw error;
 
@@ -108,7 +143,7 @@ function AdminSupport() {
       setReply("");
       toast.success("Resposta enviada com sucesso");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error("Erro ao enviar resposta: " + error.message);
     }
   });
@@ -308,24 +343,6 @@ function AdminSupport() {
                         </div>
                         <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.message}</p>
                         
-                        {(msg.attachment_urls && msg.attachment_urls.length > 0) && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {msg.attachment_urls.map((url: string, i: number) => (
-                              <a 
-                                key={i} 
-                                href={url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className={`flex items-center gap-1.5 p-1.5 rounded-lg border text-[10px] transition-all ${
-                                  msg.is_admin_reply ? "bg-black/20 border-white/10 hover:bg-black/40" : "bg-black/40 border-white/10 hover:bg-white/10"
-                                }`}
-                              >
-                                <Download size={10} /> {i + 1}
-                              </a>
-                            ))}
-                          </div>
-                        )}
-
                         <span className="text-[10px] opacity-60 mt-1 block text-right">
                           {msg.created_at ? format(new Date(msg.created_at), "HH:mm") : ""}
                         </span>

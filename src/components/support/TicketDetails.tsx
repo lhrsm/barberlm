@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -46,6 +46,37 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
       return data;
     }
   });
+  
+  // Real-time messages
+  useEffect(() => {
+    if (!ticket.id) return;
+
+    const channel = supabase
+      .channel(`ticket-messages-${ticket.id}`)
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        table: 'support_messages',
+        schema: 'public',
+        filter: `ticket_id=eq.${ticket.id}`
+      }, () => {
+        console.log("New message received via realtime");
+        queryClient.invalidateQueries({ queryKey: ["ticket-messages", ticket.id] });
+      })
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        table: 'support_tickets',
+        schema: 'public',
+        filter: `id=eq.${ticket.id}`
+      }, () => {
+        console.log("Ticket status updated via realtime");
+        queryClient.invalidateQueries({ queryKey: ["tenant-tickets", tenantId || ""] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [ticket.id, queryClient, tenantId]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async () => {
