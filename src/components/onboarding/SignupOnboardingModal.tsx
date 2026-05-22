@@ -292,7 +292,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                       {emailExists && (
                         <p className="text-xs text-red-500 flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" />
-                          Este e-mail já está em uso.
+                          Este e-mail já está cadastrado.
                         </p>
                       )}
                     </div>
