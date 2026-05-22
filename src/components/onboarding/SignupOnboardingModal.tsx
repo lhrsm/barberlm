@@ -72,6 +72,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
   const [selectedBarbersRange, setSelectedBarbersRange] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string>("pro");
   const [emailExists, setEmailExists] = useState(false);
+  const [showEmailExistsModal, setShowEmailExistsModal] = useState(false);
   
   const navigate = useNavigate();
 
