@@ -20,7 +20,9 @@ import {
   RefreshCw,
   Zap,
   Target,
-  BarChart3
+  BarChart3,
+  Activity,
+  LifeBuoy
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
