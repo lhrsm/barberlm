@@ -190,8 +190,9 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
   return (
     <div className="contents">
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 bg-black/95 border-white/10 text-white overflow-hidden shadow-[0_0_50px_rgba(124,58,237,0.3)]">
-        <div className="relative p-8 md:p-12">
+      <DialogContent className="max-w-2xl w-[95vw] md:w-full p-0 bg-black/95 border-white/10 text-white overflow-hidden shadow-[0_0_50px_rgba(124,58,237,0.3)] max-h-[90vh] overflow-y-auto">
+        <div className="relative p-5 md:p-12">
+
           {/* Progress Bar */}
           <div className="absolute top-0 left-0 w-full h-1 bg-white/5">
             <motion.div 
@@ -209,17 +210,20 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-8"
+                className="space-y-6 md:space-y-8"
+
               >
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                     Vamos criar sua barbearia
                   </h2>
+
                   <p className="text-gray-400">Preencha os dados básicos para começarmos.</p>
                 </div>
 
                 <form onSubmit={step1Form.handleSubmit(handleStep1Submit)} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+
                     <div className="space-y-2">
                       <Label htmlFor="barbershopName" className="text-gray-300">Nome da Barbearia</Label>
                       <div className="relative">
@@ -252,7 +256,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-gray-300">E-mail</Label>
                       <div className="relative">
@@ -318,12 +322,14 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-8"
+                className="space-y-6 md:space-y-8"
+
               >
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                     Quantos barbeiros sua barbearia possui?
                   </h2>
+
                   <p className="text-gray-400">Isso nos ajuda a configurar sua agenda da melhor forma.</p>
                 </div>
 
@@ -335,15 +341,16 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSelectedBarbersRange(range)}
                       className={cn(
-                        "p-8 rounded-2xl border cursor-pointer transition-all text-center space-y-4",
+                        "p-5 md:p-8 rounded-2xl border cursor-pointer transition-all text-center space-y-3 md:space-y-4",
                         selectedBarbersRange === range 
                           ? "bg-primary/20 border-primary shadow-[0_0_30px_rgba(var(--primary),0.3)]" 
                           : "bg-white/5 border-white/10 hover:border-white/20"
                       )}
                     >
                       <div className={cn(
-                        "mx-auto h-12 w-12 rounded-full flex items-center justify-center",
+                        "mx-auto h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center",
                         selectedBarbersRange === range ? "bg-primary text-white" : "bg-white/10 text-gray-400"
+
                       )}>
                         <Star className="h-6 w-6" />
                       </div>
@@ -374,12 +381,14 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-8"
+                className="space-y-6 md:space-y-8"
+
               >
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent text-center md:text-left">
                     Segurança da conta
                   </h2>
+
                   <p className="text-gray-400">Crie uma senha forte para proteger seu painel.</p>
                 </div>
 
@@ -454,22 +463,25 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-8"
+                className="space-y-6 md:space-y-8"
+
               >
                 <div className="space-y-2 text-center">
-                  <h2 className="text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                     Escolha seu Plano
                   </h2>
+
                   <p className="text-gray-400">Comece com o Pro e experimente tudo o que oferecemos.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                   {/* Starter */}
                   <div 
                     onClick={() => setSelectedPlan("starter")}
                     className={cn(
-                      "p-6 rounded-2xl border cursor-pointer transition-all space-y-4 relative",
+                      "p-5 md:p-6 rounded-2xl border cursor-pointer transition-all space-y-3 md:space-y-4 relative",
                       selectedPlan === "starter" ? "bg-white/10 border-white/30" : "bg-white/5 border-white/5 hover:border-white/10"
+
                     )}
                   >
                     <div className="space-y-1">
@@ -486,11 +498,12 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                   <div 
                     onClick={() => setSelectedPlan("pro")}
                     className={cn(
-                      "p-6 rounded-2xl border cursor-pointer transition-all space-y-4 relative scale-105",
+                      "p-5 md:p-6 rounded-2xl border cursor-pointer transition-all space-y-3 md:space-y-4 relative md:scale-105",
                       selectedPlan === "pro" 
                         ? "bg-primary/20 border-primary shadow-[0_0_40px_rgba(var(--primary),0.2)]" 
                         : "bg-white/5 border-white/5 hover:border-white/10"
                     )}
+
                   >
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
                       15 dias grátis
@@ -513,8 +526,9 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                   <div 
                     onClick={() => setSelectedPlan("elite")}
                     className={cn(
-                      "p-6 rounded-2xl border cursor-pointer transition-all space-y-4 relative",
+                      "p-5 md:p-6 rounded-2xl border cursor-pointer transition-all space-y-3 md:space-y-4 relative",
                       selectedPlan === "elite" ? "bg-white/10 border-white/30" : "bg-white/5 border-white/5 hover:border-white/10"
+
                     )}
                   >
                     <div className="space-y-1">
@@ -552,7 +566,8 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 key="step5"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center space-y-8 py-8"
+                className="text-center space-y-6 md:space-y-8 py-4 md:py-8"
+
               >
                 <div className="flex justify-center">
                   <div className="h-24 w-24 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 shadow-[0_0_50px_rgba(34,197,94,0.3)]">
@@ -561,8 +576,9 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 </div>
 
                 <div className="space-y-2">
-                  <h2 className="text-4xl font-black tracking-tighter">Quase lá!</h2>
-                  <p className="text-gray-400 text-lg">Seu cadastro foi criado com sucesso.</p>
+                  <h2 className="text-3xl md:text-4xl font-black tracking-tighter">Quase lá!</h2>
+                  <p className="text-gray-400 text-base md:text-lg">Seu cadastro foi criado com sucesso.</p>
+
                 </div>
 
                 <div className="max-w-md mx-auto p-6 rounded-2xl bg-white/5 border border-white/10 text-left space-y-4">
