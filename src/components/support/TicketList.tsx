@@ -52,7 +52,7 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
         filter: `barbershop_id=eq.${tenantId as string}`
       }, () => {
         console.log("Realtime update received for tickets");
-        queryClient.invalidateQueries({ queryKey: ["tenant-tickets", tenantId] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-tickets", tenantId || ""] });
       })
       .subscribe();
 
