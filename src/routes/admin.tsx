@@ -239,9 +239,18 @@ function AdminLayout() {
               ))}
             </div>
 
-            <div className="mt-auto pt-4 border-t border-white/5">
+            <div className="mt-auto pt-4 border-t border-white/5 space-y-2">
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 px-4 py-3 text-sm font-medium transition-all duration-300 rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
+                onClick={() => navigate({ to: "/dashboard" })}
+              >
+                <ChevronLeft size={18} />
+                <span>Voltar ao App</span>
+              </Button>
               <LogoutButton />
             </div>
+
 
           </nav>
         </aside>
