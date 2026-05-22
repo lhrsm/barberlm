@@ -144,9 +144,10 @@ function AdminLayout() {
         <div className="flex items-center gap-4">
           <AdminNotifications />
           <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30 transition-colors">SUPER ADMIN</Badge>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+          <div className="hidden md:block">
+            <LogoutButton />
+          </div>
         </div>
-
       </header>
 
       {/* Mobile menu overlay */}
