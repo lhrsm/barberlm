@@ -99,9 +99,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       .channel('tenant-support-notifications')
       .on('postgres_changes', { 
         event: 'INSERT', 
-        table: 'support_messages',
+        table: 'ticket_messages',
         schema: 'public',
-        filter: 'is_admin_reply=eq.true'
+        filter: 'sender_type=eq.super_admin'
+
       }, () => {
         toast("Resposta do Suporte", {
           description: "Sua solicitação de suporte recebeu uma nova resposta.",
