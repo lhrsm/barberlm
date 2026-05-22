@@ -242,12 +242,25 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                           id="email" 
                           type="email"
                           placeholder="contato@empresa.com"
-                          className="bg-white/5 border-white/10 pl-10 focus:border-primary/50"
-                          {...step1Form.register("email")}
+                          className={cn(
+                            "bg-white/5 border-white/10 pl-10 focus:border-primary/50",
+                            emailExists && "border-red-500/50 focus:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+                          )}
+                          {...step1Form.register("email", {
+                            onChange: () => {
+                              if (emailExists) setEmailExists(false);
+                            }
+                          })}
                         />
                       </div>
                       {step1Form.formState.errors.email && (
                         <p className="text-xs text-red-500">{step1Form.formState.errors.email.message}</p>
+                      )}
+                      {emailExists && (
+                        <p className="text-xs text-red-500 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          Este e-mail já está em uso.
+                        </p>
                       )}
                     </div>
                     <div className="space-y-2">
