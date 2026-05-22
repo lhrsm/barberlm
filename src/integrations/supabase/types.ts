@@ -590,6 +590,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          barbers_range: string | null
           blocked_at: string | null
           business_name: string | null
           cashback_enabled: boolean
@@ -608,6 +609,7 @@ export type Database = {
           pix_qr_code_url: string | null
           plan: string | null
           primary_color: string | null
+          responsible_name: string | null
           role: string | null
           scheduling_mode: string | null
           secondary_color: string | null
@@ -615,12 +617,14 @@ export type Database = {
           status: string | null
           suspension_reason: string | null
           tenant_id: string | null
+          trial_end: string | null
           updated_at: string
           whatsapp_enabled: boolean | null
           whatsapp_number: string | null
         }
         Insert: {
           address?: string | null
+          barbers_range?: string | null
           blocked_at?: string | null
           business_name?: string | null
           cashback_enabled?: boolean
@@ -639,6 +643,7 @@ export type Database = {
           pix_qr_code_url?: string | null
           plan?: string | null
           primary_color?: string | null
+          responsible_name?: string | null
           role?: string | null
           scheduling_mode?: string | null
           secondary_color?: string | null
@@ -646,12 +651,14 @@ export type Database = {
           status?: string | null
           suspension_reason?: string | null
           tenant_id?: string | null
+          trial_end?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
         }
         Update: {
           address?: string | null
+          barbers_range?: string | null
           blocked_at?: string | null
           business_name?: string | null
           cashback_enabled?: boolean
@@ -670,6 +677,7 @@ export type Database = {
           pix_qr_code_url?: string | null
           plan?: string | null
           primary_color?: string | null
+          responsible_name?: string | null
           role?: string | null
           scheduling_mode?: string | null
           secondary_color?: string | null
@@ -677,6 +685,7 @@ export type Database = {
           status?: string | null
           suspension_reason?: string | null
           tenant_id?: string | null
+          trial_end?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
