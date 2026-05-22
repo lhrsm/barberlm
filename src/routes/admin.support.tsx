@@ -118,12 +118,14 @@ function AdminSupport() {
   });
 
   return (
-    <div className="grid gap-6 md:grid-cols-12 h-[calc(100vh-12rem)]">
-      <div className="md:col-span-4 flex flex-col gap-4">
+    <div className="space-y-6">
+      <div className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Central de Suporte</h2>
-          <p className="text-muted-foreground text-sm">Gerencie chamados e dúvidas dos usuários.</p>
+          <p className="text-muted-foreground text-sm">Gerencie todos os chamados dos seus clientes.</p>
         </div>
+      </div>
+
 
         <Card className="flex-1 overflow-hidden flex flex-col">
           <CardHeader className="p-4 border-b">
