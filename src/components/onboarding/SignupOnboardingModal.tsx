@@ -641,11 +641,10 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
             </Button>
             <Button 
               variant="outline" 
-              className="w-full border-white/10 hover:bg-white/5 h-12 font-bold gap-2 text-white"
+              className="w-full bg-transparent border-violet-500/50 text-white hover:bg-violet-500/10 hover:border-violet-400 hover:shadow-[0_0_20px_rgba(139,92,246,0.35)] transition-all duration-300 h-12 font-bold gap-2 rounded-xl"
               onClick={() => {
                 setShowEmailExistsModal(false);
                 onOpenChange(false);
-                // Usando /auth?type=recovery pois é a rota funcional atual para recuperação
                 navigate({ to: "/auth?type=recovery" });
               }}
             >
@@ -654,7 +653,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
             </Button>
             <Button 
               variant="ghost" 
-              className="w-full text-gray-400 hover:text-white"
+              className="w-full bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:border-zinc-500 hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] transition-all duration-300 h-12 font-bold rounded-xl"
               onClick={() => setShowEmailExistsModal(false)}
             >
               Fechar
