@@ -182,31 +182,28 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <X />
             </Button>
           </div>
-          <nav className="p-4 space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={cn(
-                  "flex items-center gap-4 px-4 py-3 rounded-xl text-base font-medium",
-                  pathname === item.to
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent"
-                )}
-              >
-                <item.icon size={22} />
-                {item.label}
-              </Link>
-            ))}
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-4 px-4 py-3 text-base text-destructive"
-              onClick={handleLogout}
-            >
-              <LogOut size={22} />
-              Sair
-            </Button>
+          <nav className="p-4 flex flex-col h-full">
+            <div className="space-y-2 flex-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-4 px-4 py-3 rounded-xl text-base font-medium transition-all",
+                    pathname === item.to
+                      ? "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.3)]"
+                      : "text-muted-foreground hover:bg-accent"
+                  )}
+                >
+                  <item.icon size={22} />
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+            <div className="pt-4 border-t border-white/10 mt-4">
+              <LogoutButton />
+            </div>
           </nav>
         </div>
       )}
