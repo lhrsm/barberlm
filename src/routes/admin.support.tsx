@@ -196,7 +196,7 @@ function AdminSupport() {
                           <Building2 size={12} className="text-purple-400" />
                           <span className="truncate max-w-[120px]">{(ticket.tenant as any)?.business_name}</span>
                         </div>
-                        <span className="text-gray-500">{format(new Date(ticket.created_at), "dd/MM HH:mm")}</span>
+                        <span className="text-gray-500">{ticket.created_at ? format(new Date(ticket.created_at), "dd/MM HH:mm") : ""}</span>
                       </div>
                     </button>
                   ))}
@@ -221,7 +221,7 @@ function AdminSupport() {
                     </div>
                     <CardDescription className="flex items-center gap-2 text-gray-400 text-xs">
                       De: <span className="text-purple-400 font-bold">{(selectedTicket.tenant as any)?.business_name}</span> 
-                      • Aberto em {format(new Date(selectedTicket.created_at), "dd/MM/yyyy 'às' HH:mm")}
+                      • Aberto em {ticket.created_at ? format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm") : ""}
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
@@ -320,7 +320,7 @@ function AdminSupport() {
                         )}
 
                         <span className="text-[10px] opacity-60 mt-1 block text-right">
-                          {format(new Date(msg.created_at), "HH:mm")}
+                          {msg.created_at ? format(new Date(msg.created_at), "HH:mm") : ""}
                         </span>
                       </div>
                     </div>
