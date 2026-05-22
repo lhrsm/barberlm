@@ -25,9 +25,10 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
       const { data, error } = await supabase
         .from("support_tickets")
         .select("*")
+        .eq("tenant_id", tenantId as string)
         .order("created_at", { ascending: false });
       
-      console.log("[TicketList] tickets fetch result:", { data, error });
+      console.log("[TicketList] tickets fetch result:", { data, error, tenantId });
       
       if (error) throw error;
       return data;
