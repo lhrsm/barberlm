@@ -80,10 +80,10 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
-      case 'low': return <Info size={14} className="text-gray-400" title="Baixa" />;
-      case 'medium': return <Info size={14} className="text-blue-400" title="Média" />;
-      case 'high': return <AlertTriangle size={14} className="text-amber-500" title="Alta" />;
-      case 'urgent': return <AlertCircle size={14} className="text-rose-500 animate-pulse" title="Urgente" />;
+      case 'low': return <Info size={14} className="text-gray-400" />;
+      case 'medium': return <Info size={14} className="text-blue-400" />;
+      case 'high': return <AlertTriangle size={14} className="text-amber-500" />;
+      case 'urgent': return <AlertCircle size={14} className="text-rose-500 animate-pulse" />;
       default: return null;
     }
   };
