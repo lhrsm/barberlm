@@ -6,6 +6,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Dialog, 
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +30,11 @@ import {
   EyeOff,
   CheckCircle2,
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  AlertCircle,
+  LogIn,
+  KeyRound,
+  X
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
