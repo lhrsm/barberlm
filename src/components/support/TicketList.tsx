@@ -28,6 +28,8 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
         .eq("tenant_id", tenantId as string)
         .order("created_at", { ascending: false });
       
+      console.log("[TicketList] tickets fetch result:", { data, error, tenantId });
+      
       if (error) throw error;
       return data;
     },

@@ -839,6 +839,7 @@ export type Database = {
           subject: string
           tenant_id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           attachment_urls?: string[] | null
@@ -851,6 +852,7 @@ export type Database = {
           subject: string
           tenant_id: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           attachment_urls?: string[] | null
@@ -863,6 +865,7 @@ export type Database = {
           subject?: string
           tenant_id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
