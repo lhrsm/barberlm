@@ -100,26 +100,58 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
   const checkEmail = async (email: string) => {
     setLoading(true);
     const normalizedEmail = email.trim().toLowerCase();
+    console.log('checking email', normalizedEmail);
+    
     try {
-      const { data, error } = await supabase
+      // 1. Verificar na tabela profiles (para garantir que temos os dados do sistema)
+      const { data: profileData } = await supabase
         .from("profiles")
         .select("id")
         .eq("email", normalizedEmail)
         .maybeSingle();
-      
-      if (error) throw error;
 
-      if (data) {
+      if (profileData) {
+        console.log('email found in profiles');
         setEmailExists(true);
         setShowEmailExistsModal(true);
         return true;
       }
+
+      // 2. Verificar diretamente no Supabase Auth usando a técnica solicitada
+      // Tentamos um login com senha inválida para capturar o erro
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password: 'invalid-password-check-123456'
+      });
+
+      console.log('auth response', authData);
+      console.log('auth error', authError);
+
+      if (authError) {
+        const errorMessage = authError.message.toLowerCase();
+        
+        // Se o erro for "Invalid login credentials", significa que o e-mail EXISTE no Auth
+        // Se fosse "User not found", o Supabase retornaria isso se configurado, 
+        // ou retornaríamos false se o erro for genérico o suficiente.
+        if (
+          errorMessage.includes("invalid login credentials") || 
+          errorMessage.includes("email not confirmed") ||
+          errorMessage.includes("user already registered")
+        ) {
+          console.log('email existence detected via auth error:', authError.message);
+          setEmailExists(true);
+          setShowEmailExistsModal(true);
+          return true;
+        }
+      }
+
+      // Se chegamos aqui e não houve erro impeditivo, o e-mail está disponível
       setEmailExists(false);
       return false;
     } catch (error) {
       console.error("Error checking email:", error);
       toast.error("Erro ao validar e-mail. Tente novamente.");
-      return true; // Bloqueia o avanço em caso de erro
+      return true; // Bloqueia o avanço em caso de falha técnica
     } finally {
       setLoading(false);
     }
@@ -260,7 +292,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                       {emailExists && (
                         <p className="text-xs text-red-500 flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" />
-                          Este e-mail já está em uso.
+                          Este e-mail já está cadastrado.
                         </p>
                       )}
                     </div>
@@ -591,7 +623,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
           <div className="space-y-2 text-center">
             <h3 className="text-2xl font-black tracking-tighter">E-mail já cadastrado</h3>
             <p className="text-gray-400">
-              Este e-mail já possui uma conta cadastrada no BarberLM.
+              Já existe uma conta BarberLM utilizando este e-mail.
             </p>
           </div>
 
@@ -613,6 +645,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
               onClick={() => {
                 setShowEmailExistsModal(false);
                 onOpenChange(false);
+                // Usando /auth?type=recovery pois é a rota funcional atual para recuperação
                 navigate({ to: "/auth?type=recovery" });
               }}
             >
