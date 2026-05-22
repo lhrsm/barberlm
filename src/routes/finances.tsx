@@ -110,21 +110,25 @@ function FinancesComponent() {
   }, [user, role]);
 
   async function fetchBarbers() {
+    if (!user) return;
     const { data } = await supabase
       .from("barbers")
       .select("id, name, commission_rate")
+      .eq("user_id", user.id)
       .eq("active", true);
     setBarbers(data || []);
   }
 
   async function fetchTransactions(bId: string | null = null) {
+    if (!user) return;
     let query = supabase
       .from("transactions")
       .select(`
         *,
         barber:barbers(name),
         appointment:appointments(status, payment_method, credit_used, original_total, final_amount, total_price, start_time, customers(name))
-      `);
+      `)
+      .eq("user_id", user.id);
     
     if (bId) {
       query = query.eq('barber_id', bId);
@@ -135,6 +139,7 @@ function FinancesComponent() {
   }
 
   async function fetchAppointments(bId: string | null = null) {
+    if (!user) return;
     let query = supabase
       .from("appointments")
       .select(`
@@ -143,6 +148,7 @@ function FinancesComponent() {
         services(name),
         barber:barbers(name)
       `)
+      .eq("user_id", user.id)
       .eq("payment_status", "pending")
       .neq("status", "cancelled");
     
@@ -269,9 +275,11 @@ function FinancesComponent() {
 
   useEffect(() => {
     async function fetchBalances() {
+      if (!user) return;
       const { data, error } = await supabase
         .from('customers')
-        .select('credits, cashback_balance');
+        .select('credits, cashback_balance')
+        .eq("user_id", user.id);
       
       if (!error && data) {
         const totalCred = data.reduce((acc, curr) => acc + (Number(curr.credits) || 0), 0);
