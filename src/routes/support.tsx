@@ -17,7 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { TicketList } from "@/components/support/TicketList";
-import { TicketForm } from "@/components/support/TicketForm";
+import { CreateTicketModal } from "@/components/support/CreateTicketModal";
 import { TicketDetails } from "@/components/support/TicketDetails";
 import { useQueryClient } from "@tanstack/react-query";
 
