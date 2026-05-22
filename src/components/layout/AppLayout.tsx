@@ -14,6 +14,7 @@ import {
   Settings,
   ShoppingBag,
   ShieldCheck,
+  CheckCircle2,
   Eye,
   StopCircle,
   LifeBuoy,
