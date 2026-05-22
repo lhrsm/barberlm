@@ -211,8 +211,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r bg-card shrink-0">
-          <div className="p-6 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-primary truncate">{businessName}</h1>
+          <div className="p-6 flex items-center justify-between border-b border-white/5 mb-2">
+            <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
+              {businessName}
+            </h1>
             {role === 'super_admin' && <AdminNotifications />}
           </div>
 
