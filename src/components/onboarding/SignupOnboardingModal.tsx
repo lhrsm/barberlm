@@ -99,22 +99,27 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
 
   const checkEmail = async (email: string) => {
     setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
     try {
       const { data, error } = await supabase
         .from("profiles")
         .select("id")
-        .eq("email", email)
+        .eq("email", normalizedEmail)
         .maybeSingle();
       
+      if (error) throw error;
+
       if (data) {
         setEmailExists(true);
+        setShowEmailExistsModal(true);
         return true;
       }
       setEmailExists(false);
       return false;
     } catch (error) {
       console.error("Error checking email:", error);
-      return false;
+      toast.error("Erro ao validar e-mail. Tente novamente.");
+      return true; // Bloqueia o avanço em caso de erro
     } finally {
       setLoading(false);
     }
