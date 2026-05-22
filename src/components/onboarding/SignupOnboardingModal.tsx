@@ -213,9 +213,10 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 className="space-y-8"
               >
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                     Vamos criar sua barbearia
                   </h2>
+
                   <p className="text-gray-400">Preencha os dados básicos para começarmos.</p>
                 </div>
 
