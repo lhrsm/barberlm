@@ -25,7 +25,7 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
       const { data, error } = await supabase
         .from("support_tickets")
         .select("*")
-        .eq("tenant_id", tenantId)
+        .eq("tenant_id", tenantId as string)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
@@ -96,7 +96,7 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Clock size={12} /> {format(new Date(ticket.created_at || new Date()), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  <Clock size={12} /> {format(new Date(ticket.created_at || ""), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                 </span>
                 <span>•</span>
                 <span>{ticket.category}</span>
