@@ -108,9 +108,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         table: 'support_tickets',
         schema: 'public'
       }, (payload) => {
-        if (payload.new.tenant_id === tenantId) {
+        if (payload.new.barbershop_id === tenantId) {
           toast("Status do Ticket Atualizado", {
-            description: `Seu chamado "${payload.new.subject}" agora está ${payload.new.status}.`,
+            description: `Seu chamado "${payload.new.title}" agora está ${payload.new.status}.`,
             icon: <CheckCircle2 className="h-4 w-4 text-primary" />,
           });
         }
