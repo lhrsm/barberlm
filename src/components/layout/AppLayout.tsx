@@ -20,8 +20,12 @@ import {
   LifeBuoy,
   HelpCircle,
   GraduationCap,
-  Headset
+  Headset,
+  Bell
 } from "lucide-react";
+import { AdminNotifications } from "@/components/admin/AdminNotifications";
+import { LogoutButton } from "@/components/admin/LogoutButton";
+
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -95,9 +99,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       .channel('tenant-support-notifications')
       .on('postgres_changes', { 
         event: 'INSERT', 
-        table: 'support_messages',
+        table: 'ticket_messages',
         schema: 'public',
-        filter: 'is_admin_reply=eq.true'
+        filter: 'sender_type=eq.super_admin'
+
       }, () => {
         toast("Resposta do Suporte", {
           description: "Sua solicitação de suporte recebeu uma nova resposta.",
@@ -156,11 +161,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Top Header */}
       <header className="md:hidden flex items-center justify-between p-4 border-b bg-card sticky top-0 z-40">
-        <h1 className="text-xl font-bold text-primary truncate">{businessName}</h1>
-        <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-          {isMobileMenuOpen ? <X /> : <Menu />}
-        </Button>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-bold text-primary truncate max-w-[150px]">{businessName}</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          {role === 'super_admin' && <AdminNotifications />}
+          <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            {isMobileMenuOpen ? <X /> : <Menu />}
+          </Button>
+        </div>
       </header>
+
 
       {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
@@ -203,9 +214,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r bg-card shrink-0">
-          <div className="p-6">
+          <div className="p-6 flex items-center justify-between">
             <h1 className="text-2xl font-bold text-primary truncate">{businessName}</h1>
+            {role === 'super_admin' && <AdminNotifications />}
           </div>
+
           <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => (
               <Link
@@ -224,15 +237,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
           <div className="p-4 border-t">
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={handleLogout}
-            >
-              <LogOut size={20} />
-              Sair
-            </Button>
+            <LogoutButton />
           </div>
+
         </aside>
 
         {/* Main content */}

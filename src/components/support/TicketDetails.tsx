@@ -37,10 +37,11 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
     queryKey: ["ticket-messages", ticket.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("support_messages")
+        .from("ticket_messages")
         .select("*")
         .eq("ticket_id", ticket.id)
         .order("created_at", { ascending: true });
+
       
       if (error) throw error;
       return data;
@@ -55,7 +56,7 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
       .channel(`ticket-messages-${ticket.id}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
-        table: 'support_messages',
+        table: 'ticket_messages',
         schema: 'public',
         filter: `ticket_id=eq.${ticket.id}`
       }, () => {
@@ -110,17 +111,16 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
         ticket_id: ticket.id,
         sender_id: user.id,
         message: message,
-        is_admin_reply: false,
-        attachment_url: attachmentUrls[0] || null,
-        attachment_urls: attachmentUrls
+        sender_type: 'barber_admin'
       };
 
       console.log('MESSAGE PAYLOAD', payload);
 
       const { data, error } = await supabase
-        .from("support_messages")
+        .from("ticket_messages")
         .insert(payload)
         .select();
+
 
       console.log('SUPABASE RESPONSE (message)', { data, error });
       
@@ -221,37 +221,23 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
             </div>
           ) : (
             messages?.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.is_admin_reply ? "justify-start" : "justify-end"}`}>
+              <div key={msg.id} className={`flex ${msg.sender_type === 'super_admin' ? "justify-start" : "justify-end"}`}>
                 <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
-                  msg.is_admin_reply 
+                  msg.sender_type === 'super_admin' 
                     ? "bg-primary/10 border border-primary/20 text-foreground rounded-tl-none" 
                     : "bg-primary text-primary-foreground rounded-tr-none"
                 }`}>
                   <div className="flex items-center gap-2 mb-1">
-                    {msg.is_admin_reply ? <ShieldCheck size={12} className="text-primary" /> : <User size={12} />}
+                    {msg.sender_type === 'super_admin' ? <ShieldCheck size={12} className="text-primary" /> : <User size={12} />}
                     <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
-                      {msg.is_admin_reply ? "Suporte Barbex" : "Você"}
+                      {msg.sender_type === 'super_admin' ? "Suporte Barbex" : "Você"}
                     </span>
                   </div>
+
                   <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                   
-                  {(msg.attachment_urls && msg.attachment_urls.length > 0) && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {msg.attachment_urls.map((url: string, i: number) => (
-                        <a 
-                          key={i} 
-                          href={url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className={`flex items-center gap-1.5 p-1.5 rounded-lg border text-[10px] transition-colors ${
-                            msg.is_admin_reply ? "bg-background hover:bg-accent" : "bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground"
-                          }`}
-                        >
-                          <Download size={10} /> Anexo {i + 1}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+                  {/* Attachment rendering removed for now as it needs DB alignment */}
+
 
                   <span className="text-[10px] opacity-60 mt-1 block text-right">
                     {(() => {
