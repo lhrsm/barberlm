@@ -26,6 +26,7 @@ export const Route = createFileRoute("/support")({
 });
 
 function SupportPage() {
+  console.log("SupportPage rendering");
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const queryClient = useQueryClient();
@@ -102,20 +103,24 @@ function SupportPage() {
           />
         )}
 
-        <Dialog open={isNewTicketOpen} onOpenChange={setIsNewTicketOpen}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Abrir Novo Chamado</DialogTitle>
-              <DialogDescription>
-                Descreva sua dúvida ou problema e nossa equipe responderá o mais breve possível.
-              </DialogDescription>
-            </DialogHeader>
-            <TicketForm 
-              onSuccess={handleTicketCreated} 
-              onCancel={() => setIsNewTicketOpen(false)} 
-            />
-          </DialogContent>
-        </Dialog>
+        {isNewTicketOpen && (
+          <Dialog open={isNewTicketOpen} onOpenChange={setIsNewTicketOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Abrir Novo Chamado</DialogTitle>
+                <DialogDescription>
+                  Descreva sua dúvida ou problema e nossa equipe responderá o mais breve possível.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <TicketForm 
+                  onSuccess={handleTicketCreated} 
+                  onCancel={() => setIsNewTicketOpen(false)} 
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </AppLayout>
   );

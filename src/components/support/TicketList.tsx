@@ -96,7 +96,13 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Clock size={12} /> {ticket.created_at ? format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "Data não disponível"}
+                  <Clock size={12} /> {(() => {
+                    try {
+                      return ticket.created_at ? format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "Data não disponível";
+                    } catch (e) {
+                      return "Data inválida";
+                    }
+                  })()}
                 </span>
                 <span>•</span>
                 <span>{ticket.category}</span>

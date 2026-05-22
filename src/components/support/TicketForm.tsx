@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -40,6 +40,10 @@ interface TicketFormProps {
 }
 
 export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
+  useEffect(() => {
+    console.log("TicketForm mounted");
+  }, []);
+
   const { tenantId } = useTenant();
   const [isUploading, setIsUploading] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -67,7 +71,12 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
   };
 
   const onSubmit = async (values: TicketFormValues) => {
-    if (!tenantId) return;
+    console.log("Submitting ticket form", values);
+    if (!tenantId) {
+      console.error("Missing tenantId in TicketForm");
+      toast.error("Erro: ID da barbearia não encontrado. Tente recarregar a página.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -86,15 +95,18 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
 
           if (uploadError) throw uploadError;
 
-          const { data: { publicUrl } } = supabase.storage
+          const { data } = supabase.storage
             .from('support-attachments')
             .getPublicUrl(filePath);
           
-          attachmentUrls.push(publicUrl);
+          if (data?.publicUrl) {
+            attachmentUrls.push(data.publicUrl);
+          }
         }
         setIsUploading(false);
       }
 
+      console.log("Inserting ticket into DB", { ...values, tenantId, attachmentUrls });
       const { error } = await supabase
         .from("support_tickets")
         .insert({
@@ -112,7 +124,8 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
       toast.success("Ticket aberto com sucesso!");
       onSuccess();
     } catch (error: any) {
-      toast.error("Erro ao abrir ticket: " + error.message);
+      console.error("Erro ao abrir ticket:", error);
+      toast.error("Erro ao abrir ticket: " + (error.message || "Erro desconhecido"));
     } finally {
       setIsSubmitting(false);
       setIsUploading(false);
@@ -143,13 +156,13 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Categoria</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="bg-popover text-popover-foreground">
                     <SelectItem value="Financeiro">Financeiro</SelectItem>
                     <SelectItem value="Agendamentos">Agendamentos</SelectItem>
                     <SelectItem value="WhatsApp">WhatsApp</SelectItem>
@@ -170,13 +183,13 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Prioridade</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="bg-popover text-popover-foreground">
                     <SelectItem value="low">Baixa</SelectItem>
                     <SelectItem value="medium">Média</SelectItem>
                     <SelectItem value="high">Alta</SelectItem>
