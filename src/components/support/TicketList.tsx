@@ -49,7 +49,7 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
         event: '*', 
         table: 'support_tickets',
         schema: 'public',
-        filter: `barbershop_id=eq.${tenantId}`
+        filter: `barbershop_id=eq.${tenantId as string}`
       }, () => {
         console.log("Realtime update received for tickets");
         queryClient.invalidateQueries({ queryKey: ["tenant-tickets", tenantId] });
