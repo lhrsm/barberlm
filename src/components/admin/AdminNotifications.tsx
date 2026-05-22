@@ -115,22 +115,23 @@ export function AdminNotifications() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative hover:bg-primary/10 transition-colors group">
+        <Button variant="ghost" size="icon" className="relative group overflow-visible">
+          <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
           <Bell className={cn(
-            "h-5 w-5 transition-transform group-hover:scale-110",
-            unreadCount > 0 && "text-primary animate-pulse"
+            "h-5 w-5 transition-all duration-300",
+            unreadCount > 0 
+              ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] animate-[pulse_2s_infinite]" 
+              : "text-muted-foreground group-hover:text-white"
           )} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white ring-2 ring-background">
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF0000] text-[10px] font-black text-white ring-2 ring-[#0A0A0A] shadow-[0_0_10px_rgba(255,0,0,0.5)] animate-bounce">
               {unreadCount}
             </span>
           )}
-          {unreadCount > 0 && (
-            <span className="absolute -inset-1 rounded-full bg-primary/20 animate-ping pointer-events-none" />
-          )}
+          <div className="absolute -inset-2 bg-gradient-to-tr from-blue-500/10 to-purple-500/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 p-0 bg-card border-border shadow-2xl">
+      <DropdownMenuContent align="end" className="w-85 p-0 bg-[#0A0A0A]/95 border-white/10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/5">
         <div className="flex items-center justify-between p-4 border-b">
           <DropdownMenuLabel className="p-0 font-bold text-base">Notificações</DropdownMenuLabel>
           {unreadCount > 0 && (
