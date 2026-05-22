@@ -26,7 +26,7 @@ import { Paperclip, X, Loader2 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 
 const ticketSchema = z.object({
-  subject: z.string().min(5, "O título deve ter pelo menos 5 caracteres"),
+  title: z.string().min(5, "O título deve ter pelo menos 5 caracteres"),
   category: z.string().min(1, "Selecione uma categoria"),
   priority: z.string().min(1, "Selecione uma prioridade"),
   description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres"),
@@ -52,7 +52,7 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
   const form = useForm<TicketFormValues>({
     resolver: zodResolver(ticketSchema),
     defaultValues: {
-      subject: "",
+      title: "",
       category: "",
       priority: "medium",
       description: "",
@@ -71,10 +71,10 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
   };
 
   const onSubmit = async (values: TicketFormValues) => {
-    console.log("Submitting ticket form", values);
-    
     const { data: { user } } = await supabase.auth.getUser();
-    
+    console.log('AUTH USER', user);
+    console.log('TENANT ID', tenantId);
+
     if (!user) {
       toast.error("Erro: Usuário não autenticado.");
       return;
@@ -114,41 +114,37 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
         setIsUploading(false);
       }
 
-      console.log("Inserting ticket into DB", { ...values, tenantId, attachmentUrls });
-      console.log("Inserindo ticket no DB", {
-        subject: values.subject,
+      const payload = {
+        title: values.title,
         category: values.category,
         priority: values.priority,
         description: values.description,
-        tenant_id: tenantId,
+        barbershop_id: tenantId,
         user_id: user.id,
         status: 'open',
+        attachment_url: attachmentUrls[0] || null,
         attachment_urls: attachmentUrls
-      });
+      };
 
-      const { data, error } = await supabase
+      console.log('TICKET PAYLOAD', payload);
+
+      const response = await supabase
         .from("support_tickets")
-        .insert({
-          subject: values.subject,
-          category: values.category,
-          priority: values.priority,
-          description: values.description,
-          tenant_id: tenantId,
-          user_id: user.id,
-          status: 'open',
-          attachment_urls: attachmentUrls
-        })
+        .insert(payload)
         .select();
 
-      console.log("Resposta do insert:", { data, error });
-
-      if (error) throw error;
+      console.log('SUPABASE RESPONSE', response);
+      
+      if (response.error) {
+        console.log('SUPABASE ERROR', response.error);
+        throw response.error;
+      }
 
       toast.success("Ticket aberto com sucesso!");
       onSuccess();
     } catch (error: any) {
       console.error("Erro ao abrir ticket:", error);
-      toast.error("Erro ao abrir ticket: " + (error.message || "Erro desconhecido"));
+      toast.error(error.message || "Erro inesperado ao abrir chamado");
     } finally {
       setIsSubmitting(false);
       setIsUploading(false);
@@ -160,7 +156,7 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="subject"
+          name="title"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Título</FormLabel>

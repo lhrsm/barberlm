@@ -25,7 +25,7 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
       const { data, error } = await supabase
         .from("support_tickets")
         .select("*")
-        .eq("tenant_id", tenantId as string)
+        .eq("barbershop_id", tenantId as string)
         .order("created_at", { ascending: false });
       
       console.log("[TicketList] tickets fetch result:", { data, error, tenantId });
@@ -92,7 +92,7 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-bold text-sm md:text-base">{ticket.subject}</span>
+                <span className="font-bold text-sm md:text-base">{ticket.title}</span>
                 {getStatusBadge(ticket.status)}
                 {ticket.priority && getPriorityBadge(ticket.priority)}
               </div>

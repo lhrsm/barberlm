@@ -129,7 +129,7 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
         <CardHeader className="border-b flex flex-row items-center justify-between py-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <CardTitle className="text-lg">{ticket.subject}</CardTitle>
+              <CardTitle className="text-lg">{ticket.title}</CardTitle>
               {getStatusBadge(ticket.status)}
             </div>
             <CardDescription className="text-xs">
