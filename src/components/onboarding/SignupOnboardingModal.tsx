@@ -341,15 +341,16 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSelectedBarbersRange(range)}
                       className={cn(
-                        "p-8 rounded-2xl border cursor-pointer transition-all text-center space-y-4",
+                        "p-5 md:p-8 rounded-2xl border cursor-pointer transition-all text-center space-y-3 md:space-y-4",
                         selectedBarbersRange === range 
                           ? "bg-primary/20 border-primary shadow-[0_0_30px_rgba(var(--primary),0.3)]" 
                           : "bg-white/5 border-white/10 hover:border-white/20"
                       )}
                     >
                       <div className={cn(
-                        "mx-auto h-12 w-12 rounded-full flex items-center justify-center",
+                        "mx-auto h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center",
                         selectedBarbersRange === range ? "bg-primary text-white" : "bg-white/10 text-gray-400"
+
                       )}>
                         <Star className="h-6 w-6" />
                       </div>
