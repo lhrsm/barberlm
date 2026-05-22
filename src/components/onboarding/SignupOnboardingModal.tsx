@@ -6,6 +6,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Dialog, 
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +30,11 @@ import {
   EyeOff,
   CheckCircle2,
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  AlertCircle,
+  LogIn,
+  KeyRound,
+  X
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -64,6 +72,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
   const [selectedBarbersRange, setSelectedBarbersRange] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string>("pro");
   const [emailExists, setEmailExists] = useState(false);
+  const [showEmailExistsModal, setShowEmailExistsModal] = useState(false);
   
   const navigate = useNavigate();
 
@@ -90,22 +99,27 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
 
   const checkEmail = async (email: string) => {
     setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
     try {
       const { data, error } = await supabase
         .from("profiles")
         .select("id")
-        .eq("email", email)
+        .eq("email", normalizedEmail)
         .maybeSingle();
       
+      if (error) throw error;
+
       if (data) {
         setEmailExists(true);
+        setShowEmailExistsModal(true);
         return true;
       }
       setEmailExists(false);
       return false;
     } catch (error) {
       console.error("Error checking email:", error);
-      return false;
+      toast.error("Erro ao validar e-mail. Tente novamente.");
+      return true; // Bloqueia o avanço em caso de erro
     } finally {
       setLoading(false);
     }
@@ -156,6 +170,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
   };
 
   return (
+    <div className="contents">
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl p-0 bg-black/95 border-white/10 text-white overflow-hidden shadow-[0_0_50px_rgba(124,58,237,0.3)]">
         <div className="relative p-8 md:p-12">
@@ -228,12 +243,25 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                           id="email" 
                           type="email"
                           placeholder="contato@empresa.com"
-                          className="bg-white/5 border-white/10 pl-10 focus:border-primary/50"
-                          {...step1Form.register("email")}
+                          className={cn(
+                            "bg-white/5 border-white/10 pl-10 focus:border-primary/50",
+                            emailExists && "border-red-500/50 focus:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+                          )}
+                          {...step1Form.register("email", {
+                            onChange: () => {
+                              if (emailExists) setEmailExists(false);
+                            }
+                          })}
                         />
                       </div>
                       {step1Form.formState.errors.email && (
                         <p className="text-xs text-red-500">{step1Form.formState.errors.email.message}</p>
+                      )}
+                      {emailExists && (
+                        <p className="text-xs text-red-500 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          Este e-mail já está em uso.
+                        </p>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -263,23 +291,6 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                   </Button>
                 </form>
 
-                {emailExists && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-6 rounded-xl bg-red-500/10 border border-red-500/20 text-center space-y-4"
-                  >
-                    <p className="text-red-400 font-medium">Este e-mail já está cadastrado no sistema.</p>
-                    <div className="flex gap-4 justify-center">
-                      <Button variant="outline" className="border-white/10 hover:bg-white/5" onClick={() => navigate({ to: "/auth" })}>
-                        Ir para login
-                      </Button>
-                      <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={() => navigate({ to: "/auth?type=recovery" })}>
-                        Recuperar senha
-                      </Button>
-                    </div>
-                  </motion.div>
-                )}
               </motion.div>
             )}
 
@@ -569,5 +580,56 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
         </div>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={showEmailExistsModal} onOpenChange={setShowEmailExistsModal}>
+      <DialogContent className="max-w-md bg-black/95 border-white/10 text-white overflow-hidden shadow-[0_0_50px_rgba(239,68,68,0.3)] p-0">
+        <div className="relative p-8 space-y-6">
+          <div className="mx-auto w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+            <AlertCircle className="h-8 w-8 text-red-500" />
+          </div>
+          
+          <div className="space-y-2 text-center">
+            <h3 className="text-2xl font-black tracking-tighter">E-mail já cadastrado</h3>
+            <p className="text-gray-400">
+              Este e-mail já possui uma conta cadastrada no BarberLM.
+            </p>
+          </div>
+
+          <div className="grid gap-3">
+            <Button 
+              className="w-full bg-primary hover:bg-primary/90 h-12 font-bold gap-2"
+              onClick={() => {
+                setShowEmailExistsModal(false);
+                onOpenChange(false);
+                navigate({ to: "/auth" });
+              }}
+            >
+              <LogIn className="h-4 w-4" />
+              Ir para login
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full border-white/10 hover:bg-white/5 h-12 font-bold gap-2"
+              onClick={() => {
+                setShowEmailExistsModal(false);
+                onOpenChange(false);
+                navigate({ to: "/auth?type=recovery" });
+              }}
+            >
+              <KeyRound className="h-4 w-4" />
+              Recuperar senha
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full text-gray-400 hover:text-white"
+              onClick={() => setShowEmailExistsModal(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </div>
   );
 }
