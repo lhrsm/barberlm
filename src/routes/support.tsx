@@ -112,10 +112,12 @@ function SupportPage() {
                   Descreva sua dúvida ou problema e nossa equipe responderá o mais breve possível.
                 </DialogDescription>
               </DialogHeader>
-              <TicketForm 
-                onSuccess={handleTicketCreated} 
-                onCancel={() => setIsNewTicketOpen(false)} 
-              />
+              <div className="py-4">
+                <TicketForm 
+                  onSuccess={handleTicketCreated} 
+                  onCancel={() => setIsNewTicketOpen(false)} 
+                />
+              </div>
             </DialogContent>
           </Dialog>
         )}
