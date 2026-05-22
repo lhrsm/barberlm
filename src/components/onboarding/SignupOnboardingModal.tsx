@@ -191,7 +191,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
     <div className="contents">
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl w-[95vw] md:w-full p-0 bg-black/95 border-white/10 text-white overflow-hidden shadow-[0_0_50px_rgba(124,58,237,0.3)] max-h-[90vh] overflow-y-auto">
-        <div className="relative p-6 md:p-12">
+        <div className="relative p-5 md:p-12">
 
           {/* Progress Bar */}
           <div className="absolute top-0 left-0 w-full h-1 bg-white/5">
