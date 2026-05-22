@@ -461,7 +461,8 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-8"
+                className="space-y-6 md:space-y-8"
+
               >
                 <div className="space-y-2 text-center">
                   <h2 className="text-2xl md:text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
