@@ -106,9 +106,11 @@ function CustomersComponent() {
   };
 
   async function fetchCustomers() {
+    if (!user) return;
     const { data, error } = await supabase
       .from("customers")
       .select("*")
+      .eq("user_id", user.id)
       .order("name");
     if (error) toast.error("Erro ao buscar clientes");
     else setCustomers(data || []);
