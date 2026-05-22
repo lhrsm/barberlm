@@ -579,5 +579,56 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
         </div>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={showEmailExistsModal} onOpenChange={setShowEmailExistsModal}>
+      <DialogContent className="max-w-md bg-black/95 border-white/10 text-white overflow-hidden shadow-[0_0_50px_rgba(239,68,68,0.3)] p-0">
+        <div className="relative p-8 space-y-6">
+          <div className="mx-auto w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+            <AlertCircle className="h-8 w-8 text-red-500" />
+          </div>
+          
+          <div className="space-y-2 text-center">
+            <h3 className="text-2xl font-black tracking-tighter">E-mail já cadastrado</h3>
+            <p className="text-gray-400">
+              Este e-mail já possui uma conta cadastrada no BarberLM.
+            </p>
+          </div>
+
+          <div className="grid gap-3">
+            <Button 
+              className="w-full bg-primary hover:bg-primary/90 h-12 font-bold gap-2"
+              onClick={() => {
+                setShowEmailExistsModal(false);
+                onOpenChange(false);
+                navigate({ to: "/auth" });
+              }}
+            >
+              <LogIn className="h-4 w-4" />
+              Ir para login
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full border-white/10 hover:bg-white/5 h-12 font-bold gap-2"
+              onClick={() => {
+                setShowEmailExistsModal(false);
+                onOpenChange(false);
+                navigate({ to: "/auth?type=recovery" });
+              }}
+            >
+              <KeyRound className="h-4 w-4" />
+              Recuperar senha
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full text-gray-400 hover:text-white"
+              onClick={() => setShowEmailExistsModal(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }
