@@ -630,6 +630,6 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
         </div>
       </DialogContent>
     </Dialog>
-  </>
+  </div>
   );
 }
