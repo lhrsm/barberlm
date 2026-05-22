@@ -1506,6 +1506,7 @@ export type Database = {
         Args: { amount: number; prod_id: string }
         Returns: undefined
       }
+      generate_unique_slug: { Args: { base_name: string }; Returns: string }
       get_my_profile_role: { Args: never; Returns: string }
       get_my_tenant_id: { Args: never; Returns: string }
       has_active_subscription: {
