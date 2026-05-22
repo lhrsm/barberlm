@@ -341,5 +341,6 @@ function AdminDashboard() {
           </Card>
         </div>
       </motion.div>
+    </div>
   );
 }
