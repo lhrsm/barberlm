@@ -24,12 +24,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  Dialog, 
+  DialogContent, 
+} from "@/components/ui/dialog";
 import { SuperAdminTicketDetails } from "@/components/admin/support/SuperAdminTicketDetails";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -109,7 +106,7 @@ export default function SuperAdminSupport() {
 
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-3">
@@ -238,16 +235,16 @@ export default function SuperAdminSupport() {
         </CardContent>
       </Card>
 
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-[600px] p-0 border-l border-border/50 shadow-2xl overflow-hidden">
+      <Dialog open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <DialogContent className="max-w-[800px] w-[95vw] h-[85vh] p-0 border-white/10 bg-[#0A0A0A] shadow-[0_0_50px_rgba(139,92,246,0.15)] overflow-hidden flex flex-col">
           {selectedTicket && (
             <SuperAdminTicketDetails 
               ticket={selectedTicket} 
               onClose={() => setIsSheetOpen(false)} 
             />
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
