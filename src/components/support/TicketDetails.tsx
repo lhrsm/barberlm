@@ -75,15 +75,23 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
         }
       }
 
-      const { error } = await supabase
+      const payload = {
+        ticket_id: ticket.id,
+        sender_id: user.id,
+        message: message,
+        is_admin_reply: false,
+        attachment_url: attachmentUrls[0] || null,
+        attachment_urls: attachmentUrls
+      };
+
+      console.log('MESSAGE PAYLOAD', payload);
+
+      const { data, error } = await supabase
         .from("support_messages")
-        .insert({
-          ticket_id: ticket.id,
-          sender_id: user.id,
-          message: message,
-          is_admin_reply: false,
-          attachment_urls: attachmentUrls
-        });
+        .insert(payload)
+        .select();
+
+      console.log('SUPABASE RESPONSE (message)', { data, error });
       
       if (error) throw error;
 
@@ -129,7 +137,7 @@ export function TicketDetails({ ticket, onBack }: TicketDetailsProps) {
         <CardHeader className="border-b flex flex-row items-center justify-between py-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <CardTitle className="text-lg">{ticket.subject}</CardTitle>
+              <CardTitle className="text-lg">{ticket.title}</CardTitle>
               {getStatusBadge(ticket.status)}
             </div>
             <CardDescription className="text-xs">

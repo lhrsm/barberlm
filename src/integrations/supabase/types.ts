@@ -245,6 +245,36 @@ export type Database = {
         }
         Relationships: []
       }
+      barbershops: {
+        Row: {
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          owner_id: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          owner_id?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          owner_id?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       client_auth: {
         Row: {
           created_at: string
@@ -784,40 +814,36 @@ export type Database = {
       }
       support_messages: {
         Row: {
+          attachment_url: string | null
           attachment_urls: string[] | null
-          created_at: string
+          created_at: string | null
           id: string
           is_admin_reply: boolean | null
           message: string
-          sender_id: string
-          ticket_id: string
+          sender_id: string | null
+          ticket_id: string | null
         }
         Insert: {
+          attachment_url?: string | null
           attachment_urls?: string[] | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           is_admin_reply?: boolean | null
           message: string
-          sender_id: string
-          ticket_id: string
+          sender_id?: string | null
+          ticket_id?: string | null
         }
         Update: {
+          attachment_url?: string | null
           attachment_urls?: string[] | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           is_admin_reply?: boolean | null
           message?: string
-          sender_id?: string
-          ticket_id?: string
+          sender_id?: string | null
+          ticket_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "support_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "support_messages_ticket_id_fkey"
             columns: ["ticket_id"]
@@ -829,50 +855,53 @@ export type Database = {
       }
       support_tickets: {
         Row: {
+          attachment_url: string | null
           attachment_urls: string[] | null
+          barbershop_id: string | null
           category: string | null
-          created_at: string
-          description: string | null
+          created_at: string | null
+          description: string
           id: string
           priority: string | null
-          status: string
-          subject: string
-          tenant_id: string
-          updated_at: string
+          status: string | null
+          title: string
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
+          attachment_url?: string | null
           attachment_urls?: string[] | null
+          barbershop_id?: string | null
           category?: string | null
-          created_at?: string
-          description?: string | null
+          created_at?: string | null
+          description: string
           id?: string
           priority?: string | null
-          status?: string
-          subject: string
-          tenant_id: string
-          updated_at?: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
+          attachment_url?: string | null
           attachment_urls?: string[] | null
+          barbershop_id?: string | null
           category?: string | null
-          created_at?: string
-          description?: string | null
+          created_at?: string | null
+          description?: string
           id?: string
           priority?: string | null
-          status?: string
-          subject?: string
-          tenant_id?: string
-          updated_at?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "support_tickets_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: "support_tickets_barbershop_id_fkey"
+            columns: ["barbershop_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "barbershops"
             referencedColumns: ["id"]
           },
         ]

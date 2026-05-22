@@ -48,7 +48,7 @@ function AdminSupport() {
         .from("support_tickets")
         .select(`
           *,
-          tenant:profiles(business_name, logo_url)
+          barbershop:barbershops(name, logo_url)
         `)
         .order("created_at", { ascending: false });
       
@@ -78,14 +78,21 @@ function AdminSupport() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !selectedTicket) return;
 
-      const { error } = await supabase
+      const payload = {
+        ticket_id: selectedTicket.id,
+        sender_id: user.id,
+        message: reply,
+        is_admin_reply: true
+      };
+
+      console.log('ADMIN MESSAGE PAYLOAD', payload);
+
+      const { data, error } = await supabase
         .from("support_messages")
-        .insert({
-          ticket_id: selectedTicket.id,
-          sender_id: user.id,
-          message: reply,
-          is_admin_reply: true
-        });
+        .insert(payload)
+        .select();
+      
+      console.log('SUPABASE RESPONSE (admin message)', { data, error });
       
       if (error) throw error;
 
@@ -124,8 +131,8 @@ function AdminSupport() {
   });
 
   const filteredTickets = tickets?.filter(t => 
-    t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (t.tenant as any)?.business_name?.toLowerCase().includes(searchQuery.toLowerCase())
+    t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (t.barbershop as any)?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusBadge = (status: string) => {
@@ -188,13 +195,13 @@ function AdminSupport() {
                       className={`w-full text-left p-4 hover:bg-white/5 transition-all flex flex-col gap-2 ${selectedTicket?.id === ticket.id ? "bg-purple-500/10 border-l-2 border-purple-500" : ""}`}
                     >
                       <div className="flex justify-between items-start w-full">
-                        <span className="font-bold text-sm text-white line-clamp-1 flex-1 pr-2">{ticket.subject}</span>
-                        {getStatusBadge(ticket.status)}
+                        <span className="font-bold text-sm text-white line-clamp-1 flex-1 pr-2">{ticket.title}</span>
+                        {getStatusBadge(ticket.status || 'open')}
                       </div>
                       <div className="flex items-center justify-between text-[11px]">
                         <div className="flex items-center gap-1.5 text-gray-400">
                           <Building2 size={12} className="text-purple-400" />
-                          <span className="truncate max-w-[120px]">{(ticket.tenant as any)?.business_name}</span>
+                          <span className="truncate max-w-[120px]">{(ticket.barbershop as any)?.name}</span>
                         </div>
                         <span className="text-gray-500">{ticket.created_at ? format(new Date(ticket.created_at), "dd/MM HH:mm") : ""}</span>
                       </div>
@@ -214,13 +221,13 @@ function AdminSupport() {
                 <div className="flex flex-row items-center justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      <CardTitle className="text-xl font-bold text-white">{selectedTicket.subject}</CardTitle>
+                      <CardTitle className="text-xl font-bold text-white">{selectedTicket.title}</CardTitle>
                       <Badge variant="outline" className="border-purple-500/30 text-purple-400 bg-purple-500/5">
                         {selectedTicket.category || "Suporte"}
                       </Badge>
                     </div>
                     <CardDescription className="flex items-center gap-2 text-gray-400 text-xs">
-                      De: <span className="text-purple-400 font-bold">{(selectedTicket.tenant as any)?.business_name}</span> 
+                      De: <span className="text-purple-400 font-bold">{(selectedTicket.barbershop as any)?.name}</span> 
                       • Aberto em {selectedTicket.created_at ? format(new Date(selectedTicket.created_at), "dd/MM/yyyy 'às' HH:mm") : ""}
                     </CardDescription>
                   </div>
@@ -256,7 +263,7 @@ function AdminSupport() {
                   <div className="max-w-[85%] rounded-2xl px-5 py-4 bg-white/5 border border-white/10">
                     <div className="flex items-center gap-2 mb-2">
                       <Building2 size={12} className="text-purple-400" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">{(selectedTicket.tenant as any)?.business_name} (Original)</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">{(selectedTicket.barbershop as any)?.name} (Original)</span>
                     </div>
                     <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">{selectedTicket.description}</p>
                     
@@ -296,7 +303,7 @@ function AdminSupport() {
                         <div className="flex items-center gap-2 mb-1">
                           {msg.is_admin_reply ? <ShieldCheck size={12} /> : <User size={12} />}
                           <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
-                            {msg.is_admin_reply ? "Você (Suporte)" : (selectedTicket.tenant as any)?.business_name}
+                            {msg.is_admin_reply ? "Você (Suporte)" : (selectedTicket.barbershop as any)?.name}
                           </span>
                         </div>
                         <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.message}</p>

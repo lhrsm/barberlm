@@ -90,7 +90,7 @@ function AdminLayout() {
         schema: 'public'
       }, (payload) => {
         toast("Novo Ticket Aberto", {
-          description: payload.new.subject,
+          description: payload.new.title,
           icon: <LifeBuoy className="h-4 w-4 text-purple-500" />,
         });
       })
