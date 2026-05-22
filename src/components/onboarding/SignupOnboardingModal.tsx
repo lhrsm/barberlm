@@ -256,7 +256,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-gray-300">E-mail</Label>
                       <div className="relative">
