@@ -221,7 +221,7 @@ function AdminSupport() {
                     </div>
                     <CardDescription className="flex items-center gap-2 text-gray-400 text-xs">
                       De: <span className="text-purple-400 font-bold">{(selectedTicket.tenant as any)?.business_name}</span> 
-                      • Aberto em {ticket.created_at ? format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm") : ""}
+                      • Aberto em {selectedTicket.created_at ? format(new Date(selectedTicket.created_at), "dd/MM/yyyy 'às' HH:mm") : ""}
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
