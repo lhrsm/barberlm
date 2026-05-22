@@ -562,7 +562,8 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 key="step5"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center space-y-8 py-8"
+                className="text-center space-y-6 md:space-y-8 py-4 md:py-8"
+
               >
                 <div className="flex justify-center">
                   <div className="h-24 w-24 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 shadow-[0_0_50px_rgba(34,197,94,0.3)]">
