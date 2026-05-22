@@ -16,10 +16,10 @@ import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
-      { title: "Carregando Barbearia..." },
-      { name: "description", content: "Agende seu horário na nossa barbearia." },
+      { title: `Barbearia | ${params.slug}` },
+      { name: "description", content: "Agende seu horário online de forma rápida e fácil." },
     ],
   }),
 });
