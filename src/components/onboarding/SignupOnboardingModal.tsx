@@ -641,7 +641,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
             </Button>
             <Button 
               variant="outline" 
-              className="w-full border-white/10 hover:bg-white/5 h-12 font-bold gap-2"
+              className="w-full border-white/10 hover:bg-white/5 h-12 font-bold gap-2 text-white"
               onClick={() => {
                 setShowEmailExistsModal(false);
                 onOpenChange(false);
