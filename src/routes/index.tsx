@@ -530,10 +530,12 @@ function LandingPageComponent() {
             Comece agora seu teste grátis de 15 dias no plano Pro. <br className="hidden md:block" />
             Sem compromisso e sem cartão de crédito.
           </p>
-          <Button size="lg" className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_50px_rgba(var(--primary),0.5)] group" asChild>
-            <Link to="/auth">
-              Começar teste grátis <ArrowRight className="ml-3 h-8 w-8 group-hover:translate-x-2 transition-transform" />
-            </Link>
+          <Button 
+            size="lg" 
+            className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_50px_rgba(var(--primary),0.5)] group" 
+            onClick={() => setShowSignupModal(true)}
+          >
+            Começar teste grátis <ArrowRight className="ml-3 h-8 w-8 group-hover:translate-x-2 transition-transform" />
           </Button>
         </div>
       </section>
@@ -579,6 +581,7 @@ function LandingPageComponent() {
           </div>
         </div>
       </footer>
+      <SignupOnboardingModal isOpen={showSignupModal} onOpenChange={setShowSignupModal} />
     </div>
   );
 }
