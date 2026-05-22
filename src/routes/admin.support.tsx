@@ -301,7 +301,7 @@ function AdminSupport() {
                         </div>
                         <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.message}</p>
                         
-                        {msg.attachment_urls?.length > 0 && (
+                        {(msg.attachment_urls && msg.attachment_urls.length > 0) && (
                           <div className="mt-2 flex flex-wrap gap-2">
                             {msg.attachment_urls.map((url: string, i: number) => (
                               <a 
