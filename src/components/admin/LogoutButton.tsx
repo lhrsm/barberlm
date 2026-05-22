@@ -49,28 +49,29 @@ export function LogoutButton() {
       <AlertDialogTrigger asChild>
         <Button 
           variant="ghost" 
-          size="sm" 
-          className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+          className="w-full justify-start gap-3 px-4 py-3 text-sm font-medium transition-all duration-300 rounded-lg group hover:bg-destructive/10 hover:text-destructive hover:shadow-[0_0_15px_rgba(239,68,68,0.2)] text-muted-foreground"
         >
-          <LogOut size={16} />
-          <span className="hidden sm:inline">Sair</span>
+          <LogOut size={20} className="transition-transform group-hover:-translate-x-1" />
+          <span>Sair do Painel</span>
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="bg-card border-border">
+      <AlertDialogContent className="bg-[#0A0A0A] border-white/10 backdrop-blur-xl shadow-2xl max-w-[400px]">
         <AlertDialogHeader>
-          <div className="flex items-center gap-2 text-destructive mb-2">
-            <AlertCircle size={20} />
-            <AlertDialogTitle>Deseja realmente sair?</AlertDialogTitle>
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10 text-destructive mb-4 mx-auto">
+            <AlertCircle size={24} />
           </div>
-          <AlertDialogDescription>
-            Sua sessão será encerrada e você precisará fazer login novamente para acessar o painel.
+          <AlertDialogTitle className="text-xl font-bold text-center text-white">Deseja realmente sair?</AlertDialogTitle>
+          <AlertDialogDescription className="text-center text-muted-foreground pt-2">
+            Sua sessão será encerrada com segurança e você precisará se autenticar novamente.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel className="bg-accent hover:bg-accent/80 border-none">Cancelar</AlertDialogCancel>
+        <AlertDialogFooter className="mt-6 flex gap-2">
+          <AlertDialogCancel className="flex-1 bg-white/5 hover:bg-white/10 border-white/10 text-white transition-all">
+            Cancelar
+          </AlertDialogCancel>
           <AlertDialogAction 
             onClick={handleLogout}
-            className="bg-destructive hover:bg-destructive/90 text-white border-none"
+            className="flex-1 bg-destructive hover:bg-destructive/90 text-white border-none shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all"
           >
             Sair agora
           </AlertDialogAction>
