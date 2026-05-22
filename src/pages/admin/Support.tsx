@@ -82,25 +82,31 @@ export default function SuperAdminSupport() {
     (ticket.id?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (status: string | null) => {
+    const s = status || 'open';
+    switch (s) {
+
       case 'open': return <Badge className="bg-blue-500 hover:bg-blue-600">Aberto</Badge>;
       case 'in_progress': return <Badge className="bg-amber-500 hover:bg-amber-600">Em andamento</Badge>;
       case 'responded': return <Badge className="bg-purple-500 hover:bg-purple-600">Respondido</Badge>;
       case 'resolved': return <Badge className="bg-green-500 hover:bg-green-600">Resolvido</Badge>;
       case 'closed': return <Badge variant="secondary">Fechado</Badge>;
-      default: return <Badge variant="outline">{status}</Badge>;
+      default: return <Badge variant="outline">{s}</Badge>;
     }
   };
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
+
+  const getPriorityBadge = (priority: string | null) => {
+    const p = priority || 'low';
+    switch (p) {
+
       case 'high': return <Badge variant="destructive" className="animate-pulse">Alta</Badge>;
       case 'medium': return <Badge variant="secondary" className="bg-amber-500/20 text-amber-500 border-amber-500/30">Média</Badge>;
       case 'low': return <Badge variant="outline">Baixa</Badge>;
-      default: return <Badge variant="outline">{priority}</Badge>;
+      default: return <Badge variant="outline">{p}</Badge>;
     }
   };
+
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
