@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Layout,
   Menu,
+  MessageCircle,
   X,
   History,
   Settings,
@@ -77,6 +78,39 @@ function AdminLayout() {
     
     console.log("Admin route guard: Access granted for super_admin");
   }, [user, loading, role, navigate]);
+
+  useEffect(() => {
+    if (!user || role !== 'super_admin') return;
+
+    const channel = supabase
+      .channel('admin-support-notifications')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        table: 'support_tickets',
+        schema: 'public'
+      }, (payload) => {
+        toast("Novo Ticket Aberto", {
+          description: payload.new.subject,
+          icon: <LifeBuoy className="h-4 w-4 text-purple-500" />,
+        });
+      })
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        table: 'support_messages',
+        schema: 'public',
+        filter: 'is_admin_reply=eq.false'
+      }, () => {
+        toast("Nova Resposta no Suporte", {
+          description: "Um cliente respondeu a um chamado.",
+          icon: <MessageCircle className="h-4 w-4 text-purple-500" />,
+        });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, role]);
 
   const checking = loading || !role;
 

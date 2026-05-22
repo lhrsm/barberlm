@@ -28,6 +28,7 @@ import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { toast } from "sonner";
 
 const defaultNavItems = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
@@ -84,6 +85,41 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       navigate({ to: "/admin/dashboard" });
     }
   }, [pathname, navigate, role, user, loading, isImpersonating]);
+
+  useEffect(() => {
+    if (!user || role === 'super_admin') return;
+
+    const channel = supabase
+      .channel('tenant-support-notifications')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        table: 'support_messages',
+        schema: 'public',
+        filter: 'is_admin_reply=eq.true'
+      }, () => {
+        toast("Resposta do Suporte", {
+          description: "Sua solicitação de suporte recebeu uma nova resposta.",
+          icon: <LifeBuoy className="h-4 w-4 text-primary" />,
+        });
+      })
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        table: 'support_tickets',
+        schema: 'public'
+      }, (payload) => {
+        if (payload.new.tenant_id === tenantId) {
+          toast("Status do Ticket Atualizado", {
+            description: `Seu chamado "${payload.new.subject}" agora está ${payload.new.status}.`,
+            icon: <CheckCircle2 className="h-4 w-4 text-primary" />,
+          });
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, role, tenantId]);
 
   const businessName = String(tenantProfile?.business_name || "Barbex");
 
