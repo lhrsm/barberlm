@@ -350,7 +350,7 @@ function AdminTutorials() {
               <Label>Título</Label>
               <Input 
                 name="title" 
-                defaultValue={editingTutorial?.title} 
+                defaultValue={editingTutorial?.title || ""} 
                 className="bg-white/5 border-white/10" 
                 required 
               />
