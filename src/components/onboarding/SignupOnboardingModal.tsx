@@ -170,6 +170,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl p-0 bg-black/95 border-white/10 text-white overflow-hidden shadow-[0_0_50px_rgba(124,58,237,0.3)]">
         <div className="relative p-8 md:p-12">
