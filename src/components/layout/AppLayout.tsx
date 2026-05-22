@@ -19,7 +19,8 @@ import {
   StopCircle,
   LifeBuoy,
   HelpCircle,
-  GraduationCap
+  GraduationCap,
+  Headset
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
