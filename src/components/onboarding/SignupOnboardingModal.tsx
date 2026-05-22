@@ -645,6 +645,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
               onClick={() => {
                 setShowEmailExistsModal(false);
                 onOpenChange(false);
+                // Usando /auth?type=recovery pois é a rota funcional atual para recuperação
                 navigate({ to: "/auth?type=recovery" });
               }}
             >
