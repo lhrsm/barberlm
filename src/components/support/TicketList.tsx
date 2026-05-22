@@ -78,7 +78,7 @@ export function TicketList({ onSelectTicket }: TicketListProps) {
     }
   };
 
-  const getPriorityIcon = (priority: string) => {
+  const getPriorityIcon = (priority: string | null) => {
     switch (priority) {
       case 'low': return <Info size={14} className="text-gray-400" />;
       case 'medium': return <Info size={14} className="text-blue-400" />;
