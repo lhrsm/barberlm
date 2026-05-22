@@ -375,8 +375,12 @@ function LandingPageComponent() {
                 <PricingItem text="Financeiro básico" />
                 <PricingItem text="Clientes ilimitados" />
               </ul>
-              <Button variant="outline" className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" asChild>
-                <Link to="/auth">Começar agora</Link>
+              <Button 
+                variant="outline" 
+                className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" 
+                onClick={() => setShowSignupModal(true)}
+              >
+                Começar agora
               </Button>
             </div>
 
@@ -406,8 +410,11 @@ function LandingPageComponent() {
                 <PricingItem text="Relatórios de desempenho" />
                 <PricingItem text="Automações inteligentes" />
               </ul>
-              <Button className="w-full h-16 text-xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_40px_rgba(var(--primary),0.5)] animate-pulse" asChild>
-                <Link to="/auth">Começar teste grátis</Link>
+              <Button 
+                className="w-full h-16 text-xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_40px_rgba(var(--primary),0.5)] animate-pulse" 
+                onClick={() => setShowSignupModal(true)}
+              >
+                Começar teste grátis
               </Button>
             </div>
 
@@ -428,8 +435,12 @@ function LandingPageComponent() {
                 <PricingItem text="Suporte prioritário" />
                 <PricingItem text="Customização total" />
               </ul>
-              <Button variant="outline" className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" asChild>
-                <Link to="/auth">Assinar agora</Link>
+              <Button 
+                variant="outline" 
+                className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" 
+                onClick={() => setShowSignupModal(true)}
+              >
+                Assinar agora
               </Button>
             </div>
           </div>
