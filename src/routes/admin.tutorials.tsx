@@ -390,7 +390,7 @@ function AdminTutorials() {
               <Label>URL do Conteúdo (Vídeo ou Arquivo)</Label>
               <Input 
                 name="content_url" 
-                defaultValue={editingTutorial?.content_url} 
+                defaultValue={editingTutorial?.content_url || ""} 
                 className="bg-white/5 border-white/10" 
                 required 
               />
@@ -400,7 +400,7 @@ function AdminTutorials() {
               <Label>Thumbnail (Opcional)</Label>
               <Input 
                 name="thumbnail_url" 
-                defaultValue={editingTutorial?.thumbnail_url} 
+                defaultValue={editingTutorial?.thumbnail_url || ""} 
                 className="bg-white/5 border-white/10" 
               />
             </div>
@@ -409,13 +409,13 @@ function AdminTutorials() {
               <Label>Descrição</Label>
               <Textarea 
                 name="description" 
-                defaultValue={editingTutorial?.description} 
+                defaultValue={editingTutorial?.description || ""} 
                 className="bg-white/5 border-white/10 min-h-[80px]" 
               />
             </div>
 
             <div className="flex items-center gap-2">
-              <Switch name="is_featured" defaultChecked={editingTutorial?.is_featured} />
+              <Switch name="is_featured" defaultChecked={editingTutorial?.is_featured || false} />
               <Label>Destacar Tutorial</Label>
             </div>
 
