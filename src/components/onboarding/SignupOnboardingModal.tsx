@@ -567,8 +567,9 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 </div>
 
                 <div className="space-y-2">
-                  <h2 className="text-4xl font-black tracking-tighter">Quase lá!</h2>
-                  <p className="text-gray-400 text-lg">Seu cadastro foi criado com sucesso.</p>
+                  <h2 className="text-3xl md:text-4xl font-black tracking-tighter">Quase lá!</h2>
+                  <p className="text-gray-400 text-base md:text-lg">Seu cadastro foi criado com sucesso.</p>
+
                 </div>
 
                 <div className="max-w-md mx-auto p-6 rounded-2xl bg-white/5 border border-white/10 text-left space-y-4">
