@@ -247,7 +247,7 @@ function AdminTutorials() {
                 <div className="space-y-2">
                   <Label className="text-white">URL do Vídeo (YouTube/Vimeo)</Label>
                   <Input 
-                    defaultValue={onboardingSettings?.video_url} 
+                    defaultValue={onboardingSettings?.video_url || ""} 
                     id="onboarding-video"
                     className="bg-white/5 border-white/10 text-white"
                   />
@@ -255,14 +255,14 @@ function AdminTutorials() {
                 <div className="space-y-2">
                   <Label className="text-white">Mensagem de Boas-vindas</Label>
                   <Textarea 
-                    defaultValue={onboardingSettings?.message} 
+                    defaultValue={onboardingSettings?.message || ""} 
                     id="onboarding-message"
                     className="bg-white/5 border-white/10 text-white min-h-[100px]"
                   />
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch 
-                    defaultChecked={onboardingSettings?.is_active} 
+                    defaultChecked={onboardingSettings?.is_active || false} 
                     id="onboarding-active"
                   />
                   <Label htmlFor="onboarding-active" className="text-white">Ativar Modal Automaticamente</Label>
