@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { SignupOnboardingModal } from "@/components/onboarding/SignupOnboardingModal";
 import { Button } from "@/components/ui/button";
 import { 
   Calendar, 
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/")({
 function LandingPageComponent() {
   const { user, loading, role } = useAuth();
   const navigate = useNavigate();
+  const [showSignupModal, setShowSignupModal] = useState(false);
 
   useEffect(() => {
     if (!loading && user && role) {
@@ -70,8 +72,11 @@ function LandingPageComponent() {
             <Button variant="ghost" className="text-white hover:bg-white/10" asChild>
               <Link to="/auth">Entrar</Link>
             </Button>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 shadow-[0_0_20px_rgba(var(--primary),0.3)]" asChild>
-              <Link to="/auth">Começar agora</Link>
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 shadow-[0_0_20px_rgba(var(--primary),0.3)]" 
+              onClick={() => setShowSignupModal(true)}
+            >
+              Começar agora
             </Button>
           </div>
         </div>
@@ -100,14 +105,16 @@ function LandingPageComponent() {
 
           <div className="flex flex-col items-center gap-6 mb-20 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-300">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Button size="lg" className="h-20 px-12 text-xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_40px_rgba(var(--primary),0.5)] group relative overflow-hidden" asChild>
-                <Link to="/auth">
-                  <div className="flex flex-col items-center leading-tight">
-                    <span>Começar teste grátis</span>
-                    <span className="text-xs font-medium opacity-80">Acesse o plano Pro grátis por 15 dias</span>
-                  </div>
-                  <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
-                </Link>
+              <Button 
+                size="lg" 
+                className="h-20 px-12 text-xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_40px_rgba(var(--primary),0.5)] group relative overflow-hidden" 
+                onClick={() => setShowSignupModal(true)}
+              >
+                <div className="flex flex-col items-center leading-tight">
+                  <span>Começar teste grátis</span>
+                  <span className="text-xs font-medium opacity-80">Acesse o plano Pro grátis por 15 dias</span>
+                </div>
+                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button size="lg" variant="outline" className="h-20 px-12 text-xl font-bold border-white/10 hover:bg-white/5 text-white" asChild>
                 <a href="#funcionalidades">Ver funcionalidades</a>
@@ -247,8 +254,11 @@ function LandingPageComponent() {
                   </div>
                   
                   <div className="pt-4">
-                    <Button className="w-full h-16 text-lg font-black bg-primary hover:bg-primary/90" asChild>
-                      <Link to="/auth">Começar agora</Link>
+                    <Button 
+                      className="w-full h-16 text-lg font-black bg-primary hover:bg-primary/90" 
+                      onClick={() => setShowSignupModal(true)}
+                    >
+                      Começar agora
                     </Button>
                   </div>
                 </div>
@@ -365,8 +375,12 @@ function LandingPageComponent() {
                 <PricingItem text="Financeiro básico" />
                 <PricingItem text="Clientes ilimitados" />
               </ul>
-              <Button variant="outline" className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" asChild>
-                <Link to="/auth">Começar agora</Link>
+              <Button 
+                variant="outline" 
+                className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" 
+                onClick={() => setShowSignupModal(true)}
+              >
+                Começar agora
               </Button>
             </div>
 
@@ -396,8 +410,11 @@ function LandingPageComponent() {
                 <PricingItem text="Relatórios de desempenho" />
                 <PricingItem text="Automações inteligentes" />
               </ul>
-              <Button className="w-full h-16 text-xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_40px_rgba(var(--primary),0.5)] animate-pulse" asChild>
-                <Link to="/auth">Começar teste grátis</Link>
+              <Button 
+                className="w-full h-16 text-xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_40px_rgba(var(--primary),0.5)] animate-pulse" 
+                onClick={() => setShowSignupModal(true)}
+              >
+                Começar teste grátis
               </Button>
             </div>
 
@@ -418,8 +435,12 @@ function LandingPageComponent() {
                 <PricingItem text="Suporte prioritário" />
                 <PricingItem text="Customização total" />
               </ul>
-              <Button variant="outline" className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" asChild>
-                <Link to="/auth">Assinar agora</Link>
+              <Button 
+                variant="outline" 
+                className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" 
+                onClick={() => setShowSignupModal(true)}
+              >
+                Assinar agora
               </Button>
             </div>
           </div>
@@ -520,10 +541,12 @@ function LandingPageComponent() {
             Comece agora seu teste grátis de 15 dias no plano Pro. <br className="hidden md:block" />
             Sem compromisso e sem cartão de crédito.
           </p>
-          <Button size="lg" className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_50px_rgba(var(--primary),0.5)] group" asChild>
-            <Link to="/auth">
-              Começar teste grátis <ArrowRight className="ml-3 h-8 w-8 group-hover:translate-x-2 transition-transform" />
-            </Link>
+          <Button 
+            size="lg" 
+            className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_50px_rgba(var(--primary),0.5)] group" 
+            onClick={() => setShowSignupModal(true)}
+          >
+            Começar teste grátis <ArrowRight className="ml-3 h-8 w-8 group-hover:translate-x-2 transition-transform" />
           </Button>
         </div>
       </section>
@@ -569,6 +592,7 @@ function LandingPageComponent() {
           </div>
         </div>
       </footer>
+      <SignupOnboardingModal isOpen={showSignupModal} onOpenChange={setShowSignupModal} />
     </div>
   );
 }

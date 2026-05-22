@@ -590,11 +590,13 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          barbers_range: string | null
           blocked_at: string | null
           business_name: string | null
           cashback_enabled: boolean
           cashback_percentage: number
           created_at: string
+          email: string | null
           font_color: string | null
           font_family: string | null
           font_size: string | null
@@ -608,6 +610,7 @@ export type Database = {
           pix_qr_code_url: string | null
           plan: string | null
           primary_color: string | null
+          responsible_name: string | null
           role: string | null
           scheduling_mode: string | null
           secondary_color: string | null
@@ -615,17 +618,20 @@ export type Database = {
           status: string | null
           suspension_reason: string | null
           tenant_id: string | null
+          trial_end: string | null
           updated_at: string
           whatsapp_enabled: boolean | null
           whatsapp_number: string | null
         }
         Insert: {
           address?: string | null
+          barbers_range?: string | null
           blocked_at?: string | null
           business_name?: string | null
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          email?: string | null
           font_color?: string | null
           font_family?: string | null
           font_size?: string | null
@@ -639,6 +645,7 @@ export type Database = {
           pix_qr_code_url?: string | null
           plan?: string | null
           primary_color?: string | null
+          responsible_name?: string | null
           role?: string | null
           scheduling_mode?: string | null
           secondary_color?: string | null
@@ -646,17 +653,20 @@ export type Database = {
           status?: string | null
           suspension_reason?: string | null
           tenant_id?: string | null
+          trial_end?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
         }
         Update: {
           address?: string | null
+          barbers_range?: string | null
           blocked_at?: string | null
           business_name?: string | null
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          email?: string | null
           font_color?: string | null
           font_family?: string | null
           font_size?: string | null
@@ -670,6 +680,7 @@ export type Database = {
           pix_qr_code_url?: string | null
           plan?: string | null
           primary_color?: string | null
+          responsible_name?: string | null
           role?: string | null
           scheduling_mode?: string | null
           secondary_color?: string | null
@@ -677,6 +688,7 @@ export type Database = {
           status?: string | null
           suspension_reason?: string | null
           tenant_id?: string | null
+          trial_end?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
@@ -1494,6 +1506,7 @@ export type Database = {
         Args: { amount: number; prod_id: string }
         Returns: undefined
       }
+      generate_unique_slug: { Args: { base_name: string }; Returns: string }
       get_my_profile_role: { Args: never; Returns: string }
       get_my_tenant_id: { Args: never; Returns: string }
       has_active_subscription: {
