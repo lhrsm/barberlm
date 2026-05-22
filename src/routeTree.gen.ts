@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TutorialsRouteImport } from './routes/tutorials'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -25,6 +26,7 @@ import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as AdminTutorialsRouteImport } from './routes/admin.tutorials'
 import { Route as AdminTenantsRouteImport } from './routes/admin.tenants'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
@@ -39,6 +41,11 @@ import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissiona
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
+const TutorialsRoute = TutorialsRouteImport.update({
+  id: '/tutorials',
+  path: '/tutorials',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -118,6 +125,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTutorialsRoute = AdminTutorialsRouteImport.update({
+  id: '/tutorials',
+  path: '/tutorials',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminTenantsRoute = AdminTenantsRouteImport.update({
   id: '/tenants',
@@ -201,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/support': typeof SupportRoute
+  '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
@@ -213,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
+  '/admin/tutorials': typeof AdminTutorialsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -231,6 +245,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/support': typeof SupportRoute
+  '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
@@ -243,6 +258,7 @@ export interface FileRoutesByTo {
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
+  '/admin/tutorials': typeof AdminTutorialsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -263,6 +279,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
   '/support': typeof SupportRoute
+  '/tutorials': typeof TutorialsRoute
   '/$slug/portal': typeof SlugPortalRoute
   '/$slug/profissional': typeof SlugProfissionalRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
@@ -275,6 +292,7 @@ export interface FileRoutesById {
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tenants': typeof AdminTenantsRoute
+  '/admin/tutorials': typeof AdminTutorialsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -296,6 +314,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/support'
+    | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
     | '/admin/analytics'
@@ -308,6 +327,7 @@ export interface FileRouteTypes {
     | '/admin/subscriptions'
     | '/admin/support'
     | '/admin/tenants'
+    | '/admin/tutorials'
     | '/checkout/return'
     | '/admin/'
     | '/api/public/payments/webhook'
@@ -326,6 +346,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/support'
+    | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
     | '/admin/analytics'
@@ -338,6 +359,7 @@ export interface FileRouteTypes {
     | '/admin/subscriptions'
     | '/admin/support'
     | '/admin/tenants'
+    | '/admin/tutorials'
     | '/checkout/return'
     | '/admin'
     | '/api/public/payments/webhook'
@@ -357,6 +379,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscription'
     | '/support'
+    | '/tutorials'
     | '/$slug/portal'
     | '/$slug/profissional'
     | '/admin/analytics'
@@ -369,6 +392,7 @@ export interface FileRouteTypes {
     | '/admin/subscriptions'
     | '/admin/support'
     | '/admin/tenants'
+    | '/admin/tutorials'
     | '/checkout/return'
     | '/admin/'
     | '/api/public/payments/webhook'
@@ -389,12 +413,20 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SubscriptionRoute: typeof SubscriptionRoute
   SupportRoute: typeof SupportRoute
+  TutorialsRoute: typeof TutorialsRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tutorials': {
+      id: '/tutorials'
+      path: '/tutorials'
+      fullPath: '/tutorials'
+      preLoaderRoute: typeof TutorialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/support': {
       id: '/support'
       path: '/support'
@@ -506,6 +538,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout/return'
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/tutorials': {
+      id: '/admin/tutorials'
+      path: '/tutorials'
+      fullPath: '/admin/tutorials'
+      preLoaderRoute: typeof AdminTutorialsRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/tenants': {
       id: '/admin/tenants'
@@ -624,6 +663,7 @@ interface AdminRouteChildren {
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   AdminSupportRoute: typeof AdminSupportRoute
   AdminTenantsRoute: typeof AdminTenantsRoute
+  AdminTutorialsRoute: typeof AdminTutorialsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -638,6 +678,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   AdminSupportRoute: AdminSupportRoute,
   AdminTenantsRoute: AdminTenantsRoute,
+  AdminTutorialsRoute: AdminTutorialsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -658,18 +699,10 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SubscriptionRoute: SubscriptionRoute,
   SupportRoute: SupportRoute,
+  TutorialsRoute: TutorialsRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

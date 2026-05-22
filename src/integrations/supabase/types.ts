@@ -375,6 +375,30 @@ export type Database = {
           },
         ]
       }
+      onboarding_settings: {
+        Row: {
+          id: string
+          is_active: boolean | null
+          message: string | null
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean | null
+          message?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          id?: string
+          is_active?: boolean | null
+          message?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
           active: boolean | null
@@ -760,6 +784,7 @@ export type Database = {
       }
       support_messages: {
         Row: {
+          attachment_urls: string[] | null
           created_at: string
           id: string
           is_admin_reply: boolean | null
@@ -768,6 +793,7 @@ export type Database = {
           ticket_id: string
         }
         Insert: {
+          attachment_urls?: string[] | null
           created_at?: string
           id?: string
           is_admin_reply?: boolean | null
@@ -776,6 +802,7 @@ export type Database = {
           ticket_id: string
         }
         Update: {
+          attachment_urls?: string[] | null
           created_at?: string
           id?: string
           is_admin_reply?: boolean | null
@@ -802,6 +829,8 @@ export type Database = {
       }
       support_tickets: {
         Row: {
+          attachment_urls: string[] | null
+          category: string | null
           created_at: string
           description: string | null
           id: string
@@ -812,6 +841,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          attachment_urls?: string[] | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -822,6 +853,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          attachment_urls?: string[] | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -942,6 +975,98 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tutorial_categories: {
+        Row: {
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          order: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          order?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          order?: number | null
+        }
+        Relationships: []
+      }
+      tutorials: {
+        Row: {
+          category_id: string | null
+          content_url: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_featured: boolean | null
+          order: number | null
+          thumbnail_url: string | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          content_url: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          order?: number | null
+          thumbnail_url?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          content_url?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          order?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorials_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tutorial_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_onboarding_preferences: {
+        Row: {
+          last_seen_at: string | null
+          show_onboarding: boolean | null
+          user_id: string
+        }
+        Insert: {
+          last_seen_at?: string | null
+          show_onboarding?: boolean | null
+          user_id: string
+        }
+        Update: {
+          last_seen_at?: string | null
+          show_onboarding?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

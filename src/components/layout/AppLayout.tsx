@@ -14,10 +14,12 @@ import {
   Settings,
   ShoppingBag,
   ShieldCheck,
+  CheckCircle2,
   Eye,
   StopCircle,
   LifeBuoy,
-  HelpCircle
+  HelpCircle,
+  GraduationCap
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,8 @@ import { cn } from "@/lib/utils";
 import { useTenant } from "@/hooks/use-tenant";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { toast } from "sonner";
 
 const defaultNavItems = [
   { label: "Painel", icon: LayoutDashboard, to: "/dashboard" },
@@ -35,6 +39,8 @@ const defaultNavItems = [
   { label: "Serviços", icon: Scissors, to: "/services" },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
   { label: "Produtos", icon: ShoppingBag, to: "/products" },
+  { label: "Tutoriais", icon: GraduationCap, to: "/tutorials" },
+  { label: "Suporte", icon: LifeBuoy, to: "/support" },
   { label: "Assinatura", icon: CreditCard, to: "/subscription" },
   { label: "Configurações", icon: Settings, to: "/settings" },
 ];
@@ -81,6 +87,41 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, navigate, role, user, loading, isImpersonating]);
 
+  useEffect(() => {
+    if (!user || role === 'super_admin') return;
+
+    const channel = supabase
+      .channel('tenant-support-notifications')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        table: 'support_messages',
+        schema: 'public',
+        filter: 'is_admin_reply=eq.true'
+      }, () => {
+        toast("Resposta do Suporte", {
+          description: "Sua solicitação de suporte recebeu uma nova resposta.",
+          icon: <LifeBuoy className="h-4 w-4 text-primary" />,
+        });
+      })
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        table: 'support_tickets',
+        schema: 'public'
+      }, (payload) => {
+        if (payload.new.tenant_id === tenantId) {
+          toast("Status do Ticket Atualizado", {
+            description: `Seu chamado "${payload.new.subject}" agora está ${payload.new.status}.`,
+            icon: <CheckCircle2 className="h-4 w-4 text-primary" />,
+          });
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, role, tenantId]);
+
   const businessName = String(tenantProfile?.business_name || "Barbex");
 
   const handleLogout = async () => {
@@ -93,6 +134,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
+      <OnboardingModal />
       {isImpersonating && (
         <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between text-sm font-medium z-[60]">
           <div className="flex items-center gap-2">
