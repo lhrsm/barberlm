@@ -488,8 +488,8 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                       <h3 className="font-bold">Starter</h3>
                       <div className="text-2xl font-black">R$ 49,90<span className="text-sm font-normal text-gray-500">/mês</span></div>
                     </div>
-                    <ul className="text-xs space-y-2 text-gray-400">
-                      <li className="flex items-center gap-2"><Check size={12} className="text-primary" /> Agenda Básica</li>
+                    <ul className="text-xs space-y-2 text-gray-300">
+                      <li className="flex items-center gap-2"><Check size={12} className="text-primary" /> Agenda & Clientes</li>
                       <li className="flex items-center gap-2"><Check size={12} className="text-primary" /> Até 2 Barbeiros</li>
                     </ul>
                   </div>
@@ -515,7 +515,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                       </div>
                       <div className="text-2xl font-black">R$ 89,90<span className="text-sm font-normal text-gray-500">/mês</span></div>
                     </div>
-                    <ul className="text-xs space-y-2 text-gray-400">
+                    <ul className="text-xs space-y-2 text-gray-300">
                       <li className="flex items-center gap-2"><Check size={12} className="text-primary" /> WhatsApp Automático</li>
                       <li className="flex items-center gap-2"><Check size={12} className="text-primary" /> Cashback & Fidelidade</li>
                       <li className="flex items-center gap-2"><Check size={12} className="text-primary" /> Financeiro Completo</li>
@@ -538,9 +538,9 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                       </div>
                       <div className="text-2xl font-black">R$ 149,90<span className="text-sm font-normal text-gray-500">/mês</span></div>
                     </div>
-                    <ul className="text-xs space-y-2 text-gray-400">
+                    <ul className="text-xs space-y-2 text-gray-300">
                       <li className="flex items-center gap-2"><Check size={12} className="text-primary" /> Barbeiros Ilimitados</li>
-                      <li className="flex items-center gap-2"><Check size={12} className="text-primary" /> Suporte VIP 24h</li>
+                      <li className="flex items-center gap-2"><Check size={12} className="text-primary" /> Suporte VIP & Mentoria</li>
                     </ul>
                   </div>
                 </div>
@@ -584,14 +584,16 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 <div className="max-w-md mx-auto p-6 rounded-2xl bg-white/5 border border-white/10 text-left space-y-4">
                   <h4 className="font-bold text-sm uppercase tracking-widest text-primary">Resumo da sua conta:</h4>
                   <div className="grid grid-cols-2 gap-y-3 text-sm">
-                    <div className="text-gray-500">Barbearia:</div>
-                    <div className="font-medium">{step1Form.getValues().barbershopName}</div>
-                    <div className="text-gray-500">Responsável:</div>
-                    <div className="font-medium">{step1Form.getValues().responsibleName}</div>
-                    <div className="text-gray-500">Plano:</div>
-                    <div className="font-medium uppercase">{selectedPlan}</div>
-                    <div className="text-gray-500">WhatsApp:</div>
-                    <div className="font-medium">{step1Form.getValues().whatsapp}</div>
+                    <div className="text-gray-300 font-medium">Barbearia:</div>
+                    <div className="text-white font-bold">{step1Form.getValues().barbershopName}</div>
+                    <div className="text-gray-300 font-medium">Responsável:</div>
+                    <div className="text-white font-bold">{step1Form.getValues().responsibleName}</div>
+                    <div className="text-gray-300 font-medium">E-mail:</div>
+                    <div className="text-white font-bold">{step1Form.getValues().email}</div>
+                    <div className="text-gray-300 font-medium">WhatsApp:</div>
+                    <div className="text-white font-bold">{step1Form.getValues().whatsapp}</div>
+                    <div className="text-gray-300 font-medium">Plano:</div>
+                    <div className="text-white font-bold uppercase">{selectedPlan}</div>
                   </div>
                 </div>
 
