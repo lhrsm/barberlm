@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -40,7 +40,10 @@ interface TicketFormProps {
 }
 
 export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
-  console.log("TicketForm rendering");
+  useEffect(() => {
+    console.log("TicketForm mounted");
+  }, []);
+
   const { tenantId } = useTenant();
   const [isUploading, setIsUploading] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -68,7 +71,9 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
   };
 
   const onSubmit = async (values: TicketFormValues) => {
+    console.log("Submitting ticket form", values);
     if (!tenantId) {
+      console.error("Missing tenantId in TicketForm");
       toast.error("Erro: ID da barbearia não encontrado. Tente recarregar a página.");
       return;
     }
@@ -90,15 +95,18 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
 
           if (uploadError) throw uploadError;
 
-          const { data: { publicUrl } } = supabase.storage
+          const { data } = supabase.storage
             .from('support-attachments')
             .getPublicUrl(filePath);
           
-          attachmentUrls.push(publicUrl);
+          if (data?.publicUrl) {
+            attachmentUrls.push(data.publicUrl);
+          }
         }
         setIsUploading(false);
       }
 
+      console.log("Inserting ticket into DB", { ...values, tenantId, attachmentUrls });
       const { error } = await supabase
         .from("support_tickets")
         .insert({
@@ -154,7 +162,7 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="bg-popover text-popover-foreground">
                     <SelectItem value="Financeiro">Financeiro</SelectItem>
                     <SelectItem value="Agendamentos">Agendamentos</SelectItem>
                     <SelectItem value="WhatsApp">WhatsApp</SelectItem>
@@ -181,7 +189,7 @@ export function TicketForm({ onSuccess, onCancel }: TicketFormProps) {
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="bg-popover text-popover-foreground">
                     <SelectItem value="low">Baixa</SelectItem>
                     <SelectItem value="medium">Média</SelectItem>
                     <SelectItem value="high">Alta</SelectItem>
