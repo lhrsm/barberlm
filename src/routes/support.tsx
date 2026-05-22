@@ -112,7 +112,7 @@ function SupportPage() {
                   Descreva sua dúvida ou problema e nossa equipe responderá o mais breve possível.
                 </DialogDescription>
               </DialogHeader>
-              <div className="py-4">
+              <div className="py-4 overflow-y-auto max-h-[80vh]">
                 <TicketForm 
                   onSuccess={handleTicketCreated} 
                   onCancel={() => setIsNewTicketOpen(false)} 
