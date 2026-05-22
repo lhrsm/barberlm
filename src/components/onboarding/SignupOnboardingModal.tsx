@@ -290,23 +290,6 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                   </Button>
                 </form>
 
-                {emailExists && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-6 rounded-xl bg-red-500/10 border border-red-500/20 text-center space-y-4"
-                  >
-                    <p className="text-red-400 font-medium">Este e-mail já está cadastrado no sistema.</p>
-                    <div className="flex gap-4 justify-center">
-                      <Button variant="outline" className="border-white/10 hover:bg-white/5" onClick={() => navigate({ to: "/auth" })}>
-                        Ir para login
-                      </Button>
-                      <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={() => navigate({ to: "/auth?type=recovery" })}>
-                        Recuperar senha
-                      </Button>
-                    </div>
-                  </motion.div>
-                )}
               </motion.div>
             )}
 
