@@ -461,9 +461,10 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
                 className="space-y-8"
               >
                 <div className="space-y-2 text-center">
-                  <h2 className="text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                     Escolha seu Plano
                   </h2>
+
                   <p className="text-gray-400">Comece com o Pro e experimente tudo o que oferecemos.</p>
                 </div>
 
