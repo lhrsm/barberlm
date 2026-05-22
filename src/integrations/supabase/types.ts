@@ -596,6 +596,7 @@ export type Database = {
           cashback_enabled: boolean
           cashback_percentage: number
           created_at: string
+          email: string | null
           font_color: string | null
           font_family: string | null
           font_size: string | null
@@ -630,6 +631,7 @@ export type Database = {
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          email?: string | null
           font_color?: string | null
           font_family?: string | null
           font_size?: string | null
@@ -664,6 +666,7 @@ export type Database = {
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          email?: string | null
           font_color?: string | null
           font_family?: string | null
           font_size?: string | null
