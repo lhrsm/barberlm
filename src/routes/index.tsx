@@ -99,94 +99,137 @@ function LandingPageComponent() {
       </motion.nav>
 
       {/* Hero Section */}
-      <section className="relative pt-40 pb-20 lg:pt-56 lg:pb-32 px-4 overflow-hidden">
-        {/* Glow Effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/20 rounded-full blur-[120px] -z-10 animate-glow"></div>
-        <div className="absolute top-1/4 -right-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] -z-10 animate-glow" style={{ animationDelay: '2s' }}></div>
+      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 overflow-hidden">
+        {/* Abstract Background Shapes */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full animate-pulse" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full" />
+        </div>
 
-        <div className="max-w-7xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full glass border border-primary/30 text-primary text-sm font-bold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 shadow-[0_0_20px_rgba(var(--primary),0.2)]">
-            <Zap className="h-4 w-4 fill-current" />
-            <span>Teste o plano Pro grátis por 15 dias</span>
-          </div>
-          
-          <h1 className="text-5xl lg:text-[84px] font-black tracking-tighter mb-8 text-white leading-[1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-            A plataforma completa para transformar sua <br className="hidden lg:block" />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-400 to-primary bg-[length:200%_auto] animate-pulse">barbearia em um negócio profissional.</span>
-          </h1>
-          
-          <p className="text-xl text-white/60 max-w-3xl mx-auto mb-12 leading-relaxed animate-in fade-in slide-in-from-bottom-10 duration-700 delay-200">
-            Agendamentos online, WhatsApp, financeiro, cashback, comissões e automações em um único sistema simples de usar.
-          </p>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col items-center text-center mb-16">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-primary text-xs font-black uppercase tracking-widest mb-8 shadow-xl"
+            >
+              <Zap className="h-3.5 w-3.5 fill-current" />
+              <span>Sua barbearia no próximo nível</span>
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-6xl lg:text-9xl font-black tracking-tightest mb-8 text-white leading-[0.9] max-w-5xl"
+            >
+              Sua barbearia no <br />
+              <span className="text-primary italic">piloto automático.</span>
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg lg:text-xl text-white/50 max-w-2xl mb-12 font-bold leading-relaxed"
+            >
+              Agendamentos online, automações inteligentes, WhatsApp, campanhas e gestão completa em uma única plataforma premium.
+            </motion.p>
 
-          <div className="flex flex-col items-center gap-6 mb-20 animate-in fade-in slide-in-from-bottom-12 duration-700 delay-300">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-col sm:flex-row items-center gap-4"
+            >
               <Button 
                 size="lg" 
-                className="h-20 px-12 text-xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_40px_rgba(var(--primary),0.5)] group relative overflow-hidden" 
+                className="h-16 px-10 text-lg font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_20px_40px_-15px_rgba(234,179,8,0.5)] group transition-all"
                 onClick={() => setShowSignupModal(true)}
               >
-                <div className="flex flex-col items-center leading-tight">
-                  <span>Começar teste grátis</span>
-                  <span className="text-xs font-medium opacity-80">Acesse o plano Pro grátis por 15 dias</span>
-                </div>
-                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                Começar teste grátis
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button size="lg" variant="outline" className="h-20 px-12 text-xl font-bold border-white/10 hover:bg-white/5 text-white" asChild>
-                <a href="#funcionalidades">Ver funcionalidades</a>
+              <Button size="lg" variant="ghost" className="h-16 px-10 text-lg font-bold text-white hover:bg-white/5 group">
+                Ver demonstração
+                <Play className="ml-2 h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
               </Button>
-            </div>
+            </motion.div>
             
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-white/40 text-sm font-bold uppercase tracking-widest">
-              <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary" /> Sem cartão de crédito
+            {/* Social Proof */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-16 flex flex-col items-center gap-4"
+            >
+              <div className="flex -space-x-3">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-zinc-800 flex items-center justify-center overflow-hidden">
+                    <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
+                  </div>
+                ))}
+                <div className="w-10 h-10 rounded-full border-2 border-background bg-primary flex items-center justify-center text-[10px] font-black text-primary-foreground">
+                  +300
+                </div>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary" /> Acesso imediato
+                <div className="flex">
+                  {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-primary text-primary" />)}
+                </div>
+                <span className="text-sm font-bold text-white/60">300+ barbearias confiam no Barbex</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary" /> Cancele quando quiser
-              </div>
-            </div>
+            </motion.div>
           </div>
           
-          {/* Dashboard Mockup */}
-          <div className="relative max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-16 duration-1000 delay-500">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-blue-500/50 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-            <div className="relative rounded-2xl border border-white/10 glass p-2 lg:p-4 shadow-2xl overflow-hidden animate-float">
-              <img 
-                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=2000" 
-                alt="Barber Dashboard Mockup" 
-                className="w-full h-auto rounded-xl opacity-90"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
-              
-              {/* Floating UI Elements */}
-              <div className="absolute top-10 left-10 hidden lg:block glass p-4 rounded-xl border border-white/10 animate-float" style={{ animationDelay: '1s' }}>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <TrendingUp className="text-green-500 h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Faturamento</div>
-                    <div className="text-lg font-bold text-white">R$ 12.450,00</div>
-                  </div>
-                </div>
+          {/* Dashboard Preview */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 40 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="relative max-w-6xl mx-auto mt-12"
+          >
+            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[120%] h-[120%] bg-primary/10 blur-[120px] -z-10 rounded-full opacity-50" />
+            <div className="relative rounded-[2.5rem] border border-white/10 bg-zinc-950/50 backdrop-blur-3xl p-3 shadow-2xl overflow-hidden group">
+              <div className="relative rounded-[2rem] overflow-hidden border border-white/5">
+                <img 
+                  src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=2400" 
+                  alt="Barbex Dashboard" 
+                  className="w-full h-auto opacity-90 group-hover:scale-[1.02] transition-transform duration-1000"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent" />
               </div>
 
-              <div className="absolute bottom-20 right-10 hidden lg:block glass p-4 rounded-xl border border-white/10 animate-float" style={{ animationDelay: '2s' }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Calendar className="text-primary h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Próximo Agendamento</div>
-                    <div className="text-sm font-bold text-white">Corte Degradê - 14:30</div>
-                  </div>
+              {/* Floating Cards */}
+              <motion.div 
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-20 -left-12 hidden xl:flex bg-zinc-900/90 backdrop-blur border border-white/10 p-5 rounded-3xl shadow-2xl items-center gap-4"
+              >
+                <div className="w-12 h-12 bg-green-500/20 rounded-2xl flex items-center justify-center">
+                  <TrendingUp className="text-green-500 h-6 w-6" />
                 </div>
-              </div>
+                <div>
+                  <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">Faturamento Mensal</div>
+                  <div className="text-xl font-black text-white">R$ 18.420,00</div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute bottom-40 -right-12 hidden xl:flex bg-zinc-900/90 backdrop-blur border border-white/10 p-5 rounded-3xl shadow-2xl items-center gap-4"
+              >
+                <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center">
+                  <Calendar className="text-primary h-6 w-6" />
+                </div>
+                <div>
+                  <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">Próximo Agendamento</div>
+                  <div className="text-lg font-black text-white">14:30 - Corte & Barba</div>
+                </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
