@@ -474,39 +474,100 @@ function AutomationsComponent() {
           </TabsContent>
 
           <TabsContent value="logs">
-            <Card>
-              <CardHeader>
-                <CardTitle>Histórico de Automações</CardTitle>
-                <CardDescription>Acompanhe todas as mensagens enviadas automaticamente pelo sistema.</CardDescription>
+            <Card className="border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                    <History size={20} />
+                  </div>
+                  Histórico de Envios
+                </CardTitle>
+                <CardDescription>Acompanhe em tempo real todas as interações automáticas enviadas para seus clientes.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="rounded-md border">
-                  <div className="p-4 border-b bg-muted/50 grid grid-cols-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    <div>Automação</div>
-                    <div>Cliente</div>
-                    <div>Status</div>
-                    <div className="text-right">Data/Hora</div>
-                  </div>
-                  <div className="divide-y">
-                    {logs.length === 0 ? (
-                      <div className="p-8 text-center text-muted-foreground">Nenhum log encontrado.</div>
-                    ) : (
-                      logs.map((log) => (
-                        <div key={log.id} className="p-4 grid grid-cols-4 items-center text-sm">
-                          <div className="font-medium capitalize">{log.automations?.type.replace('_', ' ')}</div>
-                          <div className="text-muted-foreground">Cliente #{log.customer_id?.substring(0, 5)}</div>
-                          <div>
-                            <Badge variant={log.status === 'sent' ? "default" : "destructive"} className={log.status === 'sent' ? "bg-green-500" : ""}>
-                              {log.status === 'sent' ? 'Enviado' : 'Falhou'}
-                            </Badge>
-                          </div>
-                          <div className="text-right text-xs text-muted-foreground">
-                            {new Date(log.sent_at).toLocaleString('pt-BR')}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground bg-muted/30 border-y border-white/5">
+                      <tr>
+                        <th className="px-6 py-4">Automação</th>
+                        <th className="px-6 py-4">Cliente</th>
+                        <th className="px-6 py-4">Canal</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4 text-right">Data & Hora</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {logs.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                            <div className="flex flex-col items-center gap-2 opacity-50">
+                              <History size={40} className="mb-2" />
+                              <p className="font-medium">Nenhum registro de envio encontrado.</p>
+                              <p className="text-xs">As atividades aparecerão aqui assim que as automações forem disparadas.</p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        logs.map((log, index) => (
+                          <motion.tr 
+                            key={log.id} 
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="hover:bg-muted/30 transition-colors group"
+                          >
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                                  {log.automations?.type?.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="font-semibold capitalize text-foreground/90 group-hover:text-primary transition-colors">
+                                  {log.automations?.type?.replace(/_/g, ' ')}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col">
+                                <span className="font-medium text-foreground/80">Cliente #{log.customer_id?.substring(0, 8)}</span>
+                                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">ID: {log.id.substring(0, 6)}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge variant="outline" className="gap-1.5 py-0.5 bg-background font-bold text-[10px] uppercase">
+                                <MessageSquare size={10} className="text-emerald-500" /> WhatsApp
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge 
+                                className={cn(
+                                  "px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border-none",
+                                  log.status === 'sent' 
+                                    ? "bg-emerald-500/10 text-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.1)]" 
+                                    : "bg-red-500/10 text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
+                                )}
+                              >
+                                {log.status === 'sent' ? (
+                                  <span className="flex items-center gap-1"><Check size={10} /> Sucesso</span>
+                                ) : (
+                                  <span className="flex items-center gap-1"><AlertCircle size={10} /> Falha</span>
+                                )}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-foreground/80 tabular-nums">
+                                  {new Date(log.sent_at).toLocaleDateString('pt-BR')}
+                                </span>
+                                <span className="text-xs text-muted-foreground tabular-nums">
+                                  {new Date(log.sent_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>
