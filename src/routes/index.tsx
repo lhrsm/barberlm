@@ -315,234 +315,125 @@ function LandingPageComponent() {
         </div>
       </section>
 
-      {/* Solution Section */}
-      <section id="funcionalidades" className="py-32 px-4 bg-primary/[0.02]">
+      {/* Automation Flow Section */}
+      <section id="automações" className="py-24 lg:py-40 px-6 bg-zinc-950/40 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-base font-bold text-primary uppercase tracking-[0.2em] mb-4">Soluções</h2>
-            <p className="text-4xl lg:text-6xl font-black text-white tracking-tight">Tudo o que sua barbearia precisa</p>
+            <h2 className="text-primary font-black uppercase tracking-widest text-sm mb-4">Automações</h2>
+            <h3 className="text-4xl lg:text-7xl font-black text-white tracking-tight">Relacionamento no <br /><span className="text-primary italic">automático.</span></h3>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <SolutionCard 
-              icon={<Calendar className="h-8 w-8 text-primary" />}
-              title="Agenda inteligente"
-              description="Controle total dos horários com interface intuitiva."
-            />
-            <SolutionCard 
-              icon={<MessageSquare className="h-8 w-8 text-primary" />}
-              title="WhatsApp automático"
-              description="Lembretes e confirmações enviadas automaticamente."
-            />
-            <SolutionCard 
-              icon={<Zap className="h-8 w-8 text-primary" />}
-              title="Cashback"
-              description="Fidelize seus clientes com sistema de pontos e créditos."
-            />
-            <SolutionCard 
-              icon={<CircleDollarSign className="h-8 w-8 text-primary" />}
-              title="Financeiro completo"
-              description="Controle de caixa, entradas e saídas em tempo real."
-            />
-            <SolutionCard 
-              icon={<Users className="h-8 w-8 text-primary" />}
-              title="Comissão automática"
-              description="Cálculo instantâneo de quanto cada barbeiro deve receber."
-            />
-            <SolutionCard 
-              icon={<Scissors className="h-8 w-8 text-primary" />}
-              title="Multi barbeiros"
-              description="Gestão individualizada para cada profissional da equipe."
-            />
-            <SolutionCard 
-              icon={<TrendingUp className="h-8 w-8 text-primary" />}
-              title="Dashboard real time"
-              description="Acompanhe o crescimento do seu negócio de qualquer lugar."
-            />
-            <SolutionCard 
-              icon={<Settings className="h-8 w-8 text-primary" />}
-              title="Controle de clientes"
-              description="Base de dados completa com histórico de cada atendimento."
-            />
+
+          <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 max-w-5xl mx-auto">
+            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent hidden md:block -z-10" />
+            
+            {[
+              { title: "Agendamento", icon: <Calendar />, desc: "Cliente agenda no seu link personalizado" },
+              { title: "Confirmação", icon: <MessageSquare />, desc: "WhatsApp enviado na hora para confirmar" },
+              { title: "Lembrete", icon: <Zap />, desc: "Aviso enviado 2h antes do horário marcado" },
+              { title: "Fidelização", icon: <Star />, desc: "Cashback e convite para próxima visita" },
+            ].map((step, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center text-center space-y-4">
+                <div className="w-20 h-20 rounded-[2rem] bg-zinc-900 border border-white/10 flex items-center justify-center text-primary shadow-2xl group-hover:bg-primary transition-all">
+                  {step.icon}
+                </div>
+                <h4 className="text-lg font-black text-white">{step.title}</h4>
+                <p className="text-xs text-white/40 font-bold max-w-[150px]">{step.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="precos" className="py-32 px-4 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[150px] -z-10"></div>
-
+      <section id="planos" className="py-24 lg:py-40 px-6 relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-base font-bold text-primary uppercase tracking-[0.2em] mb-4">Planos</h2>
-            <p className="text-4xl lg:text-6xl font-black text-white tracking-tight mb-6">Investimento que se paga</p>
-            <p className="text-xl text-white/50 font-bold">Sem taxa por agendamento. Pague apenas o valor fixo.</p>
+          <div className="text-center mb-16 lg:mb-24">
+            <h2 className="text-primary font-black uppercase tracking-widest text-sm mb-4">Planos</h2>
+            <h3 className="text-4xl lg:text-7xl font-black text-white tracking-tight mb-8">Investimento que se paga <br /><span className="text-white/40">na primeira semana.</span></h3>
+            
+            <div className="inline-flex items-center p-1 bg-zinc-900 rounded-2xl border border-white/5 mb-12">
+              <button className="px-6 py-2 rounded-xl bg-primary text-primary-foreground font-black text-sm">Mensal</button>
+              <button className="px-6 py-2 rounded-xl text-white/40 font-black text-sm">Anual (20% OFF)</button>
+            </div>
           </div>
-          
-          <div className="grid lg:grid-cols-3 gap-8 items-center max-w-6xl mx-auto">
-            {/* Starter Plan */}
-            <div className="glass p-10 rounded-3xl border border-white/5 flex flex-col h-full relative group hover:border-white/10 transition-all opacity-80 hover:opacity-100">
-              <div className="mb-8">
-                <h3 className="text-2xl font-black text-white mb-2">Starter</h3>
-                <p className="text-white/50 font-medium">Ideal para barbeiros iniciantes.</p>
-              </div>
-              <div className="mb-10">
-                <div className="text-5xl font-black text-white">R$ 19,90<span className="text-lg font-bold text-white/40">/mês</span></div>
-              </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-end">
+            {/* Starter */}
+            <div className="p-10 rounded-[2.5rem] bg-zinc-900/50 border border-white/5 flex flex-col h-fit">
+              <h4 className="text-xl font-black text-white mb-2">Starter</h4>
+              <p className="text-sm text-white/40 font-bold mb-8">Para barbeiros individuais.</p>
+              <div className="text-4xl font-black text-white mb-8">R$ 49,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
               <ul className="space-y-4 mb-10 flex-1">
-                <PricingItem text="Agenda completa" />
-                <PricingItem text="1 Profissional" />
-                <PricingItem text="1 Conexão WhatsApp" />
-                <PricingItem text="Financeiro básico" />
-                <PricingItem text="Clientes ilimitados" />
+                <PricingItem text="Até 2 Barbeiros" />
+                <PricingItem text="Agenda Inteligente" />
+                <PricingItem text="Gestão de Clientes" />
+                <PricingItem text="Financeiro Básico" />
               </ul>
-              <Button 
-                variant="outline" 
-                className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" 
-                onClick={() => setShowSignupModal(true)}
-              >
-                Começar agora
-              </Button>
+              <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white font-black hover:bg-white/5">Escolher Starter</Button>
             </div>
 
-            {/* Pro Plan */}
-            <div className="glass p-10 rounded-3xl border-2 border-primary bg-primary/10 flex flex-col h-full relative scale-110 z-10 shadow-[0_0_80px_rgba(var(--primary),0.3)] ring-1 ring-primary/50 animate-in fade-in zoom-in duration-700">
-              <div className="absolute -top-5 left-1/2 -translate-x-1/2 flex gap-2">
-                <div className="bg-primary text-primary-foreground text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">
-                  MAIS POPULAR
-                </div>
-                <div className="bg-blue-500 text-white text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">
-                  15 DIAS GRÁTIS
-                </div>
-              </div>
-              <div className="mb-8">
-                <h3 className="text-3xl font-black text-white mb-2">Pro</h3>
-                <p className="text-white/60 font-bold">Para barbearias em crescimento.</p>
-              </div>
-              <div className="mb-10">
-                <div className="text-7xl font-black text-white tracking-tighter">R$ 39,90<span className="text-lg font-bold text-white/40">/mês</span></div>
-                <div className="text-primary font-black text-sm uppercase tracking-widest mt-2">Teste grátis por 15 dias</div>
-              </div>
+            {/* Pro */}
+            <div className="p-12 rounded-[3rem] bg-zinc-900 border-2 border-primary flex flex-col h-full relative shadow-[0_40px_80px_-20px_rgba(234,179,8,0.2)]">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">Mais Vendido</div>
+              <h4 className="text-2xl font-black text-white mb-2">Pro</h4>
+              <p className="text-sm text-white/40 font-bold mb-8">Para barbearias em expansão.</p>
+              <div className="text-6xl font-black text-white mb-8">R$ 89,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
               <ul className="space-y-4 mb-10 flex-1">
-                <PricingItem text="Até 5 Profissionais" />
-                <PricingItem text="2 Conexões WhatsApp" />
+                <PricingItem text="Até 10 Barbeiros" />
+                <PricingItem text="WhatsApp Automático" />
                 <PricingItem text="Sistema de Cashback" />
-                <PricingItem text="Financeiro avançado" />
-                <PricingItem text="Relatórios de desempenho" />
-                <PricingItem text="Automações inteligentes" />
+                <PricingItem text="Financeiro Completo" />
+                <PricingItem text="Marketing & Campanhas" />
+                <PricingItem text="15 Dias Grátis" />
               </ul>
-              <Button 
-                className="w-full h-16 text-xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_40px_rgba(var(--primary),0.5)] animate-pulse" 
-                onClick={() => setShowSignupModal(true)}
-              >
-                Começar teste grátis
-              </Button>
+              <Button className="h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl" onClick={() => setShowSignupModal(true)}>Começar teste grátis</Button>
             </div>
 
-            {/* Elite Plan */}
-            <div className="glass p-10 rounded-3xl border border-white/5 flex flex-col h-full relative group hover:border-white/10 transition-all opacity-80 hover:opacity-100">
-              <div className="mb-8">
-                <h3 className="text-2xl font-black text-white mb-2">Elite</h3>
-                <p className="text-white/50 font-medium">Solução definitiva sem limites.</p>
-              </div>
-              <div className="mb-10">
-                <div className="text-5xl font-black text-white">R$ 59,90<span className="text-lg font-bold text-white/40">/mês</span></div>
-              </div>
+            {/* Elite */}
+            <div className="p-10 rounded-[2.5rem] bg-zinc-900/50 border border-white/5 flex flex-col h-fit">
+              <h4 className="text-xl font-black text-white mb-2">Elite</h4>
+              <p className="text-sm text-white/40 font-bold mb-8">Gestão total sem limites.</p>
+              <div className="text-4xl font-black text-white mb-8">R$ 149,90<span className="text-sm text-white/40 font-bold">/mês</span></div>
               <ul className="space-y-4 mb-10 flex-1">
-                <PricingItem text="Profissionais ilimitados" />
-                <PricingItem text="WhatsApp ilimitado" />
-                <PricingItem text="Dashboard analítico" />
-                <PricingItem text="Automações premium" />
-                <PricingItem text="Suporte prioritário" />
-                <PricingItem text="Customização total" />
+                <PricingItem text="Barbeiros Ilimitados" />
+                <PricingItem text="Suporte VIP 24h" />
+                <PricingItem text="Mentoria de Gestão" />
+                <PricingItem text="Automações Premium" />
               </ul>
-              <Button 
-                variant="outline" 
-                className="w-full h-14 text-lg font-bold border-white/10 hover:bg-white/5" 
-                onClick={() => setShowSignupModal(true)}
-              >
-                Assinar agora
-              </Button>
+              <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white font-black hover:bg-white/5">Escolher Elite</Button>
             </div>
-          </div>
-          
-          <div className="text-center mt-20">
-            <p className="text-xl text-white/60 font-medium">
-              Teste gratuitamente o plano Pro por 15 dias e descubra como profissionalizar sua barbearia.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-32 px-4 relative overflow-hidden bg-white/[0.01]">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-base font-bold text-primary uppercase tracking-[0.2em] mb-4">Depoimentos</h2>
-            <p className="text-4xl lg:text-6xl font-black text-white tracking-tight">Quem usa, recomenda</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <TestimonialCard 
-              name="Carlos Henrique"
-              business="Barbearia Prime"
-              text="Depois que comecei a usar o Barbex minha agenda ficou muito mais organizada."
-              avatar="CH"
-            />
-            <TestimonialCard 
-              name="Rafael Mendes"
-              business="Barber Studio"
-              text="O financeiro e as automações economizaram muito tempo no dia a dia."
-              avatar="RM"
-            />
-            <TestimonialCard 
-              name="João Victor"
-              business="Barbearia Imperial"
-              text="O WhatsApp automático reduziu muito as faltas dos clientes."
-              avatar="JV"
-            />
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-32 px-4 bg-white/[0.01]">
+      <section id="faq" className="py-24 lg:py-40 px-6 bg-zinc-950/20">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-base font-bold text-primary uppercase tracking-[0.2em] mb-4">Dúvidas</h2>
-            <p className="text-4xl font-black text-white tracking-tight">Perguntas Frequentes</p>
+          <div className="text-center mb-16 lg:mb-24">
+            <h2 className="text-primary font-black uppercase tracking-widest text-sm mb-4">FAQ</h2>
+            <h3 className="text-4xl lg:text-6xl font-black text-white tracking-tight">Tire suas dúvidas</h3>
           </div>
           
           <Accordion type="single" collapsible className="w-full space-y-4">
             <FaqItem 
-              value="item-test-1"
-              question="O teste realmente é gratuito?"
-              answer="Sim! O teste do plano Pro é totalmente gratuito por 15 dias e não exige cartão de crédito. Você terá acesso a todas as funcionalidades premium para testar na prática."
-            />
-            <FaqItem 
-              value="item-test-2"
-              question="Precisa de cartão de crédito para testar?"
-              answer="Não! Você pode começar seu teste imediatamente sem informar nenhum dado de pagamento. Queremos que você conheça o sistema primeiro."
-            />
-            <FaqItem 
-              value="item-test-3"
-              question="Posso cancelar antes de terminar os 15 dias?"
-              answer="Com certeza. Você tem total liberdade para cancelar a qualquer momento, embora não haja cobrança automática durante o período de teste."
-            />
-            <FaqItem 
-              value="item-test-4"
-              question="O que acontece após os 15 dias de teste?"
-              answer="Após os 15 dias, você poderá escolher um dos nossos planos pagos para continuar utilizando o sistema. Seus dados e configurações permanecem salvos para que você não perca nada."
-            />
-            <FaqItem 
               value="item-1"
-              question="Funciona no celular?"
-              answer="Sim! O Barbex é 100% responsivo e funciona perfeitamente em qualquer dispositivo: celular, tablet ou computador."
+              question="O teste de 15 dias é grátis mesmo?"
+              answer="Sim! Você terá acesso a 100% das funcionalidades do plano Pro por 15 dias sem pagar nada e sem precisar cadastrar cartão."
+            />
+            <FaqItem 
+              value="item-2"
+              question="Consigo usar no celular?"
+              answer="Com certeza. O Barbex é feito para ser usado no seu dia a dia, direto do celular, tablet ou computador."
+            />
+            <FaqItem 
+              value="item-3"
+              question="Como funciona o WhatsApp?"
+              answer="O sistema envia mensagens automáticas de confirmação, lembrete e marketing usando sua própria conta de WhatsApp conectada."
             />
             <FaqItem 
               value="item-4"
-              question="Como funciona o WhatsApp?"
-              answer="O sistema se conecta ao seu WhatsApp para enviar lembretes automáticos de agendamento, confirmações e mensagens de marketing."
+              question="Tem multa se eu quiser cancelar?"
+              answer="Não. Nossos planos não possuem fidelidade. Você pode cancelar quando quiser sem qualquer taxa adicional."
             />
           </Accordion>
         </div>
