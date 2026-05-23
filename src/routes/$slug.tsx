@@ -17,12 +17,18 @@ import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
-  head: ({ params }) => ({
-    meta: [
-      { title: `Barbearia | ${params.slug}` },
-      { name: "description", content: "Agende seu horário online de forma rápida e fácil." },
-    ],
-  }),
+  head: ({ params }) => {
+    // We can't easily fetch shop data here in a sync head function without a loader, 
+    // but the component itself updates the document.title.
+    return {
+      title: `Barbearia | ${params.slug}`,
+      meta: [
+        { name: "description", content: "Agende seu horário online de forma rápida e fácil." },
+        { property: "og:title", content: "Barbearia Premium" },
+        { property: "og:description", content: "Experiência premium de barbearia com agendamento online." },
+      ],
+    };
+  },
 });
 
 function ShopPageComponent() {
