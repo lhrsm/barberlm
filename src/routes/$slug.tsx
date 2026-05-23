@@ -1279,29 +1279,47 @@ function ShopPageComponent() {
 
           <div className="flex-1 pr-1">
             {bookingStep === 1 && (
-              <div className="space-y-6 pt-2">
-                <div className="grid gap-3 p-4 bg-[#111] rounded-2xl border border-white/5">
-                  <Label className="text-sm font-bold text-slate-300 ml-1">Seu WhatsApp</Label>
-                  <Input 
-                    placeholder="(00) 00000-0000" 
-                    value={customerPhone} 
-                    onChange={(e) => setCustomerPhone(e.target.value)} 
-                    className="bg-[#090909] border-white/10 text-white placeholder:text-slate-600 h-14 text-xl font-medium focus-visible:ring-primary/50 rounded-xl"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && customerPhone) {
-                        handlePhoneCheck();
-                      }
-                    }}
-                  />
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-8 py-4"
+              >
+                <div className="space-y-3">
+                  <h4 className="text-3xl font-black uppercase italic tracking-tighter">Olá!</h4>
+                  <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                    Informe seu WhatsApp para começarmos seu agendamento premium.
+                  </p>
                 </div>
-                <Button 
-                  className="w-full" 
-                  onClick={handlePhoneCheck}
-                  disabled={!customerPhone || submitting}
-                >
-                  Continuar
-                </Button>
-              </div>
+
+                <div className="space-y-4">
+                  <div className="grid gap-3 p-6 bg-white/[0.03] rounded-3xl border border-white/10 shadow-inner">
+                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Seu WhatsApp</Label>
+                    <Input 
+                      placeholder="(00) 00000-0000" 
+                      value={customerPhone} 
+                      onChange={(e) => setCustomerPhone(e.target.value)} 
+                      className="bg-black/40 border-white/5 text-white placeholder:text-slate-700 h-16 text-2xl font-black tracking-tight focus-visible:ring-primary/50 rounded-2xl transition-all"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && customerPhone) {
+                          handlePhoneCheck();
+                        }
+                      }}
+                    />
+                  </div>
+                  <Button 
+                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl hover:scale-[1.02] transition-all" 
+                    style={{ backgroundColor: primaryColor }}
+                    onClick={handlePhoneCheck}
+                    disabled={!customerPhone || submitting}
+                  >
+                    {submitting ? "Verificando..." : "Continuar"}
+                  </Button>
+                </div>
+
+                <p className="text-[10px] text-center text-slate-600 font-bold uppercase tracking-[0.2em] pt-4">
+                  Ambiente Seguro & Privado
+                </p>
+              </motion.div>
             )}
 
             {bookingStep === 2 && (
