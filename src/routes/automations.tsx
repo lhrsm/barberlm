@@ -335,8 +335,16 @@ function AutomationsComponent() {
                         <div className={cn("p-2 rounded-lg", item.bg, item.color)}>
                           <item.icon size={24} />
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
+                          <Label htmlFor={`switch-${item.id}`} className={cn(
+                            "text-xs font-bold uppercase tracking-widest",
+                            enabled ? "text-emerald-500" : "text-gray-500",
+                            locked && "opacity-50"
+                          )}>
+                            {enabled ? "Ativo" : "Inativo"}
+                          </Label>
                           <Switch 
+                            id={`switch-${item.id}`}
                             checked={enabled} 
                             disabled={locked}
                             onCheckedChange={() => handleToggleAutomation(item.id, enabled)} 
