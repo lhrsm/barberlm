@@ -59,9 +59,15 @@ function ProductsComponent() {
   const [newProduct, setNewProduct] = useState({ 
     name: "", 
     price: "", 
+    promotional_price: "",
     stock_quantity: "0", 
     description: "",
-    image_url: ""
+    short_description: "",
+    category: "Pomadas",
+    brand: "",
+    image_url: "",
+    featured: false,
+    badge: ""
   });
   
   const canAddProduct = usage.products < limits.products;
