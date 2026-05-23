@@ -143,6 +143,7 @@ function ProductsComponent() {
         .update({
           ...editingProduct,
           price: parseFloat(editingProduct.price),
+          promotional_price: editingProduct.promotional_price ? parseFloat(editingProduct.promotional_price) : null,
           stock_quantity: parseInt(editingProduct.stock_quantity),
         })
         .eq("id", editingProduct.id);
@@ -159,16 +160,29 @@ function ProductsComponent() {
       const { error } = await supabase.from("products").insert({
         ...newProduct,
         price: parseFloat(newProduct.price),
+        promotional_price: newProduct.promotional_price ? parseFloat(newProduct.promotional_price) : null,
         stock_quantity: parseInt(newProduct.stock_quantity),
         user_id: user.id,
-      });
+      } as any);
 
       if (error) {
         toast.error("Erro ao adicionar produto");
       } else {
         toast.success("Produto adicionado com sucesso!");
         setIsAddDialogOpen(false);
-        setNewProduct({ name: "", price: "", stock_quantity: "0", description: "", image_url: "" });
+        setNewProduct({ 
+          name: "", 
+          price: "", 
+          promotional_price: "",
+          stock_quantity: "0", 
+          description: "", 
+          short_description: "",
+          category: "Pomadas",
+          brand: "",
+          image_url: "",
+          featured: false,
+          badge: ""
+        });
         fetchProducts();
         refreshLimits();
       }
