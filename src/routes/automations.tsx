@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   MessageSquare, 
   Mail, 
@@ -25,12 +26,12 @@ import {
   Gift, 
   UserMinus, 
   Star,
-  CheckCircle2,
   AlertCircle,
   Zap,
   Lock,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Check
 } from "lucide-react";
 import {
   Dialog,
@@ -312,135 +313,259 @@ function AutomationsComponent() {
 
           <TabsContent value="all" className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {AUTOMATION_TYPES.map((item) => {
+              {AUTOMATION_TYPES.map((item, index) => {
                 const data = automations.find(a => a.type === item.id);
                 const enabled = data?.enabled || false;
                 const locked = isFeatureLocked(item.plan);
+                const channel = data?.channel || 'whatsapp';
+                const delay = data?.trigger_delay || 0;
 
                 return (
-                  <Card key={item.id} className={cn(
-                    "relative overflow-hidden transition-all hover:shadow-md border-white/5",
-                    locked ? "opacity-80 bg-muted/30 grayscale-[0.5]" : "bg-card"
-                  )}>
-                    {locked && (
-                      <div className="absolute top-2 right-2 z-10">
-                        <Badge variant="secondary" className="gap-1 bg-amber-500/20 text-amber-500 border-amber-500/20">
-                          <Lock size={10} /> {item.plan.toUpperCase()}
-                        </Badge>
-                      </div>
-                    )}
-                    
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div className={cn("p-2 rounded-lg", item.bg, item.color)}>
-                          <item.icon size={24} />
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className={cn(
+                      "relative overflow-hidden transition-all duration-500 hover:shadow-xl group border-2",
+                      locked ? "opacity-80 bg-muted/30 grayscale-[0.5] border-transparent" : 
+                      enabled 
+                        ? "bg-card border-emerald-500/20 shadow-emerald-500/5 hover:border-emerald-500/40" 
+                        : "bg-card border-red-500/20 shadow-red-500/5 hover:border-red-500/40"
+                    )}>
+                      {locked && (
+                        <div className="absolute top-2 right-2 z-10">
+                          <Badge variant="secondary" className="gap-1 bg-amber-500/20 text-amber-500 border-amber-500/20 backdrop-blur-sm">
+                            <Lock size={10} /> {item.plan.toUpperCase()}
+                          </Badge>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Label htmlFor={`switch-${item.id}`} className={cn(
-                            "text-[10px] font-black uppercase tracking-[0.15em] transition-colors duration-300",
-                            enabled 
-                              ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]" 
-                              : "text-gray-600",
-                            locked && "opacity-40"
+                      )}
+                      
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start">
+                          <div className={cn(
+                            "p-3 rounded-xl transition-all duration-300 group-hover:scale-110",
+                            item.bg,
+                            enabled ? "text-emerald-600 shadow-lg shadow-emerald-500/10" : "text-red-600 shadow-lg shadow-red-500/10",
+                            locked && "grayscale"
                           )}>
-                            {enabled ? "Ativo" : "Inativo"}
-                          </Label>
-                          <Switch 
-                            id={`switch-${item.id}`}
-                            checked={enabled} 
-                            disabled={locked}
-                            onCheckedChange={() => handleToggleAutomation(item.id, enabled)} 
-                            className={cn(
-                              "transition-all duration-300",
-                              !enabled && "opacity-40 grayscale-[0.5] hover:opacity-60",
-                              locked && "cursor-not-allowed opacity-20"
-                            )}
-                          />
+                            <item.icon size={26} />
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <div className="flex items-center gap-3">
+                              <AnimatePresence mode="wait">
+                                <motion.div
+                                  key={enabled ? "active" : "inactive"}
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  className="flex items-center"
+                                >
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                      "px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider gap-1.5 transition-colors duration-300",
+                                      enabled 
+                                        ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
+                                        : "bg-red-500/10 text-red-500 border-red-500/20"
+                                    )}
+                                  >
+                                    <div className={cn(
+                                      "w-1.5 h-1.5 rounded-full animate-pulse",
+                                      enabled ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"
+                                    )} />
+                                    {enabled ? "Ativo" : "Inativo"}
+                                  </Badge>
+                                </motion.div>
+                              </AnimatePresence>
+                              
+                              <Switch 
+                                id={`switch-${item.id}`}
+                                checked={enabled} 
+                                disabled={locked}
+                                onCheckedChange={() => handleToggleAutomation(item.id, enabled)} 
+                                className={cn(
+                                  "transition-all duration-500",
+                                  enabled ? "data-[state=checked]:bg-emerald-500" : "data-[state=unchecked]:bg-red-500/20",
+                                  locked && "cursor-not-allowed opacity-20"
+                                )}
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <CardTitle className="text-xl mt-4 flex items-center gap-2">
-                        {item.title}
-                      </CardTitle>
-                      <CardDescription>{item.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-2">
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                          <Play size={12} /> Trigger: {item.trigger}
+                        <CardTitle className="text-xl mt-5 font-bold tracking-tight group-hover:text-primary transition-colors">
+                          {item.title}
+                        </CardTitle>
+                        <CardDescription className="line-clamp-2 text-sm leading-relaxed min-h-[40px]">
+                          {item.description}
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardContent className="py-4 border-y border-white/5 space-y-4 bg-muted/20">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            <div className="p-1.5 rounded-md bg-background/50 border border-white/5">
+                              {channel === 'whatsapp' ? <MessageSquare size={12} className="text-emerald-500" /> : <Mail size={12} className="text-blue-500" />}
+                            </div>
+                            <span>{channel}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            <div className="p-1.5 rounded-md bg-background/50 border border-white/5">
+                              <Clock size={12} className="text-amber-500" />
+                            </div>
+                            <span>{delay === 0 ? "Imediato" : `${delay}h antes`}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
-                          <span className="text-muted-foreground">Disponível no plano:</span>
-                          <span className={cn(
-                            "px-1.5 py-0.5 rounded",
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                            <span className="text-muted-foreground/60">Gatilho:</span>
+                            <span className="text-foreground">{item.trigger}</span>
+                          </div>
+                          <div className={cn(
+                            "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest",
                             item.plan === 'starter' ? "bg-blue-500/10 text-blue-500" :
                             item.plan === 'pro' ? "bg-purple-500/10 text-purple-500" :
                             "bg-amber-500/10 text-amber-500"
                           )}>
-                            {item.plan.toUpperCase()}
-                          </span>
+                            <Sparkles size={8} /> {item.plan}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="pt-2 border-t border-white/5">
-                      {locked ? (
-                        <Button variant="ghost" className="w-full gap-2 text-primary hover:bg-primary/5" asChild>
-                          <a href="/subscription">
-                            <Zap size={14} className="animate-pulse" />
-                            Liberar no Plano {item.plan.toUpperCase()} 
-                            <ArrowRight size={14} />
-                          </a>
-                        </Button>
-                      ) : (
-                        <div className="grid grid-cols-2 w-full gap-2">
-                          <Button variant="outline" size="sm" onClick={() => openEditModal(item.id)} className="border-white/10">
-                            Configurar
+                      </CardContent>
+
+                      <CardFooter className="p-4 pt-4 flex gap-2">
+                        {locked ? (
+                          <Button variant="ghost" className="w-full h-11 gap-2 text-primary font-bold bg-primary/5 hover:bg-primary/10 border border-primary/10 rounded-xl group/btn" asChild>
+                            <a href="/subscription">
+                              <Zap size={16} className="text-amber-500 animate-pulse group-hover:scale-110 transition-transform" />
+                              Upgrade para {item.plan.toUpperCase()}
+                              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                            </a>
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => toast.info("Automação de teste enviada!")}>
-                            Testar
-                          </Button>
-                        </div>
-                      )}
-                    </CardFooter>
-                  </Card>
+                        ) : (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => openEditModal(item.id)} 
+                              className="flex-1 h-10 border-white/10 hover:bg-muted font-bold rounded-xl gap-2"
+                            >
+                              <Settings2 size={14} /> Configurar
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => toast.info("Automação de teste enviada!")}
+                              className="px-3 h-10 font-bold hover:bg-muted rounded-xl gap-2"
+                            >
+                              <Play size={14} /> Testar
+                            </Button>
+                          </>
+                        )}
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
                 );
               })}
             </div>
           </TabsContent>
 
           <TabsContent value="logs">
-            <Card>
-              <CardHeader>
-                <CardTitle>Histórico de Automações</CardTitle>
-                <CardDescription>Acompanhe todas as mensagens enviadas automaticamente pelo sistema.</CardDescription>
+            <Card className="border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                    <History size={20} />
+                  </div>
+                  Histórico de Envios
+                </CardTitle>
+                <CardDescription>Acompanhe em tempo real todas as interações automáticas enviadas para seus clientes.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="rounded-md border">
-                  <div className="p-4 border-b bg-muted/50 grid grid-cols-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    <div>Automação</div>
-                    <div>Cliente</div>
-                    <div>Status</div>
-                    <div className="text-right">Data/Hora</div>
-                  </div>
-                  <div className="divide-y">
-                    {logs.length === 0 ? (
-                      <div className="p-8 text-center text-muted-foreground">Nenhum log encontrado.</div>
-                    ) : (
-                      logs.map((log) => (
-                        <div key={log.id} className="p-4 grid grid-cols-4 items-center text-sm">
-                          <div className="font-medium capitalize">{log.automations?.type.replace('_', ' ')}</div>
-                          <div className="text-muted-foreground">Cliente #{log.customer_id?.substring(0, 5)}</div>
-                          <div>
-                            <Badge variant={log.status === 'sent' ? "default" : "destructive"} className={log.status === 'sent' ? "bg-green-500" : ""}>
-                              {log.status === 'sent' ? 'Enviado' : 'Falhou'}
-                            </Badge>
-                          </div>
-                          <div className="text-right text-xs text-muted-foreground">
-                            {new Date(log.sent_at).toLocaleString('pt-BR')}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground bg-muted/30 border-y border-white/5">
+                      <tr>
+                        <th className="px-6 py-4">Automação</th>
+                        <th className="px-6 py-4">Cliente</th>
+                        <th className="px-6 py-4">Canal</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4 text-right">Data & Hora</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {logs.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                            <div className="flex flex-col items-center gap-2 opacity-50">
+                              <History size={40} className="mb-2" />
+                              <p className="font-medium">Nenhum registro de envio encontrado.</p>
+                              <p className="text-xs">As atividades aparecerão aqui assim que as automações forem disparadas.</p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        logs.map((log, index) => (
+                          <motion.tr 
+                            key={log.id} 
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="hover:bg-muted/30 transition-colors group"
+                          >
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                                  {log.automations?.type?.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="font-semibold capitalize text-foreground/90 group-hover:text-primary transition-colors">
+                                  {log.automations?.type?.replace(/_/g, ' ')}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col">
+                                <span className="font-medium text-foreground/80">Cliente #{log.customer_id?.substring(0, 8)}</span>
+                                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">ID: {log.id.substring(0, 6)}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge variant="outline" className="gap-1.5 py-0.5 bg-background font-bold text-[10px] uppercase">
+                                <MessageSquare size={10} className="text-emerald-500" /> WhatsApp
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge 
+                                className={cn(
+                                  "px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border-none",
+                                  log.status === 'sent' 
+                                    ? "bg-emerald-500/10 text-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.1)]" 
+                                    : "bg-red-500/10 text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
+                                )}
+                              >
+                                {log.status === 'sent' ? (
+                                  <span className="flex items-center gap-1"><Check size={10} /> Sucesso</span>
+                                ) : (
+                                  <span className="flex items-center gap-1"><AlertCircle size={10} /> Falha</span>
+                                )}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-foreground/80 tabular-nums">
+                                  {new Date(log.sent_at).toLocaleDateString('pt-BR')}
+                                </span>
+                                <span className="text-xs text-muted-foreground tabular-nums">
+                                  {new Date(log.sent_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>
