@@ -2453,6 +2453,101 @@ function ShopPageComponent() {
           </div>
         </DialogContent>
       </Dialog>}
+      {/* Product Detail Modal */}
+      <Dialog open={!!selectedProductForModal} onOpenChange={(open) => !open && setSelectedProductProductForModal(null)}>
+        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden dark bg-[#0a0a0a] border-white/10 rounded-[3rem] shadow-2xl">
+          <div className="grid md:grid-cols-2 h-full max-h-[85vh] overflow-y-auto">
+            <div className="aspect-square relative bg-[#111] overflow-hidden">
+               {selectedProductForModal?.image_url ? (
+                  <img src={selectedProductForModal.image_url} alt={selectedProductForModal.name} className="w-full h-full object-cover" />
+               ) : (
+                  <div className="w-full h-full flex items-center justify-center opacity-10">
+                    <Package size={120} />
+                  </div>
+               )}
+               {selectedProductForModal?.badge && (
+                  <div className="absolute top-8 left-8 z-10">
+                    <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-2xl" style={{ backgroundColor: primaryColor }}>
+                      {selectedProductForModal.badge}
+                    </span>
+                  </div>
+               )}
+            </div>
+
+            <div className="p-8 md:p-12 flex flex-col space-y-8 bg-gradient-to-b from-white/[0.02] to-transparent">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-black uppercase tracking-[0.3em] text-primary" style={{ color: primaryColor }}>{selectedProductForModal?.category || 'Premium'}</p>
+                  <div className="flex items-center gap-1">
+                    <Star size={12} className="text-yellow-500" fill="currentColor" />
+                    <span className="text-xs font-bold text-white">4.9</span>
+                  </div>
+                </div>
+                <h3 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter leading-none text-white">{selectedProductForModal?.name}</h3>
+                {selectedProductForModal?.brand && <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">{selectedProductForModal.brand}</p>}
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-4xl font-black text-white">R$ {Number(selectedProductForModal?.price || 0).toFixed(2)}</span>
+                  {selectedProductForModal?.promotional_price && (
+                    <span className="text-lg text-slate-600 line-through font-bold">R$ {Number(selectedProductForModal.promotional_price).toFixed(2)}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 w-fit">
+                   <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                   <p className="text-[10px] font-black uppercase tracking-widest text-green-500">Em estoque: {selectedProductForModal?.stock_quantity} unidades</p>
+                </div>
+              </div>
+
+              <div className="space-y-6 flex-1">
+                 <div className="space-y-3">
+                    <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Descrição do Especialista</h5>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                       {selectedProductForModal?.description || "Este produto foi criteriosamente selecionado por nossos profissionais para oferecer o máximo em desempenho e estilo. Ideal para homens que não abrem mão da excelência no cuidado pessoal."}
+                    </p>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-4 pt-4">
+                    <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-1">
+                       <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Fixação</p>
+                       <p className="text-xs font-bold text-white">Forte & Duradoura</p>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-1">
+                       <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Brilho</p>
+                       <p className="text-xs font-bold text-white">Matte Natural</p>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="pt-8 border-t border-white/5 space-y-4">
+                 <Button 
+                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl hover:scale-[1.02] transition-all"
+                    style={{ backgroundColor: primaryColor }}
+                    onClick={() => {
+                      if (selectedProductForModal) {
+                        addToCart(selectedProductForModal);
+                        setSelectedProductProductForModal(null);
+                      }
+                    }}
+                 >
+                    Adicionar ao Carrinho
+                 </Button>
+                 <Button 
+                    variant="outline"
+                    className="w-full h-14 rounded-2xl border-white/10 hover:bg-white/5 font-black uppercase tracking-widest text-xs gap-2"
+                    onClick={() => {
+                      const message = encodeURIComponent(`Olá! Gostaria de comprar o produto ${selectedProductForModal?.name} na ${shop.business_name}.`);
+                      window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
+                    }}
+                 >
+                    <MessageSquare size={18} /> Comprar via WhatsApp
+                 </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
