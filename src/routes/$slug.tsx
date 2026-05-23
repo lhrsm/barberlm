@@ -1884,26 +1884,28 @@ function ShopPageComponent() {
             )}
           </div>
         </div>
-            <DialogFooter className="flex justify-between items-center sm:justify-between">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => {
-                  if (bookingStep === 5 && paymentMethod) {
-                    setPaymentMethod(null);
-                  }
-                  setBookingStep(prev => prev - 1);
-                }}
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
-              </Button>
-              {bookingStep < 5 && (
-                <div className="text-[10px] text-muted-foreground">
-                  Passo {bookingStep} de 5
-                </div>
-              )}
-            </DialogFooter>
-          )}
+            {bookingStep > 1 && (
+              <DialogFooter className="flex justify-between items-center sm:justify-between px-0 pt-6 mt-6 border-t border-white/5 shrink-0">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-slate-400 hover:text-white"
+                  onClick={() => {
+                    if (bookingStep === 5 && paymentMethod) {
+                      setPaymentMethod(null);
+                    }
+                    setBookingStep(prev => prev - 1);
+                  }}
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
+                </Button>
+                {bookingStep < 5 && (
+                  <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
+                    Passo {bookingStep} de 5
+                  </div>
+                )}
+              </DialogFooter>
+            )}
           </div>
         </DialogContent>
       </Dialog>
