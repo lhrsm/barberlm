@@ -201,24 +201,28 @@ function AdminDashboard() {
               transition={{ duration: 0.5, delay: i * 0.1 }}
               whileHover={{ y: -5 }}
             >
-              <Card className="glass group border-white/5 hover:border-emerald-500/30 transition-all duration-500 rounded-[2rem] overflow-hidden relative h-full flex flex-col justify-between shadow-2xl shadow-black/40">
+              <Card className={cn(
+                "glass group transition-all duration-500 rounded-[2rem] overflow-hidden relative h-full flex flex-col justify-between shadow-2xl shadow-black/40 border-2",
+                stat.color.replace('text-', 'border-').replace('400', '500/30'),
+                "hover:" + stat.color.replace('text-', 'border-').replace('400', '500/60')
+              )}>
                 {/* Decorative background glow */}
                 <div className={cn("absolute -top-10 -right-10 w-32 h-32 blur-[80px] opacity-20 pointer-events-none rounded-full group-hover:opacity-40 transition-opacity", stat.glow)} />
                 
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-6 px-6">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-gray-300 transition-colors">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 group-hover:text-white transition-colors">
                       {stat.label}
                     </span>
-                    <div className="h-0.5 w-6 bg-current opacity-20 group-hover:w-10 transition-all duration-500" style={{ color: stat.color.replace('text-', '') }} />
+                    <div className={cn("h-0.5 w-6 opacity-40 group-hover:w-10 transition-all duration-500", stat.color.replace('text-', 'bg-'))} />
                   </div>
-                  <div className={cn("p-3 rounded-2xl bg-white/5 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-xl border border-white/5", stat.color)}>
+                  <div className={cn("p-3 rounded-2xl bg-white/10 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-xl border border-white/10", stat.color)}>
                     <stat.icon className="h-5 w-5" />
                   </div>
                 </CardHeader>
                 <CardContent className="pb-6 px-6 pt-2">
                   <div className="flex flex-col gap-1">
-                    <div className="text-4xl font-black tracking-tighter mb-2 bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent group-hover:to-white transition-all">
+                    <div className="text-4xl font-black tracking-tighter mb-2 text-white group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all">
                       {stat.value}
                     </div>
                     <div className="flex items-center justify-between">
@@ -232,10 +236,10 @@ function AdminDashboard() {
                             {stat.trend}
                           </div>
                         </Badge>
-                        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter opacity-60">Snapshot Mensal</span>
+                        <span className="text-[9px] text-white/50 font-bold uppercase tracking-tighter">Snapshot Mensal</span>
                       </div>
                       
-                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/5 group-hover:border-white/20 transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/10 group-hover:border-white/30 transition-colors">
                         <TrendingUp size={12} className={cn("transition-transform group-hover:scale-110", stat.color)} />
                       </div>
                     </div>
@@ -243,7 +247,7 @@ function AdminDashboard() {
                 </CardContent>
                 
                 {/* Bottom line accent */}
-                <div className={cn("absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-700", stat.color.replace('text-', 'bg-'))} />
+                <div className={cn("absolute bottom-0 left-0 h-[3px] w-0 group-hover:w-full transition-all duration-700", stat.color.replace('text-', 'bg-'))} />
               </Card>
             </motion.div>
           ))
