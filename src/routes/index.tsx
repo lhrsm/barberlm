@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { SignupOnboardingModal } from "@/components/onboarding/SignupOnboardingModal";
 import { Button } from "@/components/ui/button";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { 
   Calendar, 
   Users, 
@@ -19,7 +20,15 @@ import {
   Settings,
   HelpCircle,
   XCircle,
-  Check
+  Check,
+  Star,
+  Play,
+  ArrowUpRight,
+  ChevronDown,
+  LayoutDashboard,
+  Megaphone,
+  CreditCard,
+  Briefcase
 } from "lucide-react";
 import {
   Accordion,
@@ -27,6 +36,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   component: LandingPageComponent,
