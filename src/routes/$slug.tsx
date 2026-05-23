@@ -1145,7 +1145,7 @@ function ShopPageComponent() {
             </div>
 
             {/* Desktop Grid / Mobile Scroll */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="flex overflow-x-auto pb-8 gap-6 snap-x scroll-smooth lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0 custom-scrollbar">
               {products
                 .filter(p => p.active && (activeCategory === "Todos" || p.category === activeCategory))
                 .map((product, idx) => (
