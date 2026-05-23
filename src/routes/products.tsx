@@ -476,63 +476,91 @@ function ProductsComponent() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.length === 0 ? (
-            <div className="col-span-full text-center py-20 border-2 border-dashed rounded-2xl bg-muted/20 text-muted-foreground">
-              <div className="bg-background w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <ShoppingBag size={32} className="text-muted-foreground/40" />
+            <div className="col-span-full text-center py-20 border-2 border-dashed rounded-3xl bg-muted/20 text-muted-foreground">
+              <div className="bg-background w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl border">
+                <ShoppingBag size={40} className="text-muted-foreground/30" />
               </div>
-              <h3 className="text-lg font-semibold">Nenhum produto cadastrado</h3>
-              <p className="max-w-[250px] mx-auto text-sm mt-1">Comece adicionando itens ao seu estoque clicando no botão acima.</p>
+              <h3 className="text-2xl font-black uppercase italic tracking-tighter">Sua vitrine está vazia</h3>
+              <p className="max-w-[300px] mx-auto text-sm mt-2 font-medium">Cadastre seus produtos premium para que seus clientes possam vê-los no seu site.</p>
+              <Button className="mt-8 rounded-full h-11 px-8 gap-2" onClick={() => setIsAddDialogOpen(true)}>
+                <Plus size={18} /> Adicionar Primeiro Produto
+              </Button>
             </div>
           ) : (
             products.map((product) => (
-              <div key={product.id} className="group relative border rounded-2xl bg-card overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border-border/50">
-                <div className="aspect-[4/3] bg-muted/20 relative overflow-hidden">
+              <motion.div 
+                key={product.id} 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="group relative border rounded-[2.5rem] bg-card overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border-border/50"
+              >
+                <div className="aspect-square bg-muted/20 relative overflow-hidden">
                   {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted">
-                      <Package className="w-16 h-16 text-muted-foreground/20" />
+                      <Package className="w-20 h-20 text-muted-foreground/10" />
                     </div>
                   )}
-                  <div className="absolute top-2 right-2 flex gap-1 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                      <Button 
-                        variant="secondary" 
-                        size="icon" 
-                        className="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
-                        onClick={() => {
-                          setEditingProduct(product);
-                          setIsAddDialogOpen(true);
-                        }}
-                      >
-                        <Edit size={14} />
-                      </Button>
-                      <Button 
-                        variant="secondary" 
-                        size="icon" 
-                        className="h-8 w-8 bg-background/80 backdrop-blur-sm hover:text-destructive hover:bg-background"
-                        onClick={() => handleDeleteProduct(product.id)}
-                      >
-                        <Trash2 size={14} />
-                      </Button>
+                  
+                  {product.badge && (
+                    <div className="absolute top-4 left-4 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full shadow-lg z-10">
+                      {product.badge}
+                    </div>
+                  )}
+
+                  {product.featured && (
+                    <div className="absolute top-4 right-4 bg-yellow-500 text-black text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full shadow-lg z-10 flex items-center gap-1">
+                      <Star size={10} fill="currentColor" /> Destaque
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3">
+                    <Button 
+                      variant="secondary" 
+                      size="icon" 
+                      className="h-12 w-12 rounded-full bg-white text-black hover:bg-white/90 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
+                      onClick={() => {
+                        setEditingProduct(product);
+                        setIsAddDialogOpen(true);
+                      }}
+                    >
+                      <Edit size={20} />
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="icon" 
+                      className="h-12 w-12 rounded-full shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
+                      onClick={() => handleDeleteProduct(product.id)}
+                    >
+                      <Trash2 size={20} />
+                    </Button>
                   </div>
+
                   {product.stock_quantity <= 5 && (
-                    <div className="absolute top-2 left-2 bg-amber-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm animate-pulse">
-                      Estoque Baixo: {product.stock_quantity}
+                    <div className="absolute bottom-4 left-4 right-4 bg-red-500/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest py-1.5 rounded-full text-center shadow-lg border border-white/20">
+                      Estoque Crítico: {product.stock_quantity}
                     </div>
                   )}
                 </div>
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg truncate pr-2" title={product.name}>{product.name}</h3>
+                <div className="p-6 space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary">{product.category}</p>
+                    <h3 className="font-black text-xl uppercase italic tracking-tighter truncate" title={product.name}>{product.name}</h3>
+                    {product.brand && <p className="text-xs font-bold text-slate-500">{product.brand}</p>}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2 h-10">{product.description || "Sem descrição disponível."}</p>
                   
-                  <div className="flex items-center justify-between mt-auto">
+                  <div className="flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-2xl font-black text-primary">R$ {Number(product.price).toFixed(2)}</span>
-                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground mt-1">
-                        <Package size={12} />
-                        <span>{product.stock_quantity} un. em estoque</span>
+                      <div className="flex items-baseline gap-2">
+                         <span className="text-2xl font-black text-white">R$ {Number(product.price).toFixed(2)}</span>
+                         {product.promotional_price && (
+                           <span className="text-xs text-slate-500 line-through font-bold">R$ {Number(product.promotional_price).toFixed(2)}</span>
+                         )}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">
+                        <Package size={10} />
+                        <span>{product.stock_quantity} un.</span>
                       </div>
                     </div>
                     
