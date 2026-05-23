@@ -233,123 +233,85 @@ function LandingPageComponent() {
         </div>
       </section>
 
-      {/* Metrics Bar */}
-      <section className="py-20 border-y border-white/5 bg-white/[0.02]">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-          <div className="space-y-2">
-            <div className="text-5xl font-black text-white">+1.200</div>
-            <div className="text-white/50 font-medium uppercase tracking-widest text-sm">Agendamentos realizados</div>
+      {/* Problem Section */}
+      <section className="py-24 lg:py-40 px-6 relative bg-zinc-950/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16 lg:mb-24">
+            <h2 className="text-primary font-black uppercase tracking-widest text-sm mb-4">O Desafio</h2>
+            <h3 className="text-4xl lg:text-7xl font-black text-white tracking-tight">Sua barbearia ainda <br /> <span className="text-white/40">perde clientes por:</span></h3>
           </div>
-          <div className="space-y-2">
-            <div className="text-5xl font-black text-white">Milhares</div>
-            <div className="text-white/50 font-medium uppercase tracking-widest text-sm">De clientes atendidos</div>
-          </div>
-          <div className="space-y-2">
-            <div className="text-5xl font-black text-white">Dezenas</div>
-            <div className="text-white/50 font-medium uppercase tracking-widest text-sm">De barbearias utilizando</div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { title: "Horários Vazios", desc: "Aquelas janelas na agenda que ninguém marca e você perde dinheiro.", icon: <Calendar className="h-6 w-6" /> },
+              { title: "Faltas (No-show)", desc: "Clientes que agendam e não aparecem, deixando seu barbeiro parado.", icon: <XCircle className="h-6 w-6" /> },
+              { title: "Baixa Retenção", desc: "Clientes que vêm uma vez e nunca mais voltam por falta de acompanhamento.", icon: <Users className="h-6 w-6" /> },
+              { title: "Desorganização", desc: "Confusão com horários, comissões erradas e financeiro no papel.", icon: <Settings className="h-6 w-6" /> },
+              { title: "Perda de Faturamento", desc: "Você sente que poderia ganhar mais, mas o processo te trava.", icon: <TrendingUp className="h-6 w-6" /> },
+              { title: "Atendimento Lento", desc: "Demora para responder no WhatsApp e o cliente marca no vizinho.", icon: <MessageSquare className="h-6 w-6" /> },
+            ].map((item, index) => (
+              <motion.div 
+                key={index}
+                whileHover={{ y: -5 }}
+                className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 hover:border-red-500/20 hover:bg-red-500/[0.02] transition-all group"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <div className="text-red-500">{item.icon}</div>
+                </div>
+                <h4 className="text-xl font-black text-white mb-2">{item.title}</h4>
+                <p className="text-white/40 font-bold leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Trial Exclusive Benefits */}
-      <section className="py-32 px-4 relative overflow-hidden bg-primary/5">
+      {/* Solution Section */}
+      <section id="recursos" className="py-24 lg:py-40 px-6 relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row items-center gap-16">
-            <div className="flex-1 space-y-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/20 text-primary text-sm font-bold uppercase tracking-widest">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>O que está incluso no teste</span>
-              </div>
-              <h2 className="text-4xl lg:text-6xl font-black text-white tracking-tight leading-tight">
-                Tudo liberado por <span className="text-primary">15 dias grátis.</span>
-              </h2>
-              <p className="text-xl text-white/50 font-medium leading-relaxed">
-                Durante os 15 dias de teste do plano Pro, você terá acesso total a todas as ferramentas premium do sistema, sem limitações.
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-32 items-center">
+            <div className="space-y-8">
+              <h2 className="text-primary font-black uppercase tracking-widest text-sm">A Solução</h2>
+              <h3 className="text-4xl lg:text-7xl font-black text-white tracking-tight">Tudo sob seu <br /><span className="text-primary italic">total controle.</span></h3>
+              <p className="text-lg lg:text-xl text-white/50 font-bold leading-relaxed">
+                O Barbex foi desenhado para eliminar a fricção do seu dia a dia, automatizando o que é chato e potencializando o que traz lucro.
               </p>
               
-              <div className="grid sm:grid-cols-2 gap-6 pt-4">
+              <div className="grid sm:grid-cols-2 gap-6 pt-8">
                 {[
-                  "WhatsApp automático",
-                  "Sistema de Cashback",
-                  "Financeiro completo",
-                  "Comissão automática",
-                  "Agenda inteligente",
-                  "Relatórios avançados",
-                  "Dashboard em tempo real",
-                  "Gestão de estoque"
-                ].map((benefit, i) => (
+                  { title: "Agenda Inteligente", icon: <Calendar /> },
+                  { title: "WhatsApp Automático", icon: <MessageSquare /> },
+                  { title: "Financeiro Completo", icon: <CircleDollarSign /> },
+                  { title: "Cashback & Fidelidade", icon: <Star /> },
+                  { title: "Relatórios de Gestão", icon: <TrendingUp /> },
+                  { title: "Controle de Estoque", icon: <Briefcase /> },
+                ].map((s, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                      <Check className="h-4 w-4 text-primary" />
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                      {s.icon}
                     </div>
-                    <span className="text-white font-bold">{benefit}</span>
+                    <span className="text-white font-bold">{s.title}</span>
                   </div>
                 ))}
               </div>
+
+              <Button size="lg" className="h-16 px-10 text-lg font-black bg-white text-black hover:bg-zinc-200 rounded-2xl group mt-8">
+                Explorar todos os recursos
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
             </div>
             
-            <div className="flex-1 relative">
-              <div className="absolute -inset-4 bg-primary/20 blur-[60px] rounded-full animate-pulse"></div>
-              <div className="relative glass p-8 lg:p-12 rounded-[3rem] border border-white/10 shadow-2xl">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-2xl border border-white/5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                        <Zap className="text-primary h-6 w-6" />
-                      </div>
-                      <div className="font-bold text-white text-lg">Plano Pro Liberado</div>
-                    </div>
-                    <div className="text-primary font-black text-xl">GRÁTIS</div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary w-1/3 animate-pulse"></div>
-                    </div>
-                    <div className="flex justify-between text-sm font-bold uppercase tracking-widest text-white/40">
-                      <span>Início do teste</span>
-                      <span>15 dias</span>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-4">
-                    <Button 
-                      className="w-full h-16 text-lg font-black bg-primary hover:bg-primary/90" 
-                      onClick={() => setShowSignupModal(true)}
-                    >
-                      Começar agora
-                    </Button>
-                  </div>
-                </div>
+            <div className="relative">
+              <div className="absolute -inset-10 bg-primary/20 blur-[100px] rounded-full opacity-30 animate-pulse" />
+              <div className="relative rounded-[2.5rem] border border-white/10 bg-zinc-900/50 backdrop-blur p-2 shadow-2xl overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=1200" 
+                  alt="Barber working" 
+                  className="rounded-[2rem] opacity-80"
+                />
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Problem Section */}
-      <section className="py-32 px-4 relative overflow-hidden">
-        <div className="max-w-4xl mx-auto text-center mb-20">
-          <h2 className="text-base font-bold text-primary uppercase tracking-[0.2em] mb-4">O Desafio</h2>
-          <p className="text-4xl lg:text-5xl font-black text-white tracking-tight">Você ainda perde clientes por:</p>
-        </div>
-        
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[
-            { title: "Agenda desorganizada", icon: <XCircle className="text-red-500" /> },
-            { title: "Esquecimentos de clientes", icon: <XCircle className="text-red-500" /> },
-            { title: "Confirmações manuais", icon: <XCircle className="text-red-500" /> },
-            { title: "Controle financeiro ruim", icon: <XCircle className="text-red-500" /> },
-            { title: "Falta de gestão dos barbeiros", icon: <XCircle className="text-red-500" /> },
-            { title: "Dificuldade em fidelizar", icon: <XCircle className="text-red-500" /> },
-          ].map((item, index) => (
-            <div key={index} className="glass p-8 rounded-2xl border border-white/5 flex items-center gap-6 hover:border-white/10 transition-colors">
-              <div className="p-3 bg-red-500/10 rounded-xl">
-                {item.icon}
-              </div>
-              <h3 className="text-xl font-bold text-white/90">{item.title}</h3>
-            </div>
-          ))}
         </div>
       </section>
 
