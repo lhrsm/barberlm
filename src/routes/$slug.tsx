@@ -1882,7 +1882,6 @@ function ShopPageComponent() {
                   )}
               </motion.div>
             )}
-          </div>
 
           {bookingStep > 1 && (
             <DialogFooter className="flex justify-between items-center sm:justify-between">
