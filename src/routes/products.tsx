@@ -264,75 +264,182 @@ function ProductsComponent() {
                 <Plus size={18} /> Novo Produto
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               {canAddProduct || editingProduct ? (
                 <>
                   <DialogHeader>
                     <DialogTitle>{editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}</DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handleAddProduct} className="space-y-4 pt-4">
-                    <div className="flex flex-col items-center justify-center mb-4">
-                      <div className="relative w-32 h-32 border-2 border-dashed rounded-xl flex items-center justify-center overflow-hidden bg-muted/30">
-                        {(editingProduct?.image_url || newProduct.image_url) ? (
-                          <img src={editingProduct?.image_url || newProduct.image_url} alt="Preview" className="w-full h-full object-cover" />
-                        ) : (
-                          <ImageIcon className="w-10 h-10 text-muted-foreground opacity-20" />
-                        )}
-<Input 
-  type="file" 
-  accept="image/*" 
-  onChange={handleFileUpload}
-  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-  disabled={uploading}
-/>
+                  <form onSubmit={handleAddProduct} className="space-y-6 pt-4">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="relative w-full aspect-square border-2 border-dashed rounded-2xl flex items-center justify-center overflow-hidden bg-muted/30 hover:bg-muted/50 transition-colors">
+                            {(editingProduct?.image_url || newProduct.image_url) ? (
+                              <img src={editingProduct?.image_url || newProduct.image_url} alt="Preview" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="text-center p-4">
+                                <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-2 opacity-20" />
+                                <p className="text-xs text-muted-foreground">Arraste ou clique para enviar</p>
+                              </div>
+                            )}
+                            <Input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={handleFileUpload}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              disabled={uploading}
+                            />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-2 uppercase font-black tracking-widest">{uploading ? "Enviando imagem..." : "Imagem Principal"}</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="category" className="text-xs font-black uppercase tracking-widest text-slate-500">Categoria</Label>
+                          <Select 
+                            value={editingProduct ? editingProduct.category : newProduct.category} 
+                            onValueChange={(val) => editingProduct ? setEditingProduct({...editingProduct, category: val}) : setNewProduct({...newProduct, category: val})}
+                          >
+                            <SelectTrigger className="rounded-xl h-11">
+                              <SelectValue placeholder="Selecione uma categoria" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pomadas">Pomadas</SelectItem>
+                              <SelectItem value="Óleos para barba">Óleos para barba</SelectItem>
+                              <SelectItem value="Shampoo">Shampoo</SelectItem>
+                              <SelectItem value="Condicionador">Condicionador</SelectItem>
+                              <SelectItem value="Balm">Balm</SelectItem>
+                              <SelectItem value="Perfumes">Perfumes</SelectItem>
+                              <SelectItem value="Kits">Kits</SelectItem>
+                              <SelectItem value="Acessórios">Acessórios</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="brand" className="text-xs font-black uppercase tracking-widest text-slate-500">Marca</Label>
+                          <Input 
+                            id="brand" 
+                            placeholder="Ex: Reuzel, Suavecito"
+                            value={editingProduct ? editingProduct.brand : newProduct.brand} 
+                            onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, brand: e.target.value}) : setNewProduct({...newProduct, brand: e.target.value})} 
+                            className="rounded-xl h-11"
+                          />
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">{uploading ? "Enviando..." : "Clique para anexar imagem"}</p>
+
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-slate-500">Nome do Produto</Label>
+                          <Input 
+                            id="name" 
+                            placeholder="Pomada Modeladora Efeito Matte"
+                            value={editingProduct ? editingProduct.name : newProduct.name} 
+                            onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} 
+                            required 
+                            className="rounded-xl h-11"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="price" className="text-xs font-black uppercase tracking-widest text-slate-500">Preço (R$)</Label>
+                            <Input 
+                              id="price" 
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={editingProduct ? editingProduct.price : newProduct.price} 
+                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})} 
+                              required
+                              className="rounded-xl h-11"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="promo" className="text-xs font-black uppercase tracking-widest text-slate-500">Promo (R$)</Label>
+                            <Input 
+                              id="promo" 
+                              type="number"
+                              step="0.01"
+                              placeholder="Opcional"
+                              value={editingProduct ? editingProduct.promotional_price : newProduct.promotional_price} 
+                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, promotional_price: e.target.value}) : setNewProduct({...newProduct, promotional_price: e.target.value})} 
+                              className="rounded-xl h-11"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="stock" className="text-xs font-black uppercase tracking-widest text-slate-500">Estoque</Label>
+                            <Input 
+                              id="stock" 
+                              type="number"
+                              value={editingProduct ? editingProduct.stock_quantity : newProduct.stock_quantity} 
+                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, stock_quantity: e.target.value}) : setNewProduct({...newProduct, stock_quantity: e.target.value})} 
+                              required
+                              className="rounded-xl h-11"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="badge" className="text-xs font-black uppercase tracking-widest text-slate-500">Selo (Badge)</Label>
+                            <Select 
+                              value={editingProduct ? editingProduct.badge : newProduct.badge} 
+                              onValueChange={(val) => editingProduct ? setEditingProduct({...editingProduct, badge: val}) : setNewProduct({...newProduct, badge: val})}
+                            >
+                              <SelectTrigger className="rounded-xl h-11">
+                                <SelectValue placeholder="Sem selo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="">Nenhum</SelectItem>
+                                <SelectItem value="Mais vendido">Mais vendido</SelectItem>
+                                <SelectItem value="Novo">Novo</SelectItem>
+                                <SelectItem value="Premium">Premium</SelectItem>
+                                <SelectItem value="Oferta">Oferta</SelectItem>
+                                <SelectItem value="Exclusivo">Exclusivo</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border">
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-bold">Produto em Destaque</Label>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Aparece no topo da vitrine</p>
+                          </div>
+                          <Switch 
+                            checked={editingProduct ? editingProduct.featured : newProduct.featured}
+                            onCheckedChange={(val) => editingProduct ? setEditingProduct({...editingProduct, featured: val}) : setNewProduct({...newProduct, featured: val})}
+                          />
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nome do Produto</Label>
-                      <Input 
-                        id="name" 
-                        placeholder="Pomada Modeladora, Balm, etc."
-                        value={editingProduct ? editingProduct.name : newProduct.name} 
-                        onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} 
-                        required 
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="price">Preço de Venda (R$)</Label>
+                        <Label htmlFor="short_desc" className="text-xs font-black uppercase tracking-widest text-slate-500">Breve Descrição (Vitrine)</Label>
                         <Input 
-                          id="price" 
-                          type="number"
-                          step="0.01"
-                          placeholder="0.00"
-                          value={editingProduct ? editingProduct.price : newProduct.price} 
-                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})} 
-                          required
+                          id="short_desc" 
+                          placeholder="Ex: Fixação forte com brilho natural."
+                          value={editingProduct ? editingProduct.short_description : newProduct.short_description} 
+                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, short_description: e.target.value}) : setNewProduct({...newProduct, short_description: e.target.value})} 
+                          className="rounded-xl h-11"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="stock">Estoque {editingProduct ? "Atual" : "Inicial"}</Label>
-                        <Input 
-                          id="stock" 
-                          type="number"
-                          value={editingProduct ? editingProduct.stock_quantity : newProduct.stock_quantity} 
-                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, stock_quantity: e.target.value}) : setNewProduct({...newProduct, stock_quantity: e.target.value})} 
-                          required
+                        <Label htmlFor="description" className="text-xs font-black uppercase tracking-widest text-slate-500">Descrição Detalhada</Label>
+                        <Textarea 
+                          id="description" 
+                          placeholder="Fale sobre os benefícios, modo de uso e diferenciais do produto..."
+                          value={editingProduct ? editingProduct.description : newProduct.description} 
+                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})} 
+                          className="rounded-2xl min-h-[120px] resize-none"
                         />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Descrição (Opcional)</Label>
-                      <Input 
-                        id="description" 
-                        value={editingProduct ? editingProduct.description : newProduct.description} 
-                        onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})} 
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={uploading}>
-                      {editingProduct ? "Salvar Alterações" : "Salvar Produto"}
+
+                    <Button type="submit" className="w-full h-14 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-xl hover:scale-[1.01] transition-all" disabled={uploading}>
+                      {editingProduct ? "Salvar Alterações" : "Cadastrar Produto Premium"}
                     </Button>
                   </form>
                 </>
@@ -345,7 +452,7 @@ function ProductsComponent() {
                       Seu plano atual permite apenas {limits.products} produtos. Faça o upgrade para adicionar mais.
                     </AlertDescription>
                   </Alert>
-                  <Button className="w-full" asChild>
+                  <Button className="w-full h-12 rounded-xl" asChild>
                     <Link to="/subscription">Ver Planos</Link>
                   </Button>
                 </div>
