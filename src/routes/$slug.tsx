@@ -1126,6 +1126,7 @@ function ShopPageComponent() {
               >
                 Os melhores produtos para manter seu estilo impecável e cuidado pessoal em dia.
               </motion.p>
+            </div>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
               {categories.map((cat) => (
                 <Button
