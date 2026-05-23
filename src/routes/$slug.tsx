@@ -929,11 +929,17 @@ function ShopPageComponent() {
 
       {/* Header */}
       {!isEmbedded && (
-        <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <header className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-4",
+          scrolled ? "py-2" : "py-6"
+        )}>
           <motion.div 
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            className="glass mx-auto mt-4 max-w-5xl rounded-full px-4 sm:px-6 h-16 flex items-center justify-between gap-4 backdrop-blur-xl bg-black/40 border border-white/10"
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className={cn(
+              "mx-auto max-w-5xl rounded-full flex items-center justify-between gap-4 transition-all duration-500 border border-white/10",
+              scrolled ? "bg-black/60 backdrop-blur-xl px-6 h-14 shadow-2xl" : "bg-transparent px-2 h-16 border-transparent"
+            )}
           >
             <div className="flex items-center gap-3">
               {shop.logo_url ? (
