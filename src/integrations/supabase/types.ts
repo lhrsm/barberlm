@@ -44,6 +44,44 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_settings: {
+        Row: {
+          api_key: string | null
+          created_at: string
+          id: string
+          model: string | null
+          provider: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          provider?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          provider?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           barber_id: string | null
@@ -188,6 +226,101 @@ export type Database = {
           },
         ]
       }
+      automation_logs: {
+        Row: {
+          automation_id: string
+          customer_id: string | null
+          id: string
+          provider: string | null
+          response: Json | null
+          sent_at: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          automation_id: string
+          customer_id?: string | null
+          id?: string
+          provider?: string | null
+          response?: Json | null
+          sent_at?: string
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          automation_id?: string
+          customer_id?: string | null
+          id?: string
+          provider?: string | null
+          response?: Json | null
+          sent_at?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automations: {
+        Row: {
+          channel: string | null
+          created_at: string
+          enabled: boolean | null
+          id: string
+          template: string | null
+          tenant_id: string
+          trigger_delay: number | null
+          trigger_type: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          enabled?: boolean | null
+          id?: string
+          template?: string | null
+          tenant_id: string
+          trigger_delay?: number | null
+          trigger_type: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          enabled?: boolean | null
+          id?: string
+          template?: string | null
+          tenant_id?: string
+          trigger_delay?: number | null
+          trigger_type?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       barber_services: {
         Row: {
           barber_id: string | null
@@ -305,6 +438,98 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_logs: {
+        Row: {
+          campaign_id: string
+          customer_id: string | null
+          id: string
+          response: Json | null
+          sent_at: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          campaign_id: string
+          customer_id?: string | null
+          id?: string
+          response?: Json | null
+          sent_at?: string
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          campaign_id?: string
+          customer_id?: string | null
+          id?: string
+          response?: Json | null
+          sent_at?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_logs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          content: string | null
+          created_at: string
+          filters: Json | null
+          id: string
+          scheduled_at: string | null
+          status: string | null
+          tenant_id: string
+          title: string
+          total_recipients: number | null
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          scheduled_at?: string | null
+          status?: string | null
+          tenant_id: string
+          title: string
+          total_recipients?: number | null
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          scheduled_at?: string | null
+          status?: string | null
+          tenant_id?: string
+          title?: string
+          total_recipients?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_auth: {
         Row: {
           created_at: string
@@ -384,6 +609,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      email_settings: {
+        Row: {
+          api_key: string | null
+          created_at: string
+          id: string
+          provider: string
+          sender_email: string | null
+          sender_name: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string
+          id?: string
+          provider?: string
+          sender_email?: string | null
+          sender_name?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string
+          id?: string
+          provider?: string
+          sender_email?: string | null
+          sender_name?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -1341,41 +1607,50 @@ export type Database = {
         Row: {
           api_key: string | null
           api_url: string | null
+          connected: boolean | null
           connection_type: string | null
           created_at: string
           id: string
+          instance_name: string | null
           name: string
           phone: string | null
+          provider: string
           qrcode: string | null
           status: string
+          tenant_id: string
           updated_at: string
-          user_id: string
         }
         Insert: {
           api_key?: string | null
           api_url?: string | null
+          connected?: boolean | null
           connection_type?: string | null
           created_at?: string
           id?: string
+          instance_name?: string | null
           name: string
           phone?: string | null
+          provider?: string
           qrcode?: string | null
           status?: string
+          tenant_id: string
           updated_at?: string
-          user_id: string
         }
         Update: {
           api_key?: string | null
           api_url?: string | null
+          connected?: boolean | null
           connection_type?: string | null
           created_at?: string
           id?: string
+          instance_name?: string | null
           name?: string
           phone?: string | null
+          provider?: string
           qrcode?: string | null
           status?: string
+          tenant_id?: string
           updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }

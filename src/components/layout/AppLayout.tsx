@@ -21,7 +21,10 @@ import {
   HelpCircle,
   GraduationCap,
   Headset,
-  Bell
+  Bell,
+  MessageSquare,
+  Megaphone,
+  Share2
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { LogoutButton } from "@/components/admin/LogoutButton";
@@ -44,6 +47,9 @@ const defaultNavItems = [
   { label: "Serviços", icon: Scissors, to: "/services" },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
   { label: "Produtos", icon: ShoppingBag, to: "/products" },
+  { label: "Automações", icon: MessageSquare, to: "/automations" },
+  { label: "Campanhas", icon: Megaphone, to: "/campaigns" },
+  { label: "Integrações", icon: Share2, to: "/integrations" },
   { label: "Tutoriais", icon: GraduationCap, to: "/tutorials" },
   { label: "Suporte", icon: Headset, to: "/support" },
   { label: "Assinatura", icon: CreditCard, to: "/subscription" },

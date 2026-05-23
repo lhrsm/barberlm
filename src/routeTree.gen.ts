@@ -15,11 +15,14 @@ import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as FinancesRouteImport } from './routes/finances'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BarbersRouteImport } from './routes/barbers'
+import { Route as AutomationsRouteImport } from './routes/automations'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SlugRouteImport } from './routes/$slug'
@@ -71,6 +74,11 @@ const ProductsRoute = ProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IntegrationsRoute = IntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinancesRoute = FinancesRouteImport.update({
   id: '/finances',
   path: '/finances',
@@ -86,6 +94,11 @@ const CustomersRoute = CustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CampaignsRoute = CampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CalendarRoute = CalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -94,6 +107,11 @@ const CalendarRoute = CalendarRouteImport.update({
 const BarbersRoute = BarbersRouteImport.update({
   id: '/barbers',
   path: '/barbers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutomationsRoute = AutomationsRouteImport.update({
+  id: '/automations',
+  path: '/automations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -203,11 +221,14 @@ export interface FileRoutesByFullPath {
   '/$slug': typeof SlugRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
+  '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
+  '/integrations': typeof IntegrationsRoute
   '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
@@ -235,11 +256,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
   '/auth': typeof AuthRoute
+  '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
+  '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
+  '/integrations': typeof IntegrationsRoute
   '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
@@ -269,11 +293,14 @@ export interface FileRoutesById {
   '/$slug': typeof SlugRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
+  '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
+  '/integrations': typeof IntegrationsRoute
   '/products': typeof ProductsRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
@@ -304,11 +331,14 @@ export interface FileRouteTypes {
     | '/$slug'
     | '/admin'
     | '/auth'
+    | '/automations'
     | '/barbers'
     | '/calendar'
+    | '/campaigns'
     | '/customers'
     | '/dashboard'
     | '/finances'
+    | '/integrations'
     | '/products'
     | '/services'
     | '/settings'
@@ -336,11 +366,14 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/auth'
+    | '/automations'
     | '/barbers'
     | '/calendar'
+    | '/campaigns'
     | '/customers'
     | '/dashboard'
     | '/finances'
+    | '/integrations'
     | '/products'
     | '/services'
     | '/settings'
@@ -369,11 +402,14 @@ export interface FileRouteTypes {
     | '/$slug'
     | '/admin'
     | '/auth'
+    | '/automations'
     | '/barbers'
     | '/calendar'
+    | '/campaigns'
     | '/customers'
     | '/dashboard'
     | '/finances'
+    | '/integrations'
     | '/products'
     | '/services'
     | '/settings'
@@ -403,11 +439,14 @@ export interface RootRouteChildren {
   SlugRoute: typeof SlugRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  AutomationsRoute: typeof AutomationsRoute
   BarbersRoute: typeof BarbersRoute
   CalendarRoute: typeof CalendarRoute
+  CampaignsRoute: typeof CampaignsRoute
   CustomersRoute: typeof CustomersRoute
   DashboardRoute: typeof DashboardRoute
   FinancesRoute: typeof FinancesRoute
+  IntegrationsRoute: typeof IntegrationsRoute
   ProductsRoute: typeof ProductsRoute
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
@@ -462,6 +501,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/integrations': {
+      id: '/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof IntegrationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/finances': {
       id: '/finances'
       path: '/finances'
@@ -483,6 +529,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/campaigns': {
+      id: '/campaigns'
+      path: '/campaigns'
+      fullPath: '/campaigns'
+      preLoaderRoute: typeof CampaignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/calendar': {
       id: '/calendar'
       path: '/calendar'
@@ -495,6 +548,13 @@ declare module '@tanstack/react-router' {
       path: '/barbers'
       fullPath: '/barbers'
       preLoaderRoute: typeof BarbersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/automations': {
+      id: '/automations'
+      path: '/automations'
+      fullPath: '/automations'
+      preLoaderRoute: typeof AutomationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -689,11 +749,14 @@ const rootRouteChildren: RootRouteChildren = {
   SlugRoute: SlugRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  AutomationsRoute: AutomationsRoute,
   BarbersRoute: BarbersRoute,
   CalendarRoute: CalendarRoute,
+  CampaignsRoute: CampaignsRoute,
   CustomersRoute: CustomersRoute,
   DashboardRoute: DashboardRoute,
   FinancesRoute: FinancesRoute,
+  IntegrationsRoute: IntegrationsRoute,
   ProductsRoute: ProductsRoute,
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
