@@ -53,7 +53,7 @@ function LandingPageComponent() {
   if (user) return null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 dark overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 glass border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
