@@ -440,66 +440,70 @@ function LandingPageComponent() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-32 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/20 blur-[100px] -z-10 animate-pulse"></div>
-        <div className="max-w-5xl mx-auto glass p-16 lg:p-24 rounded-[4rem] border border-white/10 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] -z-10"></div>
+      <section className="py-24 lg:py-40 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/10 blur-[120px] -z-10" />
+        <div className="max-w-5xl mx-auto p-12 lg:p-24 rounded-[3.5rem] bg-zinc-900 border border-white/10 text-center relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] -z-10" />
           
-          <h2 className="text-5xl lg:text-7xl font-black text-white mb-8 tracking-tighter leading-none">
-            Sua barbearia merece um <br />
-            <span className="text-primary">sistema profissional.</span>
+          <h2 className="text-5xl lg:text-8xl font-black text-white mb-8 tracking-tighter leading-none">
+            Pronto para <br />
+            <span className="text-primary italic">transformar?</span>
           </h2>
-          <p className="text-xl text-white/60 max-w-2xl mx-auto mb-12 font-bold">
-            Comece agora seu teste grátis de 15 dias no plano Pro. <br className="hidden md:block" />
-            Sem compromisso e sem cartão de crédito.
+          <p className="text-lg lg:text-xl text-white/40 max-w-2xl mx-auto mb-12 font-bold leading-relaxed">
+            Junte-se a centenas de barbearias que já automatizaram sua gestão e aumentaram seu faturamento com o Barbex.
           </p>
-          <Button 
-            size="lg" 
-            className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 shadow-[0_0_50px_rgba(var(--primary),0.5)] group" 
-            onClick={() => setShowSignupModal(true)}
-          >
-            Começar teste grátis <ArrowRight className="ml-3 h-8 w-8 group-hover:translate-x-2 transition-transform" />
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button 
+              size="lg" 
+              className="h-20 px-16 text-2xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_20px_40px_-15px_rgba(234,179,8,0.5)] group transition-all"
+              onClick={() => setShowSignupModal(true)}
+            >
+              Começar agora
+              <ArrowRight className="ml-2 h-6 w-6 group-hover:translate-x-2 transition-transform" />
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-background border-t border-white/5 py-20 px-4">
+      <footer className="bg-background border-t border-white/5 py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-16 mb-20">
             <div className="col-span-2">
-              <div className="flex items-center gap-2 mb-6">
+              <div className="flex items-center gap-2 mb-8">
                 <Scissors className="text-primary h-8 w-8" />
-                <span className="text-3xl font-extrabold tracking-tighter text-white italic uppercase">Barbe<span className="text-primary">x</span></span>
+                <span className="text-3xl font-black tracking-tighter text-white">Barbex</span>
               </div>
-              <p className="text-white/50 max-w-sm mb-8 text-lg leading-relaxed">
-                Ajudamos barbeiros a profissionalizarem seus negócios através de tecnologia simples, moderna e de alto impacto.
+              <p className="text-white/40 max-w-sm mb-8 text-lg font-bold leading-relaxed">
+                A plataforma premium definitiva para barbearias modernas que buscam escala, profissionalismo e lucro.
               </p>
             </div>
             <div>
-              <h4 className="font-black text-white uppercase tracking-widest text-sm mb-8">Produto</h4>
-              <ul className="space-y-4 text-white/50">
-                <li><a href="#funcionalidades" className="hover:text-primary transition-colors">Funcionalidades</a></li>
-                <li><a href="#precos" className="hover:text-primary transition-colors">Preços</a></li>
+              <h4 className="font-black text-white uppercase tracking-widest text-xs mb-8">Produto</h4>
+              <ul className="space-y-4 text-white/40 font-bold">
+                <li><a href="#recursos" className="hover:text-primary transition-colors">Recursos</a></li>
+                <li><a href="#automações" className="hover:text-primary transition-colors">Automações</a></li>
+                <li><a href="#planos" className="hover:text-primary transition-colors">Planos</a></li>
                 <li><a href="#faq" className="hover:text-primary transition-colors">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-black text-white uppercase tracking-widest text-sm mb-8">Links Úteis</h4>
-              <ul className="space-y-4 text-white/50">
+              <h4 className="font-black text-white uppercase tracking-widest text-xs mb-8">Links Úteis</h4>
+              <ul className="space-y-4 text-white/40 font-bold">
                 <li><Link to="/auth" className="hover:text-primary transition-colors">Entrar</Link></li>
                 <li><Link to="/auth" className="hover:text-primary transition-colors">Criar conta</Link></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Suporte</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Privacidade</a></li>
               </ul>
             </div>
           </div>
           <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="text-white/40 font-medium">
+            <div className="text-white/20 text-sm font-bold">
               © 2026 Barbex. Todos os direitos reservados.
             </div>
-            <div className="flex gap-8 text-white/40 text-sm font-medium">
-              <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>
-              <a href="#" className="hover:text-white transition-colors">Privacidade</a>
+            <div className="flex gap-8 text-white/20 text-sm font-bold">
+              <span className="flex items-center gap-1"><Smartphone className="h-3 w-3" /> App Disponível</span>
+              <span className="flex items-center gap-1"><ShieldCheck className="h-3 w-3" /> 100% Seguro</span>
             </div>
           </div>
         </div>
@@ -509,43 +513,11 @@ function LandingPageComponent() {
   );
 }
 
-function TestimonialCard({ name, business, text, avatar }: { name: string, business: string, text: string, avatar: string }) {
-  return (
-    <div className="p-8 rounded-3xl glass border border-white/5 hover:border-primary/20 transition-all flex flex-col h-full">
-      <div className="flex gap-1 mb-6">
-        {[1, 2, 3, 4, 5].map((s) => (
-          <Zap key={s} className="h-4 w-4 text-primary fill-current" />
-        ))}
-      </div>
-      <p className="text-white/80 text-lg italic mb-8 flex-1 leading-relaxed">"{text}"</p>
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-black">
-          {avatar}
-        </div>
-        <div>
-          <div className="font-bold text-white">{name}</div>
-          <div className="text-white/40 text-sm uppercase tracking-widest font-bold">{business}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SolutionCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
-  return (
-    <div className="p-8 rounded-3xl glass border border-white/5 hover:border-primary/30 hover:bg-primary/[0.03] transition-all group group cursor-default">
-      <div className="mb-6 p-4 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 transition-colors">{icon}</div>
-      <h3 className="text-xl font-bold text-white mb-3 tracking-tight">{title}</h3>
-      <p className="text-white/50 leading-relaxed font-medium">{description}</p>
-    </div>
-  );
-}
-
 function PricingItem({ text }: { text: string }) {
   return (
-    <li className="flex items-center gap-3 text-white/70 font-medium">
-      <div className="p-1 bg-primary/20 rounded-full">
-        <Check className="h-4 w-4 text-primary" />
+    <li className="flex items-center gap-3 text-white/60 font-bold">
+      <div className="p-1 bg-primary/10 rounded-full">
+        <Check className="h-3 w-3 text-primary" />
       </div>
       {text}
     </li>
@@ -554,11 +526,11 @@ function PricingItem({ text }: { text: string }) {
 
 function FaqItem({ value, question, answer }: { value: string, question: string, answer: string }) {
   return (
-    <AccordionItem value={value} className="border-none glass rounded-2xl px-6 mb-4">
-      <AccordionTrigger className="text-xl font-bold text-white hover:no-underline py-6 text-left">
+    <AccordionItem value={value} className="border-none bg-zinc-900/50 rounded-3xl px-8 mb-4 border border-white/5">
+      <AccordionTrigger className="text-xl font-black text-white hover:no-underline py-8 text-left">
         {question}
       </AccordionTrigger>
-      <AccordionContent className="text-white/60 text-lg leading-relaxed pb-6">
+      <AccordionContent className="text-white/40 text-lg font-bold leading-relaxed pb-8">
         {answer}
       </AccordionContent>
     </AccordionItem>
