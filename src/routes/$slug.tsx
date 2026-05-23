@@ -280,7 +280,7 @@ function ShopPageComponent() {
       
       // Atualizar o título da página dinamicamente
       if (typeof document !== 'undefined') {
-        document.title = `${currentShop.business_name} | Agendamento Online`;
+        document.title = `${currentShop.business_name} | Barbearia Premium`;
       }
     } catch (error) {
       console.error("Error fetching shop data:", error);
