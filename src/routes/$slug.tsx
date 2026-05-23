@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Outlet, useLocation } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,12 +17,18 @@ import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
-  head: ({ params }) => ({
-    meta: [
-      { title: `Barbearia | ${params.slug}` },
-      { name: "description", content: "Agende seu horário online de forma rápida e fácil." },
-    ],
-  }),
+  head: ({ params }) => {
+    // We can't easily fetch shop data here in a sync head function without a loader, 
+    // but the component itself updates the document.title.
+    return {
+      title: `Barbearia | ${params.slug}`,
+      meta: [
+        { name: "description", content: "Agende seu horário online de forma rápida e fácil." },
+        { property: "og:title", content: "Barbearia Premium" },
+        { property: "og:description", content: "Experiência premium de barbearia com agendamento online." },
+      ],
+    };
+  },
 });
 
 function ShopPageComponent() {
@@ -37,6 +44,15 @@ function ShopPageComponent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   // Booking state
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -273,7 +289,7 @@ function ShopPageComponent() {
       
       // Atualizar o título da página dinamicamente
       if (typeof document !== 'undefined') {
-        document.title = `${currentShop.business_name} | Agendamento Online`;
+        document.title = `${currentShop.business_name} | Barbearia Premium`;
       }
     } catch (error) {
       console.error("Error fetching shop data:", error);
@@ -887,364 +903,357 @@ function ShopPageComponent() {
 
   return (
     <div 
-      className="dark min-h-screen bg-[#0a0a0a] text-slate-50 selection:bg-primary/30" 
+      className="dark min-h-screen bg-[#0a0a0a] text-slate-50 selection:bg-primary/30 overflow-x-hidden" 
       style={{ 
         backgroundColor: "#0a0a0a",
         fontFamily: shop.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
         fontSize: shop.font_size || '16px',
       }}
     >
+      <AnimatePresence>
+        {loading && (
+          <motion.div 
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black"
+          >
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="h-12 w-12 border-t-2 border-r-2 border-primary rounded-full"
+              style={{ borderTopColor: primaryColor, borderRightColor: primaryColor }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       {!isEmbedded && (
-        <header className="bg-card/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
-          <div className="max-w-4xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <header className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-4",
+          scrolled ? "py-2" : "py-6"
+        )}>
+          <motion.div 
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className={cn(
+              "mx-auto max-w-5xl rounded-full flex items-center justify-between gap-4 transition-all duration-500 border border-white/10",
+              scrolled ? "bg-black/60 backdrop-blur-xl px-6 h-14 shadow-2xl" : "bg-transparent px-2 h-16 border-transparent"
+            )}
+          >
+            <div className="flex items-center gap-3">
               {shop.logo_url ? (
-                <img src={shop.logo_url} alt={shop.business_name} className="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded-lg shrink-0" />
+                <img src={shop.logo_url} alt={shop.business_name} className="h-9 w-9 object-contain rounded-lg" />
               ) : (
-                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                  <Scissors className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: primaryColor }} />
+                <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
                 </div>
               )}
-              <h1 className="font-bold text-sm sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
+              <h1 className="font-bold text-base sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
             </div>
+
+            <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
+              <a href="#inicio" className="hover:text-primary transition-colors cursor-pointer">Início</a>
+              <a href="#servicos" className="hover:text-primary transition-colors cursor-pointer">Serviços</a>
+              <a href="#profissionais" className="hover:text-primary transition-colors cursor-pointer">Profissionais</a>
+              <a href="#contato" className="hover:text-primary transition-colors cursor-pointer">Contato</a>
+            </nav>
+
             <Button 
               style={{ backgroundColor: primaryColor }} 
-              className="text-white shadow-[0_0_15px_rgba(0,0,0,0.1)] hover:brightness-110 transition-all shrink-0 h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm" 
+              className="text-white shadow-lg hover:scale-105 transition-all h-10 px-6 rounded-full text-sm font-bold" 
               onClick={handleBookingAction}
             >
-              <span className="sm:hidden">Agendar</span>
-              <span className="hidden sm:inline">{shop.scheduling_mode === 'manual' ? 'Agendar via WhatsApp' : 'Agendar Agora'}</span>
+              {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar'}
             </Button>
-          </div>
+          </motion.div>
         </header>
       )}
 
-      <main className={cn("max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-8", isEmbedded && "py-0")}>
-        {isEmbedded ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            {!isBookingOpen ? (
-              <div className="text-center space-y-4">
-                <h3 className="text-xl font-bold">Pronto para agendar?</h3>
-                <Button size="lg" style={{ backgroundColor: primaryColor }} onClick={() => setIsBookingOpen(true)}>
-                  Começar Agendamento
+      <main className={cn("space-y-0", isEmbedded && "py-0")}>
+        {/* Hero Section */}
+        <section id="inicio" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
+          {/* Background Image with Parallax effect could be added here */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#0a0a0a] z-10" />
+          <div className="absolute inset-0 z-0">
+             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074')] bg-cover bg-center scale-105 animate-pulse duration-[10s]" />
+          </div>
+
+          <div className="relative z-20 max-w-5xl mx-auto px-4 text-center space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="space-y-4"
+            >
+              <h2 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-none">
+                Seu estilo <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/40" style={{ WebkitTextStroke: `1px ${primaryColor}` }}>começa aqui.</span>
+              </h2>
+              <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-medium">
+                Cortes premium, barbeiros especialistas e agendamento online em segundos.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
+              <Button 
+                size="lg" 
+                style={{ backgroundColor: primaryColor }} 
+                className="h-14 px-10 text-lg font-black rounded-full shadow-2xl hover:scale-105 transition-all w-full sm:w-auto uppercase tracking-tighter"
+                onClick={handleBookingAction}
+              >
+                Agendar Agora
+              </Button>
+              <Button 
+                variant="outline"
+                size="lg" 
+                className="h-14 px-10 text-lg font-bold rounded-full border-white/20 hover:bg-white/10 transition-all w-full sm:w-auto backdrop-blur-md"
+                onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                Conhecer Serviços
+              </Button>
+            </motion.div>
+          </div>
+
+          {/* Scroll Indicator */}
+          <motion.div 
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 opacity-50"
+          >
+            <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center p-1">
+              <div className="w-1 h-2 bg-white rounded-full" />
+            </div>
+          </motion.div>
+        </section>
+
+        {/* Services Section */}
+        <section id="servicos" className="py-24 bg-[#0a0a0a] relative">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+              <div className="space-y-4">
+                <span className="text-primary font-black uppercase tracking-[0.2em] text-sm" style={{ color: primaryColor }}>Experiência Premium</span>
+                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">Nossos Serviços</h3>
+              </div>
+              <p className="text-slate-400 max-w-md text-lg">
+                Combinamos técnicas tradicionais com tendências modernas para garantir o seu melhor visual.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {services.map((service, idx) => (
+                <motion.div
+                  key={service.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="group relative overflow-hidden border-white/5 bg-[#111] hover:bg-[#151515] transition-all duration-500 rounded-[2rem] h-full">
+                    <div className="p-8 space-y-6">
+                      <div className="flex justify-between items-start">
+                        <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                          <Scissors className="h-6 w-6 text-slate-400 group-hover:text-primary transition-colors" style={{ '--primary': primaryColor } as any} />
+                        </div>
+                        <div className="text-right">
+                          <p className="text-3xl font-black tracking-tighter" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
+                          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{service.duration_minutes} MIN</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h4 className="text-2xl font-black uppercase tracking-tight group-hover:translate-x-1 transition-transform duration-500">{service.name}</h4>
+                        <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed">
+                          Cuidado especializado com produtos de alta qualidade para um resultado impecável.
+                        </p>
+                      </div>
+
+                      <Button 
+                        className="w-full h-12 rounded-xl font-bold transition-all group-hover:shadow-[0_0_20px_rgba(var(--primary),0.2)]"
+                        style={{ backgroundColor: primaryColor }}
+                        onClick={() => handleSelectService(service)}
+                      >
+                        Agendar este serviço
+                      </Button>
+                    </div>
+                    {/* Decorative element */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] rounded-full -translate-y-1/2 translate-x-1/2" style={{ backgroundColor: `${primaryColor}10` }} />
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Barbers Section */}
+        <section id="profissionais" className="py-24 bg-[#0f0f0f]">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center space-y-4 mb-20">
+              <span className="text-primary font-black uppercase tracking-[0.2em] text-sm" style={{ color: primaryColor }}>Elite Team</span>
+              <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">Especialistas</h3>
+            </div>
+
+            <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
+              {barbers.map((barber, idx) => (
+                <motion.div
+                  key={barber.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.1 }}
+                  viewport={{ once: true }}
+                  className="group"
+                  onClick={() => {
+                    setModalBarber(barber);
+                    setIsServicesModalOpen(true);
+                  }}
+                >
+                  <div className="relative aspect-[4/5] rounded-[3rem] overflow-hidden mb-6 shadow-2xl">
+                    {barber.avatar_url ? (
+                      <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-[#1a1a1a]">
+                        <UserIcon className="h-20 w-20 text-white/10" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                    
+                    <div className="absolute bottom-8 left-8 right-8 space-y-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full" style={{ backgroundColor: primaryColor }}>
+                          {idx === 0 ? "Top Avaliado" : "Especialista"}
+                        </span>
+                      </div>
+                      <h4 className="text-3xl font-black uppercase italic tracking-tighter text-white">{barber.name}</h4>
+                      <div className="flex items-center gap-1.5">
+                        <Star size={14} className="text-yellow-500" fill="currentColor" />
+                        <span className="text-sm font-bold text-white">{barber.average_rating || "5.0"}</span>
+                        <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({barber.total_ratings || 0} reviews)</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Portal CTA Section */}
+        <section className="py-24 bg-[#0a0a0a] relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/5 blur-[120px] rounded-full pointer-events-none" style={{ backgroundColor: `${primaryColor}05` }} />
+          
+          <div className="max-w-4xl mx-auto px-4 relative z-10">
+            <div className="glass p-12 md:p-20 rounded-[4rem] text-center space-y-10 border border-white/10 shadow-2xl">
+              <div className="space-y-4">
+                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">Pronto para elevar seu visual?</h3>
+                <p className="text-slate-400 text-lg md:text-xl max-w-xl mx-auto font-medium leading-relaxed">
+                  Agende seu horário agora e experimente o padrão de excelência que você merece.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                <Button 
+                  size="lg"
+                  className="h-16 px-12 rounded-full shadow-2xl hover:scale-105 transition-all gap-3 text-lg font-black uppercase tracking-tighter w-full sm:w-auto"
+                  style={{ backgroundColor: primaryColor }}
+                  onClick={handleBookingAction}
+                >
+                  Agendar meu horário
+                </Button>
+                <Button 
+                  variant="link" 
+                  size="lg" 
+                  className="text-white hover:text-primary transition-colors font-bold text-lg underline-offset-8" 
+                  asChild
+                >
+                  <a href={`/${slug}/portal`}>Acessar meu portal</a>
                 </Button>
               </div>
-            ) : (
-              <p className="text-muted-foreground">O formulário de agendamento está aberto acima.</p>
-            )}
-          </div>
-        ) : (
-          <>
-            {/* Hero / About */}
-        <section className="text-center space-y-4 sm:space-y-6 py-6 sm:py-10 animate-in fade-in slide-in-from-top-4 duration-1000">
-          <div className="space-y-2">
-            <h2 className="text-3xl font-black tracking-tighter sm:text-5xl lg:text-6xl uppercase italic leading-tight">
-              Bem-vindo à <span style={{ color: primaryColor }}>{shop.business_name}</span>
-            </h2>
-            <div className="h-1 w-16 sm:w-20 bg-primary mx-auto rounded-full" style={{ backgroundColor: primaryColor }} />
-          </div>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg leading-relaxed px-2">
-            Excelência em cortes e cuidados masculinos. Escolha o serviço e agende sua experiência.
-          </p>
-          <div className="flex justify-center px-4">
-            <Button 
-              size="lg" 
-              style={{ backgroundColor: primaryColor }} 
-              className="h-12 px-8 text-base sm:text-lg font-bold rounded-full shadow-[0_0_20px_rgba(0,0,0,0.3)] hover:scale-105 transition-all w-full sm:w-auto"
-              onClick={handleBookingAction}
-            >
-              Agendar Agora
-            </Button>
-          </div>
-          <div className="flex flex-wrap justify-center gap-6 text-sm font-medium pt-4">
-            {shop.whatsapp_enabled && shop.whatsapp_number && (
-              <a 
-                href={`https://wa.me/${shop.whatsapp_number}`} 
-                target="_blank" 
-                rel="noreferrer"
-                className="flex items-center gap-1 text-green-600 hover:underline"
-              >
-                <MessageSquare size={16} /> WhatsApp
-              </a>
-            )}
+            </div>
           </div>
         </section>
 
-
-        {/* Services */}
-        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
-            </div>
-            <h3 className="text-xl font-bold tracking-tight">Nossos Serviços</h3>
-          </div>
-          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
-            {services.map((service) => (
-              <Card key={service.id} className="overflow-hidden border-white/5 bg-card/40 hover:bg-card/60 transition-all hover:scale-[1.02] cursor-pointer group">
-                <CardContent className="p-4 sm:p-5 flex justify-between items-center gap-3">
-                  <div className="space-y-1 min-w-0 flex-1">
-                    <h4 className="font-bold text-base sm:text-lg group-hover:text-primary transition-colors truncate">{service.name}</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
-                      <Clock size={14} /> {service.duration_minutes} min
-                    </p>
-                  </div>
-                  <div className="text-right space-y-2 shrink-0">
-                    <p className="font-bold text-lg sm:text-xl" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="border-primary/20 hover:bg-primary hover:text-white transition-all h-8 text-xs sm:text-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectService(service);
-                      }}
-                    >
-                      Selecionar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Barbers */}
-        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Calendar className="h-5 w-5" style={{ color: primaryColor }} />
-            </div>
-            <h3 className="text-xl font-bold tracking-tight">Profissionais</h3>
-          </div>
-          <div className="flex flex-wrap gap-8 justify-center sm:justify-start">
-            {barbers.map((barber) => (
-              <div 
-                key={barber.id} 
-                className="text-center group cursor-pointer"
-                onClick={() => {
-                  setModalBarber(barber);
-                  setIsServicesModalOpen(true);
-                }}
-              >
-                <div className="h-24 w-24 rounded-2xl bg-muted mx-auto mb-3 overflow-hidden border-2 border-transparent transition-all group-hover:border-primary group-hover:scale-105 shadow-lg">
-                  {barber.avatar_url ? (
-                    <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
+        {/* Footer */}
+        <footer id="contato" className="py-20 bg-[#050505] border-t border-white/5">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                   {shop.logo_url ? (
+                    <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain rounded-lg" />
                   ) : (
-                    <div className="h-full w-full flex items-center justify-center bg-primary/5">
-                      <span className="text-2xl font-bold" style={{ color: primaryColor }}>{barber.name[0]}</span>
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Scissors className="h-6 w-6" style={{ color: primaryColor }} />
                     </div>
                   )}
+                  <h4 className="font-bold text-xl tracking-tight">{shop.business_name}</h4>
                 </div>
-                <p className="font-bold text-sm tracking-tight">{barber.name}</p>
-                <div className="flex items-center justify-center gap-1 mt-1">
-                  <Star size={12} className="text-yellow-500" fill="currentColor" />
-                  <span className="text-xs font-bold">{barber.average_rating || "5.0"}</span>
-                  <span className="text-[10px] text-muted-foreground">({barber.total_ratings || 0})</span>
+                <p className="text-slate-500 text-sm leading-relaxed font-medium">
+                  A barbearia que redefine o conceito de estilo e cuidado masculino. Tradição e modernidade em um só lugar.
+                </p>
+                <div className="flex gap-4">
+                  {shop.whatsapp_number && (
+                    <a href={`https://wa.me/${shop.whatsapp_number}`} className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary transition-all group" style={{ '--primary': primaryColor } as any}>
+                      <MessageSquare size={18} className="text-slate-400 group-hover:text-white" />
+                    </a>
+                  )}
                 </div>
-                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mt-1">{barber.specialty || 'Barbeiro'}</p>
               </div>
-            ))}
-          </div>
-        </section>
 
-        {/* Products */}
-        {products.length > 0 && (
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <ShoppingBag className="h-5 w-5" style={{ color: primaryColor }} />
-              <h3 className="text-xl font-bold">Nossos Produtos</h3>
-            </div>
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
-              {products.map((product) => {
-                const cartItem = selectedProducts.find(p => p.id === product.id);
-                return (
-                  <Card key={product.id} className="overflow-hidden group hover:shadow-md transition-shadow">
-                    <div className="aspect-square bg-muted relative overflow-hidden">
-                      {product.image_url ? (
-                        <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center">
-                          <Package className="h-8 w-8 text-muted-foreground/30" />
-                        </div>
-                      )}
-                      {product.stock_quantity <= 0 && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <span className="text-white font-bold text-xs px-2 py-1 bg-red-600 rounded">Esgotado</span>
-                        </div>
-                      )}
-                    </div>
-                    <CardContent className="p-3">
-                      <h4 className="font-bold text-sm truncate">{product.name}</h4>
-                      <div className="flex justify-between items-center mt-1">
-                        <p className="font-bold text-primary" style={{ color: primaryColor }}>R$ {product.price.toFixed(2)}</p>
-                        <span className="text-[10px] text-muted-foreground">Estoque: {product.stock_quantity}</span>
-                      </div>
-                      
-                      {cartItem ? (
-                        <div className="flex items-center justify-between mt-2 gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(product.id, -1)}
-                          >
-                            -
-                          </Button>
-                          <span className="font-bold text-sm">{cartItem.quantity}</span>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(product.id, 1)}
-                            disabled={cartItem.quantity >= product.stock_quantity}
-                          >
-                            +
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full mt-2 h-8 text-xs"
-                          onClick={() => addToCart(product)}
-                          disabled={product.stock_quantity <= 0}
-                        >
-                          {product.stock_quantity <= 0 ? "Indisponível" : "Comprar"}
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* Client Portal Access Section */}
-        <section className="bg-primary/5 p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-primary/10 text-center space-y-5 sm:space-y-6">
-          <div className="max-w-md mx-auto space-y-2">
-            <h4 className="text-xl sm:text-2xl font-bold">Área do Cliente</h4>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Acesse seu portal exclusivo para ver seu histórico de serviços, compras e gerenciar seus agendamentos em um só lugar.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 sm:gap-4">
-            <Button 
-              size="lg"
-              className="px-6 sm:px-8 rounded-full shadow-lg hover:shadow-primary/20 transition-all gap-2 w-full sm:w-auto"
-              style={{ backgroundColor: primaryColor }}
-              asChild
-            >
-              <a href={`/${slug}/portal`}>
-                <UserIcon size={20} /> Entrar no Portal
-              </a>
-            </Button>
-            <Button variant="outline" size="lg" className="rounded-full px-6 sm:px-8 gap-2 w-full sm:w-auto" onClick={() => setIsCancelModalOpen(true)}>
-              <Star size={20} /> Avaliar Serviço
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-4">
-            Login rápido usando seu número de telefone.
-          </p>
-        </section>
-
-        {/* Localização e Mapa */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-8 w-2 rounded-full" style={{ backgroundColor: primaryColor }} />
-            <h3 className="text-xl font-bold">Onde estamos</h3>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 items-start">
-            <div className="space-y-6">
-              <Card className="bg-card/50 backdrop-blur-sm border-white/5 overflow-hidden">
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                      <MapPin className="h-5 w-5" style={{ color: primaryColor }} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-100 mb-1">Endereço</h4>
-                      <p className="text-muted-foreground text-sm leading-relaxed">
-                        {shop.address || "Endereço não informado"}
-                      </p>
-                    </div>
+              <div className="space-y-6">
+                <h5 className="font-black uppercase tracking-widest text-xs text-primary" style={{ color: primaryColor }}>Localização</h5>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <MapPin size={18} className="text-slate-500 shrink-0" />
+                    <p className="text-slate-400 text-sm leading-relaxed">{shop.address || "Endereço não informado"}</p>
                   </div>
+                  <Button variant="link" className="text-xs p-0 h-auto text-primary" style={{ color: primaryColor }} asChild>
+                    <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address || shop.business_name)}`} target="_blank">Ver no Google Maps</a>
+                  </Button>
+                </div>
+              </div>
 
-                  <div className="flex items-start gap-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                      <Clock className="h-5 w-5" style={{ color: primaryColor }} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-100 mb-1">Horário de Atendimento</h4>
-                      <p className="text-muted-foreground text-sm">
-                        Consulte nossos profissionais disponíveis no agendamento.
-                      </p>
-                    </div>
-                  </div>
+              <div className="space-y-6">
+                <h5 className="font-black uppercase tracking-widest text-xs text-primary" style={{ color: primaryColor }}>Links Rápidos</h5>
+                <nav className="flex flex-col gap-3 text-sm font-medium text-slate-500">
+                  <a href="#inicio" className="hover:text-white transition-colors">Início</a>
+                  <a href="#servicos" className="hover:text-white transition-colors">Serviços</a>
+                  <a href="#profissionais" className="hover:text-white transition-colors">Profissionais</a>
+                  <a href={`/${slug}/portal`} className="hover:text-white transition-colors">Portal do Cliente</a>
+                </nav>
+              </div>
 
-                  <div className="flex items-start gap-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                      <Phone className="h-5 w-5" style={{ color: primaryColor }} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-100 mb-1">Contato</h4>
-                      <p className="text-muted-foreground text-sm">
-                        {shop.whatsapp_number || "Não informado"}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Button 
-                variant="outline" 
-                className="w-full h-12 rounded-xl gap-2 hover:bg-primary/10 border-white/10"
-                asChild
-              >
-                <a 
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address || shop.business_name)}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  <MapPin size={18} /> Abrir no Google Maps
-                </a>
-              </Button>
+              <div className="space-y-6">
+                <h5 className="font-black uppercase tracking-widest text-xs text-primary" style={{ color: primaryColor }}>Funcionamento</h5>
+                <div className="space-y-2 text-sm text-slate-500 font-medium">
+                  <p className="flex justify-between"><span>Seg - Sex:</span> <span className="text-white">09:00 - 20:00</span></p>
+                  <p className="flex justify-between"><span>Sábado:</span> <span className="text-white">08:00 - 18:00</span></p>
+                  <p className="flex justify-between"><span>Domingo:</span> <span className="text-white">Fechado</span></p>
+                </div>
+              </div>
             </div>
 
-            <div className="h-[280px] sm:h-[350px] w-full rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative bg-muted/20">
-              <iframe
-                title="Google Maps"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                loading="lazy"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(shop.address || shop.business_name)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                allowFullScreen
-              ></iframe>
+            <div className="pt-8 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-600">© 2026 {shop.business_name} - Premium Experience</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-800">Powered by BarberSaaS Elite</p>
             </div>
           </div>
-        </section>
+        </footer>
 
-        {/* Footer info */}
-        <section className="pt-12 pb-8 border-t border-white/5 text-center text-sm text-muted-foreground space-y-4">
-          <div className="flex justify-center gap-6 mb-4">
-            {shop.whatsapp_number && (
-              <a href={`https://wa.me/${shop.whatsapp_number}`} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">
-                <MessageSquare size={20} />
-              </a>
-            )}
-            <a href="#" className="hover:text-primary transition-colors">
-              <Star size={20} />
-            </a>
-          </div>
-          <p>© 2026 {shop.business_name} - Todos os direitos reservados.</p>
-          <p className="text-[10px] uppercase tracking-widest opacity-50">Desenvolvido por BarberSaaS</p>
-        </section>
-          </>
-        )}
+        {/* Mobile Bottom CTA */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 z-40">
+          <Button 
+            style={{ backgroundColor: primaryColor }} 
+            className="w-full h-14 rounded-2xl shadow-2xl text-white font-black uppercase tracking-tighter text-lg scale-100 active:scale-95 transition-all"
+            onClick={handleBookingAction}
+          >
+            {shop.scheduling_mode === 'manual' ? 'Agendar WhatsApp' : 'Agendar Agora'}
+          </Button>
+        </div>
       </main>
 
       <Dialog open={isBookingOpen} onOpenChange={(open) => {
@@ -1260,9 +1269,9 @@ function ShopPageComponent() {
           setPaymentMethod(null);
         }
       }}>
-        <DialogContent className={cn("sm:max-w-[425px] p-0 overflow-hidden dark bg-[#050505] border-white/5 h-[90vh] flex flex-col", isEmbedded && "w-full max-w-full m-0 h-full")}>
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar flex flex-col">
-          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-4 shrink-0">
+        <DialogContent className={cn("sm:max-w-[480px] p-0 overflow-hidden dark bg-[#0a0a0a] border-white/10 h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
+          <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar flex flex-col bg-gradient-to-b from-white/[0.02] to-transparent">
+          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-6 shrink-0 border-b border-white/5 mb-6">
             <div className="flex items-center gap-3">
               {bookingStep > 1 && (
                 <Button 
@@ -1280,235 +1289,275 @@ function ShopPageComponent() {
                 </Button>
               )}
               <DialogTitle className="text-xl font-bold tracking-tight text-white">
-                {bookingStep === 1 && "Informe seu WhatsApp"}
-                {bookingStep === 2 && "Escolha o Serviço"}
-                {bookingStep === 3 && "Escolha o Profissional"}
-                {bookingStep === 4 && "Data e Horário"}
-                {bookingStep === 5 && "Finalizar Agendamento"}
+                {bookingStep === 1 && "Bem-vindo"}
+                {bookingStep === 2 && "O que faremos?"}
+                {bookingStep === 3 && "Quem atende?"}
+                {bookingStep === 4 && "Quando?"}
+                {bookingStep === 5 && "Confirmar"}
               </DialogTitle>
             </div>
           </DialogHeader>
 
           <div className="flex-1 pr-1">
             {bookingStep === 1 && (
-              <div className="space-y-6 pt-2">
-                <div className="grid gap-3 p-4 bg-[#111] rounded-2xl border border-white/5">
-                  <Label className="text-sm font-bold text-slate-300 ml-1">Seu WhatsApp</Label>
-                  <Input 
-                    placeholder="(00) 00000-0000" 
-                    value={customerPhone} 
-                    onChange={(e) => setCustomerPhone(e.target.value)} 
-                    className="bg-[#090909] border-white/10 text-white placeholder:text-slate-600 h-14 text-xl font-medium focus-visible:ring-primary/50 rounded-xl"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && customerPhone) {
-                        handlePhoneCheck();
-                      }
-                    }}
-                  />
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-8 py-4"
+              >
+                <div className="space-y-3">
+                  <h4 className="text-3xl font-black uppercase italic tracking-tighter">Olá!</h4>
+                  <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                    Informe seu WhatsApp para começarmos seu agendamento premium.
+                  </p>
                 </div>
-                <Button 
-                  className="w-full" 
-                  onClick={handlePhoneCheck}
-                  disabled={!customerPhone || submitting}
-                >
-                  Continuar
-                </Button>
-              </div>
+
+                <div className="space-y-4">
+                  <div className="grid gap-3 p-6 bg-white/[0.03] rounded-3xl border border-white/10 shadow-inner">
+                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Seu WhatsApp</Label>
+                    <Input 
+                      placeholder="(00) 00000-0000" 
+                      value={customerPhone} 
+                      onChange={(e) => setCustomerPhone(e.target.value)} 
+                      className="bg-black/40 border-white/5 text-white placeholder:text-slate-700 h-16 text-2xl font-black tracking-tight focus-visible:ring-primary/50 rounded-2xl transition-all"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && customerPhone) {
+                          handlePhoneCheck();
+                        }
+                      }}
+                    />
+                  </div>
+                  <Button 
+                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl hover:scale-[1.02] transition-all" 
+                    style={{ backgroundColor: primaryColor }}
+                    onClick={handlePhoneCheck}
+                    disabled={!customerPhone || submitting}
+                  >
+                    {submitting ? "Verificando..." : "Continuar"}
+                  </Button>
+                </div>
+
+                <p className="text-[10px] text-center text-slate-600 font-bold uppercase tracking-[0.2em] pt-4">
+                  Ambiente Seguro & Privado
+                </p>
+              </motion.div>
             )}
 
             {bookingStep === 2 && (
-              <div className="space-y-3">
-                <div className="grid gap-2 mb-4 animate-in fade-in slide-in-from-top-2">
-                  <Label>Como podemos te chamar?</Label>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-6"
+              >
+                <div className="grid gap-3 p-5 bg-white/[0.03] rounded-3xl border border-white/10">
+                  <Label className="text-xs font-black uppercase tracking-widest text-slate-500">Como podemos te chamar?</Label>
                   <Input 
                     placeholder="Seu nome" 
                     value={customerName} 
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="bg-[#111] border-white/10 text-white placeholder:text-slate-500 h-12 text-lg focus-visible:ring-primary/50"
+                    className="bg-black/40 border-white/5 text-white placeholder:text-slate-700 h-14 text-xl font-black focus-visible:ring-primary/50 rounded-2xl"
                   />
                 </div>
-                {customerName && customerName.length >= 3 && (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                    <p className="text-sm font-medium mb-2">Olá, <span style={{ color: primaryColor }}>{customerName}</span>! O que faremos hoje?</p>
+
+                <div className="space-y-4">
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Selecione o Serviço</h5>
+                  <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {services.map(s => (
+                      <motion.div 
+                        key={s.id} 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={cn(
+                          "p-5 rounded-[2rem] cursor-pointer transition-all flex justify-between items-center group relative overflow-hidden",
+                          selectedService?.id === s.id ? "bg-primary text-white" : "bg-white/[0.03] border border-white/5 hover:bg-white/[0.06]"
+                        )}
+                        style={selectedService?.id === s.id ? { backgroundColor: primaryColor } : {}}
+                        onClick={() => {
+                          if (!customerName || customerName.length < 3) {
+                            toast.error("Por favor, informe seu nome primeiro.");
+                            return;
+                          }
+                          setSelectedService(s);
+                          setBookingStep(3);
+                        }}
+                      >
+                        <div className="relative z-10">
+                          <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-white" : "text-slate-100")}>{s.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                             <Clock size={12} className={selectedService?.id === s.id ? "text-white/70" : "text-slate-500"} />
+                             <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-white/70" : "text-slate-500")}>{s.duration_minutes} min</p>
+                          </div>
+                        </div>
+                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-white" : "text-primary")} style={selectedService?.id !== s.id ? { color: primaryColor } : {}}>R$ {s.price.toFixed(2)}</p>
+                        {selectedService?.id === s.id && (
+                          <motion.div layoutId="service-bg" className="absolute inset-0 bg-white/10 pointer-events-none" />
+                        )}
+                      </motion.div>
+                    ))}
                   </div>
-                )}
-                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                  {services.map(s => (
-                    <div 
-                      key={s.id} 
-                      className={cn(
-                        "p-4 border rounded-xl cursor-pointer transition-all flex justify-between items-center",
-                        selectedService?.id === s.id ? "border-primary bg-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.2)]" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a] hover:border-white/10"
-                      )}
-                      onClick={() => {
-                        if (!customerName) {
-                          toast.error("Por favor, informe seu nome primeiro.");
-                          return;
-                        }
-                        setSelectedService(s);
-                        setBookingStep(3);
-                      }}
-                    >
-                      <div>
-                        <p className="font-bold text-slate-100">{s.name}</p>
-                        <p className="text-xs text-slate-400">{s.duration_minutes} min</p>
-                      </div>
-                      <p className="font-bold text-lg" style={{ color: primaryColor }}>R$ {s.price.toFixed(2)}</p>
-                    </div>
-                  ))}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {bookingStep === 3 && (
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label>Data do Agendamento</Label>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-8"
+              >
+                <div className="grid gap-3 p-5 bg-white/[0.03] rounded-3xl border border-white/10">
+                  <Label className="text-xs font-black uppercase tracking-widest text-slate-500">Data Desejada</Label>
                   <Input 
                     type="date" 
                     value={selectedDate} 
                     onChange={(e) => setSelectedDate(e.target.value)} 
                     min={format(new Date(), "yyyy-MM-dd")} 
-                    className="bg-[#111] border-white/10 text-white h-12 text-lg focus-visible:ring-primary/50"
+                    className="bg-black/40 border-white/5 text-white h-14 text-xl font-black rounded-2xl focus-visible:ring-primary/50"
                   />
-                  <p className="text-[10px] text-muted-foreground">Selecione uma data para ver os profissionais disponíveis.</p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Escolha o Profissional</Label>
+                <div className="space-y-4">
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Quem irá te atender?</h5>
+                  
                   {loadingDayData ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary" style={{ borderTopColor: primaryColor }} />
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando disponibilidades...</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       {barbers
                         .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments))
                         .map(b => (
-                        <div 
+                        <motion.div 
                           key={b.id} 
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           className={cn(
-                            "p-4 border rounded-xl cursor-pointer text-center space-y-2 transition-all",
-                            selectedBarber?.id === b.id ? "border-primary bg-primary/20" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a]"
+                            "p-6 rounded-[2.5rem] cursor-pointer text-center space-y-4 transition-all relative overflow-hidden group border",
+                            selectedBarber?.id === b.id ? "border-primary bg-primary/20 shadow-2xl" : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
                           )}
+                          style={selectedBarber?.id === b.id ? { borderColor: primaryColor } : {}}
                           onClick={() => {
                             setSelectedBarber(b);
                             setBookingStep(4);
                           }}
                         >
-                          <div className="h-16 w-16 rounded-full bg-muted/20 mx-auto overflow-hidden border-2 border-white/5 group-hover:border-primary/50 transition-colors">
-                            {b.avatar_url ? (
-                              <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
-                            ) : (
-                              <div className="h-full w-full flex items-center justify-center font-bold text-lg text-slate-100">{b.name[0]}</div>
-                            )}
+                          <div className="relative z-10">
+                            <div className="h-20 w-20 rounded-[1.5rem] bg-black/40 mx-auto overflow-hidden border-2 border-white/5 group-hover:border-primary/50 transition-colors">
+                              {b.avatar_url ? (
+                                <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-slate-100">{b.name[0]}</div>
+                              )}
+                            </div>
+                            <div className="mt-4">
+                              <p className="font-black uppercase tracking-tight text-sm text-slate-100 leading-none">{b.name}</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2">{b.specialty || 'Especialista'}</p>
+                            </div>
                           </div>
-                          <p className="font-bold text-sm text-slate-100">{b.name}</p>
-                        </div>
+                          {selectedBarber?.id === b.id && (
+                             <motion.div layoutId="barber-glow" className="absolute inset-0 bg-primary/10 blur-xl pointer-events-none" style={{ backgroundColor: `${primaryColor}20` }} />
+                          )}
+                        </motion.div>
                       ))}
-                      {barbers.filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments)).length === 0 && (
-                        <div className="col-span-2 py-8 text-center space-y-2">
-                          <p className="text-sm text-muted-foreground">Nenhum profissional disponível para esta data.</p>
-                          <p className="text-xs text-muted-foreground">Tente selecionar outro dia.</p>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {bookingStep === 4 && (
-              <div className="space-y-4">
-                <div className="flex flex-col gap-1 mb-2">
-                  <p className="text-sm font-bold text-slate-100">Profissional Selecionado: {selectedBarber?.name}</p>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="h-10 w-10 rounded-full bg-muted overflow-hidden">
-                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-bold">{selectedBarber?.name[0]}</div>}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-8"
+              >
+                <div className="flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 rounded-[2rem] shadow-inner">
+                  <div className="flex items-center gap-4">
+                    <div className="h-16 w-16 rounded-2xl bg-black/40 border border-white/5 overflow-hidden">
+                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-xl">{selectedBarber?.name[0]}</div>}
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Profissional</p>
-                      <p className="text-sm font-bold">{selectedBarber?.name}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Profissional</p>
+                      <p className="text-xl font-black uppercase italic tracking-tighter text-white">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-xs h-8">Alterar</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-[10px] h-8 font-black uppercase tracking-widest bg-white/5 hover:bg-white/10 rounded-full px-4 border border-white/5">Alterar</Button>
                 </div>
-                <div className="grid gap-2">
-                  <Label>Data</Label>
-                  <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={format(new Date(), "yyyy-MM-dd")} className="bg-[#111] border-white/10 text-white h-12 text-lg focus-visible:ring-primary/50" />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Horário</Label>
+
+                <div className="space-y-6">
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Horários Disponíveis</h5>
+                  
                   {fetchingTimes ? (
-                    <div className="flex items-center justify-center py-4">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary" style={{ borderTopColor: primaryColor }} />
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando horários...</p>
                     </div>
                   ) : availableTimes.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-3 max-h-[250px] overflow-y-auto p-1">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar p-1">
                       {availableTimes.map(time => (
-                        <Button
+                        <motion.button
                           key={time}
-                          type="button"
-                          variant={selectedTime === time ? "default" : "outline"}
-                          size="lg"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={() => setSelectedTime(time)}
                           className={cn(
-                            "h-12 text-base font-bold transition-all",
+                            "h-14 rounded-2xl text-lg font-black tracking-tight transition-all border flex items-center justify-center",
                             selectedTime === time 
-                              ? "bg-primary text-white shadow-[0_0_15px_rgba(var(--primary),0.4)] scale-105" 
-                              : "bg-[#111] border-white/10 text-slate-100 hover:bg-[#1a1a1a] hover:border-primary/50"
+                              ? "text-white shadow-2xl scale-105" 
+                              : "bg-white/[0.03] border-white/5 text-slate-300 hover:bg-white/[0.08] hover:border-white/20"
                           )}
-                          style={selectedTime === time ? { backgroundColor: primaryColor } : {}}
+                          style={selectedTime === time ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}
                         >
                           {time}
-                        </Button>
+                        </motion.button>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-center text-muted-foreground py-4">
-                      Nenhum horário disponível para esta data.
-                    </p>
+                    <div className="text-center py-12 bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
+                      <p className="text-sm font-black uppercase tracking-tighter text-slate-500">
+                        Nenhum horário livre para hoje.
+                      </p>
+                    </div>
                   )}
                 </div>
+
                 <Button 
-                  className="w-full mt-2" 
+                  className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl hover:scale-[1.02] transition-all" 
+                  style={{ backgroundColor: primaryColor }}
                   onClick={() => {
                     if (!selectedTime) {
                       toast.error("Por favor, selecione um horário.");
                       return;
                     }
-                    
-                    // Se o cliente tiver cashback, pode usar
                     setBookingStep(5);
                   }}
-                  disabled={fetchingTimes || !selectedDate}
+                  disabled={fetchingTimes || !selectedTime}
                 >
-                  Próximo
+                  Confirmar Detalhes
                 </Button>
-              </div>
+              </motion.div>
             )}
 
             {bookingStep === 5 && (
-              <div className="space-y-6">
-                <div className="grid gap-3 p-4 bg-[#111] rounded-2xl border border-white/5">
-                  <Label className="text-sm font-bold text-slate-300 ml-1">WhatsApp de Contato</Label>
-                  <Input 
-                    value={customerPhone} 
-                    readOnly 
-                    className="bg-[#090909] border-white/10 text-slate-400 h-14 text-xl font-medium rounded-xl"
-                  />
-                </div>
-                
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-6"
+              >
                 {shop.cashback_enabled && customerCashback > 0 && (
-                  <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-2xl shadow-inner">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Gift size={22} className="text-primary" />
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-between p-5 bg-primary/5 border border-primary/20 rounded-[2rem] shadow-inner"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                        <Gift size={24} className="text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-white">Você tem cashback!</p>
+                        <p className="text-sm font-black text-white uppercase tracking-tighter">Você tem cashback!</p>
                         <p className="text-xs font-bold text-primary">Saldo: R$ {customerCashback.toFixed(2)}</p>
                       </div>
                     </div>
@@ -1516,114 +1565,68 @@ function ShopPageComponent() {
                       variant={useCashback ? "default" : "outline"} 
                       size="sm" 
                       onClick={() => setUseCashback(!useCashback)}
-                      className={cn("font-bold h-9 px-4 rounded-xl", useCashback ? "bg-primary" : "border-primary/30 text-primary hover:bg-primary/10")}
+                      className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px]", useCashback ? "bg-primary text-white" : "border-primary/30 text-primary hover:bg-primary/10")}
+                      style={useCashback ? { backgroundColor: primaryColor } : {}}
                     >
-                      {useCashback ? "Usando" : "Usar"}
+                      {useCashback ? "Aplicado" : "Usar"}
                     </Button>
-                  </div>
-                )}
-
-                {customerLoyaltyPoints > 0 && (
-                  <div className="p-5 bg-[#111] border border-white/5 rounded-2xl shadow-lg">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Gift size={22} className="text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-white">Cartão Fidelidade</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Acumule e ganhe serviços</p>
-                      </div>
-                    </div>
-                    <Progress 
-                      value={((customerLoyaltyPoints % (shop.free_service_threshold || 10)) / (shop.free_service_threshold || 10)) * 100} 
-                      className="h-3 bg-[#090909] border border-white/5" 
-                    />
-                    <div className="mt-4 text-center space-y-1">
-                      <p className="text-xs font-bold text-slate-200">
-                        Você já completou <span className="text-primary text-sm">{customerLoyaltyPoints}</span> procedimento(s). 
-                      </p>
-                      <p className="text-[11px] text-primary/80 font-medium">
-                        Faltam <span className="font-black text-sm">{(shop.free_service_threshold || 10) - (customerLoyaltyPoints % (shop.free_service_threshold || 10))}</span> para o seu próximo <span className="uppercase tracking-tighter">serviço gratuito!</span>
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                {customerCredits > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-100 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CircleDollarSign size={18} className="text-green-600" />
-                      <div>
-                        <p className="text-sm font-bold text-green-800">Você tem créditos!</p>
-                        <p className="text-xs text-green-600">Saldo: R$ {customerCredits.toFixed(2)}</p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant={useCredits ? "default" : "outline"} 
-                      size="sm" 
-                      className={cn(useCredits && "bg-green-600 hover:bg-green-700")}
-                      onClick={() => {
-                        setUseCredits(!useCredits);
-                        if (!useCredits) setUseCashback(false);
-                      }}
-                    >
-                      {useCredits ? "Usando" : "Usar"}
-                    </Button>
-                  </div>
+                  </motion.div>
                 )}
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-black text-white uppercase tracking-wider">Produtos Exclusivos</Label>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ color: primaryColor, backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}>Opcional</span>
+                  <div className="flex items-center justify-between px-2">
+                    <Label className="text-xs font-black text-slate-500 uppercase tracking-widest">Produtos Adicionais</Label>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary" style={{ color: primaryColor }}>Opcional</span>
                   </div>
-                  <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x scroll-smooth">
+                  <div className="flex gap-4 overflow-x-auto pb-6 px-1 custom-scrollbar snap-x scroll-smooth">
                     {products.map(p => {
                       const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
-                        <div 
+                        <motion.div 
                           key={p.id}
+                          whileHover={{ y: -5 }}
                           className={cn(
-                            "flex-shrink-0 w-36 p-3 border rounded-2xl transition-all text-center relative snap-start group",
-                            cartItem ? "border-primary bg-primary/10 shadow-[0_4px_20px_rgba(var(--primary),0.15)]" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a] hover:border-white/10"
+                            "flex-shrink-0 w-40 p-4 rounded-[2.5rem] transition-all text-center relative snap-start group border",
+                            cartItem ? "bg-primary shadow-2xl text-white" : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
                           )}
+                          style={cartItem ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}
                         >
                           <div 
-                            className="cursor-pointer space-y-2"
+                            className="cursor-pointer space-y-3"
                             onClick={() => toggleProduct(p)}
                           >
-                            <div className="h-20 w-20 mx-auto bg-[#090909] rounded-xl flex items-center justify-center overflow-hidden border border-white/5 group-hover:border-primary/30 transition-colors">
+                            <div className="h-24 w-24 mx-auto bg-black/40 rounded-3xl flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-white/20 transition-colors">
                               {p.image_url ? (
                                 <img src={p.image_url} className="w-full h-full object-cover" />
                               ) : (
-                                <Package size={32} className="text-slate-700 group-hover:text-primary transition-colors" />
+                                <Package size={32} className={cartItem ? "text-white/50" : "text-slate-700"} />
                               )}
                             </div>
-                            <div className="space-y-0.5">
-                              <p className="text-[11px] font-black text-white truncate px-1">{p.name}</p>
-                              <p className="text-xs font-black text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
+                            <div className="space-y-1">
+                              <p className={cn("text-xs font-black uppercase tracking-tight truncate px-1", cartItem ? "text-white" : "text-white")}>{p.name}</p>
+                              <p className={cn("text-sm font-black", cartItem ? "text-white/90" : "text-primary")} style={!cartItem ? { color: primaryColor } : {}}>R$ {p.price.toFixed(2)}</p>
                             </div>
                           </div>
                           
                           {cartItem && (
-                            <div className="flex items-center justify-between mt-3 bg-[#090909] rounded-lg p-1 border border-white/5">
+                            <div className="flex items-center justify-between mt-4 bg-black/20 rounded-2xl p-1.5 backdrop-blur-md">
                               <button 
                                 onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
-                                className="bg-white/5 hover:bg-white/10 text-white rounded-md h-7 w-7 flex items-center justify-center transition-colors"
+                                className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-8 w-8 flex items-center justify-center transition-colors"
                               >
                                 <Minus size={14} />
                               </button>
-                              <span className="text-xs font-black text-white">{cartItem.quantity}</span>
+                              <span className="text-xs font-black">{cartItem.quantity}</span>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
-                                className="bg-primary hover:opacity-90 text-white rounded-md h-7 w-7 flex items-center justify-center transition-colors"
+                                className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-8 w-8 flex items-center justify-center transition-colors"
                                 disabled={cartItem.quantity >= p.stock_quantity}
                               >
                                 <Plus size={14} />
                               </button>
                             </div>
                           )}
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -1877,15 +1880,16 @@ function ShopPageComponent() {
                       </div>
                     </div>
                   )}
-              </div>
+              </motion.div>
             )}
           </div>
 
           {bookingStep > 1 && (
-            <DialogFooter className="flex justify-between items-center sm:justify-between">
+            <DialogFooter className="flex justify-between items-center sm:justify-between px-0 pt-6 mt-6 border-t border-white/5 shrink-0">
               <Button 
                 variant="ghost" 
                 size="sm" 
+                className="text-slate-400 hover:text-white"
                 onClick={() => {
                   if (bookingStep === 5 && paymentMethod) {
                     setPaymentMethod(null);
@@ -1896,15 +1900,15 @@ function ShopPageComponent() {
                 <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
               </Button>
               {bookingStep < 5 && (
-                <div className="text-[10px] text-muted-foreground">
+                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
                   Passo {bookingStep} de 5
                 </div>
               )}
             </DialogFooter>
           )}
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </DialogContent>
+    </Dialog>
 
       {/* Floating Cart Button */}
       {selectedProducts.length > 0 && (
