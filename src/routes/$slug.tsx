@@ -69,6 +69,7 @@ function ShopPageComponent() {
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [modalBarber, setModalBarber] = useState<any>(null);
   const [isPixVisible, setIsPixVisible] = useState(false);
+  const [selectedProductForModal, setSelectedProductProductForModal] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("09:00");
   const [customerName, setCustomerName] = useState("");
