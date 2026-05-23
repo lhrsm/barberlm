@@ -1116,24 +1116,28 @@ function DashboardComponent() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pt-4">
-              <Card>
+              <Card className="glass border-2 border-white/5 hover:border-white/20 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Agendamentos Hoje</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-white/90">Agendamentos Hoje</CardTitle>
+                  <div className="p-2 bg-white/5 rounded-lg">
+                    <Calendar className="h-4 w-4 text-white/70" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.daily.appointments}</div>
-                  <p className="text-xs text-muted-foreground">Total de horários marcados</p>
+                  <div className="text-3xl font-black tracking-tighter text-white">{stats.daily.appointments}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-white/50 mt-1">Total de horários marcados</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="glass border-2 border-white/5 hover:border-white/20 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Novos Clientes</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-white/90">Novos Clientes</CardTitle>
+                  <div className="p-2 bg-white/5 rounded-lg">
+                    <Users className="h-4 w-4 text-white/70" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.daily.newCustomers}</div>
-                  <p className="text-xs text-muted-foreground">Cadastrados hoje</p>
+                  <div className="text-3xl font-black tracking-tighter text-white">{stats.daily.newCustomers}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-white/50 mt-1">Cadastrados hoje</p>
                 </CardContent>
               </Card>
               <Card>
