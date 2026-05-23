@@ -65,32 +65,38 @@ function LandingPageComponent() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 overflow-x-hidden">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 glass border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2 group cursor-pointer">
-            <div className="p-2 bg-primary/20 rounded-lg group-hover:bg-primary/30 transition-colors">
+      <motion.nav 
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-white/5"
+      >
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2 cursor-pointer">
+            <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
               <Scissors className="text-primary h-6 w-6" />
             </div>
-            <span className="text-2xl font-extrabold tracking-tighter text-white italic uppercase">Barbe<span className="text-primary">x</span></span>
+            <span className="text-2xl font-black tracking-tighter text-white">Barbex</span>
           </div>
-          <div className="hidden lg:flex items-center gap-10">
-            <a href="#funcionalidades" className="text-sm font-medium text-white/70 hover:text-white transition-colors">Funcionalidades</a>
-            <a href="#precos" className="text-sm font-medium text-white/70 hover:text-white transition-colors">Preços</a>
-            <a href="#faq" className="text-sm font-medium text-white/70 hover:text-white transition-colors">FAQ</a>
+          <div className="hidden lg:flex items-center gap-8">
+            {["Recursos", "Automações", "Demonstração", "Planos", "FAQ"].map((item) => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-sm font-bold text-white/60 hover:text-primary transition-colors">
+                {item}
+              </a>
+            ))}
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" className="text-white hover:bg-white/10" asChild>
+            <Button variant="ghost" className="text-white font-bold hover:bg-white/5" asChild>
               <Link to="/auth">Entrar</Link>
             </Button>
             <Button 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 shadow-[0_0_20px_rgba(var(--primary),0.3)]" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-black px-6 rounded-xl hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all" 
               onClick={() => setShowSignupModal(true)}
             >
-              Começar agora
+              Teste grátis
             </Button>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Hero Section */}
       <section className="relative pt-40 pb-20 lg:pt-56 lg:pb-32 px-4 overflow-hidden">
