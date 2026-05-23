@@ -21,7 +21,10 @@ import {
   HelpCircle,
   GraduationCap,
   Headset,
-  Bell
+  Bell,
+  MessageSquare,
+  Megaphone,
+  Share2
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { LogoutButton } from "@/components/admin/LogoutButton";
