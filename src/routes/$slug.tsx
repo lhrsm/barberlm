@@ -1091,6 +1091,134 @@ function ShopPageComponent() {
           </div>
         </section>
 
+        {/* Products Section */}
+        <section id="produtos" className="py-24 bg-[#050505] relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+          
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center space-y-4 mb-20">
+              <motion.span 
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                className="text-primary font-black uppercase tracking-[0.3em] text-xs" 
+                style={{ color: primaryColor }}
+              >
+                Marketplace Elite
+              </motion.span>
+              <motion.h3 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter"
+              >
+                Produtos Premium
+              </motion.h3>
+              <motion.p 
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                className="text-slate-500 max-w-xl mx-auto font-medium"
+              >
+                Os melhores produtos para manter seu estilo impecável e cuidado pessoal em dia.
+              </motion.p>
+            </div>
+
+            {/* Desktop Grid / Mobile Scroll */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {products.filter(p => p.active).map((product, idx) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="group bg-[#0a0a0a] border-white/5 rounded-[2.5rem] overflow-hidden hover:border-primary/30 transition-all duration-500 flex flex-col h-full">
+                    <div className="aspect-square relative overflow-hidden bg-[#111]">
+                      {product.image_url ? (
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name} 
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center opacity-10">
+                          <Package size={80} />
+                        </div>
+                      )}
+                      
+                      {product.badge && (
+                        <div className="absolute top-6 left-6 z-10">
+                          <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-2xl" style={{ backgroundColor: primaryColor }}>
+                            {product.badge}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3">
+                         <Button 
+                          className="rounded-full h-12 w-12 bg-white text-black hover:bg-white/90 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
+                          onClick={() => {
+                            const message = encodeURIComponent(`Olá! Tenho interesse no produto ${product.name} na ${shop.business_name}.`);
+                            window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
+                          }}
+                        >
+                          <MessageSquare size={20} />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="p-8 flex flex-col flex-1 space-y-4">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{product.category || 'Cuidados'}</p>
+                        <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight">{product.name}</h4>
+                        {product.brand && <p className="text-xs font-bold text-primary/60" style={{ color: primaryColor }}>{product.brand}</p>}
+                      </div>
+
+                      <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed flex-1">
+                        {product.short_description || product.description || "Produto selecionado com rigor para garantir resultados superiores."}
+                      </p>
+
+                      <div className="pt-4 border-t border-white/5 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-2xl font-black text-white">R$ {Number(product.price).toFixed(2)}</span>
+                            {product.promotional_price && (
+                              <span className="text-xs text-slate-500 line-through font-bold">R$ {Number(product.promotional_price).toFixed(2)}</span>
+                            )}
+                          </div>
+                          <div className="text-right">
+                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">Disponível</p>
+                             <p className="text-xs font-bold text-slate-400">{product.stock_quantity} unidades</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button 
+                            className="rounded-xl h-11 font-bold text-xs uppercase tracking-widest"
+                            style={{ backgroundColor: primaryColor }}
+                            onClick={() => addToCart(product)}
+                          >
+                            Comprar
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            className="rounded-xl h-11 border-white/10 hover:bg-white/5 font-bold text-[10px] uppercase tracking-widest"
+                            onClick={() => {
+                              const message = encodeURIComponent(`Olá! Tenho interesse no produto ${product.name} na ${shop.business_name}.`);
+                              window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
+                            }}
+                          >
+                            WhatsApp
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Barbers Section */}
         <section id="profissionais" className="py-24 bg-[#0f0f0f]">
           <div className="max-w-6xl mx-auto px-4">
