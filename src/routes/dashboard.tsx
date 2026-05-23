@@ -1140,16 +1140,18 @@ function DashboardComponent() {
                   <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Cadastrados hoje</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Ticket Médio (Mês)</CardTitle>
-                  <Target className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">Ticket Médio (Mês)</CardTitle>
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <Target className="h-4 w-4 text-slate-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-3xl font-black tracking-tighter text-slate-900">
                     R$ {stats.monthly.appointments > 0 ? (stats.monthly.totalServicesValue / stats.monthly.appointments).toFixed(2) : "0.00"}
                   </div>
-                  <p className="text-xs text-muted-foreground">Baseado no mês atual</p>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Baseado no mês atual</p>
                 </CardContent>
               </Card>
             </div>
