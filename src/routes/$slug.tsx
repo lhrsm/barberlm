@@ -1520,24 +1520,23 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 5 && (
-              <div className="space-y-6">
-                <div className="grid gap-3 p-4 bg-[#111] rounded-2xl border border-white/5">
-                  <Label className="text-sm font-bold text-slate-300 ml-1">WhatsApp de Contato</Label>
-                  <Input 
-                    value={customerPhone} 
-                    readOnly 
-                    className="bg-[#090909] border-white/10 text-slate-400 h-14 text-xl font-medium rounded-xl"
-                  />
-                </div>
-                
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-6"
+              >
                 {shop.cashback_enabled && customerCashback > 0 && (
-                  <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-2xl shadow-inner">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Gift size={22} className="text-primary" />
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-between p-5 bg-primary/5 border border-primary/20 rounded-[2rem] shadow-inner"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                        <Gift size={24} className="text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-white">Você tem cashback!</p>
+                        <p className="text-sm font-black text-white uppercase tracking-tighter">Você tem cashback!</p>
                         <p className="text-xs font-bold text-primary">Saldo: R$ {customerCashback.toFixed(2)}</p>
                       </div>
                     </div>
@@ -1545,114 +1544,68 @@ function ShopPageComponent() {
                       variant={useCashback ? "default" : "outline"} 
                       size="sm" 
                       onClick={() => setUseCashback(!useCashback)}
-                      className={cn("font-bold h-9 px-4 rounded-xl", useCashback ? "bg-primary" : "border-primary/30 text-primary hover:bg-primary/10")}
+                      className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px]", useCashback ? "bg-primary text-white" : "border-primary/30 text-primary hover:bg-primary/10")}
+                      style={useCashback ? { backgroundColor: primaryColor } : {}}
                     >
-                      {useCashback ? "Usando" : "Usar"}
+                      {useCashback ? "Aplicado" : "Usar"}
                     </Button>
-                  </div>
-                )}
-
-                {customerLoyaltyPoints > 0 && (
-                  <div className="p-5 bg-[#111] border border-white/5 rounded-2xl shadow-lg">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Gift size={22} className="text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-white">Cartão Fidelidade</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Acumule e ganhe serviços</p>
-                      </div>
-                    </div>
-                    <Progress 
-                      value={((customerLoyaltyPoints % (shop.free_service_threshold || 10)) / (shop.free_service_threshold || 10)) * 100} 
-                      className="h-3 bg-[#090909] border border-white/5" 
-                    />
-                    <div className="mt-4 text-center space-y-1">
-                      <p className="text-xs font-bold text-slate-200">
-                        Você já completou <span className="text-primary text-sm">{customerLoyaltyPoints}</span> procedimento(s). 
-                      </p>
-                      <p className="text-[11px] text-primary/80 font-medium">
-                        Faltam <span className="font-black text-sm">{(shop.free_service_threshold || 10) - (customerLoyaltyPoints % (shop.free_service_threshold || 10))}</span> para o seu próximo <span className="uppercase tracking-tighter">serviço gratuito!</span>
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                {customerCredits > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-100 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CircleDollarSign size={18} className="text-green-600" />
-                      <div>
-                        <p className="text-sm font-bold text-green-800">Você tem créditos!</p>
-                        <p className="text-xs text-green-600">Saldo: R$ {customerCredits.toFixed(2)}</p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant={useCredits ? "default" : "outline"} 
-                      size="sm" 
-                      className={cn(useCredits && "bg-green-600 hover:bg-green-700")}
-                      onClick={() => {
-                        setUseCredits(!useCredits);
-                        if (!useCredits) setUseCashback(false);
-                      }}
-                    >
-                      {useCredits ? "Usando" : "Usar"}
-                    </Button>
-                  </div>
+                  </motion.div>
                 )}
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-black text-white uppercase tracking-wider">Produtos Exclusivos</Label>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ color: primaryColor, backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}>Opcional</span>
+                  <div className="flex items-center justify-between px-2">
+                    <Label className="text-xs font-black text-slate-500 uppercase tracking-widest">Produtos Adicionais</Label>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary" style={{ color: primaryColor }}>Opcional</span>
                   </div>
-                  <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x scroll-smooth">
+                  <div className="flex gap-4 overflow-x-auto pb-6 px-1 custom-scrollbar snap-x scroll-smooth">
                     {products.map(p => {
                       const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
-                        <div 
+                        <motion.div 
                           key={p.id}
+                          whileHover={{ y: -5 }}
                           className={cn(
-                            "flex-shrink-0 w-36 p-3 border rounded-2xl transition-all text-center relative snap-start group",
-                            cartItem ? "border-primary bg-primary/10 shadow-[0_4px_20px_rgba(var(--primary),0.15)]" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a] hover:border-white/10"
+                            "flex-shrink-0 w-40 p-4 rounded-[2.5rem] transition-all text-center relative snap-start group border",
+                            cartItem ? "bg-primary shadow-2xl text-white" : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
                           )}
+                          style={cartItem ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}
                         >
                           <div 
-                            className="cursor-pointer space-y-2"
+                            className="cursor-pointer space-y-3"
                             onClick={() => toggleProduct(p)}
                           >
-                            <div className="h-20 w-20 mx-auto bg-[#090909] rounded-xl flex items-center justify-center overflow-hidden border border-white/5 group-hover:border-primary/30 transition-colors">
+                            <div className="h-24 w-24 mx-auto bg-black/40 rounded-3xl flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-white/20 transition-colors">
                               {p.image_url ? (
                                 <img src={p.image_url} className="w-full h-full object-cover" />
                               ) : (
-                                <Package size={32} className="text-slate-700 group-hover:text-primary transition-colors" />
+                                <Package size={32} className={cartItem ? "text-white/50" : "text-slate-700"} />
                               )}
                             </div>
-                            <div className="space-y-0.5">
-                              <p className="text-[11px] font-black text-white truncate px-1">{p.name}</p>
-                              <p className="text-xs font-black text-primary" style={{ color: primaryColor }}>R$ {p.price.toFixed(2)}</p>
+                            <div className="space-y-1">
+                              <p className={cn("text-xs font-black uppercase tracking-tight truncate px-1", cartItem ? "text-white" : "text-white")}>{p.name}</p>
+                              <p className={cn("text-sm font-black", cartItem ? "text-white/90" : "text-primary")} style={!cartItem ? { color: primaryColor } : {}}>R$ {p.price.toFixed(2)}</p>
                             </div>
                           </div>
                           
                           {cartItem && (
-                            <div className="flex items-center justify-between mt-3 bg-[#090909] rounded-lg p-1 border border-white/5">
+                            <div className="flex items-center justify-between mt-4 bg-black/20 rounded-2xl p-1.5 backdrop-blur-md">
                               <button 
                                 onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
-                                className="bg-white/5 hover:bg-white/10 text-white rounded-md h-7 w-7 flex items-center justify-center transition-colors"
+                                className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-8 w-8 flex items-center justify-center transition-colors"
                               >
                                 <Minus size={14} />
                               </button>
-                              <span className="text-xs font-black text-white">{cartItem.quantity}</span>
+                              <span className="text-xs font-black">{cartItem.quantity}</span>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
-                                className="bg-primary hover:opacity-90 text-white rounded-md h-7 w-7 flex items-center justify-center transition-colors"
+                                className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-8 w-8 flex items-center justify-center transition-colors"
                                 disabled={cartItem.quantity >= p.stock_quantity}
                               >
                                 <Plus size={14} />
                               </button>
                             </div>
                           )}
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
