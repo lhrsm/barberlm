@@ -196,32 +196,54 @@ function AdminDashboard() {
           statCards.map((stat, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: i * 0.05 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              whileHover={{ y: -5 }}
             >
-              <Card className="glass group border-white/5 hover:border-white/20 transition-all duration-500 rounded-3xl overflow-hidden relative">
-                <div className={cn("absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-10 pointer-events-none rounded-full", stat.glow)} />
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-gray-300 transition-colors">
-                    {stat.label}
-                  </span>
-                  <div className={cn("p-2 rounded-xl bg-white/5 group-hover:scale-110 transition-transform", stat.color)}>
-                    <stat.icon className="h-4 w-4" />
+              <Card className="glass group border-white/5 hover:border-emerald-500/30 transition-all duration-500 rounded-[2rem] overflow-hidden relative h-full flex flex-col justify-between shadow-2xl shadow-black/40">
+                {/* Decorative background glow */}
+                <div className={cn("absolute -top-10 -right-10 w-32 h-32 blur-[80px] opacity-20 pointer-events-none rounded-full group-hover:opacity-40 transition-opacity", stat.glow)} />
+                
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-6 px-6">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-gray-300 transition-colors">
+                      {stat.label}
+                    </span>
+                    <div className="h-0.5 w-6 bg-current opacity-20 group-hover:w-10 transition-all duration-500" style={{ color: stat.color.replace('text-', '') }} />
+                  </div>
+                  <div className={cn("p-3 rounded-2xl bg-white/5 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-xl border border-white/5", stat.color)}>
+                    <stat.icon className="h-5 w-5" />
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tracking-tight mb-2">{stat.value}</div>
-                  <div className="flex items-center gap-1.5">
-                    <Badge className={cn(
-                      "rounded-lg px-1.5 py-0 text-[10px] border-none font-bold",
-                      stat.isPositive ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
-                    )}>
-                      {stat.isPositive ? "+" : ""}{stat.trend}
-                    </Badge>
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">vs mês anterior</span>
+                <CardContent className="pb-6 px-6 pt-2">
+                  <div className="flex flex-col gap-1">
+                    <div className="text-4xl font-black tracking-tighter mb-2 bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent group-hover:to-white transition-all">
+                      {stat.value}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge className={cn(
+                          "rounded-full px-2 py-0.5 text-[10px] border-none font-black tracking-wider shadow-lg",
+                          stat.isPositive ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
+                        )}>
+                          <div className="flex items-center gap-1">
+                            {stat.isPositive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
+                            {stat.trend}
+                          </div>
+                        </Badge>
+                        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter opacity-60">Snapshot Mensal</span>
+                      </div>
+                      
+                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/5 group-hover:border-white/20 transition-colors">
+                        <TrendingUp size={12} className={cn("transition-transform group-hover:scale-110", stat.color)} />
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
+                
+                {/* Bottom line accent */}
+                <div className={cn("absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-700", stat.color.replace('text-', 'bg-'))} />
               </Card>
             </motion.div>
           ))
