@@ -1865,7 +1865,7 @@ function ShopPageComponent() {
                       </div>
                     </div>
                   )}
-                </motion.div>
+              </div>
             )}
           </div>
 
