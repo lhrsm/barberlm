@@ -18,6 +18,7 @@ import { Route as ProductsRouteImport } from './routes/products'
 import { Route as FinancesRouteImport } from './routes/finances'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BarbersRouteImport } from './routes/barbers'
 import { Route as AutomationsRouteImport } from './routes/automations'
@@ -85,6 +86,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const CustomersRoute = CustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CampaignsRoute = CampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalendarRoute = CalendarRouteImport.update({
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
+  '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
+  '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
@@ -280,6 +288,7 @@ export interface FileRoutesById {
   '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
+  '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/dashboard': typeof DashboardRoute
   '/finances': typeof FinancesRoute
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/automations'
     | '/barbers'
     | '/calendar'
+    | '/campaigns'
     | '/customers'
     | '/dashboard'
     | '/finances'
@@ -349,6 +359,7 @@ export interface FileRouteTypes {
     | '/automations'
     | '/barbers'
     | '/calendar'
+    | '/campaigns'
     | '/customers'
     | '/dashboard'
     | '/finances'
@@ -383,6 +394,7 @@ export interface FileRouteTypes {
     | '/automations'
     | '/barbers'
     | '/calendar'
+    | '/campaigns'
     | '/customers'
     | '/dashboard'
     | '/finances'
@@ -418,6 +430,7 @@ export interface RootRouteChildren {
   AutomationsRoute: typeof AutomationsRoute
   BarbersRoute: typeof BarbersRoute
   CalendarRoute: typeof CalendarRoute
+  CampaignsRoute: typeof CampaignsRoute
   CustomersRoute: typeof CustomersRoute
   DashboardRoute: typeof DashboardRoute
   FinancesRoute: typeof FinancesRoute
@@ -494,6 +507,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/customers'
       preLoaderRoute: typeof CustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/campaigns': {
+      id: '/campaigns'
+      path: '/campaigns'
+      fullPath: '/campaigns'
+      preLoaderRoute: typeof CampaignsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calendar': {
@@ -712,6 +732,7 @@ const rootRouteChildren: RootRouteChildren = {
   AutomationsRoute: AutomationsRoute,
   BarbersRoute: BarbersRoute,
   CalendarRoute: CalendarRoute,
+  CampaignsRoute: CampaignsRoute,
   CustomersRoute: CustomersRoute,
   DashboardRoute: DashboardRoute,
   FinancesRoute: FinancesRoute,
@@ -727,3 +748,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
