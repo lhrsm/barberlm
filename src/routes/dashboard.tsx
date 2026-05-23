@@ -1051,79 +1051,93 @@ function DashboardComponent() {
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Card className="bg-blue-50/50 border-blue-100">
+              <Card className="glass border-2 border-blue-500/30 shadow-lg shadow-blue-500/5 hover:border-blue-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-blue-700">Serviços Vendidos Hoje</CardTitle>
-                  <Scissors className="h-4 w-4 text-blue-600" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-white/90">Serviços Vendidos Hoje</CardTitle>
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Scissors className="h-4 w-4 text-blue-400" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-700">R$ {stats.daily.totalServicesValue.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Valor total dos serviços</p>
+                  <div className="text-3xl font-black tracking-tighter text-white">R$ {stats.daily.totalServicesValue.toFixed(2)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-white/50 mt-1">Valor total dos serviços</p>
                 </CardContent>
               </Card>
-              <Card className="bg-green-50/50 border-green-100">
+              <Card className="glass border-2 border-green-500/30 shadow-lg shadow-green-500/5 hover:border-green-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-green-700">Entrada em Caixa Hoje</CardTitle>
-                  <CircleDollarSign className="h-4 w-4 text-green-600" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-white/90">Entrada em Caixa Hoje</CardTitle>
+                  <div className="p-2 bg-green-500/10 rounded-lg">
+                    <CircleDollarSign className="h-4 w-4 text-green-400" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-700">R$ {stats.daily.realCashInflow.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Dinheiro novo (PIX/Dinheiro)</p>
+                  <div className="text-3xl font-black tracking-tighter text-white">R$ {stats.daily.realCashInflow.toFixed(2)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-white/50 mt-1">Dinheiro novo (PIX/Dinheiro)</p>
                 </CardContent>
               </Card>
-              <Card className="bg-purple-50/50 border-purple-100">
+              <Card className="glass border-2 border-purple-500/30 shadow-lg shadow-purple-500/5 hover:border-purple-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-purple-700">Créditos Utilizados Hoje</CardTitle>
-                  <Wallet className="h-4 w-4 text-purple-600" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-white/90">Créditos Utilizados Hoje</CardTitle>
+                  <div className="p-2 bg-purple-500/10 rounded-lg">
+                    <Wallet className="h-4 w-4 text-purple-400" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-purple-700">R$ {stats.daily.creditsUsed.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Abatido de saldos anteriores</p>
+                  <div className="text-3xl font-black tracking-tighter text-white">R$ {stats.daily.creditsUsed.toFixed(2)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-white/50 mt-1">Abatido de saldos anteriores</p>
                 </CardContent>
               </Card>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 pt-2">
-              <Card className="bg-orange-50/50 border-orange-100">
+              <Card className="glass border-2 border-orange-500/30 shadow-lg shadow-orange-500/5 hover:border-orange-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-orange-700">Cashback Utilizado Hoje</CardTitle>
-                  <ArrowUpRight className="h-4 w-4 text-orange-600" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-white/90">Cashback Utilizado Hoje</CardTitle>
+                  <div className="p-2 bg-orange-500/10 rounded-lg">
+                    <ArrowUpRight className="h-4 w-4 text-orange-400" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-orange-700">R$ {stats.daily.cashbackUsed.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Abatimento via cashback</p>
+                  <div className="text-3xl font-black tracking-tighter text-white">R$ {stats.daily.cashbackUsed.toFixed(2)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-white/50 mt-1">Abatimento via cashback</p>
                 </CardContent>
               </Card>
-              <Card className="bg-yellow-50/50 border-yellow-100">
+              <Card className="glass border-2 border-yellow-500/30 shadow-lg shadow-yellow-500/5 hover:border-yellow-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-yellow-700">Cashback Gerado Hoje</CardTitle>
-                  <ArrowDownRight className="h-4 w-4 text-yellow-600" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-white/90">Cashback Gerado Hoje</CardTitle>
+                  <div className="p-2 bg-yellow-500/10 rounded-lg">
+                    <ArrowDownRight className="h-4 w-4 text-yellow-400" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-yellow-700">R$ {stats.daily.cashbackEarned.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Novos saldos de cashback</p>
+                  <div className="text-3xl font-black tracking-tighter text-white">R$ {stats.daily.cashbackEarned.toFixed(2)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-white/50 mt-1">Novos saldos de cashback</p>
                 </CardContent>
               </Card>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pt-4">
-              <Card>
+              <Card className="glass border-2 border-white/5 hover:border-white/20 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Agendamentos Hoje</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-white/90">Agendamentos Hoje</CardTitle>
+                  <div className="p-2 bg-white/5 rounded-lg">
+                    <Calendar className="h-4 w-4 text-white/70" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.daily.appointments}</div>
-                  <p className="text-xs text-muted-foreground">Total de horários marcados</p>
+                  <div className="text-3xl font-black tracking-tighter text-white">{stats.daily.appointments}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-white/50 mt-1">Total de horários marcados</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="glass border-2 border-white/5 hover:border-white/20 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Novos Clientes</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-white/90">Novos Clientes</CardTitle>
+                  <div className="p-2 bg-white/5 rounded-lg">
+                    <Users className="h-4 w-4 text-white/70" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.daily.newCustomers}</div>
-                  <p className="text-xs text-muted-foreground">Cadastrados hoje</p>
+                  <div className="text-3xl font-black tracking-tighter text-white">{stats.daily.newCustomers}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-white/50 mt-1">Cadastrados hoje</p>
                 </CardContent>
               </Card>
               <Card>
