@@ -78,12 +78,13 @@ function IntegrationsComponent() {
       tenant_id: tenantId,
       instance_name: formData.get('instance_name') as string,
       api_key: formData.get('api_key') as string,
-      server_url: formData.get('server_url') as string,
+      api_url: formData.get('server_url') as string,
+      name: formData.get('instance_name') as string,
     };
 
     const { error } = whatsapp?.id 
-      ? await supabase.from("whatsapp_instances").update(data).eq("id", whatsapp.id)
-      : await supabase.from("whatsapp_instances").insert({ ...data, provider: 'evolution' });
+      ? await supabase.from("whatsapp_instances").update(data as any).eq("id", whatsapp.id)
+      : await supabase.from("whatsapp_instances").insert([{ ...data, provider: 'evolution' } as any]);
 
     if (error) toast.error("Erro ao salvar WhatsApp");
     else {
