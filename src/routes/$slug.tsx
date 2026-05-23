@@ -1157,6 +1157,13 @@ function ShopPageComponent() {
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3">
                          <Button 
                           className="rounded-full h-12 w-12 bg-white text-black hover:bg-white/90 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
+                          onClick={() => setSelectedProductProductForModal(product)}
+                        >
+                          <ShoppingBag size={20} />
+                        </Button>
+                         <Button 
+                          variant="secondary"
+                          className="rounded-full h-12 w-12 bg-black/60 backdrop-blur-md text-white hover:bg-black/80 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
                           onClick={() => {
                             const message = encodeURIComponent(`Olá! Tenho interesse no produto ${product.name} na ${shop.business_name}.`);
                             window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
@@ -1167,7 +1174,10 @@ function ShopPageComponent() {
                       </div>
                     </div>
 
-                    <div className="p-8 flex flex-col flex-1 space-y-4">
+                    <div 
+                      className="p-8 flex flex-col flex-1 space-y-4 cursor-pointer"
+                      onClick={() => setSelectedProductProductForModal(product)}
+                    >
                       <div className="space-y-1">
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{product.category || 'Cuidados'}</p>
                         <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight">{product.name}</h4>
