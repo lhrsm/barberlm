@@ -337,9 +337,11 @@ function AutomationsComponent() {
                         </div>
                         <div className="flex items-center gap-3">
                           <Label htmlFor={`switch-${item.id}`} className={cn(
-                            "text-xs font-bold uppercase tracking-widest",
-                            enabled ? "text-emerald-500" : "text-gray-500",
-                            locked && "opacity-50"
+                            "text-[10px] font-black uppercase tracking-[0.15em] transition-colors duration-300",
+                            enabled 
+                              ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]" 
+                              : "text-gray-600",
+                            locked && "opacity-40"
                           )}>
                             {enabled ? "Ativo" : "Inativo"}
                           </Label>
@@ -348,7 +350,11 @@ function AutomationsComponent() {
                             checked={enabled} 
                             disabled={locked}
                             onCheckedChange={() => handleToggleAutomation(item.id, enabled)} 
-                            className={cn(locked && "cursor-not-allowed")}
+                            className={cn(
+                              "transition-all duration-300",
+                              !enabled && "opacity-40 grayscale-[0.5] hover:opacity-60",
+                              locked && "cursor-not-allowed opacity-20"
+                            )}
                           />
                         </div>
                       </div>
