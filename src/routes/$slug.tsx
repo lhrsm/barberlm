@@ -1126,11 +1126,28 @@ function ShopPageComponent() {
               >
                 Os melhores produtos para manter seu estilo impecável e cuidado pessoal em dia.
               </motion.p>
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
+              {categories.map((cat) => (
+                <Button
+                  key={cat}
+                  variant={activeCategory === cat ? "default" : "outline"}
+                  className={cn(
+                    "rounded-full px-6 h-10 font-bold text-[10px] uppercase tracking-widest transition-all",
+                    activeCategory === cat ? "shadow-lg scale-105" : "border-white/10 hover:bg-white/5 text-slate-500"
+                  )}
+                  style={activeCategory === cat ? { backgroundColor: primaryColor } : {}}
+                  onClick={() => setActiveCategory(cat)}
+                >
+                  {cat}
+                </Button>
+              ))}
             </div>
 
             {/* Desktop Grid / Mobile Scroll */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {products.filter(p => p.active).map((product, idx) => (
+              {products
+                .filter(p => p.active && (activeCategory === "Todos" || p.category === activeCategory))
+                .map((product, idx) => (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, y: 30 }}
