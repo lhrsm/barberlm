@@ -1323,47 +1323,59 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 2 && (
-              <div className="space-y-3">
-                <div className="grid gap-2 mb-4 animate-in fade-in slide-in-from-top-2">
-                  <Label>Como podemos te chamar?</Label>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-6"
+              >
+                <div className="grid gap-3 p-5 bg-white/[0.03] rounded-3xl border border-white/10">
+                  <Label className="text-xs font-black uppercase tracking-widest text-slate-500">Como podemos te chamar?</Label>
                   <Input 
                     placeholder="Seu nome" 
                     value={customerName} 
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="bg-[#111] border-white/10 text-white placeholder:text-slate-500 h-12 text-lg focus-visible:ring-primary/50"
+                    className="bg-black/40 border-white/5 text-white placeholder:text-slate-700 h-14 text-xl font-black focus-visible:ring-primary/50 rounded-2xl"
                   />
                 </div>
-                {customerName && customerName.length >= 3 && (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                    <p className="text-sm font-medium mb-2">Olá, <span style={{ color: primaryColor }}>{customerName}</span>! O que faremos hoje?</p>
+
+                <div className="space-y-4">
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Selecione o Serviço</h5>
+                  <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {services.map(s => (
+                      <motion.div 
+                        key={s.id} 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={cn(
+                          "p-5 rounded-[2rem] cursor-pointer transition-all flex justify-between items-center group relative overflow-hidden",
+                          selectedService?.id === s.id ? "bg-primary text-white" : "bg-white/[0.03] border border-white/5 hover:bg-white/[0.06]"
+                        )}
+                        style={selectedService?.id === s.id ? { backgroundColor: primaryColor } : {}}
+                        onClick={() => {
+                          if (!customerName || customerName.length < 3) {
+                            toast.error("Por favor, informe seu nome primeiro.");
+                            return;
+                          }
+                          setSelectedService(s);
+                          setBookingStep(3);
+                        }}
+                      >
+                        <div className="relative z-10">
+                          <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-white" : "text-slate-100")}>{s.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                             <Clock size={12} className={selectedService?.id === s.id ? "text-white/70" : "text-slate-500"} />
+                             <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-white/70" : "text-slate-500")}>{s.duration_minutes} min</p>
+                          </div>
+                        </div>
+                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-white" : "text-primary")} style={selectedService?.id !== s.id ? { color: primaryColor } : {}}>R$ {s.price.toFixed(2)}</p>
+                        {selectedService?.id === s.id && (
+                          <motion.div layoutId="service-bg" className="absolute inset-0 bg-white/10 pointer-events-none" />
+                        )}
+                      </motion.div>
+                    ))}
                   </div>
-                )}
-                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                  {services.map(s => (
-                    <div 
-                      key={s.id} 
-                      className={cn(
-                        "p-4 border rounded-xl cursor-pointer transition-all flex justify-between items-center",
-                        selectedService?.id === s.id ? "border-primary bg-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.2)]" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a] hover:border-white/10"
-                      )}
-                      onClick={() => {
-                        if (!customerName) {
-                          toast.error("Por favor, informe seu nome primeiro.");
-                          return;
-                        }
-                        setSelectedService(s);
-                        setBookingStep(3);
-                      }}
-                    >
-                      <div>
-                        <p className="font-bold text-slate-100">{s.name}</p>
-                        <p className="text-xs text-slate-400">{s.duration_minutes} min</p>
-                      </div>
-                      <p className="font-bold text-lg" style={{ color: primaryColor }}>R$ {s.price.toFixed(2)}</p>
-                    </div>
-                  ))}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {bookingStep === 3 && (
