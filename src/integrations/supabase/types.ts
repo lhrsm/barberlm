@@ -764,6 +764,38 @@ export type Database = {
         }
         Relationships: []
       }
+      product_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          product_id: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          product_id: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          product_id?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_sales: {
         Row: {
           created_at: string
@@ -817,36 +849,57 @@ export type Database = {
       products: {
         Row: {
           active: boolean
+          badge: string | null
+          brand: string | null
+          category: string | null
           created_at: string
           description: string | null
+          featured: boolean | null
           id: string
           image_url: string | null
           name: string
           price: number
+          promotional_price: number | null
+          short_description: string | null
+          slug: string | null
           stock_quantity: number
           updated_at: string
           user_id: string
         }
         Insert: {
           active?: boolean
+          badge?: string | null
+          brand?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
+          featured?: boolean | null
           id?: string
           image_url?: string | null
           name: string
           price?: number
+          promotional_price?: number | null
+          short_description?: string | null
+          slug?: string | null
           stock_quantity?: number
           updated_at?: string
           user_id: string
         }
         Update: {
           active?: boolean
+          badge?: string | null
+          brand?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
+          featured?: boolean | null
           id?: string
           image_url?: string | null
           name?: string
           price?: number
+          promotional_price?: number | null
+          short_description?: string | null
+          slug?: string | null
           stock_quantity?: number
           updated_at?: string
           user_id?: string
