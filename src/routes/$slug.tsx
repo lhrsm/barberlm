@@ -70,6 +70,12 @@ function ShopPageComponent() {
   const [modalBarber, setModalBarber] = useState<any>(null);
   const [isPixVisible, setIsPixVisible] = useState(false);
   const [selectedProductForModal, setSelectedProductProductForModal] = useState<any>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("Todos");
+
+  const categories = useMemo(() => {
+    const cats = ["Todos", ...new Set(products.map(p => p.category).filter(Boolean))];
+    return cats;
+  }, [products]);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("09:00");
   const [customerName, setCustomerName] = useState("");
