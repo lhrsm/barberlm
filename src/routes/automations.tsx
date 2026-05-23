@@ -26,13 +26,11 @@ import {
   Gift, 
   UserMinus, 
   Star,
-  CheckCircle2,
   AlertCircle,
   Zap,
   Lock,
   ArrowRight,
   Sparkles,
-  Smartphone,
   Check
 } from "lucide-react";
 import {
