@@ -952,11 +952,11 @@ function ShopPageComponent() {
               <h1 className="font-bold text-base sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
             </div>
 
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-              <a href="#inicio" className="hover:text-primary transition-colors">Início</a>
-              <a href="#servicos" className="hover:text-primary transition-colors">Serviços</a>
-              <a href="#profissionais" className="hover:text-primary transition-colors">Profissionais</a>
-              <a href="#contato" className="hover:text-primary transition-colors">Contato</a>
+            <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
+              <a href="#inicio" className="hover:text-primary transition-colors cursor-pointer">Início</a>
+              <a href="#servicos" className="hover:text-primary transition-colors cursor-pointer">Serviços</a>
+              <a href="#profissionais" className="hover:text-primary transition-colors cursor-pointer">Profissionais</a>
+              <a href="#contato" className="hover:text-primary transition-colors cursor-pointer">Contato</a>
             </nav>
 
             <Button 
