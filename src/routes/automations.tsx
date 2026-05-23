@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   MessageSquare, 
   Mail, 
@@ -30,7 +31,9 @@ import {
   Zap,
   Lock,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Smartphone,
+  Check
 } from "lucide-react";
 import {
   Dialog,
