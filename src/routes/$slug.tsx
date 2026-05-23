@@ -1880,7 +1880,6 @@ function ShopPageComponent() {
                       </div>
                     </div>
                   )}
-                </div>
               </motion.div>
             )}
           </div>
