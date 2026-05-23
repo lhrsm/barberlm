@@ -319,43 +319,66 @@ function AutomationsComponent() {
 
                 return (
                   <Card key={item.id} className={cn(
-                    "relative overflow-hidden transition-all hover:shadow-md",
-                    locked ? "opacity-70 bg-muted/30" : "bg-card"
+                    "relative overflow-hidden transition-all hover:shadow-md border-white/5",
+                    locked ? "opacity-80 bg-muted/30 grayscale-[0.5]" : "bg-card"
                   )}>
+                    {locked && (
+                      <div className="absolute top-2 right-2 z-10">
+                        <Badge variant="secondary" className="gap-1 bg-amber-500/20 text-amber-500 border-amber-500/20">
+                          <Lock size={10} /> {item.plan.toUpperCase()}
+                        </Badge>
+                      </div>
+                    )}
+                    
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <div className={cn("p-2 rounded-lg", item.bg, item.color)}>
                           <item.icon size={24} />
                         </div>
                         <div className="flex items-center gap-2">
-                          {locked ? (
-                            <Badge variant="secondary" className="gap-1">
-                              <Lock size={10} /> {item.plan.toUpperCase()}
-                            </Badge>
-                          ) : (
-                            <Switch 
-                              checked={enabled} 
-                              onCheckedChange={() => handleToggleAutomation(item.id, enabled)} 
-                            />
-                          )}
+                          <Switch 
+                            checked={enabled} 
+                            disabled={locked}
+                            onCheckedChange={() => handleToggleAutomation(item.id, enabled)} 
+                            className={cn(locked && "cursor-not-allowed")}
+                          />
                         </div>
                       </div>
-                      <CardTitle className="text-xl mt-4">{item.title}</CardTitle>
+                      <CardTitle className="text-xl mt-4 flex items-center gap-2">
+                        {item.title}
+                      </CardTitle>
                       <CardDescription>{item.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-2">
-                      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                        <Play size={12} /> Trigger: {item.trigger}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                          <Play size={12} /> Trigger: {item.trigger}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                          <span className="text-muted-foreground">Disponível no plano:</span>
+                          <span className={cn(
+                            "px-1.5 py-0.5 rounded",
+                            item.plan === 'starter' ? "bg-blue-500/10 text-blue-500" :
+                            item.plan === 'pro' ? "bg-purple-500/10 text-purple-500" :
+                            "bg-amber-500/10 text-amber-500"
+                          )}>
+                            {item.plan.toUpperCase()}
+                          </span>
+                        </div>
                       </div>
                     </CardContent>
-                    <CardFooter className="pt-2 border-t">
+                    <CardFooter className="pt-2 border-t border-white/5">
                       {locked ? (
-                        <Button variant="ghost" className="w-full gap-2 text-primary" asChild>
-                          <a href="/subscription">Fazer Upgrade <ArrowRight size={14} /></a>
+                        <Button variant="ghost" className="w-full gap-2 text-primary hover:bg-primary/5" asChild>
+                          <a href="/subscription">
+                            <Zap size={14} className="animate-pulse" />
+                            Liberar no Plano {item.plan.toUpperCase()} 
+                            <ArrowRight size={14} />
+                          </a>
                         </Button>
                       ) : (
                         <div className="grid grid-cols-2 w-full gap-2">
-                          <Button variant="outline" size="sm" onClick={() => openEditModal(item.id)}>
+                          <Button variant="outline" size="sm" onClick={() => openEditModal(item.id)} className="border-white/10">
                             Configurar
                           </Button>
                           <Button variant="ghost" size="sm" onClick={() => toast.info("Automação de teste enviada!")}>
