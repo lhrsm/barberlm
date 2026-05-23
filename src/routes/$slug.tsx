@@ -955,6 +955,7 @@ function ShopPageComponent() {
             <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
               <a href="#inicio" className="hover:text-primary transition-colors cursor-pointer">Início</a>
               <a href="#servicos" className="hover:text-primary transition-colors cursor-pointer">Serviços</a>
+              <a href="#produtos" className="hover:text-primary transition-colors cursor-pointer">Produtos</a>
               <a href="#profissionais" className="hover:text-primary transition-colors cursor-pointer">Profissionais</a>
               <a href="#contato" className="hover:text-primary transition-colors cursor-pointer">Contato</a>
             </nav>
