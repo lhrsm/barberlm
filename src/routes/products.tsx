@@ -29,8 +29,15 @@ import {
   History,
   XCircle,
   RefreshCcw,
-  CheckCircle2
+  CheckCircle2,
+  Tag,
+  Star,
+  Layers,
+  LayoutGrid
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
