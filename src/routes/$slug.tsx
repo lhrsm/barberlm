@@ -1447,75 +1447,76 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 4 && (
-              <div className="space-y-4">
-                <div className="flex flex-col gap-1 mb-2">
-                  <p className="text-sm font-bold text-slate-100">Profissional Selecionado: {selectedBarber?.name}</p>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="h-10 w-10 rounded-full bg-muted overflow-hidden">
-                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-bold">{selectedBarber?.name[0]}</div>}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-8"
+              >
+                <div className="flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 rounded-[2rem] shadow-inner">
+                  <div className="flex items-center gap-4">
+                    <div className="h-16 w-16 rounded-2xl bg-black/40 border border-white/5 overflow-hidden">
+                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-xl">{selectedBarber?.name[0]}</div>}
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Profissional</p>
-                      <p className="text-sm font-bold">{selectedBarber?.name}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Profissional</p>
+                      <p className="text-xl font-black uppercase italic tracking-tighter text-white">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-xs h-8">Alterar</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-[10px] h-8 font-black uppercase tracking-widest bg-white/5 hover:bg-white/10 rounded-full px-4 border border-white/5">Alterar</Button>
                 </div>
-                <div className="grid gap-2">
-                  <Label>Data</Label>
-                  <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={format(new Date(), "yyyy-MM-dd")} className="bg-[#111] border-white/10 text-white h-12 text-lg focus-visible:ring-primary/50" />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Horário</Label>
+
+                <div className="space-y-6">
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Horários Disponíveis</h5>
+                  
                   {fetchingTimes ? (
-                    <div className="flex items-center justify-center py-4">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary" style={{ borderTopColor: primaryColor }} />
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando horários...</p>
                     </div>
                   ) : availableTimes.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-3 max-h-[250px] overflow-y-auto p-1">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar p-1">
                       {availableTimes.map(time => (
-                        <Button
+                        <motion.button
                           key={time}
-                          type="button"
-                          variant={selectedTime === time ? "default" : "outline"}
-                          size="lg"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={() => setSelectedTime(time)}
                           className={cn(
-                            "h-12 text-base font-bold transition-all",
+                            "h-14 rounded-2xl text-lg font-black tracking-tight transition-all border flex items-center justify-center",
                             selectedTime === time 
-                              ? "bg-primary text-white shadow-[0_0_15px_rgba(var(--primary),0.4)] scale-105" 
-                              : "bg-[#111] border-white/10 text-slate-100 hover:bg-[#1a1a1a] hover:border-primary/50"
+                              ? "text-white shadow-2xl scale-105" 
+                              : "bg-white/[0.03] border-white/5 text-slate-300 hover:bg-white/[0.08] hover:border-white/20"
                           )}
-                          style={selectedTime === time ? { backgroundColor: primaryColor } : {}}
+                          style={selectedTime === time ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}
                         >
                           {time}
-                        </Button>
+                        </motion.button>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-center text-muted-foreground py-4">
-                      Nenhum horário disponível para esta data.
-                    </p>
+                    <div className="text-center py-12 bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
+                      <p className="text-sm font-black uppercase tracking-tighter text-slate-500">
+                        Nenhum horário livre para hoje.
+                      </p>
+                    </div>
                   )}
                 </div>
+
                 <Button 
-                  className="w-full mt-2" 
+                  className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl hover:scale-[1.02] transition-all" 
+                  style={{ backgroundColor: primaryColor }}
                   onClick={() => {
                     if (!selectedTime) {
                       toast.error("Por favor, selecione um horário.");
                       return;
                     }
-                    
-                    // Se o cliente tiver cashback, pode usar
                     setBookingStep(5);
                   }}
-                  disabled={fetchingTimes || !selectedDate}
+                  disabled={fetchingTimes || !selectedTime}
                 >
-                  Próximo
+                  Confirmar Detalhes
                 </Button>
-              </div>
+              </motion.div>
             )}
 
             {bookingStep === 5 && (
