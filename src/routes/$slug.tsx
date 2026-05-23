@@ -1268,11 +1268,11 @@ function ShopPageComponent() {
                 </Button>
               )}
               <DialogTitle className="text-xl font-bold tracking-tight text-white">
-                {bookingStep === 1 && "Informe seu WhatsApp"}
-                {bookingStep === 2 && "Escolha o Serviço"}
-                {bookingStep === 3 && "Escolha o Profissional"}
-                {bookingStep === 4 && "Data e Horário"}
-                {bookingStep === 5 && "Finalizar Agendamento"}
+                {bookingStep === 1 && "Bem-vindo"}
+                {bookingStep === 2 && "O que faremos?"}
+                {bookingStep === 3 && "Quem atende?"}
+                {bookingStep === 4 && "Quando?"}
+                {bookingStep === 5 && "Confirmar"}
               </DialogTitle>
             </div>
           </DialogHeader>
