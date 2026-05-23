@@ -69,6 +69,13 @@ function ShopPageComponent() {
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [modalBarber, setModalBarber] = useState<any>(null);
   const [isPixVisible, setIsPixVisible] = useState(false);
+  const [selectedProductForModal, setSelectedProductProductForModal] = useState<any>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("Todos");
+
+  const categories = useMemo(() => {
+    const cats = ["Todos", ...new Set(products.map(p => p.category).filter(Boolean))];
+    return cats;
+  }, [products]);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("09:00");
   const [customerName, setCustomerName] = useState("");
@@ -955,6 +962,7 @@ function ShopPageComponent() {
             <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
               <a href="#inicio" className="hover:text-primary transition-colors cursor-pointer">Início</a>
               <a href="#servicos" className="hover:text-primary transition-colors cursor-pointer">Serviços</a>
+              <a href="#produtos" className="hover:text-primary transition-colors cursor-pointer">Produtos</a>
               <a href="#profissionais" className="hover:text-primary transition-colors cursor-pointer">Profissionais</a>
               <a href="#contato" className="hover:text-primary transition-colors cursor-pointer">Contato</a>
             </nav>
@@ -1083,6 +1091,163 @@ function ShopPageComponent() {
                     </div>
                     {/* Decorative element */}
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] rounded-full -translate-y-1/2 translate-x-1/2" style={{ backgroundColor: `${primaryColor}10` }} />
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Products Section */}
+        <section id="produtos" className="py-24 bg-[#050505] relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+          
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center space-y-4 mb-20">
+              <motion.span 
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                className="text-primary font-black uppercase tracking-[0.3em] text-xs" 
+                style={{ color: primaryColor }}
+              >
+                Marketplace Elite
+              </motion.span>
+              <motion.h3 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter"
+              >
+                Produtos Premium
+              </motion.h3>
+              <motion.p 
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                className="text-slate-500 max-w-xl mx-auto font-medium"
+              >
+                Os melhores produtos para manter seu estilo impecável e cuidado pessoal em dia.
+              </motion.p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
+              {categories.map((cat) => (
+                <Button
+                  key={cat}
+                  variant={activeCategory === cat ? "default" : "outline"}
+                  className={cn(
+                    "rounded-full px-6 h-10 font-bold text-[10px] uppercase tracking-widest transition-all",
+                    activeCategory === cat ? "shadow-lg scale-105" : "border-white/10 hover:bg-white/5 text-slate-500"
+                  )}
+                  style={activeCategory === cat ? { backgroundColor: primaryColor } : {}}
+                  onClick={() => setActiveCategory(cat)}
+                >
+                  {cat}
+                </Button>
+              ))}
+            </div>
+
+            {/* Desktop Grid / Mobile Scroll */}
+            <div className="flex overflow-x-auto pb-8 gap-6 snap-x scroll-smooth lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0 custom-scrollbar">
+              {products
+                .filter(p => p.active && (activeCategory === "Todos" || p.category === activeCategory))
+                .map((product, idx) => (
+                <motion.div
+                  key={product.id}
+                  className="flex-shrink-0 w-[280px] snap-center lg:w-auto"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="group bg-[#0a0a0a] border-white/5 rounded-[2.5rem] overflow-hidden hover:border-primary/30 transition-all duration-500 flex flex-col h-full">
+                    <div className="aspect-square relative overflow-hidden bg-[#111]">
+                      {product.image_url ? (
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name} 
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center opacity-10">
+                          <Package size={80} />
+                        </div>
+                      )}
+                      
+                      {product.badge && (
+                        <div className="absolute top-6 left-6 z-10">
+                          <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-2xl" style={{ backgroundColor: primaryColor }}>
+                            {product.badge}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3">
+                         <Button 
+                          className="rounded-full h-12 w-12 bg-white text-black hover:bg-white/90 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
+                          onClick={() => setSelectedProductProductForModal(product)}
+                        >
+                          <ShoppingBag size={20} />
+                        </Button>
+                         <Button 
+                          variant="secondary"
+                          className="rounded-full h-12 w-12 bg-black/60 backdrop-blur-md text-white hover:bg-black/80 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
+                          onClick={() => {
+                            const message = encodeURIComponent(`Olá! Tenho interesse no produto ${product.name} na ${shop.business_name}.`);
+                            window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
+                          }}
+                        >
+                          <MessageSquare size={20} />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div 
+                      className="p-8 flex flex-col flex-1 space-y-4 cursor-pointer"
+                      onClick={() => setSelectedProductProductForModal(product)}
+                    >
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{product.category || 'Cuidados'}</p>
+                        <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight">{product.name}</h4>
+                        {product.brand && <p className="text-xs font-bold text-primary/60" style={{ color: primaryColor }}>{product.brand}</p>}
+                      </div>
+
+                      <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed flex-1">
+                        {product.short_description || product.description || "Produto selecionado com rigor para garantir resultados superiores."}
+                      </p>
+
+                      <div className="pt-4 border-t border-white/5 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-2xl font-black text-white">R$ {Number(product.price).toFixed(2)}</span>
+                            {product.promotional_price && (
+                              <span className="text-xs text-slate-500 line-through font-bold">R$ {Number(product.promotional_price).toFixed(2)}</span>
+                            )}
+                          </div>
+                          <div className="text-right">
+                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">Disponível</p>
+                             <p className="text-xs font-bold text-slate-400">{product.stock_quantity} unidades</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button 
+                            className="rounded-xl h-11 font-bold text-xs uppercase tracking-widest"
+                            style={{ backgroundColor: primaryColor }}
+                            onClick={() => addToCart(product)}
+                          >
+                            Comprar
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            className="rounded-xl h-11 border-white/10 hover:bg-white/5 font-bold text-[10px] uppercase tracking-widest"
+                            onClick={() => {
+                              const message = encodeURIComponent(`Olá! Tenho interesse no produto ${product.name} na ${shop.business_name}.`);
+                              window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
+                            }}
+                          >
+                            WhatsApp
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                   </Card>
                 </motion.div>
               ))}
@@ -2313,6 +2478,101 @@ function ShopPageComponent() {
           </div>
         </DialogContent>
       </Dialog>}
+      {/* Product Detail Modal */}
+      <Dialog open={!!selectedProductForModal} onOpenChange={(open) => !open && setSelectedProductProductForModal(null)}>
+        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden dark bg-[#0a0a0a] border-white/10 rounded-[3rem] shadow-2xl">
+          <div className="grid md:grid-cols-2 h-full max-h-[85vh] overflow-y-auto">
+            <div className="aspect-square relative bg-[#111] overflow-hidden">
+               {selectedProductForModal?.image_url ? (
+                  <img src={selectedProductForModal.image_url} alt={selectedProductForModal.name} className="w-full h-full object-cover" />
+               ) : (
+                  <div className="w-full h-full flex items-center justify-center opacity-10">
+                    <Package size={120} />
+                  </div>
+               )}
+               {selectedProductForModal?.badge && (
+                  <div className="absolute top-8 left-8 z-10">
+                    <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-2xl" style={{ backgroundColor: primaryColor }}>
+                      {selectedProductForModal.badge}
+                    </span>
+                  </div>
+               )}
+            </div>
+
+            <div className="p-8 md:p-12 flex flex-col space-y-8 bg-gradient-to-b from-white/[0.02] to-transparent">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-black uppercase tracking-[0.3em] text-primary" style={{ color: primaryColor }}>{selectedProductForModal?.category || 'Premium'}</p>
+                  <div className="flex items-center gap-1">
+                    <Star size={12} className="text-yellow-500" fill="currentColor" />
+                    <span className="text-xs font-bold text-white">4.9</span>
+                  </div>
+                </div>
+                <h3 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter leading-none text-white">{selectedProductForModal?.name}</h3>
+                {selectedProductForModal?.brand && <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">{selectedProductForModal.brand}</p>}
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-4xl font-black text-white">R$ {Number(selectedProductForModal?.price || 0).toFixed(2)}</span>
+                  {selectedProductForModal?.promotional_price && (
+                    <span className="text-lg text-slate-600 line-through font-bold">R$ {Number(selectedProductForModal.promotional_price).toFixed(2)}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 w-fit">
+                   <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                   <p className="text-[10px] font-black uppercase tracking-widest text-green-500">Em estoque: {selectedProductForModal?.stock_quantity} unidades</p>
+                </div>
+              </div>
+
+              <div className="space-y-6 flex-1">
+                 <div className="space-y-3">
+                    <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Descrição do Especialista</h5>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                       {selectedProductForModal?.description || "Este produto foi criteriosamente selecionado por nossos profissionais para oferecer o máximo em desempenho e estilo. Ideal para homens que não abrem mão da excelência no cuidado pessoal."}
+                    </p>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-4 pt-4">
+                    <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-1">
+                       <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Fixação</p>
+                       <p className="text-xs font-bold text-white">Forte & Duradoura</p>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-1">
+                       <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Brilho</p>
+                       <p className="text-xs font-bold text-white">Matte Natural</p>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="pt-8 border-t border-white/5 space-y-4">
+                 <Button 
+                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl hover:scale-[1.02] transition-all"
+                    style={{ backgroundColor: primaryColor }}
+                    onClick={() => {
+                      if (selectedProductForModal) {
+                        addToCart(selectedProductForModal);
+                        setSelectedProductProductForModal(null);
+                      }
+                    }}
+                 >
+                    Adicionar ao Carrinho
+                 </Button>
+                 <Button 
+                    variant="outline"
+                    className="w-full h-14 rounded-2xl border-white/10 hover:bg-white/5 font-black uppercase tracking-widest text-xs gap-2"
+                    onClick={() => {
+                      const message = encodeURIComponent(`Olá! Gostaria de comprar o produto ${selectedProductForModal?.name} na ${shop.business_name}.`);
+                      window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
+                    }}
+                 >
+                    <MessageSquare size={18} /> Comprar via WhatsApp
+                 </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

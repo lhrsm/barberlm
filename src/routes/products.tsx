@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -29,8 +30,15 @@ import {
   History,
   XCircle,
   RefreshCcw,
-  CheckCircle2
+  CheckCircle2,
+  Tag,
+  Star,
+  Layers,
+  LayoutGrid
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,9 +60,15 @@ function ProductsComponent() {
   const [newProduct, setNewProduct] = useState({ 
     name: "", 
     price: "", 
+    promotional_price: "",
     stock_quantity: "0", 
     description: "",
-    image_url: ""
+    short_description: "",
+    category: "Pomadas",
+    brand: "",
+    image_url: "",
+    featured: false,
+    badge: ""
   });
   
   const canAddProduct = usage.products < limits.products;
@@ -130,6 +144,7 @@ function ProductsComponent() {
         .update({
           ...editingProduct,
           price: parseFloat(editingProduct.price),
+          promotional_price: editingProduct.promotional_price ? parseFloat(editingProduct.promotional_price) : null,
           stock_quantity: parseInt(editingProduct.stock_quantity),
         })
         .eq("id", editingProduct.id);
@@ -146,16 +161,29 @@ function ProductsComponent() {
       const { error } = await supabase.from("products").insert({
         ...newProduct,
         price: parseFloat(newProduct.price),
+        promotional_price: newProduct.promotional_price ? parseFloat(newProduct.promotional_price) : null,
         stock_quantity: parseInt(newProduct.stock_quantity),
         user_id: user.id,
-      });
+      } as any);
 
       if (error) {
         toast.error("Erro ao adicionar produto");
       } else {
         toast.success("Produto adicionado com sucesso!");
         setIsAddDialogOpen(false);
-        setNewProduct({ name: "", price: "", stock_quantity: "0", description: "", image_url: "" });
+        setNewProduct({ 
+          name: "", 
+          price: "", 
+          promotional_price: "",
+          stock_quantity: "0", 
+          description: "", 
+          short_description: "",
+          category: "Pomadas",
+          brand: "",
+          image_url: "",
+          featured: false,
+          badge: ""
+        });
         fetchProducts();
         refreshLimits();
       }
@@ -237,75 +265,182 @@ function ProductsComponent() {
                 <Plus size={18} /> Novo Produto
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               {canAddProduct || editingProduct ? (
                 <>
                   <DialogHeader>
                     <DialogTitle>{editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}</DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handleAddProduct} className="space-y-4 pt-4">
-                    <div className="flex flex-col items-center justify-center mb-4">
-                      <div className="relative w-32 h-32 border-2 border-dashed rounded-xl flex items-center justify-center overflow-hidden bg-muted/30">
-                        {(editingProduct?.image_url || newProduct.image_url) ? (
-                          <img src={editingProduct?.image_url || newProduct.image_url} alt="Preview" className="w-full h-full object-cover" />
-                        ) : (
-                          <ImageIcon className="w-10 h-10 text-muted-foreground opacity-20" />
-                        )}
-<Input 
-  type="file" 
-  accept="image/*" 
-  onChange={handleFileUpload}
-  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-  disabled={uploading}
-/>
+                  <form onSubmit={handleAddProduct} className="space-y-6 pt-4">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="relative w-full aspect-square border-2 border-dashed rounded-2xl flex items-center justify-center overflow-hidden bg-muted/30 hover:bg-muted/50 transition-colors">
+                            {(editingProduct?.image_url || newProduct.image_url) ? (
+                              <img src={editingProduct?.image_url || newProduct.image_url} alt="Preview" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="text-center p-4">
+                                <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-2 opacity-20" />
+                                <p className="text-xs text-muted-foreground">Arraste ou clique para enviar</p>
+                              </div>
+                            )}
+                            <Input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={handleFileUpload}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              disabled={uploading}
+                            />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-2 uppercase font-black tracking-widest">{uploading ? "Enviando imagem..." : "Imagem Principal"}</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="category" className="text-xs font-black uppercase tracking-widest text-slate-500">Categoria</Label>
+                          <Select 
+                            value={editingProduct ? editingProduct.category : newProduct.category} 
+                            onValueChange={(val) => editingProduct ? setEditingProduct({...editingProduct, category: val}) : setNewProduct({...newProduct, category: val})}
+                          >
+                            <SelectTrigger className="rounded-xl h-11">
+                              <SelectValue placeholder="Selecione uma categoria" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pomadas">Pomadas</SelectItem>
+                              <SelectItem value="Óleos para barba">Óleos para barba</SelectItem>
+                              <SelectItem value="Shampoo">Shampoo</SelectItem>
+                              <SelectItem value="Condicionador">Condicionador</SelectItem>
+                              <SelectItem value="Balm">Balm</SelectItem>
+                              <SelectItem value="Perfumes">Perfumes</SelectItem>
+                              <SelectItem value="Kits">Kits</SelectItem>
+                              <SelectItem value="Acessórios">Acessórios</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="brand" className="text-xs font-black uppercase tracking-widest text-slate-500">Marca</Label>
+                          <Input 
+                            id="brand" 
+                            placeholder="Ex: Reuzel, Suavecito"
+                            value={editingProduct ? editingProduct.brand : newProduct.brand} 
+                            onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, brand: e.target.value}) : setNewProduct({...newProduct, brand: e.target.value})} 
+                            className="rounded-xl h-11"
+                          />
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">{uploading ? "Enviando..." : "Clique para anexar imagem"}</p>
+
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-slate-500">Nome do Produto</Label>
+                          <Input 
+                            id="name" 
+                            placeholder="Pomada Modeladora Efeito Matte"
+                            value={editingProduct ? editingProduct.name : newProduct.name} 
+                            onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} 
+                            required 
+                            className="rounded-xl h-11"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="price" className="text-xs font-black uppercase tracking-widest text-slate-500">Preço (R$)</Label>
+                            <Input 
+                              id="price" 
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={editingProduct ? editingProduct.price : newProduct.price} 
+                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})} 
+                              required
+                              className="rounded-xl h-11"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="promo" className="text-xs font-black uppercase tracking-widest text-slate-500">Promo (R$)</Label>
+                            <Input 
+                              id="promo" 
+                              type="number"
+                              step="0.01"
+                              placeholder="Opcional"
+                              value={editingProduct ? editingProduct.promotional_price : newProduct.promotional_price} 
+                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, promotional_price: e.target.value}) : setNewProduct({...newProduct, promotional_price: e.target.value})} 
+                              className="rounded-xl h-11"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="stock" className="text-xs font-black uppercase tracking-widest text-slate-500">Estoque</Label>
+                            <Input 
+                              id="stock" 
+                              type="number"
+                              value={editingProduct ? editingProduct.stock_quantity : newProduct.stock_quantity} 
+                              onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, stock_quantity: e.target.value}) : setNewProduct({...newProduct, stock_quantity: e.target.value})} 
+                              required
+                              className="rounded-xl h-11"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="badge" className="text-xs font-black uppercase tracking-widest text-slate-500">Selo (Badge)</Label>
+                            <Select 
+                              value={editingProduct ? editingProduct.badge : newProduct.badge} 
+                              onValueChange={(val) => editingProduct ? setEditingProduct({...editingProduct, badge: val}) : setNewProduct({...newProduct, badge: val})}
+                            >
+                              <SelectTrigger className="rounded-xl h-11">
+                                <SelectValue placeholder="Sem selo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="">Nenhum</SelectItem>
+                                <SelectItem value="Mais vendido">Mais vendido</SelectItem>
+                                <SelectItem value="Novo">Novo</SelectItem>
+                                <SelectItem value="Premium">Premium</SelectItem>
+                                <SelectItem value="Oferta">Oferta</SelectItem>
+                                <SelectItem value="Exclusivo">Exclusivo</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border">
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-bold">Produto em Destaque</Label>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Aparece no topo da vitrine</p>
+                          </div>
+                          <Switch 
+                            checked={editingProduct ? editingProduct.featured : newProduct.featured}
+                            onCheckedChange={(val) => editingProduct ? setEditingProduct({...editingProduct, featured: val}) : setNewProduct({...newProduct, featured: val})}
+                          />
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nome do Produto</Label>
-                      <Input 
-                        id="name" 
-                        placeholder="Pomada Modeladora, Balm, etc."
-                        value={editingProduct ? editingProduct.name : newProduct.name} 
-                        onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, name: e.target.value}) : setNewProduct({...newProduct, name: e.target.value})} 
-                        required 
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="price">Preço de Venda (R$)</Label>
+                        <Label htmlFor="short_desc" className="text-xs font-black uppercase tracking-widest text-slate-500">Breve Descrição (Vitrine)</Label>
                         <Input 
-                          id="price" 
-                          type="number"
-                          step="0.01"
-                          placeholder="0.00"
-                          value={editingProduct ? editingProduct.price : newProduct.price} 
-                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, price: e.target.value}) : setNewProduct({...newProduct, price: e.target.value})} 
-                          required
+                          id="short_desc" 
+                          placeholder="Ex: Fixação forte com brilho natural."
+                          value={editingProduct ? editingProduct.short_description : newProduct.short_description} 
+                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, short_description: e.target.value}) : setNewProduct({...newProduct, short_description: e.target.value})} 
+                          className="rounded-xl h-11"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="stock">Estoque {editingProduct ? "Atual" : "Inicial"}</Label>
-                        <Input 
-                          id="stock" 
-                          type="number"
-                          value={editingProduct ? editingProduct.stock_quantity : newProduct.stock_quantity} 
-                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, stock_quantity: e.target.value}) : setNewProduct({...newProduct, stock_quantity: e.target.value})} 
-                          required
+                        <Label htmlFor="description" className="text-xs font-black uppercase tracking-widest text-slate-500">Descrição Detalhada</Label>
+                        <Textarea 
+                          id="description" 
+                          placeholder="Fale sobre os benefícios, modo de uso e diferenciais do produto..."
+                          value={editingProduct ? editingProduct.description : newProduct.description} 
+                          onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})} 
+                          className="rounded-2xl min-h-[120px] resize-none"
                         />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Descrição (Opcional)</Label>
-                      <Input 
-                        id="description" 
-                        value={editingProduct ? editingProduct.description : newProduct.description} 
-                        onChange={(e) => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})} 
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={uploading}>
-                      {editingProduct ? "Salvar Alterações" : "Salvar Produto"}
+
+                    <Button type="submit" className="w-full h-14 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-xl hover:scale-[1.01] transition-all" disabled={uploading}>
+                      {editingProduct ? "Salvar Alterações" : "Cadastrar Produto Premium"}
                     </Button>
                   </form>
                 </>
@@ -318,7 +453,7 @@ function ProductsComponent() {
                       Seu plano atual permite apenas {limits.products} produtos. Faça o upgrade para adicionar mais.
                     </AlertDescription>
                   </Alert>
-                  <Button className="w-full" asChild>
+                  <Button className="w-full h-12 rounded-xl" asChild>
                     <Link to="/subscription">Ver Planos</Link>
                   </Button>
                 </div>
@@ -342,63 +477,91 @@ function ProductsComponent() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.length === 0 ? (
-            <div className="col-span-full text-center py-20 border-2 border-dashed rounded-2xl bg-muted/20 text-muted-foreground">
-              <div className="bg-background w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <ShoppingBag size={32} className="text-muted-foreground/40" />
+            <div className="col-span-full text-center py-20 border-2 border-dashed rounded-3xl bg-muted/20 text-muted-foreground">
+              <div className="bg-background w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl border">
+                <ShoppingBag size={40} className="text-muted-foreground/30" />
               </div>
-              <h3 className="text-lg font-semibold">Nenhum produto cadastrado</h3>
-              <p className="max-w-[250px] mx-auto text-sm mt-1">Comece adicionando itens ao seu estoque clicando no botão acima.</p>
+              <h3 className="text-2xl font-black uppercase italic tracking-tighter">Sua vitrine está vazia</h3>
+              <p className="max-w-[300px] mx-auto text-sm mt-2 font-medium">Cadastre seus produtos premium para que seus clientes possam vê-los no seu site.</p>
+              <Button className="mt-8 rounded-full h-11 px-8 gap-2" onClick={() => setIsAddDialogOpen(true)}>
+                <Plus size={18} /> Adicionar Primeiro Produto
+              </Button>
             </div>
           ) : (
             products.map((product) => (
-              <div key={product.id} className="group relative border rounded-2xl bg-card overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border-border/50">
-                <div className="aspect-[4/3] bg-muted/20 relative overflow-hidden">
+              <motion.div 
+                key={product.id} 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="group relative border rounded-[2.5rem] bg-card overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border-border/50"
+              >
+                <div className="aspect-square bg-muted/20 relative overflow-hidden">
                   {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted">
-                      <Package className="w-16 h-16 text-muted-foreground/20" />
+                      <Package className="w-20 h-20 text-muted-foreground/10" />
                     </div>
                   )}
-                  <div className="absolute top-2 right-2 flex gap-1 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                      <Button 
-                        variant="secondary" 
-                        size="icon" 
-                        className="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
-                        onClick={() => {
-                          setEditingProduct(product);
-                          setIsAddDialogOpen(true);
-                        }}
-                      >
-                        <Edit size={14} />
-                      </Button>
-                      <Button 
-                        variant="secondary" 
-                        size="icon" 
-                        className="h-8 w-8 bg-background/80 backdrop-blur-sm hover:text-destructive hover:bg-background"
-                        onClick={() => handleDeleteProduct(product.id)}
-                      >
-                        <Trash2 size={14} />
-                      </Button>
+                  
+                  {product.badge && (
+                    <div className="absolute top-4 left-4 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full shadow-lg z-10">
+                      {product.badge}
+                    </div>
+                  )}
+
+                  {product.featured && (
+                    <div className="absolute top-4 right-4 bg-yellow-500 text-black text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full shadow-lg z-10 flex items-center gap-1">
+                      <Star size={10} fill="currentColor" /> Destaque
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3">
+                    <Button 
+                      variant="secondary" 
+                      size="icon" 
+                      className="h-12 w-12 rounded-full bg-white text-black hover:bg-white/90 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
+                      onClick={() => {
+                        setEditingProduct(product);
+                        setIsAddDialogOpen(true);
+                      }}
+                    >
+                      <Edit size={20} />
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="icon" 
+                      className="h-12 w-12 rounded-full shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
+                      onClick={() => handleDeleteProduct(product.id)}
+                    >
+                      <Trash2 size={20} />
+                    </Button>
                   </div>
+
                   {product.stock_quantity <= 5 && (
-                    <div className="absolute top-2 left-2 bg-amber-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm animate-pulse">
-                      Estoque Baixo: {product.stock_quantity}
+                    <div className="absolute bottom-4 left-4 right-4 bg-red-500/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest py-1.5 rounded-full text-center shadow-lg border border-white/20">
+                      Estoque Crítico: {product.stock_quantity}
                     </div>
                   )}
                 </div>
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg truncate pr-2" title={product.name}>{product.name}</h3>
+                <div className="p-6 space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary">{product.category}</p>
+                    <h3 className="font-black text-xl uppercase italic tracking-tighter truncate" title={product.name}>{product.name}</h3>
+                    {product.brand && <p className="text-xs font-bold text-slate-500">{product.brand}</p>}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2 h-10">{product.description || "Sem descrição disponível."}</p>
                   
-                  <div className="flex items-center justify-between mt-auto">
+                  <div className="flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-2xl font-black text-primary">R$ {Number(product.price).toFixed(2)}</span>
-                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground mt-1">
-                        <Package size={12} />
-                        <span>{product.stock_quantity} un. em estoque</span>
+                      <div className="flex items-baseline gap-2">
+                         <span className="text-2xl font-black text-white">R$ {Number(product.price).toFixed(2)}</span>
+                         {product.promotional_price && (
+                           <span className="text-xs text-slate-500 line-through font-bold">R$ {Number(product.promotional_price).toFixed(2)}</span>
+                         )}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">
+                        <Package size={10} />
+                        <span>{product.stock_quantity} un.</span>
                       </div>
                     </div>
                     
@@ -452,7 +615,7 @@ function ProductsComponent() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))
           )}
         </div>
