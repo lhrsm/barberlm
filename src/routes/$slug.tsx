@@ -1379,61 +1379,71 @@ function ShopPageComponent() {
             )}
 
             {bookingStep === 3 && (
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label>Data do Agendamento</Label>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-8"
+              >
+                <div className="grid gap-3 p-5 bg-white/[0.03] rounded-3xl border border-white/10">
+                  <Label className="text-xs font-black uppercase tracking-widest text-slate-500">Data Desejada</Label>
                   <Input 
                     type="date" 
                     value={selectedDate} 
                     onChange={(e) => setSelectedDate(e.target.value)} 
                     min={format(new Date(), "yyyy-MM-dd")} 
-                    className="bg-[#111] border-white/10 text-white h-12 text-lg focus-visible:ring-primary/50"
+                    className="bg-black/40 border-white/5 text-white h-14 text-xl font-black rounded-2xl focus-visible:ring-primary/50"
                   />
-                  <p className="text-[10px] text-muted-foreground">Selecione uma data para ver os profissionais disponíveis.</p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Escolha o Profissional</Label>
+                <div className="space-y-4">
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Quem irá te atender?</h5>
+                  
                   {loadingDayData ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary" style={{ borderTopColor: primaryColor }} />
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando disponibilidades...</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       {barbers
                         .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments))
                         .map(b => (
-                        <div 
+                        <motion.div 
                           key={b.id} 
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                           className={cn(
-                            "p-4 border rounded-xl cursor-pointer text-center space-y-2 transition-all",
-                            selectedBarber?.id === b.id ? "border-primary bg-primary/20" : "bg-[#111] border-white/5 hover:bg-[#1a1a1a]"
+                            "p-6 rounded-[2.5rem] cursor-pointer text-center space-y-4 transition-all relative overflow-hidden group border",
+                            selectedBarber?.id === b.id ? "border-primary bg-primary/20 shadow-2xl" : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
                           )}
+                          style={selectedBarber?.id === b.id ? { borderColor: primaryColor } : {}}
                           onClick={() => {
                             setSelectedBarber(b);
                             setBookingStep(4);
                           }}
                         >
-                          <div className="h-16 w-16 rounded-full bg-muted/20 mx-auto overflow-hidden border-2 border-white/5 group-hover:border-primary/50 transition-colors">
-                            {b.avatar_url ? (
-                              <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
-                            ) : (
-                              <div className="h-full w-full flex items-center justify-center font-bold text-lg text-slate-100">{b.name[0]}</div>
-                            )}
+                          <div className="relative z-10">
+                            <div className="h-20 w-20 rounded-[1.5rem] bg-black/40 mx-auto overflow-hidden border-2 border-white/5 group-hover:border-primary/50 transition-colors">
+                              {b.avatar_url ? (
+                                <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-slate-100">{b.name[0]}</div>
+                              )}
+                            </div>
+                            <div className="mt-4">
+                              <p className="font-black uppercase tracking-tight text-sm text-slate-100 leading-none">{b.name}</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2">{b.specialty || 'Especialista'}</p>
+                            </div>
                           </div>
-                          <p className="font-bold text-sm text-slate-100">{b.name}</p>
-                        </div>
+                          {selectedBarber?.id === b.id && (
+                             <motion.div layoutId="barber-glow" className="absolute inset-0 bg-primary/10 blur-xl pointer-events-none" style={{ backgroundColor: `${primaryColor}20` }} />
+                          )}
+                        </motion.div>
                       ))}
-                      {barbers.filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments)).length === 0 && (
-                        <div className="col-span-2 py-8 text-center space-y-2">
-                          <p className="text-sm text-muted-foreground">Nenhum profissional disponível para esta data.</p>
-                          <p className="text-xs text-muted-foreground">Tente selecionar outro dia.</p>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {bookingStep === 4 && (
