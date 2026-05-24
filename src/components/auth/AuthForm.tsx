@@ -14,45 +14,10 @@ export function AuthForm() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [businessName, setBusinessName] = useState("");
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const navigate = useNavigate();
   const { login } = useProfessionalAuth();
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-          data: {
-            business_name: businessName,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.user && data.user.identities && data.user.identities.length === 0) {
-        toast.error("Este e-mail já está cadastrado.");
-        return;
-      }
-
-      toast.success(
-        data.session
-          ? "Conta criada com sucesso."
-          : "Verifique seu e-mail para confirmar o cadastro."
-      );
-
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
