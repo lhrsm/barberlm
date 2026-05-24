@@ -108,20 +108,25 @@ function ShopPageComponent() {
       
       // Auto trigger phone check if embedded with phone
       const timer = setTimeout(() => {
-        handlePhoneCheckWithParams(initialPhone);
+        handlePhoneCheckWithParams(initialPhone, initialName);
       }, 500);
       return () => clearTimeout(timer);
+    } else if (isEmbedded) {
+      setIsBookingOpen(true);
     }
   }, [isEmbedded, initialPhone, initialName, shop?.id]);
 
-  const handlePhoneCheckWithParams = async (phone: string) => {
+  const handlePhoneCheckWithParams = async (phone: string, name?: string) => {
     if (!phone || phone.length < 8 || !shop?.id) return;
     setSubmitting(true);
     try {
       const customer = await checkCustomerCashback(phone);
+      if (name) setCustomerName(name);
+      setIsBookingOpen(true);
       setBookingStep(2);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error checking phone:", error);
+      toast.error(error.message || "Erro ao verificar identificação");
     } finally {
       setSubmitting(false);
     }
@@ -313,7 +318,10 @@ function ShopPageComponent() {
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
     } else {
       setIsBookingOpen(true);
-      setBookingStep(1);
+      // Se já tivermos dados (portal), não resetamos para o passo 1
+      if (!customerPhone || !isEmbedded) {
+        setBookingStep(1);
+      }
     }
   };
 
@@ -920,8 +928,8 @@ function ShopPageComponent() {
       className="min-h-screen bg-black text-white selection:bg-[#D4AF37]/30 overflow-x-hidden" 
       style={{ 
         backgroundColor: "black",
-        fontFamily: shop.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
-        fontSize: shop.font_size || '16px',
+        fontFamily: shop?.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
+        fontSize: shop?.font_size || '16px',
       }}
     >
       <AnimatePresence>
@@ -1407,7 +1415,7 @@ function ShopPageComponent() {
             </div>
 
             <div className="pt-8 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-600">© 2026 {shop.business_name} - Premium Experience</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-600">© 2026 {shop?.business_name} - Premium Experience</p>
               <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-800">Powered by BarberSaaS Elite</p>
             </div>
           </div>
@@ -1439,32 +1447,34 @@ function ShopPageComponent() {
       }}>
         <DialogContent className={cn("sm:max-w-[480px] p-0 overflow-hidden bg-white border-2 border-[#D4AF37] h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
           <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar flex flex-col bg-gradient-to-b from-white/[0.02] to-transparent">
-          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-6 shrink-0 border-b border-gray-100 mb-6">
-            <div className="flex items-center gap-3">
-              {bookingStep > 1 && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 text-black" 
-                  onClick={() => {
-                    if (bookingStep === 5 && paymentMethod) {
-                      setPaymentMethod(null);
-                    }
-                    setBookingStep(prev => prev - 1);
-                  }}
-                >
-                  <ArrowLeft size={20} />
-                </Button>
-              )}
-              <DialogTitle className="text-xl font-bold tracking-tight text-black">
-                {bookingStep === 1 && "Bem-vindo"}
-                {bookingStep === 2 && "O que faremos?"}
-                {bookingStep === 3 && "Quem atende?"}
-                {bookingStep === 4 && "Quando?"}
-                {bookingStep === 5 && "Confirmar"}
-              </DialogTitle>
-            </div>
-          </DialogHeader>
+          {!isEmbedded && (
+            <DialogHeader className="flex-row items-center justify-between space-y-0 pb-6 shrink-0 border-b border-gray-100 mb-6">
+              <div className="flex items-center gap-3">
+                {bookingStep > 1 && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 text-black" 
+                    onClick={() => {
+                      if (bookingStep === 5 && paymentMethod) {
+                        setPaymentMethod(null);
+                      }
+                      setBookingStep(prev => prev - 1);
+                    }}
+                  >
+                    <ArrowLeft size={20} />
+                  </Button>
+                )}
+                <DialogTitle className="text-xl font-bold tracking-tight text-black">
+                  {bookingStep === 1 && "Bem-vindo"}
+                  {bookingStep === 2 && "O que faremos?"}
+                  {bookingStep === 3 && "Quem atende?"}
+                  {bookingStep === 4 && "Quando?"}
+                  {bookingStep === 5 && "Confirmar"}
+                </DialogTitle>
+              </div>
+            </DialogHeader>
+          )}
 
           <div className="flex-1 pr-1">
             {bookingStep === 1 && (
@@ -1517,15 +1527,17 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
-                  <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Como podemos te chamar?</Label>
-                  <Input 
-                    placeholder="Seu nome" 
-                    value={customerName} 
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-14 text-xl font-black focus-visible:ring-[#D4AF37]/50 rounded-2xl"
-                  />
-                </div>
+                {!isEmbedded && (
+                  <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
+                    <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Como podemos te chamar?</Label>
+                    <Input 
+                      placeholder="Seu nome" 
+                      value={customerName} 
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-14 text-xl font-black focus-visible:ring-[#D4AF37]/50 rounded-2xl"
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-4">
                   <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Selecione o Serviço</h5>
@@ -1541,7 +1553,7 @@ function ShopPageComponent() {
                         )}
                         style={selectedService?.id === s.id ? { backgroundColor: "black" } : {}}
                         onClick={() => {
-                          if (!customerName || customerName.length < 3) {
+                          if (!isEmbedded && (!customerName || customerName.length < 3)) {
                             toast.error("Por favor, informe seu nome primeiro.");
                             return;
                           }
@@ -1616,7 +1628,7 @@ function ShopPageComponent() {
                               {b.avatar_url ? (
                                 <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
                               ) : (
-                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-black">{b.name[0]}</div>
+                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-black">{b.name?.[0] || '?'}</div>
                               )}
                             </div>
                             <div className="mt-4">
@@ -1644,7 +1656,7 @@ function ShopPageComponent() {
                 <div className="flex items-center justify-between p-6 bg-gray-50 border border-gray-100 rounded-[2rem] shadow-inner">
                   <div className="flex items-center gap-4">
                     <div className="h-16 w-16 rounded-2xl bg-white border border-gray-200 overflow-hidden text-black">
-                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-xl">{selectedBarber?.name[0]}</div>}
+                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-xl">{selectedBarber?.name?.[0] || '?'}</div>}
                     </div>
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">Profissional</p>
