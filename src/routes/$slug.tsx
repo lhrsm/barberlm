@@ -1133,7 +1133,7 @@ function ShopPageComponent() {
                     "rounded-full px-6 h-10 font-bold text-[10px] uppercase tracking-widest transition-all",
                     activeCategory === cat ? "shadow-lg scale-105" : "border-white/10 hover:bg-white/5 text-slate-500"
                   )}
-                  style={activeCategory === cat ? { backgroundColor: primaryColor } : {}}
+                  style={activeCategory === cat ? { backgroundColor: "#D4AF37" } : {}}
                   onClick={() => setActiveCategory(cat)}
                 >
                   {cat}
