@@ -1019,8 +1019,8 @@ function ClientPortalComponent() {
                             <Scissors className="text-[#D4AF37] h-6 w-6" />
                           </div>
                           <div>
-                            <p className="font-bold">{app.services?.name}</p>
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
+                            <p className="font-bold text-white">{app.services?.name}</p>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-gray-400">
                               <span className="flex items-center gap-1"><Clock size={14} /> {format(parseISO(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                                <span className="flex items-center gap-1"><UserIcon size={14} /> {app.barbers?.name}</span>
                                <Badge variant="outline" className="capitalize text-[10px]">
