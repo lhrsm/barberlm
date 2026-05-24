@@ -815,7 +815,8 @@ function ClientPortalComponent() {
                         id="reg-email" 
                         type="email"
                         placeholder="joao@email.com" 
-                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
+
                         value={customerEmail} 
                         onChange={(e) => setCustomerEmail(e.target.value)} 
                       />
