@@ -801,7 +801,7 @@ function ClientPortalComponent() {
                     <Input 
                       id="reg-name" 
                       placeholder="João Silva" 
-                      className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                      className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
                       value={customerName} 
                       onChange={(e) => setCustomerName(e.target.value)} 
                       required 
@@ -815,7 +815,8 @@ function ClientPortalComponent() {
                         id="reg-email" 
                         type="email"
                         placeholder="joao@email.com" 
-                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
+
                         value={customerEmail} 
                         onChange={(e) => setCustomerEmail(e.target.value)} 
                       />
@@ -829,7 +830,8 @@ function ClientPortalComponent() {
                         id="reg-birth" 
                         type="text"
                         placeholder="dd/mm/aaaa"
-                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black" 
+
                         value={customerBirthDate} 
                         onChange={(e) => {
                           let value = e.target.value.replace(/\D/g, "");
@@ -873,7 +875,7 @@ function ClientPortalComponent() {
                   <Input 
                     id="phone" 
                     placeholder="11999999999" 
-                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]" 
+                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black" 
                     value={phone} 
                     onChange={(e) => setPhone(e.target.value)} 
                     required 
