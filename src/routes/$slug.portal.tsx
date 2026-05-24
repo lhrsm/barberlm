@@ -446,7 +446,7 @@ function ClientPortalComponent() {
           .from("customers")
           .update({
             email: customerEmail || undefined,
-            birth_date: customerBirthDate || undefined,
+            birth_date: formattedBirthDate || undefined,
             avatar_url: avatarUrl || undefined
           })
           .eq("id", customerId);
@@ -458,7 +458,7 @@ function ClientPortalComponent() {
             name: customerName,
             phone: phone,
             email: customerEmail || undefined,
-            birth_date: customerBirthDate || undefined,
+            birth_date: formattedBirthDate || undefined,
             avatar_url: avatarUrl || undefined
           })
           .select("id")
