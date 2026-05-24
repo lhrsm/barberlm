@@ -812,7 +812,7 @@ function ClientPortalComponent() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="reg-birth" className="text-black font-semibold">Data de Nascimento</Label>
+                    <Label htmlFor="reg-birth" className="text-black font-semibold">Data de Nascimento (dd/mm/aaaa)</Label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input 
