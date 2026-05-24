@@ -1439,7 +1439,7 @@ function DashboardComponent() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <div className="p-1 glass rounded-[2.5rem] border-white/5 bg-slate-950/50 backdrop-blur-xl">
+            <div className="p-6 bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50">
                <TenantCharts tenantId={tenantId || ""} />
             </div>
           </TabsContent>
