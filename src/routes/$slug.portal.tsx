@@ -1294,17 +1294,17 @@ function ClientPortalComponent() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-phone">WhatsApp</Label>
+                    <Label htmlFor="profile-phone" className="text-white">WhatsApp</Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                       <Input 
                         id="profile-phone" 
                         value={customerData?.phone || ""} 
                         disabled 
-                        className="pl-10 bg-muted"
+                        className="pl-10 bg-white/10 border-white/5 text-gray-400"
                       />
                     </div>
-                    <p className="text-[10px] text-muted-foreground italic">O número de telefone não pode ser alterado.</p>
+                    <p className="text-[10px] text-gray-500 italic">O número de telefone não pode ser alterado.</p>
                   </div>
                 </div>
               </CardContent>
