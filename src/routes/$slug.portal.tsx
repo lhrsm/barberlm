@@ -1070,7 +1070,7 @@ function ClientPortalComponent() {
                         </div>
                       )}
                     </div>
-                    <label className="absolute bottom-0 right-0 h-8 w-8 bg-primary rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg hover:scale-110 transition-transform">
+                    <label className="absolute bottom-0 right-0 h-8 w-8 bg-black rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg hover:scale-110 transition-transform">
                       <Camera size={14} />
                       <input 
                         type="file" 
