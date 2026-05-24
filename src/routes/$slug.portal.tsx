@@ -51,6 +51,9 @@ function ClientPortalComponent() {
   const [phone, setPhone] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerBirthDate, setCustomerBirthDate] = useState("");
+  const [customerAvatar, setCustomerAvatar] = useState<File | null>(null);
 
   // Data state
   const [appointments, setAppointments] = useState<any[]>([]);
