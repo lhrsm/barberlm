@@ -927,8 +927,8 @@ function ShopPageComponent() {
             <motion.div 
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="h-12 w-12 border-t-2 border-r-2 border-primary rounded-full"
-              style={{ borderTopColor: primaryColor, borderRightColor: primaryColor }}
+              className="h-12 w-12 border-t-2 border-r-2 border-[#D4AF37] rounded-full"
+              style={{ borderTopColor: "#D4AF37", borderRightColor: "#D4AF37" }}
             />
           </motion.div>
         )}
