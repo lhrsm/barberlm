@@ -356,10 +356,10 @@ export function AppointmentModal({
                       <Label>Serviço</Label>
                       <Select value={selectedService} onValueChange={setSelectedService} required>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o serviço" />
+                          <SelectValue placeholder={filteredServices.length > 0 ? "Selecione o serviço" : "Nenhum serviço disponível para este profissional"} />
                         </SelectTrigger>
                         <SelectContent>
-                          {services.map((s) => (
+                          {filteredServices.map((s) => (
                             <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price}</SelectItem>
                           ))}
                         </SelectContent>
