@@ -313,7 +313,10 @@ function ShopPageComponent() {
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
     } else {
       setIsBookingOpen(true);
-      setBookingStep(1);
+      // Se já tivermos dados (portal), não resetamos para o passo 1
+      if (!customerPhone || !isEmbedded) {
+        setBookingStep(1);
+      }
     }
   };
 
@@ -920,8 +923,8 @@ function ShopPageComponent() {
       className="min-h-screen bg-black text-white selection:bg-[#D4AF37]/30 overflow-x-hidden" 
       style={{ 
         backgroundColor: "black",
-        fontFamily: shop.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
-        fontSize: shop.font_size || '16px',
+        fontFamily: shop?.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
+        fontSize: shop?.font_size || '16px',
       }}
     >
       <AnimatePresence>
@@ -1517,15 +1520,17 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
-                  <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Como podemos te chamar?</Label>
-                  <Input 
-                    placeholder="Seu nome" 
-                    value={customerName} 
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-14 text-xl font-black focus-visible:ring-[#D4AF37]/50 rounded-2xl"
-                  />
-                </div>
+                {!isEmbedded && (
+                  <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
+                    <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Como podemos te chamar?</Label>
+                    <Input 
+                      placeholder="Seu nome" 
+                      value={customerName} 
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-14 text-xl font-black focus-visible:ring-[#D4AF37]/50 rounded-2xl"
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-4">
                   <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Selecione o Serviço</h5>
@@ -1541,7 +1546,7 @@ function ShopPageComponent() {
                         )}
                         style={selectedService?.id === s.id ? { backgroundColor: "black" } : {}}
                         onClick={() => {
-                          if (!customerName || customerName.length < 3) {
+                          if (!isEmbedded && (!customerName || customerName.length < 3)) {
                             toast.error("Por favor, informe seu nome primeiro.");
                             return;
                           }
