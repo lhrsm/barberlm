@@ -684,7 +684,7 @@ function SalesHistory({ user, onStatusChange, onlyCompleted }: { user: any, onSt
   if (loading) return <div className="text-center py-12">Carregando histórico...</div>;
 
   return (
-    <Card>
+    <Card className="bg-white border-2 border-slate-200 text-black shadow-sm">
       <CardHeader>
         <CardTitle>{onlyCompleted ? "Faturamento de Produtos" : "Histórico de Vendas"}</CardTitle>
         <CardDescription>
@@ -713,7 +713,7 @@ function SalesHistory({ user, onStatusChange, onlyCompleted }: { user: any, onSt
               </thead>
               <tbody className="divide-y">
                 {sales.map((sale) => (
-                  <tr key={sale.id} className="bg-card">
+                  <tr key={sale.id} className="bg-white border-b border-slate-100 last:border-0 text-black">
                     <td className="px-4 py-4 whitespace-nowrap">
                       {format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                     </td>

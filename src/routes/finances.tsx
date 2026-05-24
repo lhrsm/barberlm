@@ -872,7 +872,7 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="pending" className="pt-4">
-            <div className="border rounded-xl bg-card">
+            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -990,7 +990,7 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="barbers" className="pt-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border rounded-xl">
+            <div className="flex flex-wrap gap-4 items-end bg-white p-4 border-2 border-slate-200 rounded-xl text-black">
               <div className="space-y-2">
                 <Label htmlFor="barber-filter-date">Filtrar por Data</Label>
                 <input 
@@ -1045,7 +1045,7 @@ function FinancesComponent() {
                 const barbershopPartFromBarber = totalReceived - barberPart;
 
                 return (
-                  <Card key={barber.id}>
+                  <Card key={barber.id} className="bg-white border-2 border-slate-200 text-black">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg">{barber.name}</CardTitle>
                       <p className="text-xs text-muted-foreground">Comissão: {commissionRate}%</p>
@@ -1070,9 +1070,9 @@ function FinancesComponent() {
                 );
               })}
               
-              <Card className="bg-primary/5 border-primary/20">
+              <Card className="bg-white border-2 border-black/10 text-black shadow-md">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg text-primary">Barbearia Geral (Total)</CardTitle>
+                  <CardTitle className="text-lg text-black font-black">Barbearia Geral (Total)</CardTitle>
                   <p className="text-xs text-muted-foreground">Soma de todos os ganhos da barbearia</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1136,8 +1136,8 @@ function FinancesComponent() {
                             <span>R$ {totalFromBarbers.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between items-center border-t pt-2 mt-2">
-                            <span className="font-bold text-primary">Total Acumulado</span>
-                            <span className="text-xl font-bold text-primary">R$ {finalTotal.toFixed(2)}</span>
+                             <span className="font-bold text-black uppercase tracking-tighter">Total Acumulado</span>
+                            <span className="text-xl font-black text-black">R$ {finalTotal.toFixed(2)}</span>
                           </div>
                         </>
                       );
@@ -1146,7 +1146,7 @@ function FinancesComponent() {
               </Card>
 
               {barbers.length === 0 && (
-                <div className="col-span-full text-center py-12 border rounded-xl bg-card text-muted-foreground">
+                <div className="col-span-full text-center py-12 border-2 border-slate-200 rounded-xl bg-white text-black font-medium">
                   Nenhum barbeiro cadastrado.
                 </div>
               )}
