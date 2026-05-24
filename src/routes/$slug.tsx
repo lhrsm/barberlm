@@ -1609,16 +1609,16 @@ function ShopPageComponent() {
                               {b.avatar_url ? (
                                 <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
                               ) : (
-                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-slate-100">{b.name[0]}</div>
+                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-black">{b.name[0]}</div>
                               )}
                             </div>
                             <div className="mt-4">
-                              <p className="font-black uppercase tracking-tight text-sm text-slate-100 leading-none">{b.name}</p>
-                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2">{b.specialty || 'Especialista'}</p>
+                              <p className="font-black uppercase tracking-tight text-sm text-black leading-none">{b.name}</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-2">{b.specialty || 'Especialista'}</p>
                             </div>
                           </div>
                           {selectedBarber?.id === b.id && (
-                             <motion.div layoutId="barber-glow" className="absolute inset-0 bg-primary/10 blur-xl pointer-events-none" style={{ backgroundColor: `${primaryColor}20` }} />
+                             <motion.div layoutId="barber-glow" className="absolute inset-0 bg-[#D4AF37]/10 blur-xl pointer-events-none" />
                           )}
                         </motion.div>
                       ))}
