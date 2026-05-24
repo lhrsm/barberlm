@@ -61,7 +61,7 @@ function DashboardComponent() {
   const { user, profile: authProfile, role, loading: authLoading } = useAuth();
   const { tenantId, isLoading: tenantLoading } = useTenant();
   const navigate = useNavigate();
-  const { plan, usage, limits, trialDaysRemaining, isTrial } = usePlanLimits();
+  const { plan, usage, limits, trialDaysRemaining, isTrial, isExpired } = usePlanLimits();
   const loading = authLoading || tenantLoading;
   const [notifications, setNotifications] = useState<any[]>([]);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
