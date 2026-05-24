@@ -86,6 +86,7 @@ function CalendarComponent() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [modalInitialData, setModalInitialData] = useState<{date?: string, time?: string, step?: number}>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const canAddAppointment = checkLimit("monthlyAppointments");
