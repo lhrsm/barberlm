@@ -1063,8 +1063,8 @@ function ShopPageComponent() {
                   <Card className="group relative overflow-hidden border-gray-100 bg-white hover:bg-gray-50 transition-all duration-500 rounded-[2rem] h-full shadow-lg">
                     <div className="p-8 space-y-6">
                       <div className="flex justify-between items-start">
-                        <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                          <Scissors className="h-6 w-6 text-slate-400 group-hover:text-primary transition-colors" style={{ '--primary': primaryColor } as any} />
+                        <div className="h-14 w-14 rounded-2xl bg-gray-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                          <Scissors className="h-6 w-6 text-gray-400 group-hover:text-[#D4AF37] transition-colors" />
                         </div>
                         <div className="text-right">
                           <p className="text-3xl font-black tracking-tighter" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
