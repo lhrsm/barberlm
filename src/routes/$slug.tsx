@@ -910,9 +910,9 @@ function ShopPageComponent() {
 
   return (
     <div 
-      className="dark min-h-screen bg-[#0a0a0a] text-slate-50 selection:bg-primary/30 overflow-x-hidden" 
+      className="min-h-screen bg-black text-white selection:bg-[#D4AF37]/30 overflow-x-hidden" 
       style={{ 
-        backgroundColor: "#0a0a0a",
+        backgroundColor: "black",
         fontFamily: shop.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
         fontSize: shop.font_size || '16px',
       }}
