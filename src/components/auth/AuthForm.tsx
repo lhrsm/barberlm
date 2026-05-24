@@ -145,7 +145,7 @@ export function AuthForm() {
               <Input
                 id="login-email"
                 type="email"
-                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
                 placeholder="exemplo@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -161,7 +161,7 @@ export function AuthForm() {
               <Input
                 id="login-phone"
                 type="tel"
-                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
                 placeholder="(00) 00000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -188,7 +188,7 @@ export function AuthForm() {
               <Input
                 id="login-password"
                 type="password"
-                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
