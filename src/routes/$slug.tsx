@@ -339,8 +339,8 @@ function ShopPageComponent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
       </div>
     );
   }
@@ -910,9 +910,9 @@ function ShopPageComponent() {
 
   return (
     <div 
-      className="dark min-h-screen bg-[#0a0a0a] text-slate-50 selection:bg-primary/30 overflow-x-hidden" 
+      className="min-h-screen bg-black text-white selection:bg-[#D4AF37]/30 overflow-x-hidden" 
       style={{ 
-        backgroundColor: "#0a0a0a",
+        backgroundColor: "black",
         fontFamily: shop.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif',
         fontSize: shop.font_size || '16px',
       }}
@@ -927,8 +927,8 @@ function ShopPageComponent() {
             <motion.div 
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="h-12 w-12 border-t-2 border-r-2 border-primary rounded-full"
-              style={{ borderTopColor: primaryColor, borderRightColor: primaryColor }}
+              className="h-12 w-12 border-t-2 border-r-2 border-[#D4AF37] rounded-full"
+              style={{ borderTopColor: "#D4AF37", borderRightColor: "#D4AF37" }}
             />
           </motion.div>
         )}
@@ -952,24 +952,23 @@ function ShopPageComponent() {
               {shop.logo_url ? (
                 <img src={shop.logo_url} alt={shop.business_name} className="h-9 w-9 object-contain rounded-lg" />
               ) : (
-                <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
+                <div className="h-9 w-9 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
+                  <Scissors className="h-5 w-5 text-[#D4AF37]" />
                 </div>
               )}
               <h1 className="font-bold text-base sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
             </div>
 
             <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
-              <a href="#inicio" className="hover:text-primary transition-colors cursor-pointer">Início</a>
-              <a href="#servicos" className="hover:text-primary transition-colors cursor-pointer">Serviços</a>
-              <a href="#produtos" className="hover:text-primary transition-colors cursor-pointer">Produtos</a>
-              <a href="#profissionais" className="hover:text-primary transition-colors cursor-pointer">Profissionais</a>
-              <a href="#contato" className="hover:text-primary transition-colors cursor-pointer">Contato</a>
+              <a href="#inicio" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Início</a>
+              <a href="#servicos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Serviços</a>
+              <a href="#produtos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Produtos</a>
+              <a href="#profissionais" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Profissionais</a>
+              <a href="#contato" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Contato</a>
             </nav>
 
             <Button 
-              style={{ backgroundColor: primaryColor }} 
-              className="text-white shadow-lg hover:scale-105 transition-all h-10 px-6 rounded-full text-sm font-bold" 
+              className="bg-black text-white border border-[#D4AF37] shadow-lg hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all h-10 px-6 rounded-full text-sm font-bold" 
               onClick={handleBookingAction}
             >
               {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar'}
@@ -982,7 +981,7 @@ function ShopPageComponent() {
         {/* Hero Section */}
         <section id="inicio" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
           {/* Background Image with Parallax effect could be added here */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#0a0a0a] z-10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black z-10" />
           <div className="absolute inset-0 z-0">
              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074')] bg-cover bg-center scale-105 animate-pulse duration-[10s]" />
           </div>
@@ -996,7 +995,7 @@ function ShopPageComponent() {
             >
               <h2 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-none">
                 Seu estilo <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/40" style={{ WebkitTextStroke: `1px ${primaryColor}` }}>começa aqui.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/40" style={{ WebkitTextStroke: `1px #D4AF37` }}>começa aqui.</span>
               </h2>
               <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-medium">
                 Cortes premium, barbeiros especialistas e agendamento online em segundos.
@@ -1011,8 +1010,7 @@ function ShopPageComponent() {
             >
               <Button 
                 size="lg" 
-                style={{ backgroundColor: primaryColor }} 
-                className="h-14 px-10 text-lg font-black rounded-full shadow-2xl hover:scale-105 transition-all w-full sm:w-auto uppercase tracking-tighter"
+                className="h-14 px-10 text-lg font-black bg-black text-white border-2 border-[#D4AF37] rounded-full shadow-2xl hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all w-full sm:w-auto uppercase tracking-tighter"
                 onClick={handleBookingAction}
               >
                 Agendar Agora
@@ -1041,12 +1039,12 @@ function ShopPageComponent() {
         </section>
 
         {/* Services Section */}
-        <section id="servicos" className="py-24 bg-[#0a0a0a] relative">
+        <section id="servicos" className="py-24 bg-black relative">
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
               <div className="space-y-4">
-                <span className="text-primary font-black uppercase tracking-[0.2em] text-sm" style={{ color: primaryColor }}>Experiência Premium</span>
-                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">Nossos Serviços</h3>
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">Experiência Premium</span>
+                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Nossos Serviços</h3>
               </div>
               <p className="text-slate-400 max-w-md text-lg">
                 Combinamos técnicas tradicionais com tendências modernas para garantir o seu melhor visual.
@@ -1062,28 +1060,27 @@ function ShopPageComponent() {
                   transition={{ delay: idx * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="group relative overflow-hidden border-white/5 bg-[#111] hover:bg-[#151515] transition-all duration-500 rounded-[2rem] h-full">
+                  <Card className="group relative overflow-hidden border-gray-100 bg-white hover:bg-gray-50 transition-all duration-500 rounded-[2rem] h-full shadow-lg">
                     <div className="p-8 space-y-6">
                       <div className="flex justify-between items-start">
-                        <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                          <Scissors className="h-6 w-6 text-slate-400 group-hover:text-primary transition-colors" style={{ '--primary': primaryColor } as any} />
+                        <div className="h-14 w-14 rounded-2xl bg-gray-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                          <Scissors className="h-6 w-6 text-gray-400 group-hover:text-[#D4AF37] transition-colors" />
                         </div>
                         <div className="text-right">
-                          <p className="text-3xl font-black tracking-tighter" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
+                          <p className="text-3xl font-black tracking-tighter text-black">R$ {service.price.toFixed(2)}</p>
                           <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{service.duration_minutes} MIN</p>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <h4 className="text-2xl font-black uppercase tracking-tight group-hover:translate-x-1 transition-transform duration-500">{service.name}</h4>
-                        <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed">
+                        <h4 className="text-2xl font-black uppercase tracking-tight text-black group-hover:translate-x-1 transition-transform duration-500">{service.name}</h4>
+                        <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
                           Cuidado especializado com produtos de alta qualidade para um resultado impecável.
                         </p>
                       </div>
 
                       <Button 
-                        className="w-full h-12 rounded-xl font-bold transition-all group-hover:shadow-[0_0_20px_rgba(var(--primary),0.2)]"
-                        style={{ backgroundColor: primaryColor }}
+                        className="w-full h-12 rounded-xl font-bold transition-all bg-black text-white hover:bg-black/90 group-hover:shadow-xl hover:scale-105"
                         onClick={() => handleSelectService(service)}
                       >
                         Agendar este serviço
@@ -1107,8 +1104,8 @@ function ShopPageComponent() {
               <motion.span 
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                className="text-primary font-black uppercase tracking-[0.3em] text-xs" 
-                style={{ color: primaryColor }}
+                className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs" 
+
               >
                 Marketplace Elite
               </motion.span>
@@ -1136,7 +1133,7 @@ function ShopPageComponent() {
                     "rounded-full px-6 h-10 font-bold text-[10px] uppercase tracking-widest transition-all",
                     activeCategory === cat ? "shadow-lg scale-105" : "border-white/10 hover:bg-white/5 text-slate-500"
                   )}
-                  style={activeCategory === cat ? { backgroundColor: primaryColor } : {}}
+                  style={activeCategory === cat ? { backgroundColor: "#D4AF37" } : {}}
                   onClick={() => setActiveCategory(cat)}
                 >
                   {cat}
@@ -1157,8 +1154,8 @@ function ShopPageComponent() {
                   transition={{ delay: idx * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="group bg-[#0a0a0a] border-white/5 rounded-[2.5rem] overflow-hidden hover:border-primary/30 transition-all duration-500 flex flex-col h-full">
-                    <div className="aspect-square relative overflow-hidden bg-[#111]">
+                  <Card className="group bg-white border-gray-100 rounded-[2.5rem] overflow-hidden hover:border-[#D4AF37]/30 transition-all duration-500 flex flex-col h-full shadow-lg">
+                    <div className="aspect-square relative overflow-hidden bg-gray-50">
                       {product.image_url ? (
                         <img 
                           src={product.image_url} 
@@ -1173,7 +1170,7 @@ function ShopPageComponent() {
                       
                       {product.badge && (
                         <div className="absolute top-6 left-6 z-10">
-                          <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-2xl" style={{ backgroundColor: primaryColor }}>
+                          <span className="bg-[#D4AF37] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-2xl">
                             {product.badge}
                           </span>
                         </div>
@@ -1205,18 +1202,18 @@ function ShopPageComponent() {
                     >
                       <div className="space-y-1">
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{product.category || 'Cuidados'}</p>
-                        <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight">{product.name}</h4>
-                        {product.brand && <p className="text-xs font-bold text-primary/60" style={{ color: primaryColor }}>{product.brand}</p>}
+                        <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight text-black">{product.name}</h4>
+                        {product.brand && <p className="text-xs font-bold text-[#D4AF37]/60">{product.brand}</p>}
                       </div>
 
-                      <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed flex-1">
+                      <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed flex-1">
                         {product.short_description || product.description || "Produto selecionado com rigor para garantir resultados superiores."}
                       </p>
 
-                      <div className="pt-4 border-t border-white/5 space-y-4">
+                      <div className="pt-4 border-t border-gray-100 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex flex-col">
-                            <span className="text-2xl font-black text-white">R$ {Number(product.price).toFixed(2)}</span>
+                            <span className="text-2xl font-black text-black">R$ {Number(product.price).toFixed(2)}</span>
                             {product.promotional_price && (
                               <span className="text-xs text-slate-500 line-through font-bold">R$ {Number(product.promotional_price).toFixed(2)}</span>
                             )}
@@ -1229,15 +1226,15 @@ function ShopPageComponent() {
 
                         <div className="grid grid-cols-2 gap-2">
                           <Button 
-                            className="rounded-xl h-11 font-bold text-xs uppercase tracking-widest"
-                            style={{ backgroundColor: primaryColor }}
+                            className="rounded-xl h-11 font-bold text-xs uppercase tracking-widest bg-black text-white hover:bg-black/90 shadow-md hover:scale-105"
+
                             onClick={() => addToCart(product)}
                           >
                             Comprar
                           </Button>
                           <Button 
                             variant="outline"
-                            className="rounded-xl h-11 border-white/10 hover:bg-white/5 font-bold text-[10px] uppercase tracking-widest"
+                            className="rounded-xl h-11 border-gray-200 text-black hover:bg-gray-100 font-bold text-[10px] uppercase tracking-widest"
                             onClick={() => {
                               const message = encodeURIComponent(`Olá! Tenho interesse no produto ${product.name} na ${shop.business_name}.`);
                               window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
@@ -1256,11 +1253,11 @@ function ShopPageComponent() {
         </section>
 
         {/* Barbers Section */}
-        <section id="profissionais" className="py-24 bg-[#0f0f0f]">
+        <section id="profissionais" className="py-24 bg-black">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center space-y-4 mb-20">
-              <span className="text-primary font-black uppercase tracking-[0.2em] text-sm" style={{ color: primaryColor }}>Elite Team</span>
-              <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">Especialistas</h3>
+              <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">Elite Team</span>
+              <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Especialistas</h3>
             </div>
 
             <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
@@ -1289,7 +1286,7 @@ function ShopPageComponent() {
                     
                     <div className="absolute bottom-8 left-8 right-8 space-y-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full" style={{ backgroundColor: primaryColor }}>
+                        <span className="bg-[#D4AF37] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
                           {idx === 0 ? "Top Avaliado" : "Especialista"}
                         </span>
                       </div>
@@ -1351,8 +1348,8 @@ function ShopPageComponent() {
                    {shop.logo_url ? (
                     <img src={shop.logo_url} alt={shop.business_name} className="h-10 w-10 object-contain rounded-lg" />
                   ) : (
-                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                      <Scissors className="h-6 w-6" style={{ color: primaryColor }} />
+                    <div className="h-10 w-10 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
+                      <Scissors className="h-6 w-6 text-[#D4AF37]" />
                     </div>
                   )}
                   <h4 className="font-bold text-xl tracking-tight">{shop.business_name}</h4>
@@ -1370,20 +1367,20 @@ function ShopPageComponent() {
               </div>
 
               <div className="space-y-6">
-                <h5 className="font-black uppercase tracking-widest text-xs text-primary" style={{ color: primaryColor }}>Localização</h5>
+                <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Localização</h5>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <MapPin size={18} className="text-slate-500 shrink-0" />
                     <p className="text-slate-400 text-sm leading-relaxed">{shop.address || "Endereço não informado"}</p>
                   </div>
-                  <Button variant="link" className="text-xs p-0 h-auto text-primary" style={{ color: primaryColor }} asChild>
+                  <Button variant="link" className="text-xs p-0 h-auto text-[#D4AF37]" asChild>
                     <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address || shop.business_name)}`} target="_blank">Ver no Google Maps</a>
                   </Button>
                 </div>
               </div>
 
               <div className="space-y-6">
-                <h5 className="font-black uppercase tracking-widest text-xs text-primary" style={{ color: primaryColor }}>Links Rápidos</h5>
+                <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Links Rápidos</h5>
                 <nav className="flex flex-col gap-3 text-sm font-medium text-slate-500">
                   <a href="#inicio" className="hover:text-white transition-colors">Início</a>
                   <a href="#servicos" className="hover:text-white transition-colors">Serviços</a>
@@ -1393,7 +1390,7 @@ function ShopPageComponent() {
               </div>
 
               <div className="space-y-6">
-                <h5 className="font-black uppercase tracking-widest text-xs text-primary" style={{ color: primaryColor }}>Funcionamento</h5>
+                <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Funcionamento</h5>
                 <div className="space-y-2 text-sm text-slate-500 font-medium">
                   <p className="flex justify-between"><span>Seg - Sex:</span> <span className="text-white">09:00 - 20:00</span></p>
                   <p className="flex justify-between"><span>Sábado:</span> <span className="text-white">08:00 - 18:00</span></p>
@@ -1412,8 +1409,7 @@ function ShopPageComponent() {
         {/* Mobile Bottom CTA */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 z-40">
           <Button 
-            style={{ backgroundColor: primaryColor }} 
-            className="w-full h-14 rounded-2xl shadow-2xl text-white font-black uppercase tracking-tighter text-lg scale-100 active:scale-95 transition-all"
+            className="w-full h-14 rounded-2xl shadow-2xl bg-black text-white border-2 border-[#D4AF37] font-black uppercase tracking-tighter text-lg scale-100 active:scale-95 transition-all"
             onClick={handleBookingAction}
           >
             {shop.scheduling_mode === 'manual' ? 'Agendar WhatsApp' : 'Agendar Agora'}
@@ -1434,15 +1430,15 @@ function ShopPageComponent() {
           setPaymentMethod(null);
         }
       }}>
-        <DialogContent className={cn("sm:max-w-[480px] p-0 overflow-hidden dark bg-[#0a0a0a] border-white/10 h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
+        <DialogContent className={cn("sm:max-w-[480px] p-0 overflow-hidden bg-white border-2 border-[#D4AF37] h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
           <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar flex flex-col bg-gradient-to-b from-white/[0.02] to-transparent">
-          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-6 shrink-0 border-b border-white/5 mb-6">
+          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-6 shrink-0 border-b border-gray-100 mb-6">
             <div className="flex items-center gap-3">
               {bookingStep > 1 && (
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/10 text-white" 
+                  className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 text-black" 
                   onClick={() => {
                     if (bookingStep === 5 && paymentMethod) {
                       setPaymentMethod(null);
@@ -1453,7 +1449,7 @@ function ShopPageComponent() {
                   <ArrowLeft size={20} />
                 </Button>
               )}
-              <DialogTitle className="text-xl font-bold tracking-tight text-white">
+              <DialogTitle className="text-xl font-bold tracking-tight text-black">
                 {bookingStep === 1 && "Bem-vindo"}
                 {bookingStep === 2 && "O que faremos?"}
                 {bookingStep === 3 && "Quem atende?"}
@@ -1471,20 +1467,20 @@ function ShopPageComponent() {
                 className="space-y-8 py-4"
               >
                 <div className="space-y-3">
-                  <h4 className="text-3xl font-black uppercase italic tracking-tighter">Olá!</h4>
-                  <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                  <h4 className="text-3xl font-black uppercase italic tracking-tighter text-black">Olá!</h4>
+                  <p className="text-gray-600 text-sm font-medium leading-relaxed">
                     Informe seu WhatsApp para começarmos seu agendamento premium.
                   </p>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="grid gap-3 p-6 bg-white/[0.03] rounded-3xl border border-white/10 shadow-inner">
-                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Seu WhatsApp</Label>
+                  <div className="grid gap-3 p-6 bg-gray-50 rounded-3xl border border-gray-100 shadow-inner">
+                    <Label className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Seu WhatsApp</Label>
                     <Input 
                       placeholder="(00) 00000-0000" 
                       value={customerPhone} 
                       onChange={(e) => setCustomerPhone(e.target.value)} 
-                      className="bg-black/40 border-white/5 text-white placeholder:text-slate-700 h-16 text-2xl font-black tracking-tight focus-visible:ring-primary/50 rounded-2xl transition-all"
+                      className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black tracking-tight focus-visible:ring-[#D4AF37]/50 rounded-2xl transition-all"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && customerPhone) {
                           handlePhoneCheck();
@@ -1493,8 +1489,8 @@ function ShopPageComponent() {
                     />
                   </div>
                   <Button 
-                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl hover:scale-[1.02] transition-all" 
-                    style={{ backgroundColor: primaryColor }}
+                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
+
                     onClick={handlePhoneCheck}
                     disabled={!customerPhone || submitting}
                   >
@@ -1514,18 +1510,18 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                <div className="grid gap-3 p-5 bg-white/[0.03] rounded-3xl border border-white/10">
-                  <Label className="text-xs font-black uppercase tracking-widest text-slate-500">Como podemos te chamar?</Label>
+                <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
+                  <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Como podemos te chamar?</Label>
                   <Input 
                     placeholder="Seu nome" 
                     value={customerName} 
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="bg-black/40 border-white/5 text-white placeholder:text-slate-700 h-14 text-xl font-black focus-visible:ring-primary/50 rounded-2xl"
+                    className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-14 text-xl font-black focus-visible:ring-[#D4AF37]/50 rounded-2xl"
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Selecione o Serviço</h5>
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Selecione o Serviço</h5>
                   <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {services.map(s => (
                       <motion.div 
@@ -1534,9 +1530,9 @@ function ShopPageComponent() {
                         whileTap={{ scale: 0.98 }}
                         className={cn(
                           "p-5 rounded-[2rem] cursor-pointer transition-all flex justify-between items-center group relative overflow-hidden",
-                          selectedService?.id === s.id ? "bg-primary text-white" : "bg-white/[0.03] border border-white/5 hover:bg-white/[0.06]"
+                          selectedService?.id === s.id ? "bg-black text-white" : "bg-gray-50 border border-gray-100 hover:bg-gray-100"
                         )}
-                        style={selectedService?.id === s.id ? { backgroundColor: primaryColor } : {}}
+                        style={selectedService?.id === s.id ? { backgroundColor: "black" } : {}}
                         onClick={() => {
                           if (!customerName || customerName.length < 3) {
                             toast.error("Por favor, informe seu nome primeiro.");
@@ -1547,13 +1543,13 @@ function ShopPageComponent() {
                         }}
                       >
                         <div className="relative z-10">
-                          <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-white" : "text-slate-100")}>{s.name}</p>
+                          <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-white" : "text-black")}>{s.name}</p>
                           <div className="flex items-center gap-2 mt-1">
-                             <Clock size={12} className={selectedService?.id === s.id ? "text-white/70" : "text-slate-500"} />
-                             <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-white/70" : "text-slate-500")}>{s.duration_minutes} min</p>
+                             <Clock size={12} className={selectedService?.id === s.id ? "text-white/70" : "text-gray-400"} />
+                             <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-white/70" : "text-gray-400")}>{s.duration_minutes} min</p>
                           </div>
                         </div>
-                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-white" : "text-primary")} style={selectedService?.id !== s.id ? { color: primaryColor } : {}}>R$ {s.price.toFixed(2)}</p>
+                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-[#D4AF37]" : "text-black")}>R$ {s.price.toFixed(2)}</p>
                         {selectedService?.id === s.id && (
                           <motion.div layoutId="service-bg" className="absolute inset-0 bg-white/10 pointer-events-none" />
                         )}
@@ -1570,23 +1566,23 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-8"
               >
-                <div className="grid gap-3 p-5 bg-white/[0.03] rounded-3xl border border-white/10">
-                  <Label className="text-xs font-black uppercase tracking-widest text-slate-500">Data Desejada</Label>
+                <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
+                  <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Data Desejada</Label>
                   <Input 
                     type="date" 
                     value={selectedDate} 
                     onChange={(e) => setSelectedDate(e.target.value)} 
                     min={format(new Date(), "yyyy-MM-dd")} 
-                    className="bg-black/40 border-white/5 text-white h-14 text-xl font-black rounded-2xl focus-visible:ring-primary/50"
+                    className="bg-white border-gray-200 text-black h-14 text-xl font-black rounded-2xl focus-visible:ring-[#D4AF37]/50"
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Quem irá te atender?</h5>
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Quem irá te atender?</h5>
                   
                   {loadingDayData ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary" style={{ borderTopColor: primaryColor }} />
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#D4AF37]" />
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando disponibilidades...</p>
                     </div>
                   ) : (
@@ -1600,9 +1596,9 @@ function ShopPageComponent() {
                           whileTap={{ scale: 0.95 }}
                           className={cn(
                             "p-6 rounded-[2.5rem] cursor-pointer text-center space-y-4 transition-all relative overflow-hidden group border",
-                            selectedBarber?.id === b.id ? "border-primary bg-primary/20 shadow-2xl" : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
+                            selectedBarber?.id === b.id ? "border-[#D4AF37] bg-gray-50 shadow-2xl" : "bg-white border-gray-100 hover:bg-gray-50"
                           )}
-                          style={selectedBarber?.id === b.id ? { borderColor: primaryColor } : {}}
+                          style={selectedBarber?.id === b.id ? { borderColor: "#D4AF37" } : {}}
                           onClick={() => {
                             setSelectedBarber(b);
                             setBookingStep(4);
@@ -1613,16 +1609,16 @@ function ShopPageComponent() {
                               {b.avatar_url ? (
                                 <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
                               ) : (
-                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-slate-100">{b.name[0]}</div>
+                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-black">{b.name[0]}</div>
                               )}
                             </div>
                             <div className="mt-4">
-                              <p className="font-black uppercase tracking-tight text-sm text-slate-100 leading-none">{b.name}</p>
-                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2">{b.specialty || 'Especialista'}</p>
+                              <p className="font-black uppercase tracking-tight text-sm text-black leading-none">{b.name}</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-2">{b.specialty || 'Especialista'}</p>
                             </div>
                           </div>
                           {selectedBarber?.id === b.id && (
-                             <motion.div layoutId="barber-glow" className="absolute inset-0 bg-primary/10 blur-xl pointer-events-none" style={{ backgroundColor: `${primaryColor}20` }} />
+                             <motion.div layoutId="barber-glow" className="absolute inset-0 bg-[#D4AF37]/10 blur-xl pointer-events-none" />
                           )}
                         </motion.div>
                       ))}
@@ -1638,25 +1634,25 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-8"
               >
-                <div className="flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 rounded-[2rem] shadow-inner">
+                <div className="flex items-center justify-between p-6 bg-gray-50 border border-gray-100 rounded-[2rem] shadow-inner">
                   <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-2xl bg-black/40 border border-white/5 overflow-hidden">
+                    <div className="h-16 w-16 rounded-2xl bg-white border border-gray-200 overflow-hidden text-black">
                       {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-xl">{selectedBarber?.name[0]}</div>}
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Profissional</p>
-                      <p className="text-xl font-black uppercase italic tracking-tighter text-white">{selectedBarber?.name}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">Profissional</p>
+                      <p className="text-xl font-black uppercase italic tracking-tighter text-black">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-[10px] h-8 font-black uppercase tracking-widest bg-white/5 hover:bg-white/10 rounded-full px-4 border border-white/5">Alterar</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-[10px] h-8 font-black uppercase tracking-widest bg-white hover:bg-gray-100 rounded-full px-4 border border-gray-100 text-black">Alterar</Button>
                 </div>
 
                 <div className="space-y-6">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Horários Disponíveis</h5>
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Horários Disponíveis</h5>
                   
                   {fetchingTimes ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary" style={{ borderTopColor: primaryColor }} />
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#D4AF37]" />
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando horários...</p>
                     </div>
                   ) : availableTimes.length > 0 ? (
@@ -1673,7 +1669,7 @@ function ShopPageComponent() {
                               ? "text-white shadow-2xl scale-105" 
                               : "bg-white/[0.03] border-white/5 text-slate-300 hover:bg-white/[0.08] hover:border-white/20"
                           )}
-                          style={selectedTime === time ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}
+                          style={selectedTime === time ? { backgroundColor: "black", borderColor: "black" } : {}}
                         >
                           {time}
                         </motion.button>
@@ -1688,9 +1684,9 @@ function ShopPageComponent() {
                   )}
                 </div>
 
-                <Button 
-                  className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl hover:scale-[1.02] transition-all" 
-                  style={{ backgroundColor: primaryColor }}
+                  <Button 
+                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
+
                   onClick={() => {
                     if (!selectedTime) {
                       toast.error("Por favor, selecione um horário.");
@@ -1719,11 +1715,11 @@ function ShopPageComponent() {
                   >
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                        <Gift size={24} className="text-primary" />
+                        <Gift size={24} className="text-[#D4AF37]" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-white uppercase tracking-tighter">Você tem cashback!</p>
-                        <p className="text-xs font-bold text-primary">Saldo: R$ {customerCashback.toFixed(2)}</p>
+                        <p className="text-sm font-black text-black uppercase tracking-tighter">Você tem cashback!</p>
+                        <p className="text-xs font-bold text-[#D4AF37]">Saldo: R$ {customerCashback.toFixed(2)}</p>
                       </div>
                     </div>
                     <Button 
@@ -1849,7 +1845,7 @@ function ShopPageComponent() {
 
                   <div className="flex justify-between items-center border-t border-white/10 pt-4 mt-3">
                     <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
-                    <span className="text-3xl font-black" style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
+                    <span className="text-3xl font-black text-black">R$ {calculateTotal().toFixed(2)}</span>
                   </div>
                   
                   {shop.cashback_enabled && (
@@ -2310,14 +2306,14 @@ function ShopPageComponent() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <QrCode size={20} style={{ color: primaryColor }} />
+              <QrCode size={20} className="text-[#D4AF37]" />
               Pagamento via PIX
             </DialogTitle>
           </DialogHeader>
           <div className="py-6 space-y-6 text-center">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground font-medium">Total a pagar:</p>
-              <p className="text-3xl font-bold" style={{ color: primaryColor }}>
+              <p className="text-3xl font-bold text-black">
                 R$ {calculateTotalBeforeCashback().toFixed(2)}
               </p>
             </div>
@@ -2362,8 +2358,8 @@ function ShopPageComponent() {
           </div>
           <DialogFooter className="flex-col sm:flex-col gap-2">
             <Button 
-              className="w-full" 
-              style={{ backgroundColor: primaryColor }}
+              className="w-full bg-black text-white hover:bg-black/90" 
+
               disabled={submitting}
               onClick={async () => {
                 setSubmitting(true);
