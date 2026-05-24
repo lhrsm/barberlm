@@ -801,7 +801,7 @@ function ClientPortalComponent() {
                     <Input 
                       id="reg-name" 
                       placeholder="João Silva" 
-                      className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                      className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
                       value={customerName} 
                       onChange={(e) => setCustomerName(e.target.value)} 
                       required 
