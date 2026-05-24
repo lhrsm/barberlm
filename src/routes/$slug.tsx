@@ -1226,8 +1226,8 @@ function ShopPageComponent() {
 
                         <div className="grid grid-cols-2 gap-2">
                           <Button 
-                            className="rounded-xl h-11 font-bold text-xs uppercase tracking-widest"
-                            style={{ backgroundColor: primaryColor }}
+                            className="rounded-xl h-11 font-bold text-xs uppercase tracking-widest bg-black text-white hover:bg-black/90 shadow-md hover:scale-105"
+
                             onClick={() => addToCart(product)}
                           >
                             Comprar
