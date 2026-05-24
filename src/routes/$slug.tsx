@@ -995,7 +995,7 @@ function ShopPageComponent() {
             >
               <h2 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-none">
                 Seu estilo <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/40" style={{ WebkitTextStroke: `1px ${primaryColor}` }}>começa aqui.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/40" style={{ WebkitTextStroke: `1px #D4AF37` }}>começa aqui.</span>
               </h2>
               <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-medium">
                 Cortes premium, barbeiros especialistas e agendamento online em segundos.
