@@ -955,17 +955,17 @@ function DashboardComponent() {
               {isTrial ? (
                 <>
                   <div className="flex justify-center mb-2">
-                    <div className="p-3 bg-blue-100 rounded-full text-blue-600 animate-pulse">
+                    <div className="p-3 bg-amber-100 rounded-full text-amber-600 animate-pulse">
                       <Clock size={24} />
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-blue-900">
-                      {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'} de teste grátis
+                    <h4 className="font-bold text-lg text-amber-900 italic uppercase tracking-tight">
+                      {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia restante' : 'dias restantes'} de teste
                     </h4>
-                    <p className="text-sm text-blue-700/70">Aproveite todos os recursos do plano Pro!</p>
+                    <p className="text-sm text-amber-700/70 font-medium">Sua barbearia está em período experimental.</p>
                   </div>
-                  <Button size="lg" className="w-full" asChild>
+                  <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-black uppercase italic tracking-widest shadow-xl shadow-amber-500/20 border-b-4 border-amber-700 transition-all hover:scale-[1.02] active:scale-95" asChild>
                     <Link to="/subscription">Assinar Plano Profissional</Link>
                   </Button>
                 </>
