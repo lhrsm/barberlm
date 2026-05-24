@@ -602,12 +602,12 @@ function BarbersComponent() {
                   </div>
                 </div>
                 <div className="mt-6 flex gap-2 items-center">
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => toast.info("Relatório em breve")}>Desempenho</Button>
+                  <Button variant="outline" size="sm" className="flex-1 border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => toast.info("Relatório em breve")}>Desempenho</Button>
                   {plan !== 'free' && (
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      className="h-8 w-8 text-slate-400 hover:text-primary hover:bg-primary/5"
                       onClick={() => handleDuplicateBarber(barber)}
                     >
                       <Copy size={14} />
@@ -616,6 +616,7 @@ function BarbersComponent() {
                   <Button 
                     variant="ghost" 
                     size="sm" 
+                    className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                     onClick={() => {
                       setEditingBarber(barber);
                       setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
@@ -627,7 +628,7 @@ function BarbersComponent() {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="h-8 w-8 text-slate-400 hover:text-destructive hover:bg-destructive/10"
                     onClick={() => handleDeleteBarber(barber.id)}
                   >
                     <Trash2 size={14} />
