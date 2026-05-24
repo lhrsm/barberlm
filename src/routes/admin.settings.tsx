@@ -286,6 +286,18 @@ function AdminSettings() {
               <CardDescription className="text-gray-400">Credenciais para processamento de pagamentos reais.</CardDescription>
             </CardHeader>
             <div className="space-y-8">
+              <div className="flex items-center justify-between p-6 rounded-3xl bg-blue-500/5 border border-blue-500/10">
+                <div className="space-y-1">
+                  <p className="text-white font-bold uppercase tracking-tight text-sm italic">Modo Teste (Stripe Sandbox)</p>
+                  <p className="text-xs text-gray-500 leading-relaxed max-w-[280px]">Força o sistema a usar chaves e preços de teste, ignorando o ambiente de produção.</p>
+                </div>
+                <Switch 
+                  checked={formData.payments_test_mode}
+                  onCheckedChange={(val) => setFormData({...formData, payments_test_mode: val})}
+                  className="data-[state=checked]:bg-blue-500"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Stripe Secret Key</Label>
                 <div className="relative">

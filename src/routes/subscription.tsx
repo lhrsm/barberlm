@@ -89,7 +89,11 @@ function SubscriptionComponent() {
     setUpdating(true); // Ativa loading global para evitar múltiplos cliques
     
     try {
-      const env = getStripeEnvironment();
+      // Buscar configurações globais para verificar se o modo teste está forçado
+      const { data: systemSettings } = await supabase.from("system_settings").select("payments_test_mode").limit(1).single();
+      const forcedTestMode = systemSettings?.payments_test_mode;
+
+      const env = forcedTestMode ? 'sandbox' : getStripeEnvironment();
       const planKey = newPlan as keyof typeof PLAN_PRICE_IDS['live'];
       const priceId = PLAN_PRICE_IDS[env][planKey];
       
