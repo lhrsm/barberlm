@@ -337,14 +337,15 @@ function CalendarComponent() {
   };
 
   const getStatusColor = (status: string, barberId: string) => {
-    if (status === 'completed') return "bg-emerald-600 hover:bg-emerald-700";
-    if (status === 'confirmed') return "bg-blue-600 hover:bg-blue-700";
-    if (status === 'cancelled') return "bg-red-600 hover:bg-red-700";
-    if (status === 'scheduled') return "bg-amber-600 hover:bg-amber-700";
+    if (status === 'completed') return "border-emerald-500 bg-white text-emerald-700";
+    if (status === 'confirmed') return "border-blue-500 bg-white text-blue-700";
+    if (status === 'cancelled') return "border-red-500 bg-white text-red-700";
+    if (status === 'scheduled') return "border-amber-500 bg-white text-amber-700";
     
-    // Default to barber color (scheduled is blue/purple/etc as before)
     const index = barbers.findIndex(b => b.id === barberId);
-    return PROFESSIONAL_COLORS[index % 6] || "bg-blue-600 hover:bg-blue-700";
+    const colors = ["border-blue-500", "border-purple-500", "border-emerald-500", "border-orange-500", "border-pink-500", "border-cyan-500"];
+    const baseColor = colors[index % 6] || "border-blue-500";
+    return `${baseColor} bg-white text-black`;
   };
 
   if (loading || !user) return null;
@@ -440,9 +441,10 @@ function CalendarComponent() {
                             key={app.id}
                             onClick={(e) => e.stopPropagation()}
                             className={cn(
-                              "flex flex-col p-2 rounded-md text-white text-xs shadow-sm min-w-[150px] max-w-[250px] animate-in fade-in zoom-in duration-200",
+                              "flex flex-col p-2 rounded-md text-xs shadow-sm min-w-[150px] max-w-[250px] animate-in fade-in zoom-in duration-200 border-2",
                               getStatusColor(app.status, app.barber_id)
                             )}
+
                           >
                             <div className="flex items-center justify-between mb-1">
                               <div className="flex items-center gap-2">
@@ -658,9 +660,10 @@ function CalendarComponent() {
                                   toast.info(`Agendamento: ${app.customers?.name} - ${app.services?.name}`);
                                 }}
                                 className={cn(
-                                  "p-1 rounded text-[10px] text-white shadow-sm truncate animate-in fade-in zoom-in duration-200",
+                                  "p-1 rounded text-[10px] shadow-sm truncate animate-in fade-in zoom-in duration-200 border",
                                   getStatusColor(app.status, app.barber_id)
                                 )}
+
                                 title={`${app.customers?.name} - ${app.services?.name} (${app.barbers?.name})`}
                               >
                                 {app.customers?.name.split(' ')[0]}
