@@ -1489,8 +1489,8 @@ function ShopPageComponent() {
                     />
                   </div>
                   <Button 
-                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl hover:scale-[1.02] transition-all" 
-                    style={{ backgroundColor: primaryColor }}
+                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
+
                     onClick={handlePhoneCheck}
                     disabled={!customerPhone || submitting}
                   >
