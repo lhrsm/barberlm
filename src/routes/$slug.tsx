@@ -1080,8 +1080,7 @@ function ShopPageComponent() {
                       </div>
 
                       <Button 
-                        className="w-full h-12 rounded-xl font-bold transition-all group-hover:shadow-[0_0_20px_rgba(var(--primary),0.2)]"
-                        style={{ backgroundColor: primaryColor }}
+                        className="w-full h-12 rounded-xl font-bold transition-all bg-black text-white hover:bg-black/90 group-hover:shadow-xl hover:scale-105"
                         onClick={() => handleSelectService(service)}
                       >
                         Agendar este serviço
