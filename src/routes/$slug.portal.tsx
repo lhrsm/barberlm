@@ -1101,7 +1101,7 @@ function ClientPortalComponent() {
                     </div>
                   ) : (
                     sales.map((sale) => (
-                      <div key={sale.id} className="flex flex-col p-4 border rounded-xl gap-4">
+                      <div key={sale.id} className="flex flex-col p-4 bg-white/5 border border-white/10 rounded-xl gap-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-muted-foreground">
