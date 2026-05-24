@@ -955,8 +955,8 @@ function ClientPortalComponent() {
         <div className="grid gap-6 md:grid-cols-4">
           <Card className="bg-white border-gray-200 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-500">Total de Serviços</CardDescription>
-              <CardTitle className="text-2xl font-bold text-black">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
+              <CardDescription className="text-gray-400">Total de Serviços</CardDescription>
+              <CardTitle className="text-2xl font-bold text-white">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
             </CardHeader>
           </Card>
           <Card className="bg-white border-gray-200 shadow-md">
