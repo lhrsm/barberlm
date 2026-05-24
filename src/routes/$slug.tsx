@@ -1170,7 +1170,7 @@ function ShopPageComponent() {
                       
                       {product.badge && (
                         <div className="absolute top-6 left-6 z-10">
-                          <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-2xl" style={{ backgroundColor: primaryColor }}>
+                          <span className="bg-[#D4AF37] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-2xl">
                             {product.badge}
                           </span>
                         </div>
