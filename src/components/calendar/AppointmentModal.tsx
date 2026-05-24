@@ -102,10 +102,11 @@ export function AppointmentModal({
       if (barberData) tenantId = barberData.user_id;
     }
 
-    const [barbRes, custRes, servRes] = await Promise.all([
+    const [barbRes, custRes, servRes, barbServRes] = await Promise.all([
       supabase.from("barbers").select("*").eq("user_id", tenantId).eq("active", true).order("name"),
       supabase.from("customers").select("*").eq("user_id", tenantId).order("name"),
       supabase.from("services").select("*").eq("user_id", tenantId).eq("active", true).order("name"),
+      supabase.from("barber_services").select("*").eq("user_id", tenantId)
     ]);
 
     if (barbRes.data) {
