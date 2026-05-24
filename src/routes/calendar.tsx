@@ -639,12 +639,14 @@ function CalendarComponent() {
                         <div 
                           key={`${day}-${hour}`} 
                           className="min-h-[100px] p-1 group hover:bg-muted/10 transition-colors cursor-pointer relative"
-                          onClick={() => {
-                            setSelectedTime(`${hour.toString().padStart(2, '0')}:00`);
-                            setSelectedDate(format(day, "yyyy-MM-dd"));
-                            setCurrentStep(2); // Jump to date/time step as they are already set
-                            setIsDialogOpen(true);
-                          }}
+                            onClick={() => {
+                              setModalInitialData({
+                                time: `${hour.toString().padStart(2, '0')}:00`,
+                                date: format(day, "yyyy-MM-dd"),
+                                step: 2
+                              });
+                              setIsDialogOpen(true);
+                            }}
                         >
                           <div className="flex flex-col gap-1">
                             {getAppointmentsForTime(day, hour).map(app => (
