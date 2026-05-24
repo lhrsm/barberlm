@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   RefreshCcw
 } from "lucide-react";
+import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
