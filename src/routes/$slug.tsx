@@ -1474,13 +1474,13 @@ function ShopPageComponent() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="grid gap-3 p-6 bg-white/[0.03] rounded-3xl border border-white/10 shadow-inner">
-                    <Label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Seu WhatsApp</Label>
+                  <div className="grid gap-3 p-6 bg-gray-50 rounded-3xl border border-gray-100 shadow-inner">
+                    <Label className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Seu WhatsApp</Label>
                     <Input 
                       placeholder="(00) 00000-0000" 
                       value={customerPhone} 
                       onChange={(e) => setCustomerPhone(e.target.value)} 
-                      className="bg-black/40 border-white/5 text-white placeholder:text-slate-700 h-16 text-2xl font-black tracking-tight focus-visible:ring-primary/50 rounded-2xl transition-all"
+                      className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black tracking-tight focus-visible:ring-[#D4AF37]/50 rounded-2xl transition-all"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && customerPhone) {
                           handlePhoneCheck();
