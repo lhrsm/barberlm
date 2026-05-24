@@ -1582,7 +1582,7 @@ function ShopPageComponent() {
                   
                   {loadingDayData ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary" style={{ borderTopColor: primaryColor }} />
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#D4AF37]" />
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando disponibilidades...</p>
                     </div>
                   ) : (
