@@ -961,7 +961,7 @@ function DashboardComponent() {
                   </div>
                   <div>
                     <h4 className="font-bold text-lg text-amber-900 italic uppercase tracking-tight">
-                      {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia restante' : 'dias restantes'} de teste
+                      {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia restante' : 'dias restantes'} (Total: 15 dias)
                     </h4>
                     <p className="text-sm text-amber-700/70 font-medium">Sua barbearia está em período experimental.</p>
                   </div>
