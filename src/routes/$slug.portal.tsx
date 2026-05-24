@@ -24,9 +24,13 @@ import {
   Upload,
   Camera,
   Save,
-  Mail
+  Mail,
+  Plus,
+  QrCode,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
-import { format, isAfter, subDays, parseISO, addMinutes, differenceInMinutes } from "date-fns";
+import { format, isAfter, subDays, parseISO, addMinutes, differenceInMinutes, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -163,10 +167,11 @@ function ClientPortalComponent() {
 
   async function fetchShopData(targetSlug: string) {
     try {
+      const normalizedSlug = targetSlug.trim().toLowerCase();
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("slug", targetSlug)
+        .eq("slug", normalizedSlug)
         .single();
 
       if (error || !profile) {
@@ -175,12 +180,61 @@ function ClientPortalComponent() {
         return;
       }
       setShop(profile);
+
+      // Fetch services, barbers and products for booking
+      const [servicesRes, barbersRes, productsRes] = await Promise.all([
+        supabase
+          .from("services")
+          .select("*")
+          .eq("user_id", profile.id)
+          .eq("active", true),
+        supabase
+          .from("barbers")
+          .select("*, barber_services(service_id)")
+          .eq("user_id", profile.id)
+          .eq("active", true),
+        supabase
+          .from("products")
+          .select("*")
+          .eq("user_id", profile.id)
+          .eq("active", true),
+      ]);
+
+      setServices(servicesRes.data || []);
+      setBarbers(barbersRes.data || []);
+      setProducts(productsRes.data || []);
+
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
   }
+
+  const handlePortalBooking = () => {
+    console.log('portalCustomer', client);
+    if (!client?.customer_id) {
+      toast.error("Cliente não autenticado");
+      setIsLoggedIn(false);
+      return;
+    }
+
+    // Reset booking state
+    setSelectedService(null);
+    setSelectedBarber(null);
+    setSelectedDate(format(new Date(), "yyyy-MM-dd"));
+    setSelectedTime("");
+    setSelectedProducts([]);
+    setPaymentMethod(null);
+    setUseCashback(false);
+    setUseCredits(false);
+    
+    // Start directly at service selection
+    setBookingStep(1); 
+    setIsBookingOpen(true);
+    console.log('booking modal open, step 1 (services)');
+  };
+
 
   async function fetchClientData(customerId: string) {
     if (!customerId) return;
@@ -298,6 +352,14 @@ function ClientPortalComponent() {
       setFetchingTimes(false);
     }
   }
+
+  // Effect to fetch available times for the booking modal
+  useEffect(() => {
+    if (isBookingOpen && bookingStep === 3 && selectedBarber && selectedDate) {
+      fetchAvailableTimes(selectedBarber.id, selectedDate);
+    }
+  }, [isBookingOpen, bookingStep, selectedBarber, selectedDate]);
+
 
   const handleEditAppointment = (app: any) => {
     setEditingAppointment(app);
