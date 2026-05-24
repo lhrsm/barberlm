@@ -19,6 +19,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { VideoPlayer } from "@/components/tutorials/VideoPlayer";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/use-auth";
+
 
 export function OnboardingModal() {
   const [isOpen, setIsOpen] = useState(false);
