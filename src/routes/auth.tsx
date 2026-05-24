@@ -38,7 +38,7 @@ function AuthPageComponent() {
   }, [hydrated, user, loading, role, navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 px-4 relative">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#fdfdfd] px-4 relative">
       <div className="absolute top-8 left-8">
         <Button variant="ghost" asChild className="gap-2">
           <Link to="/">
