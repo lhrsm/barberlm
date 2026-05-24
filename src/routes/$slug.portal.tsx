@@ -946,7 +946,7 @@ function ClientPortalComponent() {
           </div>
           <Button 
             onClick={() => setIsBookingOpen(true)} 
-            className="gap-2 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-105"
+            className="gap-2 bg-black text-white border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all duration-300 hover:scale-105"
           >
             <Calendar size={18} /> Novo Agendamento
           </Button>
