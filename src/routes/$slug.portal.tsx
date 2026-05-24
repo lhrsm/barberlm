@@ -959,10 +959,10 @@ function ClientPortalComponent() {
               <CardTitle className="text-2xl font-bold text-white">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="bg-white border-gray-200 shadow-md">
+          <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-500">Fidelidade</CardDescription>
-              <CardTitle className="text-2xl font-bold flex items-center justify-between text-black">
+              <CardDescription className="text-gray-400">Fidelidade</CardDescription>
+              <CardTitle className="text-2xl font-bold flex items-center justify-between text-white">
                 <span>{customerData?.loyalty_points || 0} / 10</span>
                 {customerData?.loyalty_points >= 10 && (
                   <Button size="sm" onClick={handleClaimLoyaltyReward} disabled={submitting} className="h-7 text-[10px] bg-[#D4AF37] hover:bg-[#B8860B] text-white">
