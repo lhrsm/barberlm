@@ -952,8 +952,8 @@ function ShopPageComponent() {
               {shop.logo_url ? (
                 <img src={shop.logo_url} alt={shop.business_name} className="h-9 w-9 object-contain rounded-lg" />
               ) : (
-                <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Scissors className="h-5 w-5" style={{ color: primaryColor }} />
+                <div className="h-9 w-9 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
+                  <Scissors className="h-5 w-5 text-[#D4AF37]" />
                 </div>
               )}
               <h1 className="font-bold text-base sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
