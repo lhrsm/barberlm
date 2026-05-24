@@ -1208,7 +1208,6 @@ function ClientPortalComponent() {
                               .eq('id', customerData.id);
 
                             if (updateError) throw updateError;
-                            
                             toast.success("Foto atualizada!");
                             fetchClientData(customerData.id);
                           } catch (err: any) {
