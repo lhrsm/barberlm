@@ -236,7 +236,7 @@ function SettingsComponent() {
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 max-w-[1000px]">
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 max-w-[1000px] bg-white border border-slate-200 text-black">
               <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
                 <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
               </TabsTrigger>
@@ -264,7 +264,7 @@ function SettingsComponent() {
             </TabsList>
 
             <TabsContent value="profile" className="space-y-4">
-              <Card>
+              <Card className="bg-white border-2 border-slate-200 text-black">
                 <CardHeader>
                   <CardTitle>Meu Perfil</CardTitle>
                   <CardDescription>Gerencie suas informações pessoais e foto de perfil.</CardDescription>
@@ -336,7 +336,7 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="general" className="space-y-4">
-              <Card>
+              <Card className="bg-white border-2 border-slate-200 text-black">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <div className="space-y-1">
                     <CardTitle>Informações do Negócio</CardTitle>
@@ -592,7 +592,7 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="scheduling" className="space-y-4">
-              <Card>
+              <Card className="bg-white border-2 border-slate-200 text-black">
                 <CardHeader>
                   <CardTitle>Configurações de Agendamento</CardTitle>
                   <CardDescription>Defina como seus clientes podem marcar horários.</CardDescription>
@@ -648,7 +648,7 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="payments" className="space-y-4">
-              <Card className={plan === "free" ? "relative overflow-hidden" : ""}>
+              <Card className={cn("bg-white border-2 border-slate-200 text-black", plan === "free" ? "relative overflow-hidden" : "")}>
                 {plan === "free" && (
                   <div className="absolute inset-0 z-10 bg-background/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center">
                     <div className="bg-primary/10 p-3 rounded-full text-primary mb-4">
@@ -708,7 +708,7 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="loyalty" className="space-y-4">
-              <Card>
+              <Card className="bg-white border-2 border-slate-200 text-black">
                 <CardHeader>
                   <CardTitle>Sistema de Cashback</CardTitle>
                   <CardDescription>Configure como seus clientes ganham crédito a cada serviço.</CardDescription>

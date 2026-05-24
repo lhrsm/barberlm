@@ -493,7 +493,7 @@ function ProductsComponent() {
                 key={product.id} 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="group relative border rounded-[2.5rem] bg-card overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border-border/50"
+                className="group relative border-2 border-slate-200 rounded-[2.5rem] bg-white overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 text-black"
               >
                 <div className="aspect-square bg-muted/20 relative overflow-hidden">
                   {product.image_url ? (

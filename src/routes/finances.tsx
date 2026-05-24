@@ -602,7 +602,7 @@ function FinancesComponent() {
         </div>
 
         <Tabs defaultValue="transactions" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[600px]">
+          <TabsList className="grid w-full grid-cols-3 max-w-[600px] bg-white border border-slate-200 text-black">
             <TabsTrigger value="transactions" className="gap-2">
               <FileText size={16} /> Lançamentos
             </TabsTrigger>

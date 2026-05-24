@@ -412,7 +412,7 @@ function SubscriptionComponent() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-8 grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto py-8">
             {planConfigs.map((config) => {
               let isCurrentPlan = false;
               let isUpgrade = false;
@@ -431,9 +431,9 @@ function SubscriptionComponent() {
 
               return (
                 <Card key={config.id} className={cn(
-                  "flex flex-col relative transition-all hover:shadow-md",
-                  isCurrentPlan && "border-primary shadow-lg ring-1 ring-primary/20",
-                  !isCurrentPlan && "opacity-90 grayscale-[0.2]"
+                  "flex flex-col relative transition-all hover:shadow-2xl hover:scale-[1.02] duration-300 bg-white border-2 text-black min-h-[500px]",
+                  isCurrentPlan && "border-black shadow-2xl ring-2 ring-black/10",
+                  !isCurrentPlan && "border-slate-200 opacity-95"
                 )}>
                   {isCurrentPlan && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">

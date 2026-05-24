@@ -126,7 +126,7 @@ function IntegrationsComponent() {
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* WhatsApp Evolution API */}
-          <Card className="flex flex-col">
+          <Card className="flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="p-2 bg-green-50 rounded-lg text-green-600">
@@ -169,7 +169,7 @@ function IntegrationsComponent() {
           </Card>
 
           {/* Resend E-mail */}
-          <Card className="flex flex-col">
+          <Card className="flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
@@ -211,8 +211,8 @@ function IntegrationsComponent() {
 
           {/* OpenAI */}
           <Card className={cn(
-            "flex flex-col",
-            plan !== 'elite' && "opacity-75 bg-muted/20"
+            "flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm",
+            plan !== 'elite' && "opacity-75 grayscale-[0.5]"
           )}>
             <CardHeader>
               <div className="flex justify-between items-start">
