@@ -429,7 +429,7 @@ function ProfessionalDashboard() {
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+          <Card className="overflow-hidden border-2 border-slate-100 shadow-sm bg-white text-black">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Atendimentos</CardTitle>
               <Clock className="h-4 w-4 text-blue-500" />
@@ -445,39 +445,39 @@ function ProfessionalDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-emerald-500/10 to-emerald-500/5">
+          <Card className="overflow-hidden border-2 border-slate-100 shadow-sm bg-white text-black">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Faturamento (Comissão)</CardTitle>
               <CircleDollarSign className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-700">R$ {stats.revenue.toFixed(2)}</div>
+              <div className="text-2xl font-bold">R$ {stats.revenue.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Ref. {barber?.commission_rate || 0}% de comissão
               </p>
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-indigo-500/10 to-indigo-500/5">
+          <Card className="overflow-hidden border-2 border-slate-100 shadow-sm bg-white text-black">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Recebido</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-indigo-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-indigo-700">R$ {stats.received.toFixed(2)}</div>
+              <div className="text-2xl font-bold">R$ {stats.received.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Pagamentos confirmados
               </p>
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-amber-500/10 to-amber-500/5">
+          <Card className="overflow-hidden border-2 border-slate-100 shadow-sm bg-white text-black">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pendente</CardTitle>
               <Clock className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-amber-700">R$ {stats.pending.toFixed(2)}</div>
+              <div className="text-2xl font-bold">R$ {stats.pending.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Aguardando pagamento
               </p>
@@ -517,7 +517,7 @@ function ProfessionalDashboard() {
                   );
                 }).length === 0 ? (
                 <div className="space-y-4">
-                  <Card className="border-dashed py-12">
+                  <Card className="border-dashed py-12 bg-white text-black border-2 border-slate-100 shadow-sm">
                     <CardContent className="flex flex-col items-center justify-center text-muted-foreground text-center">
                       <Calendar className="h-12 w-12 opacity-20 mb-4" />
                       <p className="font-medium">Nenhum atendimento para hoje.</p>
@@ -526,7 +526,7 @@ function ProfessionalDashboard() {
                   </Card>
                   
                   {appointments.filter(a => new Date(a.start_time) > new Date()).slice(0, 5).map(app => (
-                    <Card key={app.id} className="hover:shadow-md transition-shadow group overflow-hidden border-l-4 border-l-primary/30">
+                    <Card key={app.id} className="hover:shadow-md transition-shadow group overflow-hidden border-2 border-slate-100 bg-white text-black">
                       <CardContent className="p-0">
                         <div className="flex flex-col md:flex-row md:items-center">
                           <div className="w-full md:w-32 bg-muted/30 p-4 flex flex-col items-center justify-center text-center border-b md:border-b-0 md:border-r">
@@ -565,7 +565,7 @@ function ProfessionalDashboard() {
                      appDate.getFullYear() === today.getFullYear()
                    );
                  }).map(app => (
-                  <Card key={app.id} className="hover:shadow-md transition-shadow group overflow-hidden">
+                  <Card key={app.id} className="hover:shadow-md transition-shadow group overflow-hidden border-2 border-slate-100 bg-white text-black">
                     <CardContent className="p-0">
                       <div className="flex flex-col md:flex-row md:items-center">
                         <div className="w-full md:w-32 bg-muted/30 p-4 flex flex-col items-center justify-center text-center border-b md:border-b-0 md:border-r">
@@ -598,7 +598,7 @@ function ProfessionalDashboard() {
                         <div className="p-4 bg-muted/10 flex items-center gap-2 border-t md:border-t-0 md:border-l">
                           {app.status === 'scheduled' || app.status === 'confirmed' ? (
                             <>
-                              <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700" onClick={() => handleAction(app, 'completed')}>
+                              <Button size="sm" className="h-8 bg-black text-white hover:scale-105 transition-all" onClick={() => handleAction(app, 'completed')}>
                                 <CheckCircle2 className="h-4 w-4 mr-1" /> Concluir
                               </Button>
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleAction(app, 'cancelled')}>
@@ -623,7 +623,8 @@ function ProfessionalDashboard() {
 
           <TabsContent value="history" className="mt-6 space-y-6">
              <div className="grid gap-6 md:grid-cols-2">
-                <Card>
+                <Card className="bg-white border-2 border-slate-100 shadow-sm text-black">
+
                   <CardHeader>
                     <CardTitle className="text-lg">Extrato Recente</CardTitle>
                     <CardDescription>Suas últimas entradas e comissões.</CardDescription>
@@ -670,7 +671,8 @@ function ProfessionalDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-white border-2 border-slate-100 shadow-sm text-black">
+
                   <CardHeader>
                     <CardTitle className="text-lg">Resumo de Ganhos</CardTitle>
                     <CardDescription>Distribuição do faturamento gerado.</CardDescription>
@@ -707,7 +709,8 @@ function ProfessionalDashboard() {
 
           <TabsContent value="profile" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card>
+              <Card className="bg-white border-2 border-slate-100 shadow-sm text-black">
+
                 <CardHeader>
                   <CardTitle className="text-lg">Meu Perfil Profissional</CardTitle>
                   <CardDescription>Como você aparece para os clientes.</CardDescription>
@@ -747,7 +750,7 @@ function ProfessionalDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white border-2 border-slate-100 shadow-sm text-black">
                 <CardHeader>
                   <CardTitle className="text-lg">Horários & Disponibilidade</CardTitle>
                   <CardDescription>Gerencie seus turnos de trabalho.</CardDescription>
