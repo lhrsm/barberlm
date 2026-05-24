@@ -912,14 +912,14 @@ function ClientPortalComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fdfdfd] pb-20">
-      <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
+    <div className="min-h-screen bg-black pb-20">
+      <header className="bg-black border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="font-bold text-lg flex items-center gap-2 text-black">
-            <UserIcon size={20} className="text-[#D4AF37]" />
+          <h1 className="font-bold text-lg flex items-center gap-2 text-[#D4AF37]">
+            <UserIcon size={20} />
             Portal do Cliente
           </h1>
-          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair" className="text-black hover:bg-gray-100">
+          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair" className="text-white hover:bg-white/10">
             <LogOut size={20} />
           </Button>
         </div>
@@ -940,29 +940,29 @@ function ClientPortalComponent() {
               </div>
             )}
             <div>
-              <h2 className="text-2xl font-bold text-black">Olá, {client.name}!</h2>
-              <p className="text-sm text-gray-600">Bem-vindo à sua área exclusiva na <span className="font-semibold text-black">{shop?.business_name}</span>.</p>
+              <h2 className="text-2xl font-bold text-white">Olá, {client.name}!</h2>
+              <p className="text-sm text-gray-400">Bem-vindo à sua área exclusiva na <span className="font-semibold text-white">{shop?.business_name}</span>.</p>
             </div>
           </div>
           <Button 
             onClick={() => setIsBookingOpen(true)} 
-            className="gap-2 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-105"
+            className="gap-2 bg-black text-white border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all duration-300 hover:scale-105"
           >
             <Calendar size={18} /> Novo Agendamento
           </Button>
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">
-          <Card className="bg-white border-gray-200 shadow-md">
+          <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-500">Total de Serviços</CardDescription>
-              <CardTitle className="text-2xl font-bold text-black">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
+              <CardDescription className="text-gray-400">Total de Serviços</CardDescription>
+              <CardTitle className="text-2xl font-bold text-white">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="bg-white border-gray-200 shadow-md">
+          <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-500">Fidelidade</CardDescription>
-              <CardTitle className="text-2xl font-bold flex items-center justify-between text-black">
+              <CardDescription className="text-gray-400">Fidelidade</CardDescription>
+              <CardTitle className="text-2xl font-bold flex items-center justify-between text-white">
                 <span>{customerData?.loyalty_points || 0} / 10</span>
                 {customerData?.loyalty_points >= 10 && (
                   <Button size="sm" onClick={handleClaimLoyaltyReward} disabled={submitting} className="h-7 text-[10px] bg-[#D4AF37] hover:bg-[#B8860B] text-white">
@@ -972,37 +972,37 @@ function ClientPortalComponent() {
               </CardTitle>
             </CardHeader>
           </Card>
-          <Card className="bg-white border-gray-200 shadow-md">
+          <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-500">Créditos</CardDescription>
-              <CardTitle className="text-2xl font-bold text-green-600">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
+              <CardDescription className="text-gray-400">Créditos</CardDescription>
+              <CardTitle className="text-2xl font-bold text-green-500">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="bg-white border-gray-200 shadow-md">
+          <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-500">Cashback</CardDescription>
+              <CardDescription className="text-gray-400">Cashback</CardDescription>
               <CardTitle className="text-2xl font-bold text-[#D4AF37]">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
             </CardHeader>
           </Card>
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[500px] bg-gray-100 p-1 rounded-xl">
-            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
+          <TabsList className="grid w-full grid-cols-3 max-w-[500px] bg-white/5 p-1 rounded-xl">
+            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
-            <TabsTrigger value="purchases" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
+            <TabsTrigger value="purchases" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
               <ShoppingBag size={16} /> Compras
             </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
+            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
               <UserIcon size={16} /> Perfil
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="appointments" className="pt-6">
-            <Card className="bg-white border-gray-200 shadow-md">
+            <Card className="bg-white/5 border-white/10 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-black">Histórico de Agendamentos</CardTitle>
+                <CardTitle className="text-white">Histórico de Agendamentos</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -1013,14 +1013,14 @@ function ClientPortalComponent() {
                     </div>
                   ) : (
                     appointments.map((app) => (
-                      <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border border-gray-100 rounded-xl gap-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl gap-4 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-start gap-4">
                           <div className="h-12 w-12 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
                             <Scissors className="text-[#D4AF37] h-6 w-6" />
                           </div>
                           <div>
-                            <p className="font-bold">{app.services?.name}</p>
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
+                            <p className="font-bold text-white">{app.services?.name}</p>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-gray-400">
                               <span className="flex items-center gap-1"><Clock size={14} /> {format(parseISO(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                                <span className="flex items-center gap-1"><UserIcon size={14} /> {app.barbers?.name}</span>
                                <Badge variant="outline" className="capitalize text-[10px]">
@@ -1060,7 +1060,7 @@ function ClientPortalComponent() {
                                <Button 
                                  variant="ghost" 
                                  size="sm" 
-                                 className="text-black hover:text-[#D4AF37] hover:bg-gray-100 h-8 px-2 text-xs transition-all duration-300 hover:scale-105"
+                                 className="text-white hover:text-[#D4AF37] hover:bg-white/10 h-8 px-2 text-xs transition-all duration-300 hover:scale-105"
                                  onClick={() => handleEditAppointment(app)}
                                 >
                                  <Edit2 size={14} className="mr-1" /> Editar
@@ -1087,10 +1087,10 @@ function ClientPortalComponent() {
           </TabsContent>
 
           <TabsContent value="purchases" className="pt-6">
-            <Card className="bg-white border-gray-200 shadow-md">
+            <Card className="bg-white/5 border-white/10 shadow-md">
               <CardHeader>
-                <CardTitle className="text-black">Suas Compras</CardTitle>
-                <CardDescription className="text-gray-500">Os reembolsos podem ser solicitados em até 7 dias após a compra.</CardDescription>
+                <CardTitle className="text-white">Suas Compras</CardTitle>
+                <CardDescription className="text-gray-400">Os reembolsos podem ser solicitados em até 7 dias após a compra.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -1101,7 +1101,7 @@ function ClientPortalComponent() {
                     </div>
                   ) : (
                     sales.map((sale) => (
-                      <div key={sale.id} className="flex flex-col p-4 border rounded-xl gap-4">
+                      <div key={sale.id} className="flex flex-col p-4 bg-white/5 border border-white/10 rounded-xl gap-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-muted-foreground">
@@ -1118,7 +1118,7 @@ function ClientPortalComponent() {
                               {sale.status === 'completed' ? 'Concluído' : sale.status === 'refunded' ? 'Reembolsado' : 'Pendente'}
                             </Badge>
                           </div>
-                          <span className="font-bold text-lg text-black">R$ {sale.total_amount.toFixed(2)}</span>
+                          <span className="font-bold text-lg text-[#D4AF37]">R$ {sale.total_amount.toFixed(2)}</span>
                         </div>
                         <div className="bg-muted/30 p-3 rounded-lg">
                           <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Itens:</p>
@@ -1159,10 +1159,10 @@ function ClientPortalComponent() {
           </TabsContent>
           
           <TabsContent value="profile" className="pt-6">
-            <Card className="bg-white border-gray-200 shadow-md">
+            <Card className="bg-white/5 border-white/10 shadow-md">
               <CardHeader>
-                <CardTitle className="text-black">Meu Perfil</CardTitle>
-                <CardDescription className="text-gray-500">Atualize suas informações de contato e foto de perfil.</CardDescription>
+                <CardTitle className="text-white">Meu Perfil</CardTitle>
+                <CardDescription className="text-gray-400">Atualize suas informações de contato e foto de perfil.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex flex-col items-center gap-4 py-4">
@@ -1208,7 +1208,6 @@ function ClientPortalComponent() {
                               .eq('id', customerData.id);
 
                             if (updateError) throw updateError;
-                            
                             toast.success("Foto atualizada!");
                             fetchClientData(customerData.id);
                           } catch (err: any) {
@@ -1221,27 +1220,28 @@ function ClientPortalComponent() {
                       />
                     </label>
                   </div>
-                  <p className="text-xs text-muted-foreground">Clique no ícone para alterar sua foto</p>
+                  <p className="text-xs text-gray-500">Clique no ícone para alterar sua foto</p>
                 </div>
 
                 <div className="grid gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-name">Nome Completo</Label>
+                    <Label htmlFor="profile-name" className="text-white">Nome Completo</Label>
                     <Input 
                       id="profile-name" 
+                      className="bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
                       value={customerName || (customerData?.name || "")} 
                       onChange={(e) => setCustomerName(e.target.value)}
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-email">E-mail</Label>
+                    <Label htmlFor="profile-email" className="text-white">E-mail</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                       <Input 
                         id="profile-email" 
                         type="email"
                         placeholder="seu@email.com"
-                        className="pl-10"
+                        className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
                         defaultValue={customerData?.email || ""}
                         onBlur={async (e) => {
                           if (!customerData?.id) return;
@@ -1256,14 +1256,14 @@ function ClientPortalComponent() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-birthdate">Data de Nascimento</Label>
+                    <Label htmlFor="profile-birthdate" className="text-white">Data de Nascimento</Label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                       <Input 
                         id="profile-birthdate" 
                         type="text"
                         placeholder="dd/mm/aaaa"
-                        className="pl-10"
+                        className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
                         value={(() => {
                           const date = customerData?.birth_date || "";
                           if (date.includes("-")) {
@@ -1293,17 +1293,17 @@ function ClientPortalComponent() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-phone">WhatsApp</Label>
+                    <Label htmlFor="profile-phone" className="text-white">WhatsApp</Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                       <Input 
                         id="profile-phone" 
                         value={customerData?.phone || ""} 
                         disabled 
-                        className="pl-10 bg-muted"
+                        className="pl-10 bg-white/10 border-white/5 text-gray-400"
                       />
                     </div>
-                    <p className="text-[10px] text-muted-foreground italic">O número de telefone não pode ser alterado.</p>
+                    <p className="text-[10px] text-gray-500 italic">O número de telefone não pode ser alterado.</p>
                   </div>
                 </div>
               </CardContent>
