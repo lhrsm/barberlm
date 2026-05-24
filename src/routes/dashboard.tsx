@@ -949,7 +949,7 @@ function DashboardComponent() {
           
           <Card className={cn(
             "col-span-3 flex flex-col justify-center overflow-hidden border-2",
-            isTrial ? "border-blue-500/30 bg-blue-50/50" : "bg-card border-border"
+            isTrial ? "border-amber-500/50 bg-amber-50/50 shadow-lg shadow-amber-500/10" : "bg-card border-border"
           )}>
             <CardContent className="py-6 text-center space-y-4">
               {isTrial ? (
