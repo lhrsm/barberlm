@@ -1256,8 +1256,8 @@ function ShopPageComponent() {
         <section id="profissionais" className="py-24 bg-black">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center space-y-4 mb-20">
-              <span className="text-primary font-black uppercase tracking-[0.2em] text-sm" style={{ color: primaryColor }}>Elite Team</span>
-              <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">Especialistas</h3>
+              <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">Elite Team</span>
+              <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Especialistas</h3>
             </div>
 
             <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
