@@ -1010,8 +1010,7 @@ function ShopPageComponent() {
             >
               <Button 
                 size="lg" 
-                style={{ backgroundColor: primaryColor }} 
-                className="h-14 px-10 text-lg font-black rounded-full shadow-2xl hover:scale-105 transition-all w-full sm:w-auto uppercase tracking-tighter"
+                className="h-14 px-10 text-lg font-black bg-black text-white border-2 border-[#D4AF37] rounded-full shadow-2xl hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all w-full sm:w-auto uppercase tracking-tighter"
                 onClick={handleBookingAction}
               >
                 Agendar Agora
