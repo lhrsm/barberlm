@@ -2306,7 +2306,7 @@ function ShopPageComponent() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <QrCode size={20} style={{ color: primaryColor }} />
+              <QrCode size={20} className="text-[#D4AF37]" />
               Pagamento via PIX
             </DialogTitle>
           </DialogHeader>
