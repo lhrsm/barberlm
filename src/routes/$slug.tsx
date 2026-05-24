@@ -1467,8 +1467,8 @@ function ShopPageComponent() {
                 className="space-y-8 py-4"
               >
                 <div className="space-y-3">
-                  <h4 className="text-3xl font-black uppercase italic tracking-tighter">Olá!</h4>
-                  <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                  <h4 className="text-3xl font-black uppercase italic tracking-tighter text-black">Olá!</h4>
+                  <p className="text-gray-600 text-sm font-medium leading-relaxed">
                     Informe seu WhatsApp para começarmos seu agendamento premium.
                   </p>
                 </div>
