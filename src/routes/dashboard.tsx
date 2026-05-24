@@ -777,9 +777,17 @@ function DashboardComponent() {
                 </ScrollArea>
               </PopoverContent>
             </Popover>
-            <Button onClick={() => navigate({ to: "/calendar" })} className="gap-2">
-              <Calendar size={18} /> Novo Agendamento
-            </Button>
+            <AppointmentModal 
+              onSuccess={() => {
+                fetchTodayAppointments();
+                fetchStats();
+              }}
+              trigger={
+                <Button className="gap-2">
+                  <Calendar size={18} /> Novo Agendamento
+                </Button>
+              }
+            />
           </div>
         </div>
         
