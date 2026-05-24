@@ -1510,13 +1510,13 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                <div className="grid gap-3 p-5 bg-white/[0.03] rounded-3xl border border-white/10">
-                  <Label className="text-xs font-black uppercase tracking-widest text-slate-500">Como podemos te chamar?</Label>
+                <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
+                  <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Como podemos te chamar?</Label>
                   <Input 
                     placeholder="Seu nome" 
                     value={customerName} 
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="bg-black/40 border-white/5 text-white placeholder:text-slate-700 h-14 text-xl font-black focus-visible:ring-primary/50 rounded-2xl"
+                    className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-14 text-xl font-black focus-visible:ring-[#D4AF37]/50 rounded-2xl"
                   />
                 </div>
 
