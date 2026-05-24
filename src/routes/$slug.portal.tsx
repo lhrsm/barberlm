@@ -407,16 +407,49 @@ function ClientPortalComponent() {
       
       let customerId;
       let name = customerName;
+      let avatarUrl = "";
+
+      // Upload avatar if provided
+      if (customerAvatar) {
+        const fileExt = customerAvatar.name.split('.').pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `customer-avatars/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('barber-avatars')
+          .upload(filePath, customerAvatar);
+
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('barber-avatars')
+            .getPublicUrl(filePath);
+          avatarUrl = publicUrl;
+        }
+      }
+
       if (existingCustomer) {
         customerId = existingCustomer.id;
         name = existingCustomer.name;
+        
+        // Update existing customer with new info if provided
+        await supabase
+          .from("customers")
+          .update({
+            email: customerEmail || undefined,
+            birth_date: customerBirthDate || undefined,
+            avatar_url: avatarUrl || undefined
+          })
+          .eq("id", customerId);
       } else {
         const { data: newCust, error: custErr } = await supabase
           .from("customers")
           .insert({
             user_id: shop.id,
             name: customerName,
-            phone: phone
+            phone: phone,
+            email: customerEmail || undefined,
+            birth_date: customerBirthDate || undefined,
+            avatar_url: avatarUrl || undefined
           })
           .select("id")
           .single();
@@ -424,8 +457,7 @@ function ClientPortalComponent() {
         customerId = newCust.id;
       }
 
-      // 2. Create or update client_auth record (one record per phone globally is fine if we check customer in login)
-      // @ts-ignore - types are being updated
+      // 2. Create or update client_auth record
       const { error: authErr } = await supabase
         .from("client_auth")
         .upsert({
