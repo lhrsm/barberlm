@@ -1373,7 +1373,7 @@ function ShopPageComponent() {
                     <MapPin size={18} className="text-slate-500 shrink-0" />
                     <p className="text-slate-400 text-sm leading-relaxed">{shop.address || "Endereço não informado"}</p>
                   </div>
-                  <Button variant="link" className="text-xs p-0 h-auto text-primary" style={{ color: primaryColor }} asChild>
+                  <Button variant="link" className="text-xs p-0 h-auto text-[#D4AF37]" asChild>
                     <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address || shop.business_name)}`} target="_blank">Ver no Google Maps</a>
                   </Button>
                 </div>
