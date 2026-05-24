@@ -1543,13 +1543,13 @@ function ShopPageComponent() {
                         }}
                       >
                         <div className="relative z-10">
-                          <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-white" : "text-slate-100")}>{s.name}</p>
+                          <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-white" : "text-black")}>{s.name}</p>
                           <div className="flex items-center gap-2 mt-1">
-                             <Clock size={12} className={selectedService?.id === s.id ? "text-white/70" : "text-slate-500"} />
-                             <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-white/70" : "text-slate-500")}>{s.duration_minutes} min</p>
+                             <Clock size={12} className={selectedService?.id === s.id ? "text-white/70" : "text-gray-400"} />
+                             <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-white/70" : "text-gray-400")}>{s.duration_minutes} min</p>
                           </div>
                         </div>
-                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-white" : "text-primary")} style={selectedService?.id !== s.id ? { color: primaryColor } : {}}>R$ {s.price.toFixed(2)}</p>
+                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-[#D4AF37]" : "text-black")}>R$ {s.price.toFixed(2)}</p>
                         {selectedService?.id === s.id && (
                           <motion.div layoutId="service-bg" className="absolute inset-0 bg-white/10 pointer-events-none" />
                         )}
