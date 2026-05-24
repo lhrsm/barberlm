@@ -74,14 +74,14 @@ function SupportPage() {
                     Canais de Atendimento
                   </h4>
                   <div className="space-y-3">
-                    <div className="p-3 bg-card rounded-xl border text-sm">
+                    <div className="p-3 bg-white rounded-xl border-2 border-slate-200 text-sm text-black">
                       <p className="font-bold mb-1">WhatsApp Oficial</p>
                       <p className="text-muted-foreground text-xs mb-3">Atendimento de Seg. a Sex. das 09h às 18h.</p>
                       <Button variant="outline" size="sm" className="w-full text-xs" asChild>
                         <a href="https://wa.me/5500000000000" target="_blank" rel="noopener noreferrer">Falar agora</a>
                       </Button>
                     </div>
-                    <div className="p-3 bg-card rounded-xl border text-sm">
+                    <div className="p-3 bg-white rounded-xl border-2 border-slate-200 text-sm text-black">
                       <p className="font-bold mb-1">E-mail Suporte</p>
                       <p className="text-muted-foreground text-xs mb-3">suporte@barbex.shop</p>
                       <Button variant="outline" size="sm" className="w-full text-xs" asChild>

@@ -154,7 +154,7 @@ function ServicesComponent() {
                         onChange={(e) => setNewService({...newService, description: e.target.value})} 
                       />
                     </div>
-                    <Button type="submit" className="w-full">Salvar Serviço</Button>
+                    <Button type="submit" className="w-full bg-black text-white hover:scale-105 transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Serviço</Button>
                   </form>
                 </>
               ) : (
@@ -196,7 +196,7 @@ function ServicesComponent() {
             </div>
           ) : (
             services.map((service) => (
-              <div key={service.id} className="p-6 border rounded-xl bg-card shadow-sm hover:shadow-md transition-shadow">
+              <div key={service.id} className="p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow text-black">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="font-bold text-lg">{service.name}</h3>
                   <span className="font-bold text-primary">R$ {Number(service.price).toFixed(2)}</span>

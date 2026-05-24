@@ -493,7 +493,7 @@ function ProductsComponent() {
                 key={product.id} 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="group relative border rounded-[2.5rem] bg-card overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border-border/50"
+                className="group relative border-2 border-slate-200 rounded-[2.5rem] bg-white overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 text-black"
               >
                 <div className="aspect-square bg-muted/20 relative overflow-hidden">
                   {product.image_url ? (
@@ -684,7 +684,7 @@ function SalesHistory({ user, onStatusChange, onlyCompleted }: { user: any, onSt
   if (loading) return <div className="text-center py-12">Carregando histórico...</div>;
 
   return (
-    <Card>
+    <Card className="bg-white border-2 border-slate-200 text-black shadow-sm">
       <CardHeader>
         <CardTitle>{onlyCompleted ? "Faturamento de Produtos" : "Histórico de Vendas"}</CardTitle>
         <CardDescription>
@@ -713,7 +713,7 @@ function SalesHistory({ user, onStatusChange, onlyCompleted }: { user: any, onSt
               </thead>
               <tbody className="divide-y">
                 {sales.map((sale) => (
-                  <tr key={sale.id} className="bg-card">
+                  <tr key={sale.id} className="bg-white border-b border-slate-100 last:border-0 text-black">
                     <td className="px-4 py-4 whitespace-nowrap">
                       {format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                     </td>

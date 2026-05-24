@@ -477,7 +477,7 @@ function FinancesComponent() {
                     onChange={(e) => setNewTransaction({...newTransaction, description: e.target.value})} 
                   />
                 </div>
-                <Button type="submit" className="w-full">Salvar</Button>
+                <Button type="submit" className="w-full bg-black text-white hover:scale-105 transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar</Button>
               </form>
             </DialogContent>
             </Dialog>
@@ -488,9 +488,9 @@ function FinancesComponent() {
           "grid gap-4",
           role === 'barber' ? "md:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
         )}>
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-blue-800">Faturamento Operacional</CardTitle>
+              <CardTitle className="text-sm font-semibold text-black">Faturamento Operacional</CardTitle>
               <div className="p-2 bg-blue-200/50 rounded-lg">
                 <Scissors className="h-4 w-4 text-blue-700" />
               </div>
@@ -501,7 +501,7 @@ function FinancesComponent() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold text-green-800">Fluxo de Caixa</CardTitle>
               <div className="p-2 bg-green-200/50 rounded-lg">
@@ -516,7 +516,7 @@ function FinancesComponent() {
 
           {role !== 'barber' && (
             <>
-              <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+              <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-semibold text-purple-800">Créditos Consumidos</CardTitle>
                   <div className="p-2 bg-purple-200/50 rounded-lg">
@@ -529,7 +529,7 @@ function FinancesComponent() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-red-50 to-red-100/50 border-red-200 shadow-sm hover:shadow-md transition-shadow">
+              <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-semibold text-red-800">Saídas</CardTitle>
                   <div className="p-2 bg-red-200/50 rounded-lg">
@@ -544,7 +544,7 @@ function FinancesComponent() {
             </>
           )}
 
-          <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 border-indigo-200 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold text-indigo-800">{role === 'barber' ? 'Minha Comissão' : 'Freelancers'}</CardTitle>
               <div className="p-2 bg-indigo-200/50 rounded-lg">
@@ -558,7 +558,7 @@ function FinancesComponent() {
           </Card>
 
           {role !== 'barber' && (
-            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200 shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-semibold text-emerald-800">Barbearia</CardTitle>
                 <div className="p-2 bg-emerald-200/50 rounded-lg">
@@ -572,7 +572,7 @@ function FinancesComponent() {
             </Card>
           )}
 
-          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-200 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold text-yellow-800">Pendente</CardTitle>
               <div className="p-2 bg-yellow-200/50 rounded-lg">
@@ -586,7 +586,7 @@ function FinancesComponent() {
           </Card>
 
           {role !== 'barber' && (
-            <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200 shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-semibold text-orange-800">Saldo Atual</CardTitle>
                 <div className="p-2 bg-orange-200/50 rounded-lg">
@@ -602,7 +602,7 @@ function FinancesComponent() {
         </div>
 
         <Tabs defaultValue="transactions" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[600px]">
+          <TabsList className="grid w-full grid-cols-3 max-w-[600px] bg-white border border-slate-200 text-black">
             <TabsTrigger value="transactions" className="gap-2">
               <FileText size={16} /> Lançamentos
             </TabsTrigger>
@@ -617,7 +617,7 @@ function FinancesComponent() {
           </TabsList>
 
           <TabsContent value="transactions" className="pt-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border rounded-xl">
+            <div className="flex flex-wrap gap-4 items-end bg-white p-4 border-2 border-slate-200 rounded-xl text-black">
               <div className="space-y-2">
                 <Label htmlFor="filter-status">Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -654,7 +654,7 @@ function FinancesComponent() {
               </Button>
             </div>
 
-            <div className="border rounded-xl bg-card">
+            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -872,7 +872,7 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="pending" className="pt-4">
-            <div className="border rounded-xl bg-card">
+            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -990,7 +990,7 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="barbers" className="pt-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border rounded-xl">
+            <div className="flex flex-wrap gap-4 items-end bg-white p-4 border-2 border-slate-200 rounded-xl text-black">
               <div className="space-y-2">
                 <Label htmlFor="barber-filter-date">Filtrar por Data</Label>
                 <input 
@@ -1045,7 +1045,7 @@ function FinancesComponent() {
                 const barbershopPartFromBarber = totalReceived - barberPart;
 
                 return (
-                  <Card key={barber.id}>
+                  <Card key={barber.id} className="bg-white border-2 border-slate-200 text-black">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg">{barber.name}</CardTitle>
                       <p className="text-xs text-muted-foreground">Comissão: {commissionRate}%</p>
@@ -1070,9 +1070,9 @@ function FinancesComponent() {
                 );
               })}
               
-              <Card className="bg-primary/5 border-primary/20">
+              <Card className="bg-white border-2 border-black/10 text-black shadow-md">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg text-primary">Barbearia Geral (Total)</CardTitle>
+                  <CardTitle className="text-lg text-black font-black">Barbearia Geral (Total)</CardTitle>
                   <p className="text-xs text-muted-foreground">Soma de todos os ganhos da barbearia</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1136,8 +1136,8 @@ function FinancesComponent() {
                             <span>R$ {totalFromBarbers.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between items-center border-t pt-2 mt-2">
-                            <span className="font-bold text-primary">Total Acumulado</span>
-                            <span className="text-xl font-bold text-primary">R$ {finalTotal.toFixed(2)}</span>
+                             <span className="font-bold text-black uppercase tracking-tighter">Total Acumulado</span>
+                            <span className="text-xl font-black text-black">R$ {finalTotal.toFixed(2)}</span>
                           </div>
                         </>
                       );
@@ -1146,7 +1146,7 @@ function FinancesComponent() {
               </Card>
 
               {barbers.length === 0 && (
-                <div className="col-span-full text-center py-12 border rounded-xl bg-card text-muted-foreground">
+                <div className="col-span-full text-center py-12 border-2 border-slate-200 rounded-xl bg-white text-black font-medium">
                   Nenhum barbeiro cadastrado.
                 </div>
               )}

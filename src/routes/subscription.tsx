@@ -259,7 +259,7 @@ function SubscriptionComponent() {
                     <p className="text-sm text-blue-700/70">Assine agora para garantir que sua barbearia não pare e continue com todos os recursos Pro!</p>
                   </div>
                 </div>
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 whitespace-nowrap" onClick={() => handlePlanChange('pro')}>
+                <Button size="lg" className="bg-black text-white hover:scale-105 active:scale-95 shadow-xl transition-all rounded-xl font-bold whitespace-nowrap" onClick={() => handlePlanChange('pro')}>
                   Assinar Plano Pro Agora
                 </Button>
               </CardContent>
@@ -298,7 +298,7 @@ function SubscriptionComponent() {
                     <p className="text-sm text-red-700/70">Sua assinatura está inativa devido a falhas recorrentes no pagamento. Seus recursos premium foram temporariamente bloqueados.</p>
                   </div>
                 </div>
-                <Button className="bg-red-600 hover:bg-red-700" onClick={handleManageSubscription}>
+                <Button className="bg-black text-white hover:scale-105 rounded-xl" onClick={handleManageSubscription}>
                   Regularizar Agora
                 </Button>
               </CardContent>
@@ -333,7 +333,7 @@ function SubscriptionComponent() {
                     <p className="text-sm text-blue-700/70">Você tem uma assinatura que ainda não foi concluída. Por favor, finalize o pagamento.</p>
                   </div>
                 </div>
-                <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleManageSubscription}>
+                <Button className="bg-black text-white hover:scale-105 rounded-xl" onClick={handleManageSubscription}>
                   Finalizar Pagamento
                 </Button>
               </CardContent>
@@ -412,7 +412,7 @@ function SubscriptionComponent() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-8 grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto py-8">
             {planConfigs.map((config) => {
               let isCurrentPlan = false;
               let isUpgrade = false;
@@ -431,9 +431,9 @@ function SubscriptionComponent() {
 
               return (
                 <Card key={config.id} className={cn(
-                  "flex flex-col relative transition-all hover:shadow-md",
-                  isCurrentPlan && "border-primary shadow-lg ring-1 ring-primary/20",
-                  !isCurrentPlan && "opacity-90 grayscale-[0.2]"
+                  "flex flex-col relative transition-all hover:shadow-2xl hover:scale-[1.02] duration-300 bg-white border-2 text-black min-h-[500px]",
+                  isCurrentPlan && "border-black shadow-2xl ring-2 ring-black/10",
+                  !isCurrentPlan && "border-slate-200 opacity-95"
                 )}>
                   {isCurrentPlan && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
@@ -463,12 +463,13 @@ function SubscriptionComponent() {
                   </CardContent>
                   <CardFooter>
                     <Button 
-                      variant={isCurrentPlan ? "outline" : isUpgrade ? "default" : "secondary"}
+                      variant={isCurrentPlan ? "outline" : "default"}
                       className={cn(
-                        "w-full",
-                        isUpgrade && "bg-primary hover:bg-primary/90",
-                        isCurrentPlan && "border-primary/50 text-primary"
+                        "w-full font-black uppercase tracking-tighter h-12 rounded-xl transition-all hover:scale-105",
+                        isCurrentPlan && "border-black text-black opacity-50 cursor-not-allowed",
+                        !isCurrentPlan && "bg-black text-white shadow-xl"
                       )} 
+
                       disabled={isCurrentPlan || updating}
                       onClick={() => handlePlanChange(config.id)}
                     >

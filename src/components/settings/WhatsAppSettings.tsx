@@ -238,7 +238,7 @@ export function WhatsAppSettings() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="bg-white border-2 border-slate-200 text-black shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle className="text-xl flex items-center gap-2">
@@ -337,7 +337,7 @@ export function WhatsAppSettings() {
 
       {connections.length > 0 && (
         <Tabs defaultValue="templates" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+          <TabsList className="grid w-full grid-cols-2 max-w-[400px] bg-white border border-slate-200 text-black">
             <TabsTrigger value="templates" className="gap-2">
               <Settings2 size={16} /> Templates
             </TabsTrigger>
@@ -347,7 +347,7 @@ export function WhatsAppSettings() {
           </TabsList>
 
           <TabsContent value="templates" className="space-y-4">
-            <Card>
+            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm">
               <CardHeader>
                 <CardTitle>Automações e Mensagens</CardTitle>
                 <CardDescription>
@@ -414,7 +414,7 @@ export function WhatsAppSettings() {
           </TabsContent>
 
           <TabsContent value="logs">
-            <Card>
+            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm">
               <CardContent className="p-0">
                  <div className="divide-y">
                    {messages.map((msg) => (

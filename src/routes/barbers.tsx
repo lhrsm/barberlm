@@ -507,7 +507,7 @@ function BarbersComponent() {
                       </div>
                     </div>
 
-                    <Button type="submit" className="w-full">Salvar Barbeiro</Button>
+                    <Button type="submit" className="w-full bg-black text-white hover:scale-105 transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Barbeiro</Button>
                   </form>
                 </>
               ) : (
@@ -549,7 +549,7 @@ function BarbersComponent() {
             </div>
           ) : (
             barbers.map((barber) => (
-              <div key={barber.id} className="p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm hover:border-slate-300 transition-all duration-300">
+              <div key={barber.id} className="p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm hover:border-slate-400 transition-all duration-300 text-black">
                 <div className="flex items-center gap-4 mb-4">
                   <Avatar className="h-12 w-12">
                     {barber.avatar_url ? (
@@ -829,7 +829,7 @@ function BarbersComponent() {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full">Salvar Alterações</Button>
+                <Button type="submit" className="w-full bg-black text-white hover:scale-105 transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Alterações</Button>
               </form>
             )}
           </DialogContent>
