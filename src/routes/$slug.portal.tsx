@@ -1053,10 +1053,10 @@ function ClientPortalComponent() {
           </TabsContent>
           
           <TabsContent value="profile" className="pt-6">
-            <Card>
+            <Card className="bg-white border-gray-200 shadow-md">
               <CardHeader>
-                <CardTitle>Meu Perfil</CardTitle>
-                <CardDescription>Atualize suas informações de contato e foto de perfil.</CardDescription>
+                <CardTitle className="text-black">Meu Perfil</CardTitle>
+                <CardDescription className="text-gray-500">Atualize suas informações de contato e foto de perfil.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex flex-col items-center gap-4 py-4">
