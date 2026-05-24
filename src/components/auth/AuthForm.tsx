@@ -145,7 +145,7 @@ export function AuthForm() {
               <Input
                 id="login-email"
                 type="email"
-                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
                 placeholder="exemplo@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
