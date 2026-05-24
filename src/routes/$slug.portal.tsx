@@ -1226,22 +1226,23 @@ function ClientPortalComponent() {
 
                 <div className="grid gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-name">Nome Completo</Label>
+                    <Label htmlFor="profile-name" className="text-white">Nome Completo</Label>
                     <Input 
                       id="profile-name" 
+                      className="bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
                       value={customerName || (customerData?.name || "")} 
                       onChange={(e) => setCustomerName(e.target.value)}
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-email">E-mail</Label>
+                    <Label htmlFor="profile-email" className="text-white">E-mail</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                       <Input 
                         id="profile-email" 
                         type="email"
                         placeholder="seu@email.com"
-                        className="pl-10"
+                        className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
                         defaultValue={customerData?.email || ""}
                         onBlur={async (e) => {
                           if (!customerData?.id) return;
