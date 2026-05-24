@@ -1286,7 +1286,7 @@ function ClientPortalComponent() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
-            <Button onClick={handleUpdateAppointment} disabled={submitting || !newTime}>
+            <Button onClick={handleUpdateAppointment} disabled={submitting || !newTime} className="bg-black text-white hover:bg-black/90">
               {submitting ? "Salvando..." : "Confirmar Alteração"}
             </Button>
           </DialogFooter>
