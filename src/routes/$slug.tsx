@@ -2358,8 +2358,8 @@ function ShopPageComponent() {
           </div>
           <DialogFooter className="flex-col sm:flex-col gap-2">
             <Button 
-              className="w-full" 
-              style={{ backgroundColor: primaryColor }}
+              className="w-full bg-black text-white hover:bg-black/90" 
+
               disabled={submitting}
               onClick={async () => {
                 setSubmitting(true);
