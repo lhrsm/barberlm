@@ -1845,7 +1845,7 @@ function ShopPageComponent() {
 
                   <div className="flex justify-between items-center border-t border-white/10 pt-4 mt-3">
                     <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
-                    <span className="text-3xl font-black" style={{ color: primaryColor }}>R$ {calculateTotal().toFixed(2)}</span>
+                    <span className="text-3xl font-black text-black">R$ {calculateTotal().toFixed(2)}</span>
                   </div>
                   
                   {shop.cashback_enabled && (
