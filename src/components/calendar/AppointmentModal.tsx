@@ -60,6 +60,7 @@ export function AppointmentModal({
   const [barbers, setBarbers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
+  const [barberServices, setBarberServices] = useState<any[]>([]);
   const [isNewCustomerDialogOpen, setIsNewCustomerDialogOpen] = useState(false);
 
   // Form State
