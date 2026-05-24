@@ -617,7 +617,7 @@ function FinancesComponent() {
           </TabsList>
 
           <TabsContent value="transactions" className="pt-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border rounded-xl">
+            <div className="flex flex-wrap gap-4 items-end bg-white p-4 border-2 border-slate-200 rounded-xl text-black">
               <div className="space-y-2">
                 <Label htmlFor="filter-status">Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -654,7 +654,7 @@ function FinancesComponent() {
               </Button>
             </div>
 
-            <div className="border rounded-xl bg-card">
+            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
