@@ -912,7 +912,7 @@ function ClientPortalComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fdfdfd] pb-20">
+    <div className="min-h-screen bg-black pb-20">
       <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="font-bold text-lg flex items-center gap-2 text-black">
