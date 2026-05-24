@@ -1394,15 +1394,15 @@ function ClientPortalComponent() {
         </DialogContent>
       </Dialog>
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto border-[#D4AF37] border-2">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-white border-[#D4AF37] border-2 h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl">
+          <DialogHeader className="p-6 border-b">
             <DialogTitle className="text-black">Novo Agendamento</DialogTitle>
-            <DialogDescription className="text-gray-600">Preencha os dados abaixo para agendar seu novo serviço.</DialogDescription>
+            <DialogDescription className="text-gray-600">Escolha o serviço e profissional abaixo.</DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="flex-1">
             <iframe 
               src={`/${slug}?embed=true&phone=${client.phone}&name=${encodeURIComponent(client.name)}`} 
-              className="w-full h-[650px] border-none rounded-lg"
+              className="w-full h-full border-none"
               title="Agendamento"
             />
           </div>
