@@ -829,7 +829,8 @@ function ClientPortalComponent() {
                         id="reg-birth" 
                         type="text"
                         placeholder="dd/mm/aaaa"
-                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black" 
+
                         value={customerBirthDate} 
                         onChange={(e) => {
                           let value = e.target.value.replace(/\D/g, "");
