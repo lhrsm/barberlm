@@ -1210,7 +1210,7 @@ function ShopPageComponent() {
                         {product.short_description || product.description || "Produto selecionado com rigor para garantir resultados superiores."}
                       </p>
 
-                      <div className="pt-4 border-t border-white/5 space-y-4">
+                      <div className="pt-4 border-t border-gray-100 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex flex-col">
                             <span className="text-2xl font-black text-white">R$ {Number(product.price).toFixed(2)}</span>
