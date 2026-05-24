@@ -341,7 +341,14 @@ export function AppointmentModal({
                   <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                     <div className="space-y-2">
                       <Label>Profissional</Label>
-                      <Select value={selectedBarber} onValueChange={setSelectedBarber} required>
+                      <Select 
+                        value={selectedBarber} 
+                        onValueChange={(val) => {
+                          setSelectedBarber(val);
+                          setSelectedService(""); // Reset service when barber changes
+                        }} 
+                        required
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o profissional" />
                         </SelectTrigger>
