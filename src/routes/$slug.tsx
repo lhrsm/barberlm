@@ -1390,7 +1390,7 @@ function ShopPageComponent() {
               </div>
 
               <div className="space-y-6">
-                <h5 className="font-black uppercase tracking-widest text-xs text-primary" style={{ color: primaryColor }}>Funcionamento</h5>
+                <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Funcionamento</h5>
                 <div className="space-y-2 text-sm text-slate-500 font-medium">
                   <p className="flex justify-between"><span>Seg - Sex:</span> <span className="text-white">09:00 - 20:00</span></p>
                   <p className="flex justify-between"><span>Sábado:</span> <span className="text-white">08:00 - 18:00</span></p>
