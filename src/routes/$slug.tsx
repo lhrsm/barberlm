@@ -908,6 +908,13 @@ function ShopPageComponent() {
     }
   };
 
+  // Skip step 1 if we already have customer info (e.g. from portal)
+  useEffect(() => {
+    if (isBookingOpen && bookingStep === 1 && customerPhone && customerName) {
+      handlePhoneCheck();
+    }
+  }, [isBookingOpen, bookingStep, customerPhone, customerName]);
+
   return (
     <div 
       className="min-h-screen bg-black text-white selection:bg-[#D4AF37]/30 overflow-x-hidden" 
