@@ -1234,7 +1234,7 @@ function ClientPortalComponent() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-birthdate">Data de Nascimento</Label>
+                    <Label htmlFor="profile-birthdate">Data de Nascimento (dd/mm/aaaa)</Label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input 
