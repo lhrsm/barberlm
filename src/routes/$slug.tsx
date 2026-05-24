@@ -1104,8 +1104,8 @@ function ShopPageComponent() {
               <motion.span 
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                className="text-primary font-black uppercase tracking-[0.3em] text-xs" 
-                style={{ color: primaryColor }}
+                className="text-[#D4AF37] font-black uppercase tracking-[0.3em] text-xs" 
+
               >
                 Marketplace Elite
               </motion.span>
