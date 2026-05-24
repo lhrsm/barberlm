@@ -968,8 +968,7 @@ function ShopPageComponent() {
             </nav>
 
             <Button 
-              style={{ backgroundColor: primaryColor }} 
-              className="text-white shadow-lg hover:scale-105 transition-all h-10 px-6 rounded-full text-sm font-bold" 
+              className="bg-black text-white border border-[#D4AF37] shadow-lg hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all h-10 px-6 rounded-full text-sm font-bold" 
               onClick={handleBookingAction}
             >
               {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar'}
