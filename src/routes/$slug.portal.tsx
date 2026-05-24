@@ -894,7 +894,7 @@ function ClientPortalComponent() {
           </TabsList>
 
           <TabsContent value="appointments" className="pt-6">
-            <Card className="bg-white border-gray-200 shadow-lg">
+            <Card className="bg-white border-gray-200 shadow-md">
               <CardHeader>
                 <CardTitle className="text-black">Histórico de Agendamentos</CardTitle>
               </CardHeader>
