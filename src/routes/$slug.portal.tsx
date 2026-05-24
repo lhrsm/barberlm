@@ -1200,7 +1200,8 @@ function ClientPortalComponent() {
               </CardContent>
               <CardContent className="pt-0 pb-6">
                 <Button 
-                  className="w-full gap-2" 
+                  className="w-full gap-2 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-105" 
+
                   disabled={submitting}
                   onClick={async () => {
                     if (!customerData?.id || !customerName) return;
