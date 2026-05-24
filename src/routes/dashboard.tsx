@@ -994,10 +994,17 @@ function DashboardComponent() {
                 </>
               ) : (
                 <>
+                  <div className="bg-amber-100/50 border border-amber-200 rounded-2xl p-3 flex items-center gap-3 mb-4 animate-in fade-in zoom-in duration-500">
+                    <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                    <div className="text-left">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 leading-none">Aviso de Sistema</p>
+                      <p className="text-xs font-bold text-amber-700/80">Você está usando a versão experimental de 15 dias.</p>
+                    </div>
+                  </div>
                   {trialDaysRemaining > 0 && (
                     <div className="bg-amber-100/30 border border-amber-200/50 rounded-xl p-2 flex items-center gap-2 mb-2 animate-in fade-in slide-in-from-top-2 duration-500">
                       <AlertCircle className="h-3 w-3 text-amber-600" />
-                      <p className="text-[10px] font-bold text-amber-700">Atenção: Você tem {trialDaysRemaining} dias de teste restantes.</p>
+                      <p className="text-[10px] font-bold text-amber-700">Atenção: Você tem {trialDaysRemaining} dias de teste restantes (Total: 15 dias).</p>
                     </div>
                   )}
                   <p className="text-sm font-black uppercase tracking-widest text-amber-600 italic">Precisando de mais recursos?</p>
