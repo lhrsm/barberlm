@@ -1257,14 +1257,14 @@ function ClientPortalComponent() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-birthdate">Data de Nascimento</Label>
+                    <Label htmlFor="profile-birthdate" className="text-white">Data de Nascimento</Label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                       <Input 
                         id="profile-birthdate" 
                         type="text"
                         placeholder="dd/mm/aaaa"
-                        className="pl-10"
+                        className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
                         value={(() => {
                           const date = customerData?.birth_date || "";
                           if (date.includes("-")) {
