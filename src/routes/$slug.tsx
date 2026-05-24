@@ -1234,7 +1234,7 @@ function ShopPageComponent() {
                           </Button>
                           <Button 
                             variant="outline"
-                            className="rounded-xl h-11 border-white/10 hover:bg-white/5 font-bold text-[10px] uppercase tracking-widest"
+                            className="rounded-xl h-11 border-gray-200 text-black hover:bg-gray-100 font-bold text-[10px] uppercase tracking-widest"
                             onClick={() => {
                               const message = encodeURIComponent(`Olá! Tenho interesse no produto ${product.name} na ${shop.business_name}.`);
                               window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
