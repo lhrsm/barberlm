@@ -1530,9 +1530,9 @@ function ShopPageComponent() {
                         whileTap={{ scale: 0.98 }}
                         className={cn(
                           "p-5 rounded-[2rem] cursor-pointer transition-all flex justify-between items-center group relative overflow-hidden",
-                          selectedService?.id === s.id ? "bg-primary text-white" : "bg-white/[0.03] border border-white/5 hover:bg-white/[0.06]"
+                          selectedService?.id === s.id ? "bg-black text-white" : "bg-gray-50 border border-gray-100 hover:bg-gray-100"
                         )}
-                        style={selectedService?.id === s.id ? { backgroundColor: primaryColor } : {}}
+                        style={selectedService?.id === s.id ? { backgroundColor: "black" } : {}}
                         onClick={() => {
                           if (!customerName || customerName.length < 3) {
                             toast.error("Por favor, informe seu nome primeiro.");
