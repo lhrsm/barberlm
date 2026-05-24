@@ -1286,7 +1286,7 @@ function ShopPageComponent() {
                     
                     <div className="absolute bottom-8 left-8 right-8 space-y-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full" style={{ backgroundColor: primaryColor }}>
+                        <span className="bg-[#D4AF37] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
                           {idx === 0 ? "Top Avaliado" : "Especialista"}
                         </span>
                       </div>
