@@ -796,34 +796,35 @@ function DashboardComponent() {
         {(isTrial || isExpired) && (
           <div className={cn(
             "relative overflow-hidden rounded-[2rem] p-6 mb-6 shadow-2xl transition-all duration-500 group",
-            isExpired ? "bg-slate-950 border border-red-500/30 shadow-red-500/10" : 
-            trialDaysRemaining <= 3 ? "bg-slate-950 border border-amber-500/30 shadow-amber-500/10" : 
-            "bg-slate-950 border border-purple-500/30 shadow-purple-500/10"
+            isExpired ? "bg-white border-2 border-red-500/50 shadow-red-500/10" : 
+            "bg-white border-2 border-amber-500/50 shadow-amber-500/10"
           )}>
             {/* Glow Effect */}
             <div className={cn(
-              "absolute -top-24 -right-24 w-64 h-64 blur-[100px] opacity-20 rounded-full",
-              isExpired ? "bg-red-500" : 
-              trialDaysRemaining <= 3 ? "bg-amber-500" : 
-              "bg-purple-500"
+              "absolute -top-24 -right-24 w-64 h-64 blur-[100px] opacity-10 rounded-full",
+              isExpired ? "bg-red-500" : "bg-amber-500"
             )} />
             
             <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-5">
                 <div className={cn(
                   "p-4 rounded-2xl shadow-inner flex items-center justify-center",
-                  isExpired ? "bg-red-500/10 text-red-500" : 
-                  trialDaysRemaining <= 3 ? "bg-amber-500/10 text-amber-500" : 
-                  "bg-purple-500/10 text-purple-500"
+                  isExpired ? "bg-red-500/10 text-red-600" : "bg-amber-100 text-amber-600"
                 )}>
                   {isExpired ? <AlertCircle className="w-8 h-8" /> : <Crown className="w-8 h-8 animate-pulse" />}
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-xl font-black text-white italic tracking-tight flex items-center gap-2">
+                  <h3 className={cn(
+                    "text-xl font-black italic tracking-tight flex items-center gap-2",
+                    isExpired ? "text-red-900" : "text-amber-900"
+                  )}>
                     {isExpired ? "PERÍODO DE TESTE EXPIRADO" : "STATUS DA ASSINATURA SAAS"}
-                    {!isExpired && <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50">TRIAL ATIVO</Badge>}
+                    {!isExpired && <Badge className="bg-amber-500/20 text-amber-700 border-amber-500/30">TRIAL ATIVO</Badge>}
                   </h3>
-                  <p className="text-gray-400 font-medium">
+                  <p className={cn(
+                    "font-bold",
+                    isExpired ? "text-red-700/70" : "text-amber-800/70"
+                  )}>
                     {isExpired ? (
                       "Seu período de 15 dias de teste chegou ao fim. Faça o upgrade para continuar usando todos os recursos."
                     ) : trialDaysRemaining === 1 ? (
