@@ -1275,6 +1275,7 @@ export type Database = {
           integrations: Json | null
           main_url: string | null
           maintenance_mode: boolean | null
+          payments_test_mode: boolean | null
           saas_logo: string | null
           saas_name: string | null
           stripe_secret_key: string | null
@@ -1289,6 +1290,7 @@ export type Database = {
           integrations?: Json | null
           main_url?: string | null
           maintenance_mode?: boolean | null
+          payments_test_mode?: boolean | null
           saas_logo?: string | null
           saas_name?: string | null
           stripe_secret_key?: string | null
@@ -1303,6 +1305,7 @@ export type Database = {
           integrations?: Json | null
           main_url?: string | null
           maintenance_mode?: boolean | null
+          payments_test_mode?: boolean | null
           saas_logo?: string | null
           saas_name?: string | null
           stripe_secret_key?: string | null
