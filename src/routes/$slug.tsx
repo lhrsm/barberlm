@@ -1634,17 +1634,17 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-8"
               >
-                <div className="flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 rounded-[2rem] shadow-inner">
+                <div className="flex items-center justify-between p-6 bg-gray-50 border border-gray-100 rounded-[2rem] shadow-inner">
                   <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-2xl bg-black/40 border border-white/5 overflow-hidden">
+                    <div className="h-16 w-16 rounded-2xl bg-white border border-gray-200 overflow-hidden text-black">
                       {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-xl">{selectedBarber?.name[0]}</div>}
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Profissional</p>
-                      <p className="text-xl font-black uppercase italic tracking-tighter text-white">{selectedBarber?.name}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">Profissional</p>
+                      <p className="text-xl font-black uppercase italic tracking-tighter text-black">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-[10px] h-8 font-black uppercase tracking-widest bg-white/5 hover:bg-white/10 rounded-full px-4 border border-white/5">Alterar</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-[10px] h-8 font-black uppercase tracking-widest bg-white hover:bg-gray-100 rounded-full px-4 border border-gray-100 text-black">Alterar</Button>
                 </div>
 
                 <div className="space-y-6">
