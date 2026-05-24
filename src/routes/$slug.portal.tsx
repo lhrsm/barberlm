@@ -783,19 +783,68 @@ function ClientPortalComponent() {
             <CardDescription className="text-gray-600">Acesse seu portal para gerenciar seus agendamentos</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-6">
+            <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4">
               {isRegistering && (
-                <div className="space-y-2">
-                  <Label htmlFor="reg-name" className="text-black font-semibold">Seu Nome</Label>
-                  <Input 
-                    id="reg-name" 
-                    placeholder="João Silva" 
-                    className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
-                    value={customerName} 
-                    onChange={(e) => setCustomerName(e.target.value)} 
-                    required 
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-name" className="text-black font-semibold">Seu Nome</Label>
+                    <Input 
+                      id="reg-name" 
+                      placeholder="João Silva" 
+                      className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                      value={customerName} 
+                      onChange={(e) => setCustomerName(e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-email" className="text-black font-semibold">E-mail (Opcional)</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="reg-email" 
+                        type="email"
+                        placeholder="joao@email.com" 
+                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                        value={customerEmail} 
+                        onChange={(e) => setCustomerEmail(e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-birth" className="text-black font-semibold">Data de Nascimento</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="reg-birth" 
+                        type="date"
+                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
+                        value={customerBirthDate} 
+                        onChange={(e) => setCustomerBirthDate(e.target.value)} 
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-avatar" className="text-black font-semibold">Foto de Perfil (Opcional)</Label>
+                    <div className="flex items-center gap-3">
+                      <div className="h-11 w-11 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 overflow-hidden shrink-0">
+                        {customerAvatar ? (
+                          <img src={URL.createObjectURL(customerAvatar)} alt="Preview" className="h-full w-full object-cover" />
+                        ) : (
+                          <Camera className="h-5 w-5 text-gray-400" />
+                        )}
+                      </div>
+                      <Input 
+                        id="reg-avatar" 
+                        type="file"
+                        accept="image/*"
+                        className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-black hover:file:bg-gray-100"
+                        onChange={(e) => setCustomerAvatar(e.target.files?.[0] || null)}
+                      />
+                    </div>
+                  </div>
+                </>
               )}
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-black font-semibold">Telefone</Label>
