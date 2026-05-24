@@ -1669,7 +1669,7 @@ function ShopPageComponent() {
                               ? "text-white shadow-2xl scale-105" 
                               : "bg-white/[0.03] border-white/5 text-slate-300 hover:bg-white/[0.08] hover:border-white/20"
                           )}
-                          style={selectedTime === time ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}
+                          style={selectedTime === time ? { backgroundColor: "black", borderColor: "black" } : {}}
                         >
                           {time}
                         </motion.button>
