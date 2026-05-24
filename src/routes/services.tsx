@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Scissors, Plus, Clock, AlertTriangle, Crown } from "lucide-react";
+import { Scissors, Plus, Clock, AlertTriangle, Crown, Edit2, Trash2, Copy } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/services")({
@@ -84,6 +84,47 @@ function ServicesComponent() {
       toast.success("Serviço adicionado com sucesso!");
       setIsAddDialogOpen(false);
       setNewService({ name: "", price: "", duration_minutes: "30", description: "" });
+      fetchServices();
+      refreshLimits();
+    }
+  }
+
+  async function handleDeleteService(id: string) {
+    if (!confirm("Tem certeza que deseja excluir este serviço?")) return;
+
+    const { error } = await supabase
+      .from("services")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast.error("Erro ao excluir serviço");
+    } else {
+      toast.success("Serviço excluído com sucesso!");
+      fetchServices();
+      refreshLimits();
+    }
+  }
+
+  async function handleDuplicateService(service: any) {
+    if (!canAddService) {
+      toast.error("Limite de serviços atingido");
+      return;
+    }
+
+    const { id, created_at, ...serviceToCopy } = service;
+    const { error } = await supabase
+      .from("services")
+      .insert({
+        ...serviceToCopy,
+        name: `${service.name} (Cópia)`,
+        user_id: user?.id
+      });
+
+    if (error) {
+      toast.error("Erro ao duplicar serviço");
+    } else {
+      toast.success("Serviço duplicado com sucesso!");
       fetchServices();
       refreshLimits();
     }
@@ -206,8 +247,31 @@ function ServicesComponent() {
                   <span>{service.duration_minutes} minutos</span>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">{service.description || "Sem descrição."}</p>
-                <div className="mt-4 pt-4 border-t flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={() => toast.info("Edição em breve")}>Editar</Button>
+                <div className="mt-4 pt-4 border-t flex justify-end gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleDuplicateService(service)}
+                    className="gap-2 border-slate-200 hover:bg-slate-50"
+                  >
+                    <Copy size={14} /> Duplicar
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={() => toast.info("Edição em breve")}
+                    className="gap-2 bg-black text-white hover:scale-105 transition-all"
+                  >
+                    <Edit2 size={14} /> Editar
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleDeleteService(service.id)}
+                    className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 size={14} /> Excluir
+                  </Button>
                 </div>
               </div>
             ))
