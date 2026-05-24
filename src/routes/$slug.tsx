@@ -1073,8 +1073,8 @@ function ShopPageComponent() {
                       </div>
 
                       <div className="space-y-2">
-                        <h4 className="text-2xl font-black uppercase tracking-tight group-hover:translate-x-1 transition-transform duration-500">{service.name}</h4>
-                        <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed">
+                        <h4 className="text-2xl font-black uppercase tracking-tight text-black group-hover:translate-x-1 transition-transform duration-500">{service.name}</h4>
+                        <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
                           Cuidado especializado com produtos de alta qualidade para um resultado impecável.
                         </p>
                       </div>
