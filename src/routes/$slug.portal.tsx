@@ -1221,7 +1221,7 @@ function ClientPortalComponent() {
                       />
                     </label>
                   </div>
-                  <p className="text-xs text-muted-foreground">Clique no ícone para alterar sua foto</p>
+                  <p className="text-xs text-gray-500">Clique no ícone para alterar sua foto</p>
                 </div>
 
                 <div className="grid gap-4">
