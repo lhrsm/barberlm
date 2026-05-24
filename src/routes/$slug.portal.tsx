@@ -1242,16 +1242,8 @@ function ClientPortalComponent() {
                         type="email"
                         placeholder="seu@email.com"
                         className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
-                        defaultValue={customerData?.email || ""}
-                        onBlur={async (e) => {
-                          if (!customerData?.id) return;
-                          const email = e.target.value;
-                          const { error } = await supabase
-                            .from('customers')
-                            .update({ email })
-                            .eq('id', customerData.id);
-                          if (!error) toast.success("E-mail atualizado!");
-                        }}
+                        value={customerData?.email || ""}
+                        onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })}
                       />
                     </div>
                   </div>
@@ -1309,8 +1301,7 @@ function ClientPortalComponent() {
               </CardContent>
               <CardContent className="pt-0 pb-6">
                 <Button 
-                  className="w-full gap-2 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-105" 
-
+                  className="w-full gap-2 bg-[#D4AF37] text-black hover:bg-[#B8860B] transition-all duration-300 hover:scale-105 font-bold" 
                   disabled={submitting}
                   onClick={async () => {
                     if (!customerData?.id || !customerName) return;
@@ -1320,6 +1311,7 @@ function ClientPortalComponent() {
                         .from('customers')
                         .update({ 
                           name: customerName,
+                          email: customerData.email,
                           birth_date: customerData.birth_date
                         })
                         .eq('id', customerData.id);
