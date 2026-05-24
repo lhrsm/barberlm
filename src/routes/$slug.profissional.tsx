@@ -517,7 +517,7 @@ function ProfessionalDashboard() {
                   );
                 }).length === 0 ? (
                 <div className="space-y-4">
-                  <Card className="border-dashed py-12">
+                  <Card className="border-dashed py-12 bg-white text-black border-2 border-slate-100 shadow-sm">
                     <CardContent className="flex flex-col items-center justify-center text-muted-foreground text-center">
                       <Calendar className="h-12 w-12 opacity-20 mb-4" />
                       <p className="font-medium">Nenhum atendimento para hoje.</p>
@@ -623,7 +623,8 @@ function ProfessionalDashboard() {
 
           <TabsContent value="history" className="mt-6 space-y-6">
              <div className="grid gap-6 md:grid-cols-2">
-                <Card>
+                <Card className="bg-white border-2 border-slate-100 shadow-sm text-black">
+
                   <CardHeader>
                     <CardTitle className="text-lg">Extrato Recente</CardTitle>
                     <CardDescription>Suas últimas entradas e comissões.</CardDescription>
@@ -670,7 +671,8 @@ function ProfessionalDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-white border-2 border-slate-100 shadow-sm text-black">
+
                   <CardHeader>
                     <CardTitle className="text-lg">Resumo de Ganhos</CardTitle>
                     <CardDescription>Distribuição do faturamento gerado.</CardDescription>
@@ -707,7 +709,8 @@ function ProfessionalDashboard() {
 
           <TabsContent value="profile" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card>
+              <Card className="bg-white border-2 border-slate-100 shadow-sm text-black">
+
                 <CardHeader>
                   <CardTitle className="text-lg">Meu Perfil Profissional</CardTitle>
                   <CardDescription>Como você aparece para os clientes.</CardDescription>
@@ -747,7 +750,7 @@ function ProfessionalDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white border-2 border-slate-100 shadow-sm text-black">
                 <CardHeader>
                   <CardTitle className="text-lg">Horários & Disponibilidade</CardTitle>
                   <CardDescription>Gerencie seus turnos de trabalho.</CardDescription>
