@@ -549,7 +549,7 @@ function BarbersComponent() {
             </div>
           ) : (
             barbers.map((barber) => (
-              <div key={barber.id} className="p-6 border rounded-xl bg-card shadow-sm">
+              <div key={barber.id} className="p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm hover:border-slate-300 transition-all duration-300">
                 <div className="flex items-center gap-4 mb-4">
                   <Avatar className="h-12 w-12">
                     {barber.avatar_url ? (
@@ -562,7 +562,7 @@ function BarbersComponent() {
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-lg">{barber.name}</h3>
+                      <h3 className="font-bold text-lg text-slate-900">{barber.name}</h3>
                       <button 
                         onClick={() => handleToggleStatus(barber)}
                         className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors ${
