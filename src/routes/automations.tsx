@@ -449,15 +449,15 @@ function AutomationsComponent() {
                               variant="outline" 
                               size="sm" 
                               onClick={() => openEditModal(item.id)} 
-                              className="flex-1 h-10 border-white/10 hover:bg-muted font-bold rounded-xl gap-2"
+                              className="flex-1 h-10 border-slate-200 hover:bg-black hover:text-white hover:scale-105 transition-all font-bold rounded-xl gap-2"
                             >
                               <Settings2 size={14} /> Configurar
                             </Button>
                             <Button 
-                              variant="ghost" 
+                              variant="default" 
                               size="sm" 
                               onClick={() => toast.info("Automação de teste enviada!")}
-                              className="px-3 h-10 font-bold hover:bg-muted rounded-xl gap-2"
+                              className="px-3 h-10 font-bold bg-slate-900 text-white hover:scale-105 transition-all rounded-xl gap-2"
                             >
                               <Play size={14} /> Testar
                             </Button>
