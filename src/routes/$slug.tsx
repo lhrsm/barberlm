@@ -1648,11 +1648,11 @@ function ShopPageComponent() {
                 </div>
 
                 <div className="space-y-6">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Horários Disponíveis</h5>
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Horários Disponíveis</h5>
                   
                   {fetchingTimes ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary" style={{ borderTopColor: primaryColor }} />
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#D4AF37]" />
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando horários...</p>
                     </div>
                   ) : availableTimes.length > 0 ? (
