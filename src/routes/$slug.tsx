@@ -1213,7 +1213,7 @@ function ShopPageComponent() {
                       <div className="pt-4 border-t border-gray-100 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex flex-col">
-                            <span className="text-2xl font-black text-white">R$ {Number(product.price).toFixed(2)}</span>
+                            <span className="text-2xl font-black text-black">R$ {Number(product.price).toFixed(2)}</span>
                             {product.promotional_price && (
                               <span className="text-xs text-slate-500 line-through font-bold">R$ {Number(product.promotional_price).toFixed(2)}</span>
                             )}
