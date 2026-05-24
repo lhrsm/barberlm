@@ -1293,10 +1293,10 @@ function ClientPortalComponent() {
         </DialogContent>
       </Dialog>
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto border-[#D4AF37] border-2">
           <DialogHeader>
-            <DialogTitle>Novo Agendamento</DialogTitle>
-            <DialogDescription>Preencha os dados abaixo para agendar seu novo serviço.</DialogDescription>
+            <DialogTitle className="text-black">Novo Agendamento</DialogTitle>
+            <DialogDescription className="text-gray-600">Preencha os dados abaixo para agendar seu novo serviço.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <iframe 
