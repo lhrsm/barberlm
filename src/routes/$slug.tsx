@@ -108,20 +108,25 @@ function ShopPageComponent() {
       
       // Auto trigger phone check if embedded with phone
       const timer = setTimeout(() => {
-        handlePhoneCheckWithParams(initialPhone);
+        handlePhoneCheckWithParams(initialPhone, initialName);
       }, 500);
       return () => clearTimeout(timer);
+    } else if (isEmbedded) {
+      setIsBookingOpen(true);
     }
   }, [isEmbedded, initialPhone, initialName, shop?.id]);
 
-  const handlePhoneCheckWithParams = async (phone: string) => {
+  const handlePhoneCheckWithParams = async (phone: string, name?: string) => {
     if (!phone || phone.length < 8 || !shop?.id) return;
     setSubmitting(true);
     try {
       const customer = await checkCustomerCashback(phone);
+      if (name) setCustomerName(name);
+      setIsBookingOpen(true);
       setBookingStep(2);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error checking phone:", error);
+      toast.error(error.message || "Erro ao verificar identificação");
     } finally {
       setSubmitting(false);
     }
