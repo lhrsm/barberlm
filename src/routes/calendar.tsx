@@ -86,20 +86,9 @@ function CalendarComponent() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isNewCustomerDialogOpen, setIsNewCustomerDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
 
   const canAddAppointment = checkLimit("monthlyAppointments");
-
-  // Form State
-  const [selectedCustomer, setSelectedCustomer] = useState("");
-  const [newCustomer, setNewCustomer] = useState({ name: "", phone: "" });
-  const [selectedService, setSelectedService] = useState("");
-  const [selectedBarber, setSelectedBarber] = useState("");
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [selectedTime, setSelectedTime] = useState("08:00");
-  const [paymentMethod, setPaymentMethod] = useState("cash");
 
   useEffect(() => {
     if (!loading && !user) {
