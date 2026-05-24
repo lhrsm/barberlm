@@ -1367,7 +1367,7 @@ function ShopPageComponent() {
               </div>
 
               <div className="space-y-6">
-                <h5 className="font-black uppercase tracking-widest text-xs text-primary" style={{ color: primaryColor }}>Localização</h5>
+                <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Localização</h5>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <MapPin size={18} className="text-slate-500 shrink-0" />
