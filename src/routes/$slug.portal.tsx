@@ -1242,16 +1242,8 @@ function ClientPortalComponent() {
                         type="email"
                         placeholder="seu@email.com"
                         className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#D4AF37]"
-                        defaultValue={customerData?.email || ""}
-                        onBlur={async (e) => {
-                          if (!customerData?.id) return;
-                          const email = e.target.value;
-                          const { error } = await supabase
-                            .from('customers')
-                            .update({ email })
-                            .eq('id', customerData.id);
-                          if (!error) toast.success("E-mail atualizado!");
-                        }}
+                        value={customerData?.email || ""}
+                        onChange={(e) => setCustomerData({ ...customerData, email: e.target.value })}
                       />
                     </div>
                   </div>
