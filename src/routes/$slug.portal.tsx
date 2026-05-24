@@ -1260,7 +1260,7 @@ function ClientPortalComponent() {
               <Label>Novo Horário</Label>
               {fetchingTimes ? (
                 <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
                 </div>
               ) : availableTimes.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto p-1">
