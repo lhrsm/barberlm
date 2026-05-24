@@ -1380,7 +1380,7 @@ function ShopPageComponent() {
               </div>
 
               <div className="space-y-6">
-                <h5 className="font-black uppercase tracking-widest text-xs text-primary" style={{ color: primaryColor }}>Links Rápidos</h5>
+                <h5 className="font-black uppercase tracking-widest text-xs text-[#D4AF37]">Links Rápidos</h5>
                 <nav className="flex flex-col gap-3 text-sm font-medium text-slate-500">
                   <a href="#inicio" className="hover:text-white transition-colors">Início</a>
                   <a href="#servicos" className="hover:text-white transition-colors">Serviços</a>
