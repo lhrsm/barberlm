@@ -390,15 +390,16 @@ function CalendarComponent() {
               initialStep={modalInitialData.step}
               onSuccess={() => fetchData()}
               trigger={
-                <Button className="gap-2" variant={canAddAppointment ? "default" : "secondary"}>
+                <Button className="gap-2 bg-black text-white hover:scale-110 transition-all duration-300" variant={canAddAppointment ? "default" : "secondary"}>
                   <Plus size={18} /> <span className="hidden md:inline">Novo Agendamento</span>
+
                 </Button>
               }
             />
           </div>
         </div>
 
-        <Card className="flex-1 overflow-hidden flex flex-col">
+        <Card className="flex-1 overflow-hidden flex flex-col bg-white border-2 border-slate-100 shadow-sm text-black">
           <div className="p-4 border-b flex items-center justify-between bg-muted/30">
             <div className="flex items-center gap-4">
               <Button variant="outline" size="icon" onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}>
