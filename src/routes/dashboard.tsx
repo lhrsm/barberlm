@@ -1439,90 +1439,114 @@ function DashboardComponent() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <TenantCharts tenantId={tenantId || ""} />
+            <div className="p-1 glass rounded-[2.5rem] border-white/5 bg-slate-950/50 backdrop-blur-xl">
+               <TenantCharts tenantId={tenantId || ""} />
+            </div>
           </TabsContent>
 
           <TabsContent value="monthly" className="space-y-6">
-
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
+              <Card className="bg-white border-2 border-blue-500/30 shadow-lg shadow-blue-500/5 hover:border-blue-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Serviços Vendidos (Mês)</CardTitle>
-                  <Scissors className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-blue-900">Serviços Vendidos (Mês)</CardTitle>
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Scissors className="h-4 w-4 text-blue-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">R$ {stats.monthly.totalServicesValue.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Valor total dos serviços no mês</p>
+                  <div className="text-3xl font-black tracking-tighter text-blue-700">R$ {stats.monthly.totalServicesValue.toFixed(2)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-blue-500/60 mt-1">Valor total no mês</p>
                 </CardContent>
               </Card>
-              <Card>
+
+              <Card className="bg-white border-2 border-green-500/30 shadow-lg shadow-green-500/5 hover:border-green-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-green-700">Entrada Real (Mês)</CardTitle>
-                  <CircleDollarSign className="h-4 w-4 text-green-600" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-green-900">Entrada Real (Mês)</CardTitle>
+                  <div className="p-2 bg-green-500/10 rounded-lg">
+                    <CircleDollarSign className="h-4 w-4 text-green-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-700">R$ {stats.monthly.realCashInflow.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Dinheiro novo em caixa no mês</p>
+                  <div className="text-3xl font-black tracking-tighter text-green-700">R$ {stats.monthly.realCashInflow.toFixed(2)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-green-500/60 mt-1">Dinheiro novo em caixa</p>
                 </CardContent>
               </Card>
-              <Card>
+
+              <Card className="bg-white border-2 border-purple-500/30 shadow-lg shadow-purple-500/5 hover:border-purple-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-purple-700">Créditos Usados (Mês)</CardTitle>
-                  <Wallet className="h-4 w-4 text-purple-600" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-purple-900">Créditos Usados (Mês)</CardTitle>
+                  <div className="p-2 bg-purple-500/10 rounded-lg">
+                    <Wallet className="h-4 w-4 text-purple-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-purple-700">R$ {stats.monthly.creditsUsed.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Abatido via créditos no mês</p>
+                  <div className="text-3xl font-black tracking-tighter text-purple-700">R$ {stats.monthly.creditsUsed.toFixed(2)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-purple-500/60 mt-1">Abatido via créditos</p>
                 </CardContent>
               </Card>
-              <Card className="bg-orange-50/50 border-orange-100">
+
+              <Card className="bg-white border-2 border-orange-500/30 shadow-lg shadow-orange-500/5 hover:border-orange-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-orange-700">Cashback Utilizado (Mês)</CardTitle>
-                  <ArrowUpRight className="h-4 w-4 text-orange-600" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-orange-900">Cashback Utilizado (Mês)</CardTitle>
+                  <div className="p-2 bg-orange-500/10 rounded-lg">
+                    <ArrowUpRight className="h-4 w-4 text-orange-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-orange-700">R$ {stats.monthly.cashbackUsed.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Abatimento via cashback</p>
+                  <div className="text-3xl font-black tracking-tighter text-orange-700">R$ {stats.monthly.cashbackUsed.toFixed(2)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-orange-500/60 mt-1">Abatimento via cashback</p>
                 </CardContent>
               </Card>
-              <Card className="bg-yellow-50/50 border-yellow-100">
+
+              <Card className="bg-white border-2 border-yellow-500/30 shadow-lg shadow-yellow-500/5 hover:border-yellow-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-yellow-700">Cashback Gerado (Mês)</CardTitle>
-                  <ArrowDownRight className="h-4 w-4 text-yellow-600" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-yellow-900">Cashback Gerado (Mês)</CardTitle>
+                  <div className="p-2 bg-yellow-500/10 rounded-lg">
+                    <ArrowDownRight className="h-4 w-4 text-yellow-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-yellow-700">R$ {stats.monthly.cashbackEarned.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">Novos saldos de cashback</p>
+                  <div className="text-3xl font-black tracking-tighter text-yellow-700">R$ {stats.monthly.cashbackEarned.toFixed(2)}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-yellow-500/60 mt-1">Novos saldos gerados</p>
                 </CardContent>
               </Card>
-              <Card>
+
+              <Card className="bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Agendamentos no Mês</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">Agendamentos (Mês)</CardTitle>
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <Calendar className="h-4 w-4 text-slate-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.monthly.appointments}</div>
-                  <p className="text-xs text-muted-foreground">Total de atendimentos marcados</p>
+                  <div className="text-3xl font-black tracking-tighter text-slate-900">{stats.monthly.appointments}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Total de horários marcados</p>
                 </CardContent>
               </Card>
-              <Card>
+
+              <Card className="bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Novos Clientes (Mês)</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">Novos Clientes (Mês)</CardTitle>
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <Users className="h-4 w-4 text-slate-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.monthly.newCustomers}</div>
-                  <p className="text-xs text-muted-foreground">Conquistados neste mês</p>
+                  <div className="text-3xl font-black tracking-tighter text-slate-900">{stats.monthly.newCustomers}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Conquistados este mês</p>
                 </CardContent>
               </Card>
-              <Card>
+
+              <Card className="bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">Total de Clientes</CardTitle>
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <TrendingUp className="h-4 w-4 text-slate-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.total.customers}</div>
-                  <p className="text-xs text-muted-foreground">Base de dados completa</p>
+                  <div className="text-3xl font-black tracking-tighter text-slate-900">{stats.total.customers}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500 mt-1">Base de dados completa</p>
                 </CardContent>
               </Card>
             </div>
