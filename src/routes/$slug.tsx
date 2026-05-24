@@ -1154,7 +1154,7 @@ function ShopPageComponent() {
                   transition={{ delay: idx * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="group bg-[#0a0a0a] border-white/5 rounded-[2.5rem] overflow-hidden hover:border-primary/30 transition-all duration-500 flex flex-col h-full">
+                  <Card className="group bg-white border-gray-100 rounded-[2.5rem] overflow-hidden hover:border-[#D4AF37]/30 transition-all duration-500 flex flex-col h-full shadow-lg">
                     <div className="aspect-square relative overflow-hidden bg-[#111]">
                       {product.image_url ? (
                         <img 
