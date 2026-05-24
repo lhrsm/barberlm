@@ -34,9 +34,20 @@ interface AppointmentModalProps {
   onSuccess?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  initialDate?: string;
+  initialTime?: string;
+  initialStep?: number;
 }
 
-export function AppointmentModal({ trigger, onSuccess, open: externalOpen, onOpenChange }: AppointmentModalProps) {
+export function AppointmentModal({ 
+  trigger, 
+  onSuccess, 
+  open: externalOpen, 
+  onOpenChange,
+  initialDate,
+  initialTime,
+  initialStep = 1
+}: AppointmentModalProps) {
   const { user, role } = useAuth();
   const { checkLimit, limits, refresh: refreshLimits } = usePlanLimits();
   
