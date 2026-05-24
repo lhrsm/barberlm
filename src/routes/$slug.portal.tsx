@@ -1087,10 +1087,10 @@ function ClientPortalComponent() {
           </TabsContent>
 
           <TabsContent value="purchases" className="pt-6">
-            <Card className="bg-white border-gray-200 shadow-md">
+            <Card className="bg-white/5 border-white/10 shadow-md">
               <CardHeader>
-                <CardTitle className="text-black">Suas Compras</CardTitle>
-                <CardDescription className="text-gray-500">Os reembolsos podem ser solicitados em até 7 dias após a compra.</CardDescription>
+                <CardTitle className="text-white">Suas Compras</CardTitle>
+                <CardDescription className="text-gray-400">Os reembolsos podem ser solicitados em até 7 dias após a compra.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
