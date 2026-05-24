@@ -1438,7 +1438,7 @@ function ShopPageComponent() {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/10 text-white" 
+                  className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 text-black" 
                   onClick={() => {
                     if (bookingStep === 5 && paymentMethod) {
                       setPaymentMethod(null);
@@ -1449,7 +1449,7 @@ function ShopPageComponent() {
                   <ArrowLeft size={20} />
                 </Button>
               )}
-              <DialogTitle className="text-xl font-bold tracking-tight text-white">
+              <DialogTitle className="text-xl font-bold tracking-tight text-black">
                 {bookingStep === 1 && "Bem-vindo"}
                 {bookingStep === 2 && "O que faremos?"}
                 {bookingStep === 3 && "Quem atende?"}
