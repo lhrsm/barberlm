@@ -812,15 +812,25 @@ function ClientPortalComponent() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="reg-birth" className="text-black font-semibold">Data de Nascimento (dd/mm/aaaa)</Label>
+                    <Label htmlFor="reg-birth" className="text-black font-semibold">Data de Nascimento</Label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input 
                         id="reg-birth" 
-                        type="date"
+                        type="text"
+                        placeholder="dd/mm/aaaa"
                         className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
                         value={customerBirthDate} 
-                        onChange={(e) => setCustomerBirthDate(e.target.value)} 
+                        onChange={(e) => {
+                          let value = e.target.value.replace(/\D/g, "");
+                          if (value.length > 8) value = value.slice(0, 8);
+                          if (value.length > 4) {
+                            value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
+                          } else if (value.length > 2) {
+                            value = `${value.slice(0, 2)}/${value.slice(2)}`;
+                          }
+                          setCustomerBirthDate(value);
+                        }} 
                         required
                       />
                     </div>
