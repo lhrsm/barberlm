@@ -1415,7 +1415,7 @@ function ShopPageComponent() {
             </div>
 
             <div className="pt-8 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-600">© 2026 {shop.business_name} - Premium Experience</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-600">© 2026 {shop?.business_name} - Premium Experience</p>
               <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-800">Powered by BarberSaaS Elite</p>
             </div>
           </div>
