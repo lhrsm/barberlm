@@ -913,13 +913,13 @@ function ClientPortalComponent() {
 
   return (
     <div className="min-h-screen bg-black pb-20">
-      <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
+      <header className="bg-black border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="font-bold text-lg flex items-center gap-2 text-black">
-            <UserIcon size={20} className="text-[#D4AF37]" />
+          <h1 className="font-bold text-lg flex items-center gap-2 text-[#D4AF37]">
+            <UserIcon size={20} />
             Portal do Cliente
           </h1>
-          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair" className="text-black hover:bg-gray-100">
+          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair" className="text-white hover:bg-white/10">
             <LogOut size={20} />
           </Button>
         </div>
