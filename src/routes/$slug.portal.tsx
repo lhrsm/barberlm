@@ -1240,10 +1240,10 @@ function ClientPortalComponent() {
       </main>
 
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] border-[#D4AF37] border-2">
           <DialogHeader>
-            <DialogTitle>Alterar Agendamento</DialogTitle>
-            <DialogDescription>Escolha uma nova data e horário para seu serviço.</DialogDescription>
+            <DialogTitle className="text-black">Alterar Agendamento</DialogTitle>
+            <DialogDescription className="text-gray-600">Escolha uma nova data e horário para seu serviço.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
