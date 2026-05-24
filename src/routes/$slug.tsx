@@ -1521,7 +1521,7 @@ function ShopPageComponent() {
                 </div>
 
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Selecione o Serviço</h5>
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Selecione o Serviço</h5>
                   <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {services.map(s => (
                       <motion.div 
