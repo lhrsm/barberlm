@@ -161,7 +161,7 @@ export function AuthForm() {
               <Input
                 id="login-phone"
                 type="tel"
-                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
+                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black placeholder:text-black/60"
                 placeholder="(00) 00000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
