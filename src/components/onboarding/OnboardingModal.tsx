@@ -24,14 +24,8 @@ export function OnboardingModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const queryClient = useQueryClient();
+  const { user, role, loading: authLoading } = useAuth();
 
-  const { data: user } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    }
-  });
 
   const { data: settings } = useQuery({
     queryKey: ["onboarding-settings"],
@@ -66,13 +60,13 @@ export function OnboardingModal() {
     // Check session storage first to see if shown in this session
     const hasBeenShownThisSession = sessionStorage.getItem(`onboarding_shown_${user?.id}`);
     
-    if (!prefsLoading && settings && !hasBeenShownThisSession && (!preferences || preferences.show_onboarding)) {
+    if (!prefsLoading && !authLoading && settings && !hasBeenShownThisSession && (!preferences || preferences.show_onboarding) && role === 'tenant_admin') {
       setIsOpen(true);
       if (user?.id) {
         sessionStorage.setItem(`onboarding_shown_${user.id}`, 'true');
       }
     }
-  }, [prefsLoading, settings, preferences, user?.id]);
+  }, [prefsLoading, authLoading, settings, preferences, user?.id, role]);
 
   const updatePrefsMutation = useMutation({
     mutationFn: async (show: boolean) => {
