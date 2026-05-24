@@ -987,14 +987,14 @@ function ClientPortalComponent() {
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[500px] bg-gray-100 p-1 rounded-xl">
-            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
+          <TabsList className="grid w-full grid-cols-3 max-w-[500px] bg-white/5 p-1 rounded-xl">
+            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
-            <TabsTrigger value="purchases" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
+            <TabsTrigger value="purchases" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
               <ShoppingBag size={16} /> Compras
             </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
+            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
               <UserIcon size={16} /> Perfil
             </TabsTrigger>
           </TabsList>
