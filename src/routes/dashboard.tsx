@@ -955,11 +955,14 @@ function DashboardComponent() {
             <CardContent className="py-6 text-center space-y-4">
               {isTrial ? (
                 <>
-                  <div className="bg-amber-100/50 border border-amber-200 rounded-2xl p-3 flex items-center gap-3 mb-4 animate-in fade-in zoom-in duration-500">
-                    <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-                    <div className="text-left">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 leading-none">Aviso de Sistema</p>
-                      <p className="text-xs font-bold text-amber-700/80">Você está usando a versão experimental de 15 dias.</p>
+                  <div className="bg-gradient-to-br from-amber-500/10 to-yellow-500/10 border-2 border-amber-500/30 rounded-[2rem] p-5 flex flex-col items-center text-center gap-3 mb-6 shadow-lg shadow-amber-500/5 animate-in fade-in zoom-in duration-700">
+                    <div className="p-3 bg-amber-500 rounded-2xl text-white shadow-lg shadow-amber-500/40">
+                      <AlertCircle className="h-6 w-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700 leading-none mb-1">Aviso Prioritário</p>
+                      <h4 className="text-sm font-black text-amber-900 uppercase italic">Período Experimental Ativo</h4>
+                      <p className="text-xs font-bold text-amber-800/80 leading-relaxed">Você possui <span className="text-amber-600 underline decoration-amber-500/30 underline-offset-2">{trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia restante' : 'dias restantes'}</span> de um total de 15 dias para testar todas as funcionalidades premium.</p>
                     </div>
                   </div>
                   <div className="flex justify-center mb-2">
