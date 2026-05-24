@@ -60,6 +60,7 @@ export function AppointmentModal({
   const [barbers, setBarbers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
+  const [barberServices, setBarberServices] = useState<any[]>([]);
   const [isNewCustomerDialogOpen, setIsNewCustomerDialogOpen] = useState(false);
 
   // Form State
@@ -101,10 +102,11 @@ export function AppointmentModal({
       if (barberData) tenantId = barberData.user_id;
     }
 
-    const [barbRes, custRes, servRes] = await Promise.all([
+    const [barbRes, custRes, servRes, barbServRes] = await Promise.all([
       supabase.from("barbers").select("*").eq("user_id", tenantId).eq("active", true).order("name"),
       supabase.from("customers").select("*").eq("user_id", tenantId).order("name"),
       supabase.from("services").select("*").eq("user_id", tenantId).eq("active", true).order("name"),
+      supabase.from("barber_services").select("*").eq("user_id", tenantId)
     ]);
 
     if (barbRes.data) {
@@ -125,7 +127,26 @@ export function AppointmentModal({
         setSelectedService(servRes.data[0].id);
       }
     }
+    if (barbServRes.data) {
+      setBarberServices(barbServRes.data);
+    }
   }
+
+  const filteredServices = React.useMemo(() => {
+    if (!selectedBarber) return services;
+    
+    // Get IDs of services linked to the selected barber
+    const linkedServiceIds = barberServices
+      .filter(bs => bs.barber_id === selectedBarber)
+      .map(bs => bs.service_id);
+    
+    // If no services are linked to the barber, show all (fallback) or show none?
+    // Usually, if a barber has NO services linked in barber_services, they might not be set up yet.
+    // However, to follow the request strictly: "only show services they provide"
+    if (linkedServiceIds.length === 0) return [];
+
+    return services.filter(s => linkedServiceIds.includes(s.id));
+  }, [services, barberServices, selectedBarber]);
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
@@ -320,7 +341,14 @@ export function AppointmentModal({
                   <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                     <div className="space-y-2">
                       <Label>Profissional</Label>
-                      <Select value={selectedBarber} onValueChange={setSelectedBarber} required>
+                      <Select 
+                        value={selectedBarber} 
+                        onValueChange={(val) => {
+                          setSelectedBarber(val);
+                          setSelectedService(""); // Reset service when barber changes
+                        }} 
+                        required
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o profissional" />
                         </SelectTrigger>
@@ -335,10 +363,10 @@ export function AppointmentModal({
                       <Label>Serviço</Label>
                       <Select value={selectedService} onValueChange={setSelectedService} required>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o serviço" />
+                          <SelectValue placeholder={filteredServices.length > 0 ? "Selecione o serviço" : "Nenhum serviço disponível para este profissional"} />
                         </SelectTrigger>
                         <SelectContent>
-                          {services.map((s) => (
+                          {filteredServices.map((s) => (
                             <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price}</SelectItem>
                           ))}
                         </SelectContent>
