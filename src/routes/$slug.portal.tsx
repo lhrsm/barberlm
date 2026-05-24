@@ -1012,7 +1012,7 @@ function ClientPortalComponent() {
                               {sale.status === 'completed' ? 'Concluído' : sale.status === 'refunded' ? 'Reembolsado' : 'Pendente'}
                             </Badge>
                           </div>
-                          <span className="font-bold text-lg text-primary">R$ {sale.total_amount.toFixed(2)}</span>
+                          <span className="font-bold text-lg text-black">R$ {sale.total_amount.toFixed(2)}</span>
                         </div>
                         <div className="bg-muted/30 p-3 rounded-lg">
                           <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Itens:</p>
