@@ -844,7 +844,7 @@ function DashboardComponent() {
                   className={cn(
                     "rounded-xl px-8 font-black uppercase italic tracking-widest transition-all hover:scale-105 active:scale-95",
                     isExpired ? "bg-red-600 hover:bg-red-700 text-white" : 
-                    "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/20"
+                    "bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg shadow-amber-500/20 border-b-4 border-amber-700"
                   )}
                   asChild
                 >
