@@ -806,14 +806,15 @@ function ClientPortalComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-20">
-      <header className="bg-background border-b sticky top-0 z-50">
+  return (
+    <div className="min-h-screen bg-[#fdfdfd] pb-20">
+      <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="font-bold text-lg flex items-center gap-2">
-            <UserIcon size={20} className="text-primary" />
+          <h1 className="font-bold text-lg flex items-center gap-2 text-black">
+            <UserIcon size={20} className="text-[#D4AF37]" />
             Portal do Cliente
           </h1>
-          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair">
+          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair" className="text-black hover:bg-gray-100">
             <LogOut size={20} />
           </Button>
         </div>
@@ -826,74 +827,77 @@ function ClientPortalComponent() {
               <img 
                 src={customerData.avatar_url} 
                 alt={client.name} 
-                className="h-14 w-14 rounded-full object-cover border-2 border-primary/20"
+                className="h-16 w-16 rounded-full object-cover border-2 border-[#D4AF37]"
               />
             ) : (
-              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary border-2 border-primary/20">
-                <UserIcon size={28} />
+              <div className="h-16 w-16 rounded-full bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] border-2 border-[#D4AF37]">
+                <UserIcon size={32} />
               </div>
             )}
             <div>
-              <h2 className="text-2xl font-bold">Olá, {client.name}!</h2>
-              <p className="text-sm text-muted-foreground">Bem-vindo à sua área exclusiva na {shop?.business_name}.</p>
+              <h2 className="text-2xl font-bold text-black">Olá, {client.name}!</h2>
+              <p className="text-sm text-gray-600">Bem-vindo à sua área exclusiva na <span className="font-semibold text-black">{shop?.business_name}</span>.</p>
             </div>
           </div>
-          <Button onClick={() => setIsBookingOpen(true)} className="gap-2">
+          <Button 
+            onClick={() => setIsBookingOpen(true)} 
+            className="gap-2 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-105"
+          >
             <Calendar size={18} /> Novo Agendamento
           </Button>
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">
-          <Card>
+          <Card className="bg-white border-gray-200 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription>Total de Serviços</CardDescription>
-              <CardTitle className="text-2xl font-bold">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
+              <CardDescription className="text-gray-500">Total de Serviços</CardDescription>
+              <CardTitle className="text-2xl font-bold text-black">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="bg-white border-gray-200 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription>Fidelidade</CardDescription>
-              <CardTitle className="text-2xl font-bold flex items-center justify-between">
+              <CardDescription className="text-gray-500">Fidelidade</CardDescription>
+              <CardTitle className="text-2xl font-bold flex items-center justify-between text-black">
                 <span>{customerData?.loyalty_points || 0} / 10</span>
                 {customerData?.loyalty_points >= 10 && (
-                  <Button size="sm" onClick={handleClaimLoyaltyReward} disabled={submitting} className="h-7 text-[10px] bg-amber-500 hover:bg-amber-600">
+                  <Button size="sm" onClick={handleClaimLoyaltyReward} disabled={submitting} className="h-7 text-[10px] bg-[#D4AF37] hover:bg-[#B8860B] text-white">
                     Resgatar
                   </Button>
                 )}
               </CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="bg-white border-gray-200 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription>Créditos</CardDescription>
+              <CardDescription className="text-gray-500">Créditos</CardDescription>
               <CardTitle className="text-2xl font-bold text-green-600">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="bg-white border-gray-200 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription>Cashback</CardDescription>
-              <CardTitle className="text-2xl font-bold text-primary">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
+              <CardDescription className="text-gray-500">Cashback</CardDescription>
+              <CardTitle className="text-2xl font-bold text-[#D4AF37]">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
             </CardHeader>
           </Card>
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
-            <TabsTrigger value="appointments" className="gap-2">
+          <TabsList className="grid w-full grid-cols-3 max-w-[500px] bg-gray-100 p-1 rounded-xl">
+            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
-            <TabsTrigger value="purchases" className="gap-2">
+            <TabsTrigger value="purchases" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
               <ShoppingBag size={16} /> Compras
             </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2">
+            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
               <UserIcon size={16} /> Perfil
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="appointments" className="pt-6">
-            <Card>
+            <Card className="bg-white border-gray-200 shadow-lg">
               <CardHeader>
-                <CardTitle>Histórico de Agendamentos</CardTitle>
+                <CardTitle className="text-black">Histórico de Agendamentos</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
