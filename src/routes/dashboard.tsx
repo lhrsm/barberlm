@@ -986,8 +986,8 @@ function DashboardComponent() {
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-medium">Precisando de mais recursos?</p>
-                  <Button size="lg" className="w-full" asChild>
+                  <p className="text-sm font-black uppercase tracking-widest text-amber-600 italic">Precisando de mais recursos?</p>
+                  <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-black uppercase italic tracking-widest shadow-xl shadow-amber-500/20 border-b-4 border-amber-700 transition-all hover:scale-[1.02] active:scale-95" asChild>
                     <Link to="/subscription">Ver Planos de Assinatura</Link>
                   </Button>
                 </>
