@@ -918,12 +918,12 @@ function ClientPortalComponent() {
                               <span className="flex items-center gap-1"><Clock size={14} /> {format(parseISO(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                                <span className="flex items-center gap-1"><UserIcon size={14} /> {app.barbers?.name}</span>
                                <Badge variant="outline" className="capitalize text-[10px]">
-                                 {app.payment_method === 'pix' ? 'Pago via PIX' : 
+                               {app.payment_method === 'pix' ? 'Pago via PIX' : 
                                   app.payment_method === 'credits' ? 'Pago com Créditos' : 
                                   app.payment_method === 'cashback' ? 'Pago com Cashback' : 'Pagar na Barbearia'}
                                </Badge>
                                {app.notes && app.notes.includes('Pagamento:') && (
-                                 <span className="text-[10px] text-primary font-medium">{app.notes}</span>
+                                 <span className="text-[10px] text-[#D4AF37] font-medium">{app.notes}</span>
                                )}
                                {app.status === 'cancelled' && app.refund_requested_at && (
                                  <Badge variant="outline" className={cn(
