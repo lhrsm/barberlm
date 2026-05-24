@@ -1447,32 +1447,34 @@ function ShopPageComponent() {
       }}>
         <DialogContent className={cn("sm:max-w-[480px] p-0 overflow-hidden bg-white border-2 border-[#D4AF37] h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
           <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar flex flex-col bg-gradient-to-b from-white/[0.02] to-transparent">
-          <DialogHeader className="flex-row items-center justify-between space-y-0 pb-6 shrink-0 border-b border-gray-100 mb-6">
-            <div className="flex items-center gap-3">
-              {bookingStep > 1 && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 text-black" 
-                  onClick={() => {
-                    if (bookingStep === 5 && paymentMethod) {
-                      setPaymentMethod(null);
-                    }
-                    setBookingStep(prev => prev - 1);
-                  }}
-                >
-                  <ArrowLeft size={20} />
-                </Button>
-              )}
-              <DialogTitle className="text-xl font-bold tracking-tight text-black">
-                {bookingStep === 1 && "Bem-vindo"}
-                {bookingStep === 2 && "O que faremos?"}
-                {bookingStep === 3 && "Quem atende?"}
-                {bookingStep === 4 && "Quando?"}
-                {bookingStep === 5 && "Confirmar"}
-              </DialogTitle>
-            </div>
-          </DialogHeader>
+          {!isEmbedded && (
+            <DialogHeader className="flex-row items-center justify-between space-y-0 pb-6 shrink-0 border-b border-gray-100 mb-6">
+              <div className="flex items-center gap-3">
+                {bookingStep > 1 && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 text-black" 
+                    onClick={() => {
+                      if (bookingStep === 5 && paymentMethod) {
+                        setPaymentMethod(null);
+                      }
+                      setBookingStep(prev => prev - 1);
+                    }}
+                  >
+                    <ArrowLeft size={20} />
+                  </Button>
+                )}
+                <DialogTitle className="text-xl font-bold tracking-tight text-black">
+                  {bookingStep === 1 && "Bem-vindo"}
+                  {bookingStep === 2 && "O que faremos?"}
+                  {bookingStep === 3 && "Quem atende?"}
+                  {bookingStep === 4 && "Quando?"}
+                  {bookingStep === 5 && "Confirmar"}
+                </DialogTitle>
+              </div>
+            </DialogHeader>
+          )}
 
           <div className="flex-1 pr-1">
             {bookingStep === 1 && (
