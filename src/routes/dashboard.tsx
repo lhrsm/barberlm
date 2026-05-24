@@ -33,7 +33,8 @@ import {
   Gift,
   Eye,
   StopCircle,
-  Rocket
+  Rocket,
+  AlertCircle
 } from "lucide-react";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -954,6 +955,13 @@ function DashboardComponent() {
             <CardContent className="py-6 text-center space-y-4">
               {isTrial ? (
                 <>
+                  <div className="bg-amber-100/50 border border-amber-200 rounded-2xl p-3 flex items-center gap-3 mb-4 animate-in fade-in zoom-in duration-500">
+                    <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                    <div className="text-left">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 leading-none">Aviso de Sistema</p>
+                      <p className="text-xs font-bold text-amber-700/80">Você está usando a versão experimental de 15 dias.</p>
+                    </div>
+                  </div>
                   <div className="flex justify-center mb-2">
                     <div className="p-3 bg-amber-100 rounded-full text-amber-600 animate-pulse">
                       <Clock size={24} />
@@ -986,6 +994,12 @@ function DashboardComponent() {
                 </>
               ) : (
                 <>
+                  {trialDaysRemaining > 0 && (
+                    <div className="bg-amber-100/30 border border-amber-200/50 rounded-xl p-2 flex items-center gap-2 mb-2 animate-in fade-in slide-in-from-top-2 duration-500">
+                      <AlertCircle className="h-3 w-3 text-amber-600" />
+                      <p className="text-[10px] font-bold text-amber-700">Atenção: Você tem {trialDaysRemaining} dias de teste restantes.</p>
+                    </div>
+                  )}
                   <p className="text-sm font-black uppercase tracking-widest text-amber-600 italic">Precisando de mais recursos?</p>
                   <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-black uppercase italic tracking-widest shadow-xl shadow-amber-500/20 border-b-4 border-amber-700 transition-all hover:scale-[1.02] active:scale-95" asChild>
                     <Link to="/subscription">Ver Planos de Assinatura</Link>
