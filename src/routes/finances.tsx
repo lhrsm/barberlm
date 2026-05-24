@@ -488,9 +488,9 @@ function FinancesComponent() {
           "grid gap-4",
           role === 'barber' ? "md:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
         )}>
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-blue-800">Faturamento Operacional</CardTitle>
+              <CardTitle className="text-sm font-semibold text-black">Faturamento Operacional</CardTitle>
               <div className="p-2 bg-blue-200/50 rounded-lg">
                 <Scissors className="h-4 w-4 text-blue-700" />
               </div>
@@ -501,7 +501,7 @@ function FinancesComponent() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold text-green-800">Fluxo de Caixa</CardTitle>
               <div className="p-2 bg-green-200/50 rounded-lg">
@@ -516,7 +516,7 @@ function FinancesComponent() {
 
           {role !== 'barber' && (
             <>
-              <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+              <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-semibold text-purple-800">Créditos Consumidos</CardTitle>
                   <div className="p-2 bg-purple-200/50 rounded-lg">
@@ -529,7 +529,7 @@ function FinancesComponent() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-red-50 to-red-100/50 border-red-200 shadow-sm hover:shadow-md transition-shadow">
+              <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-semibold text-red-800">Saídas</CardTitle>
                   <div className="p-2 bg-red-200/50 rounded-lg">
@@ -544,7 +544,7 @@ function FinancesComponent() {
             </>
           )}
 
-          <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 border-indigo-200 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold text-indigo-800">{role === 'barber' ? 'Minha Comissão' : 'Freelancers'}</CardTitle>
               <div className="p-2 bg-indigo-200/50 rounded-lg">
@@ -558,7 +558,7 @@ function FinancesComponent() {
           </Card>
 
           {role !== 'barber' && (
-            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200 shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-semibold text-emerald-800">Barbearia</CardTitle>
                 <div className="p-2 bg-emerald-200/50 rounded-lg">
@@ -572,7 +572,7 @@ function FinancesComponent() {
             </Card>
           )}
 
-          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-200 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold text-yellow-800">Pendente</CardTitle>
               <div className="p-2 bg-yellow-200/50 rounded-lg">
@@ -586,7 +586,7 @@ function FinancesComponent() {
           </Card>
 
           {role !== 'barber' && (
-            <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200 shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-semibold text-orange-800">Saldo Atual</CardTitle>
                 <div className="p-2 bg-orange-200/50 rounded-lg">

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
+import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -428,7 +429,7 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="appearance" className="space-y-4">
-              <Card>
+              <Card className="bg-white border-2 border-slate-200 text-black">
                 <CardHeader>
                   <CardTitle>Personalização Visual</CardTitle>
                   <CardDescription>Deixe a página com a cara da sua marca.</CardDescription>
@@ -760,7 +761,7 @@ function SettingsComponent() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white border-2 border-slate-200 text-black">
                 <CardHeader>
                   <CardTitle>Cartão Fidelidade</CardTitle>
                   <CardDescription>A cada X serviços realizados, o próximo é gratuito.</CardDescription>
@@ -797,7 +798,7 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="pix" className="space-y-4">
-              <Card>
+              <Card className="bg-white border-2 border-slate-200 text-black">
                 <CardHeader>
                   <CardTitle>Configuração de Pagamento PIX</CardTitle>
                   <CardDescription>Cadastre sua chave PIX para recebimentos diretos dos clientes.</CardDescription>
