@@ -50,6 +50,7 @@ export function usePlanLimits() {
     currentPeriodEnd: string | null;
     cancelAtPeriodEnd: boolean;
     stripeCustomerId: string | null;
+    priceId: string | null;
   } | null>(null);
   const [usage, setUsage] = useState({
     barbers: 0,
@@ -95,7 +96,7 @@ export function usePlanLimits() {
         const currentPlan = (profileRes.data.plan as string)?.toLowerCase() as PlanType || "free";
         setPlan(currentPlan);
         
-        // Calculate trial end (15 days from creation)
+        // Calculate trial end (15 days from creation as fallback)
         const createdAtStr = profileRes.data.created_at;
         const createdAt = createdAtStr ? new Date(createdAtStr) : new Date();
         const trialEnd = new Date(createdAt);
@@ -110,7 +111,13 @@ export function usePlanLimits() {
           currentPeriodEnd: subRes.data.current_period_end || null,
           cancelAtPeriodEnd: !!subRes.data.cancel_at_period_end,
           stripeCustomerId: subRes.data.stripe_customer_id || null,
+          priceId: subRes.data.price_id || null,
         });
+
+        // If status is 'trialing' and we have current_period_end, that is our actual trial end from Stripe
+        if (subRes.data.status === 'trialing' && subRes.data.current_period_end) {
+          setTrialEndsAt(subRes.data.current_period_end);
+        }
       } else {
         console.log("[usePlanLimits] No subscription found for user");
       }
@@ -131,13 +138,16 @@ export function usePlanLimits() {
   }
 
   const limits = (plan && PLAN_LIMITS[plan]) ? PLAN_LIMITS[plan] : PLAN_LIMITS.free;
-  console.log("[usePlanLimits] Resolved plan:", plan, "limits:", !!limits);
 
   const trialDaysRemaining = trialEndsAt 
     ? Math.max(0, differenceInDays(new Date(trialEndsAt), new Date()))
     : 0;
 
-  const isTrial = (plan === "free" || plan === "pro") && trialDaysRemaining > 0 && subscription?.status !== 'active';
+  // Plan logic:
+  // 1. If active/trialing subscription exists, prioritize that
+  // 2. Otherwise use profile plan
+  const isTrial = (subscription?.status === 'trialing') || (plan === 'free' && trialDaysRemaining > 0);
+  const isExpired = plan === 'free' && trialDaysRemaining <= 0 && subscription?.status !== 'active';
 
   const checkLimit = (type: keyof typeof usage) => {
     if (!limits) return false;
@@ -151,7 +161,9 @@ export function usePlanLimits() {
     usage,
     loading,
     trialDaysRemaining,
+    trialEndsAt,
     isTrial,
+    isExpired,
     subscription,
     checkLimit,
     refresh: fetchPlanAndUsage,
