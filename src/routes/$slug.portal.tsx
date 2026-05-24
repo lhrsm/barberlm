@@ -1159,10 +1159,10 @@ function ClientPortalComponent() {
           </TabsContent>
           
           <TabsContent value="profile" className="pt-6">
-            <Card className="bg-white border-gray-200 shadow-md">
+            <Card className="bg-white/5 border-white/10 shadow-md">
               <CardHeader>
-                <CardTitle className="text-black">Meu Perfil</CardTitle>
-                <CardDescription className="text-gray-500">Atualize suas informações de contato e foto de perfil.</CardDescription>
+                <CardTitle className="text-white">Meu Perfil</CardTitle>
+                <CardDescription className="text-gray-400">Atualize suas informações de contato e foto de perfil.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex flex-col items-center gap-4 py-4">
