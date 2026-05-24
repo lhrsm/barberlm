@@ -1566,19 +1566,19 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-8"
               >
-                <div className="grid gap-3 p-5 bg-white/[0.03] rounded-3xl border border-white/10">
-                  <Label className="text-xs font-black uppercase tracking-widest text-slate-500">Data Desejada</Label>
+                <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
+                  <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Data Desejada</Label>
                   <Input 
                     type="date" 
                     value={selectedDate} 
                     onChange={(e) => setSelectedDate(e.target.value)} 
                     min={format(new Date(), "yyyy-MM-dd")} 
-                    className="bg-black/40 border-white/5 text-white h-14 text-xl font-black rounded-2xl focus-visible:ring-primary/50"
+                    className="bg-white border-gray-200 text-black h-14 text-xl font-black rounded-2xl focus-visible:ring-[#D4AF37]/50"
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-primary" style={{ color: primaryColor }}>Quem irá te atender?</h5>
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Quem irá te atender?</h5>
                   
                   {loadingDayData ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
