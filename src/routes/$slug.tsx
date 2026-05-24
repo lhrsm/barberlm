@@ -1596,9 +1596,9 @@ function ShopPageComponent() {
                           whileTap={{ scale: 0.95 }}
                           className={cn(
                             "p-6 rounded-[2.5rem] cursor-pointer text-center space-y-4 transition-all relative overflow-hidden group border",
-                            selectedBarber?.id === b.id ? "border-primary bg-primary/20 shadow-2xl" : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
+                            selectedBarber?.id === b.id ? "border-[#D4AF37] bg-gray-50 shadow-2xl" : "bg-white border-gray-100 hover:bg-gray-50"
                           )}
-                          style={selectedBarber?.id === b.id ? { borderColor: primaryColor } : {}}
+                          style={selectedBarber?.id === b.id ? { borderColor: "#D4AF37" } : {}}
                           onClick={() => {
                             setSelectedBarber(b);
                             setBookingStep(4);
