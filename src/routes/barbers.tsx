@@ -507,7 +507,7 @@ function BarbersComponent() {
                       </div>
                     </div>
 
-                    <Button type="submit" className="w-full">Salvar Barbeiro</Button>
+                    <Button type="submit" className="w-full bg-black text-white hover:scale-105 transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Barbeiro</Button>
                   </form>
                 </>
               ) : (
@@ -829,7 +829,7 @@ function BarbersComponent() {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full">Salvar Alterações</Button>
+                <Button type="submit" className="w-full bg-black text-white hover:scale-105 transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Alterações</Button>
               </form>
             )}
           </DialogContent>

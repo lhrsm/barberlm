@@ -154,7 +154,7 @@ function ServicesComponent() {
                         onChange={(e) => setNewService({...newService, description: e.target.value})} 
                       />
                     </div>
-                    <Button type="submit" className="w-full">Salvar Serviço</Button>
+                    <Button type="submit" className="w-full bg-black text-white hover:scale-105 transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar Serviço</Button>
                   </form>
                 </>
               ) : (

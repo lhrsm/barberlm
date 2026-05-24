@@ -477,7 +477,7 @@ function FinancesComponent() {
                     onChange={(e) => setNewTransaction({...newTransaction, description: e.target.value})} 
                   />
                 </div>
-                <Button type="submit" className="w-full">Salvar</Button>
+                <Button type="submit" className="w-full bg-black text-white hover:scale-105 transition-all h-12 rounded-xl font-bold uppercase tracking-tight">Salvar</Button>
               </form>
             </DialogContent>
             </Dialog>
