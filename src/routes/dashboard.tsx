@@ -792,8 +792,70 @@ function DashboardComponent() {
           </div>
         </div>
         
+        {/* Banner de Trial Premium */}
+        {(isTrial || isExpired) && (
+          <div className={cn(
+            "relative overflow-hidden rounded-[2rem] p-6 mb-6 shadow-2xl transition-all duration-500 group",
+            isExpired ? "bg-slate-950 border border-red-500/30 shadow-red-500/10" : 
+            trialDaysRemaining <= 3 ? "bg-slate-950 border border-amber-500/30 shadow-amber-500/10" : 
+            "bg-slate-950 border border-purple-500/30 shadow-purple-500/10"
+          )}>
+            {/* Glow Effect */}
+            <div className={cn(
+              "absolute -top-24 -right-24 w-64 h-64 blur-[100px] opacity-20 rounded-full",
+              isExpired ? "bg-red-500" : 
+              trialDaysRemaining <= 3 ? "bg-amber-500" : 
+              "bg-purple-500"
+            )} />
+            
+            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div className={cn(
+                  "p-4 rounded-2xl shadow-inner flex items-center justify-center",
+                  isExpired ? "bg-red-500/10 text-red-500" : 
+                  trialDaysRemaining <= 3 ? "bg-amber-500/10 text-amber-500" : 
+                  "bg-purple-500/10 text-purple-500"
+                )}>
+                  {isExpired ? <AlertCircle className="w-8 h-8" /> : <Crown className="w-8 h-8 animate-pulse" />}
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black text-white italic tracking-tight flex items-center gap-2">
+                    {isExpired ? "PERÍODO DE TESTE EXPIRADO" : "STATUS DA ASSINATURA SAAS"}
+                    {!isExpired && <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50">TRIAL ATIVO</Badge>}
+                  </h3>
+                  <p className="text-gray-400 font-medium">
+                    {isExpired ? (
+                      "Seu período de 15 dias de teste chegou ao fim. Faça o upgrade para continuar usando todos os recursos."
+                    ) : trialDaysRemaining === 1 ? (
+                      "Seu período de teste termina amanhã. Não perca o acesso aos seus dados!"
+                    ) : trialDaysRemaining === 0 ? (
+                      "Seu período de teste expira hoje!"
+                    ) : (
+                      `Seu período de teste termina em ${trialDaysRemaining} dias.`
+                    )}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <Button 
+                  size="lg" 
+                  className={cn(
+                    "rounded-xl px-8 font-black uppercase italic tracking-widest transition-all hover:scale-105 active:scale-95",
+                    isExpired ? "bg-red-600 hover:bg-red-700 text-white" : 
+                    "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/20"
+                  )}
+                  asChild
+                >
+                  <Link to="/subscription">Escolher Plano</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {profile?.slug && (
-          <Card className="bg-primary/5 border-primary/20 overflow-hidden">
+          <Card className="bg-primary/5 border-primary/20 overflow-hidden mb-6">
             <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg text-primary">
