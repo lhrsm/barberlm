@@ -1715,11 +1715,11 @@ function ShopPageComponent() {
                   >
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                        <Gift size={24} className="text-primary" />
+                        <Gift size={24} className="text-[#D4AF37]" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-white uppercase tracking-tighter">Você tem cashback!</p>
-                        <p className="text-xs font-bold text-primary">Saldo: R$ {customerCashback.toFixed(2)}</p>
+                        <p className="text-sm font-black text-black uppercase tracking-tighter">Você tem cashback!</p>
+                        <p className="text-xs font-bold text-[#D4AF37]">Saldo: R$ {customerCashback.toFixed(2)}</p>
                       </div>
                     </div>
                     <Button 
