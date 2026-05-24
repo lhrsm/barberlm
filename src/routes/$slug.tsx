@@ -1253,7 +1253,7 @@ function ShopPageComponent() {
         </section>
 
         {/* Barbers Section */}
-        <section id="profissionais" className="py-24 bg-[#0f0f0f]">
+        <section id="profissionais" className="py-24 bg-black">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center space-y-4 mb-20">
               <span className="text-primary font-black uppercase tracking-[0.2em] text-sm" style={{ color: primaryColor }}>Elite Team</span>
