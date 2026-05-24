@@ -128,6 +128,7 @@ function ServicesComponent() {
       fetchServices();
       refreshLimits();
     }
+  }
 
   if (loading || !user) return null;
 
