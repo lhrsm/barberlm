@@ -2313,7 +2313,7 @@ function ShopPageComponent() {
           <div className="py-6 space-y-6 text-center">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground font-medium">Total a pagar:</p>
-              <p className="text-3xl font-bold" style={{ color: primaryColor }}>
+              <p className="text-3xl font-bold text-black">
                 R$ {calculateTotalBeforeCashback().toFixed(2)}
               </p>
             </div>
