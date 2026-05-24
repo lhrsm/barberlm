@@ -35,6 +35,7 @@ import {
   StopCircle,
   Rocket
 } from "lucide-react";
+import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, formatDistanceToNow, isSameDay } from "date-fns";
@@ -776,9 +777,17 @@ function DashboardComponent() {
                 </ScrollArea>
               </PopoverContent>
             </Popover>
-            <Button onClick={() => navigate({ to: "/calendar" })} className="gap-2">
-              <Calendar size={18} /> Novo Agendamento
-            </Button>
+            <AppointmentModal 
+              onSuccess={() => {
+                fetchTodayAppointments();
+                fetchStats();
+              }}
+              trigger={
+                <Button className="gap-2">
+                  <Calendar size={18} /> Novo Agendamento
+                </Button>
+              }
+            />
           </div>
         </div>
         

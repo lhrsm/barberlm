@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   RefreshCcw
 } from "lucide-react";
+import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -85,20 +86,10 @@ function CalendarComponent() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isNewCustomerDialogOpen, setIsNewCustomerDialogOpen] = useState(false);
+  const [modalInitialData, setModalInitialData] = useState<{date?: string, time?: string, step?: number}>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
 
   const canAddAppointment = checkLimit("monthlyAppointments");
-
-  // Form State
-  const [selectedCustomer, setSelectedCustomer] = useState("");
-  const [newCustomer, setNewCustomer] = useState({ name: "", phone: "" });
-  const [selectedService, setSelectedService] = useState("");
-  const [selectedBarber, setSelectedBarber] = useState("");
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [selectedTime, setSelectedTime] = useState("08:00");
-  const [paymentMethod, setPaymentMethod] = useState("cash");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -167,196 +158,10 @@ function CalendarComponent() {
     ]);
 
     if (appRes.data) setAppointments(appRes.data);
-    if (barbRes.data) {
-      setBarbers(barbRes.data);
-      if (barbRes.data.length > 0 && !selectedBarber) {
-        const initialBarber = role === 'barber' ? user.id : barbRes.data[0].id;
-        setSelectedBarber(initialBarber);
-      }
-    }
-    if (custRes.data) {
-      setCustomers(custRes.data);
-      if (custRes.data.length > 0 && !selectedCustomer) {
-        setSelectedCustomer(custRes.data[0].id);
-      }
-    }
-    if (servRes.data) {
-      setServices(servRes.data);
-      if (servRes.data.length > 0 && !selectedService) {
-        setSelectedService(servRes.data[0].id);
-      }
-    }
+    if (barbRes.data) setBarbers(barbRes.data);
+    if (custRes.data) setCustomers(custRes.data);
+    if (servRes.data) setServices(servRes.data);
   }
-
-  const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
-    const service = services.find(s => s.id === serviceId);
-    
-    // Ensure time has seconds for correct parsing
-    const timeWithSeconds = time.length === 5 ? `${time}:00` : time;
-    const startTime = parseISO(`${date}T${timeWithSeconds}`);
-    const endTime = addMinutes(startTime, service?.duration_minutes || 30);
-
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("id")
-      .eq("barber_id", barberId)
-      .neq("status", "cancelled")
-      .or(`start_time.lte.${startTime.toISOString()},end_time.gte.${startTime.toISOString()}`)
-      .or(`start_time.lt.${endTime.toISOString()},end_time.gt.${endTime.toISOString()}`)
-      .limit(1);
-
-    if (error) {
-      console.error("Erro ao verificar conflitos:", error);
-      return false;
-    }
-
-    return data && data.length > 0;
-  };
-
-  const handleNextStep = async () => {
-    if (currentStep === 2) {
-      setIsLoading(true);
-      const hasConflict = await checkConflict(selectedBarber, selectedDate, selectedTime, selectedService);
-      setIsLoading(false);
-      
-      if (hasConflict) {
-        toast.error("Este profissional já possui um agendamento neste horário.");
-        return;
-      }
-    }
-    setCurrentStep(prev => prev + 1);
-  };
-
-  const handleCreateCustomer = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.from("customers").insert({
-        user_id: user.id,
-        name: newCustomer.name,
-        phone: newCustomer.phone,
-      }).select().single();
-
-      if (error) throw error;
-
-      toast.success("Cliente cadastrado com sucesso!");
-      setCustomers(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
-      setSelectedCustomer(data.id);
-      setIsNewCustomerDialogOpen(false);
-      setNewCustomer({ name: "", phone: "" });
-    } catch (error: any) {
-      toast.error("Erro ao cadastrar cliente: " + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateAppointment = async (paymentStatus: string = "pending") => {
-    if (!user) return;
-    setIsLoading(true);
-
-    try {
-      const service = services.find(s => s.id === selectedService);
-      const timeWithSeconds = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
-      const startTime = parseISO(`${selectedDate}T${timeWithSeconds}`);
-      const endTime = addMinutes(startTime, service?.duration_minutes || 30);
-
-      const { data: appointmentData, error } = await supabase.from("appointments").insert({
-        user_id: user.id,
-        customer_id: selectedCustomer,
-        service_id: selectedService,
-        barber_id: selectedBarber,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        total_price: service?.price || 0,
-        original_total: service?.price || 0,
-        status: "scheduled",
-        payment_status: paymentStatus,
-        payment_method: paymentMethod === 'wallet' ? 'credits' : 'barbershop',
-        items: [{
-          id: selectedService,
-          name: service?.name,
-          type: 'service',
-          price: service?.price,
-          quantity: 1
-        }]
-      }).select().single();
-
-      if (error) throw error;
-
-      // Create notifications
-      const customer = customers.find(c => c.id === selectedCustomer);
-      const barber = barbers.find(b => b.id === selectedBarber);
-      const notificationMessage = `Agendamento manual: ${service?.name} para ${customer?.name} às ${selectedTime}`;
-      
-      // Admin notification
-      await supabase.from("notifications").insert({
-        user_id: user.id,
-        title: "Novo Agendamento (Manual)",
-        message: notificationMessage,
-        type: "appointment",
-        link: "/calendar"
-      });
-
-      // Barber notification
-      await supabase.from("notifications").insert({
-        user_id: user.id,
-        barber_id: selectedBarber,
-        title: "Novo Agendamento Manual",
-        message: notificationMessage,
-        type: "appointment",
-        link: "/calendar"
-      });
-
-      // We check if notifications are enabled in profile
-      const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", user.id).single();
-
-      if (profile?.whatsapp_enabled && customer?.phone) {
-        triggerWhatsAppMessage({
-          userId: user.id,
-          eventType: 'appointment_confirmation',
-          phone: customer.phone,
-          placeholders: {
-            cliente: customer.name,
-            horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
-            barbeiro: barber?.name || "Barbeiro",
-            valor: (service?.price || 0).toFixed(2),
-            customer_id: selectedCustomer
-          },
-          appointmentId: appointmentData.id
-        });
-      }
-
-      // Transações financeiras só devem ser criadas na conclusão (completeAppointment)
-      // Se for pagamento imediato, marcamos apenas como pago
-      if (paymentStatus === 'paid') {
-        toast.info("Pagamento marcado como concluído. A transação financeira será gerada ao finalizar o atendimento.");
-      }
-
-
-      toast.success("Agendamento criado com sucesso!");
-      setIsDialogOpen(false);
-      setCurrentStep(1);
-      fetchData();
-      refreshLimits();
-      
-      // Realtime Invalidation for other tabs/dashboards
-      const queryClient = (window as any).queryClient;
-      if (queryClient) {
-        queryClient.invalidateQueries({ queryKey: ["appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-      }
-    } catch (error: any) {
-      toast.error("Erro ao criar agendamento: " + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleMarkAsPaid = async (appointment: any) => {
     if (!user) return;
@@ -577,264 +382,19 @@ function CalendarComponent() {
               </TabsList>
             </Tabs>
 
-            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) setCurrentStep(1);
-            }}>
-              <DialogTrigger asChild>
+            <AppointmentModal
+              open={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              initialDate={modalInitialData.date}
+              initialTime={modalInitialData.time}
+              initialStep={modalInitialData.step}
+              onSuccess={() => fetchData()}
+              trigger={
                 <Button className="gap-2" variant={canAddAppointment ? "default" : "secondary"}>
                   <Plus size={18} /> <span className="hidden md:inline">Novo Agendamento</span>
                 </Button>
-              </DialogTrigger>
-              <DialogContent 
-                className="sm:max-w-[425px]" 
-                onOpenAutoFocus={(e) => e.preventDefault()}
-                onPointerDownOutside={(e) => e.preventDefault()}
-                onInteractOutside={(e) => e.preventDefault()}
-              >
-                {canAddAppointment ? (
-                  <>
-                    <DialogHeader>
-                      <DialogTitle>Novo Agendamento - Passo {currentStep} de 4</DialogTitle>
-                    </DialogHeader>
-                    
-                    <div className="py-4 space-y-4">
-                      {/* Step Progress Bar */}
-                      <Progress value={(currentStep / 4) * 100} className="h-1" />
-
-                      {currentStep === 1 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                          <div className="space-y-2">
-                            <Label>Profissional</Label>
-                            <Select value={selectedBarber} onValueChange={setSelectedBarber} required>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o profissional" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {barbers.map((b) => (
-                                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Serviço</Label>
-                            <Select value={selectedService} onValueChange={setSelectedService} required>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o serviço" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {services.map((s) => (
-                                  <SelectItem key={s.id} value={s.id}>{s.name} - R$ {s.price}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      )}
-
-                      {currentStep === 2 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                          <div className="space-y-2">
-                            <Label>Data</Label>
-                            <Input 
-                              type="date" 
-                              value={selectedDate} 
-                              onChange={(e) => setSelectedDate(e.target.value)}
-                              required 
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Horário</Label>
-                            <Input 
-                              type="time" 
-                              value={selectedTime} 
-                              onChange={(e) => setSelectedTime(e.target.value)}
-                              required 
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {currentStep === 3 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                          <div className="space-y-2">
-                            <Label>Cliente</Label>
-                            <div className="flex gap-2">
-                              <Select 
-                                value={selectedCustomer} 
-                                onValueChange={setSelectedCustomer} 
-                                required
-                              >
-                                <SelectTrigger className="flex-1">
-                                  <SelectValue placeholder="Selecione um cliente" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {customers.map((c) => (
-                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <Button 
-                                type="button" 
-                                variant="outline" 
-                                size="icon"
-                                onClick={() => setIsNewCustomerDialogOpen(true)}
-                                title="Cadastrar Novo Cliente"
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-
-
-                      {currentStep === 4 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                          <div className="bg-muted/50 p-4 rounded-lg space-y-3">
-                            <div className="flex justify-between border-b pb-2">
-                              <span className="text-muted-foreground">Profissional:</span>
-                              <span className="font-medium">{barbers.find(b => b.id === selectedBarber)?.name}</span>
-                            </div>
-                            <div className="flex justify-between border-b pb-2">
-                              <span className="text-muted-foreground">Serviço:</span>
-                              <span className="font-medium">{services.find(s => s.id === selectedService)?.name}</span>
-                            </div>
-                            <div className="flex justify-between border-b pb-2">
-                              <span className="text-muted-foreground">Data:</span>
-                              <span className="font-medium">{format(parseISO(selectedDate), "dd/MM/yyyy")}</span>
-                            </div>
-                            <div className="flex justify-between border-b pb-2">
-                              <span className="text-muted-foreground">Hora:</span>
-                              <span className="font-medium">{selectedTime}</span>
-                            </div>
-                            <div className="flex justify-between border-b pb-2">
-                              <span className="text-muted-foreground">Cliente:</span>
-                              <span className="font-medium">{customers.find(c => c.id === selectedCustomer)?.name}</span>
-                            </div>
-                            <div className="flex justify-between pt-2">
-                              <span className="font-bold">Total:</span>
-                              <span className="font-bold text-primary">R$ {services.find(s => s.id === selectedService)?.price}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2 mt-4">
-                            <Label>Status do Pagamento</Label>
-                            <Select 
-                              defaultValue="pending" 
-                              onValueChange={(val) => {
-                                (window as any)._calendar_payment_status = val;
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pendente (Pagar na Barbearia)</SelectItem>
-                                <SelectItem value="paid">Pago (PIX/Cartão/Dinheiro)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <DialogFooter className="flex gap-2 sm:justify-between">
-                      {currentStep > 1 ? (
-                        <Button variant="outline" onClick={() => setCurrentStep(prev => prev - 1)} disabled={isLoading}>
-                          Voltar
-                        </Button>
-                      ) : <div />}
-                      
-                      {currentStep < 4 ? (
-                        <Button onClick={handleNextStep} disabled={isLoading}>
-                          {isLoading ? "Validando..." : "Próximo"}
-                        </Button>
-                      ) : (
-                        <Button onClick={() => {
-                          const status = (window as any)._calendar_payment_status || 'pending';
-                          handleCreateAppointment(status);
-                        }} disabled={isLoading}>
-                          {isLoading ? "Salvando..." : "Confirmar"}
-                        </Button>
-                      )}
-                    </DialogFooter>
-                  </>
-                ) : (
-                  <div className="space-y-4 py-4">
-                    <Alert variant="destructive">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertTitle>Limite de Agendamentos Atingido</AlertTitle>
-                      <AlertDescription>
-                        Seu plano atual permite apenas {limits.monthlyAppointments} agendamentos por mês. Faça o upgrade para o plano Pro para agendamentos ilimitados.
-                      </AlertDescription>
-                    </Alert>
-                    <Button className="w-full" asChild>
-                      <Link to="/subscription">Ver Planos</Link>
-                    </Button>
-                  </div>
-                )}
-              </DialogContent>
-            </Dialog>
-
-            <Dialog
-              open={isNewCustomerDialogOpen}
-              onOpenChange={(open) => {
-                setIsNewCustomerDialogOpen(open);
-                if (!open) {
-                  setNewCustomer({ name: "", phone: "" });
-                }
-              }}
-            >
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-customer-name">Nome Completo</Label>
-                    <Input
-                      id="new-customer-name"
-                      placeholder="Nome do cliente"
-                      value={newCustomer.name}
-                      onChange={(e) =>
-                        setNewCustomer((prev) => ({ ...prev, name: e.target.value }))
-                      }
-                      autoComplete="off"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="new-customer-phone">Telefone</Label>
-                    <Input
-                      id="new-customer-phone"
-                      placeholder="(00) 00000-0000"
-                      value={newCustomer.phone}
-                      onChange={(e) =>
-                        setNewCustomer((prev) => ({ ...prev, phone: e.target.value }))
-                      }
-                      autoComplete="off"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsNewCustomerDialogOpen(false);
-                      setNewCustomer({ name: "", phone: "" });
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleCreateCustomer} disabled={isLoading || !newCustomer.name}>
-                    {isLoading ? "Salvando..." : "Cadastrar Cliente"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+              }
+            />
           </div>
         </div>
 
@@ -866,9 +426,11 @@ function CalendarComponent() {
                       <div 
                         className="flex-1 p-2 relative gap-2 flex flex-wrap content-start bg-background/50 group-hover:bg-muted/10 transition-colors cursor-pointer"
                         onClick={() => {
-                          setSelectedTime(`${hour.toString().padStart(2, '0')}:00`);
-                          setSelectedDate(format(currentDate, "yyyy-MM-dd"));
-                          setCurrentStep(1); // Start from professional selection step
+                          setModalInitialData({
+                            time: `${hour.toString().padStart(2, '0')}:00`,
+                            date: format(currentDate, "yyyy-MM-dd"),
+                            step: 1
+                          });
                           setIsDialogOpen(true);
                         }}
                       >
@@ -1077,12 +639,14 @@ function CalendarComponent() {
                         <div 
                           key={`${day}-${hour}`} 
                           className="min-h-[100px] p-1 group hover:bg-muted/10 transition-colors cursor-pointer relative"
-                          onClick={() => {
-                            setSelectedTime(`${hour.toString().padStart(2, '0')}:00`);
-                            setSelectedDate(format(day, "yyyy-MM-dd"));
-                            setCurrentStep(2); // Jump to date/time step as they are already set
-                            setIsDialogOpen(true);
-                          }}
+                            onClick={() => {
+                              setModalInitialData({
+                                time: `${hour.toString().padStart(2, '0')}:00`,
+                                date: format(day, "yyyy-MM-dd"),
+                                step: 2
+                              });
+                              setIsDialogOpen(true);
+                            }}
                         >
                           <div className="flex flex-col gap-1">
                             {getAppointmentsForTime(day, hour).map(app => (
