@@ -1268,6 +1268,10 @@ function ClientPortalComponent() {
                     <Button
                       key={time}
                       variant={newTime === time ? "default" : "outline"}
+                      className={cn(
+                        "transition-all duration-300 hover:scale-105",
+                        newTime === time ? "bg-black text-white" : "border-gray-200 text-black hover:border-black"
+                      )}
                       size="sm"
                       onClick={() => setNewTime(time)}
                     >
