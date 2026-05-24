@@ -426,9 +426,11 @@ function CalendarComponent() {
                       <div 
                         className="flex-1 p-2 relative gap-2 flex flex-wrap content-start bg-background/50 group-hover:bg-muted/10 transition-colors cursor-pointer"
                         onClick={() => {
-                          setSelectedTime(`${hour.toString().padStart(2, '0')}:00`);
-                          setSelectedDate(format(currentDate, "yyyy-MM-dd"));
-                          setCurrentStep(1); // Start from professional selection step
+                          setModalInitialData({
+                            time: `${hour.toString().padStart(2, '0')}:00`,
+                            date: format(currentDate, "yyyy-MM-dd"),
+                            step: 1
+                          });
                           setIsDialogOpen(true);
                         }}
                       >
