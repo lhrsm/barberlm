@@ -965,7 +965,7 @@ function DashboardComponent() {
                     </h4>
                     <p className="text-sm text-blue-700/70">Aproveite todos os recursos do plano Pro!</p>
                   </div>
-                  <Button size="lg" className="w-full bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200" asChild>
+                  <Button size="lg" className="w-full" asChild>
                     <Link to="/subscription">Assinar Plano Profissional</Link>
                   </Button>
                 </>
