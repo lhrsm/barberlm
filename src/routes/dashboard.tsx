@@ -994,6 +994,12 @@ function DashboardComponent() {
                 </>
               ) : (
                 <>
+                  {trialDaysRemaining > 0 && (
+                    <div className="bg-amber-100/30 border border-amber-200/50 rounded-xl p-2 flex items-center gap-2 mb-2 animate-in fade-in slide-in-from-top-2 duration-500">
+                      <AlertCircle className="h-3 w-3 text-amber-600" />
+                      <p className="text-[10px] font-bold text-amber-700">Atenção: Você tem {trialDaysRemaining} dias de teste restantes.</p>
+                    </div>
+                  )}
                   <p className="text-sm font-black uppercase tracking-widest text-amber-600 italic">Precisando de mais recursos?</p>
                   <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-black uppercase italic tracking-widest shadow-xl shadow-amber-500/20 border-b-4 border-amber-700 transition-all hover:scale-[1.02] active:scale-95" asChild>
                     <Link to="/subscription">Ver Planos de Assinatura</Link>
