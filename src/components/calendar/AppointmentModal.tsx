@@ -67,12 +67,21 @@ export function AppointmentModal({
   const [newCustomer, setNewCustomer] = useState({ name: "", phone: "" });
   const [selectedService, setSelectedService] = useState("");
   const [selectedBarber, setSelectedBarber] = useState("");
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [selectedTime, setSelectedTime] = useState(format(new Date(), "HH:mm"));
+  const [selectedDate, setSelectedDate] = useState(initialDate || format(new Date(), "yyyy-MM-dd"));
+  const [selectedTime, setSelectedTime] = useState(initialTime || format(new Date(), "HH:mm"));
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentStatus, setPaymentStatus] = useState("pending");
 
-  const canAddAppointment = checkLimit("monthlyAppointments");
+  useEffect(() => {
+    if (isOpen) {
+      if (initialDate) setSelectedDate(initialDate);
+      if (initialTime) setSelectedTime(initialTime);
+      if (initialStep) setCurrentStep(initialStep);
+    } else {
+      // Reset when closing
+      setCurrentStep(1);
+    }
+  }, [isOpen, initialDate, initialTime, initialStep]);
 
   useEffect(() => {
     if (isOpen && user) {
