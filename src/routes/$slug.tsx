@@ -1202,11 +1202,11 @@ function ShopPageComponent() {
                     >
                       <div className="space-y-1">
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{product.category || 'Cuidados'}</p>
-                        <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight">{product.name}</h4>
-                        {product.brand && <p className="text-xs font-bold text-primary/60" style={{ color: primaryColor }}>{product.brand}</p>}
+                        <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight text-black">{product.name}</h4>
+                        {product.brand && <p className="text-xs font-bold text-[#D4AF37]/60">{product.brand}</p>}
                       </div>
 
-                      <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed flex-1">
+                      <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed flex-1">
                         {product.short_description || product.description || "Produto selecionado com rigor para garantir resultados superiores."}
                       </p>
 
