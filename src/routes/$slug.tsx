@@ -1067,7 +1067,7 @@ function ShopPageComponent() {
                           <Scissors className="h-6 w-6 text-gray-400 group-hover:text-[#D4AF37] transition-colors" />
                         </div>
                         <div className="text-right">
-                          <p className="text-3xl font-black tracking-tighter" style={{ color: primaryColor }}>R$ {service.price.toFixed(2)}</p>
+                          <p className="text-3xl font-black tracking-tighter text-black">R$ {service.price.toFixed(2)}</p>
                           <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{service.duration_minutes} MIN</p>
                         </div>
                       </div>
