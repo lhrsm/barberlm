@@ -1043,8 +1043,8 @@ function ShopPageComponent() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
               <div className="space-y-4">
-                <span className="text-primary font-black uppercase tracking-[0.2em] text-sm" style={{ color: primaryColor }}>Experiência Premium</span>
-                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">Nossos Serviços</h3>
+                <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-sm">Experiência Premium</span>
+                <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">Nossos Serviços</h3>
               </div>
               <p className="text-slate-400 max-w-md text-lg">
                 Combinamos técnicas tradicionais com tendências modernas para garantir o seu melhor visual.
