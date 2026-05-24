@@ -38,9 +38,9 @@ function AuthPageComponent() {
   }, [hydrated, user, loading, role, navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#fdfdfd] px-4 relative">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4 relative">
       <div className="absolute top-8 left-8">
-        <Button variant="ghost" asChild className="gap-2">
+        <Button variant="ghost" asChild className="gap-2 text-white hover:text-white/80 hover:bg-white/10">
           <Link to="/">
             <ArrowLeft className="h-4 w-4" />
             Voltar para o início
@@ -49,8 +49,8 @@ function AuthPageComponent() {
       </div>
 
       <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold text-primary mb-2">Barber<span className="text-foreground">SaaS</span></h1>
-        <p className="text-muted-foreground">O sistema definitivo para sua barbearia</p>
+        <h1 className="text-4xl font-bold text-[#D4AF37] mb-2">Barbe<span className="text-white">X</span></h1>
+        <p className="text-white/90">O sistema definitivo para sua barbearia</p>
       </div>
       <AuthForm />
     </div>
