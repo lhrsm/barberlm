@@ -736,20 +736,26 @@ function ClientPortalComponent() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-center px-4 py-8">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 py-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-[#D4AF37] mb-2">Barbe<span className="text-white">X</span></h1>
+          <p className="text-white/90">Portal do Cliente</p>
+        </div>
+
+        <Card className="w-full max-w-md bg-white rounded-2xl shadow-2xl border-2 border-[#D4AF37] p-2">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">{shop?.business_name}</CardTitle>
-            <CardDescription>Acesse seu portal do cliente para gerenciar seus pedidos</CardDescription>
+            <CardTitle className="text-2xl font-bold text-black">{shop?.business_name}</CardTitle>
+            <CardDescription className="text-gray-600">Acesse seu portal para gerenciar seus agendamentos</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4">
+            <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-6">
               {isRegistering && (
                 <div className="space-y-2">
-                  <Label htmlFor="reg-name">Seu Nome</Label>
+                  <Label htmlFor="reg-name" className="text-black font-semibold">Seu Nome</Label>
                   <Input 
                     id="reg-name" 
                     placeholder="João Silva" 
+                    className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
                     value={customerName} 
                     onChange={(e) => setCustomerName(e.target.value)} 
                     required 
@@ -757,27 +763,30 @@ function ClientPortalComponent() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
+                <Label htmlFor="phone" className="text-black font-semibold">Telefone</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input 
                     id="phone" 
                     placeholder="11999999999" 
-                    className="pl-10" 
+                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]" 
                     value={phone} 
                     onChange={(e) => setPhone(e.target.value)} 
                     required 
                   />
                 </div>
               </div>
-              {/* Senha removida para login simplificado apenas por telefone */}
-              <Button type="submit" className="w-full" disabled={submitting}>
+              <Button 
+                type="submit" 
+                className="w-full h-11 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-bold text-lg" 
+                disabled={submitting}
+              >
                 {submitting ? "Processando..." : (isRegistering ? "Cadastrar" : "Entrar")}
               </Button>
             </form>
             <div className="mt-6 text-center">
               <button 
-                className="text-sm text-primary hover:underline" 
+                className="text-sm text-[#D4AF37] font-semibold hover:underline" 
                 onClick={() => setIsRegistering(!isRegistering)}
               >
                 {isRegistering ? "Já tem conta? Entre aqui" : "Ainda não tem conta? Cadastre-se"}
@@ -785,7 +794,11 @@ function ClientPortalComponent() {
             </div>
           </CardContent>
         </Card>
-        <Button variant="link" className="mt-4" onClick={() => navigate({ to: `/${slug}` })}>
+        <Button 
+          variant="link" 
+          className="mt-6 text-white hover:text-[#D4AF37] transition-colors" 
+          onClick={() => navigate({ to: `/${slug}` })}
+        >
           Voltar para a barbearia
         </Button>
       </div>
@@ -793,14 +806,14 @@ function ClientPortalComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-20">
-      <header className="bg-background border-b sticky top-0 z-50">
+    <div className="min-h-screen bg-[#fdfdfd] pb-20">
+      <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="font-bold text-lg flex items-center gap-2">
-            <UserIcon size={20} className="text-primary" />
+          <h1 className="font-bold text-lg flex items-center gap-2 text-black">
+            <UserIcon size={20} className="text-[#D4AF37]" />
             Portal do Cliente
           </h1>
-          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair">
+          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair" className="text-black hover:bg-gray-100">
             <LogOut size={20} />
           </Button>
         </div>
@@ -813,74 +826,77 @@ function ClientPortalComponent() {
               <img 
                 src={customerData.avatar_url} 
                 alt={client.name} 
-                className="h-14 w-14 rounded-full object-cover border-2 border-primary/20"
+                className="h-16 w-16 rounded-full object-cover border-2 border-[#D4AF37]"
               />
             ) : (
-              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary border-2 border-primary/20">
-                <UserIcon size={28} />
+              <div className="h-16 w-16 rounded-full bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] border-2 border-[#D4AF37]">
+                <UserIcon size={32} />
               </div>
             )}
             <div>
-              <h2 className="text-2xl font-bold">Olá, {client.name}!</h2>
-              <p className="text-sm text-muted-foreground">Bem-vindo à sua área exclusiva na {shop?.business_name}.</p>
+              <h2 className="text-2xl font-bold text-black">Olá, {client.name}!</h2>
+              <p className="text-sm text-gray-600">Bem-vindo à sua área exclusiva na <span className="font-semibold text-black">{shop?.business_name}</span>.</p>
             </div>
           </div>
-          <Button onClick={() => setIsBookingOpen(true)} className="gap-2">
+          <Button 
+            onClick={() => setIsBookingOpen(true)} 
+            className="gap-2 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-105"
+          >
             <Calendar size={18} /> Novo Agendamento
           </Button>
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">
-          <Card>
+          <Card className="bg-white border-gray-200 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription>Total de Serviços</CardDescription>
-              <CardTitle className="text-2xl font-bold">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
+              <CardDescription className="text-gray-500">Total de Serviços</CardDescription>
+              <CardTitle className="text-2xl font-bold text-black">{appointments.filter(a => a.status === 'completed').length}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="bg-white border-gray-200 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription>Fidelidade</CardDescription>
-              <CardTitle className="text-2xl font-bold flex items-center justify-between">
+              <CardDescription className="text-gray-500">Fidelidade</CardDescription>
+              <CardTitle className="text-2xl font-bold flex items-center justify-between text-black">
                 <span>{customerData?.loyalty_points || 0} / 10</span>
                 {customerData?.loyalty_points >= 10 && (
-                  <Button size="sm" onClick={handleClaimLoyaltyReward} disabled={submitting} className="h-7 text-[10px] bg-amber-500 hover:bg-amber-600">
+                  <Button size="sm" onClick={handleClaimLoyaltyReward} disabled={submitting} className="h-7 text-[10px] bg-[#D4AF37] hover:bg-[#B8860B] text-white">
                     Resgatar
                   </Button>
                 )}
               </CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="bg-white border-gray-200 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription>Créditos</CardDescription>
+              <CardDescription className="text-gray-500">Créditos</CardDescription>
               <CardTitle className="text-2xl font-bold text-green-600">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="bg-white border-gray-200 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription>Cashback</CardDescription>
-              <CardTitle className="text-2xl font-bold text-primary">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
+              <CardDescription className="text-gray-500">Cashback</CardDescription>
+              <CardTitle className="text-2xl font-bold text-[#D4AF37]">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
             </CardHeader>
           </Card>
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
-            <TabsTrigger value="appointments" className="gap-2">
+          <TabsList className="grid w-full grid-cols-3 max-w-[500px] bg-gray-100 p-1 rounded-xl">
+            <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
-            <TabsTrigger value="purchases" className="gap-2">
+            <TabsTrigger value="purchases" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
               <ShoppingBag size={16} /> Compras
             </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2">
+            <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm">
               <UserIcon size={16} /> Perfil
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="appointments" className="pt-6">
-            <Card>
+            <Card className="bg-white border-gray-200 shadow-md">
               <CardHeader>
-                <CardTitle>Histórico de Agendamentos</CardTitle>
+                <CardTitle className="text-black">Histórico de Agendamentos</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -891,10 +907,10 @@ function ClientPortalComponent() {
                     </div>
                   ) : (
                     appointments.map((app) => (
-                      <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl gap-4">
+                      <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border border-gray-100 rounded-xl gap-4 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-start gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <Scissors className="text-primary h-6 w-6" />
+                          <div className="h-12 w-12 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
+                            <Scissors className="text-[#D4AF37] h-6 w-6" />
                           </div>
                           <div>
                             <p className="font-bold">{app.services?.name}</p>
@@ -902,12 +918,12 @@ function ClientPortalComponent() {
                               <span className="flex items-center gap-1"><Clock size={14} /> {format(parseISO(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                                <span className="flex items-center gap-1"><UserIcon size={14} /> {app.barbers?.name}</span>
                                <Badge variant="outline" className="capitalize text-[10px]">
-                                 {app.payment_method === 'pix' ? 'Pago via PIX' : 
+                               {app.payment_method === 'pix' ? 'Pago via PIX' : 
                                   app.payment_method === 'credits' ? 'Pago com Créditos' : 
                                   app.payment_method === 'cashback' ? 'Pago com Cashback' : 'Pagar na Barbearia'}
                                </Badge>
                                {app.notes && app.notes.includes('Pagamento:') && (
-                                 <span className="text-[10px] text-primary font-medium">{app.notes}</span>
+                                 <span className="text-[10px] text-[#D4AF37] font-medium">{app.notes}</span>
                                )}
                                {app.status === 'cancelled' && app.refund_requested_at && (
                                  <Badge variant="outline" className={cn(
@@ -938,7 +954,7 @@ function ClientPortalComponent() {
                                <Button 
                                  variant="ghost" 
                                  size="sm" 
-                                 className="text-primary h-8 px-2 text-xs"
+                                 className="text-black hover:text-[#D4AF37] hover:bg-gray-100 h-8 px-2 text-xs transition-all duration-300 hover:scale-105"
                                  onClick={() => handleEditAppointment(app)}
                                 >
                                  <Edit2 size={14} className="mr-1" /> Editar
@@ -965,10 +981,10 @@ function ClientPortalComponent() {
           </TabsContent>
 
           <TabsContent value="purchases" className="pt-6">
-            <Card>
+            <Card className="bg-white border-gray-200 shadow-md">
               <CardHeader>
-                <CardTitle>Suas Compras</CardTitle>
-                <CardDescription>Os reembolsos podem ser solicitados em até 7 dias após a compra.</CardDescription>
+                <CardTitle className="text-black">Suas Compras</CardTitle>
+                <CardDescription className="text-gray-500">Os reembolsos podem ser solicitados em até 7 dias após a compra.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -996,7 +1012,7 @@ function ClientPortalComponent() {
                               {sale.status === 'completed' ? 'Concluído' : sale.status === 'refunded' ? 'Reembolsado' : 'Pendente'}
                             </Badge>
                           </div>
-                          <span className="font-bold text-lg text-primary">R$ {sale.total_amount.toFixed(2)}</span>
+                          <span className="font-bold text-lg text-black">R$ {sale.total_amount.toFixed(2)}</span>
                         </div>
                         <div className="bg-muted/30 p-3 rounded-lg">
                           <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Itens:</p>
@@ -1037,15 +1053,15 @@ function ClientPortalComponent() {
           </TabsContent>
           
           <TabsContent value="profile" className="pt-6">
-            <Card>
+            <Card className="bg-white border-gray-200 shadow-md">
               <CardHeader>
-                <CardTitle>Meu Perfil</CardTitle>
-                <CardDescription>Atualize suas informações de contato e foto de perfil.</CardDescription>
+                <CardTitle className="text-black">Meu Perfil</CardTitle>
+                <CardDescription className="text-gray-500">Atualize suas informações de contato e foto de perfil.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex flex-col items-center gap-4 py-4">
                   <div className="relative group">
-                    <div className="h-24 w-24 rounded-full bg-muted overflow-hidden border-2 border-primary/20">
+                    <div className="h-24 w-24 rounded-full bg-gray-100 overflow-hidden border-2 border-[#D4AF37]">
                       {customerData?.avatar_url ? (
                         <img src={customerData.avatar_url} alt="Profile" className="h-full w-full object-cover" />
                       ) : (
@@ -1054,7 +1070,7 @@ function ClientPortalComponent() {
                         </div>
                       )}
                     </div>
-                    <label className="absolute bottom-0 right-0 h-8 w-8 bg-primary rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg hover:scale-110 transition-transform">
+                    <label className="absolute bottom-0 right-0 h-8 w-8 bg-black rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg hover:scale-110 transition-transform">
                       <Camera size={14} />
                       <input 
                         type="file" 
@@ -1184,7 +1200,8 @@ function ClientPortalComponent() {
               </CardContent>
               <CardContent className="pt-0 pb-6">
                 <Button 
-                  className="w-full gap-2" 
+                  className="w-full gap-2 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-105" 
+
                   disabled={submitting}
                   onClick={async () => {
                     if (!customerData?.id || !customerName) return;
@@ -1223,10 +1240,10 @@ function ClientPortalComponent() {
       </main>
 
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] border-[#D4AF37] border-2">
           <DialogHeader>
-            <DialogTitle>Alterar Agendamento</DialogTitle>
-            <DialogDescription>Escolha uma nova data e horário para seu serviço.</DialogDescription>
+            <DialogTitle className="text-black">Alterar Agendamento</DialogTitle>
+            <DialogDescription className="text-gray-600">Escolha uma nova data e horário para seu serviço.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -1243,7 +1260,7 @@ function ClientPortalComponent() {
               <Label>Novo Horário</Label>
               {fetchingTimes ? (
                 <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
                 </div>
               ) : availableTimes.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto p-1">
@@ -1251,6 +1268,10 @@ function ClientPortalComponent() {
                     <Button
                       key={time}
                       variant={newTime === time ? "default" : "outline"}
+                      className={cn(
+                        "transition-all duration-300 hover:scale-105",
+                        newTime === time ? "bg-black text-white" : "border-gray-200 text-black hover:border-black"
+                      )}
                       size="sm"
                       onClick={() => setNewTime(time)}
                     >
@@ -1265,17 +1286,17 @@ function ClientPortalComponent() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
-            <Button onClick={handleUpdateAppointment} disabled={submitting || !newTime}>
+            <Button onClick={handleUpdateAppointment} disabled={submitting || !newTime} className="bg-black text-white hover:bg-black/90">
               {submitting ? "Salvando..." : "Confirmar Alteração"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto border-[#D4AF37] border-2">
           <DialogHeader>
-            <DialogTitle>Novo Agendamento</DialogTitle>
-            <DialogDescription>Preencha os dados abaixo para agendar seu novo serviço.</DialogDescription>
+            <DialogTitle className="text-black">Novo Agendamento</DialogTitle>
+            <DialogDescription className="text-gray-600">Preencha os dados abaixo para agendar seu novo serviço.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <iframe 
