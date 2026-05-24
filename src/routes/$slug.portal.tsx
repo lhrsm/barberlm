@@ -1013,7 +1013,7 @@ function ClientPortalComponent() {
                     </div>
                   ) : (
                     appointments.map((app) => (
-                      <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border border-gray-100 rounded-xl gap-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl gap-4 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-start gap-4">
                           <div className="h-12 w-12 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
                             <Scissors className="text-[#D4AF37] h-6 w-6" />
