@@ -954,6 +954,13 @@ function DashboardComponent() {
             <CardContent className="py-6 text-center space-y-4">
               {isTrial ? (
                 <>
+                  <div className="bg-amber-100/50 border border-amber-200 rounded-2xl p-3 flex items-center gap-3 mb-4 animate-in fade-in zoom-in duration-500">
+                    <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                    <div className="text-left">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 leading-none">Aviso de Sistema</p>
+                      <p className="text-xs font-bold text-amber-700/80">Você está usando a versão experimental de 15 dias.</p>
+                    </div>
+                  </div>
                   <div className="flex justify-center mb-2">
                     <div className="p-3 bg-amber-100 rounded-full text-amber-600 animate-pulse">
                       <Clock size={24} />
