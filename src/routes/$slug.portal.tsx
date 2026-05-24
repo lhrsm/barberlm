@@ -972,15 +972,15 @@ function ClientPortalComponent() {
               </CardTitle>
             </CardHeader>
           </Card>
-          <Card className="bg-white border-gray-200 shadow-md">
+          <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-500">Créditos</CardDescription>
-              <CardTitle className="text-2xl font-bold text-green-600">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
+              <CardDescription className="text-gray-400">Créditos</CardDescription>
+              <CardTitle className="text-2xl font-bold text-green-500">R$ {customerData?.credits ? Number(customerData.credits).toFixed(2) : "0,00"}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="bg-white border-gray-200 shadow-md">
+          <Card className="bg-white/5 border-white/10 shadow-md">
             <CardHeader className="pb-2">
-              <CardDescription className="text-gray-500">Cashback</CardDescription>
+              <CardDescription className="text-gray-400">Cashback</CardDescription>
               <CardTitle className="text-2xl font-bold text-[#D4AF37]">R$ {customerData?.cashback_balance ? Number(customerData.cashback_balance).toFixed(2) : "0,00"}</CardTitle>
             </CardHeader>
           </Card>
