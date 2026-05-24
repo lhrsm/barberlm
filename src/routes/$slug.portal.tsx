@@ -409,7 +409,17 @@ function ClientPortalComponent() {
       let name = customerName;
       let avatarUrl = "";
 
+      // Convert DD/MM/YYYY to YYYY-MM-DD
+      let formattedBirthDate = undefined;
+      if (customerBirthDate && customerBirthDate.includes("/")) {
+        const [day, month, year] = customerBirthDate.split("/");
+        if (day && month && year && year.length === 4) {
+          formattedBirthDate = `${year}-${month}-${day}`;
+        }
+      }
+
       // Upload avatar if provided
+
       if (customerAvatar) {
         const fileExt = customerAvatar.name.split('.').pop();
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
