@@ -940,8 +940,8 @@ function ClientPortalComponent() {
               </div>
             )}
             <div>
-              <h2 className="text-2xl font-bold text-black">Olá, {client.name}!</h2>
-              <p className="text-sm text-gray-600">Bem-vindo à sua área exclusiva na <span className="font-semibold text-black">{shop?.business_name}</span>.</p>
+              <h2 className="text-2xl font-bold text-white">Olá, {client.name}!</h2>
+              <p className="text-sm text-gray-400">Bem-vindo à sua área exclusiva na <span className="font-semibold text-white">{shop?.business_name}</span>.</p>
             </div>
           </div>
           <Button 
