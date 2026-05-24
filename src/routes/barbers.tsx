@@ -575,29 +575,29 @@ function BarbersComponent() {
                     <div className="flex items-center gap-1 mt-0.5 mb-1">
                       <Star size={12} className="text-yellow-500" fill="currentColor" />
                       <span className="text-xs font-bold">{barber.average_rating || "5.0"}</span>
-                      <span className="text-[10px] text-muted-foreground">({barber.total_ratings || 0})</span>
+                      <span className="text-[10px] text-slate-500">({barber.total_ratings || 0})</span>
                     </div>
                     <div className="flex gap-2 mt-1">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        barber.category === 'Freelancer' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                        barber.category === 'Freelancer' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-purple-50 text-purple-700 border border-purple-100'
                       }`}>
                         {barber.category}
                       </span>
                       {barber.category === 'Freelancer' && (
-                        <span className="text-[10px] px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">
+                        <span className="text-[10px] px-2 py-0.5 bg-orange-50 text-orange-700 rounded-full font-medium border border-orange-100">
                           {barber.commission_rate}% Comissão
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2 text-sm text-muted-foreground">
+                <div className="space-y-2 text-sm text-slate-600">
                   <div className="flex items-center gap-2">
-                    <Phone size={14} />
+                    <Phone size={14} className="text-slate-400" />
                     <span>{barber.phone || "Não informado"}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Mail size={14} />
+                    <Mail size={14} className="text-slate-400" />
                     <span>{barber.email || "Não informado"}</span>
                   </div>
                 </div>
