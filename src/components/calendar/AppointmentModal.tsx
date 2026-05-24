@@ -127,7 +127,26 @@ export function AppointmentModal({
         setSelectedService(servRes.data[0].id);
       }
     }
+    if (barbServRes.data) {
+      setBarberServices(barbServRes.data);
+    }
   }
+
+  const filteredServices = React.useMemo(() => {
+    if (!selectedBarber) return services;
+    
+    // Get IDs of services linked to the selected barber
+    const linkedServiceIds = barberServices
+      .filter(bs => bs.barber_id === selectedBarber)
+      .map(bs => bs.service_id);
+    
+    // If no services are linked to the barber, show all (fallback) or show none?
+    // Usually, if a barber has NO services linked in barber_services, they might not be set up yet.
+    // However, to follow the request strictly: "only show services they provide"
+    if (linkedServiceIds.length === 0) return [];
+
+    return services.filter(s => linkedServiceIds.includes(s.id));
+  }, [services, barberServices, selectedBarber]);
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
