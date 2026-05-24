@@ -875,7 +875,7 @@ function ClientPortalComponent() {
                   <Input 
                     id="phone" 
                     placeholder="11999999999" 
-                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]" 
+                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black" 
                     value={phone} 
                     onChange={(e) => setPhone(e.target.value)} 
                     required 
