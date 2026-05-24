@@ -83,6 +83,8 @@ export function AppointmentModal({
     }
   }, [isOpen, initialDate, initialTime, initialStep]);
 
+  const canAddAppointment = checkLimit("monthlyAppointments");
+
   useEffect(() => {
     if (isOpen && user) {
       fetchInitialData();
