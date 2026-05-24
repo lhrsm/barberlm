@@ -1626,7 +1626,7 @@ function ShopPageComponent() {
                               {b.avatar_url ? (
                                 <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
                               ) : (
-                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-black">{b.name[0]}</div>
+                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-black">{b.name?.[0] || '?'}</div>
                               )}
                             </div>
                             <div className="mt-4">
@@ -1654,7 +1654,7 @@ function ShopPageComponent() {
                 <div className="flex items-center justify-between p-6 bg-gray-50 border border-gray-100 rounded-[2rem] shadow-inner">
                   <div className="flex items-center gap-4">
                     <div className="h-16 w-16 rounded-2xl bg-white border border-gray-200 overflow-hidden text-black">
-                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-xl">{selectedBarber?.name[0]}</div>}
+                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-xl">{selectedBarber?.name?.[0] || '?'}</div>}
                     </div>
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">Profissional</p>
