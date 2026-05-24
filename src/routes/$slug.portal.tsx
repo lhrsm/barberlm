@@ -1254,36 +1254,39 @@ function ClientPortalComponent() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="profile-birthdate">Data de Nascimento (dd/mm/aaaa)</Label>
+                    <Label htmlFor="profile-birthdate">Data de Nascimento</Label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input 
                         id="profile-birthdate" 
-                        type="date"
+                        type="text"
+                        placeholder="dd/mm/aaaa"
                         className="pl-10"
-                        value={customerData?.birth_date || ""}
-                        onChange={async (e) => {
-                          if (!customerData?.id) return;
-                          const birth_date = e.target.value;
-                          setCustomerData({ ...customerData, birth_date });
-                        }}
-                        onBlur={async (e) => {
-                          if (!customerData?.id) return;
-                          const birth_date = e.target.value;
-                          try {
-                            const { error } = await supabase
-                              .from('customers')
-                              .update({ birth_date })
-                              .eq('id', customerData.id);
-                            if (!error) {
-                              toast.success("Data de nascimento atualizada!");
-                              fetchClientData(customerData.id);
-                            }
-                          } catch (err) {
-                            console.error("Erro ao salvar data de nascimento:", err);
+                        value={(() => {
+                          const date = customerData?.birth_date || "";
+                          if (date.includes("-")) {
+                            const [year, month, day] = date.split("-");
+                            return `${day}/${month}/${year}`;
                           }
+                          return date;
+                        })()}
+                        onChange={(e) => {
+                          let value = e.target.value.replace(/\D/g, "");
+                          if (value.length > 8) value = value.slice(0, 8);
+                          if (value.length > 4) {
+                            value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
+                          } else if (value.length > 2) {
+                            value = `${value.slice(0, 2)}/${value.slice(2)}`;
+                          }
+                          
+                          let isoValue = value;
+                          if (value.includes("/") && value.split("/").length === 3) {
+                            const [d, m, y] = value.split("/");
+                            if (y.length === 4) isoValue = `${y}-${m}-${d}`;
+                          }
+                          
+                          setCustomerData({ ...customerData, birth_date: isoValue });
                         }}
-
                       />
                     </div>
                   </div>
