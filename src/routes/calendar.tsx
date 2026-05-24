@@ -375,6 +375,13 @@ function CalendarComponent() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week")} className="w-full md:w-auto">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="day">Dia</TabsTrigger>
+                <TabsTrigger value="week">Semana</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
             <AppointmentModal
               open={isDialogOpen}
               onOpenChange={setIsDialogOpen}
