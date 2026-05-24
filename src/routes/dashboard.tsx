@@ -33,7 +33,8 @@ import {
   Gift,
   Eye,
   StopCircle,
-  Rocket
+  Rocket,
+  AlertCircle
 } from "lucide-react";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { supabase } from "@/integrations/supabase/client";
