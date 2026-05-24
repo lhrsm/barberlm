@@ -1061,7 +1061,7 @@ function ClientPortalComponent() {
               <CardContent className="space-y-6">
                 <div className="flex flex-col items-center gap-4 py-4">
                   <div className="relative group">
-                    <div className="h-24 w-24 rounded-full bg-muted overflow-hidden border-2 border-primary/20">
+                    <div className="h-24 w-24 rounded-full bg-gray-100 overflow-hidden border-2 border-[#D4AF37]">
                       {customerData?.avatar_url ? (
                         <img src={customerData.avatar_url} alt="Profile" className="h-full w-full object-cover" />
                       ) : (
