@@ -736,20 +736,26 @@ function ClientPortalComponent() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-center px-4 py-8">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 py-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-[#D4AF37] mb-2">Barbe<span className="text-white">X</span></h1>
+          <p className="text-white/90">Portal do Cliente</p>
+        </div>
+
+        <Card className="w-full max-w-md bg-white rounded-2xl shadow-2xl border-2 border-[#D4AF37] p-2">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">{shop?.business_name}</CardTitle>
-            <CardDescription>Acesse seu portal do cliente para gerenciar seus pedidos</CardDescription>
+            <CardTitle className="text-2xl font-bold text-black">{shop?.business_name}</CardTitle>
+            <CardDescription className="text-gray-600">Acesse seu portal para gerenciar seus agendamentos</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4">
+            <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-6">
               {isRegistering && (
                 <div className="space-y-2">
-                  <Label htmlFor="reg-name">Seu Nome</Label>
+                  <Label htmlFor="reg-name" className="text-black font-semibold">Seu Nome</Label>
                   <Input 
                     id="reg-name" 
                     placeholder="João Silva" 
+                    className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]"
                     value={customerName} 
                     onChange={(e) => setCustomerName(e.target.value)} 
                     required 
@@ -757,27 +763,30 @@ function ClientPortalComponent() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
+                <Label htmlFor="phone" className="text-black font-semibold">Telefone</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input 
                     id="phone" 
                     placeholder="11999999999" 
-                    className="pl-10" 
+                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37]" 
                     value={phone} 
                     onChange={(e) => setPhone(e.target.value)} 
                     required 
                   />
                 </div>
               </div>
-              {/* Senha removida para login simplificado apenas por telefone */}
-              <Button type="submit" className="w-full" disabled={submitting}>
+              <Button 
+                type="submit" 
+                className="w-full h-11 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-bold text-lg" 
+                disabled={submitting}
+              >
                 {submitting ? "Processando..." : (isRegistering ? "Cadastrar" : "Entrar")}
               </Button>
             </form>
             <div className="mt-6 text-center">
               <button 
-                className="text-sm text-primary hover:underline" 
+                className="text-sm text-[#D4AF37] font-semibold hover:underline" 
                 onClick={() => setIsRegistering(!isRegistering)}
               >
                 {isRegistering ? "Já tem conta? Entre aqui" : "Ainda não tem conta? Cadastre-se"}
@@ -785,7 +794,11 @@ function ClientPortalComponent() {
             </div>
           </CardContent>
         </Card>
-        <Button variant="link" className="mt-4" onClick={() => navigate({ to: `/${slug}` })}>
+        <Button 
+          variant="link" 
+          className="mt-6 text-white hover:text-[#D4AF37] transition-colors" 
+          onClick={() => navigate({ to: `/${slug}` })}
+        >
           Voltar para a barbearia
         </Button>
       </div>
