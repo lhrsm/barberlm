@@ -1060,7 +1060,7 @@ function ClientPortalComponent() {
                                <Button 
                                  variant="ghost" 
                                  size="sm" 
-                                 className="text-black hover:text-[#D4AF37] hover:bg-gray-100 h-8 px-2 text-xs transition-all duration-300 hover:scale-105"
+                                 className="text-white hover:text-[#D4AF37] hover:bg-white/10 h-8 px-2 text-xs transition-all duration-300 hover:scale-105"
                                  onClick={() => handleEditAppointment(app)}
                                 >
                                  <Edit2 size={14} className="mr-1" /> Editar
