@@ -939,43 +939,88 @@ function DashboardComponent() {
         )}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mb-6">
-          <Card className="col-span-4 bg-primary/5 border-primary/20">
-            <CardHeader className="pb-2">
+          <Card className="col-span-4 bg-white border-2 border-amber-500/20 shadow-lg shadow-amber-500/5 relative overflow-hidden group">
+            {/* Glow sutil no fundo */}
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-500" />
+            
+            <CardHeader className="pb-2 relative">
               <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">Plano {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}</CardTitle>
-                  <CardDescription>Status dos recursos da sua barbearia</CardDescription>
+                <div className="space-y-1">
+                  <div className="flex items-center flex-wrap gap-2">
+                    <CardTitle className="text-xl font-black italic tracking-tight text-amber-900">
+                      Plano {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}
+                    </CardTitle>
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
+                      <Crown className="w-3 h-3 text-amber-600" />
+                      <span className="text-[10px] font-black italic text-amber-700 tracking-tight uppercase">
+                        Status da Assinatura SaaS
+                      </span>
+                    </div>
+                    {isTrial ? (
+                      <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-black italic text-[10px] tracking-widest uppercase">
+                        Trial Ativo
+                      </Badge>
+                    ) : isExpired ? (
+                      <Badge className="bg-red-500/10 text-red-700 border-red-500/20 font-black italic text-[10px] tracking-widest uppercase">
+                        Expirado
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-green-100 text-green-700 border-green-200 font-black italic text-[10px] tracking-widest uppercase">
+                        Assinatura Ativa
+                      </Badge>
+                    )}
+                  </div>
+                  <CardDescription className="font-bold text-amber-900/40 text-[11px] tracking-wide uppercase italic">
+                    Gerencie os recursos e limites da sua barbearia
+                  </CardDescription>
                 </div>
-                {plan === 'elite' ? <Rocket className="w-5 h-5 text-purple-500" /> : 
-                 plan === 'pro' ? <Crown className="w-5 h-5 text-yellow-500" /> : 
-                 <Zap className="w-5 h-5 text-blue-500" />}
+                <div className="p-2 rounded-xl bg-amber-50 flex items-center justify-center">
+                  {plan === 'elite' ? <Rocket className="w-5 h-5 text-amber-600" /> : 
+                   plan === 'pro' ? <Crown className="w-5 h-5 text-amber-500" /> : 
+                   <Zap className="w-5 h-5 text-amber-500" />}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Profissionais</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-900/40 italic">Profissionais</span>
                   <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none">{usage.barbers}</span>
-                    <span className="text-[10px] text-muted-foreground">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
+                    <span className="text-lg font-bold leading-none text-amber-900">{usage.barbers}</span>
+                    <span className="text-[10px] text-amber-600/60 font-bold">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
                   </div>
-                  <Progress value={limits.barbers === Infinity ? 100 : (usage.barbers / limits.barbers) * 100} className="h-1" />
+                  <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
+                      style={{ width: `${limits.barbers === Infinity ? 100 : Math.min((usage.barbers / limits.barbers) * 100, 100)}%` }}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Serviços</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-900/40 italic">Serviços</span>
                   <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none">{usage.services}</span>
-                    <span className="text-[10px] text-muted-foreground">/ {limits.services === Infinity ? "∞" : limits.services}</span>
+                    <span className="text-lg font-bold leading-none text-amber-900">{usage.services}</span>
+                    <span className="text-[10px] text-amber-600/60 font-bold">/ {limits.services === Infinity ? "∞" : limits.services}</span>
                   </div>
-                  <Progress value={limits.services === Infinity ? 100 : (usage.services / limits.services) * 100} className="h-1" />
+                  <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
+                      style={{ width: `${limits.services === Infinity ? 100 : Math.min((usage.services / limits.services) * 100, 100)}%` }}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Agendamentos</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-900/40 italic">Agendamentos</span>
                   <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none">{usage.monthlyAppointments}</span>
-                    <span className="text-[10px] text-muted-foreground">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
+                    <span className="text-lg font-bold leading-none text-amber-900">{usage.monthlyAppointments}</span>
+                    <span className="text-[10px] text-amber-600/60 font-bold">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
                   </div>
-                  <Progress value={limits.monthlyAppointments === Infinity ? 100 : (usage.monthlyAppointments / limits.monthlyAppointments) * 100} className="h-1" />
+                  <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
+                      style={{ width: `${limits.monthlyAppointments === Infinity ? 100 : Math.min((usage.monthlyAppointments / limits.monthlyAppointments) * 100, 100)}%` }}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground">WhatsApp</span>
