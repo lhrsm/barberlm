@@ -494,7 +494,7 @@ function AutomationsComponent() {
                               className="px-3 h-10 font-bold bg-slate-900 text-white hover:scale-105 transition-all rounded-xl gap-2"
                             >
                               {isTesting === (data?.id || item.id) ? (
-                                <Loader2 className="h-14 w-14 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Play size={14} />
                               )}
