@@ -217,7 +217,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   async function handleGetPairingCode() {
     if (!connection) return;
     if (!pairingPhone) {
-      toast.error(\"Informe o número do WhatsApp\");
+      toast.error("Informe o número do WhatsApp");
       return;
     }
     setPairingLoading(true);
@@ -240,11 +240,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         setPairingCode(data.value);
         startPollingStatus();
       } else {
-        toast.error(\"Falha ao gerar código de pareamento\");
+        toast.error("Falha ao gerar código de pareamento");
       }
     } catch (err) {
       console.error(err);
-      toast.error(\"Erro ao gerar código de pareamento\");
+      toast.error("Erro ao gerar código de pareamento");
       setShowPairingModal(false);
     } finally {
       setPairingLoading(false);
@@ -267,12 +267,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       
       startPollingStatus();
     } catch (err) {
-      toast.error(\"Erro ao gerar link de conexão\");
+      toast.error("Erro ao gerar link de conexão");
       setShowLinkModal(false);
     } finally {
       setLinkLoading(false);
     }
-  }
   }
 
   function startPollingStatus() {
