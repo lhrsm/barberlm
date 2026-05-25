@@ -1697,22 +1697,21 @@ function ShopPageComponent() {
                         </span>
                       )}
                     </div>
-                    <Input 
-                      placeholder="(00) 00000-0000" 
-                      value={customerPhone} 
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const formatted = formatPhoneMask(val);
-                        setCustomerPhone(formatted);
-                      }}
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-white rounded-2xl shadow-sm group-focus-within:shadow-md transition-shadow pointer-events-none border border-gray-200 group-focus-within:border-[#D4AF37]/50"></div>
+                      <PhoneInput
+                        defaultCountry="br"
+                        value={customerPhone}
+                        onChange={(phone) => setCustomerPhone(phone)}
+                        placeholder="(00) 00000-0000"
+                        className="relative z-10 w-full"
+                        inputClassName="!w-full !h-16 !bg-transparent !border-none !text-2xl !font-black !tracking-tight !text-black !placeholder:text-gray-400 focus:!outline-none !pl-4"
+                        countrySelectorStyleProps={{
+                          buttonClassName: "!h-16 !bg-transparent !border-none !px-4 !rounded-l-2xl hover:!bg-gray-100 transition-colors",
+                        }}
+                      />
+                    </div>
 
-                      className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black tracking-tight focus-visible:ring-[#D4AF37]/50 rounded-2xl transition-all"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && customerPhone) {
-                          handlePhoneCheck();
-                        }
-                      }}
-                    />
                   </div>
                   <Button 
                     className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
