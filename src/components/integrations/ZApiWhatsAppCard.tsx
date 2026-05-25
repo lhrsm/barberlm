@@ -97,9 +97,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       provider: 'z-api'
     };
 
-    const baseUrl = window.location.origin.includes('lovable.app') 
-      ? "https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook"
-      : "https://barbex.shop/api/webhooks/zapi";
+    const baseUrl = `${window.location.origin}/api/webhooks/zapi`;
     
     const webhookUrl = `${baseUrl}/${tenantId}`;
     const upsertData = {
