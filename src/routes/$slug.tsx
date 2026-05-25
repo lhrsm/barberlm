@@ -930,11 +930,12 @@ function ShopPageComponent() {
   };
 
   const checkCustomerCashback = async (phone: string) => {
-    if (phone.length >= 10) {
+    const normalized = normalizePhone(phone);
+    if (normalized.length >= 10) {
       const { data } = await supabase
         .from("customers")
         .select("cashback_balance, loyalty_points, name, credits")
-        .eq("phone", phone)
+        .eq("phone", normalized)
         .eq("user_id", shop.id)
         .maybeSingle();
       if (data) {
@@ -953,21 +954,7 @@ function ShopPageComponent() {
     return null;
   };
 
-  const handlePhoneCheck = async () => {
-    if (!customerPhone || customerPhone.length < 8) {
-      toast.error("Por favor, insira um número de WhatsApp válido.");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const customer = await checkCustomerCashback(customerPhone);
-      setBookingStep(2);
-      if (customer) {
-        toast.success(`Bem-vindo de volta, ${customer.name}!`);
-      }
-    } catch (error) {
-      console.error("Error checking phone:", error);
-    } finally {
+  // handlePhoneCheck is defined above near handleBookingAction
       setSubmitting(false);
     }
   };
