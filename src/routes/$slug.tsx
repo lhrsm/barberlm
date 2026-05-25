@@ -117,6 +117,7 @@ function ShopPageComponent() {
           console.log('DEBUG: Auto-loading portal session on page mount', parsedClient);
           setCustomerPhone(formatPhoneMask(parsedClient.phone));
           setCustomerName(parsedClient.name);
+          setCustomerId(parsedClient.customer_id);
           // O customer_id será recuperado pelo checkCustomerCashback ou no handleFinalizeBooking
         } catch (e) {
           console.error('Error parsing saved client session:', e);
