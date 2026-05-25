@@ -171,6 +171,7 @@ function ShopPageComponent() {
 
   useEffect(() => {
     if (bookingStep === 4 && selectedBarber && selectedDate) {
+      setSelectedTime(""); // Reset time when barber or date changes
       fetchAvailableTimes(selectedBarber.id, selectedDate);
     }
   }, [bookingStep, selectedBarber, selectedDate]);
@@ -1721,7 +1722,7 @@ function ShopPageComponent() {
                   ) : (
                     <div className="text-center py-12 bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
                       <p className="text-sm font-black uppercase tracking-tighter text-slate-500">
-                        Nenhum horário livre para hoje.
+                        Nenhum horário disponível para esta data.
                       </p>
                     </div>
                   )}

@@ -391,6 +391,7 @@ function ClientPortalComponent() {
   // Effect to fetch available times for the booking modal
   useEffect(() => {
     if (isBookingOpen && bookingStep === 3 && selectedBarber && selectedDate) {
+      setSelectedTime(""); // Reset time when barber or date changes
       fetchAvailableTimes(selectedBarber.id, selectedDate);
     }
   }, [isBookingOpen, bookingStep, selectedBarber, selectedDate]);
