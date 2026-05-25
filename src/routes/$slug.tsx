@@ -119,7 +119,7 @@ function ShopPageComponent() {
         try {
           const parsedClient = JSON.parse(savedClient);
           console.log('DEBUG: Auto-loading portal session on page mount', parsedClient);
-          setCustomerPhone(formatPhoneMask(parsedClient.phone));
+          setCustomerPhone(parsedClient.phone); // PhoneInput handle formatting
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
           // O customer_id será recuperado pelo checkCustomerCashback ou no handleFinalizeBooking
@@ -127,6 +127,7 @@ function ShopPageComponent() {
           console.error('Error parsing saved client session:', e);
         }
       }
+
     }
   }, [slug]);
 
