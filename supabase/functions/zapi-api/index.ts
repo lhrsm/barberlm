@@ -33,7 +33,6 @@ serve(async (req) => {
     const instanceId = String(connection.instance_id).trim();
     const token = String(connection.instance_token).trim();
     
-    // Tratamento robusto para server_url que pode vir como URL completa
     const rawServerUrl = (connection.server_url || "https://api.z-api.io").trim();
     let baseUrl = rawServerUrl;
     if (rawServerUrl.includes('/instances/')) {
@@ -76,7 +75,6 @@ serve(async (req) => {
           "update-webhook-chat-state"
         ];
         
-        console.log('--- SET WEBHOOK DEBUG ---');
         const webhookResults = await Promise.all(types.map(async (webhookType) => {
           const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`, {
             method: "POST",
@@ -97,10 +95,10 @@ serve(async (req) => {
 
     const fullUrl = `${baseUrl}${endpoint}`;
     
-    console.log('--- DEBUG Z-API REQUEST ---');
+    console.log('--- DEBUG REAIS HEADERS ---');
     console.log('URL:', fullUrl);
     console.log('METHOD:', method);
-    console.log('HEADERS (REAIS):', JSON.stringify(headers));
+    console.log('HEADERS:', JSON.stringify(headers));
 
     const response = await fetch(fullUrl, {
       method,
