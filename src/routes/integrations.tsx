@@ -102,7 +102,7 @@ function IntegrationsComponent() {
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* WhatsApp Evolution API */}
-          {tenantId && <EvolutionWhatsAppCard tenantId={tenantId} />}
+          {tenantId && <ZApiWhatsAppCard tenantId={tenantId} />}
 
 
           {/* Resend E-mail */}
