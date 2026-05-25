@@ -1961,45 +1961,84 @@ function ShopPageComponent() {
                 </div>
 
                 <div className="space-y-6">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Horários Disponíveis</h5>
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: primaryColor }} />
+                    <h5 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Horários Disponíveis</h5>
+                  </div>
                   
                   {fetchingTimes ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#D4AF37]" />
-                      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando horários...</p>
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2" style={{ borderColor: primaryColor }} />
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Buscando horários...</p>
                     </div>
+
                   ) : availableTimes.length > 0 ? (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar p-1">
-                      {availableTimes.map(time => (
-                        <motion.button
-                          key={time}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => setSelectedTime(time)}
-                          className={cn(
-                            "h-14 rounded-2xl text-lg font-black tracking-tight transition-all border flex items-center justify-center",
-                            selectedTime === time 
-                              ? "text-white shadow-2xl scale-105" 
-                              : "bg-white/[0.03] border-white/5 text-slate-300 hover:bg-white/[0.08] hover:border-white/20"
-                          )}
-                          style={selectedTime === time ? { backgroundColor: "black", borderColor: "black" } : {}}
-                        >
-                          {time}
-                        </motion.button>
-                      ))}
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar p-1">
+                      {availableTimes.map(time => {
+                        const isSelected = selectedTime === time;
+                        return (
+                          <motion.button
+                            key={time}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setSelectedTime(time)}
+                            className={cn(
+                              "relative h-14 rounded-2xl text-lg font-black tracking-tight transition-all border flex items-center justify-center gap-2 overflow-hidden group",
+                              isSelected 
+                                ? "text-white border-transparent" 
+                                : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-primary/50 hover:text-white hover:shadow-lg hover:shadow-primary/10"
+                            )}
+                            style={{ 
+                              backgroundColor: isSelected ? primaryColor : undefined,
+                              boxShadow: isSelected ? `0 10px 25px -5px ${primaryColor}40, 0 8px 10px -6px ${primaryColor}40` : undefined,
+                              borderColor: isSelected ? primaryColor : undefined
+                            }}
+                          >
+                            {isSelected && (
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="absolute top-2 right-2"
+                              >
+                                <CheckCircle2 size={14} className="text-white" />
+                              </motion.div>
+                            )}
+                            
+                            <span className="relative z-10">{time}</span>
+                            
+                            {/* Background interactive glow */}
+                            {!isSelected && (
+                              <div 
+                                className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
+                                style={{ backgroundColor: primaryColor }}
+                              />
+                            )}
+
+                            {/* Reflection effect for selected */}
+                            {isSelected && (
+                              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
+                            )}
+                          </motion.button>
+                        );
+                      })}
                     </div>
+
                   ) : (
-                    <div className="text-center py-12 bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
-                      <p className="text-sm font-black uppercase tracking-tighter text-slate-500">
+                    <div className="text-center py-12 bg-zinc-900/50 rounded-3xl border border-dashed border-zinc-800">
+                      <Clock className="mx-auto h-8 w-8 text-zinc-700 mb-3" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.1em] text-zinc-500">
                         Nenhum horário disponível para esta data.
                       </p>
                     </div>
                   )}
                 </div>
 
-                  <Button 
-                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
-
+                <Button 
+                  className={cn(
+                    "w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl transition-all duration-300",
+                    !selectedTime ? "bg-zinc-800 text-zinc-500 cursor-not-allowed" : "text-white hover:scale-[1.02]"
+                  )}
+                  style={selectedTime ? { backgroundColor: primaryColor, boxShadow: `0 10px 30px -10px ${primaryColor}60` } : {}}
                   onClick={() => {
                     if (!selectedTime) {
                       toast.error("Por favor, selecione um horário.");
@@ -2009,8 +2048,9 @@ function ShopPageComponent() {
                   }}
                   disabled={fetchingTimes || !selectedTime}
                 >
-                  Confirmar Detalhes
+                  {selectedTime ? "Confirmar Detalhes" : "Selecione um horário"}
                 </Button>
+
               </motion.div>
             )}
 
