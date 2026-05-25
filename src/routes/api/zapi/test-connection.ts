@@ -27,7 +27,6 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
           const cleanInstanceId = String(instanceId).trim();
           const cleanToken = String(token).trim();
 
-          // Buscar baseUrl se houver conexão
           let baseUrl = "https://api.z-api.io";
           if (connectionId) {
             const supabase = getSupabase();
