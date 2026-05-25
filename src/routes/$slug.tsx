@@ -394,7 +394,8 @@ function ShopPageComponent() {
     try {
       const customer = await checkCustomerCashback(normalized);
       // Mantemos o formato visual no estado para não quebrar o input
-      setCustomerPhone(formatPhoneMask(normalized));
+      const formatted = formatPhoneMask(normalized);
+      setCustomerPhone(formatted);
       
       if (customer) {
         if (customer.name) {
@@ -988,24 +989,40 @@ function ShopPageComponent() {
 
   const checkCustomerCashback = async (phone: string) => {
     const normalized = normalizePhone(phone);
+    console.log('DEBUG: checkCustomerCashback', { phone, normalized });
+    
     if (normalized.length >= 10) {
-      const { data } = await supabase
-        .from("customers")
-        .select("id, cashback_balance, loyalty_points, name, credits")
-        .eq("phone", normalized)
-        .eq("user_id", shop.id)
-        .maybeSingle();
-      if (data) {
-        setCustomerCashback(data.cashback_balance || 0);
-        setCustomerLoyaltyPoints(data.loyalty_points || 0);
-        setCustomerCredits(data.credits || 0);
-        if (data.name) setCustomerName(data.name);
-        return data;
-      } else {
-        setCustomerCashback(0);
-        setCustomerLoyaltyPoints(0);
-        setCustomerName(""); // Certificar que o nome está vazio para novos clientes
-        return null;
+      setSubmitting(true);
+      try {
+        const { data, error } = await supabase
+          .from("customers")
+          .select("id, cashback_balance, loyalty_points, name, credits")
+          .eq("phone", normalized)
+          .eq("user_id", shop.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error fetching customer:', error);
+          return null;
+        }
+
+        if (data) {
+          setCustomerCashback(data.cashback_balance || 0);
+          setCustomerLoyaltyPoints(data.loyalty_points || 0);
+          setCustomerCredits(data.credits || 0);
+          if (data.name) setCustomerName(data.name);
+          return data;
+        } else {
+          // If no portal session, clear name for new customer
+          if (!localStorage.getItem(`client_portal_session_${slug}`)) {
+            setCustomerName("");
+          }
+          setCustomerCashback(0);
+          setCustomerLoyaltyPoints(0);
+          return null;
+        }
+      } finally {
+        setSubmitting(false);
       }
     }
     return null;
@@ -1612,11 +1629,38 @@ function ShopPageComponent() {
 
                 <div className="space-y-4">
                   <div className="grid gap-3 p-6 bg-gray-50 rounded-3xl border border-gray-100 shadow-inner">
-                    <Label className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Seu WhatsApp</Label>
+                    <div className="flex justify-between items-center">
+                      <Label className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Seu WhatsApp</Label>
+                      {submitting && (
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] animate-pulse">
+                          Buscando cliente...
+                        </span>
+                      )}
+                    </div>
                     <Input 
                       placeholder="(00) 00000-0000" 
                       value={customerPhone} 
-                      onChange={(e) => setCustomerPhone(formatPhoneMask(e.target.value))} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const formatted = formatPhoneMask(val);
+                        setCustomerPhone(formatted);
+                        
+                        // Auto-check when phone is complete (10 or 11 digits excluding mask)
+                        const digits = val.replace(/\D/g, "");
+                        if (digits.length >= 10) {
+                          const normalized = normalizePhone(digits);
+                          console.log('PHONE INPUT', val);
+                          console.log('NORMALIZED', normalized);
+                          checkCustomerCashback(normalized).then(customer => {
+                            console.log('CUSTOMER FOUND', customer);
+                            if (customer) {
+                              if (customer.name) setCustomerName(customer.name);
+                              if (customer.id) setCustomerId(customer.id);
+                              toast.success(`Bem-vindo de volta, ${customer.name || 'cliente'}!`);
+                            }
+                          });
+                        }
+                      }} 
                       className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black tracking-tight focus-visible:ring-[#D4AF37]/50 rounded-2xl transition-all"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && customerPhone) {
