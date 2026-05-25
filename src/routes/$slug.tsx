@@ -384,15 +384,20 @@ function ShopPageComponent() {
   };
 
   const fetchAvailableTimes = async (barberId: string, date: string) => {
+    console.log('FETCHING TIMES START (MAIN PAGE)', { barberId, date });
     setFetchingTimes(true);
     try {
       const barber = barbers.find(b => b.id === barberId);
-      if (!barber) return;
+      if (!barber) {
+        console.error("Barber not found in local state");
+        return;
+      }
+
+      console.log('BARBER FROM STATE', { name: barber.name, working_hours: barber.working_hours });
 
       const dateObj = parseISO(date);
       const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
       
-      // Map Portuguese day name to English key used in DB
       const dayMap: Record<string, string> = {
         'segunda-feira': 'monday',
         'terça-feira': 'tuesday',
@@ -406,7 +411,10 @@ function ShopPageComponent() {
       const dayKey = dayMap[dayName] || dayName;
       const workingHours = barber.working_hours?.[dayKey];
 
+      console.log('WORKING HOURS CHECK', { dayName, dayKey, workingHours });
+
       if (!workingHours || !workingHours.enabled) {
+        console.warn('BARBER NOT WORKING ON THIS DAY', { dayKey });
         setAvailableTimes([]);
         return;
       }
@@ -424,10 +432,14 @@ function ShopPageComponent() {
 
       if (error) throw error;
 
+      console.log('APPOINTMENTS FOUND', appointments?.length || 0);
+
       const times = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
       const interval = 30;
+
+      console.log('LOOP PARAMS', { startHour, startMin, endHour, endMin, interval });
 
       for (let hour = startHour; hour <= endHour; hour++) {
         for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
@@ -436,7 +448,6 @@ function ShopPageComponent() {
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
           const checkTime = parseISO(`${date}T${timeStr}:00`);
           
-          // Don't show past times for today
           if (isSameDay(checkTime, new Date()) && checkTime < new Date()) {
             continue;
           }
@@ -452,6 +463,7 @@ function ShopPageComponent() {
           }
         }
       }
+      console.log('FINAL TIMES GENERATED', times.length);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);

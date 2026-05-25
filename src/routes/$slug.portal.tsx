@@ -283,15 +283,21 @@ function ClientPortalComponent() {
   }, [isEditModalOpen, editingAppointment, newDate]);
 
   async function fetchAvailableTimes(barberId: string, date: string) {
+    console.log('FETCHING TIMES START', { barberId, date });
     setFetchingTimes(true);
     try {
-      const { data: barber } = await supabase
+      const { data: barber, error: barberError } = await supabase
         .from("barbers")
         .select("*")
         .eq("id", barberId)
         .single();
 
-      if (!barber) return;
+      if (barberError || !barber) {
+        console.error("Barber not found:", barberError);
+        return;
+      }
+
+      console.log('BARBER FOUND', { name: barber.name, working_hours: barber.working_hours });
 
       const dateObj = parseISO(date);
       const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
@@ -309,7 +315,10 @@ function ClientPortalComponent() {
       const dayKey = dayMap[dayName] || dayName;
       const workingHours = (barber.working_hours as any)?.[dayKey];
 
+      console.log('WORKING HOURS CHECK', { dayName, dayKey, workingHours });
+
       if (!workingHours || !workingHours.enabled) {
+        console.warn('BARBER NOT WORKING ON THIS DAY', { dayKey });
         setAvailableTimes([]);
         return;
       }
@@ -317,7 +326,7 @@ function ClientPortalComponent() {
       const startOfDayTime = `${date}T00:00:00Z`;
       const endOfDayTime = `${date}T23:59:59Z`;
 
-      const { data: appointments } = await supabase
+      const { data: appointments, error: apptError } = await supabase
         .from("appointments")
         .select("start_time, end_time")
         .eq("barber_id", barberId)
@@ -325,10 +334,18 @@ function ClientPortalComponent() {
         .gte("start_time", startOfDayTime)
         .lte("start_time", endOfDayTime);
 
+      if (apptError) {
+        console.error("Error fetching appointments:", apptError);
+      }
+
+      console.log('APPOINTMENTS FOUND', appointments?.length || 0);
+
       const times = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
       const interval = 30;
+
+      console.log('LOOP PARAMS', { startHour, startMin, endHour, endMin, interval });
 
       for (let hour = startHour; hour <= endHour; hour++) {
         for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
@@ -337,7 +354,8 @@ function ClientPortalComponent() {
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
           const checkTime = parseISO(`${date}T${timeStr}:00`);
           
-          if (format(checkTime, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") && checkTime < new Date()) {
+          const isToday = format(checkTime, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+          if (isToday && checkTime < new Date()) {
             continue;
           }
 
@@ -353,6 +371,7 @@ function ClientPortalComponent() {
           }
         }
       }
+      console.log('FINAL TIMES GENERATED', times.length);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
