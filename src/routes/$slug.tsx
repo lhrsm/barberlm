@@ -140,9 +140,8 @@ function ShopPageComponent() {
       console.log('PHONE INPUT', customerPhone);
       console.log('NORMALIZED PHONE', normalizedPhone);
       
-      // No Brasil (55) + DDD (2) + Número (9) = 13 dígitos
-      if (normalizedPhone.length < 13) {
-        // Se estiver no step 1 e não for sessão do portal, podemos limpar o nome se o telefone for apagado
+      // International search: generally 10+ digits
+      if (normalizedPhone.length < 10) {
         if (bookingStep === 1 && !localStorage.getItem(`client_portal_session_${slug}`)) {
           setCustomerName("");
           setCustomerId(null);
@@ -169,7 +168,6 @@ function ShopPageComponent() {
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           
-          // Toast de boas-vindas apenas se achamos o nome e acabamos de identificar
           if (data.name && bookingStep === 1) {
             toast.success(`Bem-vindo de volta, ${data.name}!`);
           }
@@ -185,6 +183,7 @@ function ShopPageComponent() {
       findCustomer();
     }
   }, [customerPhone, shop?.id, bookingStep, isBookingOpen, slug]);
+
 
   useEffect(() => {
     if (isEmbedded && initialPhone) {
