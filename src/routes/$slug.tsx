@@ -393,18 +393,19 @@ function ShopPageComponent() {
     setSubmitting(true);
     try {
       const customer = await checkCustomerCashback(normalized);
-      // Mantemos o formato visual no estado para não quebrar o input
-      const formatted = formatPhoneMask(normalized);
-      setCustomerPhone(formatted);
       
       if (customer) {
         if (customer.name) {
           console.log('DEBUG: Customer found, setting name:', customer.name);
           setCustomerName(customer.name);
+          // Only show toast if we found a name
           toast.success(`Bem-vindo de volta, ${customer.name}!`);
         }
         if (customer.id) setCustomerId(customer.id);
       }
+      
+      // Ensure the mask is clean (no DDI 55)
+      setCustomerPhone(formatPhoneMask(normalized));
       setBookingStep(2);
     } catch (e: any) {
       toast.error("Erro ao verificar identificação: " + e.message);
@@ -1647,20 +1648,24 @@ function ShopPageComponent() {
                         
                         // Auto-check when phone is complete (10 or 11 digits excluding mask)
                         const digits = val.replace(/\D/g, "");
-                        if (digits.length >= 10) {
-                          const normalized = normalizePhone(digits);
+                        // Se começou com 55 na colagem, removemos para a contagem
+                        const rawPhone = digits.startsWith('55') ? digits.substring(2) : digits;
+                        
+                        if (rawPhone.length >= 10) {
+                          const normalized = normalizePhone(rawPhone);
                           console.log('PHONE INPUT', val);
                           console.log('NORMALIZED', normalized);
                           checkCustomerCashback(normalized).then(customer => {
                             console.log('CUSTOMER FOUND', customer);
-                            if (customer) {
-                              if (customer.name) setCustomerName(customer.name);
+                            if (customer && customer.name) {
+                              setCustomerName(customer.name);
                               if (customer.id) setCustomerId(customer.id);
-                              toast.success(`Bem-vindo de volta, ${customer.name || 'cliente'}!`);
+                              toast.success(`Bem-vindo de volta, ${customer.name}!`);
                             }
                           });
                         }
                       }} 
+
                       className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black tracking-tight focus-visible:ring-[#D4AF37]/50 rounded-2xl transition-all"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && customerPhone) {
