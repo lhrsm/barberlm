@@ -676,6 +676,7 @@ function ShopPageComponent() {
       let currentCredits = 0;
 
       if (!finalCustId) {
+        console.log('DEBUG: Customer ID not in state, searching by phone', normalized);
         const { data: customerData, error: customerError } = await supabase
           .from("customers")
           .select("id, cashback_balance, credits")
@@ -684,12 +685,14 @@ function ShopPageComponent() {
           .maybeSingle();
         
         if (customerData) {
+          console.log('DEBUG: Customer found by phone', customerData.id);
           finalCustId = customerData.id;
           currentCashback = Number(customerData.cashback_balance || 0);
           currentCredits = Number(customerData.credits || 0);
         }
       } else {
         // Se já temos o ID, vamos apenas garantir que temos os saldos atualizados
+        console.log('DEBUG: Customer ID exists in state', finalCustId);
         const { data: walletData } = await supabase
           .from("customers")
           .select("cashback_balance, credits")
@@ -703,19 +706,32 @@ function ShopPageComponent() {
       }
 
       if (!finalCustId) {
+        console.log('DEBUG: Creating new customer with shop.id', shop.id);
+        if (!shop?.id) {
+          console.error('CRITICAL: Shop ID is missing during customer creation');
+          toast.error("Erro interno: Identificador da barbearia não encontrado.");
+          setSubmitting(false);
+          return;
+        }
+
         const { data: newCustomer, error: createError } = await supabase
           .from("customers")
           .insert({
             user_id: shop.id,
             name: customerName,
-            phone: normalized
+            phone: normalized,
+            cashback_balance: 0
           })
           .select("id")
-          .maybeSingle();
+          .single();
         
-        if (createError) throw createError;
+        if (createError) {
+          console.error('DEBUG: Error creating customer', createError);
+          throw createError;
+        }
         if (!newCustomer) throw new Error("Falha ao criar cliente");
         finalCustId = newCustomer.id;
+        console.log('DEBUG: New customer created', finalCustId);
         setCustomerCashback(0);
       }
 
@@ -852,7 +868,8 @@ function ShopPageComponent() {
 
         // 4. Products faturamento (Products table tracks total sales regardless of credit use for stock/performance)
         for (const item of selectedProducts) {
-          await supabase.from("product_sales").insert({
+          console.log('DEBUG: Inserting product sale', { productId: item.id, shopId: shop.id });
+          const { error: saleError } = await supabase.from("product_sales").insert({
             user_id: shop.id,
             customer_id: finalCustId,
             total_amount: item.price * (item.quantity || 1),
@@ -864,6 +881,11 @@ function ShopPageComponent() {
               quantity: item.quantity || 1
             }]
           });
+          
+          if (saleError) {
+            console.error('DEBUG: Error inserting product sale', saleError);
+            // We don't throw here to not break the appointment, but log it
+          }
         }
       }
 
@@ -1419,14 +1441,14 @@ function ShopPageComponent() {
                 .map((product, idx) => (
                 <motion.div
                   key={product.id}
-                  className="flex-shrink-0 w-[280px] snap-center lg:w-auto"
+                  className="flex-shrink-0 w-[300px] snap-center lg:w-auto"
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="group bg-white border-gray-100 rounded-[2.5rem] overflow-hidden hover:border-[#D4AF37]/30 transition-all duration-500 flex flex-col h-full shadow-lg">
-                    <div className="aspect-square relative overflow-hidden bg-gray-50">
+                  <Card className="group bg-zinc-950 border-zinc-800 rounded-[2rem] overflow-hidden hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 flex flex-col h-full shadow-2xl hover:shadow-primary/10">
+                    <div className="aspect-square relative overflow-hidden bg-zinc-900">
                       {product.image_url ? (
                         <img 
                           src={product.image_url} 
@@ -1434,20 +1456,20 @@ function ShopPageComponent() {
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center opacity-10">
+                        <div className="w-full h-full flex items-center justify-center opacity-20 text-zinc-700">
                           <Package size={80} />
                         </div>
                       )}
                       
                       {product.badge && (
-                        <div className="absolute top-6 left-6 z-10">
-                          <span className="bg-[#D4AF37] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-2xl">
+                        <div className="absolute top-5 left-5 z-10">
+                          <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-2xl" style={{ backgroundColor: primaryColor }}>
                             {product.badge}
                           </span>
                         </div>
                       )}
 
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3">
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3 backdrop-blur-[2px]">
                          <Button 
                           className="rounded-full h-12 w-12 bg-white text-black hover:bg-white/90 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
                           onClick={() => setSelectedProductProductForModal(product)}
@@ -1456,7 +1478,7 @@ function ShopPageComponent() {
                         </Button>
                          <Button 
                           variant="secondary"
-                          className="rounded-full h-12 w-12 bg-black/60 backdrop-blur-md text-white hover:bg-black/80 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
+                          className="rounded-full h-12 w-12 bg-zinc-800/80 backdrop-blur-md text-white hover:bg-zinc-700 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500 border border-white/10"
                           onClick={() => {
                             const message = encodeURIComponent(`Olá! Tenho interesse no produto ${product.name} na ${shop.business_name}.`);
                             window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
@@ -1468,23 +1490,23 @@ function ShopPageComponent() {
                     </div>
 
                     <div 
-                      className="p-8 flex flex-col flex-1 space-y-4 cursor-pointer"
+                      className="p-7 flex flex-col flex-1 space-y-4 cursor-pointer"
                       onClick={() => setSelectedProductProductForModal(product)}
                     >
                       <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{product.category || 'Cuidados'}</p>
-                        <h4 className="text-xl font-black uppercase italic tracking-tighter leading-tight text-black">{product.name}</h4>
-                        {product.brand && <p className="text-xs font-bold text-[#D4AF37]/60">{product.brand}</p>}
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{product.category || 'Cuidados'}</p>
+                        <h4 className="text-xl font-black uppercase tracking-tight leading-tight text-white group-hover:text-primary transition-colors" style={{ '--primary': primaryColor } as any}>{product.name}</h4>
+                        {product.brand && <p className="text-xs font-bold text-zinc-400">{product.brand}</p>}
                       </div>
 
-                      <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed flex-1">
+                      <p className="text-zinc-400 text-sm line-clamp-2 leading-relaxed flex-1 font-medium">
                         {product.short_description || product.description || "Produto selecionado com rigor para garantir resultados superiores."}
                       </p>
 
-                      <div className="pt-4 border-t border-gray-100 space-y-4">
+                      <div className="pt-4 border-t border-white/5 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex flex-col">
-                            <span className="text-2xl font-black text-black">R$ {Number(product.price).toFixed(2)}</span>
+                            <span className="text-2xl font-black text-white" style={{ color: primaryColor }}>R$ {Number(product.price).toFixed(2)}</span>
                             {product.promotional_price && (
                               <span className="text-xs text-slate-500 line-through font-bold">R$ {Number(product.promotional_price).toFixed(2)}</span>
                             )}
