@@ -219,7 +219,10 @@ function ShopPageComponent() {
     const dayKey = dayMap[dayName] || dayName;
     const workingHours = barber.working_hours?.[dayKey];
 
-    if (!workingHours || !workingHours.enabled) return false;
+    if (!workingHours || !workingHours.enabled) {
+      console.warn('BARBER NOT WORKING ON THIS DAY', { dayKey, barber: barber.name });
+      return false;
+    }
 
     const barberAppointments = appointments?.filter(a => a.barber_id === barber.id) || [];
     const [startHour, startMin] = workingHours.start.split(':').map(Number);
@@ -230,7 +233,8 @@ function ShopPageComponent() {
       for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
         if (hour === endHour && min >= endMin) break;
         const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-        const checkTime = parseISO(`${date}T${timeStr}:00`);
+        const [y, m, d] = date.split('-').map(Number);
+        const checkTime = new Date(y, m - 1, d, hour, min, 0);
         
         if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
 
