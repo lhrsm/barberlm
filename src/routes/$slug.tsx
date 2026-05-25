@@ -954,11 +954,6 @@ function ShopPageComponent() {
     return null;
   };
 
-  // handlePhoneCheck is defined above near handleBookingAction
-      setSubmitting(false);
-    }
-  };
-
   // Skip step 1 if we already have customer info (e.g. from portal)
   useEffect(() => {
     if (isBookingOpen && bookingStep === 1 && customerPhone && customerName) {
