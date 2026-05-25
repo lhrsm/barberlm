@@ -104,7 +104,12 @@ serve(async (req) => {
     });
 
     const result = await response.json();
-    console.log(`qrCodeResponse / statusResponse:`, result);
+    console.log('instanceId', instance_id);
+    console.log('token', instance_token);
+    console.log('clientToken', client_token);
+    console.log('qrCodeResponse', action === 'get-qrcode' ? result : 'N/A');
+    console.log('statusResponse', action === 'get-status' ? result : 'N/A');
+    console.log(`Z-API Response:`, result);
 
     // Se for status, vamos atualizar o banco
     if (action === "get-status") {
