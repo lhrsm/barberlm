@@ -17,26 +17,54 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    const url = new URL(req.url);
     const body = await req.json();
+    
+    // Extrair barbershopId da URL (formato: .../zapi-webhook/[barbershopId])
+    const pathParts = url.pathname.split('/');
+    const barbershopIdFromUrl = pathParts[pathParts.length - 1] !== 'zapi-webhook' ? pathParts[pathParts.length - 1] : null;
+
     console.log("Z-API Webhook received:", JSON.stringify(body));
+    console.log("BarbershopId from URL:", barbershopIdFromUrl);
 
     const { instanceId, type } = body;
 
-    // Encontrar a conexão baseada no instanceId
-    const { data: connection } = await supabase
-      .from("whatsapp_connections")
-      .select("*")
-      .eq("instance_id", instanceId)
-      .maybeSingle();
+    // Se o barbershopId estiver na URL, usamos ele. Caso contrário, tentamos achar pela instância.
+    let tenantId = barbershopIdFromUrl;
+    let connection = null;
 
-    if (!connection) {
-      console.warn(`Conexão não encontrada para instanceId: ${instanceId}`);
-      return new Response(JSON.stringify({ status: "ignored" }), { headers: corsHeaders });
+    if (!tenantId) {
+      const { data: conn } = await supabase
+        .from("whatsapp_connections")
+        .select("*")
+        .eq("instance_id", instanceId)
+        .maybeSingle();
+      
+      if (conn) {
+        connection = conn;
+        tenantId = conn.barbershop_id;
+      }
     }
 
-    const tenantId = connection.barbershop_id;
+    if (!tenantId) {
+      console.warn(`Barbearia não identificada para o evento Z-API`);
+      return new Response(JSON.stringify({ status: "ignored", reason: "tenant_not_found" }), { 
+        headers: corsHeaders,
+        status: 200 // Z-API espera 200 para não repetir
+      });
+    }
 
-    // Processar diferentes tipos de eventos da Z-API
+    // Salvar Log do Webhook
+    const { error: logError } = await supabase.from("webhook_logs").insert({
+      barbershop_id: tenantId,
+      event_type: type || 'Unknown',
+      payload: body,
+      status: 'success'
+    });
+
+    if (logError) console.error("Erro ao salvar log de webhook:", logError);
+
+    // Processar lógica de negócio
     switch (type) {
       case "ReceivedMessage": {
         const message = body.text?.message || body.image?.caption || "Mensagem recebida";
@@ -51,20 +79,15 @@ serve(async (req) => {
         });
         break;
       }
-      case "MessageStatus": {
-        // Status: SENT, DELIVERED, READ, FAILED
-        // Se tivermos um sistema de tracking de mensagens enviadas, atualizaríamos aqui
-        break;
-      }
       case "Connected": {
         await supabase
           .from("whatsapp_connections")
           .update({ 
             status: 'connected', 
             updated_at: new Date().toISOString(),
-            phone: body.phone || connection.phone
+            phone: body.phone || connection?.phone
           })
-          .eq("id", connection.id);
+          .eq("barbershop_id", tenantId);
         break;
       }
       case "Disconnected": {
@@ -74,15 +97,10 @@ serve(async (req) => {
             status: 'disconnected', 
             updated_at: new Date().toISOString() 
           })
-          .eq("id", connection.id);
+          .eq("barbershop_id", tenantId);
         break;
       }
     }
-
-    return new Response(JSON.stringify({ status: "success" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
 
     return new Response(JSON.stringify({ status: "success" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -92,7 +110,7 @@ serve(async (req) => {
     console.error("Webhook Error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
+      status: 200, // Retornamos 200 mesmo em erro interno para evitar retentativas infinitas da Z-API se o payload estiver correto
     });
   }
 });
