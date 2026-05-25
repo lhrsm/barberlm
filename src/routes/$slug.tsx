@@ -854,6 +854,7 @@ function ShopPageComponent() {
         for (const item of selectedProducts) {
           await supabase.from("product_sales").insert({
             user_id: shop.id,
+            customer_id: finalCustId,
             total_amount: item.price * (item.quantity || 1),
             status: 'completed',
             items: [{
@@ -2114,107 +2115,112 @@ function ShopPageComponent() {
                     <Label className="text-xs font-black text-slate-500 uppercase tracking-widest">Produtos Adicionais</Label>
                     <span className="text-[10px] font-black uppercase tracking-widest text-primary" style={{ color: primaryColor }}>Opcional</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-6 px-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-6 px-1">
                     {products.map(p => {
                       const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
                         <motion.div 
                           key={p.id}
-                          whileHover={{ y: -4, scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
+                          whileHover={{ y: -4 }}
                           className={cn(
-                            "relative overflow-hidden rounded-2xl border transition-all duration-300 group cursor-pointer",
+                            "group relative flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden",
                             cartItem 
-                              ? "bg-zinc-900/90 border-primary shadow-lg shadow-primary/20" 
-                              : "bg-zinc-900/50 border-white/5 hover:border-white/20 hover:bg-zinc-900/80"
+                              ? "bg-zinc-900 border-primary shadow-xl shadow-primary/20 ring-1 ring-primary" 
+                              : "bg-zinc-900/70 backdrop-blur-md border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/90"
                           )}
-                          style={cartItem ? { borderColor: primaryColor } : {}}
-                          onClick={() => toggleProduct(p)}
+                          style={cartItem ? { borderColor: primaryColor, boxShadow: `0 20px 25px -5px ${primaryColor}33` } : {}}
                         >
-                          {/* Background Glow when selected */}
-                          {cartItem && (
-                            <div 
-                              className="absolute inset-0 opacity-10 blur-xl pointer-events-none"
-                              style={{ backgroundColor: primaryColor }}
-                            />
-                          )}
-
-                          <div className="p-4 flex flex-col h-full space-y-3">
-                            {/* Image Container */}
-                            <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-black/40 border border-white/5">
-                              {p.image_url ? (
-                                <img 
-                                  src={p.image_url} 
-                                  alt={p.name}
-                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-zinc-700">
-                                  <Package size={40} strokeWidth={1.5} />
-                                </div>
+                          {/* Image Container */}
+                          <div className="relative aspect-video w-full overflow-hidden bg-zinc-950">
+                            {p.image_url ? (
+                              <img 
+                                src={p.image_url} 
+                                alt={p.name}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-zinc-800">
+                                <Package size={48} strokeWidth={1} />
+                              </div>
+                            )}
+                            
+                            {/* Badges Overlay */}
+                            <div className="absolute top-3 right-3 flex flex-col gap-2">
+                              {cartItem && (
+                                <motion.div 
+                                  initial={{ scale: 0.8, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white flex items-center gap-1.5 shadow-lg backdrop-blur-md"
+                                  style={{ backgroundColor: primaryColor }}
+                                >
+                                  <CheckCircle2 size={12} /> Selecionado
+                                </motion.div>
                               )}
-                              
-                              {/* Badge */}
-                              {(p.badge || cartItem) && (
-                                <div className="absolute top-2 right-2 flex flex-col gap-1">
-                                  {cartItem && (
-                                    <span 
-                                      className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white flex items-center gap-1 shadow-lg"
-                                      style={{ backgroundColor: primaryColor }}
-                                    >
-                                      <CheckCircle2 size={10} /> Selecionado
-                                    </span>
-                                  )}
-                                  {p.badge && !cartItem && (
-                                    <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/10 text-white backdrop-blur-md border border-white/10">
-                                      {p.badge}
-                                    </span>
-                                  )}
+                              {p.badge && !cartItem && (
+                                <div className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-950/80 text-zinc-300 backdrop-blur-md border border-zinc-700">
+                                  {p.badge}
                                 </div>
                               )}
                             </div>
 
-                            {/* Info */}
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-start justify-between gap-2">
-                                <h4 className="text-sm font-bold text-white line-clamp-1">{p.name}</h4>
-                                <span className="text-sm font-black whitespace-nowrap" style={{ color: primaryColor }}>
-                                  R$ {p.price.toFixed(2)}
-                                </span>
+                            {/* Price Badge Overlay */}
+                            <div className="absolute bottom-3 left-3">
+                              <div className="px-3 py-1.5 rounded-xl bg-zinc-950/90 border border-zinc-800 text-white font-bold text-sm backdrop-blur-md">
+                                R$ {p.price.toFixed(2)}
                               </div>
-                              
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-5 flex flex-col flex-1">
+                            <div className="mb-3">
+                              <h4 className="text-white font-semibold text-lg leading-tight mb-1 group-hover:text-primary transition-colors"
+                                  style={cartItem ? { color: primaryColor } : {}}>
+                                {p.name}
+                              </h4>
                               {(p.short_description || p.description) && (
-                                <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                                <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
                                   {p.short_description || p.description}
                                 </p>
                               )}
                             </div>
 
-                            {/* Controls */}
-                            <div className="pt-2">
+                            <div className="mt-auto space-y-3">
                               {cartItem ? (
-                                <div className="flex items-center justify-between bg-black/40 rounded-xl p-1 border border-white/5">
+                                <div className="flex items-center justify-between bg-zinc-950/50 rounded-xl p-1.5 border border-zinc-800">
                                   <button 
                                     onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
-                                    className="hover:bg-white/10 text-white rounded-lg h-8 w-8 flex items-center justify-center transition-colors"
+                                    className="hover:bg-zinc-800 text-white rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
                                   >
-                                    <Minus size={14} />
+                                    <Minus size={16} />
                                   </button>
-                                  <span className="text-xs font-black">{cartItem.quantity} unidades</span>
+                                  <span className="text-sm font-bold text-white w-24 text-center">{cartItem.quantity} unidades</span>
                                   <button 
                                     onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
-                                    className="hover:bg-white/10 text-white rounded-lg h-8 w-8 flex items-center justify-center transition-colors"
+                                    className="hover:bg-zinc-800 text-white rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
                                     disabled={cartItem.quantity >= (p.stock_quantity || 99)}
                                   >
-                                    <Plus size={14} />
+                                    <Plus size={16} />
                                   </button>
                                 </div>
                               ) : (
-                                <div 
-                                  className="w-full py-2.5 rounded-xl border border-white/5 bg-white/5 text-[10px] font-black uppercase tracking-widest text-center group-hover:bg-white/10 transition-all"
+                                <Button
+                                  onClick={() => toggleProduct(p)}
+                                  className="h-11 w-full rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] bg-zinc-100 hover:bg-white text-black border-none"
                                 >
                                   Adicionar ao agendamento
-                                </div>
+                                </Button>
+                              )}
+                              
+                              {cartItem && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleProduct(p)}
+                                  className="w-full h-9 text-[10px] uppercase font-bold tracking-widest text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                >
+                                  Remover do Carrinho
+                                </Button>
                               )}
                             </div>
                           </div>
@@ -2832,17 +2838,42 @@ function ShopPageComponent() {
                   // 1. Create sale record in product_sales for the "Faturamento" tab
                   const totalAmount = calculateTotalBeforeCashback();
                   
-                  // Try to find customer ID by phone if we have it
-                  let saleCustomerId = null;
-                  if (customerPhone) {
+                  // Ensure customer exists and get ID
+                  let saleCustomerId = customerId;
+                  
+                  if (!saleCustomerId && customerPhone) {
+                    const normalized = typeof normalizePhone === "function" ? normalizePhone(customerPhone) : customerPhone;
+                    
+                    // 1. Try to find existing
                     const { data: custData } = await supabase
                       .from("customers")
                       .select("id")
-                      .eq("phone", customerPhone)
+                      .eq("phone", normalized)
                       .eq("user_id", shop.id)
                       .maybeSingle();
-                    if (custData) saleCustomerId = custData.id;
+                      
+                    if (custData) {
+                      saleCustomerId = custData.id;
+                    } else if (customerName) {
+                      // 2. Create new if not found
+                      const { data: newCust, error: createError } = await supabase
+                        .from("customers")
+                        .insert({
+                          user_id: shop.id,
+                          name: customerName,
+                          phone: normalized,
+                          cashback_balance: 0,
+                          loyalty_points: 0
+                        })
+                        .select("id")
+                        .single();
+                        
+                      if (createError) throw createError;
+                      saleCustomerId = newCust.id;
+                    }
                   }
+
+                  if (!saleCustomerId) throw new Error("Identificação do cliente é obrigatória para vendas.");
 
                   const { data: saleData, error: saleError } = await supabase.from("product_sales").insert({
                     user_id: shop.id,

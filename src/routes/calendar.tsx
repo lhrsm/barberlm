@@ -278,6 +278,7 @@ function CalendarComponent() {
 
         await supabase.from("product_sales").insert({
           user_id: user.id,
+          customer_id: appointment.customer_id,
           total_amount: item.price * (item.quantity || 1),
           status: 'completed',
           items: [item]
