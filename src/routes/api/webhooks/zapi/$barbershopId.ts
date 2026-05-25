@@ -1,23 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
-// Initialize Supabase client lazily with fallback
+// Initialize Supabase client lazily
 const getSupabase = () => {
   const url = process.env.SUPABASE_URL || "";
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  if (!url || !key) {
-    console.warn("Supabase credentials missing in server context");
-  }
   return createClient(url, key);
 };
 
 export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
-  // Adding a component just in case the router expects one for GET requests in the browser
   component: () => "Webhook Active",
   server: {
     handlers: {
       GET: async () => {
-        console.log("[Z-API] GET request received");
+        console.log("[Z-API] GET ping received");
         return new Response(
           JSON.stringify({
             success: true,
@@ -25,23 +21,16 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
           }),
           {
             status: 200,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
+            headers: { "Content-Type": "application/json" },
           }
         );
       },
       POST: async ({ request, params }) => {
         const { barbershopId } = params;
-        console.log(`[Z-API] POST received for barbershop: ${barbershopId}`);
+        console.log(`[Z-API] POST received for ${barbershopId}`);
 
         try {
-          // 1. Parse body with timeout/safety
-          const body = await request.json().catch((e) => {
-            console.error("[Z-API] JSON Parse Error:", e);
-            return null;
-          });
+          const body = await request.json().catch(() => null);
 
           if (!body) {
             return new Response(JSON.stringify({ success: false, error: "Invalid payload" }), {
@@ -50,10 +39,10 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
             });
           }
 
-          console.log("[Z-API] Payload received:", JSON.stringify(body).substring(0, 100) + "...");
+          // Extract event type if available
+          const eventType = body.type || "unknown";
 
-          // 2. Save to Supabase (Non-blocking as much as possible)
-          // We wrap this in a separate try/catch to ensure it doesn't block the response
+          // Save to Supabase
           try {
             const supabase = getSupabase();
             const { error: logError } = await supabase
@@ -61,33 +50,29 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
               .insert({
                 barbershop_id: barbershopId,
                 payload: body,
+                event_type: eventType,
+                status: "received",
                 created_at: new Date().toISOString(),
               });
 
             if (logError) {
-              console.error("[Z-API] Supabase Insert Error Details:", JSON.stringify(logError, null, 2));
-            } else {
-              console.log("[Z-API] Log saved to Supabase successfully");
+              console.error("[Z-API] Supabase Error:", logError.message);
             }
-          } catch (err) {
-            console.error("[Z-API] Database execution failed:", err);
+          } catch (dbErr) {
+            console.error("[Z-API] DB Connection Error:", dbErr);
           }
 
-          // 3. Respond immediately
           return new Response(
             JSON.stringify({ success: true }),
             {
               status: 200,
-              headers: {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*",
-              },
+              headers: { "Content-Type": "application/json" },
             }
           );
         } catch (error) {
-          console.error("[Z-API] Global Handler Error:", error);
+          console.error("[Z-API] Webhook Processing Failed:", error);
           return new Response(
-            JSON.stringify({ success: false, message: "Internal Server Error" }),
+            JSON.stringify({ success: false }),
             {
               status: 500,
               headers: { "Content-Type": "application/json" },
