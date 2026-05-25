@@ -2142,7 +2142,7 @@ function ShopPageComponent() {
                     <Label className="text-xs font-black text-slate-500 uppercase tracking-widest">Produtos Adicionais</Label>
                     <span className="text-[10px] font-black uppercase tracking-widest text-primary" style={{ color: primaryColor }}>Opcional</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-6 px-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pb-6 px-1">
                     {products.map(p => {
                       const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
@@ -2201,12 +2201,12 @@ function ShopPageComponent() {
                           {/* Content */}
                           <div className="p-5 flex flex-col flex-1">
                             <div className="mb-3">
-                              <h4 className="text-white font-semibold text-lg leading-tight mb-1 group-hover:text-primary transition-colors"
+                              <h4 className="text-white font-semibold text-lg leading-tight mb-1 line-clamp-2 group-hover:text-primary transition-colors"
                                   style={cartItem ? { color: primaryColor } : {}}>
                                 {p.name}
                               </h4>
                               {(p.short_description || p.description) && (
-                                <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                                <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed break-words">
                                   {p.short_description || p.description}
                                 </p>
                               )}
@@ -2233,9 +2233,9 @@ function ShopPageComponent() {
                               ) : (
                                 <Button
                                   onClick={() => toggleProduct(p)}
-                                  className="h-11 w-full rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] bg-zinc-100 hover:bg-white text-black border-none"
+                                  className="h-11 w-full rounded-xl font-semibold text-sm px-3 truncate transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] bg-zinc-100 hover:bg-white text-black border-none"
                                 >
-                                  Adicionar ao agendamento
+                                  <Plus size={16} className="mr-1.5 shrink-0" /> Adicionar
                                 </Button>
                               )}
                               
