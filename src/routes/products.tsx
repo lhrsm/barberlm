@@ -576,13 +576,22 @@ function ProductsComponent() {
                             return;
                           }
                           
-                          try {
-                            const { error: saleError } = await supabase.from("product_sales").insert({
+                            // Encontrar um barbeiro para associar a venda (o tenant_admin ou o primeiro disponível)
+                            const { data: barberData } = await supabase.from('barbers').select('id').eq('user_id', user.id).eq('active', true).limit(1).maybeSingle();
+                            const barberId = role === 'barber' ? user.id : barberData?.id;
+
+                            if (!barberId) {
+                              toast.error("Não foi possível identificar um profissional para esta venda.");
+                              return;
+                            }
+
+                            const { error: saleError } = await supabase.from("product_sales").insert([{
                               user_id: user.id,
+                              barber_id: barberId,
                               items: [{ id: product.id, name: product.name, quantity: 1, price: product.price }],
                               total_amount: product.price,
-                              status: 'completed'
-                            });
+                              status: 'completed' as "completed"
+                            }]);
 
                             if (saleError) throw saleError;
 
@@ -594,14 +603,15 @@ function ProductsComponent() {
                             if (stockError) throw stockError;
                             
                             // Adicionar ao financeiro
-                            await supabase.from("transactions").insert({
+                            await supabase.from("transactions").insert([{
                               user_id: user.id,
+                              barber_id: barberId,
                               amount: product.price,
                               type: "income",
                               category: "Venda de Produto",
                               description: `Venda: ${product.name}`,
                               date: new Date().toISOString().split('T')[0]
-                            });
+                            }]);
 
                             toast.success(`Venda de ${product.name} realizada!`);
                             fetchProducts();

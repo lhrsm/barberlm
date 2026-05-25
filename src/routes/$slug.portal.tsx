@@ -584,17 +584,25 @@ function ClientPortalComponent() {
             avatar_url: avatarUrl || undefined
           })
           .eq("id", customerId);
-      } else {
+        // For new customers in the portal, we need a barber_id for RLS
+        // We'll pick the first active barber from the shop as default if none selected
+        const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+        
+        if (!defaultBarberId) {
+          throw new Error("Não foi possível identificar um profissional para o cadastro.");
+        }
+
         const { data: newCust, error: custErr } = await supabase
           .from("customers")
-          .insert({
+          .insert([{
             user_id: shop.id,
+            barber_id: defaultBarberId,
             name: customerName,
             phone: normalized,
             email: customerEmail || undefined,
             birth_date: formattedBirthDate || undefined,
             avatar_url: avatarUrl || undefined
-          })
+          }])
           .select("id")
           .single();
         if (custErr) throw custErr;
