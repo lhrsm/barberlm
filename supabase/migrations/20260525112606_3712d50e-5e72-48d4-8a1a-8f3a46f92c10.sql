@@ -1,0 +1,1 @@
+ALTER TABLE public.whatsapp_connections ADD COLUMN IF NOT EXISTS instance_name TEXT;
