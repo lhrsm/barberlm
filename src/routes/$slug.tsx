@@ -2201,12 +2201,12 @@ function ShopPageComponent() {
                           {/* Content */}
                           <div className="p-5 flex flex-col flex-1">
                             <div className="mb-3">
-                              <h4 className="text-white font-semibold text-lg leading-tight mb-1 group-hover:text-primary transition-colors"
+                              <h4 className="text-white font-semibold text-lg leading-tight mb-1 line-clamp-2 group-hover:text-primary transition-colors"
                                   style={cartItem ? { color: primaryColor } : {}}>
                                 {p.name}
                               </h4>
                               {(p.short_description || p.description) && (
-                                <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                                <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed break-words">
                                   {p.short_description || p.description}
                                 </p>
                               )}
