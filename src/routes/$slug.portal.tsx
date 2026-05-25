@@ -283,15 +283,21 @@ function ClientPortalComponent() {
   }, [isEditModalOpen, editingAppointment, newDate]);
 
   async function fetchAvailableTimes(barberId: string, date: string) {
+    console.log('FETCHING TIMES START', { barberId, date });
     setFetchingTimes(true);
     try {
-      const { data: barber } = await supabase
+      const { data: barber, error: barberError } = await supabase
         .from("barbers")
         .select("*")
         .eq("id", barberId)
         .single();
 
-      if (!barber) return;
+      if (barberError || !barber) {
+        console.error("Barber not found:", barberError);
+        return;
+      }
+
+      console.log('BARBER FOUND', { name: barber.name, working_hours: barber.working_hours });
 
       const dateObj = parseISO(date);
       const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
@@ -309,15 +315,20 @@ function ClientPortalComponent() {
       const dayKey = dayMap[dayName] || dayName;
       const workingHours = (barber.working_hours as any)?.[dayKey];
 
+      console.log('WORKING HOURS CHECK', { dayName, dayKey, workingHours });
+
       if (!workingHours || !workingHours.enabled) {
+        console.warn('BARBER NOT WORKING ON THIS DAY', { dayKey });
         setAvailableTimes([]);
         return;
       }
 
-      const startOfDayTime = `${date}T00:00:00Z`;
-      const endOfDayTime = `${date}T23:59:59Z`;
+      const startOfDayTime = `${date}T00:00:00.000Z`;
+      const endOfDayTime = `${date}T23:59:59.999Z`;
 
-      const { data: appointments } = await supabase
+      console.log('QUERY RANGE', { startOfDayTime, endOfDayTime });
+
+      const { data: appointments, error: apptError } = await supabase
         .from("appointments")
         .select("start_time, end_time")
         .eq("barber_id", barberId)
@@ -325,24 +336,39 @@ function ClientPortalComponent() {
         .gte("start_time", startOfDayTime)
         .lte("start_time", endOfDayTime);
 
+      if (apptError) {
+        console.error("Error fetching appointments:", apptError);
+      }
+
+      console.log('APPOINTMENTS FOUND', appointments?.length || 0);
+
       const times = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
       const interval = 30;
+
+      console.log('LOOP PARAMS', { startHour, startMin, endHour, endMin, interval });
 
       for (let hour = startHour; hour <= endHour; hour++) {
         for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
           if (hour === endHour && min >= endMin) break;
           
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-          const checkTime = parseISO(`${date}T${timeStr}:00`);
           
-          if (format(checkTime, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") && checkTime < new Date()) {
+          // Use a more robust way to create the check date in local time
+          const [y, m, d] = date.split('-').map(Number);
+          const checkTime = new Date(y, m - 1, d, hour, min, 0);
+          
+          const now = new Date();
+          const isToday = y === now.getFullYear() && (m - 1) === now.getMonth() && d === now.getDate();
+          
+          if (isToday && checkTime < now) {
             continue;
           }
 
           const isBusy = appointments?.some(app => {
             if (editingAppointment && app.start_time === editingAppointment.start_time) return false;
+            // parseISO(app.start_time) handles the timezone from DB correctly
             const appStart = parseISO(app.start_time);
             const appEnd = parseISO(app.end_time);
             return checkTime >= appStart && checkTime < appEnd;
@@ -353,6 +379,7 @@ function ClientPortalComponent() {
           }
         }
       }
+      console.log('FINAL TIMES GENERATED', times.length);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
@@ -364,6 +391,7 @@ function ClientPortalComponent() {
   // Effect to fetch available times for the booking modal
   useEffect(() => {
     if (isBookingOpen && bookingStep === 3 && selectedBarber && selectedDate) {
+      setSelectedTime(""); // Reset time when barber or date changes
       fetchAvailableTimes(selectedBarber.id, selectedDate);
     }
   }, [isBookingOpen, bookingStep, selectedBarber, selectedDate]);
@@ -1527,7 +1555,7 @@ function ClientPortalComponent() {
                 <h3 className="font-bold text-lg">Selecione o Profissional</h3>
                 <div className="grid gap-3">
                   {barbers
-                    .filter(b => b.barber_services?.some((bs: any) => bs.service_id === selectedService?.id))
+                    .filter(b => b.active !== false && b.barber_services?.some((bs: any) => bs.service_id === selectedService?.id))
                     .map(barber => (
                     <Button
                       key={barber.id}
@@ -1590,8 +1618,10 @@ function ClientPortalComponent() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-2xl">
-                        <p className="text-sm text-gray-400">Nenhum horário disponível para esta data.</p>
+                      <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                        <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                        <p className="text-sm text-gray-500 font-medium">Nenhum horário disponível para esta data.</p>
+                        <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Tente selecionar outro dia ou profissional</p>
                       </div>
                     )}
                   </div>

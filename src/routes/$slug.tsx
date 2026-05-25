@@ -171,6 +171,7 @@ function ShopPageComponent() {
 
   useEffect(() => {
     if (bookingStep === 4 && selectedBarber && selectedDate) {
+      setSelectedTime(""); // Reset time when barber or date changes
       fetchAvailableTimes(selectedBarber.id, selectedDate);
     }
   }, [bookingStep, selectedBarber, selectedDate]);
@@ -218,7 +219,10 @@ function ShopPageComponent() {
     const dayKey = dayMap[dayName] || dayName;
     const workingHours = barber.working_hours?.[dayKey];
 
-    if (!workingHours || !workingHours.enabled) return false;
+    if (!workingHours || !workingHours.enabled) {
+      console.warn('BARBER NOT WORKING ON THIS DAY', { dayKey, barber: barber.name });
+      return false;
+    }
 
     const barberAppointments = appointments?.filter(a => a.barber_id === barber.id) || [];
     const [startHour, startMin] = workingHours.start.split(':').map(Number);
@@ -229,7 +233,8 @@ function ShopPageComponent() {
       for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
         if (hour === endHour && min >= endMin) break;
         const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-        const checkTime = parseISO(`${date}T${timeStr}:00`);
+        const [y, m, d] = date.split('-').map(Number);
+        const checkTime = new Date(y, m - 1, d, hour, min, 0);
         
         if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
 
@@ -384,15 +389,20 @@ function ShopPageComponent() {
   };
 
   const fetchAvailableTimes = async (barberId: string, date: string) => {
+    console.log('FETCHING TIMES START (MAIN PAGE)', { barberId, date });
     setFetchingTimes(true);
     try {
       const barber = barbers.find(b => b.id === barberId);
-      if (!barber) return;
+      if (!barber) {
+        console.error("Barber not found in local state");
+        return;
+      }
+
+      console.log('BARBER FROM STATE', { name: barber.name, working_hours: barber.working_hours });
 
       const dateObj = parseISO(date);
       const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
       
-      // Map Portuguese day name to English key used in DB
       const dayMap: Record<string, string> = {
         'segunda-feira': 'monday',
         'terça-feira': 'tuesday',
@@ -406,13 +416,16 @@ function ShopPageComponent() {
       const dayKey = dayMap[dayName] || dayName;
       const workingHours = barber.working_hours?.[dayKey];
 
+      console.log('WORKING HOURS CHECK', { dayName, dayKey, workingHours });
+
       if (!workingHours || !workingHours.enabled) {
+        console.warn('BARBER NOT WORKING ON THIS DAY', { dayKey });
         setAvailableTimes([]);
         return;
       }
 
-      const startOfDayTime = `${date}T00:00:00Z`;
-      const endOfDayTime = `${date}T23:59:59Z`;
+      const startOfDayTime = `${date}T00:00:00.000Z`;
+      const endOfDayTime = `${date}T23:59:59.999Z`;
 
       const { data: appointments, error } = await supabase
         .from("appointments")
@@ -424,19 +437,23 @@ function ShopPageComponent() {
 
       if (error) throw error;
 
+      console.log('APPOINTMENTS FOUND', appointments?.length || 0);
+
       const times = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
       const interval = 30;
+
+      console.log('LOOP PARAMS', { startHour, startMin, endHour, endMin, interval });
 
       for (let hour = startHour; hour <= endHour; hour++) {
         for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
           if (hour === endHour && min >= endMin) break;
           
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-          const checkTime = parseISO(`${date}T${timeStr}:00`);
+          const [y, m, d] = date.split('-').map(Number);
+          const checkTime = new Date(y, m - 1, d, hour, min, 0);
           
-          // Don't show past times for today
           if (isSameDay(checkTime, new Date()) && checkTime < new Date()) {
             continue;
           }
@@ -452,6 +469,7 @@ function ShopPageComponent() {
           }
         }
       }
+      console.log('FINAL TIMES GENERATED', times.length);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
@@ -1708,7 +1726,7 @@ function ShopPageComponent() {
                   ) : (
                     <div className="text-center py-12 bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
                       <p className="text-sm font-black uppercase tracking-tighter text-slate-500">
-                        Nenhum horário livre para hoje.
+                        Nenhum horário disponível para esta data.
                       </p>
                     </div>
                   )}
