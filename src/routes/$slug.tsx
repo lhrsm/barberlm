@@ -399,6 +399,7 @@ function ShopPageComponent() {
       if (customer?.name) {
         console.log('DEBUG: Customer found, setting name:', customer.name);
         setCustomerName(customer.name);
+        setCustomerId(customer.id);
         toast.success(`Bem-vindo de volta, ${customer.name}!`);
       }
       setBookingStep(2);
