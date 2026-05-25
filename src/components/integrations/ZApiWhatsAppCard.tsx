@@ -277,7 +277,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           toast.success("WhatsApp conectado com sucesso!");
           fetchConnection();
         } else {
-          setPollingStatus(data?.waitingQrCode ? "qrcode" : "disconnected");
+          setPollingStatus(result.data?.waitingQrCode ? "qrcode" : "disconnected");
         }
       } catch (err) {
         console.error("Polling error", err);
