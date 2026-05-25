@@ -102,6 +102,8 @@ function ClientPortalComponent() {
     if (savedClient) {
       try {
         const parsedClient = JSON.parse(savedClient);
+        console.log('CUSTOMER SESSION', parsedClient);
+        console.log('CLIENT AUTH', { isLoggedIn: true, customer: parsedClient });
         console.log('DEBUG: Found saved session', parsedClient);
         setClient(parsedClient);
         setPhone(parsedClient.phone);
