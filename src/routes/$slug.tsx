@@ -1116,12 +1116,12 @@ function ShopPageComponent() {
   };
 
 
-  // Skip step 1 if we already have customer info (e.g. from portal)
+  // Avanço automático apenas para clientes JÁ IDENTIFICADOS no banco (ex: portal ou busca automática)
   useEffect(() => {
-    if (isBookingOpen && bookingStep === 1 && customerPhone && customerName) {
+    if (isBookingOpen && bookingStep === 1 && customerPhone && customerName && customerId) {
       handlePhoneCheck();
     }
-  }, [isBookingOpen, bookingStep, customerPhone, customerName]);
+  }, [isBookingOpen, bookingStep, customerPhone, customerName, customerId]);
 
   if (isPortalRoute || isProfissionalRoute) {
     return <Outlet />;
