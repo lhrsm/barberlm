@@ -138,14 +138,16 @@ function ShopPageComponent() {
       
       const normalizedPhone = normalizePhone(customerPhone);
       
-      console.log('PHONE INPUT', customerPhone);
-      console.log('NORMALIZED PHONE', normalizedPhone);
+      console.log('BOOKING DATA DEBUG: phone changed', { customerPhone, normalizedPhone });
       
       // Busca internacional requer pelo menos 10 dígitos (DDD + Número)
       if (normalizedPhone.length < 10) {
-        if (bookingStep === 1 && !localStorage.getItem(`client_portal_session_${slug}`)) {
-          setCustomerName("");
+        if (bookingStep === 1) {
           setCustomerId(null);
+          // Only clear name if NOT in portal session
+          if (!localStorage.getItem(`client_portal_session_${slug}`)) {
+            setCustomerName("");
+          }
         }
         return;
       }
@@ -159,13 +161,12 @@ function ShopPageComponent() {
           .eq('user_id', shop.id)
           .maybeSingle();
 
-        console.log('CUSTOMER RESULT', data);
-        if (error) console.log('QUERY ERROR', error);
+        console.log('BOOKING DATA DEBUG: customer query result', { data, error });
 
         if (data) {
           console.log('CUSTOMER FOUND:', data.name);
-          if (data.name) setCustomerName(data.name);
           setCustomerId(data.id);
+          setCustomerName(data.name || "");
           setCustomerCashback(data.cashback_balance || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
@@ -175,10 +176,10 @@ function ShopPageComponent() {
           }
         } else {
           console.log('CUSTOMER NOT FOUND for phone:', normalizedPhone);
+          setCustomerId(null);
           // Se não encontrou e não estamos em sessão do portal, garante que o nome está limpo
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
             setCustomerName("");
-            setCustomerId(null);
           }
         }
       } catch (err) {
@@ -189,7 +190,6 @@ function ShopPageComponent() {
     }
 
     if (bookingStep === 1 && isBookingOpen) {
-      // Debounce busca para não sobrecarregar enquanto digita
       const timer = setTimeout(() => {
         findCustomer();
       }, 500);
@@ -457,34 +457,42 @@ function ShopPageComponent() {
   };
 
   const handlePhoneCheck = async () => {
-    if (!customerPhone || customerPhone.length < 8) {
+    const normalized = normalizePhone(customerPhone);
+    console.log('BOOKING DATA DEBUG: handlePhoneCheck', { customerPhone, normalized, customerName, customerId });
+
+    if (!customerPhone || normalized.length < 8) {
       toast.error("Por favor, informe um WhatsApp válido.");
       return;
     }
     
-    const normalized = normalizePhone(customerPhone);
-    console.log('PHONE INPUT AT CHECK', customerPhone);
-    console.log('NORMALIZED PHONE AT CHECK', normalized);
-
     setSubmitting(true);
     try {
-      const customer = await checkCustomerCashback(normalized);
-      console.log('CUSTOMER FOUND AT CHECK', customer);
-      
-      if (customer) {
-        if (customer.name) {
-          setCustomerName(customer.name);
-          toast.success(`Bem-vindo de volta, ${customer.name}!`);
+      // If we don't have a customerId yet, try one last check
+      let currentCustomer = null;
+      if (!customerId) {
+        const { data } = await supabase
+          .from("customers")
+          .select("id, name")
+          .eq("phone", normalized)
+          .eq("user_id", shop.id)
+          .maybeSingle();
+        currentCustomer = data;
+      }
+
+      if (customerId || currentCustomer) {
+        const name = customerName || currentCustomer?.name;
+        if (name) {
+          setCustomerName(name);
+          toast.success(`Bem-vindo de volta, ${name}!`);
         }
-        if (customer.id) setCustomerId(customer.id);
+        if (currentCustomer?.id) setCustomerId(currentCustomer.id);
         setBookingStep(2);
       } else {
-        // Se é um cliente novo, precisamos que informe o nome antes de prosseguir
+        // Novo cliente
         if (!customerName || customerName.trim().length < 3) {
-          toast.info("Parece que é sua primeira vez! Por favor, informe seu nome.");
-          // Permanecemos no step 1 para o cliente digitar o nome
+          toast.info("Por favor, informe seu nome completo.");
         } else {
-          // Se já digitou o nome (campo Name está visível), podemos prosseguir
+          console.log('BOOKING DATA DEBUG: New customer proceeding', { customerName, customerPhone });
           setBookingStep(2);
         }
       }
@@ -544,6 +552,13 @@ function ShopPageComponent() {
   };
 
   const fetchAvailableTimes = async (barberId: string, date: string) => {
+    console.log('BOOKING DATA DEBUG: fetchAvailableTimes', { 
+      customerName, 
+      customerPhone, 
+      selectedService: selectedService?.name, 
+      barberId, 
+      date 
+    });
     console.log('DEBUG: SERVICE', selectedService);
     console.log('DEBUG: PROFESSIONAL', barberId);
     console.log('DEBUG: DATE', date);
@@ -1682,11 +1697,10 @@ function ShopPageComponent() {
         setIsBookingOpen(open);
         if (!open) {
           setBookingStep(1);
-          if (!isEmbedded && !localStorage.getItem(`client_portal_session_${slug}`)) {
-            setCustomerName("");
-            setCustomerPhone("");
-            setCustomerId(null);
-          }
+          // Don't reset if we want to persist between modal closes in the same session,
+          // but user wants them to persist anyway.
+          // However, for a fresh start on next click, we might want to clear, 
+          // but the user says "maintain until finalized".
           setUseCashback(false);
           setUseCredits(false);
           setPaymentMethod(null);
@@ -1762,28 +1776,44 @@ function ShopPageComponent() {
                       />
                     </div>
 
-                    {/* Campo de nome condicional se o cliente não for encontrado e o telefone estiver completo */}
-                    {normalizePhone(customerPhone).length >= 10 && !customerId && !isSearchingCustomer && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="grid gap-3 p-6 bg-primary/5 rounded-3xl border border-primary/20 shadow-inner mt-4 overflow-hidden"
-                      >
-                        <Label className="text-xs font-black uppercase tracking-widest text-primary ml-1">Seu Nome Completo</Label>
-                        <Input 
-                          placeholder="Ex: João Silva" 
-                          value={customerName} 
-                          onChange={(e) => setCustomerName(e.target.value)}
-                          className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black focus-visible:ring-primary/50 rounded-2xl"
-                        />
-                      </motion.div>
-                    )}
-
+                    <AnimatePresence mode="wait">
+                      {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && (
+                        <motion.div 
+                          key={customerId ? "found" : "new"}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="mt-4 overflow-hidden"
+                        >
+                          {customerId ? (
+                            <div className="p-4 bg-green-50 rounded-2xl border border-green-200 flex items-center gap-3">
+                              <CheckCircle2 className="text-green-500 shrink-0" size={24} />
+                              <div>
+                                <p className="text-xs font-black uppercase tracking-widest text-green-700">Cliente Identificado</p>
+                                <p className="text-lg font-black text-black">Olá, {customerName}!</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="grid gap-3 p-6 bg-primary/5 rounded-3xl border border-primary/20 shadow-inner">
+                              <Label className="text-xs font-black uppercase tracking-widest text-primary ml-1">Qual o seu nome?</Label>
+                              <Input 
+                                placeholder="Ex: João Silva" 
+                                value={customerName} 
+                                onChange={(e) => setCustomerName(e.target.value)}
+                                className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black focus-visible:ring-primary/50 rounded-2xl"
+                              />
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
+
                   <Button 
                     className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
                     onClick={handlePhoneCheck}
-                    disabled={!customerPhone || submitting || (normalizePhone(customerPhone).length >= 10 && !customerId && !customerName)}
+                    disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && !customerName)}
                   >
                     {submitting ? "Verificando..." : (customerId ? "Continuar" : "Cadastrar e Continuar")}
                   </Button>
