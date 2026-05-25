@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
+// Initialize Supabase client lazily
 let _supabase: any = null;
-function getSupabase(): any {
+function getSupabase() {
   if (!_supabase) {
     _supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_URL || "",
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ""
     );
   }
   return _supabase;
@@ -16,58 +17,61 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
   server: {
     handlers: {
       GET: async () => {
-        console.log("Z-API Webhook GET check received");
-        return Response.json({
-          success: true,
-          message: "Webhook online",
-        });
+        console.log("Z-API Webhook GET ping received");
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Webhook online",
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
       },
       POST: async ({ request, params }) => {
+        const { barbershopId } = params;
+        console.log(`Z-API Webhook POST received for ${barbershopId}`);
+
         try {
-          const { barbershopId } = params;
-          console.log(`Z-API Webhook POST received for barbershop: ${barbershopId}`);
-          
-          let body;
-          try {
-            body = await request.json();
-          } catch (e) {
-            console.error("Error parsing webhook body:", e);
-            return Response.json({ success: false, error: "Invalid JSON" }, { status: 400 });
-          }
+          // Clone request to avoid body usage issues if needed, 
+          // though in standard handlers it should be fine.
+          const body = await request.json();
+          console.log("Z-API Body parsed successfully");
 
-          console.log("Z-API Payload:", JSON.stringify(body, null, 2));
-
-          // Save to Supabase asynchronously - don't await it if it's risky, 
-          // but user wants it saved. Let's do it and ensure it has a timeout or catch.
+          // Save log without awaiting it too long if possible, 
+          // but for now let's just do it simply.
           const supabase = getSupabase();
           
-          // Log the event to webhook_logs
-          const { error: logError } = await supabase
-            .from('webhook_logs')
-            .insert({
-              barbershop_id: barbershopId,
-              payload: body,
-              created_at: new Date().toISOString()
-            });
+          // We use a try-catch specifically for the DB insert to avoid hanging the whole webhook
+          try {
+            const { error: logError } = await supabase
+              .from("webhook_logs")
+              .insert({
+                barbershop_id: barbershopId,
+                payload: body,
+                created_at: new Date().toISOString(),
+              });
 
-          if (logError) {
-            console.error("Error saving webhook log to Supabase:", logError);
+            if (logError) console.error("Supabase Log Error:", logError);
+          } catch (dbError) {
+            console.error("Database connection error:", dbError);
           }
 
-          // Return success immediately to Z-API
-          return Response.json({
-            success: true
-          });
-
-        } catch (error) {
-          console.error("Z-API Webhook Error:", error);
-          return Response.json(
+          return new Response(
+            JSON.stringify({ success: true }),
             {
-              success: false,
-              message: "Internal server error"
-            },
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        } catch (error) {
+          console.error("Webhook processing error:", error);
+          return new Response(
+            JSON.stringify({ success: false, error: "Processing failed" }),
             {
               status: 500,
+              headers: { "Content-Type": "application/json" },
             }
           );
         }
