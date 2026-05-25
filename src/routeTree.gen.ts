@@ -42,6 +42,7 @@ import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
+import { Route as ApiZapiTestMessageRouteImport } from './routes/api/zapi/test-message'
 import { Route as ApiZapiTestConnectionRouteImport } from './routes/api/zapi/test-connection'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -211,6 +212,11 @@ const SlugPortalRoute = SlugPortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => SlugRoute,
 } as any)
+const ApiZapiTestMessageRoute = ApiZapiTestMessageRouteImport.update({
+  id: '/api/zapi/test-message',
+  path: '/api/zapi/test-message',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiZapiTestConnectionRoute = ApiZapiTestConnectionRouteImport.update({
   id: '/api/zapi/test-connection',
   path: '/api/zapi/test-connection',
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin/': typeof AdminIndexRoute
   '/api/zapi/test-connection': typeof ApiZapiTestConnectionRoute
+  '/api/zapi/test-message': typeof ApiZapiTestMessageRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -301,6 +308,7 @@ export interface FileRoutesByTo {
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin': typeof AdminIndexRoute
   '/api/zapi/test-connection': typeof ApiZapiTestConnectionRoute
+  '/api/zapi/test-message': typeof ApiZapiTestMessageRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -340,6 +348,7 @@ export interface FileRoutesById {
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin/': typeof AdminIndexRoute
   '/api/zapi/test-connection': typeof ApiZapiTestConnectionRoute
+  '/api/zapi/test-message': typeof ApiZapiTestMessageRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -380,6 +389,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/admin/'
     | '/api/zapi/test-connection'
+    | '/api/zapi/test-message'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesByTo: FileRoutesByTo
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/admin'
     | '/api/zapi/test-connection'
+    | '/api/zapi/test-message'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   id:
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/admin/'
     | '/api/zapi/test-connection'
+    | '/api/zapi/test-message'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesById: FileRoutesById
@@ -480,6 +492,7 @@ export interface RootRouteChildren {
   TutorialsRoute: typeof TutorialsRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ApiZapiTestConnectionRoute: typeof ApiZapiTestConnectionRoute
+  ApiZapiTestMessageRoute: typeof ApiZapiTestMessageRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiWebhooksZapiBarbershopIdRoute: typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -717,6 +730,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SlugPortalRouteImport
       parentRoute: typeof SlugRoute
     }
+    '/api/zapi/test-message': {
+      id: '/api/zapi/test-message'
+      path: '/api/zapi/test-message'
+      fullPath: '/api/zapi/test-message'
+      preLoaderRoute: typeof ApiZapiTestMessageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/zapi/test-connection': {
       id: '/api/zapi/test-connection'
       path: '/api/zapi/test-connection'
@@ -806,6 +826,7 @@ const rootRouteChildren: RootRouteChildren = {
   TutorialsRoute: TutorialsRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ApiZapiTestConnectionRoute: ApiZapiTestConnectionRoute,
+  ApiZapiTestMessageRoute: ApiZapiTestMessageRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiWebhooksZapiBarbershopIdRoute: ApiWebhooksZapiBarbershopIdRoute,
 }

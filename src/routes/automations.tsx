@@ -135,6 +135,38 @@ function AutomationsComponent() {
   const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isIAExecuting, setIsIAExecuting] = useState(false);
+  const [isTesting, setIsTesting] = useState<string | null>(null);
+
+  const handleTestAutomation = async (automation: any) => {
+    if (!tenantId) return;
+    setIsTesting(automation.id || automation.type);
+    
+    try {
+      const response = await fetch('/api/zapi/test-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenantId,
+          message: automation.template || getDefaultTemplate(automation.type),
+          // For testing, we could ask for a phone number, but for now we'll use a placeholder or the barbeshop's own phone if available
+          phone: "5571999999999" 
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success("Mensagem de teste enviada com sucesso!");
+      } else {
+        toast.error("Erro ao enviar teste: " + (result.error || "Erro desconhecido"));
+      }
+    } catch (err) {
+      toast.error("Erro ao processar teste de envio");
+    } finally {
+      setIsTesting(null);
+    }
+  };
+
 
   useEffect(() => {
     if (tenantId) {
