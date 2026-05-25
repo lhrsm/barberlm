@@ -35,7 +35,7 @@ function ShopPageComponent() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const searchParams = new URLSearchParams(window.location.search);
+  const searchParams = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
   const isEmbedded = searchParams.get('embed') === 'true';
   const initialPhone = searchParams.get('phone') || "";
   const initialName = searchParams.get('name') || "";
