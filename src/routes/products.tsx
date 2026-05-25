@@ -575,7 +575,7 @@ function ProductsComponent() {
                             toast.error("Produto sem estoque!");
                             return;
                           }
-                          
+                          try {
                             // Encontrar um barbeiro para associar a venda (o tenant_admin ou o primeiro disponível)
                             const { data: barberData } = await supabase.from('barbers').select('id').eq('user_id', user.id).eq('active', true).limit(1).maybeSingle();
                             const barberId = role === 'barber' ? user.id : barberData?.id;
