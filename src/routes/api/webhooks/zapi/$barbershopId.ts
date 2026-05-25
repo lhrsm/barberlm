@@ -28,27 +28,65 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
 
           console.log("ZAPI WEBHOOK RECEIVED:", {
             barbershopId,
-            eventType: body.type || body.event,
+            eventType: body.type,
             body
           });
 
-          // Save to webhook_logs using service role to bypass RLS
           const supabase = getSupabase();
-          const { error } = await supabase.from("webhook_logs").insert({
+          const { type, instanceId } = body;
+
+          // 1. Save Log
+          const { error: logError } = await supabase.from("webhook_logs").insert({
             barbershop_id: barbershopId,
             payload: body,
-            event_type: body.type || body.event || "zapi_event",
+            event_type: type || "unknown",
             status: 'received',
             created_at: new Date().toISOString(),
           });
 
-          if (error) {
-            console.error("Error saving webhook log:", error);
+          if (logError) console.error("Error saving webhook log:", logError);
+
+          // 2. Process Business Logic based on Event Type
+          switch (type) {
+            case "ReceivedMessage": {
+              const message = body.text?.message || body.image?.caption || body.video?.caption || "Mensagem recebida";
+              const from = body.phone;
+
+              await supabase.from("whatsapp_messages").insert({
+                user_id: barbershopId, // Assumes user_id can be barbershopId or linked
+                barbershop_id: barbershopId,
+                content: message,
+                status: 'received',
+                metadata: { phone: from, raw: body }
+              });
+              break;
+            }
+            case "Connected": {
+              await supabase
+                .from("whatsapp_connections")
+                .update({ 
+                  status: 'connected', 
+                  updated_at: new Date().toISOString(),
+                  phone: body.phone
+                })
+                .eq("barbershop_id", barbershopId);
+              break;
+            }
+            case "Disconnected": {
+              await supabase
+                .from("whatsapp_connections")
+                .update({ 
+                  status: 'disconnected', 
+                  updated_at: new Date().toISOString() 
+                })
+                .eq("barbershop_id", barbershopId);
+              break;
+            }
           }
 
           return Response.json({
             success: true,
-            message: "Event received"
+            message: "Event processed"
           });
         } catch (error) {
           console.error("Webhook processing failed:", error);
