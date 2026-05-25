@@ -18,20 +18,25 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
         });
       },
       POST: async ({ request, params }) => {
-        const { barbershopId } = params;
         try {
+          // Responder IMEDIATAMENTE como solicitado para evitar loading infinito
           const body = await request.json();
-          console.log(`[Z-API Webhook] Received for ${barbershopId}:`, body);
+          const { barbershopId } = params;
 
-          // Save to Supabase logs
+          console.log(`[Z-API Webhook] Received body for ${barbershopId}:`, body);
+
+          // Processamento em "segundo plano" (sem await para responder rápido)
           const supabase = getSupabase();
-          await supabase
+          supabase
             .from("webhook_logs")
             .insert({
               barbershop_id: barbershopId,
               payload: body,
               event_type: body.type || 'zapi_event',
               status: 'received'
+            })
+            .then(({ error }) => {
+              if (error) console.error('[Z-API Webhook] Log Error:', error);
             });
 
           return Response.json({
