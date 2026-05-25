@@ -9,11 +9,19 @@ export const normalizePhone = (phone: string): string => {
   // Remove all non-numeric characters
   const digits = phone.replace(/\D/g, "");
   
+  if (!digits) return "";
+
+  // Se já começar com 55, apenas retorna
   if (digits.startsWith('55')) {
     return digits;
   }
 
-  return `55${digits}`;
+  // Se tiver 10 ou 11 dígitos (formato BR sem DDI), adiciona 55
+  if (digits.length >= 10 && digits.length <= 11) {
+    return `55${digits}`;
+  }
+
+  return digits;
 };
 
 /**
