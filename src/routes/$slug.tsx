@@ -89,6 +89,7 @@ function ShopPageComponent() {
   const [selectedTime, setSelectedTime] = useState("09:00");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerId, setCustomerId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
