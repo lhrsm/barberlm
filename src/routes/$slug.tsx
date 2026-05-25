@@ -348,6 +348,32 @@ function ShopPageComponent() {
     }
   };
 
+  const handlePhoneCheck = async () => {
+    if (!customerPhone || customerPhone.length < 8) {
+      toast.error("Por favor, informe um WhatsApp válido.");
+      return;
+    }
+    
+    const normalized = normalizePhone(customerPhone);
+    console.log('DEBUG: Normalizing phone for check:', { original: customerPhone, normalized });
+
+    setSubmitting(true);
+    try {
+      const customer = await checkCustomerCashback(normalized);
+      setCustomerPhone(normalized);
+      if (customer?.name) {
+        setCustomerName(customer.name);
+        setBookingStep(2);
+      } else {
+        setBookingStep(2);
+      }
+    } catch (e: any) {
+      toast.error("Erro ao verificar identificação: " + e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSelectService = (service: any) => {
     console.log('DEBUG: handleSelectService triggered', service);
     setSelectedService(service);
