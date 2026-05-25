@@ -20,11 +20,6 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
           const body = await request.json();
           const { instanceId, token, connectionId } = body;
 
-          console.log('--- DEBUG Z-API TEST CONNECTION ---');
-          console.log('Instance ID:', instanceId);
-          console.log('Token:', token?.substring(0, 4) + '...');
-          console.log('Connection ID:', connectionId);
-
           const headers: any = {
             'Content-Type': 'application/json'
           };
@@ -35,8 +30,11 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
 
           const fullUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/status`;
           
-          console.log('Full URL:', fullUrl);
-          console.log('Headers being sent:', JSON.stringify(headers));
+          console.log('--- DEBUG Z-API REQUEST ---');
+          console.log('HEADERS ENVIADOS:', JSON.stringify(headers));
+          console.log('INSTANCE ID:', instanceId);
+          console.log('TOKEN:', token);
+          console.log('URL:', fullUrl);
 
           const response = await fetch(
             fullUrl,
@@ -50,6 +48,10 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
           console.log('Z-API RAW RESPONSE:', responseText);
 
           if (!response.ok) {
+            // Se o erro ainda for "client-token is not configured", vamos logar os headers novamente para ter certeza absoluta
+            if (responseText.includes('client-token')) {
+              console.error('ERRO CRÍTICO: Z-API reclama de client-token mesmo sem enviarmos o header!');
+            }
             throw new Error(`Z-API Error: ${response.status} - ${responseText}`);
           }
 
