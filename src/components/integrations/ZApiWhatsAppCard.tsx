@@ -254,16 +254,20 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (!connection?.id) return;
       
       try {
-        const { data } = await supabase.functions.invoke('zapi-api', {
-          body: { action: 'get-status', connectionId: connection.id }
+        const response = await fetch('/api/zapi/test-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            instanceId: connection.instance_id,
+            token: connection.instance_token,
+            clientToken: connection.client_token,
+            connectionId: connection.id
+          })
         });
 
-        console.log('POLLING STATUS DATA:', data);
-        const isConnected = 
-          data?.connected === true || 
-          data?.connected === 'true' || 
-          data?.status === 'connected' || 
-          data?.value === 'CONNECTED';
+        const result = await response.json();
+        console.log('POLLING STATUS DATA:', result.data);
+        const isConnected = result.connected;
 
         if (isConnected) {
           clearInterval(interval);
@@ -273,7 +277,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           toast.success("WhatsApp conectado com sucesso!");
           fetchConnection();
         } else {
-          setPollingStatus(data?.waitingQrCode ? "qrcode" : "disconnected");
+          setPollingStatus(result.data?.waitingQrCode ? "qrcode" : "disconnected");
         }
       } catch (err) {
         console.error("Polling error", err);
@@ -301,16 +305,19 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   async function checkStatusSilently() {
     if (!connection?.id) return;
     try {
-      const { data } = await supabase.functions.invoke('zapi-api', {
-        body: { action: 'get-status', connectionId: connection.id }
+      const response = await fetch('/api/zapi/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instanceId: connection.instance_id,
+          token: connection.instance_token,
+          clientToken: connection.client_token,
+          connectionId: connection.id
+        })
       });
       
-      const isConnected = 
-        data?.connected === true || 
-        data?.connected === 'true' || 
-        data?.status === 'connected' || 
-        data?.value === 'CONNECTED';
-
+      const result = await response.json();
+      const isConnected = result.connected;
       const newStatus = isConnected ? 'connected' : 'disconnected';
       
       if (newStatus !== connection.status) {
@@ -340,33 +347,39 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (!connection) return;
     setIsTesting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('zapi-api', {
-        body: { action: 'test-connection', connectionId: connection.id }
+      const response = await fetch('/api/zapi/test-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          instanceId: connection.instance_id,
+          token: connection.instance_token,
+          clientToken: connection.client_token,
+          connectionId: connection.id
+        })
       });
 
-      if (error) throw error;
+      const result = await response.json();
       
-      console.log('instanceId', connection.instance_id);
-      console.log('token', connection.instance_token);
-      console.log('clientToken', connection.client_token);
-      console.log('response', data);
+      console.log('INSTANCE ID', connection.instance_id);
+      console.log('TOKEN', connection.instance_token);
+      console.log('CLIENT TOKEN', connection.client_token);
+      console.log('RESULT', result);
 
-      console.log('STATUS DATA:', data);
-      const isConnected = 
-        data?.connected === true || 
-        data?.connected === 'true' || 
-        data?.status === 'connected' || 
-        data?.value === 'CONNECTED';
+      if (!result.success) {
+        throw new Error(result.error || "Erro desconhecido na API");
+      }
 
-      if (isConnected) {
+      if (result.connected) {
         toast.success("WhatsApp conectado");
       } else {
         toast.error("WhatsApp desconectado");
       }
       fetchConnection();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Test error", err);
-      toast.error("Erro ao testar conexão");
+      toast.error(err.message || "Erro ao testar conexão");
     } finally {
       setIsTesting(false);
     }
@@ -376,27 +389,32 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (!connection) return;
     setIsTesting(true);
     try {
-      const { data } = await supabase.functions.invoke('zapi-api', {
-        body: { action: 'get-status', connectionId: connection.id }
+      const response = await fetch('/api/zapi/test-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          instanceId: connection.instance_id,
+          token: connection.instance_token,
+          clientToken: connection.client_token,
+          connectionId: connection.id
+        })
       });
-      
-      console.log('STATUS DATA:', data);
-      console.log('CONNECTED:', data?.connected);
-      console.log('TYPE:', typeof data?.connected);
-      const isConnected = 
-        data?.connected === true || 
-        data?.connected === 'true' || 
-        data?.status === 'connected' || 
-        data?.value === 'CONNECTED';
 
-      if (isConnected) {
+      const result = await response.json();
+      
+      console.log('STATUS DATA:', result.data);
+      console.log('CONNECTED:', result.connected);
+      
+      if (result.success && result.connected) {
         toast.success("Status: Conectado");
       } else {
-        toast.error("Status: Desconectado");
+        toast.error(result.error ? `Erro: ${result.error}` : "Status: Desconectado");
       }
       fetchConnection();
-    } catch (err) {
-      toast.error("Erro ao verificar status");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao verificar status");
     } finally {
       setIsTesting(false);
     }

@@ -42,6 +42,7 @@ import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
+import { Route as ApiZapiTestConnectionRouteImport } from './routes/api/zapi/test-connection'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -210,6 +211,11 @@ const SlugPortalRoute = SlugPortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => SlugRoute,
 } as any)
+const ApiZapiTestConnectionRoute = ApiZapiTestConnectionRouteImport.update({
+  id: '/api/zapi/test-connection',
+  path: '/api/zapi/test-connection',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWebhooksZapiBarbershopIdRoute =
   ApiWebhooksZapiBarbershopIdRouteImport.update({
     id: '/api/webhooks/zapi/$barbershopId',
@@ -257,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/zapi/test-connection': typeof ApiZapiTestConnectionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -293,6 +300,7 @@ export interface FileRoutesByTo {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin': typeof AdminIndexRoute
+  '/api/zapi/test-connection': typeof ApiZapiTestConnectionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -331,6 +339,7 @@ export interface FileRoutesById {
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/zapi/test-connection': typeof ApiZapiTestConnectionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/checkout/return'
     | '/admin/'
+    | '/api/zapi/test-connection'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesByTo: FileRoutesByTo
@@ -406,6 +416,7 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/checkout/return'
     | '/admin'
+    | '/api/zapi/test-connection'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   id:
@@ -443,6 +454,7 @@ export interface FileRouteTypes {
     | '/admin/tutorials'
     | '/checkout/return'
     | '/admin/'
+    | '/api/zapi/test-connection'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesById: FileRoutesById
@@ -467,6 +479,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   TutorialsRoute: typeof TutorialsRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  ApiZapiTestConnectionRoute: typeof ApiZapiTestConnectionRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiWebhooksZapiBarbershopIdRoute: typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -704,6 +717,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SlugPortalRouteImport
       parentRoute: typeof SlugRoute
     }
+    '/api/zapi/test-connection': {
+      id: '/api/zapi/test-connection'
+      path: '/api/zapi/test-connection'
+      fullPath: '/api/zapi/test-connection'
+      preLoaderRoute: typeof ApiZapiTestConnectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/webhooks/zapi/$barbershopId': {
       id: '/api/webhooks/zapi/$barbershopId'
       path: '/api/webhooks/zapi/$barbershopId'
@@ -785,6 +805,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   TutorialsRoute: TutorialsRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  ApiZapiTestConnectionRoute: ApiZapiTestConnectionRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiWebhooksZapiBarbershopIdRoute: ApiWebhooksZapiBarbershopIdRoute,
 }
