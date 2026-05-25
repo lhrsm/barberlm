@@ -103,8 +103,9 @@ export function EvolutionWhatsAppCard({ tenantId }: { tenantId: string }) {
 
   async function setupWebhook(conn: WhatsAppConnection) {
     try {
-      const webhookUrl = `${window.location.origin}/api/webhooks/evolution`;
+      const webhookUrl = "https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/evolution-webhook";
       const { data, error } = await supabase.functions.invoke('evolution-api', {
+
         body: { 
           action: 'set-webhook', 
           connectionId: conn.id,
