@@ -328,7 +328,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         body: { action: 'disconnect', connectionId: connection.id }
       });
       
-      await supabase.from("whatsapp_connections").update({ status: 'disconnected' }).eq("id", connection.id);
+      await supabase.from("whatsapp_connections").update({ status: 'disconnected', connected: false }).eq("id", connection.id);
       toast.success("WhatsApp desconectado");
       fetchConnection();
     } catch (err) {
