@@ -1825,12 +1825,19 @@ function ShopPageComponent() {
                   </div>
 
                   <Button 
-                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
+                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all relative overflow-hidden group" 
                     onClick={handlePhoneCheck}
-                    disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && !customerName)}
+                    disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
+                    style={customerId ? { backgroundColor: primaryColor, boxShadow: `0 10px 30px -10px ${primaryColor}60` } : {}}
                   >
-                    {submitting ? "Verificando..." : (customerId ? "Continuar" : "Cadastrar e Continuar")}
+                    <span className="relative z-10">
+                      {submitting ? "Verificando..." : (customerId ? "Continuar Agendamento" : "Cadastrar e Continuar")}
+                    </span>
+                    {customerId && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-transform" />
+                    )}
                   </Button>
+
                 </div>
 
                 <p className="text-[10px] text-center text-slate-600 font-bold uppercase tracking-[0.2em] pt-4">
