@@ -31,7 +31,8 @@ import {
   Lock,
   ArrowRight,
   Sparkles,
-  Check
+  Check,
+  Loader2
 } from "lucide-react";
 import {
   Dialog,
