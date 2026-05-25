@@ -87,11 +87,17 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   async function saveSettings(e: React.FormEvent) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
+    let serverUrl = (formData.get('server_url') as string || "https://api.z-api.io").trim();
+    if (serverUrl.includes('/instances/')) {
+      serverUrl = serverUrl.split('/instances/')[0];
+    }
+    serverUrl = serverUrl.replace(/\/$/, "");
+
     const data = {
       barbershop_id: tenantId,
-      instance_id: formData.get('instance_id') as string,
-      server_url: formData.get('server_url') as string || "https://api.z-api.io",
-      instance_token: formData.get('instance_token') as string,
+      instance_id: (formData.get('instance_id') as string).trim(),
+      server_url: serverUrl,
+      instance_token: (formData.get('instance_token') as string).trim(),
       provider: 'z-api'
     };
 
