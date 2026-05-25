@@ -1071,11 +1071,13 @@ function ShopPageComponent() {
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           if (data.name) setCustomerName(data.name);
+          setCustomerId(data.id);
           return data;
         } else {
           // If no portal session, clear name for new customer
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
             setCustomerName("");
+            setCustomerId(null);
           }
           setCustomerCashback(0);
           setCustomerLoyaltyPoints(0);
@@ -1087,6 +1089,7 @@ function ShopPageComponent() {
     }
     return null;
   };
+
 
   // Skip step 1 if we already have customer info (e.g. from portal)
   useEffect(() => {
