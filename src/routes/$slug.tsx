@@ -636,8 +636,8 @@ function ShopPageComponent() {
       await supabase
         .from("client_auth")
         .upsert({
-          phone: customerPhone,
-          customer_id: customerId
+          phone: normalized,
+          customer_id: finalCustId
         }, { onConflict: 'phone' });
 
 
