@@ -799,7 +799,7 @@ export type Database = {
       product_sales: {
         Row: {
           created_at: string
-          customer_id: string
+          customer_id: string | null
           id: string
           items: Json
           pix_key: string | null
@@ -812,7 +812,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          customer_id: string
+          customer_id?: string | null
           id?: string
           items: Json
           pix_key?: string | null
@@ -825,7 +825,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          customer_id?: string
+          customer_id?: string | null
           id?: string
           items?: Json
           pix_key?: string | null
