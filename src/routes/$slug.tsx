@@ -2024,17 +2024,21 @@ function ShopPageComponent() {
                     </div>
 
                   ) : (
-                    <div className="text-center py-12 bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
-                      <p className="text-sm font-black uppercase tracking-tighter text-slate-500">
+                    <div className="text-center py-12 bg-zinc-900/50 rounded-3xl border border-dashed border-zinc-800">
+                      <Clock className="mx-auto h-8 w-8 text-zinc-700 mb-3" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.1em] text-zinc-500">
                         Nenhum horário disponível para esta data.
                       </p>
                     </div>
                   )}
                 </div>
 
-                  <Button 
-                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
-
+                <Button 
+                  className={cn(
+                    "w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl transition-all duration-300",
+                    !selectedTime ? "bg-zinc-800 text-zinc-500 cursor-not-allowed" : "text-white hover:scale-[1.02]"
+                  )}
+                  style={selectedTime ? { backgroundColor: primaryColor, boxShadow: `0 10px 30px -10px ${primaryColor}60` } : {}}
                   onClick={() => {
                     if (!selectedTime) {
                       toast.error("Por favor, selecione um horário.");
@@ -2044,8 +2048,9 @@ function ShopPageComponent() {
                   }}
                   disabled={fetchingTimes || !selectedTime}
                 >
-                  Confirmar Detalhes
+                  {selectedTime ? "Confirmar Detalhes" : "Selecione um horário"}
                 </Button>
+
               </motion.div>
             )}
 
