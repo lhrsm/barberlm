@@ -362,8 +362,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                           </Button>
                         </div>
                         
-                        <div className="p-3 bg-black/40 rounded-xl border border-white/5 text-[11px] font-mono text-slate-400 break-all">
-                          https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/{tenantId}
+                        <div className="p-3 bg-black/40 rounded-xl border border-white/5 text-[11px] font-mono text-slate-400 break-all relative group/url">
+                          {connection.webhook_url || "Aguardando geração..."}
+                          {connection.webhook_url && (
+                            <Badge className="absolute right-2 top-2 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[8px] uppercase font-bold">
+                              Ativo
+                            </Badge>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
