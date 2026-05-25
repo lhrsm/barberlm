@@ -1,102 +1,81 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
-let _supabase: any = null;
-function getSupabase(): any {
-  if (!_supabase) {
-    _supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-  }
-  return _supabase;
-}
+// Initialize Supabase client lazily
+const getSupabase = () => {
+  const url = process.env.SUPABASE_URL || "";
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  return createClient(url, key);
+};
 
 export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
+  component: () => "Webhook Active",
   server: {
     handlers: {
       GET: async () => {
-        return Response.json({
-          success: true,
-          message: "Webhook online",
-        });
+        console.log("[Z-API] GET ping received");
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Webhook online",
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
       },
       POST: async ({ request, params }) => {
+        const { barbershopId } = params;
+        console.log(`[Z-API] POST received for ${barbershopId}`);
+
         try {
-          const { barbershopId } = params;
-          const body = await request.json();
+          const body = await request.json().catch(() => null);
 
-          console.log("ZAPI WEBHOOK RECEIVED:", {
-            barbershopId,
-            eventType: body.type,
-            body
-          });
-
-          const supabase = getSupabase();
-          const { type, instanceId } = body;
-
-          // 1. Save Log
-          const { error: logError } = await supabase.from("webhook_logs").insert({
-            barbershop_id: barbershopId,
-            payload: body,
-            event_type: type || "unknown",
-            status: 'received',
-            created_at: new Date().toISOString(),
-          });
-
-          if (logError) console.error("Error saving webhook log:", logError);
-
-          // 2. Process Business Logic based on Event Type
-          switch (type) {
-            case "ReceivedMessage": {
-              const message = body.text?.message || body.image?.caption || body.video?.caption || "Mensagem recebida";
-              const from = body.phone;
-
-              await supabase.from("whatsapp_messages").insert({
-                user_id: barbershopId, // Assumes user_id can be barbershopId or linked
-                barbershop_id: barbershopId,
-                content: message,
-                status: 'received',
-                metadata: { phone: from, raw: body }
-              });
-              break;
-            }
-            case "Connected": {
-              await supabase
-                .from("whatsapp_connections")
-                .update({ 
-                  status: 'connected', 
-                  updated_at: new Date().toISOString(),
-                  phone: body.phone
-                })
-                .eq("barbershop_id", barbershopId);
-              break;
-            }
-            case "Disconnected": {
-              await supabase
-                .from("whatsapp_connections")
-                .update({ 
-                  status: 'disconnected', 
-                  updated_at: new Date().toISOString() 
-                })
-                .eq("barbershop_id", barbershopId);
-              break;
-            }
+          if (!body) {
+            return new Response(JSON.stringify({ success: false, error: "Invalid payload" }), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            });
           }
 
-          return Response.json({
-            success: true,
-            message: "Event processed"
-          });
-        } catch (error) {
-          console.error("Webhook processing failed:", error);
-          return Response.json(
+          // Extract event type if available
+          const eventType = body.type || "unknown";
+
+          // Save to Supabase
+          try {
+            const supabase = getSupabase();
+            const { error: logError } = await supabase
+              .from("webhook_logs")
+              .insert({
+                barbershop_id: barbershopId,
+                payload: body,
+                event_type: eventType,
+                status: "received",
+                created_at: new Date().toISOString(),
+              });
+
+            if (logError) {
+              console.error("[Z-API] Supabase Error:", logError.message);
+            }
+          } catch (dbErr) {
+            console.error("[Z-API] DB Connection Error:", dbErr);
+          }
+
+          return new Response(
+            JSON.stringify({ success: true }),
             {
-              success: false,
-              error: "Webhook processing failed",
-            },
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        } catch (error) {
+          console.error("[Z-API] Webhook Processing Failed:", error);
+          return new Response(
+            JSON.stringify({ success: false }),
             {
               status: 500,
+              headers: { "Content-Type": "application/json" },
             }
           );
         }
