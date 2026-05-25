@@ -883,13 +883,13 @@ function ShopPageComponent() {
             barber_id: selectedBarber.id,
             customer_id: finalCustId,
             total_amount: item.price * (item.quantity || 1),
-            status: 'completed',
+            status: 'completed' as "completed",
             items: [{
               product_id: item.id,
               name: item.name,
               price: item.price,
               quantity: item.quantity || 1
-            }]
+            }] as any
           };
           console.log('INSERT PRODUCT SALE DATA', productSalePayload);
           
