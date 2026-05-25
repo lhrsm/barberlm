@@ -314,24 +314,26 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 Salvar Configurações
               </Button>
               {connection?.id && (
-                <Button 
-                  type="button" 
-                  onClick={testConnection} 
-                  disabled={isTesting}
-                  className="flex-1 bg-white text-black hover:bg-slate-200 h-11 font-semibold"
-                >
-                  {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />}
-                  Testar Status
-                </Button>
-                <Button 
-                  type="button" 
-                  onClick={sendTestMessage} 
-                  disabled={isTesting}
-                  className="flex-1 bg-blue-600 text-white hover:bg-blue-700 h-11 font-semibold"
-                >
-                  {isTesting ? <Loader2 className="animate-spin mr-2" /> : <MessageSquare size={18} className="mr-2" />}
-                  Enviar Teste
-                </Button>
+                <>
+                  <Button 
+                    type="button" 
+                    onClick={testConnection} 
+                    disabled={isTesting}
+                    className="flex-1 bg-white text-black hover:bg-slate-200 h-11 font-semibold"
+                  >
+                    {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />}
+                    Testar Status
+                  </Button>
+                  <Button 
+                    type="button" 
+                    onClick={sendTestMessage} 
+                    disabled={isTesting}
+                    className="flex-1 bg-blue-600 text-white hover:bg-blue-700 h-11 font-semibold"
+                  >
+                    {isTesting ? <Loader2 className="animate-spin mr-2" /> : <MessageSquare size={18} className="mr-2" />}
+                    Enviar Teste
+                  </Button>
+                </>
               )}
             </div>
           </form>
