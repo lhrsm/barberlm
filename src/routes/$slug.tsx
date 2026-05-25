@@ -180,7 +180,8 @@ function ShopPageComponent() {
           setCustomerId(null);
           // Se não encontrou e não estamos em sessão do portal, garante que o nome está limpo
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
-            setCustomerName("");
+            // Only clear name if it matches an old ID or was automatically filled
+            if (customerId) setCustomerName("");
           }
         }
       } catch (err) {
