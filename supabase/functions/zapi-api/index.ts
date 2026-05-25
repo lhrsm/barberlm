@@ -122,6 +122,7 @@ serve(async (req) => {
         .update({ 
           status, 
           phone: result.phone || connection.phone,
+          instance_name: result.instanceName || connection.instance_name,
           updated_at: new Date().toISOString() 
         })
         .eq("id", connectionId);
