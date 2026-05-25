@@ -49,6 +49,7 @@ function ClientPortalComponent() {
   const [shop, setShop] = useState<any>(null);
   const [client, setClient] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
+  const [phone, setPhone] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
@@ -65,7 +66,7 @@ function ClientPortalComponent() {
   const [products, setProducts] = useState<any[]>([]);
   
   // Auth state
-  const [phone, setPhone] = useState("");
+  // phone state is already declared above
   const [isRegistering, setIsRegistering] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -457,13 +458,15 @@ function ClientPortalComponent() {
 
   const handleLogin = async (e: React.FormEvent) => {
     if (e) e.preventDefault();
+    const normalized = normalizePhone(phone);
+    console.log('DEBUG: Normalizing phone for login:', { original: phone, normalized });
     setSubmitting(true);
     try {
       // Find customer in this specific shop first
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
         .select("id, name")
-        .eq("phone", phone)
+        .eq("phone", normalized)
         .eq("user_id", shop.id)
         .maybeSingle();
 
@@ -477,7 +480,7 @@ function ClientPortalComponent() {
       const { data: authData, error: authError } = await supabase
         .from("client_auth")
         .select("*")
-        .eq("phone", phone)
+        .eq("phone", normalized)
         .maybeSingle();
 
       if (authError) throw authError;
@@ -489,13 +492,13 @@ function ClientPortalComponent() {
         await supabase
           .from("client_auth")
           .insert({
-            phone: phone,
+            phone: normalized,
             customer_id: finalCustomerId
           });
       }
 
       const sessionData = {
-        phone: phone,
+        phone: normalized,
         customer_id: finalCustomerId,
         name: customerData.name
       };

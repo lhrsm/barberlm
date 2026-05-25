@@ -252,6 +252,7 @@ function ShopPageComponent() {
   };
 
   async function fetchShopData(targetSlug: string) {
+    console.log('DEBUG: Fetching shop data for slug:', targetSlug);
     if (!targetSlug) return;
     setLoading(true);
     try {
@@ -332,6 +333,7 @@ function ShopPageComponent() {
   const primaryColor = shop?.primary_color || "#7c3aed";
 
   const handleBookingAction = () => {
+    console.log('DEBUG: handleBookingAction triggered');
     if (shop?.scheduling_mode === 'manual') {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
@@ -345,6 +347,7 @@ function ShopPageComponent() {
   };
 
   const handleSelectService = (service: any) => {
+    console.log('DEBUG: handleSelectService triggered', service);
     setSelectedService(service);
     
     // Verificamos se já temos sessão salva para pular etapas
@@ -367,6 +370,7 @@ function ShopPageComponent() {
 
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
+    console.log('DEBUG: checkConflict triggered', { barberId, date, time, serviceId });
     const service = services.find(s => s.id === serviceId);
     if (!service) return false;
     
@@ -1536,7 +1540,7 @@ function ShopPageComponent() {
                     <Input 
                       placeholder="(00) 00000-0000" 
                       value={customerPhone} 
-                      onChange={(e) => setCustomerPhone(e.target.value)} 
+                      onChange={(e) => setCustomerPhone(formatPhoneMask(e.target.value))} 
                       className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black tracking-tight focus-visible:ring-[#D4AF37]/50 rounded-2xl transition-all"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && customerPhone) {
