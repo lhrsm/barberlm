@@ -18,19 +18,14 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
       POST: async ({ request }) => {
         try {
           const body = await request.json();
-          const { instanceId, token, clientToken, connectionId } = body;
+          const { instanceId, token, connectionId } = body;
 
           console.log('INSTANCE ID:', instanceId);
           console.log('TOKEN:', token);
-          console.log('CLIENT TOKEN:', clientToken);
 
           const headers: any = {
             'Content-Type': 'application/json'
           };
-
-          if (clientToken) {
-            headers['Client-Token'] = clientToken;
-          }
 
           const response = await fetch(
             `https://api.z-api.io/instances/${instanceId}/token/${token}/status`,
@@ -50,9 +45,7 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
 
           const isConnected =
             data.connected === true ||
-            data.connected === 'true' ||
-            data.status === 'connected' ||
-            data.value === 'CONNECTED';
+            data.connected === 'true';
 
           // Update database if connectionId is provided
           if (connectionId) {

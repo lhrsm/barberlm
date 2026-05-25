@@ -24,7 +24,6 @@ interface WhatsAppConnection {
   instance_id: string;
   server_url: string;
   instance_token: string;
-  client_token: string | null;
   status: string;
   phone: string | null;
   instance_name: string | null;
@@ -93,7 +92,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       instance_id: formData.get('instance_id') as string,
       server_url: formData.get('server_url') as string || "https://api.z-api.io",
       instance_token: formData.get('instance_token') as string,
-      client_token: formData.get('client_token') as string,
       provider: 'z-api'
     };
 
@@ -260,7 +258,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           body: JSON.stringify({
             instanceId: connection.instance_id,
             token: connection.instance_token,
-            clientToken: connection.client_token,
             connectionId: connection.id
           })
         });
@@ -311,7 +308,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         body: JSON.stringify({
           instanceId: connection.instance_id,
           token: connection.instance_token,
-          clientToken: connection.client_token,
           connectionId: connection.id
         })
       });
@@ -355,7 +351,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         body: JSON.stringify({
           instanceId: connection.instance_id,
           token: connection.instance_token,
-          clientToken: connection.client_token,
           connectionId: connection.id
         })
       });
@@ -364,7 +359,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       
       console.log('INSTANCE ID', connection.instance_id);
       console.log('TOKEN', connection.instance_token);
-      console.log('CLIENT TOKEN', connection.client_token);
       console.log('RESULT', result);
 
       if (!result.success) {
@@ -397,7 +391,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         body: JSON.stringify({
           instanceId: connection.instance_id,
           token: connection.instance_token,
-          clientToken: connection.client_token,
           connectionId: connection.id
         })
       });
@@ -458,10 +451,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               <div className="space-y-3">
                 <Label className="text-slate-300">Token da Instância</Label>
                 <Input name="instance_token" type="password" defaultValue={connection?.instance_token} className="bg-white/5 border-white/10" required />
-              </div>
-              <div className="space-y-3">
-                <Label className="text-slate-300">Client Token</Label>
-                <Input name="client_token" type="password" defaultValue={connection?.client_token || ""} className="bg-white/5 border-white/10" />
               </div>
               <div className="space-y-3">
                 <Label className="text-slate-300">URL Base</Label>
