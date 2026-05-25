@@ -400,7 +400,81 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                       Parear WhatsApp
                     </Button>
                   )}
-                </motion.div>
+      </motion.div>
+
+      {connection?.id && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        >
+          {/* Tutorial Card */}
+          <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-xl overflow-hidden">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Info className="text-blue-400" size={18} /> Configuração Passo a Passo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                { step: 1, text: "Copie a URL do Webhook gerada acima." },
+                { step: 2, text: "Acesse o seu painel oficial da Z-API." },
+                { step: 3, text: "Vá em 'Webhooks e Configurações Gerais'." },
+                { step: 4, text: "Cole a URL no campo 'Ao receber' (Webhook de Recebimento)." },
+                { step: 5, text: "Clique em salvar para ativar a integração bidirecional." }
+              ].map((item) => (
+                <div key={item.step} className="flex gap-4 items-start p-3 rounded-xl bg-white/5 border border-white/5">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                    {item.step}
+                  </div>
+                  <p className="text-sm text-slate-300">{item.text}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Webhook Logs Card */}
+          <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-xl overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <History className="text-indigo-400" size={18} /> Logs Recentes
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={fetchWebhookLogs} className="h-8 text-[10px] uppercase font-bold text-slate-500 hover:text-white">
+                Atualizar
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-white/5 max-h-[350px] overflow-y-auto">
+                {webhookLogs.length > 0 ? webhookLogs.map((log) => (
+                  <div key={log.id} className="p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex justify-between items-start mb-1">
+                      <Badge variant="outline" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[9px] px-2">
+                        {log.event_type}
+                      </Badge>
+                      <span className="text-[10px] text-slate-500">
+                        {new Date(log.created_at).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 font-mono truncate">
+                      {JSON.stringify(log.payload)}
+                    </p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                      <span className="text-[9px] text-emerald-500 uppercase font-bold">Processado</span>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="p-12 text-center">
+                    <History size={32} className="mx-auto text-slate-700 mb-2" />
+                    <p className="text-slate-500 text-sm">Nenhum evento registrado ainda.</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
               )}
             </AnimatePresence>
           </CardContent>
