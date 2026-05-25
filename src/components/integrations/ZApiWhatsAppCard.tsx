@@ -394,7 +394,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                               body: { 
                                 action: 'test-webhook', 
                                 connectionId: connection.id,
-                                data: { webhookUrl: `https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}` }
+                                data: { webhookUrl: connection.webhook_url }
                               }
                             });
                             if (error) toast.error("Erro no teste");
