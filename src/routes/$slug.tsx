@@ -32,20 +32,19 @@ export const Route = createFileRoute("/$slug")({
 });
 
 function ShopPageComponent() {
-  try {
-    const { slug } = Route.useParams();
-    const navigate = useNavigate();
-    const location = useLocation();
-    const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-    const isEmbedded = searchParams.get('embed') === 'true';
-    const initialPhone = searchParams.get('phone') || \"\";
-    const initialName = searchParams.get('name') || \"\";
-    const [shop, setShop] = useState<any>(null);
-    const [services, setServices] = useState<any[]>([]);
-    const [barbers, setBarbers] = useState<any[]>([]);
-    const [products, setProducts] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [scrolled, setScrolled] = useState(false);
+  const { slug } = Route.useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
+  const isEmbedded = searchParams.get('embed') === 'true';
+  const initialPhone = searchParams.get('phone') || "";
+  const initialName = searchParams.get('name') || "";
+  const [shop, setShop] = useState<any>(null);
+  const [services, setServices] = useState<any[]>([]);
+  const [barbers, setBarbers] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
