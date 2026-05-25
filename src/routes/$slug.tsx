@@ -659,7 +659,7 @@ function ShopPageComponent() {
         .from("appointments")
         .insert({
           user_id: shop.id,
-          customer_id: customerId,
+          customer_id: finalCustId,
           service_id: selectedService.id,
           barber_id: selectedBarber.id,
           start_time: startTime.toISOString(),
