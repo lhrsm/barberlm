@@ -95,14 +95,19 @@ function ClientPortalComponent() {
 
   // Persistent session check
   useEffect(() => {
+    console.log('DEBUG: Checking for saved portal session', slug);
     const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
     if (savedClient) {
       try {
         const parsedClient = JSON.parse(savedClient);
+        console.log('DEBUG: Found saved session', parsedClient);
         setClient(parsedClient);
+        setPhone(parsedClient.phone);
+        setCustomerName(parsedClient.name);
         setIsLoggedIn(true);
         fetchClientData(parsedClient.customer_id);
       } catch (e) {
+        console.error('DEBUG: Failed to parse saved session', e);
         localStorage.removeItem(`client_portal_session_${slug}`);
       }
     }
