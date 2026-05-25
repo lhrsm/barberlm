@@ -210,7 +210,8 @@ function ShopPageComponent() {
     try {
       console.log('AUTO-CHECKING CUSTOMER', { phone, name, shopId: shop.id });
       const customer = await checkCustomerCashback(phone);
-      setCustomerPhone(formatPhoneMask(phone));
+      setCustomerPhone(phone);
+
       if (name) setCustomerName(name);
       else if (customer?.name) setCustomerName(customer.name);
       
