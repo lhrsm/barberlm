@@ -172,7 +172,8 @@ function ShopPageComponent() {
           setCustomerCredits(data.credits || 0);
           
           if (data.name && bookingStep === 1) {
-            toast.success(`Bem-vindo de volta, ${data.name}!`);
+            // Toast removed as requested, now using visual identification in modal
+            console.log('DEBUG: Customer identified visually in modal');
           }
         } else {
           console.log('CUSTOMER NOT FOUND for phone:', normalizedPhone);
@@ -1780,43 +1781,64 @@ function ShopPageComponent() {
                       {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && (
                         <motion.div 
                           key={customerId ? "found" : "new"}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="mt-4 overflow-hidden"
+                          initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
+                          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                          exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
+                          transition={{ duration: 0.4, ease: "easeOut" }}
+                          className="mt-4"
                         >
                           {customerId ? (
-                            <div className="p-4 bg-green-50 rounded-2xl border border-green-200 flex items-center gap-3">
-                              <CheckCircle2 className="text-green-500 shrink-0" size={24} />
-                              <div>
-                                <p className="text-xs font-black uppercase tracking-widest text-green-700">Cliente Identificado</p>
-                                <p className="text-lg font-black text-black">Olá, {customerName}!</p>
+                            <div className="p-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm flex items-center gap-4 group">
+                              <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-500/20 group-hover:scale-110 transition-transform duration-300">
+                                <CheckCircle2 className="text-emerald-500" size={24} />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600/70 mb-0.5">Cliente Reconhecido</p>
+                                <p className="text-xl font-black text-black tracking-tight">
+                                  Olá, {customerName} <span className="inline-block animate-bounce">👋</span>
+                                </p>
                               </div>
                             </div>
                           ) : (
-                            <div className="grid gap-3 p-6 bg-primary/5 rounded-3xl border border-primary/20 shadow-inner">
-                              <Label className="text-xs font-black uppercase tracking-widest text-primary ml-1">Qual o seu nome?</Label>
-                              <Input 
-                                placeholder="Ex: João Silva" 
-                                value={customerName} 
-                                onChange={(e) => setCustomerName(e.target.value)}
-                                className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black focus-visible:ring-primary/50 rounded-2xl"
-                              />
+                            <div className="grid gap-3 p-6 bg-zinc-900 rounded-3xl border border-zinc-800 shadow-2xl relative overflow-hidden group">
+                              <div className="absolute top-0 right-0 p-4 opacity-10">
+                                <UserIcon size={40} className="text-white" />
+                              </div>
+                              <div className="relative z-10">
+                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2 block ml-1">Quase lá! Qual o seu nome?</Label>
+                                <Input 
+                                  placeholder="Digite seu nome completo" 
+                                  value={customerName} 
+                                  onChange={(e) => setCustomerName(e.target.value)}
+                                  className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-600 h-16 text-2xl font-black focus-visible:ring-primary/50 rounded-2xl transition-all focus:bg-zinc-800"
+                                />
+                                <p className="text-[10px] font-medium text-zinc-500 mt-3 ml-1 flex items-center gap-2">
+                                  <div className="h-1 w-1 rounded-full bg-primary" />
+                                  Precisamos do seu nome para o agendamento
+                                </p>
+                              </div>
                             </div>
                           )}
                         </motion.div>
                       )}
                     </AnimatePresence>
+
                   </div>
 
                   <Button 
-                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
+                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all relative overflow-hidden group" 
                     onClick={handlePhoneCheck}
-                    disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && !customerName)}
+                    disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
+                    style={customerId ? { backgroundColor: primaryColor, boxShadow: `0 10px 30px -10px ${primaryColor}60` } : {}}
                   >
-                    {submitting ? "Verificando..." : (customerId ? "Continuar" : "Cadastrar e Continuar")}
+                    <span className="relative z-10">
+                      {submitting ? "Verificando..." : (customerId ? "Continuar Agendamento" : "Cadastrar e Continuar")}
+                    </span>
+                    {customerId && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-transform" />
+                    )}
                   </Button>
+
                 </div>
 
                 <p className="text-[10px] text-center text-slate-600 font-bold uppercase tracking-[0.2em] pt-4">
