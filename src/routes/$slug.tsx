@@ -620,14 +620,14 @@ function ShopPageComponent() {
         
         if (createError) throw createError;
         if (!newCustomer) throw new Error("Falha ao criar cliente");
-        customerId = newCustomer.id;
+        finalCustId = newCustomer.id;
         setCustomerCashback(0);
       }
 
       // Automatically create or update client_auth session for the portal
       const sessionData = {
         phone: normalized,
-        customer_id: customerId,
+        customer_id: finalCustId,
         name: customerName
       };
       localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
