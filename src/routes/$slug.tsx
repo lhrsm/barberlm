@@ -484,7 +484,7 @@ function ShopPageComponent() {
     if (savedClient) {
       try {
         const parsedClient = JSON.parse(savedClient);
-        setCustomerPhone(formatPhoneMask(parsedClient.phone));
+        setCustomerPhone(parsedClient.phone);
         setCustomerName(parsedClient.name);
         setBookingStep(3); // Pula para escolha de profissional
       } catch (e) {
