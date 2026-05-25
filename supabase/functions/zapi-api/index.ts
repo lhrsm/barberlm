@@ -20,7 +20,6 @@ serve(async (req) => {
     const bodyData = await req.json();
     const { action, connectionId, data } = bodyData;
 
-    // 1. Buscar a conexão no banco
     const { data: connection, error: connError } = await supabase
       .from("whatsapp_connections")
       .select("*")
@@ -31,10 +30,12 @@ serve(async (req) => {
       throw new Error("Conexão não encontrada");
     }
 
-    const { instance_id, instance_token, server_url } = connection;
-    const baseUrl = (server_url || "https://api.z-api.io").replace(/\/$/, "");
+    const instanceId = String(connection.instance_id).trim();
+    const token = String(connection.instance_token).trim();
+    const baseUrl = (connection.server_url || "https://api.z-api.io").replace(/\/$/, "").trim();
 
-    const headers: any = {
+    // HEADERS SEM CLIENT-TOKEN - DEFINITIVO
+    const headers = {
       "Content-Type": "application/json",
     };
 
@@ -44,23 +45,20 @@ serve(async (req) => {
 
     switch (action) {
       case "get-qrcode":
-        endpoint = `/instances/${instance_id}/token/${instance_token}/qr-code`;
+        endpoint = `/instances/${instanceId}/token/${token}/qr-code`;
         break;
       case "get-status":
-        endpoint = `/instances/${instance_id}/token/${instance_token}/status`;
+      case "test-connection":
+        endpoint = `/instances/${instanceId}/token/${token}/status`;
         break;
       case "get-pairing-code":
-        endpoint = `/instances/${instance_id}/token/${instance_token}/pairing-code?phone=${data.phone}`;
+        endpoint = `/instances/${instanceId}/token/${token}/pairing-code?phone=${data.phone}`;
         break;
       case "get-connection-link":
-        endpoint = `/instances/${instance_id}/token/${instance_token}/connection-link`;
+        endpoint = `/instances/${instanceId}/token/${token}/connection-link`;
         break;
       case "disconnect":
-        endpoint = `/instances/${instance_id}/token/${instance_token}/disconnect`;
-        break;
-      case "test-connection":
-        endpoint = `/instances/${instance_id}/token/${instance_token}/status`;
-        method = "GET";
+        endpoint = `/instances/${instanceId}/token/${token}/disconnect`;
         break;
       case "set-webhook": {
         const webhookUrl = data.webhookUrl;
@@ -72,11 +70,11 @@ serve(async (req) => {
           "update-webhook-chat-state"
         ];
         
-        console.log('--- SET WEBHOOK DEBUG ---');
-        console.log('HEADERS ENVIADOS:', JSON.stringify(headers));
+        console.log('--- DEBUG REAIS HEADERS (SET WEBHOOK) ---');
+        console.log('HEADERS:', JSON.stringify(headers));
 
         const webhookResults = await Promise.all(types.map(async (webhookType) => {
-          const res = await fetch(`${baseUrl}/instances/${instance_id}/token/${instance_token}/${webhookType}`, {
+          const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`, {
             method: "POST",
             headers,
             body: JSON.stringify({ value: webhookUrl })
@@ -89,42 +87,17 @@ serve(async (req) => {
           status: 200,
         });
       }
-      case "test-webhook": {
-        const webhookUrl = data.webhookUrl;
-        const testPayload = {
-          instanceId: connection.instance_id,
-          type: "WebhookTest",
-          data: { message: "Teste de comunicação bem sucedido!" },
-          timestamp: new Date().toISOString()
-        };
-        
-        const res = await fetch(webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(testPayload)
-        });
-        
-        return new Response(JSON.stringify({ 
-          success: res.ok, 
-          status: res.status,
-          message: res.ok ? "Webhook respondeu corretamente!" : "Webhook retornou erro."
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
       default:
         throw new Error("Ação inválida");
     }
 
     const fullUrl = `${baseUrl}${endpoint}`;
     
-    // DEBUG OBRIGATÓRIO
-    console.log('--- DEBUG Z-API REQUEST ---');
+    console.log('--- DEBUG REAIS HEADERS ---');
     console.log('URL:', fullUrl);
     console.log('METHOD:', method);
-    console.log('HEADERS ENVIADOS:', JSON.stringify(headers));
-    if (body) console.log('BODY:', JSON.stringify(body));
+    console.log('HEADERS:', JSON.stringify(headers));
+    console.log('CLIENT-TOKEN EXISTE?', !!(headers as any)['Client-Token']);
 
     const response = await fetch(fullUrl, {
       method,
@@ -136,41 +109,25 @@ serve(async (req) => {
     console.log('Z-API RAW RESPONSE:', responseText);
 
     if (!response.ok) {
-      if (responseText.includes('client-token')) {
-        console.error('ERRO CRÍTICO: Z-API reclama de client-token mesmo sem enviarmos o header!');
-      }
       throw new Error(`Z-API Error: ${response.status} - ${responseText}`);
     }
 
     const result = JSON.parse(responseText);
-    console.log('STATUS DATA:', result);
 
     if (action === "get-status" || action === "test-connection") {
-      const isConnected = 
-        result.connected === true || 
-        result.connected === 'true';
-
-      let status = "disconnected";
-      if (isConnected) status = "connected";
-      else if (result.waitingQrCode) status = "qrcode";
-
-      console.log('Determined status:', status);
-
-      const updateData: any = { 
-        status, 
-        connected: isConnected,
-        phone: result.phone || connection.phone,
-        instance_name: result.instanceName || connection.instance_name,
-        updated_at: new Date().toISOString() 
-      };
-
-      if (isConnected) {
-        updateData.last_connection = new Date().toISOString();
-      }
+      const isConnected = result.connected === true || result.connected === 'true';
+      let status = isConnected ? "connected" : (result.waitingQrCode ? "qrcode" : "disconnected");
 
       await supabase
         .from("whatsapp_connections")
-        .update(updateData)
+        .update({ 
+          status, 
+          connected: isConnected,
+          phone: result.phone || connection.phone,
+          instance_name: result.instanceName || connection.instance_name,
+          updated_at: new Date().toISOString(),
+          last_connection: isConnected ? new Date().toISOString() : undefined
+        })
         .eq("id", connectionId);
     }
 
