@@ -16,6 +16,7 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
   server: {
     handlers: {
       GET: async () => {
+        console.log("Z-API Webhook GET check received");
         return Response.json({
           success: true,
           message: "Webhook online",
@@ -24,76 +25,46 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
       POST: async ({ request, params }) => {
         try {
           const { barbershopId } = params;
-          const body = await request.json();
-
-          console.log("ZAPI WEBHOOK RECEIVED:", {
-            barbershopId,
-            eventType: body.type,
-            body
-          });
-
-          const supabase = getSupabase();
-          const { type, instanceId } = body;
-
-          // 1. Save Log
-          const { error: logError } = await supabase.from("webhook_logs").insert({
-            barbershop_id: barbershopId,
-            payload: body,
-            event_type: type || "unknown",
-            status: 'received',
-            created_at: new Date().toISOString(),
-          });
-
-          if (logError) console.error("Error saving webhook log:", logError);
-
-          // 2. Process Business Logic based on Event Type
-          switch (type) {
-            case "ReceivedMessage": {
-              const message = body.text?.message || body.image?.caption || body.video?.caption || "Mensagem recebida";
-              const from = body.phone;
-
-              await supabase.from("whatsapp_messages").insert({
-                user_id: barbershopId, // Assumes user_id can be barbershopId or linked
-                barbershop_id: barbershopId,
-                content: message,
-                status: 'received',
-                metadata: { phone: from, raw: body }
-              });
-              break;
-            }
-            case "Connected": {
-              await supabase
-                .from("whatsapp_connections")
-                .update({ 
-                  status: 'connected', 
-                  updated_at: new Date().toISOString(),
-                  phone: body.phone
-                })
-                .eq("barbershop_id", barbershopId);
-              break;
-            }
-            case "Disconnected": {
-              await supabase
-                .from("whatsapp_connections")
-                .update({ 
-                  status: 'disconnected', 
-                  updated_at: new Date().toISOString() 
-                })
-                .eq("barbershop_id", barbershopId);
-              break;
-            }
+          console.log(`Z-API Webhook POST received for barbershop: ${barbershopId}`);
+          
+          let body;
+          try {
+            body = await request.json();
+          } catch (e) {
+            console.error("Error parsing webhook body:", e);
+            return Response.json({ success: false, error: "Invalid JSON" }, { status: 400 });
           }
 
+          console.log("Z-API Payload:", JSON.stringify(body, null, 2));
+
+          // Save to Supabase asynchronously - don't await it if it's risky, 
+          // but user wants it saved. Let's do it and ensure it has a timeout or catch.
+          const supabase = getSupabase();
+          
+          // Log the event to webhook_logs
+          const { error: logError } = await supabase
+            .from('webhook_logs')
+            .insert({
+              barbershop_id: barbershopId,
+              payload: body,
+              created_at: new Date().toISOString()
+            });
+
+          if (logError) {
+            console.error("Error saving webhook log to Supabase:", logError);
+          }
+
+          // Return success immediately to Z-API
           return Response.json({
-            success: true,
-            message: "Event processed"
+            success: true
           });
+
         } catch (error) {
-          console.error("Webhook processing failed:", error);
+          console.error("Z-API Webhook Error:", error);
           return Response.json(
             {
               success: false,
-              error: "Webhook processing failed",
+              message: "Internal server error"
             },
             {
               status: 500,
