@@ -950,9 +950,17 @@ function DashboardComponent() {
                     <CardTitle className="text-xl font-black italic tracking-tight text-amber-900">
                       Plano {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}
                     </CardTitle>
-                    {isTrial && (
-                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 font-black italic text-[10px] tracking-widest">
-                        TRIAL ATIVO
+                    {isTrial ? (
+                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 font-black italic text-[10px] tracking-widest uppercase">
+                        Trial Ativo
+                      </Badge>
+                    ) : isExpired ? (
+                      <Badge className="bg-red-500/10 text-red-700 border-red-500/20 font-black italic text-[10px] tracking-widest uppercase">
+                        Expirado
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 font-black italic text-[10px] tracking-widest uppercase">
+                        Ativa
                       </Badge>
                     )}
                   </div>
