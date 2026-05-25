@@ -984,28 +984,43 @@ function DashboardComponent() {
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Profissionais</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-900/40 italic">Profissionais</span>
                   <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none">{usage.barbers}</span>
-                    <span className="text-[10px] text-muted-foreground">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
+                    <span className="text-lg font-bold leading-none text-amber-900">{usage.barbers}</span>
+                    <span className="text-[10px] text-amber-600/60 font-bold">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
                   </div>
-                  <Progress value={limits.barbers === Infinity ? 100 : (usage.barbers / limits.barbers) * 100} className="h-1" />
+                  <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
+                      style={{ width: `${limits.barbers === Infinity ? 100 : Math.min((usage.barbers / limits.barbers) * 100, 100)}%` }}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Serviços</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-900/40 italic">Serviços</span>
                   <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none">{usage.services}</span>
-                    <span className="text-[10px] text-muted-foreground">/ {limits.services === Infinity ? "∞" : limits.services}</span>
+                    <span className="text-lg font-bold leading-none text-amber-900">{usage.services}</span>
+                    <span className="text-[10px] text-amber-600/60 font-bold">/ {limits.services === Infinity ? "∞" : limits.services}</span>
                   </div>
-                  <Progress value={limits.services === Infinity ? 100 : (usage.services / limits.services) * 100} className="h-1" />
+                  <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
+                      style={{ width: `${limits.services === Infinity ? 100 : Math.min((usage.services / limits.services) * 100, 100)}%` }}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Agendamentos</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-900/40 italic">Agendamentos</span>
                   <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none">{usage.monthlyAppointments}</span>
-                    <span className="text-[10px] text-muted-foreground">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
+                    <span className="text-lg font-bold leading-none text-amber-900">{usage.monthlyAppointments}</span>
+                    <span className="text-[10px] text-amber-600/60 font-bold">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
                   </div>
-                  <Progress value={limits.monthlyAppointments === Infinity ? 100 : (usage.monthlyAppointments / limits.monthlyAppointments) * 100} className="h-1" />
+                  <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
+                      style={{ width: `${limits.monthlyAppointments === Infinity ? 100 : Math.min((usage.monthlyAppointments / limits.monthlyAppointments) * 100, 100)}%` }}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground">WhatsApp</span>
