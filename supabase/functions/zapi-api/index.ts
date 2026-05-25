@@ -88,6 +88,30 @@ serve(async (req) => {
           status: 200,
         });
       }
+      case "test-webhook": {
+        const webhookUrl = data.webhookUrl;
+        const testPayload = {
+          instanceId: connection.instance_id,
+          type: "WebhookTest",
+          data: { message: "Teste de comunicação bem sucedido!" },
+          timestamp: new Date().toISOString()
+        };
+        
+        const res = await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(testPayload)
+        });
+        
+        return new Response(JSON.stringify({ 
+          success: res.ok, 
+          status: res.status,
+          message: res.ok ? "Webhook respondeu corretamente!" : "Webhook retornou erro."
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
       default:
         throw new Error("Ação inválida");
     }
