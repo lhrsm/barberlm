@@ -300,7 +300,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                         </div>
                         <div>
                           <p className="text-[10px] uppercase font-bold text-slate-500">Conectado como</p>
-                          <p className="font-bold text-white">{connection.phone || "Indisponível"}</p>
+                          <p className="font-bold text-white">{connection.instance_name || "Perfil WhatsApp"}</p>
+                          <p className="text-xs text-slate-400">{connection.phone || "Número indisponível"}</p>
                         </div>
                       </div>
                       <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center gap-4">
