@@ -407,8 +407,12 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               </div>
             ) : qrCode ? (
               <div className="space-y-6 flex flex-col items-center">
-                <div className="p-4 bg-white rounded-2xl shadow-xl border-4 border-white">
-                  <img src={qrCode} alt="Z-API QR Code" className="w-64 h-64" />
+                <div className="p-4 bg-white rounded-2xl shadow-xl border-4 border-white transition-all hover:scale-105">
+                  <img 
+                    src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`} 
+                    alt="Z-API QR Code" 
+                    className="w-64 h-64" 
+                  />
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2 text-blue-600 font-bold animate-pulse text-sm">
