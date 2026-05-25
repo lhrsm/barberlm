@@ -732,7 +732,7 @@ function ShopPageComponent() {
             horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
             barbeiro: selectedBarber.name,
             valor: (selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0)).toFixed(2),
-            customer_id: customerId
+            customer_id: finalCustId
           },
           appointmentId: appointment.id
         });
