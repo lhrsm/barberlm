@@ -153,14 +153,21 @@ serve(async (req) => {
 
       console.log('Determined status:', status);
 
+      const updateData: any = { 
+        status, 
+        connected: isConnected,
+        phone: result.phone || connection.phone,
+        instance_name: result.instanceName || connection.instance_name,
+        updated_at: new Date().toISOString() 
+      };
+
+      if (isConnected) {
+        updateData.last_connection = new Date().toISOString();
+      }
+
       await supabase
         .from("whatsapp_connections")
-        .update({ 
-          status, 
-          phone: result.phone || connection.phone,
-          instance_name: result.instanceName || connection.instance_name,
-          updated_at: new Date().toISOString() 
-        })
+        .update(updateData)
         .eq("id", connectionId);
     }
 
