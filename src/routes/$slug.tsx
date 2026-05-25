@@ -1961,13 +1961,17 @@ function ShopPageComponent() {
                 </div>
 
                 <div className="space-y-6">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Horários Disponíveis</h5>
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: primaryColor }} />
+                    <h5 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Horários Disponíveis</h5>
+                  </div>
                   
                   {fetchingTimes ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#D4AF37]" />
-                      <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando horários...</p>
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2" style={{ borderColor: primaryColor }} />
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Buscando horários...</p>
                     </div>
+
                   ) : availableTimes.length > 0 ? (
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar p-1">
                       {availableTimes.map(time => {
