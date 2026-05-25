@@ -25,6 +25,7 @@ interface WhatsAppConnection {
   client_token: string | null;
   status: string;
   phone: string | null;
+  instance_name: string | null;
   webhook_url: string | null;
 }
 
