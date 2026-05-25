@@ -376,7 +376,23 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 <Label className="text-slate-300">URL Base</Label>
                 <Input name="server_url" defaultValue={connection?.server_url || "https://api.z-api.io"} className="bg-white/5 border-white/10" />
               </div>
-              <Button type="submit" className="md:col-span-2 bg-white text-black hover:bg-slate-200">Salvar Configurações</Button>
+              <div className="md:col-span-2 flex flex-col md:flex-row gap-4">
+                <Button type="submit" className="flex-1 bg-white text-black hover:bg-slate-200">
+                  <Save size={16} className="mr-2" /> Salvar Configurações
+                </Button>
+                {connection?.id && (
+                  <Button 
+                    type="button" 
+                    onClick={testConnection} 
+                    disabled={isTesting}
+                    variant="outline" 
+                    className="flex-1 border-white/10 hover:bg-white/5"
+                  >
+                    {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={16} className="mr-2" />}
+                    Testar conexão Z-API
+                  </Button>
+                )}
+              </div>
            </form>
            
            {connection?.id && connection.status !== 'connected' && (
