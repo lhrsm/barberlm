@@ -30,6 +30,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
+import { EvolutionWhatsAppCard } from "@/components/integrations/EvolutionWhatsAppCard";
+
 export const Route = createFileRoute("/integrations")({
   component: IntegrationsComponent,
 });
@@ -38,7 +40,6 @@ function IntegrationsComponent() {
   const { tenantId } = useTenant();
   const { plan } = usePlanLimits();
   
-  const [whatsapp, setWhatsapp] = useState<any>(null);
   const [email, setEmail] = useState<any>(null);
   const [ai, setAi] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -53,13 +54,11 @@ function IntegrationsComponent() {
     if (!tenantId) return;
     
     try {
-      const [waRes, emailRes, aiRes] = await Promise.all([
-        supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle(),
+      const [emailRes, aiRes] = await Promise.all([
         supabase.from("email_settings").select("*").eq("tenant_id", tenantId).maybeSingle(),
         supabase.from("ai_settings").select("*").eq("tenant_id", tenantId).maybeSingle()
       ]);
 
-      if (waRes.data) setWhatsapp(waRes.data);
       if (emailRes.data) setEmail(emailRes.data);
       if (aiRes.data) setAi(aiRes.data);
     } catch (error) {
@@ -68,30 +67,6 @@ function IntegrationsComponent() {
       setLoading(false);
     }
   }
-
-  const saveWhatsapp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!tenantId) return;
-    
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
-    const data = {
-      tenant_id: tenantId,
-      instance_name: formData.get('instance_name') as string,
-      api_key: formData.get('api_key') as string,
-      api_url: formData.get('server_url') as string,
-      name: formData.get('instance_name') as string,
-    };
-
-    const { error } = whatsapp?.id 
-      ? await supabase.from("whatsapp_instances").update(data as any).eq("id", whatsapp.id)
-      : await supabase.from("whatsapp_instances").insert([{ ...data, provider: 'evolution' } as any]);
-
-    if (error) toast.error("Erro ao salvar WhatsApp");
-    else {
-      toast.success("WhatsApp configurado!");
-      fetchSettings();
-    }
-  };
 
   const saveEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,6 +90,7 @@ function IntegrationsComponent() {
       fetchSettings();
     }
   };
+
 
   return (
     <AppLayout>
