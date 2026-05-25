@@ -518,13 +518,15 @@ function ClientPortalComponent() {
 
   const handleRegister = async (e: React.FormEvent) => {
     if (e) e.preventDefault();
+    const normalized = normalizePhone(phone);
+    console.log('DEBUG: Normalizing phone for registration:', { original: phone, normalized });
     setSubmitting(true);
     try {
       // 1. Find or create customer for this shop
       const { data: existingCustomer } = await supabase
         .from("customers")
         .select("id, name")
-        .eq("phone", phone)
+        .eq("phone", normalized)
         .eq("user_id", shop.id)
         .maybeSingle();
       
@@ -579,7 +581,7 @@ function ClientPortalComponent() {
           .insert({
             user_id: shop.id,
             name: customerName,
-            phone: phone,
+            phone: normalized,
             email: customerEmail || undefined,
             birth_date: formattedBirthDate || undefined,
             avatar_url: avatarUrl || undefined
@@ -594,7 +596,7 @@ function ClientPortalComponent() {
       const { error: authErr } = await supabase
         .from("client_auth")
         .upsert({
-          phone: phone,
+          phone: normalized,
           customer_id: customerId
         }, { onConflict: 'phone' });
 
@@ -603,7 +605,7 @@ function ClientPortalComponent() {
       toast.success("Cadastro realizado com sucesso!");
       
       const sessionData = {
-        phone: phone,
+        phone: normalized,
         customer_id: customerId,
         name: name
       };

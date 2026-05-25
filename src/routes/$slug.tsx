@@ -117,7 +117,9 @@ function ShopPageComponent() {
       
       // Auto trigger phone check if embedded with phone
       const timer = setTimeout(() => {
-        handlePhoneCheckWithParams(initialPhone, initialName);
+        const normalized = normalizePhone(initialPhone);
+        console.log('DEBUG: Auto-checking phone normalized:', { original: initialPhone, normalized });
+        handlePhoneCheckWithParams(normalized, initialName);
       }, 500);
       return () => clearTimeout(timer);
     } else if (isEmbedded) {
@@ -2092,6 +2094,9 @@ function ShopPageComponent() {
                           style={{ backgroundColor: primaryColor }}
                           onClick={(e) => {
                             e.preventDefault();
+                            const normalized = normalizePhone(customerPhone);
+                            console.log('DEBUG: Finalizing booking with normalized phone:', normalized);
+                            setCustomerPhone(normalized);
                             handleFinalizeBooking();
                           }} 
                           disabled={submitting}
