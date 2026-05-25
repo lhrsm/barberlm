@@ -396,11 +396,13 @@ function ShopPageComponent() {
       // Mantemos o formato visual no estado para não quebrar o input
       setCustomerPhone(formatPhoneMask(normalized));
       
-      if (customer?.name) {
-        console.log('DEBUG: Customer found, setting name:', customer.name);
-        setCustomerName(customer.name);
-        setCustomerId(customer.id);
-        toast.success(`Bem-vindo de volta, ${customer.name}!`);
+      if (customer) {
+        if (customer.name) {
+          console.log('DEBUG: Customer found, setting name:', customer.name);
+          setCustomerName(customer.name);
+          toast.success(`Bem-vindo de volta, ${customer.name}!`);
+        }
+        if (customer.id) setCustomerId(customer.id);
       }
       setBookingStep(2);
     } catch (e: any) {
