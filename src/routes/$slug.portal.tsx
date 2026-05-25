@@ -584,6 +584,7 @@ function ClientPortalComponent() {
             avatar_url: avatarUrl || undefined
           })
           .eq("id", customerId);
+      } else {
         // For new customers in the portal, we need a barber_id for RLS
         // We'll pick the first active barber from the shop as default if none selected
         const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
@@ -598,6 +599,13 @@ function ClientPortalComponent() {
             user_id: shop.id,
             barber_id: defaultBarberId,
             name: customerName,
+            phone: normalized,
+            email: customerEmail || undefined,
+            birth_date: formattedBirthDate || undefined,
+            avatar_url: avatarUrl || undefined
+          }])
+          .select("id")
+          .single();
             phone: normalized,
             email: customerEmail || undefined,
             birth_date: formattedBirthDate || undefined,
