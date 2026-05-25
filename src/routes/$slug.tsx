@@ -172,7 +172,8 @@ function ShopPageComponent() {
           setCustomerCredits(data.credits || 0);
           
           if (data.name && bookingStep === 1) {
-            toast.success(`Bem-vindo de volta, ${data.name}!`);
+            // Toast removed as requested, now using visual identification in modal
+            console.log('DEBUG: Customer identified visually in modal');
           }
         } else {
           console.log('CUSTOMER NOT FOUND for phone:', normalizedPhone);
