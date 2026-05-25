@@ -65,9 +65,9 @@ export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
               });
 
             if (logError) {
-              console.error("[Z-API] Supabase Insert Error:", logError);
+              console.error("[Z-API] Supabase Insert Error Details:", JSON.stringify(logError, null, 2));
             } else {
-              console.log("[Z-API] Log saved to Supabase");
+              console.log("[Z-API] Log saved to Supabase successfully");
             }
           } catch (err) {
             console.error("[Z-API] Database execution failed:", err);
