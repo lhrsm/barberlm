@@ -345,16 +345,21 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           )}
 
           {connection?.status === 'connected' && (
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Número (ex: 5511999999999)" 
-                  value={testNumber}
-                  onChange={(e) => setTestNumber(e.target.value)}
-                  className="bg-slate-50"
-                />
-                <Button onClick={testConnection} disabled={isTesting || !testNumber} variant="outline" className="gap-2 shrink-0">
-                  {isTesting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Número (ex: 5511999999999)" 
+                    value={testNumber}
+                    onChange={(e) => setTestNumber(e.target.value)}
+                    className="bg-slate-50"
+                  />
+                  <Button onClick={testMessage} disabled={isTesting || !testNumber} variant="outline" className="gap-2 shrink-0">
+                    {isTesting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                    Testar Envio
+                  </Button>
+                </div>
+                <Button onClick={checkStatus} disabled={isTesting} variant="secondary" className="w-full gap-2 bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-100">
+                  <RefreshCw size={18} className={cn(isTesting && "animate-spin")} />
                   Verificar Conexão
                 </Button>
               </div>
