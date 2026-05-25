@@ -130,14 +130,12 @@ export function WhatsAppSettings() {
     const { data, error } = await supabase
       .from("whatsapp_connections")
       .insert({
-        user_id: user.id,
-        business_name: newConnection.business_name,
-        phone_number: newConnection.phone_number,
-        phone_number_id: newConnection.phone_number_id,
-        waba_id: newConnection.waba_id,
-        access_token: newConnection.access_token,
+        barbershop_id: user.id,
+        instance_name: newConnection.business_name,
+        server_url: "", // Not used in Cloud API mode, but required by schema
+        api_key: newConnection.access_token,
         status: 'active',
-        connected_at: new Date().toISOString(),
+        last_connection: new Date().toISOString(),
       })
       .select()
       .single();

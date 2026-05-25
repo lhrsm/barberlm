@@ -30,6 +30,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
+import { EvolutionWhatsAppCard } from "@/components/integrations/EvolutionWhatsAppCard";
+
 export const Route = createFileRoute("/integrations")({
   component: IntegrationsComponent,
 });
@@ -38,7 +40,6 @@ function IntegrationsComponent() {
   const { tenantId } = useTenant();
   const { plan } = usePlanLimits();
   
-  const [whatsapp, setWhatsapp] = useState<any>(null);
   const [email, setEmail] = useState<any>(null);
   const [ai, setAi] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -53,13 +54,11 @@ function IntegrationsComponent() {
     if (!tenantId) return;
     
     try {
-      const [waRes, emailRes, aiRes] = await Promise.all([
-        supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle(),
+      const [emailRes, aiRes] = await Promise.all([
         supabase.from("email_settings").select("*").eq("tenant_id", tenantId).maybeSingle(),
         supabase.from("ai_settings").select("*").eq("tenant_id", tenantId).maybeSingle()
       ]);
 
-      if (waRes.data) setWhatsapp(waRes.data);
       if (emailRes.data) setEmail(emailRes.data);
       if (aiRes.data) setAi(aiRes.data);
     } catch (error) {
@@ -68,30 +67,6 @@ function IntegrationsComponent() {
       setLoading(false);
     }
   }
-
-  const saveWhatsapp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!tenantId) return;
-    
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
-    const data = {
-      tenant_id: tenantId,
-      instance_name: formData.get('instance_name') as string,
-      api_key: formData.get('api_key') as string,
-      api_url: formData.get('server_url') as string,
-      name: formData.get('instance_name') as string,
-    };
-
-    const { error } = whatsapp?.id 
-      ? await supabase.from("whatsapp_instances").update(data as any).eq("id", whatsapp.id)
-      : await supabase.from("whatsapp_instances").insert([{ ...data, provider: 'evolution' } as any]);
-
-    if (error) toast.error("Erro ao salvar WhatsApp");
-    else {
-      toast.success("WhatsApp configurado!");
-      fetchSettings();
-    }
-  };
 
   const saveEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +91,7 @@ function IntegrationsComponent() {
     }
   };
 
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -126,47 +102,8 @@ function IntegrationsComponent() {
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* WhatsApp Evolution API */}
-          <Card className="flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="p-2 bg-green-50 rounded-lg text-green-600">
-                  <MessageSquare size={24} />
-                </div>
-                <Badge variant={whatsapp?.connected ? "default" : "secondary"} className={whatsapp?.connected ? "bg-green-500" : ""}>
-                  {whatsapp?.connected ? "Conectado" : "Desconectado"}
-                </Badge>
-              </div>
-              <CardTitle className="text-xl mt-4">WhatsApp (Evolution API)</CardTitle>
-              <CardDescription>Envie mensagens automáticas e campanhas pelo WhatsApp.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 space-y-4">
-              <form id="wa-form" onSubmit={saveWhatsapp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Nome da Instância</Label>
-                  <Input name="instance_name" defaultValue={whatsapp?.instance_name} placeholder="Minha Barbearia" required />
-                </div>
-                <div className="space-y-2">
-                  <Label>URL do Servidor</Label>
-                  <Input name="server_url" defaultValue={whatsapp?.server_url} placeholder="https://api.meuserver.com" required />
-                </div>
-                <div className="space-y-2">
-                  <Label>API Key</Label>
-                  <Input name="api_key" type="password" defaultValue={whatsapp?.api_key} placeholder="Chave da API" required />
-                </div>
-              </form>
-              
-              {!whatsapp?.connected && whatsapp?.id && (
-                <div className="p-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 bg-muted/30">
-                  <RefreshCw className="h-8 w-8 text-muted-foreground opacity-20" />
-                  <p className="text-xs text-muted-foreground">Gerar QR Code para conexão</p>
-                  <Button size="sm" variant="outline" onClick={() => toast.info("Gerando QR Code...")}>Gerar Agora</Button>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter className="border-t pt-4">
-              <Button form="wa-form" className="w-full">Salvar Configurações</Button>
-            </CardFooter>
-          </Card>
+          {tenantId && <EvolutionWhatsAppCard tenantId={tenantId} />}
+
 
           {/* Resend E-mail */}
           <Card className="flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm">
