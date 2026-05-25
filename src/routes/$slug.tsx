@@ -44,6 +44,11 @@ function ShopPageComponent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Debug logs to trace route issues
+  useEffect(() => {
+    console.log('SHOP PAGE DEBUG:', { slug, path: location.pathname, loading, shopId: shop?.id });
+  }, [slug, location.pathname, loading, shop?.id]);
   const [scrolled, setScrolled] = useState(false);
   
   const isPortalRoute = location.pathname.endsWith('/portal');
@@ -123,8 +128,12 @@ function ShopPageComponent() {
     if (!phone || phone.length < 8 || !shop?.id) return;
     setSubmitting(true);
     try {
+      console.log('AUTO-CHECKING CUSTOMER', { phone, name, shopId: shop.id });
       const customer = await checkCustomerCashback(phone);
+      setCustomerPhone(phone);
       if (name) setCustomerName(name);
+      else if (customer?.name) setCustomerName(customer.name);
+      
       setIsBookingOpen(true);
       setBookingStep(2);
     } catch (error: any) {
@@ -237,6 +246,7 @@ function ShopPageComponent() {
   };
 
   async function fetchShopData(targetSlug: string) {
+    if (!targetSlug) return;
     setLoading(true);
     try {
       // Normalização da slug
