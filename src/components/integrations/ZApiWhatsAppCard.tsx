@@ -212,7 +212,67 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       setShowQrModal(false);
     } finally {
       setQrLoading(false);
+  }
+
+  async function handleGetPairingCode() {
+    if (!connection) return;
+    if (!pairingPhone) {
+      toast.error(\"Informe o número do WhatsApp\");
+      return;
     }
+    setPairingLoading(true);
+    setPairingCode(null);
+    setShowPairingModal(true);
+
+    try {
+      console.log('pairing response request', pairingPhone);
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'get-pairing-code', 
+          connectionId: connection.id,
+          data: { phone: pairingPhone.replace(/\D/g, '') } 
+        }
+      });
+
+      if (error) throw error;
+      console.log('pairing response', data);
+      if (data.value) {
+        setPairingCode(data.value);
+        startPollingStatus();
+      } else {
+        toast.error(\"Falha ao gerar código de pareamento\");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(\"Erro ao gerar código de pareamento\");
+      setShowPairingModal(false);
+    } finally {
+      setPairingLoading(false);
+    }
+  }
+
+  async function handleGetConnectionLink() {
+    if (!connection) return;
+    setLinkLoading(true);
+    setConnectionLink(null);
+    setShowLinkModal(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { action: 'get-connection-link', connectionId: connection.id }
+      });
+
+      if (error) throw error;
+      if (data.value) setConnectionLink(data.value);
+      
+      startPollingStatus();
+    } catch (err) {
+      toast.error(\"Erro ao gerar link de conexão\");
+      setShowLinkModal(false);
+    } finally {
+      setLinkLoading(false);
+    }
+  }
   }
 
   function startPollingStatus() {
