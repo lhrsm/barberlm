@@ -23,7 +23,12 @@ export const formatPhoneMask = (value: string): string => {
   if (!value) return "";
   
   // Remove all non-numeric characters
-  const cleaned = value.replace(/\D/g, "");
+  let cleaned = value.replace(/\D/g, "");
+  
+  // If it starts with 55, remove it for visual masking
+  if (cleaned.startsWith('55') && cleaned.length > 2) {
+    cleaned = cleaned.substring(2);
+  }
   
   // Limit to 11 digits (Brazilian mobile)
   const truncated = cleaned.slice(0, 11);
