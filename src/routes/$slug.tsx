@@ -45,6 +45,9 @@ function ShopPageComponent() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  
+  const isPortalRoute = location.pathname.endsWith('/portal');
+  const isProfissionalRoute = location.pathname.endsWith('/profissional');
 
   useEffect(() => {
     const handleScroll = () => {
