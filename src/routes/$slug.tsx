@@ -123,8 +123,12 @@ function ShopPageComponent() {
     if (!phone || phone.length < 8 || !shop?.id) return;
     setSubmitting(true);
     try {
+      console.log('AUTO-CHECKING CUSTOMER', { phone, name, shopId: shop.id });
       const customer = await checkCustomerCashback(phone);
+      setCustomerPhone(phone);
       if (name) setCustomerName(name);
+      else if (customer?.name) setCustomerName(customer.name);
+      
       setIsBookingOpen(true);
       setBookingStep(2);
     } catch (error: any) {
@@ -237,6 +241,7 @@ function ShopPageComponent() {
   };
 
   async function fetchShopData(targetSlug: string) {
+    if (!targetSlug) return;
     setLoading(true);
     try {
       // Normalização da slug

@@ -163,7 +163,15 @@ function ClientPortalComponent() {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [client?.customer_id]);
+  }, [client?.customer_id, slug]);
+
+  // Sync customer phone and name from client session for booking
+  useEffect(() => {
+    if (isLoggedIn && client) {
+      setPhone(client.phone || "");
+      setCustomerName(client.name || "");
+    }
+  }, [isLoggedIn, client]);
 
   async function fetchShopData(targetSlug: string) {
     try {
