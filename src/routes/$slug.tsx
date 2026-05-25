@@ -14,6 +14,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
+import { normalizePhone, formatPhoneMask } from "@/utils/phone";
 
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
@@ -389,7 +390,17 @@ function ShopPageComponent() {
   };
 
   const fetchAvailableTimes = async (barberId: string, date: string) => {
-    console.log('FETCHING TIMES START (MAIN PAGE)', { barberId, date });
+    console.log('DEBUG: SERVICE', selectedService);
+    console.log('DEBUG: PROFESSIONAL', barberId);
+    console.log('DEBUG: DATE', date);
+    console.log('DEBUG: SALON', shop?.id);
+    console.log('DEBUG: SLUG', slug);
+
+    if (!barberId) {
+      console.warn('DEBUG: No professional selected, skipping fetchAvailableTimes');
+      return;
+    }
+
     setFetchingTimes(true);
     try {
       const barber = barbers.find(b => b.id === barberId);

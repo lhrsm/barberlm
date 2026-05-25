@@ -35,6 +35,7 @@ import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { normalizePhone, formatPhoneMask } from "@/utils/phone";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
@@ -283,7 +284,17 @@ function ClientPortalComponent() {
   }, [isEditModalOpen, editingAppointment, newDate]);
 
   async function fetchAvailableTimes(barberId: string, date: string) {
-    console.log('FETCHING TIMES START', { barberId, date });
+    console.log('DEBUG: SERVICE', selectedService);
+    console.log('DEBUG: PROFESSIONAL', barberId);
+    console.log('DEBUG: DATE', date);
+    console.log('DEBUG: SALON', shop?.id);
+    console.log('DEBUG: SLUG', slug);
+
+    if (!barberId) {
+      console.warn('DEBUG: No professional selected, skipping fetchAvailableTimes');
+      return;
+    }
+
     setFetchingTimes(true);
     try {
       const { data: barber, error: barberError } = await supabase
@@ -345,17 +356,16 @@ function ClientPortalComponent() {
       const times = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
-      const interval = 30;
+      const interval = selectedService?.duration_minutes || 30;
 
       console.log('LOOP PARAMS', { startHour, startMin, endHour, endMin, interval });
 
       for (let hour = startHour; hour <= endHour; hour++) {
-        for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
+        for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
           if (hour === endHour && min >= endMin) break;
           
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
           
-          // Use a more robust way to create the check date in local time
           const [y, m, d] = date.split('-').map(Number);
           const checkTime = new Date(y, m - 1, d, hour, min, 0);
           
@@ -368,7 +378,6 @@ function ClientPortalComponent() {
 
           const isBusy = appointments?.some(app => {
             if (editingAppointment && app.start_time === editingAppointment.start_time) return false;
-            // parseISO(app.start_time) handles the timezone from DB correctly
             const appStart = parseISO(app.start_time);
             const appEnd = parseISO(app.end_time);
             return checkTime >= appStart && checkTime < appEnd;
@@ -379,7 +388,8 @@ function ClientPortalComponent() {
           }
         }
       }
-      console.log('FINAL TIMES GENERATED', times.length);
+      
+      console.log('DEBUG: AVAILABLE SLOTS', times);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
