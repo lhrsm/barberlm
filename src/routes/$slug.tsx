@@ -1776,28 +1776,44 @@ function ShopPageComponent() {
                       />
                     </div>
 
-                    {/* Campo de nome condicional se o cliente não for encontrado e o telefone estiver completo */}
-                    {normalizePhone(customerPhone).length >= 10 && !customerId && !isSearchingCustomer && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="grid gap-3 p-6 bg-primary/5 rounded-3xl border border-primary/20 shadow-inner mt-4 overflow-hidden"
-                      >
-                        <Label className="text-xs font-black uppercase tracking-widest text-primary ml-1">Seu Nome Completo</Label>
-                        <Input 
-                          placeholder="Ex: João Silva" 
-                          value={customerName} 
-                          onChange={(e) => setCustomerName(e.target.value)}
-                          className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black focus-visible:ring-primary/50 rounded-2xl"
-                        />
-                      </motion.div>
-                    )}
-
+                    <AnimatePresence mode="wait">
+                      {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && (
+                        <motion.div 
+                          key={customerId ? "found" : "new"}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="mt-4 overflow-hidden"
+                        >
+                          {customerId ? (
+                            <div className="p-4 bg-green-50 rounded-2xl border border-green-200 flex items-center gap-3">
+                              <CheckCircle2 className="text-green-500 shrink-0" size={24} />
+                              <div>
+                                <p className="text-xs font-black uppercase tracking-widest text-green-700">Cliente Identificado</p>
+                                <p className="text-lg font-black text-black">Olá, {customerName}!</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="grid gap-3 p-6 bg-primary/5 rounded-3xl border border-primary/20 shadow-inner">
+                              <Label className="text-xs font-black uppercase tracking-widest text-primary ml-1">Qual o seu nome?</Label>
+                              <Input 
+                                placeholder="Ex: João Silva" 
+                                value={customerName} 
+                                onChange={(e) => setCustomerName(e.target.value)}
+                                className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black focus-visible:ring-primary/50 rounded-2xl"
+                              />
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
+
                   <Button 
                     className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
                     onClick={handlePhoneCheck}
-                    disabled={!customerPhone || submitting || (normalizePhone(customerPhone).length >= 10 && !customerId && !customerName)}
+                    disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && !customerName)}
                   >
                     {submitting ? "Verificando..." : (customerId ? "Continuar" : "Cadastrar e Continuar")}
                   </Button>
