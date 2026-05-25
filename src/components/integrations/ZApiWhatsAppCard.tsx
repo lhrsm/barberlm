@@ -85,30 +85,47 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       provider: 'z-api'
     };
 
+    const webhookUrl = `https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}`;
+    const upsertData = {
+      ...data,
+      webhook_url: webhookUrl
+    };
+
+    console.log('Webhook URL gerada:', webhookUrl);
+    console.log('Upserting data:', upsertData);
+
     const { data: saved, error } = connection?.id 
-      ? await supabase.from("whatsapp_connections").update(data).eq("id", connection.id).select().single()
-      : await supabase.from("whatsapp_connections").insert([data]).select().single();
+      ? await supabase.from("whatsapp_connections").update(upsertData).eq("id", connection.id).select().single()
+      : await supabase.from("whatsapp_connections").insert([upsertData]).select().single();
 
     if (error) {
+      console.error('Erro ao salvar conexão:', error);
       toast.error("Erro ao salvar configurações");
     } else {
       setConnection(saved as WhatsAppConnection);
-      toast.success("Configurações salvas!");
+      toast.success("Configurações salvas e Webhook gerado!");
       await setupWebhook(saved as WhatsAppConnection);
     }
   }
 
   async function setupWebhook(conn: WhatsAppConnection) {
+    if (!conn.webhook_url) return;
     try {
-      const webhookUrl = `https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}`;
-      await supabase.functions.invoke('zapi-api', {
+      console.log('Configurando webhook na Z-API:', conn.webhook_url);
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
         body: { 
           action: 'set-webhook', 
           connectionId: conn.id,
-          data: { webhookUrl }
+          data: { webhookUrl: conn.webhook_url }
         }
       });
-      await supabase.from("whatsapp_connections").update({ webhook_url: webhookUrl }).eq("id", conn.id);
+      
+      if (error) {
+        console.error('Erro ao configurar webhook na Z-API:', error);
+        toast.error("Salvo, mas falha ao configurar webhook na Z-API");
+      } else {
+        console.log('Resposta Z-API webhook:', data);
+      }
     } catch (err) {
       console.error("Erro ao configurar webhook", err);
     }
