@@ -503,7 +503,10 @@ function ShopPageComponent() {
 
 
   const handleFinalizeBooking = async () => {
-    if (!customerName || !customerPhone) {
+    const normalized = normalizePhone(customerPhone);
+    console.log('DEBUG: Finalizing booking with normalized phone:', { original: customerPhone, normalized });
+    
+    if (!customerName || !normalized) {
       toast.error("Por favor, preencha seu nome e telefone.");
       return;
     }
@@ -514,7 +517,7 @@ function ShopPageComponent() {
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
         .select("id, cashback_balance, credits")
-        .eq("phone", customerPhone)
+        .eq("phone", normalized)
         .eq("user_id", shop.id)
         .maybeSingle();
 
@@ -529,7 +532,7 @@ function ShopPageComponent() {
           .insert({
             user_id: shop.id,
             name: customerName,
-            phone: customerPhone
+            phone: normalized
           })
           .select("id")
           .maybeSingle();
@@ -542,7 +545,7 @@ function ShopPageComponent() {
 
       // Automatically create or update client_auth session for the portal
       const sessionData = {
-        phone: customerPhone,
+        phone: normalized,
         customer_id: customerId,
         name: customerName
       };
@@ -642,7 +645,7 @@ function ShopPageComponent() {
         triggerWhatsAppMessage({
           userId: shop.id,
           eventType: 'appointment_confirmation',
-          phone: customerPhone,
+          phone: normalizePhone(customerPhone),
           placeholders: {
             cliente: customerName,
             horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
