@@ -107,6 +107,20 @@ function ShopPageComponent() {
   useEffect(() => {
     if (slug) {
       fetchShopData(slug);
+      
+      // Carregar sessão do portal se existir
+      const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
+      if (savedClient) {
+        try {
+          const parsedClient = JSON.parse(savedClient);
+          console.log('DEBUG: Auto-loading portal session on page mount', parsedClient);
+          setCustomerPhone(formatPhoneMask(parsedClient.phone));
+          setCustomerName(parsedClient.name);
+          // O customer_id será recuperado pelo checkCustomerCashback ou no handleFinalizeBooking
+        } catch (e) {
+          console.error('Error parsing saved client session:', e);
+        }
+      }
     }
   }, [slug]);
 
