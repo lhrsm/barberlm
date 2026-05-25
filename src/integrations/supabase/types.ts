@@ -1603,7 +1603,7 @@ export type Database = {
           },
         ]
       }
-      whatsapp_connections: {
+      whatsapp_cloud_connections: {
         Row: {
           access_token: string | null
           business_name: string | null
@@ -1653,6 +1653,59 @@ export type Database = {
           {
             foreignKeyName: "whatsapp_connections_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_connections: {
+        Row: {
+          api_key: string
+          barbershop_id: string
+          created_at: string
+          id: string
+          instance_name: string
+          last_connection: string | null
+          phone: string | null
+          provider: string
+          server_url: string
+          status: string
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          api_key: string
+          barbershop_id: string
+          created_at?: string
+          id?: string
+          instance_name: string
+          last_connection?: string | null
+          phone?: string | null
+          provider?: string
+          server_url: string
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          api_key?: string
+          barbershop_id?: string
+          created_at?: string
+          id?: string
+          instance_name?: string
+          last_connection?: string | null
+          phone?: string | null
+          provider?: string
+          server_url?: string
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_connections_barbershop_id_fkey"
+            columns: ["barbershop_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1758,7 +1811,7 @@ export type Database = {
             foreignKeyName: "whatsapp_messages_connection_id_fkey"
             columns: ["connection_id"]
             isOneToOne: false
-            referencedRelation: "whatsapp_connections"
+            referencedRelation: "whatsapp_cloud_connections"
             referencedColumns: ["id"]
           },
           {
