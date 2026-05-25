@@ -1105,16 +1105,25 @@ function DashboardComponent() {
                     <Link to="/subscription">Assinar Plano Profissional</Link>
                   </Button>
                 </>
-              ) : plan === 'starter' || plan === 'pro' ? (
+              ) : plan === 'starter' || plan === 'pro' || plan === 'elite' ? (
                 <>
                   <div className="flex justify-center mb-2">
-                    <div className="p-3 bg-primary/10 rounded-full text-primary">
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 shadow-sm shadow-amber-500/5">
+                      <Crown className="w-3 h-3 text-amber-600" />
+                      <span className="text-[10px] font-black italic text-amber-700 tracking-tight uppercase">
+                        Status da Assinatura SaaS
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center mb-2">
+                    <div className="p-3 bg-amber-100 rounded-full text-amber-600 shadow-inner">
                       <Crown size={24} />
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg">Assinatura Ativa</h4>
-                    <p className="text-sm text-muted-foreground">Obrigado por utilizar o Barbex!</p>
+                    <h4 className="font-bold text-lg text-amber-900 italic uppercase">Assinatura Ativa</h4>
+                    <p className="text-sm text-amber-700/70 font-medium">Obrigado por utilizar o Barbex!</p>
                   </div>
                   <Button variant="outline" className="w-full" asChild>
                     <Link to="/subscription">Gerenciar Assinatura</Link>
