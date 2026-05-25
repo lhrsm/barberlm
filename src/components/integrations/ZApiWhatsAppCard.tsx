@@ -290,6 +290,35 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
   }
 
+  async function testConnection() {
+    if (!connection) return;
+    setIsTesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { action: 'test-connection', connectionId: connection.id }
+      });
+
+      if (error) throw error;
+      
+      console.log('instanceId', connection.instance_id);
+      console.log('token', connection.instance_token);
+      console.log('clientToken', connection.client_token);
+      console.log('response', data);
+
+      if (data?.connected) {
+        toast.success("WhatsApp conectado");
+      } else {
+        toast.error("WhatsApp desconectado");
+      }
+      fetchConnection();
+    } catch (err) {
+      console.error("Test error", err);
+      toast.error("Erro ao testar conexão");
+    } finally {
+      setIsTesting(false);
+    }
+  }
+
   async function checkStatus() {
     if (!connection) return;
     setIsTesting(true);
@@ -298,9 +327,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         body: { action: 'get-status', connectionId: connection.id }
       });
       if (data?.connected) {
-        toast.success("WhatsApp conectado!");
+        toast.success("Status: Conectado");
       } else {
-        toast.error("WhatsApp desconectado.");
+        toast.error("Status: Desconectado");
       }
       fetchConnection();
     } catch (err) {
