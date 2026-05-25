@@ -29,6 +29,7 @@ interface WhatsAppConnection {
   instance_token: string;
   status: string;
   webhook_url: string | null;
+  updated_at?: string;
 }
 
 export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
