@@ -568,6 +568,7 @@ export type Database = {
       customers: {
         Row: {
           avatar_url: string | null
+          barber_id: string | null
           birth_date: string | null
           cashback_balance: number
           created_at: string
@@ -582,6 +583,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          barber_id?: string | null
           birth_date?: string | null
           cashback_balance?: number
           created_at?: string
@@ -596,6 +598,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          barber_id?: string | null
           birth_date?: string | null
           cashback_balance?: number
           created_at?: string
@@ -608,7 +611,15 @@ export type Database = {
           phone?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_settings: {
         Row: {
@@ -798,6 +809,7 @@ export type Database = {
       }
       product_sales: {
         Row: {
+          barber_id: string | null
           created_at: string
           customer_id: string | null
           id: string
@@ -811,6 +823,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          barber_id?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -824,6 +837,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          barber_id?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -837,6 +851,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "product_sales_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_sales_customer_id_fkey"
             columns: ["customer_id"]

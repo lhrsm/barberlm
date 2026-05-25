@@ -706,22 +706,31 @@ function ShopPageComponent() {
       }
 
       if (!finalCustId) {
-        console.log('DEBUG: Creating new customer with shop.id', shop.id);
-        if (!shop?.id) {
-          console.error('CRITICAL: Shop ID is missing during customer creation');
-          toast.error("Erro interno: Identificador da barbearia não encontrado.");
+        console.log('BARBER', selectedBarber);
+        console.log('BARBER ID', selectedBarber?.id);
+
+        if (!selectedBarber?.id) {
+          console.error('Barber ID missing');
+          toast.error("Erro interno: Identificador do profissional não encontrado.");
           setSubmitting(false);
           return;
         }
 
+        console.log('DEBUG: Creating new customer with shop.id', shop.id, 'and barber.id', selectedBarber.id);
+        
+        const payload = {
+          user_id: shop.id,
+          barber_id: selectedBarber.id,
+          name: customerName,
+          phone: normalized,
+          cashback_balance: 0
+        };
+        
+        console.log('INSERT CUSTOMER DATA', payload);
+
         const { data: newCustomer, error: createError } = await supabase
           .from("customers")
-          .insert({
-            user_id: shop.id,
-            name: customerName,
-            phone: normalized,
-            cashback_balance: 0
-          })
+          .insert([payload])
           .select("id")
           .single();
         
@@ -855,7 +864,7 @@ function ShopPageComponent() {
         const remainingAmount = calculateTotal();
         
         // Registrar transação para constar no operacional (mesmo se for 0 em dinheiro novo)
-        await supabase.from("transactions").insert({
+        await supabase.from("transactions").insert([{
           user_id: shop.id,
           barber_id: selectedBarber.id,
           appointment_id: appointment.id,
@@ -864,23 +873,27 @@ function ShopPageComponent() {
           amount: remainingAmount,
           description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}${useCredits ? ` (Abatimento Créditos: R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : ""}`,
           date: new Date().toISOString().split('T')[0]
-        });
+        }]);
 
         // 4. Products faturamento (Products table tracks total sales regardless of credit use for stock/performance)
         for (const item of selectedProducts) {
-          console.log('DEBUG: Inserting product sale', { productId: item.id, shopId: shop.id });
-          const { error: saleError } = await supabase.from("product_sales").insert({
+          console.log('DEBUG: Inserting product sale', { productId: item.id, shopId: shop.id, barberId: selectedBarber.id });
+          const productSalePayload = {
             user_id: shop.id,
+            barber_id: selectedBarber.id,
             customer_id: finalCustId,
             total_amount: item.price * (item.quantity || 1),
-            status: 'completed',
+            status: 'completed' as "completed",
             items: [{
               product_id: item.id,
               name: item.name,
               price: item.price,
               quantity: item.quantity || 1
-            }]
-          });
+            }] as any
+          };
+          console.log('INSERT PRODUCT SALE DATA', productSalePayload);
+          
+          const { error: saleError } = await supabase.from("product_sales").insert([productSalePayload]);
           
           if (saleError) {
             console.error('DEBUG: Error inserting product sale', saleError);
@@ -2869,16 +2882,30 @@ function ShopPageComponent() {
                     if (custData) {
                       saleCustomerId = custData.id;
                     } else if (customerName) {
+                      // For standalone product sales, we might need a barber_id too if the RLS requires it
+                      // In the shop page, we might not have a selectedBarber if it's just a direct purchase
+                      // but usually products are sold in the context of a barber visit in this app's flow.
+                      // If selectedBarber is missing, we pick the first one or the "geral" one if exists.
+                      const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                      
+                      if (!defaultBarberId) {
+                        throw new Error("Não foi possível identificar um profissional para esta venda.");
+                      }
+
                       // 2. Create new if not found
+                      const customerPayload = {
+                        user_id: shop.id,
+                        barber_id: defaultBarberId,
+                        name: customerName,
+                        phone: normalized,
+                        cashback_balance: 0,
+                        loyalty_points: 0
+                      };
+                      console.log('INSERT CUSTOMER DATA (Standalone)', customerPayload);
+
                       const { data: newCust, error: createError } = await supabase
                         .from("customers")
-                        .insert({
-                          user_id: shop.id,
-                          name: customerName,
-                          phone: normalized,
-                          cashback_balance: 0,
-                          loyalty_points: 0
-                        })
+                        .insert([customerPayload])
                         .select("id")
                         .single();
                         
@@ -2889,26 +2916,31 @@ function ShopPageComponent() {
 
                   if (!saleCustomerId) throw new Error("Identificação do cliente é obrigatória para vendas.");
 
-                  const { data: saleData, error: saleError } = await supabase.from("product_sales").insert({
+                  const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+                  const salePayload = {
                     user_id: shop.id,
+                    barber_id: defaultBarberId,
                     customer_id: saleCustomerId,
                     total_amount: totalAmount,
                     status: 'completed' as any,
                     items: items as any
-                  }).select().single();
+                  };
+                  console.log('INSERT PRODUCT SALE DATA (Standalone)', salePayload);
+
+                  const { data: saleData, error: saleError } = await supabase.from("product_sales").insert([salePayload]).select().single();
 
                   if (saleError) throw saleError;
 
                   // 2. Create finance transaction for the "Financeiro" tab
-                  // Since there is no specific barber for a standalone product sale, we assign to "Geral" (barber_id: null)
-                  const { error: transError } = await supabase.from("transactions").insert({
+                  const { error: transError } = await supabase.from("transactions").insert([{
                     user_id: shop.id,
+                    barber_id: defaultBarberId,
                     type: "income",
                     category: "Produtos",
                     amount: totalAmount,
                     description: `Venda de Produtos (Standalone) - Itens: ${items.map(i => `${i.name} (x${i.quantity})`).join(", ")}`,
                     date: new Date().toISOString().split('T')[0]
-                  });
+                  }]);
 
                   if (transError) throw transError;
 

@@ -191,11 +191,12 @@ export function AppointmentModal({
         if (barberData) tenantId = barberData.user_id;
       }
 
-      const { data, error } = await supabase.from("customers").insert({
+      const { data, error } = await supabase.from("customers").insert([{
         user_id: tenantId,
+        barber_id: selectedBarber,
         name: newCustomer.name,
         phone: newCustomer.phone,
-      }).select().single();
+      }]).select().single();
 
       if (error) throw error;
 

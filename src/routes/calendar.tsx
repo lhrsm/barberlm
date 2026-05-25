@@ -276,13 +276,14 @@ function CalendarComponent() {
           time: format(parseISO(appointment.start_time), "HH:mm:ss")
         });
 
-        await supabase.from("product_sales").insert({
+        await supabase.from("product_sales").insert([{
           user_id: user.id,
+          barber_id: appointment.barber_id,
           customer_id: appointment.customer_id,
           total_amount: item.price * (item.quantity || 1),
-          status: 'completed',
+          status: 'completed' as "completed",
           items: [item]
-        });
+        }]);
       }
 
       // Atualizar pontos de fidelidade do cliente ao marcar como pago
