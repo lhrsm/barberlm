@@ -30,20 +30,15 @@ serve(async (req) => {
       throw new Error("Conexão não encontrada");
     }
 
-    const { instance_id, instance_token, server_url, client_token } = connection;
+    const { instance_id, instance_token, server_url } = connection;
     const baseUrl = (server_url || "https://api.z-api.io").replace(/\/$/, "");
 
     console.log('instanceId', instance_id);
     console.log('token', instance_token);
-    console.log('clientToken', client_token);
 
     const headers: any = {
       "Content-Type": "application/json",
     };
-
-    if (client_token) {
-      headers["Client-Token"] = client_token;
-    }
 
     let endpoint = "";
     let method = "GET";
@@ -136,6 +131,7 @@ serve(async (req) => {
       throw new Error(`Z-API Error: ${response.status} - ${errorText}`);
     }
 
+    const result = await response.json();
     console.log('STATUS DATA:', result);
     console.log('CONNECTED:', result.connected);
     console.log('TYPE:', typeof result.connected);
@@ -143,9 +139,7 @@ serve(async (req) => {
     if (action === "get-status" || action === "test-connection") {
       const isConnected = 
         result.connected === true || 
-        result.connected === 'true' || 
-        result.status === 'connected' || 
-        result.value === 'CONNECTED';
+        result.connected === 'true';
 
       let status = "disconnected";
       if (isConnected) status = "connected";
