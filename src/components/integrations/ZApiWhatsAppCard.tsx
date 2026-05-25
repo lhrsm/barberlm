@@ -327,6 +327,10 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       await supabase.functions.invoke('zapi-api', {
         body: { action: 'disconnect', connectionId: connection.id }
       });
+      
+      console.log('STATUS DATA:', data);
+      console.log('CONNECTED:', data?.connected);
+      console.log('TYPE:', typeof data?.connected);
       await supabase.from("whatsapp_connections").update({ status: 'disconnected' }).eq("id", connection.id);
       toast.success("WhatsApp desconectado");
       fetchConnection();
@@ -494,10 +498,22 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               </div>
            )}
 
-           {connection?.status === 'connected' && (
-             <div className="pt-6 border-t border-white/10 flex gap-3">
-               <Button onClick={checkStatus} variant="outline" className="flex-1 border-white/10">Verificar Status</Button>
-               <Button onClick={handleDisconnect} variant="destructive" className="flex-1">Desconectar</Button>
+           {connection?.id && (
+             <div className="pt-6 border-t border-white/10 flex flex-wrap gap-3">
+               <Button 
+                onClick={checkStatus} 
+                disabled={isTesting}
+                variant="outline" 
+                className="flex-1 border-white/10 hover:bg-white/5 min-w-[140px]"
+               >
+                 {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={14} className="mr-2" />}
+                 Atualizar status
+               </Button>
+               {connection.status === 'connected' && (
+                 <Button onClick={handleDisconnect} variant="destructive" className="flex-1 min-w-[140px]">
+                   <Trash2 size={14} className="mr-2" /> Desconectar
+                 </Button>
+               )}
              </div>
            )}
         </CardContent>
