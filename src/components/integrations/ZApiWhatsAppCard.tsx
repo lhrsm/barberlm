@@ -10,7 +10,8 @@ import {
   ExternalLink, 
   ShieldCheck,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  MessageSquare
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
