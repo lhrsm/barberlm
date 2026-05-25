@@ -17,7 +17,8 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { action, connectionId, data } = await req.json();
+    const bodyData = await req.json();
+    const { action, connectionId, data } = bodyData;
 
     // 1. Buscar a conexão no banco
     const { data: connection, error: connError } = await supabase
@@ -32,9 +33,6 @@ serve(async (req) => {
 
     const { instance_id, instance_token, server_url } = connection;
     const baseUrl = (server_url || "https://api.z-api.io").replace(/\/$/, "");
-
-    console.log('instanceId', instance_id);
-    console.log('token', instance_token);
 
     const headers: any = {
       "Content-Type": "application/json",
@@ -74,6 +72,9 @@ serve(async (req) => {
           "update-webhook-chat-state"
         ];
         
+        console.log('--- SET WEBHOOK DEBUG ---');
+        console.log('HEADERS ENVIADOS:', JSON.stringify(headers));
+
         const webhookResults = await Promise.all(types.map(async (webhookType) => {
           const res = await fetch(`${baseUrl}/instances/${instance_id}/token/${instance_token}/${webhookType}`, {
             method: "POST",
@@ -118,13 +119,12 @@ serve(async (req) => {
 
     const fullUrl = `${baseUrl}${endpoint}`;
     
-    // DEBUG: Log exactly what is being sent
-    console.log('--- Z-API REQUEST START ---');
+    // DEBUG OBRIGATÓRIO
+    console.log('--- DEBUG Z-API REQUEST ---');
     console.log('URL:', fullUrl);
     console.log('METHOD:', method);
-    console.log('HEADERS:', JSON.stringify(headers));
+    console.log('HEADERS ENVIADOS:', JSON.stringify(headers));
     if (body) console.log('BODY:', JSON.stringify(body));
-    console.log('--- Z-API REQUEST END ---');
 
     const response = await fetch(fullUrl, {
       method,
@@ -132,16 +132,18 @@ serve(async (req) => {
       body: method === "GET" ? undefined : JSON.stringify(body),
     });
 
+    const responseText = await response.text();
+    console.log('Z-API RAW RESPONSE:', responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Z-API Error Response (${response.status}):`, errorText);
-      throw new Error(`Z-API Error: ${response.status} - ${errorText}`);
+      if (responseText.includes('client-token')) {
+        console.error('ERRO CRÍTICO: Z-API reclama de client-token mesmo sem enviarmos o header!');
+      }
+      throw new Error(`Z-API Error: ${response.status} - ${responseText}`);
     }
 
-    const result = await response.json();
+    const result = JSON.parse(responseText);
     console.log('STATUS DATA:', result);
-    console.log('CONNECTED:', result.connected);
-    console.log('TYPE:', typeof result.connected);
 
     if (action === "get-status" || action === "test-connection") {
       const isConnected = 
