@@ -30,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
-import { EvolutionWhatsAppCard } from "@/components/integrations/EvolutionWhatsAppCard";
+import { ZApiWhatsAppCard } from "@/components/integrations/ZApiWhatsAppCard";
 
 export const Route = createFileRoute("/integrations")({
   component: IntegrationsComponent,
