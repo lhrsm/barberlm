@@ -45,9 +45,7 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
 
           const isConnected =
             data.connected === true ||
-            data.connected === 'true' ||
-            data.status === 'connected' ||
-            data.value === 'CONNECTED';
+            data.connected === 'true';
 
           // Update database if connectionId is provided
           if (connectionId) {
