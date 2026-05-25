@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, RefreshCw, Trash2, CheckCircle2, AlertCircle, Zap, History, Send, QrCode, Phone, Loader2, Info, Save, Smartphone, User, Crown, ExternalLink, ShieldCheck } from "lucide-react";
+import { MessageSquare, RefreshCw, Trash2, CheckCircle2, AlertCircle, Zap, History, Send, QrCode, Phone, Loader2, Info, Save, Smartphone, User, Crown, ExternalLink, ShieldCheck, Copy, Edit3, Trash } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [testNumber, setTestNumber] = useState("");
   const [pollingStatus, setPollingStatus] = useState<string>("qrcode");
   const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
+  const [webhookModalOpen, setWebhookModalOpen] = useState(false);
+  const [isEditingWebhook, setIsEditingWebhook] = useState(false);
+  const [tempWebhookUrl, setTempWebhookUrl] = useState("");
 
   useEffect(() => {
     if (tenantId) {
@@ -85,7 +88,12 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       provider: 'z-api'
     };
 
-    const webhookUrl = `https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}`;
+    // URL base preferencial conforme solicitado pelo usuário
+    const baseUrl = window.location.origin.includes('lovable.app') 
+      ? "https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook"
+      : "https://barbex.shop/api/webhooks/zapi";
+    
+    const webhookUrl = `${baseUrl}/${tenantId}`;
     const upsertData = {
       ...data,
       webhook_url: webhookUrl
@@ -103,6 +111,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       toast.error("Erro ao salvar configurações");
     } else {
       setConnection(saved as WhatsAppConnection);
+      setTempWebhookUrl(webhookUrl);
+      setWebhookModalOpen(true);
       toast.success("Configurações salvas e Webhook gerado!");
       await setupWebhook(saved as WhatsAppConnection);
     }
@@ -128,6 +138,46 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       }
     } catch (err) {
       console.error("Erro ao configurar webhook", err);
+    }
+  }
+
+  async function handleDeleteWebhook() {
+    if (!connection?.id || !confirm("Deseja realmente excluir este webhook?")) return;
+    
+    try {
+      const { error } = await supabase
+        .from('whatsapp_connections')
+        .update({ webhook_url: null })
+        .eq('id', connection.id);
+        
+      if (error) throw error;
+      
+      setConnection({ ...connection, webhook_url: null });
+      setWebhookModalOpen(false);
+      toast.success("Webhook excluído com sucesso");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao excluir webhook");
+    }
+  }
+
+  async function handleUpdateWebhook() {
+    if (!connection?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('whatsapp_connections')
+        .update({ webhook_url: tempWebhookUrl })
+        .eq('id', connection.id);
+        
+      if (error) throw error;
+      
+      setConnection({ ...connection, webhook_url: tempWebhookUrl });
+      setIsEditingWebhook(false);
+      toast.success("Webhook atualizado com sucesso");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao atualizar webhook");
     }
   }
 
@@ -349,27 +399,42 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                             <Zap size={16} className="text-blue-400" />
                             <h4 className="text-sm font-bold text-white uppercase tracking-tight">Gerenciamento Webhook</h4>
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="bg-black/20 border-white/10 hover:bg-white/5"
+                          <div className="flex items-center gap-3">
+                            <Badge className={cn(
+                              "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                              connection.webhook_url 
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]" 
+                                : "bg-slate-500/10 text-slate-400 border border-slate-500/30"
+                            )}>
+                              {connection.webhook_url ? "Webhook Ativo" : "Sem Webhook"}
+                            </Badge>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="bg-black/20 border-white/10 hover:bg-white/5 text-xs"
+                              onClick={() => {
+                                setTempWebhookUrl(connection.webhook_url || "");
+                                setWebhookModalOpen(true);
+                              }}
+                            >
+                              Configurar
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {connection.webhook_url && (
+                          <div className="p-3 bg-black/40 rounded-xl border border-white/5 text-[11px] font-mono text-slate-400 break-all relative group/url cursor-pointer hover:bg-black/60 transition-colors"
                             onClick={() => {
                               navigator.clipboard.writeText(connection.webhook_url || "");
                               toast.success("Webhook copiado com sucesso!");
                             }}
                           >
-                            Copiar URL
-                          </Button>
-                        </div>
-                        
-                        <div className="p-3 bg-black/40 rounded-xl border border-white/5 text-[11px] font-mono text-slate-400 break-all relative group/url">
-                          {connection.webhook_url || "Aguardando geração..."}
-                          {connection.webhook_url && (
-                            <Badge className="absolute right-2 top-2 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[8px] uppercase font-bold">
-                              Ativo
-                            </Badge>
-                          )}
-                        </div>
+                            {connection.webhook_url}
+                            <div className="absolute right-2 top-2 opacity-0 group-hover/url:opacity-100 transition-opacity">
+                              <Copy size={12} className="text-slate-500" />
+                            </div>
+                          </div>
+                        )}
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           {[
@@ -381,8 +446,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                             <div key={wh.type} className="flex flex-col gap-2 p-3 bg-black/20 rounded-xl border border-white/5">
                               <span className="text-[10px] text-slate-400 font-bold uppercase">{wh.label}</span>
                               <div className="flex items-center gap-2">
-                                <input type="checkbox" checked={true} readOnly className="accent-blue-500" />
-                                <span className="text-[10px] text-emerald-400 uppercase font-bold">Ativo</span>
+                                <div className={cn("w-2 h-2 rounded-full", connection.webhook_url ? "bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" : "bg-slate-600")} />
+                                <span className="text-[10px] text-slate-400 uppercase font-bold">{connection.webhook_url ? "Ativo" : "Inativo"}</span>
                               </div>
                             </div>
                           ))}
@@ -587,6 +652,94 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                   <User size={14} className="text-blue-400" />
                   <span className="text-[8px] uppercase text-slate-500">Conectar</span>
                 </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={webhookModalOpen} onOpenChange={setWebhookModalOpen}>
+        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white sm:max-w-lg p-0 overflow-hidden rounded-3xl backdrop-blur-2xl">
+          <div className="p-8 space-y-8 relative">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-blue-600/10 blur-[80px] -mr-20 -mt-20 rounded-full" />
+            
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-white flex items-center gap-3">
+                <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                  <CheckCircle2 className="text-emerald-500" size={24} />
+                </div>
+                Webhook Gerenciado
+              </DialogTitle>
+              <DialogDescription className="text-slate-400 text-base pt-2">
+                Configure esta URL no seu painel da Z-API para receber notificações em tempo real.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label className="text-slate-300 font-bold uppercase tracking-widest text-[10px]">Webhook URL</Label>
+                <div className="relative group">
+                  <Input 
+                    value={tempWebhookUrl}
+                    onChange={(e) => setTempWebhookUrl(e.target.value)}
+                    readOnly={!isEditingWebhook}
+                    className={cn(
+                      "bg-black/40 border-white/10 h-14 pr-12 font-mono text-xs transition-all",
+                      isEditingWebhook ? "border-blue-500/50 ring-1 ring-blue-500/20 bg-black/60" : "cursor-default focus-visible:ring-0"
+                    )}
+                  />
+                  {!isEditingWebhook && (
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="absolute right-2 top-2 h-10 w-10 text-slate-500 hover:text-white hover:bg-white/5"
+                      onClick={() => {
+                        navigator.clipboard.writeText(tempWebhookUrl);
+                        toast.success("Webhook copiado com sucesso");
+                      }}
+                    >
+                      <Copy size={18} />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(tempWebhookUrl);
+                    toast.success("Webhook copiado com sucesso!");
+                  }}
+                  className="flex-1 h-12 bg-white text-black hover:bg-slate-200 font-bold rounded-xl shadow-xl transition-all"
+                >
+                  <Copy size={18} className="mr-2" /> Copiar Webhook
+                </Button>
+                
+                {isEditingWebhook ? (
+                  <Button 
+                    onClick={handleUpdateWebhook}
+                    className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all"
+                  >
+                    <Save size={18} className="mr-2" /> Salvar Edição
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsEditingWebhook(true)}
+                    className="flex-1 h-12 bg-transparent border-white/10 text-white hover:bg-white/5 font-bold rounded-xl transition-all"
+                  >
+                    <Edit3 size={18} className="mr-2" /> Editar
+                  </Button>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-white/5">
+                <Button 
+                  variant="destructive"
+                  onClick={handleDeleteWebhook}
+                  className="w-full h-12 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 font-bold rounded-xl transition-all"
+                >
+                  <Trash size={18} className="mr-2" /> Excluir Webhook
+                </Button>
               </div>
             </div>
           </div>
