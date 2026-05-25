@@ -1,5 +1,17 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, RefreshCw, Trash2, CheckCircle2, AlertCircle, Zap, History, Send, QrCode, Phone, Loader2, Info, Save, Smartphone, User, Crown, ExternalLink, ShieldCheck, Copy, Edit3, Trash, Link2, Shield } from "lucide-react";
+import { 
+  Zap, 
+  RefreshCw, 
+  Trash2, 
+  Save, 
+  Loader2, 
+  Copy, 
+  Edit3, 
+  ExternalLink, 
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,17 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface WhatsAppConnection {
   id: string;
@@ -25,36 +27,20 @@ interface WhatsAppConnection {
   server_url: string;
   instance_token: string;
   status: string;
-  phone: string | null;
-  instance_name: string | null;
   webhook_url: string | null;
 }
 
 export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [connection, setConnection] = useState<WhatsAppConnection | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showQrModal, setShowQrModal] = useState(false);
-  const [qrCode, setQrCode] = useState<string | null>(null);
-  const [qrLoading, setQrLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
-  const [pollingStatus, setPollingStatus] = useState<string>("qrcode");
-  const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
-  const [webhookModalOpen, setWebhookModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isEditingWebhook, setIsEditingWebhook] = useState(false);
   const [tempWebhookUrl, setTempWebhookUrl] = useState("");
-  
-  const [pairingPhone, setPairingPhone] = useState("");
-  const [pairingCode, setPairingCode] = useState<string | null>(null);
-  const [pairingLoading, setPairingLoading] = useState(false);
-  const [showPairingModal, setShowPairingModal] = useState(false);
-  const [connectionLink, setConnectionLink] = useState<string | null>(null);
-  const [linkLoading, setLinkLoading] = useState(false);
-  const [showLinkModal, setShowLinkModal] = useState(false);
 
   useEffect(() => {
     if (tenantId) {
       fetchConnection();
-      fetchWebhookLogs();
     }
   }, [tenantId]);
 
@@ -66,7 +52,10 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         .eq("barbershop_id", tenantId)
         .maybeSingle();
 
-      if (data) setConnection(data as WhatsAppConnection);
+      if (data) {
+        setConnection(data as WhatsAppConnection);
+        setTempWebhookUrl(data.webhook_url || "");
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -74,53 +63,50 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
   }
 
-  async function fetchWebhookLogs() {
-    const { data } = await supabase
-      .from("webhook_logs")
-      .select("*")
-      .eq("barbershop_id", tenantId)
-      .order("created_at", { ascending: false })
-      .limit(10);
-    if (data) setWebhookLogs(data);
-  }
-
   async function saveSettings(e: React.FormEvent) {
     e.preventDefault();
+    setIsSaving(true);
     const formData = new FormData(e.currentTarget as HTMLFormElement);
-    let serverUrl = (formData.get('server_url') as string || "https://api.z-api.io").trim();
-    if (serverUrl.includes('/instances/')) {
-      serverUrl = serverUrl.split('/instances/')[0];
-    }
-    serverUrl = serverUrl.replace(/\/$/, "");
+    
+    const instanceId = (formData.get('instance_id') as string).trim();
+    const instanceToken = (formData.get('instance_token') as string).trim();
+    const apiBaseUrl = (formData.get('api_url') as string || "https://api.z-api.io").trim();
 
-    const data = {
+    // Clean API URL
+    let cleanApiUrl = apiBaseUrl;
+    if (cleanApiUrl.includes('/instances/')) {
+      cleanApiUrl = cleanApiUrl.split('/instances/')[0];
+    }
+    cleanApiUrl = cleanApiUrl.replace(/\/$/, "");
+
+    const webhookUrl = `${window.location.origin}/api/webhooks/zapi/${tenantId}`;
+
+    const upsertData = {
       barbershop_id: tenantId,
-      instance_id: (formData.get('instance_id') as string).trim(),
-      server_url: serverUrl,
-      instance_token: (formData.get('instance_token') as string).trim(),
+      instance_id: instanceId,
+      instance_token: instanceToken,
+      server_url: cleanApiUrl,
+      webhook_url: webhookUrl,
       provider: 'z-api'
     };
 
-    const baseUrl = `${window.location.origin}/api/webhooks/zapi`;
-    
-    const webhookUrl = `${baseUrl}/${tenantId}`;
-    const upsertData = {
-      ...data,
-      webhook_url: webhookUrl
-    };
+    try {
+      const { data: saved, error } = connection?.id 
+        ? await supabase.from("whatsapp_connections").update(upsertData).eq("id", connection.id).select().single()
+        : await supabase.from("whatsapp_connections").insert([upsertData]).select().single();
 
-    const { data: saved, error } = connection?.id 
-      ? await supabase.from("whatsapp_connections").update(upsertData).eq("id", connection.id).select().single()
-      : await supabase.from("whatsapp_connections").insert([upsertData]).select().single();
+      if (error) throw error;
 
-    if (error) {
-      toast.error("Erro ao salvar configurações");
-    } else {
       setConnection(saved as WhatsAppConnection);
       setTempWebhookUrl(webhookUrl);
-      setWebhookModalOpen(true);
-      toast.success("Configurações salvas e Webhook gerado!");
+      toast.success("Configurações salvas com sucesso!");
+      
+      // Auto-configure webhook on Z-API
       await setupWebhook(saved as WhatsAppConnection);
+    } catch (err: any) {
+      toast.error("Erro ao salvar: " + err.message);
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -134,8 +120,39 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           data: { webhookUrl: conn.webhook_url }
         }
       });
+      toast.success("Webhook configurado na Z-API!");
     } catch (err) {
       console.error("Erro ao configurar webhook", err);
+      toast.error("Erro ao configurar webhook na Z-API");
+    }
+  }
+
+  async function testConnection() {
+    if (!connection) return;
+    setIsTesting(true);
+    try {
+      const response = await fetch('/api/zapi/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instanceId: connection.instance_id,
+          token: connection.instance_token,
+          connectionId: connection.id
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.connected) {
+        toast.success("WhatsApp conectado!");
+      } else {
+        toast.error("WhatsApp desconectado.");
+      }
+      fetchConnection();
+    } catch (err: any) {
+      toast.error("Erro ao testar conexão");
+    } finally {
+      setIsTesting(false);
     }
   }
 
@@ -149,8 +166,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         .eq('id', connection.id);
       
       setConnection({ ...connection, webhook_url: null });
-      setWebhookModalOpen(false);
-      toast.success("Webhook excluído com sucesso");
+      setTempWebhookUrl("");
+      toast.success("Webhook excluído");
     } catch (err) {
       toast.error("Erro ao excluir webhook");
     }
@@ -167,424 +184,196 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       
       setConnection({ ...connection, webhook_url: tempWebhookUrl });
       setIsEditingWebhook(false);
-      toast.success("Webhook atualizado com sucesso");
+      toast.success("Webhook atualizado");
+      
+      // Also update on Z-API
+      await setupWebhook({ ...connection, webhook_url: tempWebhookUrl });
     } catch (err) {
       toast.error("Erro ao atualizar webhook");
     }
   }
 
-  async function handleGetQrCode() {
-    if (!connection) return;
-    setQrLoading(true);
-    setQrCode(null);
-    setShowQrModal(true);
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copiado para a área de transferência!");
+  };
 
-    try {
-      const { data, error } = await supabase.functions.invoke('zapi-api', {
-        body: { action: 'get-qrcode', connectionId: connection.id }
-      });
-
-      if (error) throw error;
-      if (data.value) setQrCode(data.value);
-      
-      startPollingStatus();
-    } catch (err) {
-      toast.error("Erro ao gerar QR Code");
-      setShowQrModal(false);
-    } finally {
-      setQrLoading(false);
-    }
+  if (loading) {
+    return (
+      <Card className="bg-[#0b0f1a] border-white/10 animate-pulse">
+        <CardContent className="h-64 flex items-center justify-center">
+          <Loader2 className="animate-spin text-blue-500" />
+        </CardContent>
+      </Card>
+    );
   }
 
-  async function handleGetPairingCode() {
-    if (!connection) return;
-    if (!pairingPhone) {
-      toast.error("Informe o número do WhatsApp");
-      return;
-    }
-    setPairingLoading(true);
-    setPairingCode(null);
-    setShowPairingModal(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('zapi-api', {
-        body: { 
-          action: 'get-pairing-code', 
-          connectionId: connection.id,
-          data: { phone: pairingPhone.replace(/\D/g, '') } 
-        }
-      });
-
-      if (error) throw error;
-      if (data.value) {
-        setPairingCode(data.value);
-        startPollingStatus();
-      } else {
-        toast.error("Falha ao gerar código de pareamento");
-      }
-    } catch (err) {
-      toast.error("Erro ao gerar código de pareamento");
-      setShowPairingModal(false);
-    } finally {
-      setPairingLoading(false);
-    }
-  }
-
-  async function handleGetConnectionLink() {
-    if (!connection) return;
-    setLinkLoading(true);
-    setConnectionLink(null);
-    setShowLinkModal(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('zapi-api', {
-        body: { action: 'get-connection-link', connectionId: connection.id }
-      });
-
-      if (error) throw error;
-      if (data.value) setConnectionLink(data.value);
-      
-      startPollingStatus();
-    } catch (err) {
-      toast.error("Erro ao gerar link de conexão");
-      setShowLinkModal(false);
-    } finally {
-      setLinkLoading(false);
-    }
-  }
-
-  function startPollingStatus() {
-    const interval = setInterval(async () => {
-      if (!connection?.id) return;
-      
-      try {
-        const response = await fetch('/api/zapi/test-connection', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            instanceId: connection.instance_id,
-            token: connection.instance_token,
-            connectionId: connection.id
-          })
-        });
-
-        const result = await response.json();
-        console.log('POLLING STATUS DATA:', result.data);
-        const isConnected = result.connected;
-
-        if (isConnected) {
-          clearInterval(interval);
-          setShowQrModal(false);
-          setShowPairingModal(false);
-          setShowLinkModal(false);
-          toast.success("WhatsApp conectado com sucesso!");
-          fetchConnection();
-        } else {
-          setPollingStatus(result.data?.waitingQrCode ? "qrcode" : "disconnected");
-        }
-      } catch (err) {
-        console.error("Polling error", err);
-      }
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }
-
-  // Automatic status polling every 10 seconds when connected or active
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (connection?.id) {
-      interval = setInterval(() => {
-        checkStatusSilently();
-      }, 10000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [connection?.id]);
-
-  async function checkStatusSilently() {
-    if (!connection?.id) return;
-    try {
-      const response = await fetch('/api/zapi/test-connection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instanceId: connection.instance_id,
-          token: connection.instance_token,
-          connectionId: connection.id
-        })
-      });
-      
-      const result = await response.json();
-      const isConnected = result.connected;
-      const newStatus = isConnected ? 'connected' : 'disconnected';
-      
-      if (newStatus !== connection.status) {
-        fetchConnection();
-      }
-    } catch (err) {
-      console.error("Silent status check error", err);
-    }
-  }
-
-  async function handleDisconnect() {
-    if (!connection || !confirm("Deseja realmente desconectar?")) return;
-    try {
-      await supabase.functions.invoke('zapi-api', {
-        body: { action: 'disconnect', connectionId: connection.id }
-      });
-      
-      await supabase.from("whatsapp_connections").update({ status: 'disconnected', connected: false }).eq("id", connection.id);
-      toast.success("WhatsApp desconectado");
-      fetchConnection();
-    } catch (err) {
-      toast.error("Erro ao desconectar");
-    }
-  }
-
-  async function testConnection() {
-    if (!connection) return;
-    setIsTesting(true);
-    try {
-      const response = await fetch('/api/zapi/test-connection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          instanceId: connection.instance_id,
-          token: connection.instance_token,
-          connectionId: connection.id
-        })
-      });
-
-      const result = await response.json();
-      
-      console.log('INSTANCE ID', connection.instance_id);
-      console.log('TOKEN', connection.instance_token);
-      console.log('RESULT', result);
-
-      if (!result.success) {
-        throw new Error(result.error || "Erro desconhecido na API");
-      }
-
-      if (result.connected) {
-        toast.success("WhatsApp conectado");
-      } else {
-        toast.error("WhatsApp desconectado");
-      }
-      fetchConnection();
-    } catch (err: any) {
-      console.error("Test error", err);
-      toast.error(err.message || "Erro ao testar conexão");
-    } finally {
-      setIsTesting(false);
-    }
-  }
-
-  async function checkStatus() {
-    if (!connection) return;
-    setIsTesting(true);
-    try {
-      const response = await fetch('/api/zapi/test-connection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          instanceId: connection.instance_id,
-          token: connection.instance_token,
-          connectionId: connection.id
-        })
-      });
-
-      const result = await response.json();
-      
-      console.log('STATUS DATA:', result.data);
-      console.log('CONNECTED:', result.connected);
-      
-      if (result.success && result.connected) {
-        toast.success("Status: Conectado");
-      } else {
-        toast.error(result.error ? `Erro: ${result.error}` : "Status: Desconectado");
-      }
-      fetchConnection();
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao verificar status");
-    } finally {
-      setIsTesting(false);
-    }
-  }
-
-  if (loading) return null;
+  const isConnected = connection?.status === 'connected';
 
   return (
     <div className="space-y-6">
-      <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-2xl">
-        <CardHeader>
-          <div className="flex justify-between items-center">
+      <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-2xl overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600"></div>
+        
+        <CardHeader className="pb-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-600 rounded-2xl"><Zap /></div>
+              <div className="p-3 bg-blue-600/20 rounded-2xl border border-blue-500/30">
+                <Zap className="text-blue-400" />
+              </div>
               <div>
-                <CardTitle>WhatsApp Z-API</CardTitle>
-                <CardDescription className="text-slate-400">Integração SaaS Premium</CardDescription>
+                <CardTitle className="text-xl font-bold tracking-tight">WhatsApp Z-API</CardTitle>
+                <CardDescription className="text-slate-400">Integração oficial sem Client-Token</CardDescription>
               </div>
             </div>
+            
             <Badge className={cn(
-              "transition-all duration-500",
-              connection?.status === 'connected' 
-                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse" 
+              "px-4 py-1.5 text-xs font-semibold rounded-full border transition-all duration-500",
+              isConnected 
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.2)]" 
                 : "bg-red-500/10 text-red-400 border-red-500/20"
             )}>
-              {connection?.status === 'connected' ? (
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 bg-emerald-400 rounded-full animate-ping" />
-                  WhatsApp conectado
-                </span>
-              ) : 'WhatsApp desconectado'}
+              <span className="flex items-center gap-2">
+                <span className={cn(
+                  "w-2 h-2 rounded-full",
+                  isConnected ? "bg-emerald-400 animate-pulse" : "bg-red-400"
+                )} />
+                {isConnected ? 'WhatsApp conectado' : 'WhatsApp desconectado'}
+              </span>
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-           <form id="wa-zapi-form" onSubmit={saveSettings} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <Label className="text-slate-300">ID da Instância</Label>
-                <Input name="instance_id" defaultValue={connection?.instance_id} className="bg-white/5 border-white/10" required />
+
+        <CardContent className="space-y-8">
+          <form onSubmit={saveSettings} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <Label className="text-slate-300 text-sm font-medium">ID da Instância</Label>
+                <Input 
+                  name="instance_id" 
+                  defaultValue={connection?.instance_id} 
+                  placeholder="EX: 3B..."
+                  className="bg-white/5 border-white/10 focus:border-blue-500/50 transition-all h-11" 
+                  required 
+                />
               </div>
-              <div className="space-y-3">
-                <Label className="text-slate-300">Token da Instância</Label>
-                <Input name="instance_token" type="password" defaultValue={connection?.instance_token} className="bg-white/5 border-white/10" required />
+              <div className="space-y-2">
+                <Label className="text-slate-300 text-sm font-medium">Token da Instância</Label>
+                <Input 
+                  name="instance_token" 
+                  type="password" 
+                  defaultValue={connection?.instance_token} 
+                  placeholder="Seu token Z-API"
+                  className="bg-white/5 border-white/10 focus:border-blue-500/50 transition-all h-11" 
+                  required 
+                />
               </div>
-              <div className="space-y-3">
-                <Label className="text-slate-300">URL Base</Label>
-                <Input name="server_url" defaultValue={connection?.server_url || "https://api.z-api.io"} className="bg-white/5 border-white/10" />
+              <div className="space-y-2">
+                <Label className="text-slate-300 text-sm font-medium">API da Instância (URL Base)</Label>
+                <Input 
+                  name="api_url" 
+                  defaultValue={connection?.server_url || "https://api.z-api.io"} 
+                  className="bg-white/5 border-white/10 focus:border-blue-500/50 transition-all h-11" 
+                />
               </div>
-              <div className="md:col-span-2 flex flex-col md:flex-row gap-4">
-                <Button type="submit" className="flex-1 bg-white text-black hover:bg-slate-200">
-                  <Save size={16} className="mr-2" /> Salvar Configurações
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button type="submit" disabled={isSaving} className="flex-1 bg-white text-black hover:bg-slate-200 h-11 font-semibold">
+                {isSaving ? <Loader2 className="animate-spin mr-2" /> : <Save size={18} className="mr-2" />}
+                Salvar Configurações
+              </Button>
+              {connection?.id && (
+                <Button 
+                  type="button" 
+                  onClick={testConnection} 
+                  disabled={isTesting}
+                  variant="outline" 
+                  className="flex-1 border-white/10 hover:bg-white/5 h-11 font-semibold text-white"
+                >
+                  {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />}
+                  Testar Z-API
                 </Button>
-                {connection?.id && (
-                  <Button 
-                    type="button" 
-                    onClick={testConnection} 
-                    disabled={isTesting}
-                    variant="outline" 
-                    className="flex-1 border-white/10 hover:bg-white/5"
-                  >
-                    {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={16} className="mr-2" />}
-                    Testar conexão Z-API
-                  </Button>
-                )}
-              </div>
-           </form>
-           
-           {connection?.id && connection.status !== 'connected' && (
-              <div className="md:col-span-2 space-y-6 pt-6 border-t border-white/10">
-                <h3 className="text-sm font-bold uppercase text-slate-300 flex items-center gap-2">
-                  <Shield size={16} /> Métodos de Conexão
-                </h3>
-                <Tabs defaultValue="qrcode" className="w-full">
-                  <TabsList className="grid grid-cols-3 bg-white/5 p-1 h-12 rounded-xl mb-6">
-                    <TabsTrigger value="qrcode"><QrCode size={14} className="mr-2" /> QR Code</TabsTrigger>
-                    <TabsTrigger value="pairing"><Smartphone size={14} className="mr-2" /> Código</TabsTrigger>
-                    <TabsTrigger value="link"><Link2 size={14} className="mr-2" /> Link</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="qrcode">
-                    <Button onClick={handleGetQrCode} disabled={qrLoading} className="w-full h-20 bg-blue-600">
-                      {qrLoading ? <Loader2 className="animate-spin" /> : "Gerar QR Code"}
-                    </Button>
-                  </TabsContent>
-                  <TabsContent value="pairing" className="space-y-4">
-                    <Input placeholder="Número c/ DDI e DDD" value={pairingPhone} onChange={(e) => setPairingPhone(e.target.value)} />
-                    <Button onClick={handleGetPairingCode} disabled={pairingLoading} className="w-full">
-                      {pairingLoading ? <Loader2 className="animate-spin" /> : "Gerar Código"}
-                    </Button>
-                  </TabsContent>
-                  <TabsContent value="link">
-                    <Button onClick={handleGetConnectionLink} disabled={linkLoading} className="w-full h-20">
-                      {linkLoading ? <Loader2 className="animate-spin" /> : "Gerar Link"}
-                    </Button>
-                  </TabsContent>
-                </Tabs>
-              </div>
-           )}
+              )}
+            </div>
+          </form>
 
-           {connection?.id && (
-             <div className="pt-6 border-t border-white/10 flex flex-wrap gap-3">
-               <Button 
-                onClick={checkStatus} 
-                disabled={isTesting}
-                variant="outline" 
-                className="flex-1 border-white/10 hover:bg-white/5 min-w-[140px]"
-               >
-                 {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={14} className="mr-2" />}
-                 Atualizar status
-               </Button>
-               {connection.status === 'connected' && (
-                 <Button onClick={handleDisconnect} variant="destructive" className="flex-1 min-w-[140px]">
-                   <Trash2 size={14} className="mr-2" /> Desconectar
-                 </Button>
-               )}
-             </div>
-           )}
+          {connection?.id && (
+            <div className="space-y-4 pt-6 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="text-blue-400 h-5 w-5" />
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">
+                    Webhook configurado
+                  </h3>
+                </div>
+              </div>
+
+              {connection.webhook_url ? (
+                <div className="bg-black/40 rounded-xl border border-white/5 p-4 space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                    {isEditingWebhook ? (
+                      <Input 
+                        value={tempWebhookUrl} 
+                        onChange={(e) => setTempWebhookUrl(e.target.value)}
+                        className="bg-white/5 border-white/10 flex-1"
+                      />
+                    ) : (
+                      <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xs font-mono text-blue-300 flex-1 truncate max-w-full">
+                        {connection.webhook_url}
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-2 shrink-0">
+                      {isEditingWebhook ? (
+                        <>
+                          <Button size="sm" onClick={handleUpdateWebhook} className="bg-green-600 hover:bg-green-700">
+                            Gravar
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setIsEditingWebhook(false)}>
+                            Cancelar
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button size="icon" variant="ghost" className="h-9 w-9 text-slate-400 hover:text-white hover:bg-white/5" onClick={() => copyToClipboard(connection.webhook_url!)}>
+                            <Copy size={16} />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-9 w-9 text-slate-400 hover:text-white hover:bg-white/5" onClick={() => setIsEditingWebhook(true)}>
+                            <Edit3 size={16} />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-9 w-9 text-red-400/60 hover:text-red-400 hover:bg-red-400/5" onClick={handleDeleteWebhook}>
+                            <Trash2 size={16} />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-500 italic flex items-center gap-1">
+                    <AlertCircle size={10} />
+                    Este endpoint recebe notificações em tempo real da Z-API.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-yellow-500/5 border border-yellow-500/10 rounded-xl p-6 text-center">
+                  <p className="text-sm text-yellow-500/80 mb-4">Clique em "Salvar Configurações" para gerar seu Webhook oficial.</p>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
+        
+        <CardFooter className="bg-white/5 border-t border-white/5 px-6 py-4">
+          <div className="flex justify-between items-center w-full">
+            <p className="text-[10px] text-slate-500">v2.0.0 - Clean Architecture Integration</p>
+            <div className="flex gap-4">
+              <a href="https://z-api.io" target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:underline flex items-center gap-1">
+                Docs Z-API <ExternalLink size={10} />
+              </a>
+            </div>
+          </div>
+        </CardFooter>
       </Card>
-
-      <Dialog open={showQrModal} onOpenChange={setShowQrModal}>
-        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white">
-          <DialogHeader>
-            <DialogTitle>Escaneie o QR Code</DialogTitle>
-            <DialogDescription>Use o WhatsApp para escanear o código abaixo.</DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center p-4 bg-white rounded-xl">
-            {qrCode ? <img src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`} alt="QR" /> : <Loader2 className="animate-spin" />}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showPairingModal} onOpenChange={setShowPairingModal}>
-        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white">
-          <DialogHeader>
-            <DialogTitle>Código de Pareamento</DialogTitle>
-            <DialogDescription>Insira este código no seu WhatsApp.</DialogDescription>
-          </DialogHeader>
-          <div className="text-center py-8">
-            <p className="text-4xl font-mono font-bold text-blue-400">{pairingCode || <Loader2 className="animate-spin mx-auto" />}</p>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showLinkModal} onOpenChange={setShowLinkModal}>
-        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white">
-          <DialogHeader>
-            <DialogTitle>Link de Conexão</DialogTitle>
-          </DialogHeader>
-          <div className="p-4 bg-white/5 rounded-lg break-all">
-            {connectionLink || <Loader2 className="animate-spin mx-auto" />}
-          </div>
-          <Button onClick={() => connectionLink && window.open(connectionLink, '_blank')}>Abrir Link</Button>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={webhookModalOpen} onOpenChange={setWebhookModalOpen}>
-        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white">
-          <DialogHeader>
-            <DialogTitle>Configuração de Webhook</DialogTitle>
-          </DialogHeader>
-          <Input value={tempWebhookUrl} onChange={(e) => setTempWebhookUrl(e.target.value)} readOnly={!isEditingWebhook} />
-          <div className="flex gap-2">
-            {isEditingWebhook ? (
-              <Button onClick={handleUpdateWebhook}>Salvar</Button>
-            ) : (
-              <Button onClick={() => setIsEditingWebhook(true)}>Editar</Button>
-            )}
-            <Button variant="destructive" onClick={handleDeleteWebhook}>Excluir</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -17,8 +17,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const bodyData = await req.json();
-    const { action, connectionId, data } = bodyData;
+    const { action, connectionId, data } = await req.json();
 
     const { data: connection, error: connError } = await supabase
       .from("whatsapp_connections")
@@ -32,112 +31,55 @@ serve(async (req) => {
 
     const instanceId = String(connection.instance_id).trim();
     const token = String(connection.instance_token).trim();
-    
-    const rawServerUrl = (connection.server_url || "https://api.z-api.io").trim();
-    let baseUrl = rawServerUrl;
-    if (rawServerUrl.includes('/instances/')) {
-      baseUrl = rawServerUrl.split('/instances/')[0];
-    }
-    baseUrl = baseUrl.replace(/\/$/, "");
+    const baseUrl = "https://api.z-api.io";
 
-    const headers = {
-      "Content-Type": "application/json",
-    };
-
-    let endpoint = "";
-    let method = "GET";
-    let body = undefined;
-
-    switch (action) {
-      case "get-qrcode":
-        endpoint = `/instances/${instanceId}/token/${token}/qr-code`;
-        break;
-      case "get-status":
-      case "test-connection":
-        endpoint = `/instances/${instanceId}/token/${token}/status`;
-        break;
-      case "get-pairing-code":
-        endpoint = `/instances/${instanceId}/token/${token}/pairing-code?phone=${data.phone}`;
-        break;
-      case "get-connection-link":
-        endpoint = `/instances/${instanceId}/token/${token}/connection-link`;
-        break;
-      case "disconnect":
-        endpoint = `/instances/${instanceId}/token/${token}/disconnect`;
-        break;
-      case "set-webhook": {
-        const webhookUrl = data.webhookUrl;
-        const types = [
-          "update-webhook-received",
-          "update-webhook-disconnected",
-          "update-webhook-connected",
-          "update-webhook-message-status",
-          "update-webhook-chat-state"
-        ];
-        
-        const webhookResults = await Promise.all(types.map(async (webhookType) => {
-          const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`, {
-            method: "POST",
-            headers,
-            body: JSON.stringify({ value: webhookUrl })
-          });
-          return res.json();
-        }));
-
-        return new Response(JSON.stringify({ success: true, results: webhookResults }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
+    if (action === "set-webhook") {
+      const webhookUrl = data.webhookUrl;
+      const types = [
+        "update-webhook-received",
+        "update-webhook-disconnected",
+        "update-webhook-connected",
+        "update-webhook-message-status",
+        "update-webhook-chat-state"
+      ];
+      
+      const results = await Promise.all(types.map(async (webhookType) => {
+        const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ value: webhookUrl })
         });
-      }
-      default:
-        throw new Error("Ação inválida");
+        return res.json();
+      }));
+
+      return new Response(JSON.stringify({ success: true, results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    const fullUrl = `${baseUrl}${endpoint}`;
-    
-    console.log('--- DEBUG REAIS HEADERS ---');
-    console.log('URL:', fullUrl);
-    console.log('METHOD:', method);
-    console.log('HEADERS:', JSON.stringify(headers));
-
-    const response = await fetch(fullUrl, {
-      method,
-      headers,
-      body: method === "GET" ? undefined : JSON.stringify(body),
-    });
-
-    const responseText = await response.text();
-    console.log('Z-API RAW RESPONSE:', responseText);
-
-    if (!response.ok) {
-      throw new Error(`Z-API Error: ${response.status} - ${responseText}`);
-    }
-
-    const result = JSON.parse(responseText);
-
-    if (action === "get-status" || action === "test-connection") {
-      const isConnected = result.connected === true || result.connected === 'true';
-      let status = isConnected ? "connected" : (result.waitingQrCode ? "qrcode" : "disconnected");
-
+    if (action === "disconnect") {
+      const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/disconnect`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      });
+      const result = await res.json();
+      
       await supabase
         .from("whatsapp_connections")
-        .update({ 
-          status, 
-          connected: isConnected,
-          phone: result.phone || connection.phone,
-          instance_name: result.instanceName || connection.instance_name,
-          updated_at: new Date().toISOString(),
-          last_connection: isConnected ? new Date().toISOString() : undefined
-        })
+        .update({ status: 'disconnected', connected: false })
         .eq("id", connectionId);
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    throw new Error("Ação inválida");
+
   } catch (error) {
-    console.error("Z-API Error:", error.message);
+    console.error("[Z-API Edge Function] Error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
