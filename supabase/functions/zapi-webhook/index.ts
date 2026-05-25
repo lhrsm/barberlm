@@ -36,38 +36,53 @@ serve(async (req) => {
 
     const tenantId = connection.barbershop_id;
 
-    // Processar diferentes tipos de eventos
-    // Z-API types: ReceivedMessage, MessageStatus, ChatState, etc.
-    
-    if (type === "ReceivedMessage") {
-      const message = body.text?.message || body.image?.caption || "Mensagem recebida";
-      const from = body.phone;
+    // Processar diferentes tipos de eventos da Z-API
+    switch (type) {
+      case "ReceivedMessage": {
+        const message = body.text?.message || body.image?.caption || "Mensagem recebida";
+        const from = body.phone;
 
-      // Salvar log da mensagem
-      await supabase.from("whatsapp_messages").insert({
-        user_id: tenantId,
-        barbershop_id: tenantId,
-        content: message,
-        status: 'received',
-        metadata: { phone: from, raw: body }
-      });
-
-      // Aqui poderiam ser disparadas as automações (AI, confirmações, etc.)
-    } else if (type === "MessageStatus") {
-      // Atualizar status de uma mensagem enviada anteriormente se tivermos o ID
-      const status = body.status; // DELIVERED, READ, etc.
-      // ... lógica para atualizar status se necessário
-    } else if (type === "Connected") {
-      await supabase
-        .from("whatsapp_connections")
-        .update({ status: 'connected', updated_at: new Date().toISOString() })
-        .eq("id", connection.id);
-    } else if (type === "Disconnected") {
-      await supabase
-        .from("whatsapp_connections")
-        .update({ status: 'disconnected', updated_at: new Date().toISOString() })
-        .eq("id", connection.id);
+        await supabase.from("whatsapp_messages").insert({
+          user_id: tenantId,
+          barbershop_id: tenantId,
+          content: message,
+          status: 'received',
+          metadata: { phone: from, raw: body }
+        });
+        break;
+      }
+      case "MessageStatus": {
+        // Status: SENT, DELIVERED, READ, FAILED
+        // Se tivermos um sistema de tracking de mensagens enviadas, atualizaríamos aqui
+        break;
+      }
+      case "Connected": {
+        await supabase
+          .from("whatsapp_connections")
+          .update({ 
+            status: 'connected', 
+            updated_at: new Date().toISOString(),
+            phone: body.phone || connection.phone
+          })
+          .eq("id", connection.id);
+        break;
+      }
+      case "Disconnected": {
+        await supabase
+          .from("whatsapp_connections")
+          .update({ 
+            status: 'disconnected', 
+            updated_at: new Date().toISOString() 
+          })
+          .eq("id", connection.id);
+        break;
+      }
     }
+
+    return new Response(JSON.stringify({ status: "success" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
 
     return new Response(JSON.stringify({ status: "success" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

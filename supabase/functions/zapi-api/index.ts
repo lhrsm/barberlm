@@ -63,17 +63,38 @@ serve(async (req) => {
           message: "BarberLM: Teste de conexão Z-API realizado com sucesso! 🚀"
         });
         break;
-      case "set-webhook":
-        endpoint = `/instances/${instance_id}/token/${instance_token}/update-webhook-received`;
-        method = "POST";
-        body = JSON.stringify({
-          value: data.webhookUrl
+      case "set-webhook": {
+        const webhookUrl = data.webhookUrl;
+        const types = [
+          "update-webhook-received",
+          "update-webhook-disconnected",
+          "update-webhook-connected",
+          "update-webhook-message-status",
+          "update-webhook-chat-state"
+        ];
+        
+        // Configura todos os webhooks necessários na Z-API
+        const webhookResults = await Promise.all(types.map(async (webhookType) => {
+          const res = await fetch(`${baseUrl}/instances/${instance_id}/token/${instance_token}/${webhookType}`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ value: webhookUrl })
+          });
+          return res.json();
+        }));
+
+        return new Response(JSON.stringify({ success: true, results: webhookResults }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
         });
-        break;
+      }
       default:
         throw new Error("Ação inválida");
     }
 
+    console.log(`instanceId ${instance_id}`);
+    console.log(`token ${instance_token}`);
+    console.log(`clientToken ${client_token}`);
     console.log(`Z-API Request: ${method} ${baseUrl}${endpoint}`);
 
     const response = await fetch(`${baseUrl}${endpoint}`, {
@@ -83,6 +104,11 @@ serve(async (req) => {
     });
 
     const result = await response.json();
+    console.log('instanceId', instance_id);
+    console.log('token', instance_token);
+    console.log('clientToken', client_token);
+    console.log('qrCodeResponse', action === 'get-qrcode' ? result : 'N/A');
+    console.log('statusResponse', action === 'get-status' ? result : 'N/A');
     console.log(`Z-API Response:`, result);
 
     // Se for status, vamos atualizar o banco
@@ -96,6 +122,7 @@ serve(async (req) => {
         .update({ 
           status, 
           phone: result.phone || connection.phone,
+          instance_name: result.instanceName || connection.instance_name,
           updated_at: new Date().toISOString() 
         })
         .eq("id", connectionId);
