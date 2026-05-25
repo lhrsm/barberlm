@@ -364,6 +364,7 @@ function ShopPageComponent() {
           console.log('DEBUG: Reusing portal session for booking', parsedClient);
           setCustomerPhone(formatPhoneMask(parsedClient.phone));
           setCustomerName(parsedClient.name);
+          setCustomerId(parsedClient.customer_id);
           setBookingStep(2); // Pula para seleção de serviço
         } catch (e) {
           setBookingStep(1);
