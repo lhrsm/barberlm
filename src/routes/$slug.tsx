@@ -180,7 +180,8 @@ function ShopPageComponent() {
           setCustomerId(null);
           // Se não encontrou e não estamos em sessão do portal, garante que o nome está limpo
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
-            setCustomerName("");
+            // Only clear name if it matches an old ID or was automatically filled
+            if (customerId) setCustomerName("");
           }
         }
       } catch (err) {
@@ -431,28 +432,20 @@ function ShopPageComponent() {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
     } else {
-      // Verificamos se já temos sessão salva para pular etapas de identificação
+      // Pre-fill with session data if exists, but always show step 1 to confirm identity
       const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
       if (savedClient) {
         try {
           const parsedClient = JSON.parse(savedClient);
-          console.log('DEBUG: Reusing portal session for booking', parsedClient);
+          console.log('DEBUG: Pre-filling booking from portal session', parsedClient);
           setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
-          setBookingStep(2); // Pula para seleção de serviço
         } catch (e) {
-          setBookingStep(1);
-        }
-
-      } else {
-        // Se já tivermos dados em memória (ex: de um check anterior nesta aba)
-        if (customerPhone && customerName) {
-          setBookingStep(2);
-        } else {
-          setBookingStep(1);
+          console.error("Error loading session:", e);
         }
       }
+      setBookingStep(1);
       setIsBookingOpen(true);
     }
   };
@@ -1788,33 +1781,40 @@ function ShopPageComponent() {
                           className="mt-4"
                         >
                           {customerId ? (
-                            <div className="p-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm flex items-center gap-4 group">
-                              <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-500/20 group-hover:scale-110 transition-transform duration-300">
-                                <CheckCircle2 className="text-emerald-500" size={24} />
+                            <div className="p-6 rounded-[2rem] border-2 border-primary/30 bg-primary/5 backdrop-blur-md flex items-center gap-5 group shadow-xl shadow-primary/5">
+                              <div 
+                                className="h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 border-2 border-primary/20 group-hover:scale-110 transition-transform duration-500 shadow-lg"
+                                style={{ backgroundColor: primaryColor + '20' }}
+                              >
+                                <CheckCircle2 className="text-primary" size={28} style={{ color: primaryColor }} />
                               </div>
                               <div className="flex-1">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600/70 mb-0.5">Cliente Reconhecido</p>
-                                <p className="text-xl font-black text-black tracking-tight">
-                                  Olá, {customerName} <span className="inline-block animate-bounce">👋</span>
-                                </p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mb-1" style={{ color: primaryColor }}>Cliente Identificado</p>
+                                <h3 className="text-2xl font-black text-black tracking-tight leading-none">
+                                  Olá, {customerName.split(' ')[0]}! <span className="inline-block animate-bounce ml-1">👋</span>
+                                </h3>
+                                <p className="text-xs text-gray-500 font-bold mt-1">Que bom ter você de volta!</p>
                               </div>
                             </div>
                           ) : (
-                            <div className="grid gap-3 p-6 bg-zinc-900 rounded-3xl border border-zinc-800 shadow-2xl relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 p-4 opacity-10">
-                                <UserIcon size={40} className="text-white" />
-                              </div>
-                              <div className="relative z-10">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2 block ml-1">Quase lá! Qual o seu nome?</Label>
-                                <Input 
-                                  placeholder="Digite seu nome completo" 
-                                  value={customerName} 
-                                  onChange={(e) => setCustomerName(e.target.value)}
-                                  className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-600 h-16 text-2xl font-black focus-visible:ring-primary/50 rounded-2xl transition-all focus:bg-zinc-800"
-                                />
-                                <p className="text-[10px] font-medium text-zinc-500 mt-3 ml-1 flex items-center gap-2">
-                                  <div className="h-1 w-1 rounded-full bg-primary" />
-                                  Precisamos do seu nome para o agendamento
+                            <div className="grid gap-4 p-6 bg-zinc-900 rounded-[2rem] border border-zinc-800 shadow-2xl relative overflow-hidden group">
+                              {/* Decorative element */}
+                              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" style={{ backgroundColor: primaryColor + '10' }} />
+                              
+                              <div className="relative z-10 space-y-3">
+                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-1 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
+                                <div className="relative">
+                                  <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={20} />
+                                  <Input 
+                                    placeholder="Digite seu nome completo" 
+                                    value={customerName} 
+                                    onChange={(e) => setCustomerName(e.target.value)}
+                                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-600 h-16 pl-12 text-xl font-black focus-visible:ring-primary/50 rounded-2xl transition-all focus:bg-zinc-800 border-2 focus:border-primary/30"
+                                  />
+                                </div>
+                                <p className="text-[10px] font-medium text-zinc-500 ml-1 flex items-center gap-2">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" style={{ backgroundColor: primaryColor }} />
+                                  Usamos seu nome para organizar sua agenda
                                 </p>
                               </div>
                             </div>
@@ -2114,91 +2114,170 @@ function ShopPageComponent() {
                     <Label className="text-xs font-black text-slate-500 uppercase tracking-widest">Produtos Adicionais</Label>
                     <span className="text-[10px] font-black uppercase tracking-widest text-primary" style={{ color: primaryColor }}>Opcional</span>
                   </div>
-                  <div className="flex gap-4 overflow-x-auto pb-6 px-1 custom-scrollbar snap-x scroll-smooth">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-6 px-1">
                     {products.map(p => {
                       const cartItem = selectedProducts.find(sp => sp.id === p.id);
                       return (
                         <motion.div 
                           key={p.id}
-                          whileHover={{ y: -5 }}
+                          whileHover={{ y: -4, scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                           className={cn(
-                            "flex-shrink-0 w-40 p-4 rounded-[2.5rem] transition-all text-center relative snap-start group border",
-                            cartItem ? "bg-primary shadow-2xl text-white" : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
+                            "relative overflow-hidden rounded-2xl border transition-all duration-300 group cursor-pointer",
+                            cartItem 
+                              ? "bg-zinc-900/90 border-primary shadow-lg shadow-primary/20" 
+                              : "bg-zinc-900/50 border-white/5 hover:border-white/20 hover:bg-zinc-900/80"
                           )}
-                          style={cartItem ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}
+                          style={cartItem ? { borderColor: primaryColor } : {}}
+                          onClick={() => toggleProduct(p)}
                         >
-                          <div 
-                            className="cursor-pointer space-y-3"
-                            onClick={() => toggleProduct(p)}
-                          >
-                            <div className="h-24 w-24 mx-auto bg-black/40 rounded-3xl flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-white/20 transition-colors">
+                          {/* Background Glow when selected */}
+                          {cartItem && (
+                            <div 
+                              className="absolute inset-0 opacity-10 blur-xl pointer-events-none"
+                              style={{ backgroundColor: primaryColor }}
+                            />
+                          )}
+
+                          <div className="p-4 flex flex-col h-full space-y-3">
+                            {/* Image Container */}
+                            <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-black/40 border border-white/5">
                               {p.image_url ? (
-                                <img src={p.image_url} className="w-full h-full object-cover" />
+                                <img 
+                                  src={p.image_url} 
+                                  alt={p.name}
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                />
                               ) : (
-                                <Package size={32} className={cartItem ? "text-white/50" : "text-slate-700"} />
+                                <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                                  <Package size={40} strokeWidth={1.5} />
+                                </div>
+                              )}
+                              
+                              {/* Badge */}
+                              {(p.badge || cartItem) && (
+                                <div className="absolute top-2 right-2 flex flex-col gap-1">
+                                  {cartItem && (
+                                    <span 
+                                      className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white flex items-center gap-1 shadow-lg"
+                                      style={{ backgroundColor: primaryColor }}
+                                    >
+                                      <CheckCircle2 size={10} /> Selecionado
+                                    </span>
+                                  )}
+                                  {p.badge && !cartItem && (
+                                    <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/10 text-white backdrop-blur-md border border-white/10">
+                                      {p.badge}
+                                    </span>
+                                  )}
+                                </div>
                               )}
                             </div>
-                            <div className="space-y-1">
-                              <p className={cn("text-xs font-black uppercase tracking-tight truncate px-1", cartItem ? "text-white" : "text-white")}>{p.name}</p>
-                              <p className={cn("text-sm font-black", cartItem ? "text-white/90" : "text-primary")} style={!cartItem ? { color: primaryColor } : {}}>R$ {p.price.toFixed(2)}</p>
+
+                            {/* Info */}
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <h4 className="text-sm font-bold text-white line-clamp-1">{p.name}</h4>
+                                <span className="text-sm font-black whitespace-nowrap" style={{ color: primaryColor }}>
+                                  R$ {p.price.toFixed(2)}
+                                </span>
+                              </div>
+                              
+                              {(p.short_description || p.description) && (
+                                <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                                  {p.short_description || p.description}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Controls */}
+                            <div className="pt-2">
+                              {cartItem ? (
+                                <div className="flex items-center justify-between bg-black/40 rounded-xl p-1 border border-white/5">
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
+                                    className="hover:bg-white/10 text-white rounded-lg h-8 w-8 flex items-center justify-center transition-colors"
+                                  >
+                                    <Minus size={14} />
+                                  </button>
+                                  <span className="text-xs font-black">{cartItem.quantity} unidades</span>
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
+                                    className="hover:bg-white/10 text-white rounded-lg h-8 w-8 flex items-center justify-center transition-colors"
+                                    disabled={cartItem.quantity >= (p.stock_quantity || 99)}
+                                  >
+                                    <Plus size={14} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div 
+                                  className="w-full py-2.5 rounded-xl border border-white/5 bg-white/5 text-[10px] font-black uppercase tracking-widest text-center group-hover:bg-white/10 transition-all"
+                                >
+                                  Adicionar ao agendamento
+                                </div>
+                              )}
                             </div>
                           </div>
-                          
-                          {cartItem && (
-                            <div className="flex items-center justify-between mt-4 bg-black/20 rounded-2xl p-1.5 backdrop-blur-md">
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
-                                className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-8 w-8 flex items-center justify-center transition-colors"
-                              >
-                                <Minus size={14} />
-                              </button>
-                              <span className="text-xs font-black">{cartItem.quantity}</span>
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
-                                className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-8 w-8 flex items-center justify-center transition-colors"
-                                disabled={cartItem.quantity >= p.stock_quantity}
-                              >
-                                <Plus size={14} />
-                              </button>
-                            </div>
-                          )}
                         </motion.div>
                       );
                     })}
                   </div>
                 </div>
 
-                <div className="bg-[#111] p-4 rounded-xl space-y-3 text-sm border border-white/5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Serviço:</span> 
-                    <span className="font-bold text-slate-100">{selectedService?.name}</span>
-                  </div>
-                  
-                  {selectedProducts.length > 0 && (
-                    <div className="space-y-2 py-2 border-y border-white/5 my-1">
-                      <p className="text-[10px] font-black text-primary uppercase tracking-wider">Produtos</p>
-                      {selectedProducts.map(p => (
-                        <div key={p.id} className="flex justify-between items-center text-xs">
-                          <span className="text-slate-300">{p.name} <span className="text-primary font-bold">x{p.quantity || 1}</span></span>
-                          <span className="text-slate-100 font-medium">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
-                        </div>
-                      ))}
+                <div className="bg-zinc-900/80 backdrop-blur-md p-6 rounded-[2rem] space-y-4 text-sm border border-white/5 shadow-2xl">
+                  <div className="flex items-center gap-3 pb-2 border-b border-white/5 mb-2">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Calendar size={20} className="text-primary" style={{ color: primaryColor }} />
                     </div>
-                  )}
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Profissional:</span> 
-                    <span className="font-bold text-slate-100">{selectedBarber?.name}</span>
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resumo do Agendamento</p>
+                      <p className="text-sm font-bold text-white">Confira os detalhes abaixo</p>
+                    </div>
                   </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Data:</span> 
-                    <span className="font-bold text-slate-100">{format(parseISO(selectedDate), "dd/MM/yyyy")}</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Hora:</span> 
-                    <span className="font-bold text-slate-100">{selectedTime}</span>
+
+                  <div className="space-y-3 pt-2">
+                    <div className="flex justify-between items-center group">
+                      <span className="text-zinc-500 font-medium flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-700 group-hover:bg-primary transition-colors" />
+                        Serviço
+                      </span> 
+                      <span className="font-bold text-zinc-100">{selectedService?.name}</span>
+                    </div>
+                    
+                    {selectedProducts.length > 0 && (
+                      <div className="space-y-3 py-3 border-y border-white/5 my-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] font-black text-primary uppercase tracking-wider" style={{ color: primaryColor }}>Produtos Adicionados</p>
+                          <span className="text-[10px] font-bold text-zinc-500">{selectedProducts.length} itens</span>
+                        </div>
+                        {selectedProducts.map(p => (
+                          <div key={p.id} className="flex justify-between items-center text-xs pl-3 relative">
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-zinc-800" />
+                            <span className="text-zinc-400">{p.name} <span className="text-primary font-black ml-1" style={{ color: primaryColor }}>x{p.quantity || 1}</span></span>
+                            <span className="text-zinc-200 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between items-center group">
+                      <span className="text-zinc-500 font-medium flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-700 group-hover:bg-primary transition-colors" />
+                        Profissional
+                      </span> 
+                      <span className="font-bold text-zinc-100">{selectedBarber?.name}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center group">
+                      <span className="text-zinc-500 font-medium flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-700 group-hover:bg-primary transition-colors" />
+                        Data e Hora
+                      </span> 
+                      <div className="text-right">
+                        <p className="font-bold text-zinc-100">{format(parseISO(selectedDate), "dd 'de' MMMM", { locale: ptBR })}</p>
+                        <p className="text-[10px] font-black text-primary uppercase tracking-tighter" style={{ color: primaryColor }}>às {selectedTime}</p>
+                      </div>
+                    </div>
                   </div>
 
                   {(useCashback || useCredits) && (
