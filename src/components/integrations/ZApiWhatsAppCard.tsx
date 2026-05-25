@@ -406,7 +406,14 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         
         <CardFooter className="bg-white/5 border-t border-white/5 px-6 py-4">
           <div className="flex justify-between items-center w-full">
-            <p className="text-[10px] text-slate-500">v2.0.0 - Clean Architecture Integration</p>
+          <div className="flex flex-col gap-1">
+            <p className="text-[10px] text-slate-500">v2.1.0 - Clean Architecture Integration</p>
+            {connection?.updated_at && (
+              <p className="text-[10px] text-slate-400">
+                Última sincronização: {new Date(connection.updated_at).toLocaleString('pt-BR')}
+              </p>
+            )}
+          </div>
             <div className="flex gap-4">
               <a href="https://z-api.io" target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:underline flex items-center gap-1">
                 Docs Z-API <ExternalLink size={10} />
