@@ -553,7 +553,6 @@ function ClientPortalComponent() {
       }
 
       // Upload avatar if provided
-
       if (customerAvatar) {
         const fileExt = customerAvatar.name.split('.').pop();
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
@@ -599,13 +598,6 @@ function ClientPortalComponent() {
             user_id: shop.id,
             barber_id: defaultBarberId,
             name: customerName,
-            phone: normalized,
-            email: customerEmail || undefined,
-            birth_date: formattedBirthDate || undefined,
-            avatar_url: avatarUrl || undefined
-          }])
-          .select("id")
-          .single();
             phone: normalized,
             email: customerEmail || undefined,
             birth_date: formattedBirthDate || undefined,
@@ -803,8 +795,6 @@ function ClientPortalComponent() {
           cashback_balance: restoredCashback
         })
         .eq("id", cancellingAppointment.customer_id);
-          
-        toast.success("Cancelado! O pedido de estorno foi enviado para análise da barbearia.");
       
       setIsRefundModalOpen(false);
       setCancellingAppointment(null);
@@ -832,47 +822,47 @@ function ClientPortalComponent() {
       // If the appointment was paid via PIX and no refund/credit choice was made, auto-convert to credits
       if (app.payment_status === 'paid' && app.payment_method === 'pix' && !app.refund_requested_at) {
         const amount = Number(app.total_price || 0);
-      if (amount > 0 && app.customer_id) {
-        const { data: currentCust } = await supabase
-          .from("customers")
-          .select("credits")
-          .eq("id", app.customer_id)
-          .single();
-        
-        const newCredits = Number(currentCust?.credits || 0) + amount;
-        
-        await supabase
-          .from("customers")
-          .update({ credits: newCredits })
-          .eq("id", app.customer_id);
+        if (amount > 0 && app.customer_id) {
+          const { data: currentCust } = await supabase
+            .from("customers")
+            .select("credits")
+            .eq("id", app.customer_id)
+            .single();
+          
+          const newCredits = Number(currentCust?.credits || 0) + amount;
+          
+          await supabase
+            .from("customers")
+            .update({ credits: newCredits })
+            .eq("id", app.customer_id);
 
-        // Remove the income from transactions
-        // Registramos a saída para manter histórico e zerar o impacto líquido
-        await supabase
-          .from("transactions")
-          .insert({
-            user_id: app.user_id,
-            appointment_id: app.id,
-            type: "expense",
-            category: "Estorno (Expiraçao)",
-            amount: amount,
-            description: `Agendamento expirado: ${app.services?.name} - Convertido em Créditos`,
-            date: new Date().toISOString().split('T')[0]
-          });
+          // Remove the income from transactions
+          // Registramos a saída para manter histórico e zerar o impacto líquido
+          await supabase
+            .from("transactions")
+            .insert({
+              user_id: app.user_id,
+              appointment_id: app.id,
+              type: "expense",
+              category: "Estorno (Expiraçao)",
+              amount: amount,
+              description: `Agendamento expirado: ${app.services?.name} - Convertido em Créditos`,
+              date: new Date().toISOString().split('T')[0]
+            });
 
-        await supabase
-          .from("appointments")
-          .update({ 
-            status: 'cancelled',
-            refund_requested_at: new Date().toISOString(),
-            refund_type: 'credits',
-            refund_status: 'completed',
-            payment_status: 'refunded'
-          })
-          .eq("id", app.id);
+          await supabase
+            .from("appointments")
+            .update({ 
+              status: 'cancelled',
+              refund_requested_at: new Date().toISOString(),
+              refund_type: 'credits',
+              refund_status: 'completed',
+              payment_status: 'refunded'
+            })
+            .eq("id", app.id);
 
-        toast.info(`Agendamento expirado. R$ ${amount.toFixed(2)} foi adicionado aos seus créditos e removido das entradas.`);
-      }
+          toast.info(`Agendamento expirado. R$ ${amount.toFixed(2)} foi adicionado aos seus créditos e removido das entradas.`);
+        }
       } else {
         await supabase
           .from("appointments")
@@ -980,7 +970,6 @@ function ClientPortalComponent() {
                         type="email"
                         placeholder="joao@email.com" 
                         className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
-
                         value={customerEmail} 
                         onChange={(e) => setCustomerEmail(e.target.value)} 
                       />
@@ -994,8 +983,7 @@ function ClientPortalComponent() {
                         id="reg-birth" 
                         type="text"
                         placeholder="dd/mm/aaaa"
-                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black" 
-
+                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black" 
                         value={customerBirthDate} 
                         onChange={(e) => {
                           let value = e.target.value.replace(/\D/g, "");
