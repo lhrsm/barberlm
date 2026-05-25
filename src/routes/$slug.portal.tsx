@@ -1554,7 +1554,7 @@ function ClientPortalComponent() {
                 <h3 className="font-bold text-lg">Selecione o Profissional</h3>
                 <div className="grid gap-3">
                   {barbers
-                    .filter(b => b.barber_services?.some((bs: any) => bs.service_id === selectedService?.id))
+                    .filter(b => b.active !== false && b.barber_services?.some((bs: any) => bs.service_id === selectedService?.id))
                     .map(barber => (
                     <Button
                       key={barber.id}
@@ -1617,8 +1617,10 @@ function ClientPortalComponent() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-2xl">
-                        <p className="text-sm text-gray-400">Nenhum horário disponível para esta data.</p>
+                      <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                        <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                        <p className="text-sm text-gray-500 font-medium">Nenhum horário disponível para esta data.</p>
+                        <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Tente selecionar outro dia ou profissional</p>
                       </div>
                     )}
                   </div>
