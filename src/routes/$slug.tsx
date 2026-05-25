@@ -1607,7 +1607,7 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                {!isEmbedded && (
+                {!isEmbedded && !customerName && (
                   <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
                     <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Como podemos te chamar?</Label>
                     <Input 
