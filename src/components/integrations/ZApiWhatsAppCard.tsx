@@ -290,6 +290,35 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
   }
 
+  async function testConnection() {
+    if (!connection) return;
+    setIsTesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { action: 'test-connection', connectionId: connection.id }
+      });
+
+      if (error) throw error;
+      
+      console.log('instanceId', connection.instance_id);
+      console.log('token', connection.instance_token);
+      console.log('clientToken', connection.client_token);
+      console.log('response', data);
+
+      if (data?.connected) {
+        toast.success("WhatsApp conectado");
+      } else {
+        toast.error("WhatsApp desconectado");
+      }
+      fetchConnection();
+    } catch (err) {
+      console.error("Test error", err);
+      toast.error("Erro ao testar conexão");
+    } finally {
+      setIsTesting(false);
+    }
+  }
+
   async function checkStatus() {
     if (!connection) return;
     setIsTesting(true);
@@ -298,9 +327,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         body: { action: 'get-status', connectionId: connection.id }
       });
       if (data?.connected) {
-        toast.success("WhatsApp conectado!");
+        toast.success("Status: Conectado");
       } else {
-        toast.error("WhatsApp desconectado.");
+        toast.error("Status: Desconectado");
       }
       fetchConnection();
     } catch (err) {
@@ -325,7 +354,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               </div>
             </div>
             <Badge className={connection?.status === 'connected' ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}>
-              {connection?.status === 'connected' ? 'Conectado' : 'Desconectado'}
+              {connection?.status === 'connected' ? 'WhatsApp conectado' : 'WhatsApp desconectado'}
             </Badge>
           </div>
         </CardHeader>
@@ -347,7 +376,23 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 <Label className="text-slate-300">URL Base</Label>
                 <Input name="server_url" defaultValue={connection?.server_url || "https://api.z-api.io"} className="bg-white/5 border-white/10" />
               </div>
-              <Button type="submit" className="md:col-span-2 bg-white text-black hover:bg-slate-200">Salvar Configurações</Button>
+              <div className="md:col-span-2 flex flex-col md:flex-row gap-4">
+                <Button type="submit" className="flex-1 bg-white text-black hover:bg-slate-200">
+                  <Save size={16} className="mr-2" /> Salvar Configurações
+                </Button>
+                {connection?.id && (
+                  <Button 
+                    type="button" 
+                    onClick={testConnection} 
+                    disabled={isTesting}
+                    variant="outline" 
+                    className="flex-1 border-white/10 hover:bg-white/5"
+                  >
+                    {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={16} className="mr-2" />}
+                    Testar conexão Z-API
+                  </Button>
+                )}
+              </div>
            </form>
            
            {connection?.id && connection.status !== 'connected' && (

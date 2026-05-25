@@ -31,7 +31,11 @@ serve(async (req) => {
     }
 
     const { instance_id, instance_token, server_url, client_token } = connection;
-    const baseUrl = server_url || "https://api.z-api.io";
+    const baseUrl = (server_url || "https://api.z-api.io").replace(/\/$/, "");
+
+    console.log('instanceId', instance_id);
+    console.log('token', instance_token);
+    console.log('clientToken', client_token);
 
     const headers: any = {
       "Content-Type": "application/json",
@@ -43,7 +47,7 @@ serve(async (req) => {
 
     let endpoint = "";
     let method = "GET";
-    let body = null;
+    let body = undefined;
 
     switch (action) {
       case "get-qrcode":
@@ -62,12 +66,8 @@ serve(async (req) => {
         endpoint = `/instances/${instance_id}/token/${instance_token}/disconnect`;
         break;
       case "test-connection":
-        endpoint = `/instances/${instance_id}/token/${instance_token}/send-text`;
-        method = "POST";
-        body = JSON.stringify({
-          phone: data.number,
-          message: "BarberLM: Teste de conexão Z-API realizado com sucesso! 🚀"
-        });
+        endpoint = `/instances/${instance_id}/token/${instance_token}/status`;
+        method = "GET";
         break;
       case "set-webhook": {
         const webhookUrl = data.webhookUrl;
@@ -121,18 +121,25 @@ serve(async (req) => {
         throw new Error("Ação inválida");
     }
 
-    console.log(`Z-API Request: ${method} ${baseUrl}${endpoint}`);
+    const fullUrl = `${baseUrl}${endpoint}`;
+    console.log(`Z-API Request: ${method} ${fullUrl}`);
 
-    const response = await fetch(`${baseUrl}${endpoint}`, {
+    const response = await fetch(fullUrl, {
       method,
       headers,
-      body,
+      body: method === "GET" ? undefined : body,
     });
 
-    const result = await response.json();
-    console.log(`Z-API Response:`, result);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Z-API Error Response (${response.status}):`, errorText);
+      throw new Error(`Z-API Error: ${response.status} - ${errorText}`);
+    }
 
-    if (action === "get-status") {
+    const result = await response.json();
+    console.log('response', result);
+
+    if (action === "get-status" || action === "test-connection") {
       let status = "disconnected";
       if (result.connected) status = "connected";
       else if (result.waitingQrCode) status = "qrcode";
