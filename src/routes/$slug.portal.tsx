@@ -44,6 +44,8 @@ export const Route = createFileRoute("/$slug/portal")({
 function ClientPortalComponent() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
+  // DEBUG LOGS
+  console.log('SLUG', slug);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [shop, setShop] = useState<any>(null);
