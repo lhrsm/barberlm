@@ -45,6 +45,9 @@ function ShopPageComponent() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  
+  const isPortalRoute = location.pathname.endsWith('/portal');
+  const isProfissionalRoute = location.pathname.endsWith('/profissional');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -345,32 +348,6 @@ function ShopPageComponent() {
     setIsBookingOpen(true);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
-      </div>
-    );
-  }
-
-  const isPortalRoute = location.pathname.endsWith('/portal');
-  const isProfissionalRoute = location.pathname.endsWith('/profissional');
-
-  if (isPortalRoute || isProfissionalRoute) {
-    return <Outlet />;
-  }
-
-  if (!shop) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <h1 className="text-4xl font-bold mb-2">404</h1>
-        <p className="text-muted-foreground mb-4">Barbearia não encontrada.</p>
-        <Button asChild>
-          <a href="/">Voltar para o início</a>
-        </Button>
-      </div>
-    );
-  }
 
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
@@ -922,6 +899,30 @@ function ShopPageComponent() {
       handlePhoneCheck();
     }
   }, [isBookingOpen, bookingStep, customerPhone, customerName]);
+
+  if (isPortalRoute || isProfissionalRoute) {
+    return <Outlet />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+      </div>
+    );
+  }
+
+  if (!shop) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <h1 className="text-4xl font-bold mb-2">404</h1>
+        <p className="text-muted-foreground mb-4">Barbearia não encontrada.</p>
+        <Button asChild>
+          <a href="/">Voltar para o início</a>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div 
