@@ -552,10 +552,73 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                       </div>
                     </>
                   ) : (
-                    <Button onClick={handleGetQrCode} disabled={qrLoading} className="md:col-span-2 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all font-bold text-lg rounded-2xl shadow-[0_10px_30px_rgba(59,130,246,0.3)]">
-                      {qrLoading ? <Loader2 className="animate-spin mr-2" /> : <QrCode size={24} className="mr-2" />}
-                      Parear WhatsApp
-                    </Button>
+                    <div className=\"md:col-span-2 space-y-6\">
+                      <div className=\"flex items-center gap-2 mb-2\">
+                        <Shield className=\"text-blue-400\" size={18} />
+                        <h3 className=\"text-sm font-bold uppercase tracking-wider text-slate-300\">Métodos de Conexão</h3>
+                      </div>
+
+                      <Tabs defaultValue=\"qrcode\" className=\"w-full\">
+                        <TabsList className=\"grid grid-cols-3 bg-white/5 border border-white/10 p-1 h-12 rounded-xl mb-6\">
+                          <TabsTrigger value=\"qrcode\" className=\"rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all\">
+                            <QrCode size={14} className=\"mr-2\" /> QR Code
+                          </TabsTrigger>
+                          <TabsTrigger value=\"pairing\" className=\"rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all\">
+                            <Smartphone size={14} className=\"mr-2\" /> Código
+                          </TabsTrigger>
+                          <TabsTrigger value=\"link\" className=\"rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all\">
+                            <Link2 size={14} className=\"mr-2\" /> Link
+                          </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value=\"qrcode\" className=\"mt-0\">
+                          <Button 
+                            onClick={handleGetQrCode} 
+                            disabled={qrLoading} 
+                            className=\"w-full h-20 bg-gradient-to-br from-blue-600 to-indigo-700 text-white hover:scale-[1.01] active:scale-[0.99] transition-all font-bold text-lg rounded-2xl shadow-[0_10px_30px_rgba(59,130,246,0.2)] group\"
+                          >
+                            {qrLoading ? <Loader2 className=\"animate-spin mr-2\" /> : <QrCode size={28} className=\"mr-2 group-hover:rotate-12 transition-transform\" />}
+                            Gerar QR Code
+                          </Button>
+                        </TabsContent>
+
+                        <TabsContent value=\"pairing\" className=\"mt-0 space-y-4\">
+                          <div className=\"bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm\">
+                            <Label className=\"text-slate-300 mb-3 block font-medium\">Número do WhatsApp (com DDI e DDD)</Label>
+                            <div className=\"flex flex-col sm:flex-row gap-3\">
+                              <Input
+                                placeholder=\"Ex: 5511999999999\"
+                                value={pairingPhone}
+                                onChange={(e) => setPairingPhone(e.target.value)}
+                                className=\"bg-black/40 border-white/10 h-12 text-white focus:ring-blue-500/50\"
+                              />
+                              <Button 
+                                onClick={handleGetPairingCode} 
+                                disabled={pairingLoading} 
+                                className=\"bg-white text-black hover:bg-slate-200 h-12 px-8 font-bold rounded-xl transition-all shadow-lg shrink-0\"
+                              >
+                                {pairingLoading ? <Loader2 className=\"animate-spin\" /> : \"Gerar Código\"}
+                              </Button>
+                            </div>
+                            <p className=\"text-[10px] text-slate-500 mt-3 flex items-center gap-1.5 uppercase font-bold tracking-tighter\">
+                              <Info size={12} className=\"text-blue-500\" /> O código será exibido em um modal para você inserir no seu WhatsApp.
+                            </p>
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value=\"link\" className=\"mt-0\">
+                          <Button 
+                            onClick={handleGetConnectionLink} 
+                            disabled={linkLoading} 
+                            variant=\"outline\" 
+                            className=\"w-full h-20 bg-white/5 border-white/10 text-white hover:bg-white/10 font-bold text-lg rounded-2xl transition-all group\"
+                          >
+                            {linkLoading ? <Loader2 className=\"animate-spin mr-2\" /> : <Link2 size={28} className=\"mr-2 text-blue-400 group-hover:scale-110 transition-transform\" />}
+                            Conectar por Link Direto
+                          </Button>
+                        </TabsContent>
+                      </Tabs>
+                    </div>
                   )}
                 </motion.div>
               )}
