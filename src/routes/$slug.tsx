@@ -904,6 +904,26 @@ function ShopPageComponent() {
     }
   }, [isBookingOpen, bookingStep, customerPhone, customerName]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+      </div>
+    );
+  }
+
+  if (!shop) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <h1 className="text-4xl font-bold mb-2">404</h1>
+        <p className="text-muted-foreground mb-4">Barbearia não encontrada.</p>
+        <Button asChild>
+          <a href="/">Voltar para o início</a>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div 
       className="min-h-screen bg-black text-white selection:bg-[#D4AF37]/30 overflow-x-hidden" 
