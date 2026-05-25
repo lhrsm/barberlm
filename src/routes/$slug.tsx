@@ -576,19 +576,38 @@ function ShopPageComponent() {
     setSubmitting(true);
     try {
       // 1. Create or get customer
-      const { data: customerData, error: customerError } = await supabase
-        .from("customers")
-        .select("id, cashback_balance, credits")
-        .eq("phone", normalized)
-        .eq("user_id", shop.id)
-        .maybeSingle();
+      let finalCustId = customerId;
+      let currentCashback = 0;
+      let currentCredits = 0;
 
-      let customerId;
-      if (customerData) {
-        customerId = customerData.id;
-        setCustomerCashback(Number(customerData.cashback_balance || 0));
-        setCustomerCredits(Number(customerData.credits || 0));
+      if (!finalCustId) {
+        const { data: customerData, error: customerError } = await supabase
+          .from("customers")
+          .select("id, cashback_balance, credits")
+          .eq("phone", normalized)
+          .eq("user_id", shop.id)
+          .maybeSingle();
+        
+        if (customerData) {
+          finalCustId = customerData.id;
+          currentCashback = Number(customerData.cashback_balance || 0);
+          currentCredits = Number(customerData.credits || 0);
+        }
       } else {
+        // Se já temos o ID, vamos apenas garantir que temos os saldos atualizados
+        const { data: walletData } = await supabase
+          .from("customers")
+          .select("cashback_balance, credits")
+          .eq("id", finalCustId)
+          .maybeSingle();
+        
+        if (walletData) {
+          currentCashback = Number(walletData.cashback_balance || 0);
+          currentCredits = Number(walletData.credits || 0);
+        }
+      }
+
+      if (!finalCustId) {
         const { data: newCustomer, error: createError } = await supabase
           .from("customers")
           .insert({
