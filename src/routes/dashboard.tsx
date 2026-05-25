@@ -946,12 +946,18 @@ function DashboardComponent() {
             <CardHeader className="pb-2 relative">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-wrap gap-2">
                     <CardTitle className="text-xl font-black italic tracking-tight text-amber-900">
                       Plano {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}
                     </CardTitle>
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
+                      <Crown className="w-3 h-3 text-amber-600" />
+                      <span className="text-[10px] font-black italic text-amber-700 tracking-tight uppercase">
+                        Status da Assinatura SaaS
+                      </span>
+                    </div>
                     {isTrial ? (
-                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 font-black italic text-[10px] tracking-widest uppercase">
+                      <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-black italic text-[10px] tracking-widest uppercase">
                         Trial Ativo
                       </Badge>
                     ) : isExpired ? (
@@ -959,14 +965,13 @@ function DashboardComponent() {
                         Expirado
                       </Badge>
                     ) : (
-                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 font-black italic text-[10px] tracking-widest uppercase">
-                        Ativa
+                      <Badge className="bg-green-100 text-green-700 border-green-200 font-black italic text-[10px] tracking-widest uppercase">
+                        Assinatura Ativa
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="flex items-center gap-1.5 font-bold text-amber-600/80 text-[11px] tracking-wide uppercase italic">
-                    <Crown className="w-3.5 h-3.5" />
-                    STATUS DA ASSINATURA SAAS
+                  <CardDescription className="font-bold text-amber-900/40 text-[11px] tracking-wide uppercase italic">
+                    Gerencie os recursos e limites da sua barbearia
                   </CardDescription>
                 </div>
                 <div className="p-2 rounded-xl bg-amber-50 flex items-center justify-center">
