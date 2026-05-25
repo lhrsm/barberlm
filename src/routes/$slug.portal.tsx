@@ -323,8 +323,10 @@ function ClientPortalComponent() {
         return;
       }
 
-      const startOfDayTime = `${date}T00:00:00Z`;
-      const endOfDayTime = `${date}T23:59:59Z`;
+      const startOfDayTime = `${date}T00:00:00.000Z`;
+      const endOfDayTime = `${date}T23:59:59.999Z`;
+
+      console.log('QUERY RANGE', { startOfDayTime, endOfDayTime });
 
       const { data: appointments, error: apptError } = await supabase
         .from("appointments")
@@ -352,15 +354,21 @@ function ClientPortalComponent() {
           if (hour === endHour && min >= endMin) break;
           
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-          const checkTime = parseISO(`${date}T${timeStr}:00`);
           
-          const isToday = format(checkTime, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
-          if (isToday && checkTime < new Date()) {
+          // Use a more robust way to create the check date in local time
+          const [y, m, d] = date.split('-').map(Number);
+          const checkTime = new Date(y, m - 1, d, hour, min, 0);
+          
+          const now = new Date();
+          const isToday = y === now.getFullYear() && (m - 1) === now.getMonth() && d === now.getDate();
+          
+          if (isToday && checkTime < now) {
             continue;
           }
 
           const isBusy = appointments?.some(app => {
             if (editingAppointment && app.start_time === editingAppointment.start_time) return false;
+            // parseISO(app.start_time) handles the timezone from DB correctly
             const appStart = parseISO(app.start_time);
             const appEnd = parseISO(app.end_time);
             return checkTime >= appStart && checkTime < appEnd;

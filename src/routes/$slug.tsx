@@ -419,8 +419,8 @@ function ShopPageComponent() {
         return;
       }
 
-      const startOfDayTime = `${date}T00:00:00Z`;
-      const endOfDayTime = `${date}T23:59:59Z`;
+      const startOfDayTime = `${date}T00:00:00.000Z`;
+      const endOfDayTime = `${date}T23:59:59.999Z`;
 
       const { data: appointments, error } = await supabase
         .from("appointments")
@@ -446,7 +446,8 @@ function ShopPageComponent() {
           if (hour === endHour && min >= endMin) break;
           
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-          const checkTime = parseISO(`${date}T${timeStr}:00`);
+          const [y, m, d] = date.split('-').map(Number);
+          const checkTime = new Date(y, m - 1, d, hour, min, 0);
           
           if (isSameDay(checkTime, new Date()) && checkTime < new Date()) {
             continue;
