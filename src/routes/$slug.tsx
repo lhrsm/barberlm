@@ -422,13 +422,14 @@ function ShopPageComponent() {
         try {
           const parsedClient = JSON.parse(savedClient);
           console.log('DEBUG: Reusing portal session for booking', parsedClient);
-          setCustomerPhone(formatPhoneMask(parsedClient.phone));
+          setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
           setBookingStep(2); // Pula para seleção de serviço
         } catch (e) {
           setBookingStep(1);
         }
+
       } else {
         // Se já tivermos dados em memória (ex: de um check anterior nesta aba)
         if (customerPhone && customerName) {
