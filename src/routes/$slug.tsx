@@ -44,6 +44,11 @@ function ShopPageComponent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Debug logs to trace route issues
+  useEffect(() => {
+    console.log('SHOP PAGE DEBUG:', { slug, path: location.pathname, loading, shopId: shop?.id });
+  }, [slug, location.pathname, loading, shop?.id]);
   const [scrolled, setScrolled] = useState(false);
   
   const isPortalRoute = location.pathname.endsWith('/portal');
