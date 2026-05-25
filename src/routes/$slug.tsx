@@ -1133,6 +1133,28 @@ function ShopPageComponent() {
         fontSize: shop?.font_size || '16px',
       }}
     >
+      <style>{`
+        .phone-input-container .react-international-phone-input {
+          color: black !important;
+        }
+        .react-international-phone-country-selector-dropdown {
+          z-index: 9999 !important;
+          background-color: white !important;
+          color: black !important;
+          border-radius: 1rem !important;
+          border: 1px solid #e5e7eb !important;
+          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+          margin-top: 8px !important;
+        }
+        .react-international-phone-country-selector-list-item {
+          padding: 10px 15px !important;
+          font-weight: 600 !important;
+        }
+        .react-international-phone-country-selector-list-item:hover {
+          background-color: #f3f4f6 !important;
+        }
+      `}</style>
+
       <AnimatePresence>
         {loading && (
           <motion.div 
