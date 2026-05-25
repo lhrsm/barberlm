@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -18,26 +17,7 @@ serve(async (req) => {
 
   const url = new URL(req.url);
 
-  // 1. Webhook Verification
-  if (req.method === "GET" && url.pathname.endsWith("/webhook")) {
-    const mode = url.searchParams.get("hub.mode");
-    const token = url.searchParams.get("hub.verify_token");
-    const challenge = url.searchParams.get("hub.challenge");
-
-    // Check if any connection has this verify token
-    const { data: conn } = await supabase
-      .from("whatsapp_connections")
-      .select("id")
-      .eq("webhook_verify_token", token)
-      .maybeSingle();
-
-    if (mode === "subscribe" && (token === Deno.env.get("WHATSAPP_GLOBAL_VERIFY_TOKEN") || conn)) {
-      return new Response(challenge, { status: 200 });
-    }
-    return new Response("Forbidden", { status: 403 });
-  }
-
-  // 2. Queue Processor (Can be called by Cron)
+  // 1. Queue Processor
   if (url.pathname.endsWith("/process-queue")) {
     const { data: pendingMessages } = await supabase
       .from("whatsapp_messages")
@@ -53,36 +33,53 @@ serve(async (req) => {
     const results = [];
     for (const msg of pendingMessages) {
       const conn = msg.whatsapp_connections;
-      if (!conn || !conn.access_token) {
+      if (!conn) {
         await supabase.from("whatsapp_messages").update({ status: "failed", error_message: "No connection found" }).eq("id", msg.id);
         continue;
       }
 
       try {
-        const response = await fetch(`https://graph.facebook.com/v17.0/${conn.phone_number_id}/messages`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${conn.access_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messaging_product: "whatsapp",
-            to: msg.metadata?.phone || msg.wa_id, // wa_id is sometimes used for phone in logs
-            type: "text",
-            text: { body: msg.content }
-          }),
-        });
+        let response;
+        if (conn.provider === 'z-api') {
+          const baseUrl = conn.server_url || "https://api.z-api.io";
+          const headers: any = { "Content-Type": "application/json" };
+          if (conn.client_token) headers["Client-Token"] = conn.client_token;
+
+          response = await fetch(`${baseUrl}/instances/${conn.instance_id}/token/${conn.instance_token}/send-text`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              phone: msg.metadata?.phone || msg.wa_id,
+              message: msg.content
+            }),
+          });
+        } else {
+          // Default to Meta Cloud API for backward compatibility
+          response = await fetch(`https://graph.facebook.com/v17.0/${conn.phone_number_id}/messages`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${conn.access_token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              messaging_product: "whatsapp",
+              to: msg.metadata?.phone || msg.wa_id,
+              type: "text",
+              text: { body: msg.content }
+            }),
+          });
+        }
 
         const result = await response.json();
-        if (result.messages) {
+        if (result.messages || result.id || result.messageId) {
           await supabase.from("whatsapp_messages").update({ 
             status: "sent", 
-            wa_id: result.messages[0].id 
+            wa_id: (result.messages ? result.messages[0].id : (result.id || result.messageId)) 
           }).eq("id", msg.id);
         } else {
           await supabase.from("whatsapp_messages").update({ 
             status: "failed", 
-            error_message: JSON.stringify(result.error) 
+            error_message: JSON.stringify(result.error || result) 
           }).eq("id", msg.id);
         }
         results.push({ id: msg.id, result });
@@ -94,21 +91,34 @@ serve(async (req) => {
     return new Response(JSON.stringify({ processed: pendingMessages.length, results }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  // 3. Main Sender Endpoint
-  if (req.method === "POST" && url.pathname.endsWith("/send")) {
-    const { user_id, event_type, phone, placeholders, appointment_id } = await req.json();
+  // 2. Main Sender Endpoint
+  if (req.method === "POST" && (url.pathname.endsWith("/send") || url.pathname.endsWith("/whatsapp-cloud"))) {
+    const body = await req.json();
+    const { user_id, event_type, phone, placeholders, appointment_id } = body;
 
     // Fetch Connection
     const { data: conn } = await supabase
       .from("whatsapp_connections")
       .select("*")
-      .eq("user_id", user_id)
-      .eq("status", "active")
+      .or(`barbershop_id.eq.${user_id},user_id.eq.${user_id}`)
+      .eq("status", "connected") // Z-API use 'connected'
       .maybeSingle();
 
     if (!conn) {
-      return new Response(JSON.stringify({ error: "No active WhatsApp connection" }), { status: 404, headers: corsHeaders });
+      // Tentar status active também caso seja a outra integração
+      const { data: connActive } = await supabase
+        .from("whatsapp_connections")
+        .select("*")
+        .or(`barbershop_id.eq.${user_id},user_id.eq.${user_id}`)
+        .eq("status", "active")
+        .maybeSingle();
+        
+      if (!connActive) {
+        return new Response(JSON.stringify({ error: "No active WhatsApp connection" }), { status: 404, headers: corsHeaders });
+      }
     }
+
+    const activeConn = conn || (await supabase.from("whatsapp_connections").select("*").or(`barbershop_id.eq.${user_id},user_id.eq.${user_id}`).eq("status", "active").single()).data;
 
     // Fetch Template
     const { data: template } = await supabase
@@ -127,17 +137,15 @@ serve(async (req) => {
       });
     }
 
-    // Instead of sending immediately, we can queue it or send it now
-    // The user asked for "Fila de envio", so let's just insert into the queue
     const { data: message, error: insertError } = await supabase
       .from("whatsapp_messages")
       .insert({
         user_id,
-        connection_id: conn.id,
-        type: "sent",
+        connection_id: activeConn.id,
         status: "pending",
         content,
-        metadata: { phone, appointment_id, ...placeholders }
+        metadata: { phone, appointment_id, ...placeholders },
+        scheduled_for: new Date().toISOString()
       })
       .select()
       .single();
@@ -146,12 +154,11 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: insertError.message }), { status: 500, headers: corsHeaders });
     }
 
-    // Trigger immediate process for this message
-    // In production, this would be handled by a queue worker or cron
-    await fetch(`${supabaseUrl}/functions/v1/whatsapp-cloud/process-queue`, {
+    // Trigger immediate process
+    fetch(`${supabaseUrl}/functions/v1/whatsapp-cloud/process-queue`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${supabaseKey}` }
-    });
+    }).catch(e => console.error("Error triggering queue:", e));
     
     return new Response(JSON.stringify({ success: true, message_id: message.id }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }

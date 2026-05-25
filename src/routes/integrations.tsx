@@ -30,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
-import { EvolutionWhatsAppCard } from "@/components/integrations/EvolutionWhatsAppCard";
+import { ZApiWhatsAppCard } from "@/components/integrations/ZApiWhatsAppCard";
 
 export const Route = createFileRoute("/integrations")({
   component: IntegrationsComponent,
@@ -101,8 +101,8 @@ function IntegrationsComponent() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* WhatsApp Evolution API */}
-          {tenantId && <EvolutionWhatsAppCard tenantId={tenantId} />}
+          {/* WhatsApp Z-API */}
+          {tenantId && <ZApiWhatsAppCard tenantId={tenantId} />}
 
 
           {/* Resend E-mail */}

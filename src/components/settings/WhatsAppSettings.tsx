@@ -131,12 +131,12 @@ export function WhatsAppSettings() {
       .from("whatsapp_connections")
       .insert({
         barbershop_id: user.id,
-        instance_name: newConnection.business_name,
-        server_url: "", // Not used in Cloud API mode, but required by schema
-        api_key: newConnection.access_token,
+        instance_id: newConnection.business_name,
+        server_url: "", 
+        instance_token: newConnection.access_token,
         status: 'active',
         last_connection: new Date().toISOString(),
-      })
+      } as any)
       .select()
       .single();
 
