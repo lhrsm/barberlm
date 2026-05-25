@@ -136,13 +136,22 @@ serve(async (req) => {
       throw new Error(`Z-API Error: ${response.status} - ${errorText}`);
     }
 
-    const result = await response.json();
-    console.log('response', result);
+    console.log('STATUS DATA:', result);
+    console.log('CONNECTED:', result.connected);
+    console.log('TYPE:', typeof result.connected);
 
     if (action === "get-status" || action === "test-connection") {
+      const isConnected = 
+        result.connected === true || 
+        result.connected === 'true' || 
+        result.status === 'connected' || 
+        result.value === 'CONNECTED';
+
       let status = "disconnected";
-      if (result.connected) status = "connected";
+      if (isConnected) status = "connected";
       else if (result.waitingQrCode) status = "qrcode";
+
+      console.log('Determined status:', status);
 
       await supabase
         .from("whatsapp_connections")
