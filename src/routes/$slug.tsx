@@ -345,31 +345,12 @@ function ShopPageComponent() {
     setIsBookingOpen(true);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
-      </div>
-    );
-  }
-
+  // Move returns to after all hooks
   const isPortalRoute = location.pathname.endsWith('/portal');
   const isProfissionalRoute = location.pathname.endsWith('/profissional');
 
   if (isPortalRoute || isProfissionalRoute) {
     return <Outlet />;
-  }
-
-  if (!shop) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <h1 className="text-4xl font-bold mb-2">404</h1>
-        <p className="text-muted-foreground mb-4">Barbearia não encontrada.</p>
-        <Button asChild>
-          <a href="/">Voltar para o início</a>
-        </Button>
-      </div>
-    );
   }
 
 
