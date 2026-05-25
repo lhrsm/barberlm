@@ -313,6 +313,44 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                           <p className="font-bold text-emerald-400">Ativo & Operacional</p>
                         </div>
                       </div>
+                      
+                      <div className="md:col-span-2 bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Zap size={16} className="text-blue-400" />
+                            <h4 className="text-sm font-bold text-white uppercase tracking-tight">Webhooks Ativos</h4>
+                          </div>
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[10px]">
+                            REAL-TIME SYNC
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {[
+                            { label: "Mensagens Recebidas", type: "received" },
+                            { label: "Status de Mensagem", type: "message-status" },
+                            { label: "WhatsApp Conectado", type: "connected" },
+                            { label: "WhatsApp Desconectado", type: "disconnected" }
+                          ].map((webhook) => (
+                            <div key={webhook.type} className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5 group hover:border-blue-500/30 transition-all">
+                              <span className="text-xs text-slate-300 font-medium">{webhook.label}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                                <span className="text-[10px] font-bold text-emerald-400/80 uppercase">Ativo</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {connection.webhook_url && (
+                          <div className="pt-2">
+                            <p className="text-[10px] text-slate-500 uppercase font-bold mb-1 ml-1">Endpoint de Destino</p>
+                            <div className="p-3 bg-black/40 rounded-xl border border-white/5 text-[11px] font-mono text-slate-400 break-all">
+                              {connection.webhook_url}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                       <div className="md:col-span-2 flex gap-3">
                         <Button onClick={checkStatus} disabled={isTesting} variant="outline" className="flex-1 bg-transparent border-white/10 text-white hover:bg-white/5 h-12 rounded-xl">
                           <RefreshCw size={18} className={cn("mr-2", isTesting && "animate-spin")} /> Verificar Status
