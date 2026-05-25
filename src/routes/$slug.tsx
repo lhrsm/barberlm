@@ -90,6 +90,7 @@ function ShopPageComponent() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
@@ -126,9 +127,65 @@ function ShopPageComponent() {
     }
   }, [slug]);
 
+  // Reativo: Busca automática de cliente pelo WhatsApp
+  useEffect(() => {
+    async function findCustomer() {
+      if (!shop?.id || !customerPhone) return;
+      
+      const normalizedPhone = normalizePhone(customerPhone);
+      
+      console.log('PHONE INPUT', customerPhone);
+      console.log('NORMALIZED PHONE', normalizedPhone);
+      
+      // No Brasil (55) + DDD (2) + Número (9) = 13 dígitos
+      if (normalizedPhone.length < 13) {
+        // Se estiver no step 1 e não for sessão do portal, podemos limpar o nome se o telefone for apagado
+        if (bookingStep === 1 && !localStorage.getItem(`client_portal_session_${slug}`)) {
+          setCustomerName("");
+          setCustomerId(null);
+        }
+        return;
+      }
+
+      setIsSearchingCustomer(true);
+      try {
+        const { data, error } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('phone', normalizedPhone)
+          .eq('user_id', shop.id)
+          .maybeSingle();
+
+        console.log('CUSTOMER RESULT', data);
+        if (error) console.log('QUERY ERROR', error);
+
+        if (data) {
+          if (data.name) setCustomerName(data.name);
+          setCustomerId(data.id);
+          setCustomerCashback(data.cashback_balance || 0);
+          setCustomerLoyaltyPoints(data.loyalty_points || 0);
+          setCustomerCredits(data.credits || 0);
+          
+          // Toast de boas-vindas apenas se achamos o nome e acabamos de identificar
+          if (data.name && bookingStep === 1) {
+            toast.success(`Bem-vindo de volta, ${data.name}!`);
+          }
+        }
+      } catch (err) {
+        console.error('Unexpected error finding customer:', err);
+      } finally {
+        setIsSearchingCustomer(false);
+      }
+    }
+
+    if (bookingStep === 1 && isBookingOpen) {
+      findCustomer();
+    }
+  }, [customerPhone, shop?.id, bookingStep, isBookingOpen, slug]);
+
   useEffect(() => {
     if (isEmbedded && initialPhone) {
-      setCustomerPhone(initialPhone);
+      setCustomerPhone(formatPhoneMask(initialPhone));
       if (initialName) setCustomerName(initialName);
       
       // Auto trigger phone check if embedded with phone
@@ -149,7 +206,7 @@ function ShopPageComponent() {
     try {
       console.log('AUTO-CHECKING CUSTOMER', { phone, name, shopId: shop.id });
       const customer = await checkCustomerCashback(phone);
-      setCustomerPhone(phone);
+      setCustomerPhone(formatPhoneMask(phone));
       if (name) setCustomerName(name);
       else if (customer?.name) setCustomerName(customer.name);
       
@@ -423,7 +480,7 @@ function ShopPageComponent() {
     if (savedClient) {
       try {
         const parsedClient = JSON.parse(savedClient);
-        setCustomerPhone(parsedClient.phone);
+        setCustomerPhone(formatPhoneMask(parsedClient.phone));
         setCustomerName(parsedClient.name);
         setBookingStep(3); // Pula para escolha de profissional
       } catch (e) {
@@ -1632,7 +1689,7 @@ function ShopPageComponent() {
                   <div className="grid gap-3 p-6 bg-gray-50 rounded-3xl border border-gray-100 shadow-inner">
                     <div className="flex justify-between items-center">
                       <Label className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Seu WhatsApp</Label>
-                      {submitting && (
+                      {(submitting || isSearchingCustomer) && (
                         <span className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] animate-pulse">
                           Buscando cliente...
                         </span>
@@ -1645,26 +1702,7 @@ function ShopPageComponent() {
                         const val = e.target.value;
                         const formatted = formatPhoneMask(val);
                         setCustomerPhone(formatted);
-                        
-                        // Auto-check when phone is complete (10 or 11 digits excluding mask)
-                        const digits = val.replace(/\D/g, "");
-                        // Se começou com 55 na colagem, removemos para a contagem
-                        const rawPhone = digits.startsWith('55') ? digits.substring(2) : digits;
-                        
-                        if (rawPhone.length >= 10) {
-                          const normalized = normalizePhone(rawPhone);
-                          console.log('PHONE INPUT', val);
-                          console.log('NORMALIZED', normalized);
-                          checkCustomerCashback(normalized).then(customer => {
-                            console.log('CUSTOMER FOUND', customer);
-                            if (customer && customer.name) {
-                              setCustomerName(customer.name);
-                              if (customer.id) setCustomerId(customer.id);
-                              toast.success(`Bem-vindo de volta, ${customer.name}!`);
-                            }
-                          });
-                        }
-                      }} 
+                      }}
 
                       className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black tracking-tight focus-visible:ring-[#D4AF37]/50 rounded-2xl transition-all"
                       onKeyDown={(e) => {
@@ -2214,7 +2252,8 @@ function ShopPageComponent() {
                             e.preventDefault();
                             const normalized = normalizePhone(customerPhone);
                             console.log('DEBUG: Finalizing booking with normalized phone:', normalized);
-                            setCustomerPhone(normalized);
+                            // Não atualizamos o estado visual com o valor normalizado para evitar DDI duplicado
+                            // setCustomerPhone(normalized); 
                             handleFinalizeBooking();
                           }} 
                           disabled={submitting}
