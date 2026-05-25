@@ -354,8 +354,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                             size="sm" 
                             className="bg-black/20 border-white/10 hover:bg-white/5"
                             onClick={() => {
-                              navigator.clipboard.writeText(`https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}`);
-                              toast.success("Webhook copiado!");
+                              navigator.clipboard.writeText(connection.webhook_url || "");
+                              toast.success("Webhook copiado com sucesso!");
                             }}
                           >
                             Copiar URL
