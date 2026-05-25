@@ -409,11 +409,11 @@ function ShopPageComponent() {
     try {
       const barber = barbers.find(b => b.id === barberId);
       if (!barber) {
-        console.error("Barber not found in local state");
+        console.error("DEBUG: Barber not found in local state", { barberId, barbersCount: barbers.length });
         return;
       }
 
-      console.log('BARBER FROM STATE', { name: barber.name, working_hours: barber.working_hours });
+      console.log('DEBUG: BARBER FROM STATE', { name: barber.name, working_hours: barber.working_hours });
 
       const dateObj = parseISO(date);
       const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
@@ -431,16 +431,18 @@ function ShopPageComponent() {
       const dayKey = dayMap[dayName] || dayName;
       const workingHours = barber.working_hours?.[dayKey];
 
-      console.log('WORKING HOURS CHECK', { dayName, dayKey, workingHours });
+      console.log('DEBUG: WORKING HOURS CHECK', { dayName, dayKey, workingHours });
 
       if (!workingHours || !workingHours.enabled) {
-        console.warn('BARBER NOT WORKING ON THIS DAY', { dayKey });
+        console.warn('DEBUG: BARBER NOT WORKING ON THIS DAY', { dayKey, workingHours });
         setAvailableTimes([]);
         return;
       }
 
       const startOfDayTime = `${date}T00:00:00.000Z`;
       const endOfDayTime = `${date}T23:59:59.999Z`;
+
+      console.log('DEBUG: Fetching appointments for range:', { startOfDayTime, endOfDayTime, barberId });
 
       const { data: appointments, error } = await supabase
         .from("appointments")
@@ -450,19 +452,21 @@ function ShopPageComponent() {
         .gte("start_time", startOfDayTime)
         .lte("start_time", endOfDayTime);
 
-      if (error) throw error;
+      if (error) {
+        console.error("DEBUG: Error fetching appointments:", error);
+        throw error;
+      }
 
-      console.log('APPOINTMENTS FOUND', appointments?.length || 0);
+      console.log('DEBUG: APPOINTMENTS FOUND', appointments?.length || 0);
 
       const times = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
-      const interval = 30;
-
-      console.log('LOOP PARAMS', { startHour, startMin, endHour, endMin, interval });
+      
+      console.log('DEBUG: LOOP PARAMS', { startHour, startMin, endHour, endMin });
 
       for (let hour = startHour; hour <= endHour; hour++) {
-        for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
+        for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
           if (hour === endHour && min >= endMin) break;
           
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
@@ -484,7 +488,8 @@ function ShopPageComponent() {
           }
         }
       }
-      console.log('FINAL TIMES GENERATED', times.length);
+      
+      console.log('DEBUG: AVAILABLE SLOTS', times);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
