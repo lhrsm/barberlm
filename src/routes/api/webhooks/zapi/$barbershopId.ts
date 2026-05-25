@@ -14,6 +14,7 @@ function getSupabase() {
 }
 
 export const Route = createFileRoute("/api/webhooks/zapi/$barbershopId")({
+  component: () => "OK",
   server: {
     handlers: {
       GET: async () => {
