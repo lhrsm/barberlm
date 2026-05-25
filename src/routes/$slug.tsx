@@ -1517,23 +1517,15 @@ function ShopPageComponent() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="pt-2">
                           <Button 
-                            className="rounded-xl h-11 font-bold text-xs uppercase tracking-widest bg-black text-white hover:bg-black/90 shadow-md hover:scale-105"
-
-                            onClick={() => addToCart(product)}
-                          >
-                            Comprar
-                          </Button>
-                          <Button 
-                            variant="outline"
-                            className="rounded-xl h-11 border-gray-200 text-black hover:bg-gray-100 font-bold text-[10px] uppercase tracking-widest"
-                            onClick={() => {
-                              const message = encodeURIComponent(`Olá! Tenho interesse no produto ${product.name} na ${shop.business_name}.`);
-                              window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
+                            className="w-full h-14 rounded-2xl font-black uppercase tracking-tighter transition-all bg-white text-black hover:bg-white/90 shadow-xl hover:scale-[1.02] active:scale-[0.98] border border-white/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleProduct(product);
                             }}
                           >
-                            WhatsApp
+                            {selectedProducts.find(p => p.id === product.id) ? 'Remover do Carrinho' : 'Adicionar ao Carrinho'}
                           </Button>
                         </div>
                       </div>
