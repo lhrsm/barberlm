@@ -2224,37 +2224,60 @@ function ShopPageComponent() {
                   </div>
                 </div>
 
-                <div className="bg-[#111] p-4 rounded-xl space-y-3 text-sm border border-white/5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Serviço:</span> 
-                    <span className="font-bold text-slate-100">{selectedService?.name}</span>
-                  </div>
-                  
-                  {selectedProducts.length > 0 && (
-                    <div className="space-y-2 py-2 border-y border-white/5 my-1">
-                      <p className="text-[10px] font-black text-primary uppercase tracking-wider">Produtos</p>
-                      {selectedProducts.map(p => (
-                        <div key={p.id} className="flex justify-between items-center text-xs">
-                          <span className="text-slate-300">{p.name} <span className="text-primary font-bold">x{p.quantity || 1}</span></span>
-                          <span className="text-slate-100 font-medium">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
-                        </div>
-                      ))}
+                <div className="bg-zinc-900/80 backdrop-blur-md p-6 rounded-[2rem] space-y-4 text-sm border border-white/5 shadow-2xl">
+                  <div className="flex items-center gap-3 pb-2 border-b border-white/5 mb-2">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Calendar size={20} className="text-primary" style={{ color: primaryColor }} />
                     </div>
-                  )}
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Profissional:</span> 
-                    <span className="font-bold text-slate-100">{selectedBarber?.name}</span>
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resumo do Agendamento</p>
+                      <p className="text-sm font-bold text-white">Confira os detalhes abaixo</p>
+                    </div>
                   </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Data:</span> 
-                    <span className="font-bold text-slate-100">{format(parseISO(selectedDate), "dd/MM/yyyy")}</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Hora:</span> 
-                    <span className="font-bold text-slate-100">{selectedTime}</span>
+
+                  <div className="space-y-3 pt-2">
+                    <div className="flex justify-between items-center group">
+                      <span className="text-zinc-500 font-medium flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-700 group-hover:bg-primary transition-colors" />
+                        Serviço
+                      </span> 
+                      <span className="font-bold text-zinc-100">{selectedService?.name}</span>
+                    </div>
+                    
+                    {selectedProducts.length > 0 && (
+                      <div className="space-y-3 py-3 border-y border-white/5 my-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] font-black text-primary uppercase tracking-wider" style={{ color: primaryColor }}>Produtos Adicionados</p>
+                          <span className="text-[10px] font-bold text-zinc-500">{selectedProducts.length} itens</span>
+                        </div>
+                        {selectedProducts.map(p => (
+                          <div key={p.id} className="flex justify-between items-center text-xs pl-3 relative">
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-zinc-800" />
+                            <span className="text-zinc-400">{p.name} <span className="text-primary font-black ml-1" style={{ color: primaryColor }}>x{p.quantity || 1}</span></span>
+                            <span className="text-zinc-200 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between items-center group">
+                      <span className="text-zinc-500 font-medium flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-700 group-hover:bg-primary transition-colors" />
+                        Profissional
+                      </span> 
+                      <span className="font-bold text-zinc-100">{selectedBarber?.name}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center group">
+                      <span className="text-zinc-500 font-medium flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-700 group-hover:bg-primary transition-colors" />
+                        Data e Hora
+                      </span> 
+                      <div className="text-right">
+                        <p className="font-bold text-zinc-100">{format(parseISO(selectedDate), "dd 'de' MMMM", { locale: ptBR })}</p>
+                        <p className="text-[10px] font-black text-primary uppercase tracking-tighter" style={{ color: primaryColor }}>às {selectedTime}</p>
+                      </div>
+                    </div>
                   </div>
 
                   {(useCashback || useCredits) && (
