@@ -2233,9 +2233,9 @@ function ShopPageComponent() {
                               ) : (
                                 <Button
                                   onClick={() => toggleProduct(p)}
-                                  className="h-11 w-full rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] bg-zinc-100 hover:bg-white text-black border-none"
+                                  className="h-11 w-full rounded-xl font-semibold text-sm px-3 truncate transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] bg-zinc-100 hover:bg-white text-black border-none"
                                 >
-                                  Adicionar ao agendamento
+                                  <Plus size={16} className="mr-1.5 shrink-0" /> Adicionar
                                 </Button>
                               )}
                               
