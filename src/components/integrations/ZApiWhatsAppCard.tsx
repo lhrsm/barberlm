@@ -146,6 +146,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (result.connected) {
         toast.success("WhatsApp conectado!");
       } else {
+        console.log("[Z-API Test] Disconnected result:", result);
         toast.error("WhatsApp desconectado.");
       }
       fetchConnection();
@@ -288,8 +289,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                   type="button" 
                   onClick={testConnection} 
                   disabled={isTesting}
-                  variant="outline" 
-                  className="flex-1 border-white/10 hover:bg-white/5 h-11 font-semibold text-white"
+                  className="flex-1 bg-white text-black hover:bg-slate-200 h-11 font-semibold"
                 >
                   {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />}
                   Testar Z-API

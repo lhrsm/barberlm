@@ -40,9 +40,13 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
           });
 
           const data = await response.json();
-          console.log('[Z-API] Response:', data);
+          console.log('[Z-API] Response data:', JSON.stringify(data));
 
-          const isConnected = data.connected === true || data.connected === 'true';
+          // Log complete body for debugging
+          const isConnected = data.connected === true || 
+                            data.connected === 'true' || 
+                            data.value === 'CONNECTED' ||
+                            data.status === 'CONNECTED';
 
           if (connectionId) {
             const supabase = getSupabase();
