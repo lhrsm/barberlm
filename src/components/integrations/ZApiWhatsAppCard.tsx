@@ -254,16 +254,20 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (!connection?.id) return;
       
       try {
-        const { data } = await supabase.functions.invoke('zapi-api', {
-          body: { action: 'get-status', connectionId: connection.id }
+        const response = await fetch('/api/zapi/test-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            instanceId: connection.instance_id,
+            token: connection.instance_token,
+            clientToken: connection.client_token,
+            connectionId: connection.id
+          })
         });
 
-        console.log('POLLING STATUS DATA:', data);
-        const isConnected = 
-          data?.connected === true || 
-          data?.connected === 'true' || 
-          data?.status === 'connected' || 
-          data?.value === 'CONNECTED';
+        const result = await response.json();
+        console.log('POLLING STATUS DATA:', result.data);
+        const isConnected = result.connected;
 
         if (isConnected) {
           clearInterval(interval);
@@ -301,16 +305,19 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   async function checkStatusSilently() {
     if (!connection?.id) return;
     try {
-      const { data } = await supabase.functions.invoke('zapi-api', {
-        body: { action: 'get-status', connectionId: connection.id }
+      const response = await fetch('/api/zapi/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instanceId: connection.instance_id,
+          token: connection.instance_token,
+          clientToken: connection.client_token,
+          connectionId: connection.id
+        })
       });
       
-      const isConnected = 
-        data?.connected === true || 
-        data?.connected === 'true' || 
-        data?.status === 'connected' || 
-        data?.value === 'CONNECTED';
-
+      const result = await response.json();
+      const isConnected = result.connected;
       const newStatus = isConnected ? 'connected' : 'disconnected';
       
       if (newStatus !== connection.status) {
