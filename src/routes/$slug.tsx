@@ -89,6 +89,7 @@ function ShopPageComponent() {
   const [selectedTime, setSelectedTime] = useState("09:00");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerId, setCustomerId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
@@ -107,6 +108,21 @@ function ShopPageComponent() {
   useEffect(() => {
     if (slug) {
       fetchShopData(slug);
+      
+      // Carregar sessão do portal se existir
+      const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
+      if (savedClient) {
+        try {
+          const parsedClient = JSON.parse(savedClient);
+          console.log('DEBUG: Auto-loading portal session on page mount', parsedClient);
+          setCustomerPhone(formatPhoneMask(parsedClient.phone));
+          setCustomerName(parsedClient.name);
+          setCustomerId(parsedClient.customer_id);
+          // O customer_id será recuperado pelo checkCustomerCashback ou no handleFinalizeBooking
+        } catch (e) {
+          console.error('Error parsing saved client session:', e);
+        }
+      }
     }
   }, [slug]);
 
@@ -340,11 +356,28 @@ function ShopPageComponent() {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
     } else {
-      setIsBookingOpen(true);
-      // Se já tivermos dados (portal), não resetamos para o passo 1
-      if (!customerPhone || !isEmbedded) {
-        setBookingStep(1);
+      // Verificamos se já temos sessão salva para pular etapas de identificação
+      const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
+      if (savedClient) {
+        try {
+          const parsedClient = JSON.parse(savedClient);
+          console.log('DEBUG: Reusing portal session for booking', parsedClient);
+          setCustomerPhone(formatPhoneMask(parsedClient.phone));
+          setCustomerName(parsedClient.name);
+          setCustomerId(parsedClient.customer_id);
+          setBookingStep(2); // Pula para seleção de serviço
+        } catch (e) {
+          setBookingStep(1);
+        }
+      } else {
+        // Se já tivermos dados em memória (ex: de um check anterior nesta aba)
+        if (customerPhone && customerName) {
+          setBookingStep(2);
+        } else {
+          setBookingStep(1);
+        }
       }
+      setIsBookingOpen(true);
     }
   };
 
@@ -366,6 +399,7 @@ function ShopPageComponent() {
       if (customer?.name) {
         console.log('DEBUG: Customer found, setting name:', customer.name);
         setCustomerName(customer.name);
+        setCustomerId(customer.id);
         toast.success(`Bem-vindo de volta, ${customer.name}!`);
       }
       setBookingStep(2);
@@ -542,19 +576,38 @@ function ShopPageComponent() {
     setSubmitting(true);
     try {
       // 1. Create or get customer
-      const { data: customerData, error: customerError } = await supabase
-        .from("customers")
-        .select("id, cashback_balance, credits")
-        .eq("phone", normalized)
-        .eq("user_id", shop.id)
-        .maybeSingle();
+      let finalCustId = customerId;
+      let currentCashback = 0;
+      let currentCredits = 0;
 
-      let customerId;
-      if (customerData) {
-        customerId = customerData.id;
-        setCustomerCashback(Number(customerData.cashback_balance || 0));
-        setCustomerCredits(Number(customerData.credits || 0));
+      if (!finalCustId) {
+        const { data: customerData, error: customerError } = await supabase
+          .from("customers")
+          .select("id, cashback_balance, credits")
+          .eq("phone", normalized)
+          .eq("user_id", shop.id)
+          .maybeSingle();
+        
+        if (customerData) {
+          finalCustId = customerData.id;
+          currentCashback = Number(customerData.cashback_balance || 0);
+          currentCredits = Number(customerData.credits || 0);
+        }
       } else {
+        // Se já temos o ID, vamos apenas garantir que temos os saldos atualizados
+        const { data: walletData } = await supabase
+          .from("customers")
+          .select("cashback_balance, credits")
+          .eq("id", finalCustId)
+          .maybeSingle();
+        
+        if (walletData) {
+          currentCashback = Number(walletData.cashback_balance || 0);
+          currentCredits = Number(walletData.credits || 0);
+        }
+      }
+
+      if (!finalCustId) {
         const { data: newCustomer, error: createError } = await supabase
           .from("customers")
           .insert({
@@ -567,14 +620,14 @@ function ShopPageComponent() {
         
         if (createError) throw createError;
         if (!newCustomer) throw new Error("Falha ao criar cliente");
-        customerId = newCustomer.id;
+        finalCustId = newCustomer.id;
         setCustomerCashback(0);
       }
 
       // Automatically create or update client_auth session for the portal
       const sessionData = {
         phone: normalized,
-        customer_id: customerId,
+        customer_id: finalCustId,
         name: customerName
       };
       localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
@@ -583,8 +636,8 @@ function ShopPageComponent() {
       await supabase
         .from("client_auth")
         .upsert({
-          phone: customerPhone,
-          customer_id: customerId
+          phone: normalized,
+          customer_id: finalCustId
         }, { onConflict: 'phone' });
 
 
@@ -606,7 +659,7 @@ function ShopPageComponent() {
         .from("appointments")
         .insert({
           user_id: shop.id,
-          customer_id: customerId,
+          customer_id: finalCustId,
           service_id: selectedService.id,
           barber_id: selectedBarber.id,
           start_time: startTime.toISOString(),
@@ -679,7 +732,7 @@ function ShopPageComponent() {
             horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
             barbeiro: selectedBarber.name,
             valor: (selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0)).toFixed(2),
-            customer_id: customerId
+            customer_id: finalCustId
           },
           appointmentId: appointment.id
         });
@@ -737,7 +790,7 @@ function ShopPageComponent() {
             cashback_balance: customerCashback - cashbackToDeduct,
             credits: customerCredits - creditsToDeduct
           })
-          .eq("id", customerId);
+          .eq("id", finalCustId);
       }
 
       toast.success("Agendamento concluído com sucesso! Redirecionando para o seu painel...");
@@ -936,7 +989,7 @@ function ShopPageComponent() {
     if (normalized.length >= 10) {
       const { data } = await supabase
         .from("customers")
-        .select("cashback_balance, loyalty_points, name, credits")
+        .select("id, cashback_balance, loyalty_points, name, credits")
         .eq("phone", normalized)
         .eq("user_id", shop.id)
         .maybeSingle();
@@ -1591,7 +1644,7 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                {!isEmbedded && (
+                {!isEmbedded && !customerName && (
                   <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
                     <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Como podemos te chamar?</Label>
                     <Input 
