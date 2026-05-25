@@ -1057,9 +1057,18 @@ function DashboardComponent() {
           </Card>
           
           <Card className={cn(
-            "col-span-3 flex flex-col justify-center overflow-hidden border-2",
-            isTrial ? "border-amber-500/50 bg-amber-50/50 shadow-lg shadow-amber-500/10" : "bg-card border-border"
+            "col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group",
+            isTrial 
+              ? "bg-white border-amber-500/30 shadow-2xl shadow-amber-500/10" 
+              : "bg-white border-amber-500/20 shadow-lg shadow-amber-500/5"
           )}>
+            {/* Glow sutil no fundo */}
+            <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-500" />
+            
+            <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Crown className="w-12 h-12 text-amber-500 rotate-12" />
+            </div>
+
             <CardContent className="py-6 text-center space-y-4">
               {isTrial ? (
                 <>
