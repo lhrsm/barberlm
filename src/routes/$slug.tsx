@@ -206,7 +206,7 @@ function ShopPageComponent() {
     try {
       console.log('AUTO-CHECKING CUSTOMER', { phone, name, shopId: shop.id });
       const customer = await checkCustomerCashback(phone);
-      setCustomerPhone(phone);
+      setCustomerPhone(formatPhoneMask(phone));
       if (name) setCustomerName(name);
       else if (customer?.name) setCustomerName(customer.name);
       
@@ -480,7 +480,7 @@ function ShopPageComponent() {
     if (savedClient) {
       try {
         const parsedClient = JSON.parse(savedClient);
-        setCustomerPhone(parsedClient.phone);
+        setCustomerPhone(formatPhoneMask(parsedClient.phone));
         setCustomerName(parsedClient.name);
         setBookingStep(3); // Pula para escolha de profissional
       } catch (e) {
@@ -2252,7 +2252,8 @@ function ShopPageComponent() {
                             e.preventDefault();
                             const normalized = normalizePhone(customerPhone);
                             console.log('DEBUG: Finalizing booking with normalized phone:', normalized);
-                            setCustomerPhone(normalized);
+                            // Não atualizamos o estado visual com o valor normalizado para evitar DDI duplicado
+                            // setCustomerPhone(normalized); 
                             handleFinalizeBooking();
                           }} 
                           disabled={submitting}
