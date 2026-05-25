@@ -360,13 +360,15 @@ function ShopPageComponent() {
     setSubmitting(true);
     try {
       const customer = await checkCustomerCashback(normalized);
-      setCustomerPhone(normalized);
+      // Mantemos o formato visual no estado para não quebrar o input
+      setCustomerPhone(formatPhoneMask(normalized));
+      
       if (customer?.name) {
+        console.log('DEBUG: Customer found, setting name:', customer.name);
         setCustomerName(customer.name);
-        setBookingStep(2);
-      } else {
-        setBookingStep(2);
+        toast.success(`Bem-vindo de volta, ${customer.name}!`);
       }
+      setBookingStep(2);
     } catch (e: any) {
       toast.error("Erro ao verificar identificação: " + e.message);
     } finally {
