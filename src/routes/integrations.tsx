@@ -102,47 +102,8 @@ function IntegrationsComponent() {
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* WhatsApp Evolution API */}
-          <Card className="flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="p-2 bg-green-50 rounded-lg text-green-600">
-                  <MessageSquare size={24} />
-                </div>
-                <Badge variant={whatsapp?.connected ? "default" : "secondary"} className={whatsapp?.connected ? "bg-green-500" : ""}>
-                  {whatsapp?.connected ? "Conectado" : "Desconectado"}
-                </Badge>
-              </div>
-              <CardTitle className="text-xl mt-4">WhatsApp (Evolution API)</CardTitle>
-              <CardDescription>Envie mensagens automáticas e campanhas pelo WhatsApp.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 space-y-4">
-              <form id="wa-form" onSubmit={saveWhatsapp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Nome da Instância</Label>
-                  <Input name="instance_name" defaultValue={whatsapp?.instance_name} placeholder="Minha Barbearia" required />
-                </div>
-                <div className="space-y-2">
-                  <Label>URL do Servidor</Label>
-                  <Input name="server_url" defaultValue={whatsapp?.server_url} placeholder="https://api.meuserver.com" required />
-                </div>
-                <div className="space-y-2">
-                  <Label>API Key</Label>
-                  <Input name="api_key" type="password" defaultValue={whatsapp?.api_key} placeholder="Chave da API" required />
-                </div>
-              </form>
-              
-              {!whatsapp?.connected && whatsapp?.id && (
-                <div className="p-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 bg-muted/30">
-                  <RefreshCw className="h-8 w-8 text-muted-foreground opacity-20" />
-                  <p className="text-xs text-muted-foreground">Gerar QR Code para conexão</p>
-                  <Button size="sm" variant="outline" onClick={() => toast.info("Gerando QR Code...")}>Gerar Agora</Button>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter className="border-t pt-4">
-              <Button form="wa-form" className="w-full">Salvar Configurações</Button>
-            </CardFooter>
-          </Card>
+          {tenantId && <EvolutionWhatsAppCard tenantId={tenantId} />}
+
 
           {/* Resend E-mail */}
           <Card className="flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm">
