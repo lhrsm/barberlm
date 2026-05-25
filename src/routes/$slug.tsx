@@ -899,6 +899,10 @@ function ShopPageComponent() {
     }
   }, [isBookingOpen, bookingStep, customerPhone, customerName]);
 
+  if (isPortalRoute || isProfissionalRoute) {
+    return <Outlet />;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
