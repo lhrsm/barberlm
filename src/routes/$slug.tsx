@@ -14,7 +14,10 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
-import { normalizePhone, formatPhoneMask } from "@/utils/phone";
+import { normalizePhone } from "@/utils/phone";
+import { PhoneInput } from 'react-international-phone';
+import 'react-international-phone/style.css';
+
 
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
@@ -116,7 +119,7 @@ function ShopPageComponent() {
         try {
           const parsedClient = JSON.parse(savedClient);
           console.log('DEBUG: Auto-loading portal session on page mount', parsedClient);
-          setCustomerPhone(formatPhoneMask(parsedClient.phone));
+          setCustomerPhone(parsedClient.phone); // PhoneInput handle formatting
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
           // O customer_id será recuperado pelo checkCustomerCashback ou no handleFinalizeBooking
@@ -124,6 +127,7 @@ function ShopPageComponent() {
           console.error('Error parsing saved client session:', e);
         }
       }
+
     }
   }, [slug]);
 
@@ -137,9 +141,8 @@ function ShopPageComponent() {
       console.log('PHONE INPUT', customerPhone);
       console.log('NORMALIZED PHONE', normalizedPhone);
       
-      // No Brasil (55) + DDD (2) + Número (9) = 13 dígitos
-      if (normalizedPhone.length < 13) {
-        // Se estiver no step 1 e não for sessão do portal, podemos limpar o nome se o telefone for apagado
+      // International search: generally 10+ digits
+      if (normalizedPhone.length < 10) {
         if (bookingStep === 1 && !localStorage.getItem(`client_portal_session_${slug}`)) {
           setCustomerName("");
           setCustomerId(null);
@@ -166,7 +169,6 @@ function ShopPageComponent() {
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           
-          // Toast de boas-vindas apenas se achamos o nome e acabamos de identificar
           if (data.name && bookingStep === 1) {
             toast.success(`Bem-vindo de volta, ${data.name}!`);
           }
@@ -183,9 +185,11 @@ function ShopPageComponent() {
     }
   }, [customerPhone, shop?.id, bookingStep, isBookingOpen, slug]);
 
+
   useEffect(() => {
     if (isEmbedded && initialPhone) {
-      setCustomerPhone(formatPhoneMask(initialPhone));
+      setCustomerPhone(initialPhone);
+
       if (initialName) setCustomerName(initialName);
       
       // Auto trigger phone check if embedded with phone
@@ -206,7 +210,8 @@ function ShopPageComponent() {
     try {
       console.log('AUTO-CHECKING CUSTOMER', { phone, name, shopId: shop.id });
       const customer = await checkCustomerCashback(phone);
-      setCustomerPhone(formatPhoneMask(phone));
+      setCustomerPhone(phone);
+
       if (name) setCustomerName(name);
       else if (customer?.name) setCustomerName(customer.name);
       
@@ -419,13 +424,14 @@ function ShopPageComponent() {
         try {
           const parsedClient = JSON.parse(savedClient);
           console.log('DEBUG: Reusing portal session for booking', parsedClient);
-          setCustomerPhone(formatPhoneMask(parsedClient.phone));
+          setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
           setBookingStep(2); // Pula para seleção de serviço
         } catch (e) {
           setBookingStep(1);
         }
+
       } else {
         // Se já tivermos dados em memória (ex: de um check anterior nesta aba)
         if (customerPhone && customerName) {
@@ -455,14 +461,11 @@ function ShopPageComponent() {
         if (customer.name) {
           console.log('DEBUG: Customer found, setting name:', customer.name);
           setCustomerName(customer.name);
-          // Only show toast if we found a name
           toast.success(`Bem-vindo de volta, ${customer.name}!`);
         }
         if (customer.id) setCustomerId(customer.id);
       }
       
-      // Ensure the mask is clean (no DDI 55)
-      setCustomerPhone(formatPhoneMask(normalized));
       setBookingStep(2);
     } catch (e: any) {
       toast.error("Erro ao verificar identificação: " + e.message);
@@ -470,6 +473,7 @@ function ShopPageComponent() {
       setSubmitting(false);
     }
   };
+
 
   const handleSelectService = (service: any) => {
     console.log('DEBUG: handleSelectService triggered', service);
@@ -480,7 +484,7 @@ function ShopPageComponent() {
     if (savedClient) {
       try {
         const parsedClient = JSON.parse(savedClient);
-        setCustomerPhone(formatPhoneMask(parsedClient.phone));
+        setCustomerPhone(parsedClient.phone);
         setCustomerName(parsedClient.name);
         setBookingStep(3); // Pula para escolha de profissional
       } catch (e) {
@@ -1069,11 +1073,13 @@ function ShopPageComponent() {
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           if (data.name) setCustomerName(data.name);
+          setCustomerId(data.id);
           return data;
         } else {
           // If no portal session, clear name for new customer
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
             setCustomerName("");
+            setCustomerId(null);
           }
           setCustomerCashback(0);
           setCustomerLoyaltyPoints(0);
@@ -1085,6 +1091,7 @@ function ShopPageComponent() {
     }
     return null;
   };
+
 
   // Skip step 1 if we already have customer info (e.g. from portal)
   useEffect(() => {
@@ -1126,6 +1133,28 @@ function ShopPageComponent() {
         fontSize: shop?.font_size || '16px',
       }}
     >
+      <style>{`
+        .phone-input-container .react-international-phone-input {
+          color: black !important;
+        }
+        .react-international-phone-country-selector-dropdown {
+          z-index: 9999 !important;
+          background-color: white !important;
+          color: black !important;
+          border-radius: 1rem !important;
+          border: 1px solid #e5e7eb !important;
+          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+          margin-top: 8px !important;
+        }
+        .react-international-phone-country-selector-list-item {
+          padding: 10px 15px !important;
+          font-weight: 600 !important;
+        }
+        .react-international-phone-country-selector-list-item:hover {
+          background-color: #f3f4f6 !important;
+        }
+      `}</style>
+
       <AnimatePresence>
         {loading && (
           <motion.div 
@@ -1695,22 +1724,22 @@ function ShopPageComponent() {
                         </span>
                       )}
                     </div>
-                    <Input 
-                      placeholder="(00) 00000-0000" 
-                      value={customerPhone} 
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const formatted = formatPhoneMask(val);
-                        setCustomerPhone(formatted);
-                      }}
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-white rounded-2xl shadow-sm group-focus-within:shadow-md transition-shadow pointer-events-none border border-gray-200 group-focus-within:border-[#D4AF37]/50"></div>
+                      <PhoneInput
+                        defaultCountry={typeof window !== 'undefined' ? (navigator.language.split('-')[1]?.toLowerCase() || 'br') : 'br'}
+                        value={customerPhone}
+                        onChange={(phone) => setCustomerPhone(phone)}
+                        placeholder="(00) 00000-0000"
+                        className="relative z-10 w-full"
+                        inputClassName="!w-full !h-16 !bg-transparent !border-none !text-2xl !font-black !tracking-tight !text-black !placeholder:text-gray-400 focus:!outline-none !pl-4"
+                        countrySelectorStyleProps={{
+                          buttonClassName: "!h-16 !bg-transparent !border-none !px-4 !rounded-l-2xl hover:!bg-gray-100 transition-colors",
+                        }}
+                      />
+                    </div>
 
-                      className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black tracking-tight focus-visible:ring-[#D4AF37]/50 rounded-2xl transition-all"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && customerPhone) {
-                          handlePhoneCheck();
-                        }
-                      }}
-                    />
+
                   </div>
                   <Button 
                     className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
