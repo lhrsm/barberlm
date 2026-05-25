@@ -1555,9 +1555,10 @@ function ShopPageComponent() {
         setIsBookingOpen(open);
         if (!open) {
           setBookingStep(1);
-          if (!isEmbedded) {
+          if (!isEmbedded && !localStorage.getItem(`client_portal_session_${slug}`)) {
             setCustomerName("");
             setCustomerPhone("");
+            setCustomerId(null);
           }
           setUseCashback(false);
           setUseCredits(false);
