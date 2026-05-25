@@ -345,13 +345,8 @@ function ShopPageComponent() {
     setIsBookingOpen(true);
   };
 
-  // Move returns to after all hooks
   const isPortalRoute = location.pathname.endsWith('/portal');
   const isProfissionalRoute = location.pathname.endsWith('/profissional');
-
-  if (isPortalRoute || isProfissionalRoute) {
-    return <Outlet />;
-  }
 
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
