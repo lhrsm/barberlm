@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, RefreshCw, Trash2, CheckCircle2, AlertCircle, Zap, History, Send, QrCode, Phone, Loader2, Info, Save, Smartphone, User, Crown, ExternalLink, ShieldCheck, Copy, Edit3, Trash } from "lucide-react";
+import { MessageSquare, RefreshCw, Trash2, CheckCircle2, AlertCircle, Zap, History, Send, QrCode, Phone, Loader2, Info, Save, Smartphone, User, Crown, ExternalLink, ShieldCheck, Copy, Edit3, Trash, Link2, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,14 +38,12 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
-  const [testNumber, setTestNumber] = useState("");
   const [pollingStatus, setPollingStatus] = useState<string>("qrcode");
   const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
   const [webhookModalOpen, setWebhookModalOpen] = useState(false);
   const [isEditingWebhook, setIsEditingWebhook] = useState(false);
   const [tempWebhookUrl, setTempWebhookUrl] = useState("");
   
-  // New States for connection methods
   const [pairingPhone, setPairingPhone] = useState("");
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [pairingLoading, setPairingLoading] = useState(false);
@@ -99,7 +97,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       provider: 'z-api'
     };
 
-    // URL base preferencial conforme solicitado pelo usuário
     const baseUrl = window.location.origin.includes('lovable.app') 
       ? "https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook"
       : "https://barbex.shop/api/webhooks/zapi";
@@ -110,15 +107,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       webhook_url: webhookUrl
     };
 
-    console.log('Webhook URL gerada:', webhookUrl);
-    console.log('Upserting data:', upsertData);
-
     const { data: saved, error } = connection?.id 
       ? await supabase.from("whatsapp_connections").update(upsertData).eq("id", connection.id).select().single()
       : await supabase.from("whatsapp_connections").insert([upsertData]).select().single();
 
     if (error) {
-      console.error('Erro ao salvar conexão:', error);
       toast.error("Erro ao salvar configurações");
     } else {
       setConnection(saved as WhatsAppConnection);
@@ -132,21 +125,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   async function setupWebhook(conn: WhatsAppConnection) {
     if (!conn.webhook_url) return;
     try {
-      console.log('Configurando webhook na Z-API:', conn.webhook_url);
-      const { data, error } = await supabase.functions.invoke('zapi-api', {
+      await supabase.functions.invoke('zapi-api', {
         body: { 
           action: 'set-webhook', 
           connectionId: conn.id,
           data: { webhookUrl: conn.webhook_url }
         }
       });
-      
-      if (error) {
-        console.error('Erro ao configurar webhook na Z-API:', error);
-        toast.error("Salvo, mas falha ao configurar webhook na Z-API");
-      } else {
-        console.log('Resposta Z-API webhook:', data);
-      }
     } catch (err) {
       console.error("Erro ao configurar webhook", err);
     }
@@ -156,18 +141,15 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (!connection?.id || !confirm("Deseja realmente excluir este webhook?")) return;
     
     try {
-      const { error } = await supabase
+      await supabase
         .from('whatsapp_connections')
         .update({ webhook_url: null })
         .eq('id', connection.id);
-        
-      if (error) throw error;
       
       setConnection({ ...connection, webhook_url: null });
       setWebhookModalOpen(false);
       toast.success("Webhook excluído com sucesso");
     } catch (err) {
-      console.error(err);
       toast.error("Erro ao excluir webhook");
     }
   }
@@ -176,18 +158,15 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (!connection?.id) return;
     
     try {
-      const { error } = await supabase
+      await supabase
         .from('whatsapp_connections')
         .update({ webhook_url: tempWebhookUrl })
         .eq('id', connection.id);
-        
-      if (error) throw error;
       
       setConnection({ ...connection, webhook_url: tempWebhookUrl });
       setIsEditingWebhook(false);
       toast.success("Webhook atualizado com sucesso");
     } catch (err) {
-      console.error(err);
       toast.error("Erro ao atualizar webhook");
     }
   }
@@ -212,6 +191,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       setShowQrModal(false);
     } finally {
       setQrLoading(false);
+    }
   }
 
   async function handleGetPairingCode() {
@@ -225,7 +205,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     setShowPairingModal(true);
 
     try {
-      console.log('pairing response request', pairingPhone);
       const { data, error } = await supabase.functions.invoke('zapi-api', {
         body: { 
           action: 'get-pairing-code', 
@@ -235,7 +214,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       });
 
       if (error) throw error;
-      console.log('pairing response', data);
       if (data.value) {
         setPairingCode(data.value);
         startPollingStatus();
@@ -243,7 +221,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         toast.error("Falha ao gerar código de pareamento");
       }
     } catch (err) {
-      console.error(err);
       toast.error("Erro ao gerar código de pareamento");
       setShowPairingModal(false);
     } finally {
@@ -284,6 +261,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         if (data?.connected) {
           clearInterval(interval);
           setShowQrModal(false);
+          setShowPairingModal(false);
+          setShowLinkModal(false);
           toast.success("WhatsApp conectado com sucesso!");
           fetchConnection();
         } else {
@@ -331,550 +310,135 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
   }
 
-  if (loading) {
-    return (
-      <Card className="bg-[#0b0f1a] border-slate-800 p-12 flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
-        <p className="text-slate-400 animate-pulse">Carregando integração...</p>
-      </Card>
-    );
-  }
+  if (loading) return null;
 
   return (
     <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-2xl overflow-hidden relative group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] -mr-32 -mt-32 rounded-full pointer-events-none" />
-          
-          <CardHeader className="relative">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.5)]">
-                  <Zap className="text-white" size={24} />
-                </div>
-                <div>
-                  <CardTitle className="text-2xl font-bold tracking-tight">WhatsApp Z-API</CardTitle>
-                  <CardDescription className="text-slate-400">Integração SaaS Premium</CardDescription>
-                </div>
+      <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-2xl">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-600 rounded-2xl"><Zap /></div>
+              <div>
+                <CardTitle>WhatsApp Z-API</CardTitle>
+                <CardDescription className="text-slate-400">Integração SaaS Premium</CardDescription>
               </div>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={connection?.status}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                >
-                  <Badge className={cn(
-                    "px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-widest border transition-all duration-500",
-                    connection?.status === 'connected' 
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]" 
-                      : "bg-red-500/10 text-red-400 border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
-                  )}>
-                    {connection?.status === 'connected' ? 'Conectado' : 'Desconectado'}
-                  </Badge>
-                </motion.div>
-              </AnimatePresence>
             </div>
-          </CardHeader>
-          
-          <CardContent className="space-y-8 relative">
-            <form id="wa-zapi-form" onSubmit={saveSettings} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Badge className={connection?.status === 'connected' ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}>
+              {connection?.status === 'connected' ? 'Conectado' : 'Desconectado'}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+           <form id="wa-zapi-form" onSubmit={saveSettings} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                <Label className="text-slate-300 font-medium">ID da Instância</Label>
-                <div className="relative group">
-                  <Smartphone className="absolute left-3 top-3 h-4 w-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
-                  <Input 
-                    name="instance_id" 
-                    defaultValue={connection?.instance_id} 
-                    className="bg-white/5 border-white/10 pl-10 focus:ring-2 focus:ring-blue-500/50 transition-all text-white placeholder:text-slate-600" 
-                    placeholder="Ex: 3C5..."
-                    required 
-                  />
-                </div>
+                <Label className="text-slate-300">ID da Instância</Label>
+                <Input name="instance_id" defaultValue={connection?.instance_id} className="bg-white/5 border-white/10" required />
               </div>
               <div className="space-y-3">
-                <Label className="text-slate-300 font-medium">Token da Instância</Label>
-                <Input 
-                  name="instance_token" 
-                  type="password" 
-                  defaultValue={connection?.instance_token} 
-                  placeholder="••••••••••••••••" 
-                  className="bg-white/5 border-white/10 focus:ring-2 focus:ring-blue-500/50 transition-all text-white" 
-                  required 
-                />
+                <Label className="text-slate-300">Token da Instância</Label>
+                <Input name="instance_token" type="password" defaultValue={connection?.instance_token} className="bg-white/5 border-white/10" required />
               </div>
               <div className="space-y-3">
-                <Label className="text-slate-300 font-medium">Client Token</Label>
-                <Input 
-                  name="client_token" 
-                  type="password" 
-                  defaultValue={connection?.client_token || ""} 
-                  placeholder="Opcional" 
-                  className="bg-white/5 border-white/10 focus:ring-2 focus:ring-blue-500/50 transition-all text-white" 
-                />
+                <Label className="text-slate-300">Client Token</Label>
+                <Input name="client_token" type="password" defaultValue={connection?.client_token || ""} className="bg-white/5 border-white/10" />
               </div>
               <div className="space-y-3">
-                <Label className="text-slate-300 font-medium">URL Base</Label>
-                <Input 
-                  name="server_url" 
-                  defaultValue={connection?.server_url || "https://api.z-api.io"} 
-                  className="bg-white/5 border-white/10 focus:ring-2 focus:ring-blue-500/50 transition-all text-white" 
-                />
+                <Label className="text-slate-300">URL Base</Label>
+                <Input name="server_url" defaultValue={connection?.server_url || "https://api.z-api.io"} className="bg-white/5 border-white/10" />
               </div>
-              
-              <div className="md:col-span-2">
-                <Button type="submit" className="w-full h-12 bg-white text-black hover:bg-slate-200 font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] group">
-                  <Save size={18} className="mr-2 group-hover:scale-110 transition-transform" /> 
-                  Salvar Configurações & Ativar Webhook
-                </Button>
+              <Button type="submit" className="md:col-span-2 bg-white text-black hover:bg-slate-200">Salvar Configurações</Button>
+           </form>
+           
+           {connection?.id && connection.status !== 'connected' && (
+              <div className="md:col-span-2 space-y-6 pt-6 border-t border-white/10">
+                <h3 className="text-sm font-bold uppercase text-slate-300 flex items-center gap-2">
+                  <Shield size={16} /> Métodos de Conexão
+                </h3>
+                <Tabs defaultValue="qrcode" className="w-full">
+                  <TabsList className="grid grid-cols-3 bg-white/5 p-1 h-12 rounded-xl mb-6">
+                    <TabsTrigger value="qrcode"><QrCode size={14} className="mr-2" /> QR Code</TabsTrigger>
+                    <TabsTrigger value="pairing"><Smartphone size={14} className="mr-2" /> Código</TabsTrigger>
+                    <TabsTrigger value="link"><Link2 size={14} className="mr-2" /> Link</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="qrcode">
+                    <Button onClick={handleGetQrCode} disabled={qrLoading} className="w-full h-20 bg-blue-600">
+                      {qrLoading ? <Loader2 className="animate-spin" /> : "Gerar QR Code"}
+                    </Button>
+                  </TabsContent>
+                  <TabsContent value="pairing" className="space-y-4">
+                    <Input placeholder="Número c/ DDI e DDD" value={pairingPhone} onChange={(e) => setPairingPhone(e.target.value)} />
+                    <Button onClick={handleGetPairingCode} disabled={pairingLoading} className="w-full">
+                      {pairingLoading ? <Loader2 className="animate-spin" /> : "Gerar Código"}
+                    </Button>
+                  </TabsContent>
+                  <TabsContent value="link">
+                    <Button onClick={handleGetConnectionLink} disabled={linkLoading} className="w-full h-20">
+                      {linkLoading ? <Loader2 className="animate-spin" /> : "Gerar Link"}
+                    </Button>
+                  </TabsContent>
+                </Tabs>
               </div>
-            </form>
+           )}
 
-            <AnimatePresence>
-              {connection?.id && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="pt-6 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-4"
-                >
-                  {connection.status === 'connected' ? (
-                    <>
-                      <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
-                          <User className="text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] uppercase font-bold text-slate-500">Conectado como</p>
-                          <p className="font-bold text-white">{connection.instance_name || "Perfil WhatsApp"}</p>
-                          <p className="text-xs text-slate-400">{connection.phone || "Número indisponível"}</p>
-                        </div>
-                      </div>
-                      <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-                          <CheckCircle2 className="text-emerald-400" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] uppercase font-bold text-slate-500">Status API</p>
-                          <p className="font-bold text-emerald-400">Ativo & Operacional</p>
-                        </div>
-                      </div>
-                      
-                      <div className="md:col-span-2 bg-white/5 rounded-2xl p-6 border border-white/5 space-y-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Zap size={16} className="text-blue-400" />
-                            <h4 className="text-sm font-bold text-white uppercase tracking-tight">Gerenciamento Webhook</h4>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Badge className={cn(
-                              "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                              connection.webhook_url 
-                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]" 
-                                : "bg-slate-500/10 text-slate-400 border border-slate-500/30"
-                            )}>
-                              {connection.webhook_url ? "Webhook Ativo" : "Sem Webhook"}
-                            </Badge>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="bg-black/20 border-white/10 hover:bg-white/5 text-xs"
-                              onClick={() => {
-                                setTempWebhookUrl(connection.webhook_url || "");
-                                setWebhookModalOpen(true);
-                              }}
-                            >
-                              Configurar
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {connection.webhook_url && (
-                          <div className="p-3 bg-black/40 rounded-xl border border-white/5 text-[11px] font-mono text-slate-400 break-all relative group/url cursor-pointer hover:bg-black/60 transition-colors"
-                            onClick={() => {
-                              navigator.clipboard.writeText(connection.webhook_url || "");
-                              toast.success("Webhook copiado com sucesso!");
-                            }}
-                          >
-                            {connection.webhook_url}
-                            <div className="absolute right-2 top-2 opacity-0 group-hover/url:opacity-100 transition-opacity">
-                              <Copy size={12} className="text-slate-500" />
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          {[
-                            { label: "Mensagens", type: "received" },
-                            { label: "Status", type: "message-status" },
-                            { label: "Conexão", type: "connected" },
-                            { label: "Desconexão", type: "disconnected" }
-                          ].map((wh) => (
-                            <div key={wh.type} className="flex flex-col gap-2 p-3 bg-black/20 rounded-xl border border-white/5">
-                              <span className="text-[10px] text-slate-400 font-bold uppercase">{wh.label}</span>
-                              <div className="flex items-center gap-2">
-                                <div className={cn("w-2 h-2 rounded-full", connection.webhook_url ? "bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" : "bg-slate-600")} />
-                                <span className="text-[10px] text-slate-400 uppercase font-bold">{connection.webhook_url ? "Ativo" : "Inativo"}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        <Button 
-                          onClick={async () => {
-                            const { data, error } = await supabase.functions.invoke('zapi-api', {
-                              body: { 
-                                action: 'test-webhook', 
-                                connectionId: connection.id,
-                                data: { webhookUrl: connection.webhook_url }
-                              }
-                            });
-                            if (error) toast.error("Erro no teste");
-                            else toast.success(data.message);
-                            fetchWebhookLogs();
-                          }}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
-                        >
-                          Testar Webhook
-                        </Button>
-                      </div>
-
-                      <div className="md:col-span-2 flex gap-3">
-                        <Button onClick={checkStatus} disabled={isTesting} variant="outline" className="flex-1 bg-transparent border-white/10 text-white hover:bg-white/5 h-12 rounded-xl">
-                          <RefreshCw size={18} className={cn("mr-2", isTesting && "animate-spin")} /> Verificar Status
-                        </Button>
-                        <Button onClick={handleDisconnect} variant="destructive" className="flex-1 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 h-12 rounded-xl">
-                          <Trash2 size={18} className="mr-2" /> Desconectar
-                        </Button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className=\"md:col-span-2 space-y-6\">
-                      <div className=\"flex items-center gap-2 mb-2\">
-                        <Shield className=\"text-blue-400\" size={18} />
-                        <h3 className=\"text-sm font-bold uppercase tracking-wider text-slate-300\">Métodos de Conexão</h3>
-                      </div>
-
-                      <Tabs defaultValue=\"qrcode\" className=\"w-full\">
-                        <TabsList className=\"grid grid-cols-3 bg-white/5 border border-white/10 p-1 h-12 rounded-xl mb-6\">
-                          <TabsTrigger value=\"qrcode\" className=\"rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all\">
-                            <QrCode size={14} className=\"mr-2\" /> QR Code
-                          </TabsTrigger>
-                          <TabsTrigger value=\"pairing\" className=\"rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all\">
-                            <Smartphone size={14} className=\"mr-2\" /> Código
-                          </TabsTrigger>
-                          <TabsTrigger value=\"link\" className=\"rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all\">
-                            <Link2 size={14} className=\"mr-2\" /> Link
-                          </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value=\"qrcode\" className=\"mt-0\">
-                          <Button 
-                            onClick={handleGetQrCode} 
-                            disabled={qrLoading} 
-                            className=\"w-full h-20 bg-gradient-to-br from-blue-600 to-indigo-700 text-white hover:scale-[1.01] active:scale-[0.99] transition-all font-bold text-lg rounded-2xl shadow-[0_10px_30px_rgba(59,130,246,0.2)] group\"
-                          >
-                            {qrLoading ? <Loader2 className=\"animate-spin mr-2\" /> : <QrCode size={28} className=\"mr-2 group-hover:rotate-12 transition-transform\" />}
-                            Gerar QR Code
-                          </Button>
-                        </TabsContent>
-
-                        <TabsContent value=\"pairing\" className=\"mt-0 space-y-4\">
-                          <div className=\"bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm\">
-                            <Label className=\"text-slate-300 mb-3 block font-medium\">Número do WhatsApp (com DDI e DDD)</Label>
-                            <div className=\"flex flex-col sm:flex-row gap-3\">
-                              <Input
-                                placeholder=\"Ex: 5511999999999\"
-                                value={pairingPhone}
-                                onChange={(e) => setPairingPhone(e.target.value)}
-                                className=\"bg-black/40 border-white/10 h-12 text-white focus:ring-blue-500/50\"
-                              />
-                              <Button 
-                                onClick={handleGetPairingCode} 
-                                disabled={pairingLoading} 
-                                className=\"bg-white text-black hover:bg-slate-200 h-12 px-8 font-bold rounded-xl transition-all shadow-lg shrink-0\"
-                              >
-                                {pairingLoading ? <Loader2 className=\"animate-spin\" /> : \"Gerar Código\"}
-                              </Button>
-                            </div>
-                            <p className=\"text-[10px] text-slate-500 mt-3 flex items-center gap-1.5 uppercase font-bold tracking-tighter\">
-                              <Info size={12} className=\"text-blue-500\" /> O código será exibido em um modal para você inserir no seu WhatsApp.
-                            </p>
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value=\"link\" className=\"mt-0\">
-                          <Button 
-                            onClick={handleGetConnectionLink} 
-                            disabled={linkLoading} 
-                            variant=\"outline\" 
-                            className=\"w-full h-20 bg-white/5 border-white/10 text-white hover:bg-white/10 font-bold text-lg rounded-2xl transition-all group\"
-                          >
-                            {linkLoading ? <Loader2 className=\"animate-spin mr-2\" /> : <Link2 size={28} className=\"mr-2 text-blue-400 group-hover:scale-110 transition-transform\" />}
-                            Conectar por Link Direto
-                          </Button>
-                        </TabsContent>
-                      </Tabs>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardContent>
-          
-          <CardFooter className="bg-black/40 border-t border-white/5 py-3 px-6 flex justify-between items-center">
-            <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono">
-              <ShieldCheck size={12} className="text-emerald-500" /> SECURE INTEGRATION
-            </div>
-            <a href="https://z-api.io" target="_blank" rel="noreferrer" className="text-[10px] text-slate-500 hover:text-white transition-colors flex items-center gap-1">
-              Documentação Oficial <ExternalLink size={10} />
-            </a>
-          </CardFooter>
-        </Card>
-      </motion.div>
-
-      {connection?.id && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-        >
-          {/* Tutorial Card */}
-          <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-xl overflow-hidden">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Info className="text-blue-400" size={18} /> Configuração Passo a Passo
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { step: 1, text: "Copie a URL do Webhook gerada acima." },
-                { step: 2, text: "Acesse o seu painel oficial da Z-API." },
-                { step: 3, text: "Vá em 'Webhooks e Configurações Gerais'." },
-                { step: 4, text: "Cole a URL no campo 'Ao receber' (Webhook de Recebimento)." },
-                { step: 5, text: "Clique em salvar para ativar a integração bidirecional." }
-              ].map((item) => (
-                <div key={item.step} className="flex gap-4 items-start p-3 rounded-xl bg-white/5 border border-white/5">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold shrink-0">
-                    {item.step}
-                  </div>
-                  <p className="text-sm text-slate-300">{item.text}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Webhook Logs Card */}
-          <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-xl overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <History className="text-indigo-400" size={18} /> Logs Recentes
-              </CardTitle>
-              <Button variant="ghost" size="sm" onClick={fetchWebhookLogs} className="h-8 text-[10px] uppercase font-bold text-slate-500 hover:text-white">
-                Atualizar
-              </Button>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-white/5 max-h-[350px] overflow-y-auto">
-                {webhookLogs.length > 0 ? webhookLogs.map((log) => (
-                  <div key={log.id} className="p-4 hover:bg-white/5 transition-colors">
-                    <div className="flex justify-between items-start mb-1">
-                      <Badge variant="outline" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[9px] px-2">
-                        {log.event_type}
-                      </Badge>
-                      <span className="text-[10px] text-slate-500">
-                        {new Date(log.created_at).toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-400 font-mono truncate">
-                      {JSON.stringify(log.payload)}
-                    </p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                      <span className="text-[9px] text-emerald-500 uppercase font-bold">Processado</span>
-                    </div>
-                  </div>
-                )) : (
-                  <div className="p-12 text-center">
-                    <History size={32} className="mx-auto text-slate-700 mb-2" />
-                    <p className="text-slate-500 text-sm">Nenhum evento registrado ainda.</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+           {connection?.status === 'connected' && (
+             <div className="pt-6 border-t border-white/10 flex gap-3">
+               <Button onClick={checkStatus} variant="outline" className="flex-1 border-white/10">Verificar Status</Button>
+               <Button onClick={handleDisconnect} variant="destructive" className="flex-1">Desconectar</Button>
+             </div>
+           )}
+        </CardContent>
+      </Card>
 
       <Dialog open={showQrModal} onOpenChange={setShowQrModal}>
-        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white sm:max-w-md p-0 overflow-hidden rounded-3xl">
-          <div className="p-8 space-y-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 blur-[60px] -mr-16 -mt-16 rounded-full" />
-            
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-center text-white flex flex-col items-center gap-3">
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                  <QrCode className="text-blue-500" size={32} />
-                </div>
-                Conexão Instantânea
-              </DialogTitle>
-              <DialogDescription className="text-center text-slate-400 pt-2">
-                Escaneie o código abaixo com o seu dispositivo para ativar o BarberLM WhatsApp.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="flex flex-col items-center justify-center">
-              <div className="relative p-6 bg-white rounded-3xl shadow-[0_0_50px_rgba(255,255,255,0.1)] group">
-                {qrLoading ? (
-                  <div className="w-64 h-64 flex flex-col items-center justify-center gap-4">
-                    <Loader2 size={48} className="animate-spin text-blue-500" />
-                    <p className="text-slate-900 font-bold animate-pulse text-sm">Gerando Token...</p>
-                  </div>
-                ) : qrCode ? (
-                  <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="relative"
-                  >
-                    <img 
-                      src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`} 
-                      alt="QR" 
-                      className="w-64 h-64 relative z-10" 
-                    />
-                    <div className="absolute inset-0 bg-blue-500/5 blur-xl group-hover:bg-blue-500/10 transition-all duration-700" />
-                  </motion.div>
-                ) : (
-                  <div className="w-64 h-64 flex items-center justify-center text-slate-400 italic">
-                    Erro ao carregar QR Code.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-2 h-2 rounded-full",
-                    pollingStatus === 'qrcode' ? "bg-yellow-500 animate-pulse shadow-[0_0_10px_rgba(234,179,8,0.5)]" : "bg-red-500"
-                  )} />
-                  <span className="text-sm font-bold text-slate-200 uppercase tracking-widest">
-                    {pollingStatus === 'qrcode' ? 'Aguardando Leitura' : 'Desconectado'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Loader2 size={14} className="animate-spin text-slate-500" />
-                  <span className="text-[10px] text-slate-500 uppercase font-black">Live Sync</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <div className="flex flex-col items-center gap-1 p-2 bg-white/5 rounded-xl border border-white/5">
-                  <Smartphone size={14} className="text-blue-400" />
-                  <span className="text-[8px] uppercase text-slate-500">Abrir Whats</span>
-                </div>
-                <div className="flex flex-col items-center gap-1 p-2 bg-white/5 rounded-xl border border-white/5">
-                  <Crown size={14} className="text-blue-400" />
-                  <span className="text-[8px] uppercase text-slate-500">Configurações</span>
-                </div>
-                <div className="flex flex-col items-center gap-1 p-2 bg-white/5 rounded-xl border border-white/5">
-                  <User size={14} className="text-blue-400" />
-                  <span className="text-[8px] uppercase text-slate-500">Conectar</span>
-                </div>
-              </div>
-            </div>
+        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>Escaneie o QR Code</DialogTitle>
+            <DialogDescription>Use o WhatsApp para escanear o código abaixo.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center p-4 bg-white rounded-xl">
+            {qrCode ? <img src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`} alt="QR" /> : <Loader2 className="animate-spin" />}
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={showPairingModal} onOpenChange={setShowPairingModal}>
+        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>Código de Pareamento</DialogTitle>
+            <DialogDescription>Insira este código no seu WhatsApp.</DialogDescription>
+          </DialogHeader>
+          <div className="text-center py-8">
+            <p className="text-4xl font-mono font-bold text-blue-400">{pairingCode || <Loader2 className="animate-spin mx-auto" />}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showLinkModal} onOpenChange={setShowLinkModal}>
+        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>Link de Conexão</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 bg-white/5 rounded-lg break-all">
+            {connectionLink || <Loader2 className="animate-spin mx-auto" />}
+          </div>
+          <Button onClick={() => connectionLink && window.open(connectionLink, '_blank')}>Abrir Link</Button>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={webhookModalOpen} onOpenChange={setWebhookModalOpen}>
-        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white sm:max-w-lg p-0 overflow-hidden rounded-3xl backdrop-blur-2xl">
-          <div className="p-8 space-y-8 relative">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-blue-600/10 blur-[80px] -mr-20 -mt-20 rounded-full" />
-            
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-white flex items-center gap-3">
-                <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-                  <CheckCircle2 className="text-emerald-500" size={24} />
-                </div>
-                Webhook Gerenciado
-              </DialogTitle>
-              <DialogDescription className="text-slate-400 text-base pt-2">
-                Configure esta URL no seu painel da Z-API para receber notificações em tempo real.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <Label className="text-slate-300 font-bold uppercase tracking-widest text-[10px]">Webhook URL</Label>
-                <div className="relative group">
-                  <Input 
-                    value={tempWebhookUrl}
-                    onChange={(e) => setTempWebhookUrl(e.target.value)}
-                    readOnly={!isEditingWebhook}
-                    className={cn(
-                      "bg-black/40 border-white/10 h-14 pr-12 font-mono text-xs transition-all",
-                      isEditingWebhook ? "border-blue-500/50 ring-1 ring-blue-500/20 bg-black/60" : "cursor-default focus-visible:ring-0"
-                    )}
-                  />
-                  {!isEditingWebhook && (
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="absolute right-2 top-2 h-10 w-10 text-slate-500 hover:text-white hover:bg-white/5"
-                      onClick={() => {
-                        navigator.clipboard.writeText(tempWebhookUrl);
-                        toast.success("Webhook copiado com sucesso");
-                      }}
-                    >
-                      <Copy size={18} />
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(tempWebhookUrl);
-                    toast.success("Webhook copiado com sucesso!");
-                  }}
-                  className="flex-1 h-12 bg-white text-black hover:bg-slate-200 font-bold rounded-xl shadow-xl transition-all"
-                >
-                  <Copy size={18} className="mr-2" /> Copiar Webhook
-                </Button>
-                
-                {isEditingWebhook ? (
-                  <Button 
-                    onClick={handleUpdateWebhook}
-                    className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all"
-                  >
-                    <Save size={18} className="mr-2" /> Salvar Edição
-                  </Button>
-                ) : (
-                  <Button 
-                    variant="outline"
-                    onClick={() => setIsEditingWebhook(true)}
-                    className="flex-1 h-12 bg-transparent border-white/10 text-white hover:bg-white/5 font-bold rounded-xl transition-all"
-                  >
-                    <Edit3 size={18} className="mr-2" /> Editar
-                  </Button>
-                )}
-              </div>
-
-              <div className="pt-4 border-t border-white/5">
-                <Button 
-                  variant="destructive"
-                  onClick={handleDeleteWebhook}
-                  className="w-full h-12 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 font-bold rounded-xl transition-all"
-                >
-                  <Trash size={18} className="mr-2" /> Excluir Webhook
-                </Button>
-              </div>
-            </div>
+        <DialogContent className="bg-[#0b0f1a] border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>Configuração de Webhook</DialogTitle>
+          </DialogHeader>
+          <Input value={tempWebhookUrl} onChange={(e) => setTempWebhookUrl(e.target.value)} readOnly={!isEditingWebhook} />
+          <div className="flex gap-2">
+            {isEditingWebhook ? (
+              <Button onClick={handleUpdateWebhook}>Salvar</Button>
+            ) : (
+              <Button onClick={() => setIsEditingWebhook(true)}>Editar</Button>
+            )}
+            <Button variant="destructive" onClick={handleDeleteWebhook}>Excluir</Button>
           </div>
         </DialogContent>
       </Dialog>
