@@ -38,9 +38,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isTesting, setIsTesting] = useState(false);
   const [testNumber, setTestNumber] = useState("");
   const [pollingStatus, setPollingStatus] = useState<string>("qrcode");
+  const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
 
   useEffect(() => {
-    if (tenantId) fetchConnection();
+    if (tenantId) {
+      fetchConnection();
+      fetchWebhookLogs();
+    }
   }, [tenantId]);
 
   async function fetchConnection() {
@@ -57,6 +61,16 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function fetchWebhookLogs() {
+    const { data } = await supabase
+      .from("webhook_logs")
+      .select("*")
+      .eq("barbershop_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (data) setWebhookLogs(data);
   }
 
   async function saveSettings(e: React.FormEvent) {
@@ -86,7 +100,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
 
   async function setupWebhook(conn: WhatsAppConnection) {
     try {
-      const webhookUrl = "https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook";
+      const webhookUrl = `https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}`;
       await supabase.functions.invoke('zapi-api', {
         body: { 
           action: 'set-webhook', 
@@ -143,7 +157,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       }
     }, 5000);
     
-    // Cleanup if modal closes
     return () => clearInterval(interval);
   }
 
@@ -199,7 +212,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       >
         <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-2xl overflow-hidden relative group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] -mr-32 -mt-32 rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/10 blur-[100px] -ml-32 -mb-32 rounded-full pointer-events-none" />
           
           <CardHeader className="relative">
             <div className="flex justify-between items-center">
@@ -314,43 +326,65 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                         </div>
                       </div>
                       
-                      <div className="md:col-span-2 bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4">
+                      <div className="md:col-span-2 bg-white/5 rounded-2xl p-6 border border-white/5 space-y-6">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Zap size={16} className="text-blue-400" />
-                            <h4 className="text-sm font-bold text-white uppercase tracking-tight">Webhooks Ativos</h4>
+                            <h4 className="text-sm font-bold text-white uppercase tracking-tight">Gerenciamento Webhook</h4>
                           </div>
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[10px]">
-                            REAL-TIME SYNC
-                          </Badge>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="bg-black/20 border-white/10 hover:bg-white/5"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}`);
+                              toast.success("Webhook copiado!");
+                            }}
+                          >
+                            Copiar URL
+                          </Button>
                         </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="p-3 bg-black/40 rounded-xl border border-white/5 text-[11px] font-mono text-slate-400 break-all">
+                          https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/{tenantId}
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           {[
-                            { label: "Mensagens Recebidas", type: "received" },
-                            { label: "Status de Mensagem", type: "message-status" },
-                            { label: "WhatsApp Conectado", type: "connected" },
-                            { label: "WhatsApp Desconectado", type: "disconnected" }
-                          ].map((webhook) => (
-                            <div key={webhook.type} className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5 group hover:border-blue-500/30 transition-all">
-                              <span className="text-xs text-slate-300 font-medium">{webhook.label}</span>
+                            { label: "Mensagens", type: "received" },
+                            { label: "Status", type: "message-status" },
+                            { label: "Conexão", type: "connected" },
+                            { label: "Desconexão", type: "disconnected" }
+                          ].map((wh) => (
+                            <div key={wh.type} className="flex flex-col gap-2 p-3 bg-black/20 rounded-xl border border-white/5">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase">{wh.label}</span>
                               <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                                <span className="text-[10px] font-bold text-emerald-400/80 uppercase">Ativo</span>
+                                <input type="checkbox" checked={true} readOnly className="accent-blue-500" />
+                                <span className="text-[10px] text-emerald-400 uppercase font-bold">Ativo</span>
                               </div>
                             </div>
                           ))}
                         </div>
-                        
-                        {connection.webhook_url && (
-                          <div className="pt-2">
-                            <p className="text-[10px] text-slate-500 uppercase font-bold mb-1 ml-1">Endpoint de Destino</p>
-                            <div className="p-3 bg-black/40 rounded-xl border border-white/5 text-[11px] font-mono text-slate-400 break-all">
-                              {connection.webhook_url}
-                            </div>
-                          </div>
-                        )}
+
+                        <Button 
+                          onClick={async () => {
+                            const { data, error } = await supabase.functions.invoke('zapi-api', {
+                              body: { 
+                                action: 'test-webhook', 
+                                connectionId: connection.id,
+                                data: { webhookUrl: `https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}` }
+                              }
+                            });
+                            if (error) toast.error("Erro no teste");
+                            else toast.success(data.message);
+                            fetchWebhookLogs();
+                          }}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                        >
+                          Testar Webhook
+                        </Button>
                       </div>
+
                       <div className="md:col-span-2 flex gap-3">
                         <Button onClick={checkStatus} disabled={isTesting} variant="outline" className="flex-1 bg-transparent border-white/10 text-white hover:bg-white/5 h-12 rounded-xl">
                           <RefreshCw size={18} className={cn("mr-2", isTesting && "animate-spin")} /> Verificar Status
@@ -381,6 +415,80 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </CardFooter>
         </Card>
       </motion.div>
+
+      {connection?.id && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        >
+          {/* Tutorial Card */}
+          <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-xl overflow-hidden">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Info className="text-blue-400" size={18} /> Configuração Passo a Passo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                { step: 1, text: "Copie a URL do Webhook gerada acima." },
+                { step: 2, text: "Acesse o seu painel oficial da Z-API." },
+                { step: 3, text: "Vá em 'Webhooks e Configurações Gerais'." },
+                { step: 4, text: "Cole a URL no campo 'Ao receber' (Webhook de Recebimento)." },
+                { step: 5, text: "Clique em salvar para ativar a integração bidirecional." }
+              ].map((item) => (
+                <div key={item.step} className="flex gap-4 items-start p-3 rounded-xl bg-white/5 border border-white/5">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                    {item.step}
+                  </div>
+                  <p className="text-sm text-slate-300">{item.text}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Webhook Logs Card */}
+          <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-xl overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <History className="text-indigo-400" size={18} /> Logs Recentes
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={fetchWebhookLogs} className="h-8 text-[10px] uppercase font-bold text-slate-500 hover:text-white">
+                Atualizar
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-white/5 max-h-[350px] overflow-y-auto">
+                {webhookLogs.length > 0 ? webhookLogs.map((log) => (
+                  <div key={log.id} className="p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex justify-between items-start mb-1">
+                      <Badge variant="outline" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[9px] px-2">
+                        {log.event_type}
+                      </Badge>
+                      <span className="text-[10px] text-slate-500">
+                        {new Date(log.created_at).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 font-mono truncate">
+                      {JSON.stringify(log.payload)}
+                    </p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                      <span className="text-[9px] text-emerald-500 uppercase font-bold">Processado</span>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="p-12 text-center">
+                    <History size={32} className="mx-auto text-slate-700 mb-2" />
+                    <p className="text-slate-500 text-sm">Nenhum evento registrado ainda.</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       <Dialog open={showQrModal} onOpenChange={setShowQrModal}>
         <DialogContent className="bg-[#0b0f1a] border-white/10 text-white sm:max-w-md p-0 overflow-hidden rounded-3xl">
