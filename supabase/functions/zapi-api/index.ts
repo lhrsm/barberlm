@@ -52,6 +52,12 @@ serve(async (req) => {
       case "get-status":
         endpoint = `/instances/${instance_id}/token/${instance_token}/status`;
         break;
+      case "get-pairing-code":
+        endpoint = `/instances/${instance_id}/token/${instance_token}/pairing-code?phone=${data.phone}`;
+        break;
+      case "get-connection-link":
+        endpoint = `/instances/${instance_id}/token/${instance_token}/connection-link`;
+        break;
       case "disconnect":
         endpoint = `/instances/${instance_id}/token/${instance_token}/disconnect`;
         break;
@@ -73,7 +79,6 @@ serve(async (req) => {
           "update-webhook-chat-state"
         ];
         
-        // Configura todos os webhooks necessários na Z-API
         const webhookResults = await Promise.all(types.map(async (webhookType) => {
           const res = await fetch(`${baseUrl}/instances/${instance_id}/token/${instance_token}/${webhookType}`, {
             method: "POST",
@@ -116,9 +121,6 @@ serve(async (req) => {
         throw new Error("Ação inválida");
     }
 
-    console.log(`instanceId ${instance_id}`);
-    console.log(`token ${instance_token}`);
-    console.log(`clientToken ${client_token}`);
     console.log(`Z-API Request: ${method} ${baseUrl}${endpoint}`);
 
     const response = await fetch(`${baseUrl}${endpoint}`, {
@@ -128,14 +130,8 @@ serve(async (req) => {
     });
 
     const result = await response.json();
-    console.log('instanceId', instance_id);
-    console.log('token', instance_token);
-    console.log('clientToken', client_token);
-    console.log('qrCodeResponse', action === 'get-qrcode' ? result : 'N/A');
-    console.log('statusResponse', action === 'get-status' ? result : 'N/A');
     console.log(`Z-API Response:`, result);
 
-    // Se for status, vamos atualizar o banco
     if (action === "get-status") {
       let status = "disconnected";
       if (result.connected) status = "connected";
