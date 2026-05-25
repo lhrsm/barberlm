@@ -1,44 +1,28 @@
 
 /**
- * Normalizes a phone number by removing non-numeric characters
- * and ensuring it has the '55' country code for Brazil.
+ * Normalizes a phone number to E.164 format (digits only, including country code)
+ * Example: "+55 (71) 99999-9999" -> "5571999999999"
  */
 export const normalizePhone = (phone: string): string => {
   if (!phone) return "";
-  
   // Remove all non-numeric characters
-  const digits = phone.replace(/\D/g, "");
-  
-  if (!digits) return "";
-
-  // Se já começar com 55, apenas retorna
-  if (digits.startsWith('55')) {
-    return digits;
-  }
-
-  // Se tiver 10 ou 11 dígitos (formato BR sem DDI), adiciona 55
-  if (digits.length >= 10 && digits.length <= 11) {
-    return `55${digits}`;
-  }
-
-  return digits;
+  return phone.replace(/\D/g, "");
 };
 
 /**
- * Formats a numeric string into a Brazilian phone mask: (XX) XXXXX-XXXX
+ * Legacy mask formatter - kept for backward compatibility where needed,
+ * but the new PhoneInput component should handle its own masking.
  */
 export const formatPhoneMask = (value: string): string => {
   if (!value) return "";
   
-  // Remove all non-numeric characters
   let cleaned = value.replace(/\D/g, "");
   
-  // If it starts with 55, remove it for visual masking
+  // If it starts with 55, remove it for visual masking in some contexts
   if (cleaned.startsWith('55') && cleaned.length > 2) {
     cleaned = cleaned.substring(2);
   }
   
-  // Limit to 11 digits (Brazilian mobile)
   const truncated = cleaned.slice(0, 11);
   
   if (truncated.length <= 2) {
@@ -46,10 +30,9 @@ export const formatPhoneMask = (value: string): string => {
   } else if (truncated.length <= 6) {
     return `(${truncated.slice(0, 2)}) ${truncated.slice(2)}`;
   } else if (truncated.length <= 10) {
-    // Landline format (XX) XXXX-XXXX
     return `(${truncated.slice(0, 2)}) ${truncated.slice(2, 6)}-${truncated.slice(6)}`;
   } else {
-    // Mobile format (XX) XXXXX-XXXX
     return `(${truncated.slice(0, 2)}) ${truncated.slice(2, 7)}-${truncated.slice(7)}`;
   }
 };
+
