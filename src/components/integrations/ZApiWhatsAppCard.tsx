@@ -47,16 +47,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
   }, [tenantId]);
 
-  async function fetchWebhookLogs() {
-    const { data } = await supabase
-      .from("webhook_logs")
-      .select("*")
-      .eq("barbershop_id", tenantId)
-      .order("created_at", { ascending: false })
-      .limit(10);
-    if (data) setWebhookLogs(data);
-  }
-
   async function fetchConnection() {
     try {
       const { data, error } = await supabase
@@ -71,6 +61,16 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function fetchWebhookLogs() {
+    const { data } = await supabase
+      .from("webhook_logs")
+      .select("*")
+      .eq("barbershop_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (data) setWebhookLogs(data);
   }
 
   async function saveSettings(e: React.FormEvent) {
@@ -100,7 +100,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
 
   async function setupWebhook(conn: WhatsAppConnection) {
     try {
-      const webhookUrl = "https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook";
+      const webhookUrl = `https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}`;
       await supabase.functions.invoke('zapi-api', {
         body: { 
           action: 'set-webhook', 
@@ -157,7 +157,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       }
     }, 5000);
     
-    // Cleanup if modal closes
     return () => clearInterval(interval);
   }
 
@@ -213,7 +212,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       >
         <Card className="bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 text-white shadow-2xl overflow-hidden relative group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] -mr-32 -mt-32 rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/10 blur-[100px] -ml-32 -mb-32 rounded-full pointer-events-none" />
           
           <CardHeader className="relative">
             <div className="flex justify-between items-center">
@@ -379,12 +377,14 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                             });
                             if (error) toast.error("Erro no teste");
                             else toast.success(data.message);
+                            fetchWebhookLogs();
                           }}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
                         >
                           Testar Webhook
                         </Button>
                       </div>
+
                       <div className="md:col-span-2 flex gap-3">
                         <Button onClick={checkStatus} disabled={isTesting} variant="outline" className="flex-1 bg-transparent border-white/10 text-white hover:bg-white/5 h-12 rounded-xl">
                           <RefreshCw size={18} className={cn("mr-2", isTesting && "animate-spin")} /> Verificar Status
@@ -400,6 +400,20 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                       Parear WhatsApp
                     </Button>
                   )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+          
+          <CardFooter className="bg-black/40 border-t border-white/5 py-3 px-6 flex justify-between items-center">
+            <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono">
+              <ShieldCheck size={12} className="text-emerald-500" /> SECURE INTEGRATION
+            </div>
+            <a href="https://z-api.io" target="_blank" rel="noreferrer" className="text-[10px] text-slate-500 hover:text-white transition-colors flex items-center gap-1">
+              Documentação Oficial <ExternalLink size={10} />
+            </a>
+          </CardFooter>
+        </Card>
       </motion.div>
 
       {connection?.id && (
