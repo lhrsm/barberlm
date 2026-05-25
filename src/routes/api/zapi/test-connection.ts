@@ -24,13 +24,25 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
             throw new Error("Instance ID e Token são obrigatórios");
           }
 
-          // Higienizar inputs para evitar espaços ou quebras de linha
           const cleanInstanceId = String(instanceId).trim();
           const cleanToken = String(token).trim();
 
-          const fullUrl = `https://api.z-api.io/instances/${cleanInstanceId}/token/${cleanToken}/status`;
+          // Buscar baseUrl se houver conexão
+          let baseUrl = "https://api.z-api.io";
+          if (connectionId) {
+            const supabase = getSupabase();
+            const { data: conn } = await supabase.from('whatsapp_connections').select('server_url').eq('id', connectionId).single();
+            if (conn?.server_url) {
+              baseUrl = conn.server_url.trim();
+              if (baseUrl.includes('/instances/')) {
+                baseUrl = baseUrl.split('/instances/')[0];
+              }
+              baseUrl = baseUrl.replace(/\/$/, "");
+            }
+          }
+
+          const fullUrl = `${baseUrl}/instances/${cleanInstanceId}/token/${cleanToken}/status`;
           
-          // DEBUG REAIS HEADERS - Seguindo solicitação do usuário
           const headers = {
             'Content-Type': 'application/json'
           };
@@ -38,11 +50,10 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
           console.log('--- DEBUG REAIS HEADERS ---');
           console.log('URL FINAL:', fullUrl);
           console.log('HEADERS:', JSON.stringify(headers));
-          console.log('CLIENT-TOKEN EXISTE?', !!(headers as any)['Client-Token']);
 
           const response = await fetch(fullUrl, {
             method: 'GET',
-            headers: headers
+            headers
           });
 
           const responseText = await response.text();
