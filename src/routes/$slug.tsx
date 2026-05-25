@@ -2120,48 +2120,104 @@ function ShopPageComponent() {
                       return (
                         <motion.div 
                           key={p.id}
-                          whileHover={{ y: -5 }}
+                          whileHover={{ y: -4, scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                           className={cn(
-                            "flex-shrink-0 w-40 p-4 rounded-[2.5rem] transition-all text-center relative snap-start group border",
-                            cartItem ? "bg-primary shadow-2xl text-white" : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
+                            "relative overflow-hidden rounded-2xl border transition-all duration-300 group cursor-pointer",
+                            cartItem 
+                              ? "bg-zinc-900/90 border-primary shadow-lg shadow-primary/20" 
+                              : "bg-zinc-900/50 border-white/5 hover:border-white/20 hover:bg-zinc-900/80"
                           )}
-                          style={cartItem ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}
+                          style={cartItem ? { borderColor: primaryColor } : {}}
+                          onClick={() => toggleProduct(p)}
                         >
-                          <div 
-                            className="cursor-pointer space-y-3"
-                            onClick={() => toggleProduct(p)}
-                          >
-                            <div className="h-24 w-24 mx-auto bg-black/40 rounded-3xl flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-white/20 transition-colors">
+                          {/* Background Glow when selected */}
+                          {cartItem && (
+                            <div 
+                              className="absolute inset-0 opacity-10 blur-xl pointer-events-none"
+                              style={{ backgroundColor: primaryColor }}
+                            />
+                          )}
+
+                          <div className="p-4 flex flex-col h-full space-y-3">
+                            {/* Image Container */}
+                            <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-black/40 border border-white/5">
                               {p.image_url ? (
-                                <img src={p.image_url} className="w-full h-full object-cover" />
+                                <img 
+                                  src={p.image_url} 
+                                  alt={p.name}
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                />
                               ) : (
-                                <Package size={32} className={cartItem ? "text-white/50" : "text-slate-700"} />
+                                <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                                  <Package size={40} strokeWidth={1.5} />
+                                </div>
+                              )}
+                              
+                              {/* Badge */}
+                              {(p.badge || cartItem) && (
+                                <div className="absolute top-2 right-2 flex flex-col gap-1">
+                                  {cartItem && (
+                                    <span 
+                                      className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white flex items-center gap-1 shadow-lg"
+                                      style={{ backgroundColor: primaryColor }}
+                                    >
+                                      <CheckCircle2 size={10} /> Selecionado
+                                    </span>
+                                  )}
+                                  {p.badge && !cartItem && (
+                                    <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/10 text-white backdrop-blur-md border border-white/10">
+                                      {p.badge}
+                                    </span>
+                                  )}
+                                </div>
                               )}
                             </div>
-                            <div className="space-y-1">
-                              <p className={cn("text-xs font-black uppercase tracking-tight truncate px-1", cartItem ? "text-white" : "text-white")}>{p.name}</p>
-                              <p className={cn("text-sm font-black", cartItem ? "text-white/90" : "text-primary")} style={!cartItem ? { color: primaryColor } : {}}>R$ {p.price.toFixed(2)}</p>
+
+                            {/* Info */}
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <h4 className="text-sm font-bold text-white line-clamp-1">{p.name}</h4>
+                                <span className="text-sm font-black whitespace-nowrap" style={{ color: primaryColor }}>
+                                  R$ {p.price.toFixed(2)}
+                                </span>
+                              </div>
+                              
+                              {(p.short_description || p.description) && (
+                                <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                                  {p.short_description || p.description}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Controls */}
+                            <div className="pt-2">
+                              {cartItem ? (
+                                <div className="flex items-center justify-between bg-black/40 rounded-xl p-1 border border-white/5">
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
+                                    className="hover:bg-white/10 text-white rounded-lg h-8 w-8 flex items-center justify-center transition-colors"
+                                  >
+                                    <Minus size={14} />
+                                  </button>
+                                  <span className="text-xs font-black">{cartItem.quantity} unidades</span>
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
+                                    className="hover:bg-white/10 text-white rounded-lg h-8 w-8 flex items-center justify-center transition-colors"
+                                    disabled={cartItem.quantity >= (p.stock_quantity || 99)}
+                                  >
+                                    <Plus size={14} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div 
+                                  className="w-full py-2.5 rounded-xl border border-white/5 bg-white/5 text-[10px] font-black uppercase tracking-widest text-center group-hover:bg-white/10 transition-all"
+                                >
+                                  Adicionar ao agendamento
+                                </div>
+                              )}
                             </div>
                           </div>
-                          
-                          {cartItem && (
-                            <div className="flex items-center justify-between mt-4 bg-black/20 rounded-2xl p-1.5 backdrop-blur-md">
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
-                                className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-8 w-8 flex items-center justify-center transition-colors"
-                              >
-                                <Minus size={14} />
-                              </button>
-                              <span className="text-xs font-black">{cartItem.quantity}</span>
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
-                                className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-8 w-8 flex items-center justify-center transition-colors"
-                                disabled={cartItem.quantity >= p.stock_quantity}
-                              >
-                                <Plus size={14} />
-                              </button>
-                            </div>
-                          )}
                         </motion.div>
                       );
                     })}
