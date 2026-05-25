@@ -15,6 +15,9 @@ import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 import { normalizePhone, formatPhoneMask } from "@/utils/phone";
+import { PhoneInput } from 'react-international-phone';
+import 'react-international-phone/style.css';
+
 
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
