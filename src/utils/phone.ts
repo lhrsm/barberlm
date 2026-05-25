@@ -7,17 +7,13 @@ export const normalizePhone = (phone: string): string => {
   if (!phone) return "";
   
   // Remove all non-numeric characters
-  let cleaned = phone.replace(/\D/g, "");
+  const digits = phone.replace(/\D/g, "");
   
-  // If it doesn't start with 55 and has 10 or 11 digits, add 55
-  if (cleaned.length === 10 || cleaned.length === 11) {
-    cleaned = "55" + cleaned;
+  if (digits.startsWith('55')) {
+    return digits;
   }
-  
-  // If it's already a full international number but without the 55 (e.g., 71999999999)
-  // this is handled by the rule above.
-  
-  return cleaned;
+
+  return `55${digits}`;
 };
 
 /**
