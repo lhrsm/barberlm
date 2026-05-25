@@ -27,8 +27,14 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
             'Content-Type': 'application/json'
           };
 
+          const fullUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/status`;
+          
+          console.log('--- Z-API TEST REQUEST ---');
+          console.log('URL:', fullUrl);
+          console.log('HEADERS:', JSON.stringify(headers));
+
           const response = await fetch(
-            `https://api.z-api.io/instances/${instanceId}/token/${token}/status`,
+            fullUrl,
             {
               method: 'GET',
               headers

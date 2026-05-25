@@ -117,12 +117,19 @@ serve(async (req) => {
     }
 
     const fullUrl = `${baseUrl}${endpoint}`;
-    console.log(`Z-API Request: ${method} ${fullUrl}`);
+    
+    // DEBUG: Log exactly what is being sent
+    console.log('--- Z-API REQUEST START ---');
+    console.log('URL:', fullUrl);
+    console.log('METHOD:', method);
+    console.log('HEADERS:', JSON.stringify(headers));
+    if (body) console.log('BODY:', JSON.stringify(body));
+    console.log('--- Z-API REQUEST END ---');
 
     const response = await fetch(fullUrl, {
       method,
       headers,
-      body: method === "GET" ? undefined : body,
+      body: method === "GET" ? undefined : JSON.stringify(body),
     });
 
     if (!response.ok) {
