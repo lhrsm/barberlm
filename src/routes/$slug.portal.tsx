@@ -35,6 +35,7 @@ import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { normalizePhone, formatPhoneMask } from "@/utils/phone";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
@@ -48,6 +49,7 @@ function ClientPortalComponent() {
   const [shop, setShop] = useState<any>(null);
   const [client, setClient] = useState<any>(null);
   const [customerData, setCustomerData] = useState<any>(null);
+  const [phone, setPhone] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
@@ -64,7 +66,7 @@ function ClientPortalComponent() {
   const [products, setProducts] = useState<any[]>([]);
   
   // Auth state
-  const [phone, setPhone] = useState("");
+  // phone state is already declared above
   const [isRegistering, setIsRegistering] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -283,7 +285,17 @@ function ClientPortalComponent() {
   }, [isEditModalOpen, editingAppointment, newDate]);
 
   async function fetchAvailableTimes(barberId: string, date: string) {
-    console.log('FETCHING TIMES START', { barberId, date });
+    console.log('DEBUG: SERVICE', selectedService);
+    console.log('DEBUG: PROFESSIONAL', barberId);
+    console.log('DEBUG: DATE', date);
+    console.log('DEBUG: SALON', shop?.id);
+    console.log('DEBUG: SLUG', slug);
+
+    if (!barberId) {
+      console.warn('DEBUG: No professional selected, skipping fetchAvailableTimes');
+      return;
+    }
+
     setFetchingTimes(true);
     try {
       const { data: barber, error: barberError } = await supabase
@@ -345,17 +357,16 @@ function ClientPortalComponent() {
       const times = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
-      const interval = 30;
+      const interval = selectedService?.duration_minutes || 30;
 
       console.log('LOOP PARAMS', { startHour, startMin, endHour, endMin, interval });
 
       for (let hour = startHour; hour <= endHour; hour++) {
-        for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
+        for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
           if (hour === endHour && min >= endMin) break;
           
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
           
-          // Use a more robust way to create the check date in local time
           const [y, m, d] = date.split('-').map(Number);
           const checkTime = new Date(y, m - 1, d, hour, min, 0);
           
@@ -368,7 +379,6 @@ function ClientPortalComponent() {
 
           const isBusy = appointments?.some(app => {
             if (editingAppointment && app.start_time === editingAppointment.start_time) return false;
-            // parseISO(app.start_time) handles the timezone from DB correctly
             const appStart = parseISO(app.start_time);
             const appEnd = parseISO(app.end_time);
             return checkTime >= appStart && checkTime < appEnd;
@@ -379,7 +389,8 @@ function ClientPortalComponent() {
           }
         }
       }
-      console.log('FINAL TIMES GENERATED', times.length);
+      
+      console.log('DEBUG: AVAILABLE SLOTS', times);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
@@ -447,13 +458,15 @@ function ClientPortalComponent() {
 
   const handleLogin = async (e: React.FormEvent) => {
     if (e) e.preventDefault();
+    const normalized = normalizePhone(phone);
+    console.log('DEBUG: Normalizing phone for login:', { original: phone, normalized });
     setSubmitting(true);
     try {
       // Find customer in this specific shop first
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
         .select("id, name")
-        .eq("phone", phone)
+        .eq("phone", normalized)
         .eq("user_id", shop.id)
         .maybeSingle();
 
@@ -467,7 +480,7 @@ function ClientPortalComponent() {
       const { data: authData, error: authError } = await supabase
         .from("client_auth")
         .select("*")
-        .eq("phone", phone)
+        .eq("phone", normalized)
         .maybeSingle();
 
       if (authError) throw authError;
@@ -479,13 +492,13 @@ function ClientPortalComponent() {
         await supabase
           .from("client_auth")
           .insert({
-            phone: phone,
+            phone: normalized,
             customer_id: finalCustomerId
           });
       }
 
       const sessionData = {
-        phone: phone,
+        phone: normalized,
         customer_id: finalCustomerId,
         name: customerData.name
       };
@@ -505,13 +518,15 @@ function ClientPortalComponent() {
 
   const handleRegister = async (e: React.FormEvent) => {
     if (e) e.preventDefault();
+    const normalized = normalizePhone(phone);
+    console.log('DEBUG: Normalizing phone for registration:', { original: phone, normalized });
     setSubmitting(true);
     try {
       // 1. Find or create customer for this shop
       const { data: existingCustomer } = await supabase
         .from("customers")
         .select("id, name")
-        .eq("phone", phone)
+        .eq("phone", normalized)
         .eq("user_id", shop.id)
         .maybeSingle();
       
@@ -566,7 +581,7 @@ function ClientPortalComponent() {
           .insert({
             user_id: shop.id,
             name: customerName,
-            phone: phone,
+            phone: normalized,
             email: customerEmail || undefined,
             birth_date: formattedBirthDate || undefined,
             avatar_url: avatarUrl || undefined
@@ -581,7 +596,7 @@ function ClientPortalComponent() {
       const { error: authErr } = await supabase
         .from("client_auth")
         .upsert({
-          phone: phone,
+          phone: normalized,
           customer_id: customerId
         }, { onConflict: 'phone' });
 
@@ -590,7 +605,7 @@ function ClientPortalComponent() {
       toast.success("Cadastro realizado com sucesso!");
       
       const sessionData = {
-        phone: phone,
+        phone: normalized,
         customer_id: customerId,
         name: name
       };

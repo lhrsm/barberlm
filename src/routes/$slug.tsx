@@ -14,6 +14,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
+import { normalizePhone, formatPhoneMask } from "@/utils/phone";
 
 export const Route = createFileRoute("/$slug")({
   component: ShopPageComponent,
@@ -116,7 +117,9 @@ function ShopPageComponent() {
       
       // Auto trigger phone check if embedded with phone
       const timer = setTimeout(() => {
-        handlePhoneCheckWithParams(initialPhone, initialName);
+        const normalized = normalizePhone(initialPhone);
+        console.log('DEBUG: Auto-checking phone normalized:', { original: initialPhone, normalized });
+        handlePhoneCheckWithParams(normalized, initialName);
       }, 500);
       return () => clearTimeout(timer);
     } else if (isEmbedded) {
@@ -251,6 +254,7 @@ function ShopPageComponent() {
   };
 
   async function fetchShopData(targetSlug: string) {
+    console.log('DEBUG: Fetching shop data for slug:', targetSlug);
     if (!targetSlug) return;
     setLoading(true);
     try {
@@ -331,6 +335,7 @@ function ShopPageComponent() {
   const primaryColor = shop?.primary_color || "#7c3aed";
 
   const handleBookingAction = () => {
+    console.log('DEBUG: handleBookingAction triggered');
     if (shop?.scheduling_mode === 'manual') {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
@@ -343,7 +348,34 @@ function ShopPageComponent() {
     }
   };
 
+  const handlePhoneCheck = async () => {
+    if (!customerPhone || customerPhone.length < 8) {
+      toast.error("Por favor, informe um WhatsApp válido.");
+      return;
+    }
+    
+    const normalized = normalizePhone(customerPhone);
+    console.log('DEBUG: Normalizing phone for check:', { original: customerPhone, normalized });
+
+    setSubmitting(true);
+    try {
+      const customer = await checkCustomerCashback(normalized);
+      setCustomerPhone(normalized);
+      if (customer?.name) {
+        setCustomerName(customer.name);
+        setBookingStep(2);
+      } else {
+        setBookingStep(2);
+      }
+    } catch (e: any) {
+      toast.error("Erro ao verificar identificação: " + e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSelectService = (service: any) => {
+    console.log('DEBUG: handleSelectService triggered', service);
     setSelectedService(service);
     
     // Verificamos se já temos sessão salva para pular etapas
@@ -366,6 +398,7 @@ function ShopPageComponent() {
 
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
+    console.log('DEBUG: checkConflict triggered', { barberId, date, time, serviceId });
     const service = services.find(s => s.id === serviceId);
     if (!service) return false;
     
@@ -389,16 +422,26 @@ function ShopPageComponent() {
   };
 
   const fetchAvailableTimes = async (barberId: string, date: string) => {
-    console.log('FETCHING TIMES START (MAIN PAGE)', { barberId, date });
+    console.log('DEBUG: SERVICE', selectedService);
+    console.log('DEBUG: PROFESSIONAL', barberId);
+    console.log('DEBUG: DATE', date);
+    console.log('DEBUG: SALON', shop?.id);
+    console.log('DEBUG: SLUG', slug);
+
+    if (!barberId) {
+      console.warn('DEBUG: No professional selected, skipping fetchAvailableTimes');
+      return;
+    }
+
     setFetchingTimes(true);
     try {
       const barber = barbers.find(b => b.id === barberId);
       if (!barber) {
-        console.error("Barber not found in local state");
+        console.error("DEBUG: Barber not found in local state", { barberId, barbersCount: barbers.length });
         return;
       }
 
-      console.log('BARBER FROM STATE', { name: barber.name, working_hours: barber.working_hours });
+      console.log('DEBUG: BARBER FROM STATE', { name: barber.name, working_hours: barber.working_hours });
 
       const dateObj = parseISO(date);
       const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
@@ -416,16 +459,18 @@ function ShopPageComponent() {
       const dayKey = dayMap[dayName] || dayName;
       const workingHours = barber.working_hours?.[dayKey];
 
-      console.log('WORKING HOURS CHECK', { dayName, dayKey, workingHours });
+      console.log('DEBUG: WORKING HOURS CHECK', { dayName, dayKey, workingHours });
 
       if (!workingHours || !workingHours.enabled) {
-        console.warn('BARBER NOT WORKING ON THIS DAY', { dayKey });
+        console.warn('DEBUG: BARBER NOT WORKING ON THIS DAY', { dayKey, workingHours });
         setAvailableTimes([]);
         return;
       }
 
       const startOfDayTime = `${date}T00:00:00.000Z`;
       const endOfDayTime = `${date}T23:59:59.999Z`;
+
+      console.log('DEBUG: Fetching appointments for range:', { startOfDayTime, endOfDayTime, barberId });
 
       const { data: appointments, error } = await supabase
         .from("appointments")
@@ -435,19 +480,21 @@ function ShopPageComponent() {
         .gte("start_time", startOfDayTime)
         .lte("start_time", endOfDayTime);
 
-      if (error) throw error;
+      if (error) {
+        console.error("DEBUG: Error fetching appointments:", error);
+        throw error;
+      }
 
-      console.log('APPOINTMENTS FOUND', appointments?.length || 0);
+      console.log('DEBUG: APPOINTMENTS FOUND', appointments?.length || 0);
 
       const times = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
-      const interval = 30;
-
-      console.log('LOOP PARAMS', { startHour, startMin, endHour, endMin, interval });
+      
+      console.log('DEBUG: LOOP PARAMS', { startHour, startMin, endHour, endMin });
 
       for (let hour = startHour; hour <= endHour; hour++) {
-        for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
+        for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
           if (hour === endHour && min >= endMin) break;
           
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
@@ -469,7 +516,8 @@ function ShopPageComponent() {
           }
         }
       }
-      console.log('FINAL TIMES GENERATED', times.length);
+      
+      console.log('DEBUG: AVAILABLE SLOTS', times);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
@@ -481,7 +529,10 @@ function ShopPageComponent() {
 
 
   const handleFinalizeBooking = async () => {
-    if (!customerName || !customerPhone) {
+    const normalized = normalizePhone(customerPhone);
+    console.log('DEBUG: Finalizing booking with normalized phone:', { original: customerPhone, normalized });
+    
+    if (!customerName || !normalized) {
       toast.error("Por favor, preencha seu nome e telefone.");
       return;
     }
@@ -492,7 +543,7 @@ function ShopPageComponent() {
       const { data: customerData, error: customerError } = await supabase
         .from("customers")
         .select("id, cashback_balance, credits")
-        .eq("phone", customerPhone)
+        .eq("phone", normalized)
         .eq("user_id", shop.id)
         .maybeSingle();
 
@@ -507,7 +558,7 @@ function ShopPageComponent() {
           .insert({
             user_id: shop.id,
             name: customerName,
-            phone: customerPhone
+            phone: normalized
           })
           .select("id")
           .maybeSingle();
@@ -520,7 +571,7 @@ function ShopPageComponent() {
 
       // Automatically create or update client_auth session for the portal
       const sessionData = {
-        phone: customerPhone,
+        phone: normalized,
         customer_id: customerId,
         name: customerName
       };
@@ -620,7 +671,7 @@ function ShopPageComponent() {
         triggerWhatsAppMessage({
           userId: shop.id,
           eventType: 'appointment_confirmation',
-          phone: customerPhone,
+          phone: normalizePhone(customerPhone),
           placeholders: {
             cliente: customerName,
             horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
@@ -879,11 +930,12 @@ function ShopPageComponent() {
   };
 
   const checkCustomerCashback = async (phone: string) => {
-    if (phone.length >= 10) {
+    const normalized = normalizePhone(phone);
+    if (normalized.length >= 10) {
       const { data } = await supabase
         .from("customers")
         .select("cashback_balance, loyalty_points, name, credits")
-        .eq("phone", phone)
+        .eq("phone", normalized)
         .eq("user_id", shop.id)
         .maybeSingle();
       if (data) {
@@ -900,25 +952,6 @@ function ShopPageComponent() {
       }
     }
     return null;
-  };
-
-  const handlePhoneCheck = async () => {
-    if (!customerPhone || customerPhone.length < 8) {
-      toast.error("Por favor, insira um número de WhatsApp válido.");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const customer = await checkCustomerCashback(customerPhone);
-      setBookingStep(2);
-      if (customer) {
-        toast.success(`Bem-vindo de volta, ${customer.name}!`);
-      }
-    } catch (error) {
-      console.error("Error checking phone:", error);
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   // Skip step 1 if we already have customer info (e.g. from portal)
@@ -1525,7 +1558,7 @@ function ShopPageComponent() {
                     <Input 
                       placeholder="(00) 00000-0000" 
                       value={customerPhone} 
-                      onChange={(e) => setCustomerPhone(e.target.value)} 
+                      onChange={(e) => setCustomerPhone(formatPhoneMask(e.target.value))} 
                       className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black tracking-tight focus-visible:ring-[#D4AF37]/50 rounded-2xl transition-all"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && customerPhone) {
@@ -2072,6 +2105,9 @@ function ShopPageComponent() {
                           style={{ backgroundColor: primaryColor }}
                           onClick={(e) => {
                             e.preventDefault();
+                            const normalized = normalizePhone(customerPhone);
+                            console.log('DEBUG: Finalizing booking with normalized phone:', normalized);
+                            setCustomerPhone(normalized);
                             handleFinalizeBooking();
                           }} 
                           disabled={submitting}
