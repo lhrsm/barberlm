@@ -251,12 +251,21 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
 
   function startPollingStatus() {
     const interval = setInterval(async () => {
+      if (!connection?.id) return;
+      
       try {
         const { data } = await supabase.functions.invoke('zapi-api', {
-          body: { action: 'get-status', connectionId: connection?.id }
+          body: { action: 'get-status', connectionId: connection.id }
         });
 
-        if (data?.connected) {
+        console.log('POLLING STATUS DATA:', data);
+        const isConnected = 
+          data?.connected === true || 
+          data?.connected === 'true' || 
+          data?.status === 'connected' || 
+          data?.value === 'CONNECTED';
+
+        if (isConnected) {
           clearInterval(interval);
           setShowQrModal(false);
           setShowPairingModal(false);
@@ -274,13 +283,52 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     return () => clearInterval(interval);
   }
 
+  // Automatic status polling every 10 seconds when connected or active
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (connection?.id) {
+      interval = setInterval(() => {
+        checkStatusSilently();
+      }, 10000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [connection?.id]);
+
+  async function checkStatusSilently() {
+    if (!connection?.id) return;
+    try {
+      const { data } = await supabase.functions.invoke('zapi-api', {
+        body: { action: 'get-status', connectionId: connection.id }
+      });
+      
+      const isConnected = 
+        data?.connected === true || 
+        data?.connected === 'true' || 
+        data?.status === 'connected' || 
+        data?.value === 'CONNECTED';
+
+      const newStatus = isConnected ? 'connected' : 'disconnected';
+      
+      if (newStatus !== connection.status) {
+        fetchConnection();
+      }
+    } catch (err) {
+      console.error("Silent status check error", err);
+    }
+  }
+
   async function handleDisconnect() {
     if (!connection || !confirm("Deseja realmente desconectar?")) return;
     try {
       await supabase.functions.invoke('zapi-api', {
         body: { action: 'disconnect', connectionId: connection.id }
       });
-      await supabase.from("whatsapp_connections").update({ status: 'disconnected' }).eq("id", connection.id);
+      
+      await supabase.from("whatsapp_connections").update({ status: 'disconnected', connected: false }).eq("id", connection.id);
       toast.success("WhatsApp desconectado");
       fetchConnection();
     } catch (err) {
@@ -303,7 +351,14 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       console.log('clientToken', connection.client_token);
       console.log('response', data);
 
-      if (data?.connected) {
+      console.log('STATUS DATA:', data);
+      const isConnected = 
+        data?.connected === true || 
+        data?.connected === 'true' || 
+        data?.status === 'connected' || 
+        data?.value === 'CONNECTED';
+
+      if (isConnected) {
         toast.success("WhatsApp conectado");
       } else {
         toast.error("WhatsApp desconectado");
@@ -324,7 +379,17 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       const { data } = await supabase.functions.invoke('zapi-api', {
         body: { action: 'get-status', connectionId: connection.id }
       });
-      if (data?.connected) {
+      
+      console.log('STATUS DATA:', data);
+      console.log('CONNECTED:', data?.connected);
+      console.log('TYPE:', typeof data?.connected);
+      const isConnected = 
+        data?.connected === true || 
+        data?.connected === 'true' || 
+        data?.status === 'connected' || 
+        data?.value === 'CONNECTED';
+
+      if (isConnected) {
         toast.success("Status: Conectado");
       } else {
         toast.error("Status: Desconectado");
@@ -351,8 +416,18 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 <CardDescription className="text-slate-400">Integração SaaS Premium</CardDescription>
               </div>
             </div>
-            <Badge className={connection?.status === 'connected' ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}>
-              {connection?.status === 'connected' ? 'WhatsApp conectado' : 'WhatsApp desconectado'}
+            <Badge className={cn(
+              "transition-all duration-500",
+              connection?.status === 'connected' 
+                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse" 
+                : "bg-red-500/10 text-red-400 border-red-500/20"
+            )}>
+              {connection?.status === 'connected' ? (
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-emerald-400 rounded-full animate-ping" />
+                  WhatsApp conectado
+                </span>
+              ) : 'WhatsApp desconectado'}
             </Badge>
           </div>
         </CardHeader>
@@ -424,10 +499,22 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               </div>
            )}
 
-           {connection?.status === 'connected' && (
-             <div className="pt-6 border-t border-white/10 flex gap-3">
-               <Button onClick={checkStatus} variant="outline" className="flex-1 border-white/10">Verificar Status</Button>
-               <Button onClick={handleDisconnect} variant="destructive" className="flex-1">Desconectar</Button>
+           {connection?.id && (
+             <div className="pt-6 border-t border-white/10 flex flex-wrap gap-3">
+               <Button 
+                onClick={checkStatus} 
+                disabled={isTesting}
+                variant="outline" 
+                className="flex-1 border-white/10 hover:bg-white/5 min-w-[140px]"
+               >
+                 {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={14} className="mr-2" />}
+                 Atualizar status
+               </Button>
+               {connection.status === 'connected' && (
+                 <Button onClick={handleDisconnect} variant="destructive" className="flex-1 min-w-[140px]">
+                   <Trash2 size={14} className="mr-2" /> Desconectar
+                 </Button>
+               )}
              </div>
            )}
         </CardContent>

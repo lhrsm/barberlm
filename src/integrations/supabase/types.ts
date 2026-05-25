@@ -1701,6 +1701,7 @@ export type Database = {
         Row: {
           barbershop_id: string
           client_token: string | null
+          connected: boolean | null
           created_at: string
           id: string
           instance_id: string
@@ -1717,6 +1718,7 @@ export type Database = {
         Insert: {
           barbershop_id: string
           client_token?: string | null
+          connected?: boolean | null
           created_at?: string
           id?: string
           instance_id: string
@@ -1733,6 +1735,7 @@ export type Database = {
         Update: {
           barbershop_id?: string
           client_token?: string | null
+          connected?: boolean | null
           created_at?: string
           id?: string
           instance_id?: string
