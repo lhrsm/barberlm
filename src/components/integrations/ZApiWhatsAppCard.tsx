@@ -475,20 +475,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </Card>
         </motion.div>
       )}
-              )}
-            </AnimatePresence>
-          </CardContent>
-          
-          <CardFooter className="bg-black/40 border-t border-white/5 py-3 px-6 flex justify-between items-center">
-            <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono">
-              <ShieldCheck size={12} className="text-emerald-500" /> SECURE INTEGRATION
-            </div>
-            <a href="https://z-api.io" target="_blank" rel="noreferrer" className="text-[10px] text-slate-500 hover:text-white transition-colors flex items-center gap-1">
-              Documentação Oficial <ExternalLink size={10} />
-            </a>
-          </CardFooter>
-        </Card>
-      </motion.div>
 
       <Dialog open={showQrModal} onOpenChange={setShowQrModal}>
         <DialogContent className="bg-[#0b0f1a] border-white/10 text-white sm:max-w-md p-0 overflow-hidden rounded-3xl">
