@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, RefreshCw, Trash2, CheckCircle2, AlertCircle, Zap, History, Send, QrCode, Phone, Loader2, Info, Save, Smartphone, User, Crown, ExternalLink } from "lucide-react";
+import { MessageSquare, RefreshCw, Trash2, CheckCircle2, AlertCircle, Zap, History, Send, QrCode, Phone, Loader2, Info, Save, Smartphone, User, Crown, ExternalLink, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
