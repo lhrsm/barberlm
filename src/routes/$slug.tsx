@@ -431,28 +431,20 @@ function ShopPageComponent() {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
     } else {
-      // Verificamos se já temos sessão salva para pular etapas de identificação
+      // Pre-fill with session data if exists, but always show step 1 to confirm identity
       const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
       if (savedClient) {
         try {
           const parsedClient = JSON.parse(savedClient);
-          console.log('DEBUG: Reusing portal session for booking', parsedClient);
+          console.log('DEBUG: Pre-filling booking from portal session', parsedClient);
           setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
-          setBookingStep(2); // Pula para seleção de serviço
         } catch (e) {
-          setBookingStep(1);
-        }
-
-      } else {
-        // Se já tivermos dados em memória (ex: de um check anterior nesta aba)
-        if (customerPhone && customerName) {
-          setBookingStep(2);
-        } else {
-          setBookingStep(1);
+          console.error("Error loading session:", e);
         }
       }
+      setBookingStep(1);
       setIsBookingOpen(true);
     }
   };
