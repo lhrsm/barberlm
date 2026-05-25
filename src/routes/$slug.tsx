@@ -1781,33 +1781,40 @@ function ShopPageComponent() {
                           className="mt-4"
                         >
                           {customerId ? (
-                            <div className="p-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm flex items-center gap-4 group">
-                              <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-500/20 group-hover:scale-110 transition-transform duration-300">
-                                <CheckCircle2 className="text-emerald-500" size={24} />
+                            <div className="p-6 rounded-[2rem] border-2 border-primary/30 bg-primary/5 backdrop-blur-md flex items-center gap-5 group shadow-xl shadow-primary/5">
+                              <div 
+                                className="h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 border-2 border-primary/20 group-hover:scale-110 transition-transform duration-500 shadow-lg"
+                                style={{ backgroundColor: primaryColor + '20' }}
+                              >
+                                <CheckCircle2 className="text-primary" size={28} style={{ color: primaryColor }} />
                               </div>
                               <div className="flex-1">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600/70 mb-0.5">Cliente Reconhecido</p>
-                                <p className="text-xl font-black text-black tracking-tight">
-                                  Olá, {customerName} <span className="inline-block animate-bounce">👋</span>
-                                </p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mb-1" style={{ color: primaryColor }}>Cliente Identificado</p>
+                                <h3 className="text-2xl font-black text-black tracking-tight leading-none">
+                                  Olá, {customerName.split(' ')[0]}! <span className="inline-block animate-bounce ml-1">👋</span>
+                                </h3>
+                                <p className="text-xs text-gray-500 font-bold mt-1">Que bom ter você de volta!</p>
                               </div>
                             </div>
                           ) : (
-                            <div className="grid gap-3 p-6 bg-zinc-900 rounded-3xl border border-zinc-800 shadow-2xl relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 p-4 opacity-10">
-                                <UserIcon size={40} className="text-white" />
-                              </div>
-                              <div className="relative z-10">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2 block ml-1">Quase lá! Qual o seu nome?</Label>
-                                <Input 
-                                  placeholder="Digite seu nome completo" 
-                                  value={customerName} 
-                                  onChange={(e) => setCustomerName(e.target.value)}
-                                  className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-600 h-16 text-2xl font-black focus-visible:ring-primary/50 rounded-2xl transition-all focus:bg-zinc-800"
-                                />
-                                <p className="text-[10px] font-medium text-zinc-500 mt-3 ml-1 flex items-center gap-2">
-                                  <div className="h-1 w-1 rounded-full bg-primary" />
-                                  Precisamos do seu nome para o agendamento
+                            <div className="grid gap-4 p-6 bg-zinc-900 rounded-[2rem] border border-zinc-800 shadow-2xl relative overflow-hidden group">
+                              {/* Decorative element */}
+                              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" style={{ backgroundColor: primaryColor + '10' }} />
+                              
+                              <div className="relative z-10 space-y-3">
+                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-1 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
+                                <div className="relative">
+                                  <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={20} />
+                                  <Input 
+                                    placeholder="Digite seu nome completo" 
+                                    value={customerName} 
+                                    onChange={(e) => setCustomerName(e.target.value)}
+                                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-600 h-16 pl-12 text-xl font-black focus-visible:ring-primary/50 rounded-2xl transition-all focus:bg-zinc-800 border-2 focus:border-primary/30"
+                                  />
+                                </div>
+                                <p className="text-[10px] font-medium text-zinc-500 ml-1 flex items-center gap-2">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" style={{ backgroundColor: primaryColor }} />
+                                  Usamos seu nome para organizar sua agenda
                                 </p>
                               </div>
                             </div>
