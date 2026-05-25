@@ -354,7 +354,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               </div>
             </div>
             <Badge className={connection?.status === 'connected' ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}>
-              {connection?.status === 'connected' ? 'Conectado' : 'Desconectado'}
+              {connection?.status === 'connected' ? 'WhatsApp conectado' : 'WhatsApp desconectado'}
             </Badge>
           </div>
         </CardHeader>
