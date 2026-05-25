@@ -457,14 +457,11 @@ function ShopPageComponent() {
         if (customer.name) {
           console.log('DEBUG: Customer found, setting name:', customer.name);
           setCustomerName(customer.name);
-          // Only show toast if we found a name
           toast.success(`Bem-vindo de volta, ${customer.name}!`);
         }
         if (customer.id) setCustomerId(customer.id);
       }
       
-      // Ensure the mask is clean (no DDI 55)
-      setCustomerPhone(formatPhoneMask(normalized));
       setBookingStep(2);
     } catch (e: any) {
       toast.error("Erro ao verificar identificação: " + e.message);
@@ -472,6 +469,7 @@ function ShopPageComponent() {
       setSubmitting(false);
     }
   };
+
 
   const handleSelectService = (service: any) => {
     console.log('DEBUG: handleSelectService triggered', service);
