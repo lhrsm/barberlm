@@ -30,6 +30,8 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
           // Use exactly the URL requested by the user
           const fullUrl = `https://api.z-api.io/instances/${cleanInstanceId}/token/${cleanToken}/status`;
           
+          console.log('INSTANCE ID', cleanInstanceId);
+          console.log('TOKEN', cleanToken);
           console.log('[Z-API] Testing connection:', fullUrl);
 
           const response = await fetch(fullUrl, {
@@ -40,13 +42,14 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
           });
 
           const data = await response.json();
-          console.log('[Z-API] Response data:', JSON.stringify(data));
+          console.log('STATUS RESPONSE', JSON.stringify(data));
 
-          // Log complete body for debugging
+          // Logic for connected status according to Z-API documentation and user request
           const isConnected = data.connected === true || 
                             data.connected === 'true' || 
                             data.value === 'CONNECTED' ||
-                            data.status === 'CONNECTED';
+                            data.status === 'CONNECTED' ||
+                            data.status === 'connected';
 
           if (connectionId) {
             const supabase = getSupabase();

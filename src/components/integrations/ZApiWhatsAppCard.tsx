@@ -10,7 +10,8 @@ import {
   ExternalLink, 
   ShieldCheck,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  MessageSquare
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ interface WhatsAppConnection {
   instance_token: string;
   status: string;
   webhook_url: string | null;
+  updated_at?: string;
 }
 
 export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
@@ -156,6 +158,35 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       setIsTesting(false);
     }
   }
+  
+  async function sendTestMessage() {
+    if (!connection) return;
+    setIsTesting(true);
+    try {
+      const response = await fetch('/api/zapi/test-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenantId,
+          message: "Olá! Este é um teste de envio real do BarberLM via Z-API. 🚀",
+          phone: "5571999999999" // User mentioned this number in example
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success("Mensagem de teste enviada!");
+      } else {
+        toast.error("Erro ao enviar: " + (result.error || "Erro na API"));
+      }
+    } catch (err) {
+      toast.error("Erro ao testar envio");
+    } finally {
+      setIsTesting(false);
+    }
+  }
+
 
   async function handleDeleteWebhook() {
     if (!connection?.id || !confirm("Deseja realmente excluir este webhook?")) return;
@@ -285,15 +316,26 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 Salvar Configurações
               </Button>
               {connection?.id && (
-                <Button 
-                  type="button" 
-                  onClick={testConnection} 
-                  disabled={isTesting}
-                  className="flex-1 bg-white text-black hover:bg-slate-200 h-11 font-semibold"
-                >
-                  {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />}
-                  Testar Z-API
-                </Button>
+                <>
+                  <Button 
+                    type="button" 
+                    onClick={testConnection} 
+                    disabled={isTesting}
+                    className="flex-1 bg-white text-black hover:bg-slate-200 h-11 font-semibold"
+                  >
+                    {isTesting ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />}
+                    Testar Status
+                  </Button>
+                  <Button 
+                    type="button" 
+                    onClick={sendTestMessage} 
+                    disabled={isTesting}
+                    className="flex-1 bg-blue-600 text-white hover:bg-blue-700 h-11 font-semibold"
+                  >
+                    {isTesting ? <Loader2 className="animate-spin mr-2" /> : <MessageSquare size={18} className="mr-2" />}
+                    Enviar Teste
+                  </Button>
+                </>
               )}
             </div>
           </form>
@@ -365,7 +407,14 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         
         <CardFooter className="bg-white/5 border-t border-white/5 px-6 py-4">
           <div className="flex justify-between items-center w-full">
-            <p className="text-[10px] text-slate-500">v2.0.0 - Clean Architecture Integration</p>
+          <div className="flex flex-col gap-1">
+            <p className="text-[10px] text-slate-500">v2.1.0 - Clean Architecture Integration</p>
+            {connection?.updated_at && (
+              <p className="text-[10px] text-slate-400">
+                Última sincronização: {new Date(connection.updated_at).toLocaleString('pt-BR')}
+              </p>
+            )}
+          </div>
             <div className="flex gap-4">
               <a href="https://z-api.io" target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:underline flex items-center gap-1">
                 Docs Z-API <ExternalLink size={10} />

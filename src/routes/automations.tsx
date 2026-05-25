@@ -31,7 +31,8 @@ import {
   Lock,
   ArrowRight,
   Sparkles,
-  Check
+  Check,
+  Loader2
 } from "lucide-react";
 import {
   Dialog,
@@ -135,6 +136,38 @@ function AutomationsComponent() {
   const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isIAExecuting, setIsIAExecuting] = useState(false);
+  const [isTesting, setIsTesting] = useState<string | null>(null);
+
+  const handleTestAutomation = async (automation: any) => {
+    if (!tenantId) return;
+    setIsTesting(automation.id || automation.type);
+    
+    try {
+      const response = await fetch('/api/zapi/test-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenantId,
+          message: automation.template || getDefaultTemplate(automation.type),
+          // For testing, we could ask for a phone number, but for now we'll use a placeholder or the barbeshop's own phone if available
+          phone: "5571999999999" 
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success("Mensagem de teste enviada com sucesso!");
+      } else {
+        toast.error("Erro ao enviar teste: " + (result.error || "Erro desconhecido"));
+      }
+    } catch (err) {
+      toast.error("Erro ao processar teste de envio");
+    } finally {
+      setIsTesting(null);
+    }
+  };
+
 
   useEffect(() => {
     if (tenantId) {
@@ -456,10 +489,16 @@ function AutomationsComponent() {
                             <Button 
                               variant="default" 
                               size="sm" 
-                              onClick={() => toast.info("Automação de teste enviada!")}
+                              onClick={() => handleTestAutomation(data || { type: item.id })}
+                              disabled={isTesting === (data?.id || item.id)}
                               className="px-3 h-10 font-bold bg-slate-900 text-white hover:scale-105 transition-all rounded-xl gap-2"
                             >
-                              <Play size={14} /> Testar
+                              {isTesting === (data?.id || item.id) ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Play size={14} />
+                              )}
+                              Testar
                             </Button>
                           </>
                         )}
