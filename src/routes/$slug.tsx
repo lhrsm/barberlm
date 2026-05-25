@@ -730,7 +730,7 @@ function ShopPageComponent() {
 
         const { data: newCustomer, error: createError } = await supabase
           .from("customers")
-          .insert(payload)
+          .insert([payload])
           .select("id")
           .single();
         
@@ -864,7 +864,7 @@ function ShopPageComponent() {
         const remainingAmount = calculateTotal();
         
         // Registrar transação para constar no operacional (mesmo se for 0 em dinheiro novo)
-        await supabase.from("transactions").insert({
+        await supabase.from("transactions").insert([{
           user_id: shop.id,
           barber_id: selectedBarber.id,
           appointment_id: appointment.id,
@@ -893,7 +893,7 @@ function ShopPageComponent() {
           };
           console.log('INSERT PRODUCT SALE DATA', productSalePayload);
           
-          const { error: saleError } = await supabase.from("product_sales").insert(productSalePayload);
+          const { error: saleError } = await supabase.from("product_sales").insert([productSalePayload]);
           
           if (saleError) {
             console.error('DEBUG: Error inserting product sale', saleError);
@@ -2905,7 +2905,7 @@ function ShopPageComponent() {
 
                       const { data: newCust, error: createError } = await supabase
                         .from("customers")
-                        .insert(customerPayload)
+                        .insert([customerPayload])
                         .select("id")
                         .single();
                         
@@ -2927,12 +2927,12 @@ function ShopPageComponent() {
                   };
                   console.log('INSERT PRODUCT SALE DATA (Standalone)', salePayload);
 
-                  const { data: saleData, error: saleError } = await supabase.from("product_sales").insert(salePayload).select().single();
+                  const { data: saleData, error: saleError } = await supabase.from("product_sales").insert([salePayload]).select().single();
 
                   if (saleError) throw saleError;
 
                   // 2. Create finance transaction for the "Financeiro" tab
-                  const { error: transError } = await supabase.from("transactions").insert({
+                  const { error: transError } = await supabase.from("transactions").insert([{
                     user_id: shop.id,
                     barber_id: defaultBarberId,
                     type: "income",
@@ -2940,7 +2940,7 @@ function ShopPageComponent() {
                     amount: totalAmount,
                     description: `Venda de Produtos (Standalone) - Itens: ${items.map(i => `${i.name} (x${i.quantity})`).join(", ")}`,
                     date: new Date().toISOString().split('T')[0]
-                  });
+                  }]);
 
                   if (transError) throw transError;
 
