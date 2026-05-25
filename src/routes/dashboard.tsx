@@ -939,16 +939,33 @@ function DashboardComponent() {
         )}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mb-6">
-          <Card className="col-span-4 bg-primary/5 border-primary/20">
-            <CardHeader className="pb-2">
+          <Card className="col-span-4 bg-white border-2 border-amber-500/20 shadow-lg shadow-amber-500/5 relative overflow-hidden group">
+            {/* Glow sutil no fundo */}
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-500" />
+            
+            <CardHeader className="pb-2 relative">
               <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">Plano {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}</CardTitle>
-                  <CardDescription>Status dos recursos da sua barbearia</CardDescription>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-xl font-black italic tracking-tight text-amber-900">
+                      Plano {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}
+                    </CardTitle>
+                    {isTrial && (
+                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 font-black italic text-[10px] tracking-widest">
+                        TRIAL ATIVO
+                      </Badge>
+                    )}
+                  </div>
+                  <CardDescription className="flex items-center gap-1.5 font-bold text-amber-600/80 text-[11px] tracking-wide uppercase italic">
+                    <Crown className="w-3.5 h-3.5" />
+                    STATUS DA ASSINATURA SAAS
+                  </CardDescription>
                 </div>
-                {plan === 'elite' ? <Rocket className="w-5 h-5 text-purple-500" /> : 
-                 plan === 'pro' ? <Crown className="w-5 h-5 text-yellow-500" /> : 
-                 <Zap className="w-5 h-5 text-blue-500" />}
+                <div className="p-2 rounded-xl bg-amber-50 flex items-center justify-center">
+                  {plan === 'elite' ? <Rocket className="w-5 h-5 text-amber-600" /> : 
+                   plan === 'pro' ? <Crown className="w-5 h-5 text-amber-500" /> : 
+                   <Zap className="w-5 h-5 text-amber-500" />}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
