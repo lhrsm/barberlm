@@ -44,6 +44,15 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [webhookModalOpen, setWebhookModalOpen] = useState(false);
   const [isEditingWebhook, setIsEditingWebhook] = useState(false);
   const [tempWebhookUrl, setTempWebhookUrl] = useState("");
+  
+  // New States for connection methods
+  const [pairingPhone, setPairingPhone] = useState("");
+  const [pairingCode, setPairingCode] = useState<string | null>(null);
+  const [pairingLoading, setPairingLoading] = useState(false);
+  const [showPairingModal, setShowPairingModal] = useState(false);
+  const [connectionLink, setConnectionLink] = useState<string | null>(null);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
 
   useEffect(() => {
     if (tenantId) {
