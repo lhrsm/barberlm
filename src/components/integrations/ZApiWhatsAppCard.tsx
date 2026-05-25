@@ -156,6 +156,35 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       setIsTesting(false);
     }
   }
+  
+  async function sendTestMessage() {
+    if (!connection) return;
+    setIsTesting(true);
+    try {
+      const response = await fetch('/api/zapi/test-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenantId,
+          message: "Olá! Este é um teste de envio real do BarberLM via Z-API. 🚀",
+          phone: "5571999999999" // User mentioned this number in example
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success("Mensagem de teste enviada!");
+      } else {
+        toast.error("Erro ao enviar: " + (result.error || "Erro na API"));
+      }
+    } catch (err) {
+      toast.error("Erro ao testar envio");
+    } finally {
+      setIsTesting(false);
+    }
+  }
+
 
   async function handleDeleteWebhook() {
     if (!connection?.id || !confirm("Deseja realmente excluir este webhook?")) return;
