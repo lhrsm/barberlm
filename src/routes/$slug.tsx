@@ -141,7 +141,7 @@ function ShopPageComponent() {
       console.log('PHONE INPUT', customerPhone);
       console.log('NORMALIZED PHONE', normalizedPhone);
       
-      // International search: generally 10+ digits
+      // Busca internacional requer pelo menos 10 dígitos (DDD + Número)
       if (normalizedPhone.length < 10) {
         if (bookingStep === 1 && !localStorage.getItem(`client_portal_session_${slug}`)) {
           setCustomerName("");
@@ -163,6 +163,7 @@ function ShopPageComponent() {
         if (error) console.log('QUERY ERROR', error);
 
         if (data) {
+          console.log('CUSTOMER FOUND:', data.name);
           if (data.name) setCustomerName(data.name);
           setCustomerId(data.id);
           setCustomerCashback(data.cashback_balance || 0);
@@ -171,6 +172,13 @@ function ShopPageComponent() {
           
           if (data.name && bookingStep === 1) {
             toast.success(`Bem-vindo de volta, ${data.name}!`);
+          }
+        } else {
+          console.log('CUSTOMER NOT FOUND for phone:', normalizedPhone);
+          // Se não encontrou e não estamos em sessão do portal, garante que o nome está limpo
+          if (!localStorage.getItem(`client_portal_session_${slug}`)) {
+            setCustomerName("");
+            setCustomerId(null);
           }
         }
       } catch (err) {
@@ -181,7 +189,11 @@ function ShopPageComponent() {
     }
 
     if (bookingStep === 1 && isBookingOpen) {
-      findCustomer();
+      // Debounce busca para não sobrecarregar enquanto digita
+      const timer = setTimeout(() => {
+        findCustomer();
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [customerPhone, shop?.id, bookingStep, isBookingOpen, slug]);
 
@@ -451,22 +463,31 @@ function ShopPageComponent() {
     }
     
     const normalized = normalizePhone(customerPhone);
-    console.log('DEBUG: Normalizing phone for check:', { original: customerPhone, normalized });
+    console.log('PHONE INPUT AT CHECK', customerPhone);
+    console.log('NORMALIZED PHONE AT CHECK', normalized);
 
     setSubmitting(true);
     try {
       const customer = await checkCustomerCashback(normalized);
+      console.log('CUSTOMER FOUND AT CHECK', customer);
       
       if (customer) {
         if (customer.name) {
-          console.log('DEBUG: Customer found, setting name:', customer.name);
           setCustomerName(customer.name);
           toast.success(`Bem-vindo de volta, ${customer.name}!`);
         }
         if (customer.id) setCustomerId(customer.id);
+        setBookingStep(2);
+      } else {
+        // Se é um cliente novo, precisamos que informe o nome antes de prosseguir
+        if (!customerName || customerName.trim().length < 3) {
+          toast.info("Parece que é sua primeira vez! Por favor, informe seu nome.");
+          // Permanecemos no step 1 para o cliente digitar o nome
+        } else {
+          // Se já digitou o nome (campo Name está visível), podemos prosseguir
+          setBookingStep(2);
+        }
       }
-      
-      setBookingStep(2);
     } catch (e: any) {
       toast.error("Erro ao verificar identificação: " + e.message);
     } finally {
@@ -1069,6 +1090,7 @@ function ShopPageComponent() {
         }
 
         if (data) {
+          console.log('CUSTOMER RESULT FOUND', data);
           setCustomerCashback(data.cashback_balance || 0);
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
@@ -1076,10 +1098,11 @@ function ShopPageComponent() {
           setCustomerId(data.id);
           return data;
         } else {
-          // If no portal session, clear name for new customer
+          console.log('CUSTOMER RESULT NOT FOUND');
+          // Se não encontrou cliente, limpa o ID e possivelmente o nome se não for sessão do portal
+          setCustomerId(null);
           if (!localStorage.getItem(`client_portal_session_${slug}`)) {
             setCustomerName("");
-            setCustomerId(null);
           }
           setCustomerCashback(0);
           setCustomerLoyaltyPoints(0);
@@ -1093,12 +1116,12 @@ function ShopPageComponent() {
   };
 
 
-  // Skip step 1 if we already have customer info (e.g. from portal)
+  // Avanço automático apenas para clientes JÁ IDENTIFICADOS no banco (ex: portal ou busca automática)
   useEffect(() => {
-    if (isBookingOpen && bookingStep === 1 && customerPhone && customerName) {
+    if (isBookingOpen && bookingStep === 1 && customerPhone && customerName && customerId) {
       handlePhoneCheck();
     }
-  }, [isBookingOpen, bookingStep, customerPhone, customerName]);
+  }, [isBookingOpen, bookingStep, customerPhone, customerName, customerId]);
 
   if (isPortalRoute || isProfissionalRoute) {
     return <Outlet />;
@@ -1739,15 +1762,30 @@ function ShopPageComponent() {
                       />
                     </div>
 
+                    {/* Campo de nome condicional se o cliente não for encontrado e o telefone estiver completo */}
+                    {normalizePhone(customerPhone).length >= 10 && !customerId && !isSearchingCustomer && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="grid gap-3 p-6 bg-primary/5 rounded-3xl border border-primary/20 shadow-inner mt-4 overflow-hidden"
+                      >
+                        <Label className="text-xs font-black uppercase tracking-widest text-primary ml-1">Seu Nome Completo</Label>
+                        <Input 
+                          placeholder="Ex: João Silva" 
+                          value={customerName} 
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-16 text-2xl font-black focus-visible:ring-primary/50 rounded-2xl"
+                        />
+                      </motion.div>
+                    )}
 
                   </div>
                   <Button 
                     className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all" 
-
                     onClick={handlePhoneCheck}
-                    disabled={!customerPhone || submitting}
+                    disabled={!customerPhone || submitting || (normalizePhone(customerPhone).length >= 10 && !customerId && !customerName)}
                   >
-                    {submitting ? "Verificando..." : "Continuar"}
+                    {submitting ? "Verificando..." : (customerId ? "Continuar" : "Cadastrar e Continuar")}
                   </Button>
                 </div>
 
@@ -1763,18 +1801,8 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                {!isEmbedded && !customerName && (
-                  <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
-                    <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Como podemos te chamar?</Label>
-                    <Input 
-                      placeholder="Seu nome" 
-                      value={customerName} 
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="bg-white border-gray-200 text-black placeholder:text-gray-400 h-14 text-xl font-black focus-visible:ring-[#D4AF37]/50 rounded-2xl"
-                    />
-                  </div>
-                )}
-
+                {/* O campo de nome agora é exibido no Step 1 se o cliente não for encontrado */}
+                
                 <div className="space-y-4">
                   <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Selecione o Serviço</h5>
                   <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
