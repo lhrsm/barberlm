@@ -4,9 +4,11 @@ import { routeTree } from "./routeTree.gen";
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
 
+  console.error("Critical Runtime Error:", error);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
+      <div className="max-w-md w-full text-center">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -27,15 +29,17 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
         <p className="mt-2 text-sm text-muted-foreground">
           An unexpected error occurred. Please try again.
         </p>
-        {(import.meta.env.DEV || true) && error.message && (
-          <div className=\"mt-4 text-left\">
-            <p className=\"text-xs font-bold text-destructive mb-1 uppercase tracking-wider\">Error Detail:</p>
-            <pre className=\"max-h-60 overflow-auto rounded-md bg-muted p-4 font-mono text-[10px] text-destructive border border-destructive/20\">
+        
+        {error.message && (
+          <div className="mt-4 text-left">
+            <p className="text-[10px] font-bold text-destructive/50 mb-1 uppercase tracking-widest">Error Trace</p>
+            <pre className="max-h-60 overflow-auto rounded-lg bg-muted p-4 font-mono text-[10px] text-destructive border border-destructive/20 whitespace-pre-wrap">
               {error.message}
-              {error.stack && `\n\nStack:\n${error.stack}`}
+              {error.stack && `\n\n${error.stack}`}
             </pre>
           </div>
         )}
+
         <div className="mt-6 flex items-center justify-center gap-3">
           <button
             onClick={() => {
