@@ -1603,6 +1603,44 @@ export type Database = {
           },
         ]
       }
+      webhook_logs: {
+        Row: {
+          barbershop_id: string | null
+          created_at: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          status: string
+        }
+        Insert: {
+          barbershop_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          status: string
+        }
+        Update: {
+          barbershop_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_cloud_connections: {
         Row: {
           access_token: string | null
