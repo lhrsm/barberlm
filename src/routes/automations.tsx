@@ -488,10 +488,16 @@ function AutomationsComponent() {
                             <Button 
                               variant="default" 
                               size="sm" 
-                              onClick={() => toast.info("Automação de teste enviada!")}
+                              onClick={() => handleTestAutomation(data || { type: item.id })}
+                              disabled={isTesting === (data?.id || item.id)}
                               className="px-3 h-10 font-bold bg-slate-900 text-white hover:scale-105 transition-all rounded-xl gap-2"
                             >
-                              <Play size={14} /> Testar
+                              {isTesting === (data?.id || item.id) ? (
+                                <Loader2 className="h-14 w-14 animate-spin" />
+                              ) : (
+                                <Play size={14} />
+                              )}
+                              Testar
                             </Button>
                           </>
                         )}
