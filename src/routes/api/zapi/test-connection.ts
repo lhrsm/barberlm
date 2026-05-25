@@ -20,18 +20,23 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
           const body = await request.json();
           const { instanceId, token, connectionId } = body;
 
-          console.log('INSTANCE ID:', instanceId);
-          console.log('TOKEN:', token);
+          console.log('--- DEBUG Z-API TEST CONNECTION ---');
+          console.log('Instance ID:', instanceId);
+          console.log('Token:', token?.substring(0, 4) + '...');
+          console.log('Connection ID:', connectionId);
 
           const headers: any = {
             'Content-Type': 'application/json'
           };
 
+          if (!instanceId || !token) {
+            throw new Error("Instance ID e Token são obrigatórios");
+          }
+
           const fullUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}/status`;
           
-          console.log('--- Z-API TEST REQUEST ---');
-          console.log('URL:', fullUrl);
-          console.log('HEADERS:', JSON.stringify(headers));
+          console.log('Full URL:', fullUrl);
+          console.log('Headers being sent:', JSON.stringify(headers));
 
           const response = await fetch(
             fullUrl,
@@ -41,13 +46,15 @@ export const Route = createFileRoute("/api/zapi/test-connection")({
             }
           );
 
+          const responseText = await response.text();
+          console.log('Z-API RAW RESPONSE:', responseText);
+
           if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Z-API Error: ${response.status} - ${errorText}`);
+            throw new Error(`Z-API Error: ${response.status} - ${responseText}`);
           }
 
-          const data = await response.json();
-          console.log('ZAPI STATUS DATA:', data);
+          const data = JSON.parse(responseText);
+          console.log('Z-API PARSED DATA:', data);
 
           const isConnected =
             data.connected === true ||
