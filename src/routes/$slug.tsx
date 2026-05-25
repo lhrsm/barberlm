@@ -2838,17 +2838,42 @@ function ShopPageComponent() {
                   // 1. Create sale record in product_sales for the "Faturamento" tab
                   const totalAmount = calculateTotalBeforeCashback();
                   
-                  // Try to find customer ID by phone if we have it
-                  let saleCustomerId = null;
-                  if (customerPhone) {
+                  // Ensure customer exists and get ID
+                  let saleCustomerId = customerId;
+                  
+                  if (!saleCustomerId && customerPhone) {
+                    const normalized = typeof normalizePhone === "function" ? normalizePhone(customerPhone) : customerPhone;
+                    
+                    // 1. Try to find existing
                     const { data: custData } = await supabase
                       .from("customers")
                       .select("id")
-                      .eq("phone", customerPhone)
+                      .eq("phone", normalized)
                       .eq("user_id", shop.id)
                       .maybeSingle();
-                    if (custData) saleCustomerId = custData.id;
+                      
+                    if (custData) {
+                      saleCustomerId = custData.id;
+                    } else if (customerName) {
+                      // 2. Create new if not found
+                      const { data: newCust, error: createError } = await supabase
+                        .from("customers")
+                        .insert({
+                          user_id: shop.id,
+                          name: customerName,
+                          phone: normalized,
+                          cashback_balance: 0,
+                          loyalty_points: 0
+                        })
+                        .select("id")
+                        .single();
+                        
+                      if (createError) throw createError;
+                      saleCustomerId = newCust.id;
+                    }
                   }
+
+                  if (!saleCustomerId) throw new Error("Identificação do cliente é obrigatória para vendas.");
 
                   const { data: saleData, error: saleError } = await supabase.from("product_sales").insert({
                     user_id: shop.id,
