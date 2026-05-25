@@ -1069,10 +1069,18 @@ function DashboardComponent() {
               <Crown className="w-12 h-12 text-amber-500 rotate-12" />
             </div>
 
-            <CardContent className="py-6 text-center space-y-4">
+            <CardContent className="py-6 text-center space-y-4 relative z-10">
               {isTrial ? (
                 <>
-                  <div className="bg-gradient-to-br from-amber-500/10 to-yellow-500/10 border-2 border-amber-500/30 rounded-[2rem] p-5 flex flex-col items-center text-center gap-3 mb-6 shadow-lg shadow-amber-500/5 animate-in fade-in zoom-in duration-700">
+                  <div className="flex justify-center mb-2">
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 shadow-sm shadow-amber-500/5">
+                      <Crown className="w-3 h-3 text-amber-600" />
+                      <span className="text-[10px] font-black italic text-amber-700 tracking-tight uppercase">
+                        Status da Assinatura SaaS
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-amber-500/5 to-yellow-500/5 border border-amber-500/20 rounded-[2rem] p-5 flex flex-col items-center text-center gap-3 mb-6 shadow-xl shadow-amber-500/5 animate-in fade-in zoom-in duration-700">
                     <div className="p-3 bg-amber-500 rounded-2xl text-white shadow-lg shadow-amber-500/40">
                       <AlertCircle className="h-6 w-6" />
                     </div>
