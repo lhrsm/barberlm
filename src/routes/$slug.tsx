@@ -854,6 +854,7 @@ function ShopPageComponent() {
         for (const item of selectedProducts) {
           await supabase.from("product_sales").insert({
             user_id: shop.id,
+            customer_id: finalCustId,
             total_amount: item.price * (item.quantity || 1),
             status: 'completed',
             items: [{
