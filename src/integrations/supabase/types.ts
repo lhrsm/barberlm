@@ -1661,11 +1661,12 @@ export type Database = {
       }
       whatsapp_connections: {
         Row: {
-          api_key: string
           barbershop_id: string
+          client_token: string | null
           created_at: string
           id: string
-          instance_name: string
+          instance_id: string
+          instance_token: string
           last_connection: string | null
           phone: string | null
           provider: string
@@ -1675,11 +1676,12 @@ export type Database = {
           webhook_url: string | null
         }
         Insert: {
-          api_key: string
           barbershop_id: string
+          client_token?: string | null
           created_at?: string
           id?: string
-          instance_name: string
+          instance_id: string
+          instance_token: string
           last_connection?: string | null
           phone?: string | null
           provider?: string
@@ -1689,11 +1691,12 @@ export type Database = {
           webhook_url?: string | null
         }
         Update: {
-          api_key?: string
           barbershop_id?: string
+          client_token?: string | null
           created_at?: string
           id?: string
-          instance_name?: string
+          instance_id?: string
+          instance_token?: string
           last_connection?: string | null
           phone?: string | null
           provider?: string
