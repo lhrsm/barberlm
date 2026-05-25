@@ -1700,7 +1700,6 @@ export type Database = {
       whatsapp_connections: {
         Row: {
           barbershop_id: string
-          client_token: string | null
           connected: boolean | null
           created_at: string
           id: string
@@ -1717,7 +1716,6 @@ export type Database = {
         }
         Insert: {
           barbershop_id: string
-          client_token?: string | null
           connected?: boolean | null
           created_at?: string
           id?: string
@@ -1734,7 +1732,6 @@ export type Database = {
         }
         Update: {
           barbershop_id?: string
-          client_token?: string | null
           connected?: boolean | null
           created_at?: string
           id?: string
