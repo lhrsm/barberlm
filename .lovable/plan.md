@@ -1,26 +1,16 @@
-I will investigate why the Stripe checkout session creation is not reaching Stripe. I'll add extensive logging to both the frontend and backend to trace the execution flow and identify the exact point of failure.
+I will upgrade the time slot selection UI to a premium, modern design with the following improvements:
 
-### Implementation Plan
+### UI/UX Enhancements
+- **Modern Slot Cards**: Replace the simple buttons with interactive chips using a deep dark theme (`bg-zinc-900`).
+- **Enhanced Interactions**: 
+    - **Hover**: Subtle scaling (1.05x), border highlight using the shop's primary color, and a soft glow effect.
+    - **Selection**: High-contrast state using the primary color, strong shadow glow, and an added "Check" icon for visual confirmation.
+    - **Disabled/Taken Slots**: Clear visual cues with lower opacity and appropriate cursors.
+- **Micro-animations**: Smooth transitions using Framer Motion for tap and hover states.
+- **Mobile Optimization**: Optimized grid spacing and button sizing (minimum 48px height) for better touch interaction.
 
-1. **Frontend Instrumentation**:
-    - Add logs to `handlePlanChange` in `src/routes/subscription.tsx`.
-    - Add logs to `openCheckout` in `src/hooks/useStripeCheckout.tsx`.
-    - Add extensive logs to `StripeEmbeddedCheckout` in `src/components/StripeEmbeddedCheckout.tsx`, specifically inside `fetchClientSecret`.
-
-2. **Backend/Server Instrumentation**:
-    - Add logs to the very beginning of `createCheckoutSession` in `src/utils/payments.functions.ts`.
-    - Add logs to `requireSupabaseAuth` in `src/integrations/supabase/auth-middleware.ts` to see if it's blocking the request.
-
-3. **Error Handling**:
-    - Replace generic `console.log(error)` with `console.error(error)` and throw errors where they might be swallowed.
-    - Ensure the `StripeEmbeddedCheckout` component correctly displays the error message if `fetchClientSecret` fails.
-
-4. **Verification**:
-    - After adding logs, I'll ask the user to try again (or I would if I could see their console in real-time, but I can check the server logs).
-
-### Technical Details
-- Using `console.error` to ensure errors are visible in logs.
-- Checking for environment variables like `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` which are required by the auth middleware.
-- Verifying the `ui_mode` and `apiVersion` compatibility.
-
-If I find that the server function is indeed not being called, I will investigate the TanStack Start configuration or the way the server function is being invoked.
+### Technical Implementation
+- Update the `availableTimes.map` section in `src/routes/$slug.tsx`.
+- Use the shop's dynamic `primaryColor` for consistent branding in selection states.
+- Implement a responsive grid (`grid-cols-3` to `grid-cols-4`) with modern gap spacing.
+- Ensure proper accessibility with semantic buttons and clear active states.

@@ -1969,25 +1969,56 @@ function ShopPageComponent() {
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando horários...</p>
                     </div>
                   ) : availableTimes.length > 0 ? (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar p-1">
-                      {availableTimes.map(time => (
-                        <motion.button
-                          key={time}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => setSelectedTime(time)}
-                          className={cn(
-                            "h-14 rounded-2xl text-lg font-black tracking-tight transition-all border flex items-center justify-center",
-                            selectedTime === time 
-                              ? "text-white shadow-2xl scale-105" 
-                              : "bg-white/[0.03] border-white/5 text-slate-300 hover:bg-white/[0.08] hover:border-white/20"
-                          )}
-                          style={selectedTime === time ? { backgroundColor: "black", borderColor: "black" } : {}}
-                        >
-                          {time}
-                        </motion.button>
-                      ))}
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar p-1">
+                      {availableTimes.map(time => {
+                        const isSelected = selectedTime === time;
+                        return (
+                          <motion.button
+                            key={time}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setSelectedTime(time)}
+                            className={cn(
+                              "relative h-14 rounded-2xl text-lg font-black tracking-tight transition-all border flex items-center justify-center gap-2 overflow-hidden group",
+                              isSelected 
+                                ? "text-white border-transparent" 
+                                : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-primary/50 hover:text-white hover:shadow-lg hover:shadow-primary/10"
+                            )}
+                            style={{ 
+                              backgroundColor: isSelected ? primaryColor : undefined,
+                              boxShadow: isSelected ? `0 10px 25px -5px ${primaryColor}40, 0 8px 10px -6px ${primaryColor}40` : undefined,
+                              borderColor: isSelected ? primaryColor : undefined
+                            }}
+                          >
+                            {isSelected && (
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="absolute top-2 right-2"
+                              >
+                                <CheckCircle2 size={14} className="text-white" />
+                              </motion.div>
+                            )}
+                            
+                            <span className="relative z-10">{time}</span>
+                            
+                            {/* Background interactive glow */}
+                            {!isSelected && (
+                              <div 
+                                className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
+                                style={{ backgroundColor: primaryColor }}
+                              />
+                            )}
+
+                            {/* Reflection effect for selected */}
+                            {isSelected && (
+                              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
+                            )}
+                          </motion.button>
+                        );
+                      })}
                     </div>
+
                   ) : (
                     <div className="text-center py-12 bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
                       <p className="text-sm font-black uppercase tracking-tighter text-slate-500">
