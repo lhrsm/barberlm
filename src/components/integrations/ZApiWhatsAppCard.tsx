@@ -85,30 +85,47 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       provider: 'z-api'
     };
 
+    const webhookUrl = `https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}`;
+    const upsertData = {
+      ...data,
+      webhook_url: webhookUrl
+    };
+
+    console.log('Webhook URL gerada:', webhookUrl);
+    console.log('Upserting data:', upsertData);
+
     const { data: saved, error } = connection?.id 
-      ? await supabase.from("whatsapp_connections").update(data).eq("id", connection.id).select().single()
-      : await supabase.from("whatsapp_connections").insert([data]).select().single();
+      ? await supabase.from("whatsapp_connections").update(upsertData).eq("id", connection.id).select().single()
+      : await supabase.from("whatsapp_connections").insert([upsertData]).select().single();
 
     if (error) {
+      console.error('Erro ao salvar conexão:', error);
       toast.error("Erro ao salvar configurações");
     } else {
       setConnection(saved as WhatsAppConnection);
-      toast.success("Configurações salvas!");
+      toast.success("Configurações salvas e Webhook gerado!");
       await setupWebhook(saved as WhatsAppConnection);
     }
   }
 
   async function setupWebhook(conn: WhatsAppConnection) {
+    if (!conn.webhook_url) return;
     try {
-      const webhookUrl = `https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}`;
-      await supabase.functions.invoke('zapi-api', {
+      console.log('Configurando webhook na Z-API:', conn.webhook_url);
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
         body: { 
           action: 'set-webhook', 
           connectionId: conn.id,
-          data: { webhookUrl }
+          data: { webhookUrl: conn.webhook_url }
         }
       });
-      await supabase.from("whatsapp_connections").update({ webhook_url: webhookUrl }).eq("id", conn.id);
+      
+      if (error) {
+        console.error('Erro ao configurar webhook na Z-API:', error);
+        toast.error("Salvo, mas falha ao configurar webhook na Z-API");
+      } else {
+        console.log('Resposta Z-API webhook:', data);
+      }
     } catch (err) {
       console.error("Erro ao configurar webhook", err);
     }
@@ -337,16 +354,21 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                             size="sm" 
                             className="bg-black/20 border-white/10 hover:bg-white/5"
                             onClick={() => {
-                              navigator.clipboard.writeText(`https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}`);
-                              toast.success("Webhook copiado!");
+                              navigator.clipboard.writeText(connection.webhook_url || "");
+                              toast.success("Webhook copiado com sucesso!");
                             }}
                           >
                             Copiar URL
                           </Button>
                         </div>
                         
-                        <div className="p-3 bg-black/40 rounded-xl border border-white/5 text-[11px] font-mono text-slate-400 break-all">
-                          https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/{tenantId}
+                        <div className="p-3 bg-black/40 rounded-xl border border-white/5 text-[11px] font-mono text-slate-400 break-all relative group/url">
+                          {connection.webhook_url || "Aguardando geração..."}
+                          {connection.webhook_url && (
+                            <Badge className="absolute right-2 top-2 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[8px] uppercase font-bold">
+                              Ativo
+                            </Badge>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -372,7 +394,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                               body: { 
                                 action: 'test-webhook', 
                                 connectionId: connection.id,
-                                data: { webhookUrl: `https://wdxhjwodyctgzqtogkgv.supabase.co/functions/v1/zapi-webhook/${tenantId}` }
+                                data: { webhookUrl: connection.webhook_url }
                               }
                             });
                             if (error) toast.error("Erro no teste");
