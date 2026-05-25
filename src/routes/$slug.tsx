@@ -188,7 +188,8 @@ function ShopPageComponent() {
 
   useEffect(() => {
     if (isEmbedded && initialPhone) {
-      setCustomerPhone(formatPhoneMask(initialPhone));
+      setCustomerPhone(initialPhone);
+
       if (initialName) setCustomerName(initialName);
       
       // Auto trigger phone check if embedded with phone
