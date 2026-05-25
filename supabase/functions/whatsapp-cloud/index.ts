@@ -43,7 +43,8 @@ serve(async (req) => {
         if (conn.provider === 'z-api') {
           const baseUrl = conn.server_url || "https://api.z-api.io";
           const headers: any = { "Content-Type": "application/json" };
-          if (conn.client_token) headers["Client-Token"] = conn.client_token;
+          
+          console.log(`Sending WhatsApp via Z-API: ${conn.instance_id}`);
 
           response = await fetch(`${baseUrl}/instances/${conn.instance_id}/token/${conn.instance_token}/send-text`, {
             method: "POST",
