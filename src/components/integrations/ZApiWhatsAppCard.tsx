@@ -38,10 +38,24 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isTesting, setIsTesting] = useState(false);
   const [testNumber, setTestNumber] = useState("");
   const [pollingStatus, setPollingStatus] = useState<string>("qrcode");
+  const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
 
   useEffect(() => {
-    if (tenantId) fetchConnection();
+    if (tenantId) {
+      fetchConnection();
+      fetchWebhookLogs();
+    }
   }, [tenantId]);
+
+  async function fetchWebhookLogs() {
+    const { data } = await supabase
+      .from("webhook_logs")
+      .select("*")
+      .eq("barbershop_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (data) setWebhookLogs(data);
+  }
 
   async function fetchConnection() {
     try {
