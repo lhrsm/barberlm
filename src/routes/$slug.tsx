@@ -790,7 +790,7 @@ function ShopPageComponent() {
             cashback_balance: customerCashback - cashbackToDeduct,
             credits: customerCredits - creditsToDeduct
           })
-          .eq("id", customerId);
+          .eq("id", finalCustId);
       }
 
       toast.success("Agendamento concluído com sucesso! Redirecionando para o seu painel...");
