@@ -537,14 +537,14 @@ function DashboardComponent() {
           // @ts-ignore
 
           // 2. Adicionar crédito à carteira
-          await supabase.from("wallet_transactions").insert({
+          await supabase.from("wallet_transactions").insert([{
             wallet_id: wallet.id,
             amount: totalPrice,
             type: "credit",
             description: `Crédito por cancelamento: ${appointment.services?.name || 'Serviço'}`,
             appointment_id: appointment.id,
             user_id: tenantId
-          });
+          }]);
 
           // 3. Registrar na transação como 0 para não contar como receita nova nem saída, 
           // mas documentar o movimento. O valor original de 'income' continua lá, 
