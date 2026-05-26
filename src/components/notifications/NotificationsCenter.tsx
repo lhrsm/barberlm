@@ -111,7 +111,7 @@ export function NotificationsCenter() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, navigate]);
+  }, [queryClient, navigate, instanceId]);
 
   const getIcon = (type: string | null) => {
     switch (type) {
