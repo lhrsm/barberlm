@@ -435,7 +435,7 @@ function DashboardComponent() {
 
       const { error: transError } = await supabase
         .from("transactions")
-        .insert({
+        .insert([{
           amount: remainingToPay,
           type: "income",
           description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
@@ -445,7 +445,7 @@ function DashboardComponent() {
           tenant_id: tenantId,
           user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
-        });
+        }]);
       
       if (transError) console.error("Error creating transaction on payment status toggle:", transError);
     } else if (newStatus === 'pending') {
