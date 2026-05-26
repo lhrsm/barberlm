@@ -394,9 +394,15 @@ function CalendarComponent() {
               editingAppointmentId={modalInitialData.editingId}
               onSuccess={() => fetchData()}
               trigger={
-                <Button className="gap-2 bg-black text-white hover:scale-110 transition-all duration-300" variant={canAddAppointment ? "default" : "secondary"}>
+                <Button 
+                  className="gap-2 bg-black text-white hover:scale-110 transition-all duration-300" 
+                  variant={canAddAppointment ? "default" : "secondary"}
+                  onClick={() => {
+                    setModalInitialData({ editingId: undefined });
+                    setIsDialogOpen(true);
+                  }}
+                >
                   <Plus size={18} /> <span className="hidden md:inline">Novo Agendamento</span>
-
                 </Button>
               }
             />
