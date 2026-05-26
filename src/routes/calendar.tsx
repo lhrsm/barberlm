@@ -597,21 +597,40 @@ function CalendarComponent() {
                                   variant="ghost" 
                                   size="icon" 
                                   className="h-5 w-5 text-white hover:bg-red-500/50"
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    if (confirm("Deseja cancelar este agendamento?")) {
-                                      const { error } = await supabase
-                                        .from("appointments")
-                                        .update({ status: "cancelled" })
-                                        .eq("id", app.id);
-                                      if (error) {
-                                        toast.error("Erro ao cancelar agendamento");
-                                      } else {
-                                        fetchData();
-                                        toast.success("Agendamento cancelado");
-                                      }
-                                    }
-                                  }}
+                                   onClick={async (e) => {
+                                     e.stopPropagation();
+                                     if (confirm("Deseja cancelar este agendamento?")) {
+                                       setIsLoading(true);
+                                       try {
+                                         const { error } = await supabase
+                                           .from("appointments")
+                                           .update({ 
+                                             status: "cancelled",
+                                             updated_by_type: role === 'barber' ? 'barber' : 'admin',
+                                             updated_by_id: user.id
+                                           })
+                                           .eq("id", app.id);
+                                         
+                                         if (error) throw error;
+
+                                         // Call notification edge function
+                                         await supabase.functions.invoke('appointment-notifications', {
+                                           body: {
+                                             appointmentId: app.id,
+                                             type: 'appointment_cancelled',
+                                             updatedBy: { type: role === 'barber' ? 'barber' : 'admin', id: user.id }
+                                           }
+                                         });
+
+                                         fetchData();
+                                         toast.success("Agendamento cancelado");
+                                       } catch (err: any) {
+                                         toast.error("Erro ao cancelar: " + err.message);
+                                       } finally {
+                                         setIsLoading(false);
+                                       }
+                                     }
+                                   }}
                                 >
                                   <X size={12} />
                                 </Button>
