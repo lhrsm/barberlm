@@ -567,16 +567,17 @@ function AutomationsComponent() {
 
           <Card className="bg-muted/30 border-dashed">
             <CardContent className="p-4 flex flex-col justify-center h-full">
-              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Horário do Sistema</div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Horário do Servidor</div>
               <div className="text-xl font-bold flex items-center gap-2">
                 <Clock size={18} className="text-primary" />
-                {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                {serverInfo ? new Date(serverInfo.server_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
               </div>
               <div className="text-[10px] text-muted-foreground uppercase mt-1">
-                {automationStatus?.timezone || 'America/Sao_Paulo'} (UTC-3)
+                {serverInfo?.timezone || 'America/Bahia'} (UTC-3)
               </div>
             </CardContent>
           </Card>
+
         </div>
 
 
