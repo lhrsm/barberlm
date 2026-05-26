@@ -228,7 +228,7 @@ export function AppointmentModal({
       const startTime = parseISO(`${selectedDate}T${timeWithSeconds}`);
       const endTime = addMinutes(startTime, service?.duration_minutes || 30);
 
-      const { data: appointmentData, error } = await supabase.from("appointments").insert([{
+      const appointmentPayload: any = {
         user_id: tenantId,
         tenant_id: tenantId,
         customer_id: selectedCustomer,
@@ -248,8 +248,10 @@ export function AppointmentModal({
           type: 'service',
           price: service?.price,
           quantity: 1
-        }] as any
-      }]).select().single();
+        }]
+      };
+
+      const { data: appointmentData, error } = await supabase.from("appointments").insert([appointmentPayload]).select().single();
 
       if (error) throw error;
 
