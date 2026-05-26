@@ -272,7 +272,8 @@ function DashboardComponent() {
       query = query.eq("status", statusFilter);
     }
 
-    const { data } = await query.order("start_time", { ascending: false });
+    const { data, error } = await query.order("start_time", { ascending: false });
+    console.log('DASHBOARD APPOINTMENTS DEBUG:', { tenantId, date: selectedDate, count: data?.length, error });
     if (data) setTodayAppointments(data);
   }
 
