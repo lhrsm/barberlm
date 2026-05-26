@@ -131,6 +131,18 @@ function ShopPageComponent() {
     }
   }, [slug]);
 
+  // Listener para abrir a modal de agendamento a partir do portal (iframe ou componente interno)
+  useEffect(() => {
+    const handleOpenBooking = () => {
+      console.log('DEBUG: Received OPEN_BOOKING_MODAL event');
+      handleBookingAction();
+    };
+
+    window.addEventListener('OPEN_BOOKING_MODAL', handleOpenBooking);
+    return () => window.removeEventListener('OPEN_BOOKING_MODAL', handleOpenBooking);
+  }, [shop, customerPhone]);
+
+
   // Reativo: Busca automática de cliente pelo WhatsApp
   useEffect(() => {
     async function findCustomer() {
@@ -1718,16 +1730,16 @@ function ShopPageComponent() {
       <Dialog open={isBookingOpen} onOpenChange={(open) => {
         setIsBookingOpen(open);
         if (!open) {
+          // If logged in via portal, we might want to stay on step 2/3 on next open if it was already chosen
+          // but usually it's better to reset to step 1 (where it will auto-identify and skip)
+          const isPortalActive = !!localStorage.getItem(`client_portal_session_${slug}`);
           setBookingStep(1);
-          // Don't reset if we want to persist between modal closes in the same session,
-          // but user wants them to persist anyway.
-          // However, for a fresh start on next click, we might want to clear, 
-          // but the user says "maintain until finalized".
           setUseCashback(false);
           setUseCredits(false);
           setPaymentMethod(null);
         }
       }}>
+
         <DialogContent className={cn("sm:max-w-[480px] p-0 overflow-hidden bg-white border-2 border-[#D4AF37] h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
           <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar flex flex-col bg-gradient-to-b from-white/[0.02] to-transparent">
           {!isEmbedded && (
@@ -1783,9 +1795,9 @@ function ShopPageComponent() {
                         </span>
                       )}
                     </div>
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-white rounded-2xl shadow-sm group-focus-within:shadow-md transition-shadow pointer-events-none border border-gray-200 group-focus-within:border-[#D4AF37]/50"></div>
+                    <div className="relative group international-phone-portal">
                       <PhoneInput
+
                         defaultCountry={typeof window !== 'undefined' ? (navigator.language.split('-')[1]?.toLowerCase() || 'br') : 'br'}
                         value={customerPhone}
                         onChange={(phone) => setCustomerPhone(phone)}
@@ -1796,7 +1808,29 @@ function ShopPageComponent() {
                           buttonClassName: "!h-16 !bg-transparent !border-none !px-4 !rounded-l-2xl hover:!bg-gray-100 transition-colors",
                         }}
                       />
+                      <style>{`
+                        .international-phone-portal .react-international-phone-input-container {
+                          width: 100%;
+                          border: 1px solid #e2e8f0;
+                          border-radius: 1rem;
+                          background: white;
+                          transition: all 0.2s;
+                        }
+                        .international-phone-portal .react-international-phone-input-container:focus-within {
+                          border-color: #D4AF37;
+                          box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+                        }
+                        .international-phone-portal .react-international-phone-input {
+                          width: 100% !important;
+                          border: none !important;
+                        }
+                        .international-phone-portal .react-international-phone-country-selector-button {
+                          border: none !important;
+                          border-right: 1px solid #f1f5f9 !important;
+                        }
+                      `}</style>
                     </div>
+
 
                     <AnimatePresence mode="wait">
                       {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && (

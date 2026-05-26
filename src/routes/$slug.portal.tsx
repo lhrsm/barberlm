@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -36,10 +38,13 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { normalizePhone, formatPhoneMask } from "@/utils/phone";
+import { PhoneInput } from 'react-international-phone';
+import 'react-international-phone/style.css';
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
 });
+
 
 function ClientPortalComponent() {
   const { slug } = Route.useParams();
@@ -238,21 +243,10 @@ function ClientPortalComponent() {
       return;
     }
 
-    // Reset booking state
-    setSelectedService(null);
-    setSelectedBarber(null);
-    setSelectedDate(format(new Date(), "yyyy-MM-dd"));
-    setSelectedTime("");
-    setSelectedProducts([]);
-    setPaymentMethod(null);
-    setUseCashback(false);
-    setUseCredits(false);
-    
-    // Start directly at service selection
-    setBookingStep(1); 
-    setIsBookingOpen(true);
-    console.log('booking modal open, step 1 (services)');
+    // Apenas emitir o evento para o pai (ShopPageComponent) abrir a modal unificada
+    window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'));
   };
+
 
 
   async function fetchClientData(customerId: string) {
@@ -465,10 +459,16 @@ function ClientPortalComponent() {
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const normalized = normalizePhone(phone);
     console.log('DEBUG: Normalizing phone for login:', { original: phone, normalized });
+    
+    if (normalized.length < 10) {
+      toast.error("Por favor, informe um WhatsApp válido com DDD.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       // Find customer in this specific shop first
@@ -524,6 +524,7 @@ function ClientPortalComponent() {
       setSubmitting(false);
     }
   };
+
 
   const handleRegister = async (e: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -936,132 +937,103 @@ function ClientPortalComponent() {
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-[#D4AF37] mb-2">Barbe<span className="text-white">X</span></h1>
-          <p className="text-white/90">Portal do Cliente</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 text-center"
+        >
+          <h1 className="text-4xl font-black text-[#D4AF37] mb-2 uppercase italic tracking-tighter">Barber<span className="text-white">LM</span></h1>
+          <p className="text-white/60 text-xs font-black uppercase tracking-[0.3em]">Portal do Cliente</p>
+        </motion.div>
 
-        <Card className="w-full max-w-md bg-white rounded-2xl shadow-2xl border-2 border-[#D4AF37] p-2">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-black">{shop?.business_name}</CardTitle>
-            <CardDescription className="text-gray-600">Acesse seu portal para gerenciar seus agendamentos</CardDescription>
+        <Card className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border-none p-2 overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#D4AF37] via-black to-[#D4AF37]" />
+          <CardHeader className="text-center pt-8">
+            <CardTitle className="text-3xl font-black uppercase italic tracking-tighter text-black leading-none">{shop?.business_name}</CardTitle>
+            <CardDescription className="text-gray-500 font-medium mt-2">Acesse seu histórico e agendamentos</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4">
+          <CardContent className="p-6">
+            <form onSubmit={isRegistering ? handleRegister : (e) => handleLogin(e)} className="space-y-6">
               {isRegistering && (
-                <>
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-4"
+                >
                   <div className="space-y-2">
-                    <Label htmlFor="reg-name" className="text-black font-semibold">Seu Nome</Label>
-                    <Input 
-                      id="reg-name" 
-                      placeholder="João Silva" 
-                      className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
-                      value={customerName} 
-                      onChange={(e) => setCustomerName(e.target.value)} 
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email" className="text-black font-semibold">E-mail (Opcional)</Label>
+                    <Label htmlFor="reg-name" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Seu Nome Completo</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                       <Input 
-                        id="reg-email" 
-                        type="email"
-                        placeholder="joao@email.com" 
-                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
-                        value={customerEmail} 
-                        onChange={(e) => setCustomerEmail(e.target.value)} 
+                        id="reg-name" 
+                        placeholder="João Silva" 
+                        className="h-14 pl-12 border-gray-100 bg-gray-50 focus:bg-white focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black text-lg font-bold rounded-2xl transition-all"
+                        value={customerName} 
+                        onChange={(e) => setCustomerName(e.target.value)} 
+                        required 
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-birth" className="text-black font-semibold">Data de Nascimento</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="reg-birth" 
-                        type="text"
-                        placeholder="dd/mm/aaaa"
-                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black" 
-                        value={customerBirthDate} 
-                        onChange={(e) => {
-                          let value = e.target.value.replace(/\D/g, "");
-                          if (value.length > 8) value = value.slice(0, 8);
-                          if (value.length > 4) {
-                            value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
-                          } else if (value.length > 2) {
-                            value = `${value.slice(0, 2)}/${value.slice(2)}`;
-                          }
-                          setCustomerBirthDate(value);
-                        }} 
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-avatar" className="text-black font-semibold">Foto de Perfil (Opcional)</Label>
-                    <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 overflow-hidden shrink-0">
-                        {customerAvatar ? (
-                          <img src={URL.createObjectURL(customerAvatar)} alt="Preview" className="h-full w-full object-cover" />
-                        ) : (
-                          <Camera className="h-5 w-5 text-gray-400" />
-                        )}
-                      </div>
-                      <Input 
-                        id="reg-avatar" 
-                        type="file"
-                        accept="image/*"
-                        className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-black hover:file:bg-gray-100"
-                        onChange={(e) => setCustomerAvatar(e.target.files?.[0] || null)}
-                      />
-                    </div>
-                  </div>
-                </>
+                </motion.div>
               )}
+              
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-black font-semibold">Telefone</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="phone" 
-                    placeholder="11999999999" 
-                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black" 
-                    value={phone} 
-                    onChange={(e) => setPhone(e.target.value)} 
-                    required 
+                <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">WhatsApp</Label>
+                <div className="relative international-phone-portal">
+                  <PhoneInput
+                    defaultCountry="br"
+                    value={phone}
+                    onChange={(p) => setPhone(p)}
+                    className="w-full"
+                    inputClassName="!w-full !h-14 !bg-gray-50 !border-gray-100 !focus:bg-white !focus:border-[#D4AF37] !focus:ring-[#D4AF37] !text-black !text-lg !font-bold !rounded-2xl !pl-12 !transition-all"
+                    countrySelectorStyleProps={{
+                      buttonClassName: "!h-14 !bg-transparent !border-none !absolute !left-0 !z-10 !rounded-l-2xl",
+                      flagClassName: "!ml-2"
+                    }}
                   />
+                  <style>{`
+                    .international-phone-portal .react-international-phone-input-container {
+                      width: 100%;
+                    }
+                    .international-phone-portal .react-international-phone-input {
+                      width: 100% !important;
+                      padding-left: 55px !important;
+                    }
+                  `}</style>
                 </div>
               </div>
+
               <Button 
                 type="submit" 
-                className="w-full h-11 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-bold text-lg" 
+                className="w-full h-16 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-black text-xl uppercase tracking-tighter rounded-2xl shadow-xl shadow-black/10" 
                 disabled={submitting}
               >
-                {submitting ? "Processando..." : (isRegistering ? "Cadastrar" : "Entrar")}
+                {submitting ? "Processando..." : (isRegistering ? "Criar Conta" : "Entrar no Portal")}
               </Button>
             </form>
-            <div className="mt-6 text-center">
+            
+            <div className="mt-8 text-center pt-6 border-t border-gray-50">
               <button 
-                className="text-sm text-[#D4AF37] font-semibold hover:underline" 
+                className="text-xs text-gray-400 font-bold uppercase tracking-widest hover:text-[#D4AF37] transition-colors" 
                 onClick={() => setIsRegistering(!isRegistering)}
               >
-                {isRegistering ? "Já tem conta? Entre aqui" : "Ainda não tem conta? Cadastre-se"}
+                {isRegistering ? "Já tem conta? Fazer Login" : "Não tem conta? Cadastrar-se"}
               </button>
             </div>
           </CardContent>
         </Card>
+        
         <Button 
-          variant="link" 
-          className="mt-6 text-white hover:text-[#D4AF37] transition-colors" 
+          variant="ghost" 
+          className="mt-8 text-white/40 hover:text-[#D4AF37] transition-colors uppercase font-black tracking-widest text-[10px]" 
           onClick={() => navigate({ to: `/${slug}` })}
         >
-          Voltar para a barbearia
+          <ChevronLeft className="mr-2" size={14} /> Voltar para a barbearia
         </Button>
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-black pb-20">
@@ -1097,11 +1069,21 @@ function ClientPortalComponent() {
             </div>
           </div>
           <Button 
-            onClick={handlePortalBooking} 
+            onClick={() => {
+              // Limpar estados do agendamento local para garantir que a modal padrão abra do zero
+              // Mas aqui vamos apenas redirecionar ou emitir um evento se quisermos usar o componente pai.
+              // Como estamos em /$slug/portal, o componente pai ShopPageComponent está ativo e tem o isBookingOpen.
+              // Podemos tentar emitir um evento ou usar o contexto se disponível.
+              // No BarberLM, o $slug.tsx envolve o Outlet.
+              
+              // Emitir evento para o pai (ShopPageComponent)
+              window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'));
+            }} 
             className="gap-2 bg-black text-white border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all duration-300 hover:scale-105"
           >
             <Calendar size={18} /> Novo Agendamento
           </Button>
+
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">
@@ -1545,353 +1527,7 @@ function ClientPortalComponent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-white border-[#D4AF37] border-2 h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl text-black">
-          <DialogHeader className="p-6 border-b shrink-0">
-            <DialogTitle className="text-black">Novo Agendamento</DialogTitle>
-            <DialogDescription className="text-gray-600">Complete os passos abaixo para agendar seu serviço.</DialogDescription>
-          </DialogHeader>
-          
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-            {bookingStep === 1 && (
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg">Selecione o Serviço</h3>
-                <div className="grid gap-3">
-                  {services.map(service => (
-                    <Button
-                      key={service.id}
-                      variant="outline"
-                      className="h-auto py-4 px-6 justify-between border-gray-200 hover:border-[#D4AF37] hover:bg-gray-50 group text-black"
-                      onClick={() => {
-                        setSelectedService(service);
-                        setBookingStep(2);
-                      }}
-                    >
-                      <div className="text-left">
-                        <p className="font-bold">{service.name}</p>
-                        <p className="text-xs text-gray-500">{service.duration_minutes} min</p>
-                      </div>
-                      <span className="font-bold text-[#D4AF37]">R$ {service.price.toFixed(2)}</span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
 
-            {bookingStep === 2 && (
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg">Selecione o Profissional</h3>
-                <div className="grid gap-3">
-                  {barbers
-                    .filter(b => b.active !== false && b.barber_services?.some((bs: any) => bs.service_id === selectedService?.id))
-                    .map(barber => (
-                    <Button
-                      key={barber.id}
-                      variant="outline"
-                      className="h-auto py-4 px-6 justify-start gap-4 border-gray-200 hover:border-[#D4AF37] hover:bg-gray-50 text-black"
-                      onClick={() => {
-                        setSelectedBarber(barber);
-                        setBookingStep(3);
-                      }}
-                    >
-                      <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden shrink-0 border border-gray-200">
-                        {barber.avatar_url ? (
-                          <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
-                        ) : (
-                          <UserIcon size={20} className="text-gray-400" />
-                        )}
-                      </div>
-                      <span className="font-bold">{barber.name}</span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {bookingStep === 3 && (
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg">Escolha Data e Horário</h3>
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-xs uppercase font-bold text-gray-500 mb-2 block">Data</Label>
-                    <Input 
-                      type="date" 
-                      value={selectedDate}
-                      min={format(new Date(), "yyyy-MM-dd")}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="border-gray-200 text-black h-12"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs uppercase font-bold text-gray-500 mb-2 block">Horário</Label>
-                    {fetchingTimes ? (
-                      <div className="flex justify-center py-8">
-                        <RefreshCcw className="animate-spin text-[#D4AF37]" />
-                      </div>
-                    ) : availableTimes.length > 0 ? (
-                      <div className="grid grid-cols-3 gap-2">
-                        {availableTimes.map(time => (
-                          <Button
-                            key={time}
-                            variant={selectedTime === time ? "default" : "outline"}
-                            className={cn(
-                              "h-11 font-bold",
-                              selectedTime === time ? "bg-black text-white" : "border-gray-200 text-black hover:border-black"
-                            )}
-                            onClick={() => setSelectedTime(time)}
-                          >
-                            {time}
-                          </Button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
-                        <Calendar className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-                        <p className="text-sm text-gray-500 font-medium">Nenhum horário disponível para esta data.</p>
-                        <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Tente selecionar outro dia ou profissional</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {selectedTime && (
-                    <Button 
-                      className="w-full h-12 bg-[#D4AF37] text-black font-bold mt-4 hover:bg-[#B8860B]"
-                      onClick={() => setBookingStep(4)}
-                    >
-                      Próximo
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {bookingStep === 4 && (
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg">Produtos Adicionais (Opcional)</h3>
-                <div className="grid gap-3">
-                  {products.map(product => {
-                    const isSelected = selectedProducts.find(p => p.id === product.id);
-                    return (
-                      <div 
-                        key={product.id} 
-                        className={cn(
-                          "p-4 rounded-2xl border-2 transition-all flex items-center justify-between gap-4",
-                          isSelected ? "border-[#D4AF37] bg-gray-50" : "border-gray-100 hover:border-gray-200"
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
-                            {product.image_url && <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />}
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm">{product.name}</p>
-                            <p className="text-xs text-[#D4AF37] font-bold">R$ {product.price.toFixed(2)}</p>
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant={isSelected ? "default" : "outline"}
-                          className={cn(
-                            "rounded-full h-9 w-9 p-0",
-                            isSelected ? "bg-[#D4AF37] text-black" : "border-gray-200 text-black"
-                          )}
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedProducts(selectedProducts.filter(p => p.id !== product.id));
-                            } else {
-                              setSelectedProducts([...selectedProducts, { ...product, quantity: 1 }]);
-                            }
-                          }}
-                        >
-                          {isSelected ? <CheckCircle2 size={18} /> : <Plus size={18} />}
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-                <Button 
-                  className="w-full h-12 bg-black text-white font-bold mt-4 hover:bg-black/90"
-                  onClick={() => setBookingStep(5)}
-                >
-                  Ir para o Resumo
-                </Button>
-              </div>
-            )}
-
-            {bookingStep === 5 && (
-              <div className="space-y-6">
-                <h3 className="font-bold text-lg">Resumo e Pagamento</h3>
-                
-                <div className="bg-gray-50 p-6 rounded-[2rem] border border-gray-100 space-y-4">
-                  <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-                    <span className="text-gray-500 font-medium">Serviço:</span>
-                    <span className="font-bold">{selectedService?.name}</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-                    <span className="text-gray-500 font-medium">Profissional:</span>
-                    <span className="font-bold">{selectedBarber?.name}</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-                    <span className="text-gray-500 font-medium">Data e Hora:</span>
-                    <span className="font-bold">{format(parseISO(selectedDate), "dd/MM/yyyy")} às {selectedTime}</span>
-                  </div>
-                  
-                  {selectedProducts.length > 0 && (
-                    <div className="space-y-2 py-4 border-b border-gray-200">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Produtos</p>
-                      {selectedProducts.map(p => (
-                        <div key={p.id} className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600">{p.name}</span>
-                          <span className="font-bold">R$ {p.price.toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="pt-4 flex justify-between items-center">
-                    <span className="text-lg font-black uppercase tracking-tighter">Total:</span>
-                    <span className="text-2xl font-black text-[#D4AF37]">
-                      R$ {(
-                        (selectedService?.price || 0) + 
-                        selectedProducts.reduce((acc, p) => acc + (p.price || 0), 0)
-                      ).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-xs uppercase font-bold text-gray-500 mb-2 block">Forma de Pagamento</Label>
-                  <div className="grid gap-2">
-                    <Button
-                      variant={paymentMethod === 'barbershop' ? 'default' : 'outline'}
-                      className={cn(
-                        "h-14 justify-start gap-4 rounded-2xl",
-                        paymentMethod === 'barbershop' ? "bg-black text-white" : "border-gray-200 text-black"
-                      )}
-                      onClick={() => setPaymentMethod('barbershop')}
-                    >
-                      <Scissors size={20} />
-                      <div className="text-left">
-                        <p className="font-bold text-sm">Pagar na Barbearia</p>
-                        <p className="text-[10px] opacity-70 uppercase tracking-widest font-black">Pague após o serviço</p>
-                      </div>
-                    </Button>
-                    <Button
-                      variant={paymentMethod === 'pix' ? 'default' : 'outline'}
-                      className={cn(
-                        "h-14 justify-start gap-4 rounded-2xl",
-                        paymentMethod === 'pix' ? "bg-[#D4AF37] text-black" : "border-gray-200 text-black"
-                      )}
-                      onClick={() => setPaymentMethod('pix')}
-                    >
-                      <QrCode size={20} />
-                      <div className="text-left">
-                        <p className="font-bold text-sm">Pagar Agora (PIX)</p>
-                        <p className="text-[10px] opacity-70 uppercase tracking-widest font-black">Confirmação Instantânea</p>
-                      </div>
-                    </Button>
-                  </div>
-                </div>
-
-                {paymentMethod === 'pix' && shop?.pix_key && (
-                  <div className="p-6 bg-gray-50 border border-[#D4AF37]/20 rounded-[2rem] text-center space-y-4 animate-in fade-in zoom-in-95 duration-300">
-                    <div className="bg-white p-3 rounded-2xl inline-block shadow-sm">
-                      <QrCode size={120} className="text-black" />
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Chave PIX</p>
-                      <p className="font-mono text-sm break-all font-bold">{shop.pix_key}</p>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[#D4AF37] hover:bg-[#D4AF37]/10 font-bold"
-                        onClick={() => {
-                          navigator.clipboard.writeText(shop.pix_key);
-                          toast.success("Chave PIX copiada!");
-                        }}
-                      >
-                        Copiar Chave
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <Button 
-                  className="w-full h-14 bg-black text-white font-black text-lg uppercase tracking-tight rounded-2xl shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
-                  disabled={submitting || !paymentMethod}
-                  onClick={async () => {
-                    setSubmitting(true);
-                    try {
-                      // Finalize booking logic
-                      const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
-                      const endTime = addMinutes(startTime, selectedService.duration_minutes || 30);
-                      const totalPrice = (selectedService?.price || 0) + selectedProducts.reduce((acc, p) => acc + (p.price || 0), 0);
-
-                      const { error: appError, data: appointment } = await supabase
-                        .from("appointments")
-                        .insert({
-                          user_id: shop.id,
-                          customer_id: client.customer_id,
-                          service_id: selectedService.id,
-                          barber_id: selectedBarber.id,
-                          start_time: startTime.toISOString(),
-                          end_time: endTime.toISOString(),
-                          total_price: totalPrice,
-                          original_total: totalPrice,
-                          final_amount: totalPrice,
-                          status: "scheduled",
-                          payment_method: paymentMethod,
-                          payment_status: paymentMethod === 'pix' ? 'paid' : 'pending',
-                          items: [
-                            { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
-                            ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: 1 }))
-                          ]
-                        })
-                        .select()
-                        .single();
-
-                      if (appError) throw appError;
-
-                      toast.success("Agendamento realizado com sucesso!");
-                      setIsBookingOpen(false);
-                      fetchClientData(client.customer_id);
-                    } catch (e: any) {
-                      console.error(e);
-                      toast.error("Erro ao realizar agendamento: " + e.message);
-                    } finally {
-                      setSubmitting(false);
-                    }
-                  }}
-                >
-                  {submitting ? (
-                    <div className="flex items-center gap-2">
-                      <RefreshCcw className="animate-spin h-5 w-5" />
-                      Processando...
-                    </div>
-                  ) : "Confirmar Agendamento"}
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {bookingStep > 1 && (
-            <DialogFooter className="p-6 border-t shrink-0 flex items-center justify-between sm:justify-between">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setBookingStep(prev => prev - 1)}
-                className="text-gray-500 hover:text-black font-bold"
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
-              </Button>
-              <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                Passo {bookingStep} de 5
-              </div>
-            </DialogFooter>
-          )}
-        </DialogContent>
-      </Dialog>
       <Dialog open={isRefundModalOpen} onOpenChange={setIsRefundModalOpen}>
         <DialogContent>
           <DialogHeader>
