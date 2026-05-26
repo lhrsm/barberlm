@@ -228,6 +228,7 @@ function AutomationsComponent() {
   const handleRunAllAutomations = async () => {
     if (!tenantId) return;
     setIsRunningAll(true);
+    setExecutionSummary(null);
     
     try {
       const { data, error } = await supabase.functions.invoke('run-automations', {
@@ -237,8 +238,21 @@ function AutomationsComponent() {
       if (error) throw error;
       
       if (data.success) {
-        toast.success("Execução de automações concluída!");
-        console.log("Logs de execução:", data.logs);
+        setExecutionSummary(data.summary);
+        
+        const sent = data.summary?.messages_sent || 0;
+        const found = data.summary?.records_found || 0;
+        const failed = data.summary?.messages_failed || 0;
+
+        if (found === 0) {
+          toast.info("Nenhuma automação precisava ser processada no momento.");
+        } else if (sent > 0) {
+          toast.success(`${sent} mensagens enviadas com sucesso!`);
+        } else if (failed > 0) {
+          toast.error(`${failed} mensagens falharam ao enviar.`);
+        }
+
+        setIsSummaryDialogOpen(true);
         fetchLogs();
         fetchCronStatus();
       } else {
@@ -251,6 +265,7 @@ function AutomationsComponent() {
       setIsRunningAll(false);
     }
   };
+
 
   useEffect(() => {
     if (tenantId) {
