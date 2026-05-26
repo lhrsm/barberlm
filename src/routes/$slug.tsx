@@ -352,10 +352,10 @@ function ShopPageComponent() {
         if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
 
         const isBusy = barberAppointments.some(app => {
-          const appStart = parseISO(app.start_time).getTime();
-          const appEnd = parseISO(app.end_time).getTime();
+          const appStart = new Date(app.start_time).getTime();
+          const appEnd = new Date(app.end_time).getTime();
           const checkTimeMs = checkTime.getTime();
-          const serviceEndMs = addMinutes(checkTime, service.duration_minutes || 30).getTime();
+          const serviceEndMs = checkTimeMs + (service.duration_minutes || 30) * 60 * 1000;
           
           const conflict = checkTimeMs < appEnd && serviceEndMs > appStart;
           if (conflict) {
