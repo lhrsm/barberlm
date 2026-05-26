@@ -468,10 +468,16 @@ function ClientPortalComponent() {
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const normalized = normalizePhone(phone);
     console.log('DEBUG: Normalizing phone for login:', { original: phone, normalized });
+    
+    if (normalized.length < 10) {
+      toast.error("Por favor, informe um WhatsApp válido com DDD.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       // Find customer in this specific shop first
@@ -527,6 +533,7 @@ function ClientPortalComponent() {
       setSubmitting(false);
     }
   };
+
 
   const handleRegister = async (e: React.FormEvent) => {
     if (e) e.preventDefault();
