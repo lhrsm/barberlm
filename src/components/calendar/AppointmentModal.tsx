@@ -47,7 +47,8 @@ export function AppointmentModal({
   onOpenChange,
   initialDate,
   initialTime,
-  initialStep = 1
+  initialStep = 1,
+  editingAppointmentId
 }: AppointmentModalProps) {
   const { user, role } = useAuth();
   const { checkLimit, limits, refresh: refreshLimits } = usePlanLimits();
