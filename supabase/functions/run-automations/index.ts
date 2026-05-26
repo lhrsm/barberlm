@@ -7,17 +7,35 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper to get time in BR timezone (America/Bahia - UTC-3)
-function getBRDate() {
+function getBRTimeInfo() {
   const now = new Date();
-  // America/Bahia is UTC-3
-  return new Date(now.getTime() - (3 * 60 * 60 * 1000));
+  // Using America/Bahia (UTC-3, no DST)
+  const formatter = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Bahia',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(now);
+  const info: any = {};
+  parts.forEach(p => info[p.type] = p.value);
+  return {
+    day: info.day,
+    month: info.month,
+    year: info.year,
+    hour: info.hour,
+    minute: info.minute,
+    iso: `${info.year}-${info.month}-${info.day}T${info.hour}:${info.minute}:${info.second}`
+  };
 }
 
 function normalizePhone(phone: string): string {
   if (!phone) return "";
   let digits = phone.replace(/\D/g, "");
-  // Brazil logic: add 55 if missing
   if (digits.length === 10 || digits.length === 11) {
     digits = "55" + digits;
   }
@@ -41,23 +59,21 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
 
-  const brNow = getBRDate();
+  const brTime = getBRTimeInfo();
   const serverTime = new Date().toISOString();
   
-  console.log(`[Automation] Started at ${serverTime} (Server) / ${brNow.toISOString()} (BR)`);
+  console.log(`[Automation] Started. Server: ${serverTime}, BR: ${brTime.iso}`);
 
   try {
     const body = await req.json().catch(() => ({}));
     const targetTenantId = body.tenantId;
 
-    // Update global status to 'executing'
     await supabase.from("automation_status").update({
       status: 'executing',
       server_time: serverTime,
       timezone: "America/Bahia"
     }).or("status.eq.active,status.eq.error,status.eq.offline");
 
-    // 1. Fetch enabled automations
     let query = supabase.from("automations").select("*").eq("enabled", true);
     if (targetTenantId) {
       query = query.eq("tenant_id", targetTenantId);
@@ -66,11 +82,6 @@ serve(async (req) => {
 
     if (autoError) throw autoError;
 
-    if (!automations || automations.length === 0) {
-      console.log("[Automation] No active automations found.");
-    }
-
-    // 2. Process each automation
     for (const automation of automations || []) {
       const { data: connection } = await supabase
         .from("whatsapp_connections")
@@ -80,19 +91,18 @@ serve(async (req) => {
         .maybeSingle();
 
       if (!connection) {
-        console.log(`[Automation] SKIP: No connected WhatsApp for barber ${automation.barber_id}`);
-        ignoredRecords.push({ automation_id: automation.id, reason: "No connected WhatsApp" });
+        ignoredRecords.push({ automation_id: automation.id, reason: "WhatsApp não conectado para este barbeiro" });
         continue;
       }
 
       let res: any = { found: 0, sent: 0, failed: 0 };
       
       if (automation.type === "birthday") {
-        res = await processBirthdayAutomation(supabase, automation, connection, brNow);
+        res = await processBirthdayAutomation(supabase, automation, connection, brTime);
       } else if (automation.type === "appointment_confirmation") {
-        res = await processAppointmentConfirmation(supabase, automation, connection, brNow);
+        res = await processAppointmentConfirmation(supabase, automation, connection);
       } else if (automation.type === "appointment_reminder") {
-        res = await processAppointmentReminder(supabase, automation, connection, brNow);
+        res = await processAppointmentReminder(supabase, automation, connection);
       }
 
       if (res.appointments) appointmentsFound.push(...res.appointments);
@@ -104,7 +114,6 @@ serve(async (req) => {
 
     const executionTime = `${Date.now() - startTime}ms`;
     
-    // Update final status
     const { data: statusRows } = await supabase.from("automation_status").select("id").limit(1);
     if (statusRows && statusRows.length > 0) {
       await supabase.from("automation_status").update({
@@ -120,7 +129,7 @@ serve(async (req) => {
     const responseData = {
       success: true,
       serverTime,
-      brTime: brNow.toISOString(),
+      brTime: brTime.iso,
       timezone: "America/Bahia",
       appointmentsFound,
       birthdaysFound,
@@ -137,65 +146,58 @@ serve(async (req) => {
       }
     };
 
-    console.log("[Automation] Finished", JSON.stringify(responseData));
-
     return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
 
   } catch (error) {
-    console.error("[Automation] Fatal error:", error);
-    
-    await supabase.from("automation_status").update({
-      status: 'error',
-      last_error: error.message,
-      last_run_at: serverTime
-    }).neq("id", "00000000-0000-0000-0000-000000000000");
-
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: error.message,
-      serverTime,
-      timezone: "America/Bahia"
-    }), {
+    console.error("[Automation] Error:", error);
+    return new Response(JSON.stringify({ success: false, error: error.message, serverTime, timezone: "America/Bahia" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   }
 });
 
-async function processBirthdayAutomation(supabase: any, automation: any, connection: any, brNow: Date) {
-  const day = String(brNow.getUTCDate()).padStart(2, '0');
-  const month = String(brNow.getUTCMonth() + 1).padStart(2, '0');
-  const birthdayPattern = `%-${month}-${day}`;
+async function processBirthdayAutomation(supabase: any, automation: any, connection: any, brTime: any) {
+  const birthdayPattern = `%-${brTime.month}-${brTime.day}`;
 
   const { data: customers, error } = await supabase
     .from("customers")
     .select("*")
     .eq("barber_id", automation.barber_id)
-    .like("birth_date", birthdayPattern);
+    .not("birth_date", "is", null);
 
   if (error) return { birthdays: [], errors: [error.message] };
-  if (!customers || customers.length === 0) return { birthdays: [] };
+  
+  // Filter in JS to be safe with date types and formats
+  const bdayCustomers = customers?.filter((c: any) => {
+    if (!c.birth_date) return false;
+    // Handle both YYYY-MM-DD and potentially other formats if database varies
+    return c.birth_date.includes(`-${brTime.month}-${brTime.day}`);
+  });
 
-  const birthdays = customers.map(c => ({ id: c.id, name: c.name, type: 'birthday' }));
+  if (!bdayCustomers || bdayCustomers.length === 0) return { birthdays: [] };
+
+  const birthdays = bdayCustomers.map(c => ({ id: c.id, name: c.name, type: 'birthday' }));
   const sentItems = [];
   const ignored = [];
 
-  for (const customer of customers) {
-    const todayStart = new Date(brNow).setUTCHours(0,0,0,0);
+  for (const customer of bdayCustomers) {
+    const todayISO = `${brTime.year}-${brTime.month}-${brTime.day}`;
+    
     const { data: existing } = await supabase
       .from("automation_logs")
       .select("id")
       .eq("automation_id", automation.id)
       .eq("customer_id", customer.id)
       .eq("message_type", "birthday")
-      .gte("created_at", new Date(todayStart).toISOString())
+      .filter('created_at', 'gte', `${todayISO}T00:00:00`)
       .maybeSingle();
 
     if (existing) {
-      ignored.push({ customer_id: customer.id, reason: "Already sent today" });
+      ignored.push({ customer_id: customer.id, reason: "Mensagem de aniversário já enviada hoje" });
       continue;
     }
 
@@ -229,8 +231,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
   return { birthdays, sentItems, ignored };
 }
 
-async function processAppointmentConfirmation(supabase: any, automation: any, connection: any, brNow: Date) {
-  // Confirmation window: created in the last 15 minutes
+async function processAppointmentConfirmation(supabase: any, automation: any, connection: any) {
   const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   
   const { data: appointments, error } = await supabase
@@ -249,7 +250,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
   for (const appt of appointments) {
     const phone = appt.customers?.phone || appt.phone;
     if (!phone) {
-      ignored.push({ appointment_id: appt.id, reason: "No phone number" });
+      ignored.push({ appointment_id: appt.id, reason: "Cliente sem telefone cadastrado" });
       continue;
     }
 
@@ -292,9 +293,8 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
   return { appointments, sentItems, ignored };
 }
 
-async function processAppointmentReminder(supabase: any, automation: any, connection: any, brNow: Date) {
+async function processAppointmentReminder(supabase: any, automation: any, connection: any) {
   const delayHours = automation.trigger_delay || 24;
-  // Look for appointments happening in exactly 'delayHours' from now, with a 15-minute window
   const targetTimeStart = new Date(Date.now() + (delayHours * 60 * 60 * 1000)).toISOString();
   const targetTimeEnd = new Date(Date.now() + (delayHours * 60 * 60 * 1000) + (15 * 60 * 1000)).toISOString();
 
@@ -316,7 +316,7 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
   for (const appt of appointments) {
     const phone = appt.customers?.phone || appt.phone;
     if (!phone) {
-      ignored.push({ appointment_id: appt.id, reason: "No phone number" });
+      ignored.push({ appointment_id: appt.id, reason: "Cliente sem telefone cadastrado" });
       continue;
     }
 
