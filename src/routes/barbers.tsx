@@ -204,25 +204,34 @@ function BarbersComponent() {
     e.preventDefault();
     if (!editingBarber || !user) return;
 
-    console.log('UPDATING BARBER', editingBarber.id);
-    const { error } = await supabase
+    const payload = {
+      name: editingBarber.name,
+      phone: editingBarber.phone,
+      email: editingBarber.email,
+      avatar_url: editingBarber.avatar_url,
+      category: editingBarber.category,
+      commission_rate: editingBarber.commission_rate,
+      working_hours: editingBarber.working_hours,
+      active: editingBarber.active
+    };
+
+    console.log('UPDATING BARBER ID:', editingBarber.id);
+    console.log('PAYLOAD:', JSON.stringify(payload, null, 2));
+
+    const { data: updateResult, error } = await supabase
       .from("barbers")
-      .update({
-        name: editingBarber.name,
-        phone: editingBarber.phone,
-        email: editingBarber.email,
-        avatar_url: editingBarber.avatar_url,
-        category: editingBarber.category,
-        commission_rate: editingBarber.commission_rate,
-        working_hours: editingBarber.working_hours,
-      })
-      .eq("id", editingBarber.id);
+      .update(payload)
+      .eq("id", editingBarber.id)
+      .select();
 
     if (error) {
       console.error('UPDATE BARBER ERROR', error);
-      toast.error("Erro ao atualizar barbeiro");
+      toast.error(`Erro ao atualizar barbeiro: ${error.message}`);
+    } else if (!updateResult || updateResult.length === 0) {
+      console.error('UPDATE FAILED: No rows affected');
+      toast.error("Erro ao salvar: O registro não foi alterado no banco.");
     } else {
-      console.log('BARBER UPDATED SUCCESS');
+      console.log('BARBER UPDATED SUCCESS:', updateResult);
       // Update services: delete existing and insert new
       const { error: deleteError } = await supabase.from("barber_services").delete().eq("barber_id", editingBarber.id);
       
