@@ -146,8 +146,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     navigate({ to: "/auth" });
   };
 
+  const { isExpired } = usePlanLimits();
+  const isSubscriptionPage = pathname === "/subscription";
+
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
+      {isExpired && !isSubscriptionPage && role !== 'super_admin' && <TrialExpiredBlock />}
       <OnboardingModal />
       {isImpersonating && (
         <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between text-sm font-medium z-[60]">
