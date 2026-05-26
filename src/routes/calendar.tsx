@@ -684,7 +684,8 @@ function CalendarComponent() {
                               setModalInitialData({
                                 time: `${hour.toString().padStart(2, '0')}:00`,
                                 date: format(day, "yyyy-MM-dd"),
-                                step: 2
+                                step: 2,
+                                editingId: undefined
                               });
                               setIsDialogOpen(true);
                             }}
