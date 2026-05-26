@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { LogoutButton } from "@/components/admin/LogoutButton";
+import { TrialExpiredBlock } from "@/components/subscription/TrialExpiredBlock";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
 
 
 import { Button } from "@/components/ui/button";
