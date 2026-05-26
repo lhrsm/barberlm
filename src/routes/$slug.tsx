@@ -131,6 +131,18 @@ function ShopPageComponent() {
     }
   }, [slug]);
 
+  // Listener para abrir a modal de agendamento a partir do portal (iframe ou componente interno)
+  useEffect(() => {
+    const handleOpenBooking = () => {
+      console.log('DEBUG: Received OPEN_BOOKING_MODAL event');
+      handleBookingAction();
+    };
+
+    window.addEventListener('OPEN_BOOKING_MODAL', handleOpenBooking);
+    return () => window.removeEventListener('OPEN_BOOKING_MODAL', handleOpenBooking);
+  }, [shop, customerPhone]);
+
+
   // Reativo: Busca automática de cliente pelo WhatsApp
   useEffect(() => {
     async function findCustomer() {
