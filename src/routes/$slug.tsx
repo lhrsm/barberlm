@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
+import { createNotification } from "@/utils/notifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -939,25 +940,17 @@ function ShopPageComponent() {
       }
 
       // 2.5 Create notifications
-      const notificationMessage = `Novo agendamento: ${selectedService.name} para ${customerName} em ${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`;
+      const notificationMessage = `${customerName} agendou ${selectedService.name} às ${format(startTime, "HH:mm")}`;
       
-      // Admin notification
-      await supabase.from("notifications").insert({
-        user_id: shop.id,
+      // Centralized notification for Barbershop and Barber
+      await createNotification({
+        userId: shop.id,
+        type: 'appointment_created',
         title: "Novo Agendamento",
         message: notificationMessage,
-        type: "appointment",
-        link: "/calendar"
-      });
-
-      // Barber notification
-      await supabase.from("notifications").insert({
-        user_id: shop.id,
-        barber_id: selectedBarber.id,
-        title: "Novo Agendamento para Você",
-        message: notificationMessage,
-        type: "appointment",
-        link: `/${slug}/profissional`
+        barberId: selectedBarber.id,
+        customerId: finalCustId,
+        metadata: { appointmentId: appointment.id }
       });
 
       // Send WhatsApp Confirmation
