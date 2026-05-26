@@ -88,7 +88,7 @@ export function NotificationsCenter() {
         queryClient.invalidateQueries({ queryKey: ["notifications"] });
         
         // Show realtime toast
-        toast("🔔 " + payload.new.title, {
+        toast("🔔 " + (payload.new.title || "Notificação"), {
           description: payload.new.message,
           action: {
             label: "Ver",
@@ -177,8 +177,8 @@ export function NotificationsCenter() {
                       {getIcon(notification.type)}
                       <span className="font-semibold text-sm line-clamp-1">{notification.title}</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground">
-                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: ptBR })}
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                      {notification.created_at && formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: ptBR })}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
