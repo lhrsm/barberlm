@@ -1031,19 +1031,31 @@ function ClientPortalComponent() {
                 </>
               )}
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-black font-semibold">Telefone</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="phone" 
-                    placeholder="11999999999" 
-                    className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black" 
-                    value={phone} 
-                    onChange={(e) => setPhone(e.target.value)} 
-                    required 
+                <Label htmlFor="phone" className="text-black font-semibold">Telefone WhatsApp</Label>
+                <div className="relative international-phone-portal">
+                  <PhoneInput
+                    defaultCountry="br"
+                    value={phone}
+                    onChange={(p) => setPhone(p)}
+                    className="w-full"
+                    inputClassName="!w-full !h-12 !bg-white !border-gray-200 !focus:border-[#D4AF37] !focus:ring-[#D4AF37] !text-black !text-lg !font-medium !rounded-2xl !pl-12"
+                    countrySelectorStyleProps={{
+                      buttonClassName: "!h-12 !bg-transparent !border-none !absolute !left-0 !z-10 !rounded-l-2xl",
+                      flagClassName: "!ml-2"
+                    }}
                   />
+                  <style>{`
+                    .international-phone-portal .react-international-phone-input-container {
+                      width: 100%;
+                    }
+                    .international-phone-portal .react-international-phone-input {
+                      width: 100% !important;
+                      padding-left: 55px !important;
+                    }
+                  `}</style>
                 </div>
               </div>
+
               <Button 
                 type="submit" 
                 className="w-full h-11 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-bold text-lg" 
