@@ -20,6 +20,7 @@ import {
   BookOpen
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
