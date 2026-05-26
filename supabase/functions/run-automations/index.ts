@@ -47,6 +47,13 @@ serve(async (req) => {
     const brNow = getBRDate();
     const isScheduled = body.scheduled === true;
 
+    // Update status to 'executing'
+    await supabase.from("automation_status").update({
+      status: 'executing',
+      server_time: new Date().toISOString(),
+      timezone: "America/Sao_Paulo"
+    }).eq("status", "active").or("status.eq.error").or("status.eq.offline");
+
     log(`Automation execution started (${isScheduled ? 'SCHEDULED' : 'MANUAL'})`, { 
       server_time_utc: new Date().toISOString(), 
       br_time: brNow.toISOString(),
@@ -68,6 +75,11 @@ serve(async (req) => {
 
     if (autoError) {
       log("Error fetching automations", autoError);
+      await supabase.from("automation_status").update({
+        status: 'error',
+        last_error: `Fetch Automations: ${autoError.message}`,
+        last_run_at: new Date().toISOString()
+      }).eq("id", (await supabase.from("automation_status").select("id").limit(1).single()).data?.id);
       throw autoError;
     }
 
@@ -78,6 +90,8 @@ serve(async (req) => {
     }
 
     const results = [];
+    let totalMessagesSent = 0;
+    let totalMessagesFailed = 0;
 
     for (const automation of automations || []) {
       log(`Processing automation: ${automation.type}`, { 
@@ -99,28 +113,69 @@ serve(async (req) => {
       }
 
       let res;
-      if (automation.type === "birthday") {
-        res = await processBirthdayAutomation(supabase, automation, connection, log, brNow);
-      } else if (automation.type === "appointment_confirmation") {
-        res = await processAppointmentConfirmation(supabase, automation, connection, log, brNow);
-      } else if (automation.type === "appointment_reminder") {
-        res = await processAppointmentReminder(supabase, automation, connection, log, brNow);
-      } else {
-        log(`Automation type ${automation.type} not implemented yet.`);
-        continue;
+      try {
+        if (automation.type === "birthday") {
+          res = await processBirthdayAutomation(supabase, automation, connection, log, brNow);
+        } else if (automation.type === "appointment_confirmation") {
+          res = await processAppointmentConfirmation(supabase, automation, connection, log, brNow);
+        } else if (automation.type === "appointment_reminder") {
+          res = await processAppointmentReminder(supabase, automation, connection, log, brNow);
+        } else {
+          log(`Automation type ${automation.type} not implemented yet.`);
+          continue;
+        }
+        totalMessagesSent += res.sent || 0;
+        totalMessagesFailed += res.failed || 0;
+        results.push(res);
+      } catch (err) {
+        log(`Error processing automation ${automation.type}`, err);
+        totalMessagesFailed++;
       }
-      results.push(res);
     }
 
     log("Automation execution finished", { total_results: results });
 
-    return new Response(JSON.stringify({ success: true, results, logs: executionLogs }), {
+    // Update status to 'active' with final counts
+    const { data: statusRow } = await supabase.from("automation_status").select("id").limit(1).single();
+    if (statusRow) {
+      await supabase.from("automation_status").update({
+        status: 'active',
+        last_run_at: new Date().toISOString(),
+        total_processed: automations?.length || 0,
+        messages_sent: totalMessagesSent,
+        messages_failed: totalMessagesFailed,
+        last_error: null
+      }).eq("id", statusRow.id);
+    }
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      results, 
+      logs: executionLogs,
+      summary: {
+        total_automations: automations?.length || 0,
+        messages_sent: totalMessagesSent,
+        messages_failed: totalMessagesFailed
+      }
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
 
   } catch (error) {
     console.error("Automation Error:", error.message);
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+    const { data: statusRow } = await supabase.from("automation_status").select("id").limit(1).single();
+    if (statusRow) {
+      await supabase.from("automation_status").update({
+        status: 'error',
+        last_error: error.message,
+        last_run_at: new Date().toISOString()
+      }).eq("id", statusRow.id);
+    }
     return new Response(JSON.stringify({ error: error.message, logs: executionLogs }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
@@ -146,12 +201,13 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 
   if (!bdayCustomers || bdayCustomers.length === 0) {
     log(`No birthdays found for today (${birthdayStr}) for barber ${automation.barber_id}`);
-    return { type: "birthday", sent: 0 };
+    return { type: "birthday", sent: 0, failed: 0 };
   }
 
   log(`Found ${bdayCustomers.length} potential birthday customers`);
 
   let sentCount = 0;
+  let failedCount = 0;
   for (const customer of bdayCustomers) {
     const todayStart = new Date(new Date(brNow).setHours(0,0,0,0)).toISOString();
     
@@ -182,6 +238,8 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
     if (result.success) {
       await supabase.from("customers").update({ birthday_sent: true }).eq("id", customer.id);
       sentCount++;
+    } else {
+      failedCount++;
     }
 
     await supabase.from("automation_logs").insert({
@@ -199,7 +257,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
     });
   }
 
-  return { type: "birthday", sent: sentCount };
+  return { type: "birthday", sent: sentCount, failed: failedCount };
 }
 
 async function processAppointmentConfirmation(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
@@ -214,17 +272,18 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
 
   if (apptError) {
     log("Error fetching appointments for confirmation", apptError);
-    return { type: "confirmation", error: apptError.message };
+    return { type: "confirmation", error: apptError.message, sent: 0, failed: 0 };
   }
 
   if (!appointments || appointments.length === 0) {
     log(`No new appointments needing confirmation in the last 15 minutes`);
-    return { type: "confirmation", sent: 0 };
+    return { type: "confirmation", sent: 0, failed: 0 };
   }
 
   log(`Found ${appointments.length} appointments needing confirmation`);
 
   let sentCount = 0;
+  let failedCount = 0;
   for (const appt of appointments) {
     const variables = {
       cliente_nome: appt.customers?.name || appt.name,
@@ -248,6 +307,8 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
     if (result.success) {
       await supabase.from("appointments").update({ confirmation_sent: true }).eq("id", appt.id);
       sentCount++;
+    } else {
+      failedCount++;
     }
 
     await supabase.from("automation_logs").insert({
@@ -266,7 +327,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
     });
   }
 
-  return { type: "confirmation", sent: sentCount };
+  return { type: "confirmation", sent: sentCount, failed: failedCount };
 }
 
 async function processAppointmentReminder(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
@@ -287,17 +348,18 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
 
   if (apptError) {
     log("Error fetching appointments for reminder", apptError);
-    return { type: "reminder", error: apptError.message };
+    return { type: "reminder", error: apptError.message, sent: 0, failed: 0 };
   }
 
   if (!appointments || appointments.length === 0) {
     log(`No appointments found for reminder in window`);
-    return { type: "reminder", sent: 0 };
+    return { type: "reminder", sent: 0, failed: 0 };
   }
 
   log(`Found ${appointments.length} appointments for reminder`);
 
   let sentCount = 0;
+  let failedCount = 0;
   for (const appt of appointments) {
     const variables = {
       cliente_nome: appt.customers?.name || appt.name,
@@ -321,6 +383,8 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
     if (result.success) {
       await supabase.from("appointments").update({ reminder_sent: true }).eq("id", appt.id);
       sentCount++;
+    } else {
+      failedCount++;
     }
 
     await supabase.from("automation_logs").insert({
@@ -339,7 +403,7 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
     });
   }
 
-  return { type: "reminder", sent: sentCount };
+  return { type: "reminder", sent: sentCount, failed: failedCount };
 }
 
 async function sendMessage(connection: any, phone: string, message: string, log: Function) {
