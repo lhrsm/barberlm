@@ -108,6 +108,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
 
     const upsertData = {
       barber_id: tenantId,
+      barbershop_id: tenantId,
       instance_id: instanceId,
       instance_token: instanceToken,
       server_url: cleanApiUrl,
