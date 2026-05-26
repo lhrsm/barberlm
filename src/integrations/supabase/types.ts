@@ -107,6 +107,7 @@ export type Database = {
           refund_type: string | null
           reminder_sent: boolean | null
           service_id: string | null
+          source: string | null
           start_time: string
           status: string | null
           tenant_id: string | null
@@ -137,6 +138,7 @@ export type Database = {
           refund_type?: string | null
           reminder_sent?: boolean | null
           service_id?: string | null
+          source?: string | null
           start_time: string
           status?: string | null
           tenant_id?: string | null
@@ -167,6 +169,7 @@ export type Database = {
           refund_type?: string | null
           reminder_sent?: boolean | null
           service_id?: string | null
+          source?: string | null
           start_time?: string
           status?: string | null
           tenant_id?: string | null
