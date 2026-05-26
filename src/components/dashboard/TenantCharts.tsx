@@ -92,7 +92,7 @@ export function TenantCharts({ tenantId }: TenantChartsProps) {
       const { data: barbers } = await supabase
         .from("barbers")
         .select("id, name")
-        .eq("user_id", tenantId);
+        .eq("tenant_id", tenantId);
 
       const revenueByBarber = barbers?.map(barber => {
         const total = appointments
