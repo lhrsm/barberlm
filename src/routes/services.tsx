@@ -97,7 +97,7 @@ function ServicesComponent() {
       .from("services")
       .delete()
       .eq("id", id)
-      .eq("tenant_id", user.id);
+      .eq("tenant_id", user?.id);
 
     if (error) {
       toast.error("Erro ao excluir serviço");

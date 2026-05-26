@@ -168,7 +168,7 @@ function CustomersComponent() {
       .from("customers")
       .delete()
       .eq("id", selectedCustomer.id)
-      .eq("tenant_id", user.id);
+      .eq("tenant_id", user?.id);
 
     if (error) {
       toast.error("Erro ao excluir cliente. Verifique se ele possui agendamentos vinculados.");
