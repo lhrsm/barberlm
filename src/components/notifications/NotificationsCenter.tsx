@@ -79,8 +79,9 @@ export function NotificationsCenter() {
   });
 
   useEffect(() => {
+    const channelName = `notifications-realtime-${instanceId}`;
     const channel = supabase
-      .channel('notifications-realtime')
+      .channel(channelName)
       .on('postgres_changes', { 
         event: 'INSERT', 
         table: 'notifications',
