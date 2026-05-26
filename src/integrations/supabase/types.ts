@@ -2020,7 +2020,7 @@ export type Database = {
             foreignKeyName: "whatsapp_messages_connection_id_fkey"
             columns: ["connection_id"]
             isOneToOne: false
-            referencedRelation: "whatsapp_cloud_connections"
+            referencedRelation: "whatsapp_instances"
             referencedColumns: ["id"]
           },
           {
