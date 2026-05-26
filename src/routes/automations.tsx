@@ -193,20 +193,6 @@ function AutomationsComponent() {
     };
   }, [serverInfo?.server_time, serverInfo?.fetch_time]);
 
-    
-    setNextRunIn(`${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
-  };
-
-  useEffect(() => {
-    fetchServerInfo();
-    const serverSyncTimer = setInterval(fetchServerInfo, 30000); // Sync server time every 30s
-    const timer = setInterval(calculateNextRun, 1000);
-    return () => {
-      clearInterval(timer);
-      clearInterval(serverSyncTimer);
-    };
-  }, [serverInfo?.server_time]);
-
 
   const handleTestAutomation = async (automation: any) => {
     if (!tenantId) return;
