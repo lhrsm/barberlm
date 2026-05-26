@@ -173,7 +173,8 @@ serve(async (req) => {
     const { data: conn } = await supabase
       .from("whatsapp_connections")
       .select("*")
-      .or(`barber_id.eq.${user_id},barbershop_id.eq.${user_id}`)
+      .eq("barbershop_id", user_id)
+
       .eq("status", "connected")
       .maybeSingle();
 
@@ -182,7 +183,8 @@ serve(async (req) => {
       const { data: connActive } = await supabase
         .from("whatsapp_connections")
         .select("*")
-        .or(`barber_id.eq.${user_id},barbershop_id.eq.${user_id}`)
+        .eq("barbershop_id", user_id)
+
         .eq("status", "active")
         .maybeSingle();
         
@@ -191,7 +193,7 @@ serve(async (req) => {
       }
     }
 
-    const activeConn = conn || (await supabase.from("whatsapp_connections").select("*").or(`barber_id.eq.${user_id},barbershop_id.eq.${user_id}`).eq("status", "active").single()).data;
+    const activeConn = conn || (await supabase.from("whatsapp_connections").select("*").eq("barbershop_id", user_id).eq("status", "active").single()).data;
 
     // Fetch Template
     const { data: template } = await supabase
