@@ -13,8 +13,10 @@ import {
   AlertCircle,
   MessageSquare,
   History,
-  FileText
+  FileText,
+  QrCode
 } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,8 +44,10 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isSaving, setIsSaving] = useState(false);
   const [isEditingWebhook, setIsEditingWebhook] = useState(false);
   const [tempWebhookUrl, setTempWebhookUrl] = useState("");
+  const [qrCode, setQrCode] = useState<string | null>(null);
 
   const [logs, setLogs] = useState<any[]>([]);
+
   const [activeTab, setActiveTab] = useState("config");
 
   useEffect(() => {
@@ -169,10 +173,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       
       if (data.connected) {
         toast.success("WhatsApp conectado!");
+        setQrCode(null);
       } else {
         console.log("[Z-API Test] Disconnected result:", data);
         toast.error("WhatsApp desconectado ou falha na autenticação.");
+        fetchQRCode();
       }
+
       fetchConnection();
       fetchLogs();
     } catch (err: any) {
@@ -180,7 +187,25 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       toast.error("Erro ao testar conexão: " + (err.message || "Erro desconhecido"));
     } finally {
       setIsTesting(false);
+  }
+  
+  async function fetchQRCode() {
+    if (!connection) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'get-qrcode', 
+          connectionId: connection.id 
+        }
+      });
+      if (data?.value) {
+        setQrCode(data.value);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar QR Code:", err);
     }
+  }
+
   }
   
   async function sendTestMessage() {
@@ -413,7 +438,37 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
             </div>
           </form>
 
+          {connection?.id && !isConnected && (
+            <div className="space-y-4 pt-6 border-t border-white/10 flex flex-col items-center justify-center text-center">
+              <div className="bg-white p-4 rounded-2xl shadow-xl">
+                {qrCode ? (
+                  <img src={qrCode} alt="WhatsApp QR Code" className="w-48 h-48" />
+                ) : (
+                  <div className="w-48 h-48 bg-slate-100 flex flex-col items-center justify-center gap-2 rounded-xl">
+                    <QrCode className="text-slate-300 h-10 w-10" />
+                    <p className="text-[10px] text-slate-400 px-4">Clique em "Testar Status" para gerar o QR Code</p>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-white">Escaneie o QR Code</h3>
+                <p className="text-xs text-slate-400">Abra o WhatsApp no seu celular {'>'} Aparelhos conectados {'>'} Conectar um aparelho</p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={testConnection} 
+                disabled={isTesting}
+                className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+              >
+                <RefreshCw size={14} className={cn("mr-2", isTesting && "animate-spin")} />
+                Atualizar QR Code
+              </Button>
+            </div>
+          )}
+
           {connection?.id && (
+
             <div className="space-y-4 pt-6 border-t border-white/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
