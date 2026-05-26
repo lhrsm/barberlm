@@ -197,7 +197,7 @@ function SettingsComponent() {
       updatedData.payment_gateway_key = "";
     }
 
-    const { error } = await supabase
+    const { error: profileError } = await supabase
       .from("profiles")
       .update({
         business_name: updatedData.business_name,
@@ -221,17 +221,29 @@ function SettingsComponent() {
         pix_qr_code_url: updatedData.pix_qr_code_url,
         whatsapp_number: updatedData.whatsapp_number,
         updated_at: new Date().toISOString(),
-
       })
       .eq("id", user.id);
 
+    // Save to barbershop_settings
+    const { error: settingsError } = await supabase
+      .from("barbershop_settings")
+      .upsert({
+        barber_id: user.id,
+        instance_id: updatedData.instance_id,
+        instance_token: updatedData.instance_token,
+        client_token: updatedData.client_token,
+        whatsapp_number: updatedData.whatsapp_number,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'barber_id' });
+
     setSaving(false);
 
-    if (error) {
-      if (error.code === "23505") {
+    if (profileError || settingsError) {
+      const error = profileError || settingsError;
+      if (error?.code === "23505") {
         toast.error("Este endereço (URL) já está em uso.");
       } else {
-        toast.error("Erro ao salvar configurações");
+        toast.error("Erro ao salvar configurações: " + error?.message);
       }
       return;
     }
