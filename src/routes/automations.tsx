@@ -143,26 +143,28 @@ function AutomationsComponent() {
     setIsTesting(automation.id || automation.type);
     
     try {
-      const response = await fetch('/api/zapi/test-message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tenantId,
-          message: automation.template || getDefaultTemplate(automation.type),
-          // For testing, we could ask for a phone number, but for now we'll use a placeholder or the barbeshop's own phone if available
-          phone: "5571999999999" 
-        })
+      const template = automation.template || getDefaultTemplate(automation.type);
+      
+      const { data: result, error } = await supabase.functions.invoke('test-automation', {
+        body: {
+          automationId: automation.id,
+          automationType: automation.type,
+          template: template
+        }
       });
 
-      const result = await response.json();
+      if (error) throw error;
       
       if (result.success) {
         toast.success("Mensagem de teste enviada com sucesso!");
+        console.log("Mensagem processada:", result.processedMessage);
+        fetchLogs();
       } else {
         toast.error("Erro ao enviar teste: " + (result.error || "Erro desconhecido"));
       }
-    } catch (err) {
-      toast.error("Erro ao processar teste de envio");
+    } catch (err: any) {
+      console.error("Test Error:", err);
+      toast.error(err.message || "Erro ao processar teste de envio");
     } finally {
       setIsTesting(null);
     }
@@ -528,6 +530,7 @@ function AutomationsComponent() {
                       <tr>
                         <th className="px-6 py-4">Automação</th>
                         <th className="px-6 py-4">Cliente</th>
+                        <th className="px-6 py-4">Telefone</th>
                         <th className="px-6 py-4">Canal</th>
                         <th className="px-6 py-4">Status</th>
                         <th className="px-6 py-4 text-right">Data & Hora</th>
@@ -570,6 +573,9 @@ function AutomationsComponent() {
                               </div>
                             </td>
                             <td className="px-6 py-4">
+                              <span className="font-medium text-muted-foreground tabular-nums">{log.phone || '-'}</span>
+                            </td>
+                            <td className="px-6 py-4">
                               <Badge variant="outline" className="gap-1.5 py-0.5 bg-background font-bold text-[10px] uppercase">
                                 <MessageSquare size={10} className="text-emerald-500" /> WhatsApp
                               </Badge>
@@ -578,12 +584,12 @@ function AutomationsComponent() {
                               <Badge 
                                 className={cn(
                                   "px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border-none",
-                                  log.status === 'sent' 
+                                  log.status === 'success' || log.status === 'sent'
                                     ? "bg-emerald-500/10 text-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.1)]" 
                                     : "bg-red-500/10 text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
                                 )}
                               >
-                                {log.status === 'sent' ? (
+                                {log.status === 'success' || log.status === 'sent' ? (
                                   <span className="flex items-center gap-1"><Check size={10} /> Sucesso</span>
                                 ) : (
                                   <span className="flex items-center gap-1"><AlertCircle size={10} /> Falha</span>
@@ -683,6 +689,23 @@ function AutomationsComponent() {
                       {"{{"}{tag}{"}}"}
                     </Badge>
                   ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground uppercase font-black tracking-widest">Prévia da Mensagem</Label>
+                <div className="bg-[#E7FFDB] dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-500/20 shadow-inner min-h-[100px] relative">
+                  <div className="text-sm whitespace-pre-wrap text-slate-800 dark:text-slate-200">
+                    {selectedAutomation?.template ? selectedAutomation.template
+                      .replace(/{{cliente_nome}}/g, 'João')
+                      .replace(/{{barbearia_nome}}/g, 'Barbearia LM')
+                      .replace(/{{data}}/g, '26/05/2026')
+                      .replace(/{{horario}}/g, '14:30')
+                      .replace(/{{profissional}}/g, 'Marcos')
+                      .replace(/{{servico}}/g, 'Corte e Barba')
+                      : 'Nenhum template definido'}
+                  </div>
+                  <div className="text-[10px] text-slate-400 absolute bottom-2 right-3">14:30 ✓✓</div>
                 </div>
               </div>
 

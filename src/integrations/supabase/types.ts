@@ -236,7 +236,9 @@ export type Database = {
           error_message: string | null
           id: string
           message_type: string | null
+          original_template: string | null
           phone: string | null
+          processed_template: string | null
           provider: string | null
           response: Json | null
           sent_at: string
@@ -252,7 +254,9 @@ export type Database = {
           error_message?: string | null
           id?: string
           message_type?: string | null
+          original_template?: string | null
           phone?: string | null
+          processed_template?: string | null
           provider?: string | null
           response?: Json | null
           sent_at?: string
@@ -268,7 +272,9 @@ export type Database = {
           error_message?: string | null
           id?: string
           message_type?: string | null
+          original_template?: string | null
           phone?: string | null
+          processed_template?: string | null
           provider?: string | null
           response?: Json | null
           sent_at?: string

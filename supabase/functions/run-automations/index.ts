@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { processAutomationTemplate } from "../_shared/template-parser.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,7 +29,6 @@ serve(async (req) => {
 
     console.log("Running scheduled automations...");
 
-    // 1. Fetch all active automations
     const { data: automations, error: autoError } = await supabase
       .from("automations")
       .select("*")
@@ -41,7 +41,6 @@ serve(async (req) => {
     for (const automation of automations) {
       console.log(`Processing automation: ${automation.type} for barber: ${automation.barber_id}`);
       
-      // Get WhatsApp connection for this barber
       const { data: connection } = await supabase
         .from("whatsapp_connections")
         .select("*")
@@ -102,17 +101,17 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
       .select("id")
       .eq("automation_id", automation.id)
       .eq("customer_id", customer.id)
-      .gte("sent_at", new Date(new Date().setHours(0,0,0,0)).toISOString())
+      .gte("created_at", new Date(new Date().setHours(0,0,0,0)).toISOString())
       .maybeSingle();
 
     if (existing) continue;
 
-    const message = replaceVariables(automation.template, {
+    const processedMessage = processAutomationTemplate(automation.template, {
       cliente_nome: customer.name,
       barbearia_nome: "Nossa Barbearia",
     });
 
-    const result = await sendMessage(connection, customer.phone, message);
+    const result = await sendMessage(connection, customer.phone, processedMessage);
     
     await supabase.from("automation_logs").insert({
       automation_id: automation.id,
@@ -121,6 +120,8 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
       status: result.success ? "success" : "error",
       message_type: "birthday",
       phone: normalizePhone(customer.phone),
+      original_template: automation.template,
+      processed_template: processedMessage,
       response: result.response,
       error_message: result.error
     });
@@ -136,7 +137,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
   
   const { data: appointments } = await supabase
     .from("appointments")
-    .select("*, customers(*), profiles!appointments_barber_id_fkey(*)")
+    .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
     .eq("barber_id", automation.barber_id)
     .gte("created_at", tenMinutesAgo);
 
@@ -153,18 +154,19 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
 
     if (existing) continue;
 
-    const message = replaceVariables(automation.template, {
+    const processedMessage = processAutomationTemplate(automation.template, {
       cliente_nome: appt.customers?.name || appt.name,
       barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
       data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
       horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       profissional: appt.profiles?.responsible_name || "Seu Barbeiro",
+      servico: appt.services?.name || "Serviço",
     });
 
     const phone = appt.customers?.phone || appt.phone;
     if (!phone) continue;
 
-    const result = await sendMessage(connection, phone, message);
+    const result = await sendMessage(connection, phone, processedMessage);
     
     await supabase.from("automation_logs").insert({
       automation_id: automation.id,
@@ -174,6 +176,8 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
       status: result.success ? "success" : "error",
       message_type: "appointment_confirmation",
       phone: normalizePhone(phone),
+      original_template: automation.template,
+      processed_template: processedMessage,
       response: result.response,
       error_message: result.error
     });
@@ -185,14 +189,17 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
 }
 
 async function processAppointmentReminder(supabase: any, automation: any, connection: any) {
-  const delayMinutes = automation.trigger_delay || 60;
-  const targetTimeStart = new Date(Date.now() + (delayMinutes - 5) * 60 * 1000).toISOString();
-  const targetTimeEnd = new Date(Date.now() + (delayMinutes + 5) * 60 * 1000).toISOString();
+  const delayHours = automation.trigger_delay || 24;
+  const now = new Date();
+  
+  const targetTimeStart = new Date(now.getTime() + (delayHours * 60 * 60 * 1000)).toISOString();
+  const targetTimeEnd = new Date(now.getTime() + ((delayHours + 1) * 60 * 60 * 1000)).toISOString();
 
   const { data: appointments } = await supabase
     .from("appointments")
-    .select("*, customers(*), profiles!appointments_barber_id_fkey(*)")
+    .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
     .eq("barber_id", automation.barber_id)
+    .eq("status", "scheduled")
     .gte("start_time", targetTimeStart)
     .lte("start_time", targetTimeEnd);
 
@@ -209,17 +216,19 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
 
     if (existing) continue;
 
-    const message = replaceVariables(automation.template, {
+    const processedMessage = processAutomationTemplate(automation.template, {
       cliente_nome: appt.customers?.name || appt.name,
       barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
       data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
       horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      profissional: appt.profiles?.responsible_name || "Seu Barbeiro",
+      servico: appt.services?.name || "Serviço",
     });
 
     const phone = appt.customers?.phone || appt.phone;
     if (!phone) continue;
 
-    const result = await sendMessage(connection, phone, message);
+    const result = await sendMessage(connection, phone, processedMessage);
     
     await supabase.from("automation_logs").insert({
       automation_id: automation.id,
@@ -229,6 +238,8 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
       status: result.success ? "success" : "error",
       message_type: "appointment_reminder",
       phone: normalizePhone(phone),
+      original_template: automation.template,
+      processed_template: processedMessage,
       response: result.response,
       error_message: result.error
     });
@@ -239,21 +250,17 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
   return { type: "reminder", sent: sentCount };
 }
 
-function replaceVariables(template: string, vars: Record<string, string>) {
-  let result = template;
-  for (const [key, value] of Object.entries(vars)) {
-    result = result.replace(new RegExp(`{{${key}}}`, 'g'), value || '');
-  }
-  return result;
-}
-
 async function sendMessage(connection: any, phone: string, message: string) {
   try {
-    const instanceId = connection.instance_id || Deno.env.get("ZAPI_INSTANCE_ID");
-    const token = connection.instance_token || Deno.env.get("ZAPI_TOKEN");
+    const instanceId = connection.instance_id;
+    const token = connection.instance_token;
     const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
     const baseUrl = connection.server_url || "https://api.z-api.io";
     
+    if (!instanceId || !token) {
+      throw new Error("Instance ID or Token missing");
+    }
+
     const targetPhone = normalizePhone(phone);
 
     const headers: any = { 
