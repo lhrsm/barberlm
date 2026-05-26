@@ -125,16 +125,17 @@ serve(async (req) => {
         if (connection.status !== 'connected') {
           console.log(`[Automation] DB status is ${connection.status} for ${tenant.business_name}. Performing live check...`);
           try {
-            const statusRes = await fetch(`${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`, {
-              method: "GET",
-              headers: connection.client_token ? { "Client-Token": connection.client_token } : {}
-            });
+            const statusUrl = `${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
+            const statusRes = await fetch(statusUrl, { method: "GET" });
             const statusData = await statusRes.json();
-            console.log(`[Automation] Live status response for ${tenant.business_name}:`, JSON.stringify(statusData));
             
+            console.log(`[Automation] ZAPI STATUS RESPONSE for ${tenant.business_name}:`, JSON.stringify(statusData));
+            console.log(`[Automation] CONNECTED?`, statusData?.connected);
+            
+            // Strict validation as requested by user
             if (statusData?.connected === true) {
               console.log(`[Automation] Instance is ACTUALLY connected. Updating DB status.`);
-              await supabase.from("whatsapp_connections").update({ status: 'connected', connected: true }).eq("id", connection.id);
+              await supabase.from("whatsapp_connections").update({ status: 'connected', connected: true, updated_at: new Date().toISOString() }).eq("id", connection.id);
               connection.status = 'connected';
             } else {
               console.log(`[Automation] Instance is indeed disconnected.`);
