@@ -1125,7 +1125,120 @@ function AutomationsComponent() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={isManualSummaryOpen} onOpenChange={setIsManualSummaryOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle2 className="text-emerald-500" />
+                Resumo da Execução {executionSummary?.forceMode ? "(MODO FORÇADO)" : ""}
+              </DialogTitle>
+              <DialogDescription>
+                Detalhamento técnico da última execução das automações.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-3 bg-muted/50 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-primary">{executionSummary?.summary?.records_found || 0}</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground">Encontrados</div>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-emerald-600">{executionSummary?.summary?.messages_sent || 0}</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground">Enviados</div>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-amber-600">{executionSummary?.summary?.ignored || 0}</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground">Ignorados</div>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-red-600">{executionSummary?.summary?.messages_failed || 0}</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground">Falhas</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <Clock size={16} /> Detalhes do Servidor
+                  </h4>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-muted-foreground">Horário Servidor:</span>
+                    <p className="font-mono">{executionSummary?.serverTime ? new Date(executionSummary.serverTime).toLocaleTimeString('pt-BR') : '---'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Timezone:</span>
+                    <p className="font-mono">{executionSummary?.timezone || 'America/Bahia'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {executionSummary?.ignoredRecords?.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-amber-600">
+                      <History size={16} /> Registros Ignorados / Debug
+                    </h4>
+                  </div>
+                  <div className="space-y-2">
+                    {executionSummary.ignoredRecords.map((item: any, idx: number) => (
+                      <div key={idx} className="bg-muted/30 p-3 rounded-lg border border-dashed text-xs space-y-1">
+                        <div className="flex justify-between items-start">
+                          <span className="font-bold text-primary capitalize">{item.type || 'Geral'}</span>
+                          <Badge variant="outline" className="text-[10px]">{item.customer_name || 'Agendamento'}</Badge>
+                        </div>
+                        <p className="text-muted-foreground">{item.reason}</p>
+                        {item.debug && (
+                          <pre className="text-[9px] bg-black/5 p-1 rounded mt-1 overflow-x-auto">
+                            {JSON.stringify(item.debug, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {executionSummary?.messagesSent?.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-emerald-600">
+                      <Check size={16} /> Mensagens Processadas
+                    </h4>
+                  </div>
+                  <div className="space-y-2">
+                    {executionSummary.messagesSent.map((item: any, idx: number) => (
+                      <div key={idx} className={cn(
+                        "p-3 rounded-lg border text-xs flex justify-between items-center",
+                        item.status === 'success' ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"
+                      )}>
+                        <div>
+                          <p className="font-bold">{item.customer_name}</p>
+                          <p className="text-muted-foreground text-[10px]">{item.phone}</p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={item.status === 'success' ? 'default' : 'destructive'} className={item.status === 'success' ? "bg-emerald-500" : ""}>
+                            {item.status === 'success' ? 'Enviado' : 'Erro'}
+                          </Badge>
+                          {item.error_message && <p className="text-[9px] text-red-500 mt-1 max-w-[200px] truncate">{item.error_message}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button onClick={() => setIsManualSummaryOpen(false)}>Fechar Resumo</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
+
     </AppLayout>
   );
 }
