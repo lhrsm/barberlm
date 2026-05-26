@@ -135,15 +135,33 @@ function AutomationsComponent() {
   const [cronStatus, setCronStatus] = useState<any>(null);
   const [automationStatus, setAutomationStatus] = useState<any>(null);
   const [nextRunIn, setNextRunIn] = useState<string>("");
+  const [serverInfo, setServerInfo] = useState<{ server_time: string; timezone: string; br_time: string; fetch_time: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isIAExecuting, setIsIAExecuting] = useState(false);
   const [isTesting, setIsTesting] = useState<string | null>(null);
   const [isRunningAll, setIsRunningAll] = useState(false);
+  const [executionSummary, setExecutionSummary] = useState<any>(null);
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
+
+  const fetchServerInfo = async () => {
+    const { data } = await supabase.rpc('get_server_info');
+    if (data) {
+      setServerInfo({ ...(data as any), fetch_time: Date.now() });
+    }
+  };
+
 
   const calculateNextRun = () => {
-    const now = new Date();
+    let now: Date;
+    if (serverInfo) {
+      const elapsed = Date.now() - serverInfo.fetch_time;
+      now = new Date(new Date(serverInfo.server_time).getTime() + elapsed);
+    } else {
+      now = new Date();
+    }
+    
     const minutes = now.getMinutes();
     const nextMinutes = Math.ceil((minutes + 0.01) / 5) * 5;
     const nextRun = new Date(now);
@@ -155,16 +173,26 @@ function AutomationsComponent() {
     }
     
     const diff = nextRun.getTime() - now.getTime();
+    if (diff < 0) {
+      setNextRunIn("00:00");
+      return;
+    }
+    
     const mins = Math.floor(diff / 60000);
     const secs = Math.floor((diff % 60000) / 1000);
-    
     setNextRunIn(`${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
   };
 
   useEffect(() => {
+    fetchServerInfo();
+    const serverSyncTimer = setInterval(fetchServerInfo, 60000);
     const timer = setInterval(calculateNextRun, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    return () => {
+      clearInterval(timer);
+      clearInterval(serverSyncTimer);
+    };
+  }, [serverInfo?.server_time, serverInfo?.fetch_time]);
+
 
   const handleTestAutomation = async (automation: any) => {
     if (!tenantId) return;
@@ -201,6 +229,7 @@ function AutomationsComponent() {
   const handleRunAllAutomations = async () => {
     if (!tenantId) return;
     setIsRunningAll(true);
+    setExecutionSummary(null);
     
     try {
       const { data, error } = await supabase.functions.invoke('run-automations', {
@@ -210,8 +239,21 @@ function AutomationsComponent() {
       if (error) throw error;
       
       if (data.success) {
-        toast.success("Execução de automações concluída!");
-        console.log("Logs de execução:", data.logs);
+        setExecutionSummary(data.summary);
+        
+        const sent = data.summary?.messages_sent || 0;
+        const found = data.summary?.records_found || 0;
+        const failed = data.summary?.messages_failed || 0;
+
+        if (found === 0) {
+          toast.info("Nenhuma automação precisava ser processada no momento.");
+        } else if (sent > 0) {
+          toast.success(`${sent} mensagens enviadas com sucesso!`);
+        } else if (failed > 0) {
+          toast.error(`${failed} mensagens falharam ao enviar.`);
+        }
+
+        setIsSummaryDialogOpen(true);
         fetchLogs();
         fetchCronStatus();
       } else {
@@ -224,6 +266,7 @@ function AutomationsComponent() {
       setIsRunningAll(false);
     }
   };
+
 
   useEffect(() => {
     if (tenantId) {
@@ -525,16 +568,17 @@ function AutomationsComponent() {
 
           <Card className="bg-muted/30 border-dashed">
             <CardContent className="p-4 flex flex-col justify-center h-full">
-              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Horário do Sistema</div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Horário do Servidor</div>
               <div className="text-xl font-bold flex items-center gap-2">
                 <Clock size={18} className="text-primary" />
-                {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                {serverInfo ? new Date(serverInfo.server_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
               </div>
               <div className="text-[10px] text-muted-foreground uppercase mt-1">
-                {automationStatus?.timezone || 'America/Sao_Paulo'} (UTC-3)
+                {serverInfo?.timezone || 'America/Bahia'} (UTC-3)
               </div>
             </CardContent>
           </Card>
+
         </div>
 
 
@@ -828,9 +872,63 @@ function AutomationsComponent() {
           </TabsContent>
         </Tabs>
 
+        {/* Execution Summary Dialog */}
+        <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="text-emerald-500" />
+                Resultado da Execução
+              </DialogTitle>
+              <DialogDescription>
+                Detalhamento do processamento das automações.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="text-xs text-muted-foreground uppercase font-bold">Encontrados</div>
+                  <div className="text-2xl font-bold">{executionSummary?.records_found || 0}</div>
+                </div>
+                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
+                  <div className="text-xs text-emerald-600 uppercase font-bold">Enviados</div>
+                  <div className="text-2xl font-bold text-emerald-700">{executionSummary?.messages_sent || 0}</div>
+                </div>
+                <div className="p-3 bg-red-50 border border-red-100 rounded-lg">
+                  <div className="text-xs text-red-600 uppercase font-bold">Falhas</div>
+                  <div className="text-2xl font-bold text-red-700">{executionSummary?.messages_failed || 0}</div>
+                </div>
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="text-xs text-muted-foreground uppercase font-bold">Automações</div>
+                  <div className="text-2xl font-bold">{executionSummary?.total_automations || 0}</div>
+                </div>
+              </div>
+
+              {executionSummary?.errors && executionSummary.errors.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-bold text-red-600 flex items-center gap-1">
+                    <AlertCircle size={14} /> Erros encontrados:
+                  </div>
+                  <div className="max-h-[150px] overflow-y-auto space-y-1">
+                    {executionSummary.errors.map((err: string, i: number) => (
+                      <div key={i} className="text-xs p-2 bg-red-50 text-red-700 rounded border border-red-100">
+                        {err}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setIsSummaryDialogOpen(false)}>Fechar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Edit Modal */}
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+
             <DialogHeader>
               <DialogTitle>Configurar {selectedAutomation?.title}</DialogTitle>
               <DialogDescription>Personalize o canal e o conteúdo da mensagem.</DialogDescription>

@@ -2055,6 +2055,7 @@ export type Database = {
       }
       get_my_profile_role: { Args: never; Returns: string }
       get_my_tenant_id: { Args: never; Returns: string }
+      get_server_info: { Args: never; Returns: Json }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
