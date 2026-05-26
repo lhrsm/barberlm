@@ -351,9 +351,16 @@ function ShopPageComponent() {
         if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
 
         const isBusy = barberAppointments.some(app => {
-          const appStart = parseISO(app.start_time);
-          const appEnd = parseISO(app.end_time);
-          return checkTime >= appStart && checkTime < appEnd;
+          const appStart = parseISO(app.start_time).getTime();
+          const appEnd = parseISO(app.end_time).getTime();
+          const checkTimeMs = checkTime.getTime();
+          const serviceEndMs = addMinutes(checkTime, service.duration_minutes || 30).getTime();
+          
+          const conflict = checkTimeMs < appEnd && serviceEndMs > appStart;
+          if (conflict) {
+            console.log(`CONFLICT FOUND at ${timeStr} with appointment ${app.id}: ${app.start_time} - ${app.end_time}`);
+          }
+          return conflict;
         });
 
         if (!isBusy) return true;
