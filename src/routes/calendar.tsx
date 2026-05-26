@@ -152,7 +152,7 @@ function CalendarComponent() {
 
     const [appRes, barbRes, custRes, servRes] = await Promise.all([
       appQuery.order("start_time", { ascending: false }),
-      supabase.from("barbers").select("*").eq("user_id", user.id).eq("active", true).order("name"),
+      supabase.from("barbers").select("*").eq("user_id", user.id).order("name"),
       supabase.from("customers").select("*").eq("user_id", user.id).order("name"),
       supabase.from("services").select("*").eq("user_id", user.id).eq("active", true).order("name"),
     ]);
