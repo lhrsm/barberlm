@@ -169,6 +169,8 @@ function AutomationsComponent() {
     } finally {
       setIsTesting(null);
     }
+  };
+
   const handleRunAllAutomations = async () => {
     if (!tenantId) return;
     setIsRunningAll(true);
