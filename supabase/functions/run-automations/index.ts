@@ -77,7 +77,6 @@ serve(async (req) => {
 
     console.log(`[Automation] Processing ${tenants?.length || 0} tenants.`);
 
-    // Status global
     const { data: statusRows } = await supabase.from("automation_status").select("id").limit(1);
     const globalStatusId = statusRows?.[0]?.id;
 
@@ -104,114 +103,53 @@ serve(async (req) => {
           continue;
         }
 
-        // PRIORIDADE 1: whatsapp_connections (Onde salvamos a configuração via Integrações -> Z-API)
-        console.log(`[Automation] Fetching WhatsApp Connection for tenant ${tenant.business_name} (${tenantId})`);
-        let { data: connection, error: connError } = await supabase
-          .from("whatsapp_connections")
+        const { data: connection, error: connError } = await supabase
+          .from("whatsapp_instances")
           .select("*")
-          .eq("barbershop_id", tenantId)
+          .eq("tenant_id", tenantId)
           .maybeSingle();
 
-        if (connError) {
-          console.error(`[Automation] Error fetching whatsapp_connections for ${tenant.business_name}:`, connError);
-        }
-
-        // PRIORIDADE 2: barbershop_settings (Fallback ou sincronização)
-        if (!connection || !connection.instance_id || !connection.instance_token) {
-          console.log(`[Automation] No connection found in whatsapp_connections for ${tenant.business_name}. Checking barbershop_settings...`);
-          let { data: settings, error: settingsError } = await supabase
-            .from("barbershop_settings")
-            .select("*")
-            .eq("barber_id", tenantId)
-            .maybeSingle();
-
-          if (settingsError) {
-            console.error(`[Automation] Error fetching settings for ${tenant.business_name}:`, settingsError);
-          }
-          
-          if (settings && settings.instance_id && settings.instance_token) {
-            connection = {
-              ...connection,
-              instance_id: settings.instance_id,
-              instance_token: settings.instance_token,
-              client_token: settings.client_token,
-              server_url: settings.server_url || "https://api.z-api.io",
-              phone: settings.whatsapp_number
-            };
-          }
-        }
-
-        // DEBUG OBRIGATÓRIO
-        console.log('--- CONNECTION DEBUG ---');
-        console.log('TENANT:', tenant.business_name);
-        console.log('INSTANCE ID:', connection?.instance_id);
-        console.log('INSTANCE TOKEN:', connection?.instance_token ? '***' : 'MISSING');
-        console.log('CLIENT TOKEN:', connection?.client_token ? '***' : 'MISSING');
-        console.log('WHATSAPP NUMBER:', connection?.phone);
-        console.log('----------------------');
-
-        if (!connection || !connection.instance_id || !connection.instance_token) {
+        if (connError || !connection || !connection.instance_id || !connection.token) {
           if (automations && automations.length > 0) {
             ignoredRecords.push({ 
               tenant_id: tenantId, 
               business_name: tenant.business_name,
-              reason: "Telefone da instância WhatsApp não configurado" 
+              reason: "Instância Z-API não configurada ou inválida" 
             });
           }
           continue;
         }
 
-        // Live check with status endpoint
         try {
           const baseUrl = connection.server_url || "https://api.z-api.io";
-          const statusUrl = `${baseUrl}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
+          const statusUrl = `${baseUrl}/instances/${connection.instance_id}/token/${connection.token}/status`;
           
           const headers: any = { "Content-Type": "application/json" };
           if (connection.client_token) {
-            headers["client-token"] = connection.client_token;
+            headers["Client-Token"] = connection.client_token;
           }
 
-          console.log(`[Automation] Performing live check for ${tenant.business_name} at ${statusUrl}`);
           const statusRes = await fetch(statusUrl, { method: "GET", headers });
           const statusData = await statusRes.json();
           
-          console.log(`[Automation] STATUS RESPONSE RAW for ${tenant.business_name}:`, JSON.stringify(statusData));
-          
-          connection.last_status_response = statusData;
-
           if (statusData?.connected === true) {
-            console.log(`[Automation] ${tenant.business_name} is CONNECTED.`);
             connection.status = 'connected';
             connection.connected = true;
           } else {
-            console.log(`[Automation] ${tenant.business_name} is DISCONNECTED. Reason: ${statusData?.message || 'Unknown'}`);
             connection.status = 'disconnected';
             connection.connected = false;
           }
         } catch (statusErr) {
           console.error(`[Automation] Failed to check live status for ${tenant.business_name}:`, statusErr);
+          connection.status = 'disconnected';
         }
 
-        if (connection.status !== 'connected' || connection.connected !== true) {
+        if (connection.status !== 'connected') {
           if (automations && automations.length > 0) {
-            // Log ignored because of connection
-            try {
-              await supabase.from("automation_logs").insert({
-                tenant_id: tenantId,
-                status: "error",
-                message_type: "connection_check",
-                error_message: "WhatsApp desconectado (verificado via Z-API)",
-                response: connection.last_status_response || { status: 'disconnected' },
-                sent_at: new Date().toISOString()
-              });
-            } catch (logErr) {
-              console.error("[Automation] Error logging connection failure:", logErr);
-            }
-
             ignoredRecords.push({ 
               tenant_id: tenantId, 
               business_name: tenant.business_name,
-              reason: "WhatsApp da barbearia não conectado" 
+              reason: "WhatsApp desconectado" 
             });
           }
           continue;
@@ -219,7 +157,6 @@ serve(async (req) => {
 
         for (const automation of automations || []) {
           try {
-            console.log(`[Automation] Processing ${automation.type} for tenant ${tenant.business_name}`);
             let res: any = { found: 0, sent: 0, failed: 0 };
             
             if (automation.type === "birthday") {
@@ -229,7 +166,6 @@ serve(async (req) => {
             } else if (automation.type === "appointment_reminder") {
               res = await processAppointmentReminder(supabase, automation, connection, forceMode);
             } else {
-              console.log(`[Automation] Type ${automation.type} not implemented yet.`);
               continue;
             }
 
@@ -240,19 +176,6 @@ serve(async (req) => {
             if (res.ignored) ignoredRecords.push(...res.ignored.map((i:any) => ({ ...i, tenant_id: tenantId })));
           } catch (autoLoopErr) {
             console.error(`[Automation] Error processing automation ${automation.type} for tenant ${tenantId}:`, autoLoopErr);
-            // Salvar log de erro mesmo se a função de processamento falhar catastroficamente
-            try {
-              await supabase.from("automation_logs").insert({
-                automation_id: automation.id,
-                tenant_id: tenantId,
-                status: "error",
-                message_type: automation.type,
-                error_message: `Internal processing error: ${autoLoopErr.message}`,
-                sent_at: new Date().toISOString()
-              });
-            } catch (logErr) {
-              console.error("[Automation] Critical failure to log error:", logErr);
-            }
             errors.push(`Tenant ${tenant.business_name} - Automação ${automation.type}: ${autoLoopErr.message}`);
           }
         }
@@ -264,7 +187,6 @@ serve(async (req) => {
 
     const executionTime = `${Date.now() - startTime}ms`;
     
-    // Update global status
     if (globalStatusId) {
       await supabase.from("automation_status").update({
         status: 'active',
@@ -276,7 +198,7 @@ serve(async (req) => {
       }).eq("id", globalStatusId);
     }
 
-    const responseData = {
+    return new Response(JSON.stringify({
       success: true,
       serverTime,
       brTime: brTime.iso,
@@ -296,9 +218,7 @@ serve(async (req) => {
         ignored: ignoredRecords.length,
         errors
       }
-    };
-
-    return new Response(JSON.stringify(responseData), {
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
@@ -331,13 +251,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
   });
 
   if (!bdayCustomers || bdayCustomers.length === 0) {
-    return { 
-      birthdays: [], 
-      ignored: [{ 
-        reason: `Nenhum aniversariante hoje (${brTime.day}/${brTime.month}).`,
-        type: 'birthday'
-      }] 
-    };
+    return { birthdays: [], ignored: [{ reason: `Nenhum aniversariante hoje.`, type: 'birthday' }] };
   }
 
   const birthdays = bdayCustomers.map(c => ({ id: c.id, name: c.name, type: 'birthday' }));
@@ -366,7 +280,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 
       const variables = {
         cliente_nome: customer.name,
-        barbearia_nome: connection.instance_name || "Nossa Barbearia",
+        barbearia_nome: "Nossa Barbearia",
       };
 
       const processedMessage = processAutomationTemplate(automation.template, variables);
@@ -395,7 +309,6 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
         sentItems.push({ ...logEntry, customer_name: customer.name, error_message: result.error, type: 'birthday' });
       }
     } catch (err) {
-      console.error(`Error processing birthday for ${customer.id}:`, err);
       sentItems.push({ status: 'error', customer_name: customer.name, error_message: err.message, type: 'birthday' });
     }
   }
@@ -420,13 +333,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
 
   if (error) return { appointments: [], errors: [error.message] };
   if (!appointments || appointments.length === 0) {
-    return { 
-      appointments: [], 
-      ignored: [{ 
-        reason: forceMode ? "Nenhum pendente de confirmação." : "Nenhum criado nos últimos 15min.",
-        type: 'confirmation'
-      }] 
-    };
+    return { appointments: [], ignored: [{ reason: "Nenhum pendente.", type: 'confirmation' }] };
   }
 
   const sentItems = [];
@@ -445,7 +352,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
         barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
         data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
         horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-        profissional: appt.barbers?.name || appt.profiles?.responsible_name || "Seu Barbeiro",
+        profissional: appt.barbers?.name || "Seu Barbeiro",
         servico: appt.services?.name || "Serviço",
       };
 
@@ -477,7 +384,6 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
         sentItems.push({ ...logEntry, customer_name: variables.cliente_nome, error_message: result.error, type: 'confirmation' });
       }
     } catch (err) {
-      console.error(`Error processing confirmation for ${appt.id}:`, err);
       sentItems.push({ status: 'error', appointment_id: appt.id, error_message: err.message, type: 'confirmation' });
     }
   }
@@ -506,13 +412,7 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
 
   if (error) return { appointments: [], errors: [error.message] };
   if (!appointments || appointments.length === 0) {
-    return { 
-      appointments: [], 
-      ignored: [{ 
-        reason: forceMode ? "Nenhum pendente de lembrete." : `Fora da janela de ${delayHours}h.`,
-        type: 'reminder'
-      }] 
-    };
+    return { appointments: [], ignored: [{ reason: "Fora da janela.", type: 'reminder' }] };
   }
 
   const sentItems = [];
@@ -526,25 +426,12 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
         continue;
       }
 
-      const apptStartTime = new Date(appt.start_time).getTime();
-      const diffMinutes = Math.floor((apptStartTime - now) / (60 * 1000));
-
-      if (!forceMode && (diffMinutes < (delayHours * 60) || diffMinutes > (delayHours * 60 + 15))) {
-          ignored.push({ 
-              appointment_id: appt.id, 
-              customer_name: appt.customers?.name || appt.name, 
-              reason: `Fora da janela (${diffMinutes} min).`,
-              type: 'reminder'
-          });
-          continue;
-      }
-
       const variables = {
         cliente_nome: appt.customers?.name || appt.name,
         barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
         data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
         horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-        profissional: appt.barbers?.name || appt.profiles?.responsible_name || "Seu Barbeiro",
+        profissional: appt.barbers?.name || "Seu Barbeiro",
         servico: appt.services?.name || "Serviço",
       };
 
@@ -576,7 +463,6 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
         sentItems.push({ ...logEntry, customer_name: variables.cliente_nome, error_message: result.error, type: 'reminder' });
       }
     } catch (err) {
-      console.error(`Error processing reminder for ${appt.id}:`, err);
       sentItems.push({ status: 'error', appointment_id: appt.id, error_message: err.message, type: 'reminder' });
     }
   }
@@ -587,7 +473,7 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
 async function sendMessage(connection: any, phone: string, message: string) {
   try {
     const instanceId = connection.instance_id;
-    const token = connection.instance_token;
+    const token = connection.token;
     const clientToken = connection.client_token;
     const baseUrl = connection.server_url || "https://api.z-api.io";
     
@@ -595,12 +481,10 @@ async function sendMessage(connection: any, phone: string, message: string) {
     const headers: any = { "Content-Type": "application/json" };
     
     if (clientToken) {
-      headers["client-token"] = clientToken;
+      headers["Client-Token"] = clientToken;
     }
 
     const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
-    console.log(`[Automation] Sending message to ${targetPhone} via ${sendUrl}`);
-    console.log(`[Automation] Using Client-Token: ${clientToken ? 'YES' : 'NO'}`);
     
     const response = await fetch(sendUrl, {
       method: "POST",
@@ -609,7 +493,6 @@ async function sendMessage(connection: any, phone: string, message: string) {
     });
 
     const data = await response.json();
-    console.log(`[Automation] ZAPI SEND RESPONSE:`, JSON.stringify(data));
     
     return { 
       success: response.ok, 
@@ -617,7 +500,6 @@ async function sendMessage(connection: any, phone: string, message: string) {
       error: !response.ok ? (data.message || data.error || `HTTP ${response.status}`) : null 
     };
   } catch (error) {
-    console.error(`[Automation] Send error:`, error);
     return { success: false, error: error.message };
   }
 }

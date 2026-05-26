@@ -20,49 +20,45 @@ serve(async (req) => {
     const url = new URL(req.url);
     const body = await req.json();
     
-    // Extract barberId from URL if present (format: .../zapi-webhook/[barberId])
     const pathParts = url.pathname.split('/');
-    const barberIdFromUrl = pathParts[pathParts.length - 1] !== 'zapi-webhook' ? pathParts[pathParts.length - 1] : null;
+    const tenantIdFromUrl = pathParts[pathParts.length - 1] !== 'zapi-webhook' ? pathParts[pathParts.length - 1] : null;
 
     console.log("Z-API Webhook received:", JSON.stringify(body));
 
     const { instanceId, type, phone } = body;
 
-    let barberId = barberIdFromUrl;
-    let connection = null;
+    let tenantId = tenantIdFromUrl;
+    let instance = null;
 
-    // Find connection by instanceId if not provided in URL
-    if (!barberId) {
-      const { data: conn } = await supabase
-        .from("whatsapp_connections")
+    if (!tenantId) {
+      const { data: inst } = await supabase
+        .from("whatsapp_instances")
         .select("*")
         .eq("instance_id", instanceId)
         .maybeSingle();
       
-      if (conn) {
-        connection = conn;
-        barberId = conn.barber_id;
+      if (inst) {
+        instance = inst;
+        tenantId = inst.tenant_id;
       }
     }
 
-    if (!barberId) {
-      console.warn(`Barbeiro não identificado para o evento Z-API instance ${instanceId}`);
-      return new Response(JSON.stringify({ status: "ignored", reason: "barber_not_found" }), { 
+    if (!tenantId) {
+      console.warn(`Tenant não identificado para o evento Z-API instance ${instanceId}`);
+      return new Response(JSON.stringify({ status: "ignored", reason: "tenant_not_found" }), { 
         headers: corsHeaders,
         status: 200 
       });
     }
 
-    // Save Webhook Log
     await supabase.from("automation_logs").insert({
-      barber_id: barberId,
+      barber_id: tenantId,
       status: 'received',
       message_type: type || 'webhook_event',
       phone: phone || body.phone,
       response: body
     });
 
-    // Business Logic
     let status = '';
     let isConnected = false;
 
@@ -75,20 +71,8 @@ serve(async (req) => {
     }
 
     if (status) {
-      console.log(`Updating status for barber ${barberId} to ${status}`);
+      console.log(`Updating status for tenant ${tenantId} to ${status}`);
       
-      // Update whatsapp_connections
-      await supabase
-        .from("whatsapp_connections")
-        .update({ 
-          status, 
-          connected: isConnected,
-          updated_at: new Date().toISOString(),
-          phone: phone || connection?.phone || body.phone
-        })
-        .eq("barber_id", barberId);
-
-      // Sync with whatsapp_instances
       await supabase
         .from("whatsapp_instances")
         .update({ 
@@ -97,7 +81,7 @@ serve(async (req) => {
           phone: phone || body.phone,
           updated_at: new Date().toISOString()
         })
-        .eq("barber_id", barberId);
+        .eq("tenant_id", tenantId);
     }
 
     return new Response(JSON.stringify({ status: "success" }), {
