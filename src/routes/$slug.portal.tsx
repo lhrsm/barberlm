@@ -543,11 +543,12 @@ function ClientPortalComponent() {
       } else {
         // For new customers in the portal, we need a barber_id for RLS
         // We'll pick the first active barber from the shop as default if none selected
-        const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
+        const defaultBarberId = barbers[0]?.id;
         
         if (!defaultBarberId) {
           throw new Error("Não foi possível identificar um profissional para o cadastro.");
         }
+
 
         const { data: newCust, error: custErr } = await supabase
           .from("customers")
