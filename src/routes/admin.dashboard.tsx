@@ -66,11 +66,10 @@ function AdminDashboard() {
       // Fetch Plans
       const { data: plans } = await supabase.from("plans").select("*");
       
-      // Fetch Appointments (for total transacted)
+      // Fetch ALL Appointments for stats
       const { data: appointments } = await supabase
         .from("appointments")
-        .select("final_amount, cashback_earned, credit_used")
-        .eq("status", "completed");
+        .select("final_amount, cashback_earned, credit_used, status, created_at");
 
       // Fetch Customers (for credits and total count)
       const { data: customers } = await supabase
