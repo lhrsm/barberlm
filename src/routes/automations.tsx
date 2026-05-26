@@ -133,12 +133,38 @@ function AutomationsComponent() {
   const [automations, setAutomations] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [cronStatus, setCronStatus] = useState<any>(null);
+  const [automationStatus, setAutomationStatus] = useState<any>(null);
+  const [nextRunIn, setNextRunIn] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isIAExecuting, setIsIAExecuting] = useState(false);
   const [isTesting, setIsTesting] = useState<string | null>(null);
   const [isRunningAll, setIsRunningAll] = useState(false);
+
+  const calculateNextRun = () => {
+    const now = new Date();
+    const minutes = now.getMinutes();
+    const nextMinutes = Math.ceil((minutes + 0.01) / 5) * 5;
+    const nextRun = new Date(now);
+    nextRun.setMinutes(nextMinutes, 0, 0);
+    
+    if (nextMinutes >= 60) {
+      nextRun.setHours(now.getHours() + 1);
+      nextRun.setMinutes(0, 0, 0);
+    }
+    
+    const diff = nextRun.getTime() - now.getTime();
+    const mins = Math.floor(diff / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    
+    setNextRunIn(`${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
+  };
+
+  useEffect(() => {
+    const timer = setInterval(calculateNextRun, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleTestAutomation = async (automation: any) => {
     if (!tenantId) return;
@@ -199,13 +225,27 @@ function AutomationsComponent() {
     }
   };
 
-
-
   useEffect(() => {
     if (tenantId) {
       fetchAutomations();
       fetchLogs();
       fetchCronStatus();
+      
+      // Real-time updates for automation status
+      const channel = supabase
+        .channel('automation_status_changes')
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'automation_status' 
+        }, () => {
+          fetchCronStatus();
+        })
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [tenantId]);
 
@@ -234,13 +274,22 @@ function AutomationsComponent() {
 
   async function fetchCronStatus() {
     try {
-      const { data, error } = await supabase.rpc('get_cron_status');
-      if (error) throw error;
-      if (data && data.length > 0) {
-        setCronStatus(data[0]);
+      const { data: cronData, error: cronError } = await supabase.rpc('get_cron_status');
+      if (cronData && cronData.length > 0) {
+        setCronStatus(cronData[0]);
+      }
+      
+      const { data: statusData } = await supabase
+        .from("automation_status")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+      
+      if (statusData) {
+        setAutomationStatus(statusData);
       }
     } catch (err) {
-      console.error("Error fetching cron status:", err);
+      console.error("Error fetching status:", err);
     }
   }
 
