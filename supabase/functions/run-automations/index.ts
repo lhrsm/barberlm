@@ -45,11 +45,14 @@ serve(async (req) => {
     const targetTenantId = body.tenantId || body.barber_id;
 
     const brNow = getBRDate();
-    log("Starting automation execution", { 
+    const isScheduled = body.scheduled === true;
+
+    log(`Automation execution started (${isScheduled ? 'SCHEDULED' : 'MANUAL'})`, { 
       server_time_utc: new Date().toISOString(), 
       br_time: brNow.toISOString(),
       timezone: "America/Bahia (UTC-3)",
-      target_tenant: targetTenantId || "ALL"
+      target_tenant: targetTenantId || "ALL",
+      source: isScheduled ? "pg_cron" : "manual_trigger"
     });
 
     let query = supabase
