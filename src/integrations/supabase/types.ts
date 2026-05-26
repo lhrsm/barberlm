@@ -84,6 +84,7 @@ export type Database = {
       }
       appointments: {
         Row: {
+          appointment_group_id: string | null
           barber_id: string | null
           barbershop_amount: number | null
           cancel_token: string | null
@@ -121,6 +122,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          appointment_group_id?: string | null
           barber_id?: string | null
           barbershop_amount?: number | null
           cancel_token?: string | null
@@ -158,6 +160,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          appointment_group_id?: string | null
           barber_id?: string | null
           barbershop_amount?: number | null
           cancel_token?: string | null
