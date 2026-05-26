@@ -158,51 +158,82 @@ function BarbersComponent() {
     e.preventDefault();
     if (!user) return;
 
-    console.log('ADDING BARBER', newBarber);
-    const { data: barber, error } = await supabase.from("barbers").insert({
+    console.log('--- START ADD BARBER ---');
+    console.log('NEW BARBER DATA:', newBarber);
+    console.log('SELECTED SERVICES:', selectedServices);
+
+    const { data: barber, error: barberError } = await supabase.from("barbers").insert({
       ...newBarber,
       tenant_id: user.id,
       user_id: user.id,
       active: true,
     }).select().single();
 
-    if (error) {
-      console.error('INSERT BARBER ERROR', error);
-      toast.error("Erro ao adicionar barbeiro");
-    } else {
-      console.log('BARBER INSERTED', barber);
-      // Add links to services
-      if (selectedServices.length > 0) {
-        console.log('SELECTED SERVICES TO LINK', selectedServices);
-        const links = selectedServices.map(serviceId => ({
-          barber_id: barber.id,
-          service_id: serviceId,
-          tenant_id: user.id,
-          user_id: user.id
-        }));
-        
-        const { data: linkResult, error: linkError } = await supabase.from("barber_services").insert(links).select();
-        console.log('INSERT SERVICES RESULT', linkResult);
-        if (linkError) {
-          console.error('INSERT SERVICES ERROR', linkError);
-          toast.error("Erro ao vincular serviços ao barbeiro");
-        }
-      } else {
-        toast.warning("Nenhum serviço selecionado para o profissional.");
-      }
-
-      toast.success("Barbeiro cadastrado com sucesso!");
-      setIsAddDialogOpen(false);
-      setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0, working_hours: DEFAULT_WORKING_HOURS });
-      setSelectedServices([]);
-      fetchBarbers();
-      refreshLimits();
+    if (barberError) {
+      console.error('INSERT BARBER ERROR:', barberError);
+      toast.error(`Erro ao adicionar barbeiro: ${barberError.message}`);
+      return;
     }
+
+    console.log('BARBER CREATED SUCCESSFULLY:', barber);
+    console.log('BARBER ID:', barber?.id);
+
+    if (selectedServices.length > 0) {
+      const servicesPayload = selectedServices.map(serviceId => ({
+        barber_id: barber.id,
+        service_id: serviceId,
+        tenant_id: user.id,
+        user_id: user.id
+      }));
+
+      console.log('SERVICES PAYLOAD:', servicesPayload);
+      
+      const { data: servicesResult, error: servicesError } = await supabase
+        .from("barber_services")
+        .insert(servicesPayload)
+        .select();
+
+      console.log('SERVICES INSERT RESULT:', servicesResult);
+
+      if (servicesError) {
+        console.error('INSERT SERVICES ERROR:', servicesError);
+        toast.error(`Barbeiro criado, mas erro ao vincular serviços: ${servicesError.message}`);
+      } else if (!servicesResult || servicesResult.length === 0) {
+        console.error('INSERT SERVICES FAILED: No data returned');
+        toast.error("Erro silencioso ao vincular serviços. Verifique os logs.");
+      } else {
+        console.log('SERVICES LINKED SUCCESSFULLY');
+      }
+    } else {
+      console.warn('NO SERVICES SELECTED');
+      toast.warning("Barbeiro criado sem serviços vinculados.");
+    }
+
+    toast.success("Barbeiro cadastrado com sucesso!");
+    setIsAddDialogOpen(false);
+    setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0, working_hours: DEFAULT_WORKING_HOURS });
+    setSelectedServices([]);
+    
+    // Invalidate Caches
+    const queryClient = (window as any).queryClient;
+    if (queryClient) {
+      console.log('INVALIDATING QUERIES');
+      queryClient.invalidateQueries({ queryKey: ["barbers"] });
+      queryClient.invalidateQueries({ queryKey: ["barber-services"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    }
+
+    fetchBarbers();
+    refreshLimits();
+    console.log('--- END ADD BARBER ---');
   }
 
   async function handleUpdateBarber(e: React.FormEvent) {
     e.preventDefault();
     if (!editingBarber || !user) return;
+
+    console.log('--- START UPDATE BARBER ---');
+    console.log('UPDATING BARBER ID:', editingBarber.id);
 
     const payload = {
       name: editingBarber.name,
@@ -215,79 +246,91 @@ function BarbersComponent() {
       active: editingBarber.active
     };
 
-    console.log('UPDATING BARBER ID:', editingBarber.id);
-    console.log('PAYLOAD:', JSON.stringify(payload, null, 2));
+    console.log('UPDATE PAYLOAD:', payload);
 
-    const { data: updateResult, error } = await supabase
+    const { data: updateResult, error: updateError } = await supabase
       .from("barbers")
       .update(payload)
       .eq("id", editingBarber.id)
       .select();
 
-    if (error) {
-      console.error('UPDATE BARBER ERROR', error);
-      toast.error(`Erro ao atualizar barbeiro: ${error.message}`);
-    } else if (!updateResult || updateResult.length === 0) {
-      console.error('UPDATE FAILED: No rows affected');
-      toast.error("Erro ao salvar: O registro não foi alterado no banco.");
-    } else {
-      console.log('BARBER UPDATED SUCCESS:', updateResult);
-      // Update services: delete existing and insert new
-      console.log('SYNCING SERVICES FOR BARBER:', editingBarber.id);
-      
-      const { error: deleteError } = await supabase
-        .from("barber_services")
-        .delete()
-        .eq("barber_id", editingBarber.id)
-        .eq("user_id", user.id); // Explicit user_id for RLS
-      
-      if (deleteError) {
-        console.error('DELETE OLD SERVICES ERROR', deleteError);
-      } else {
-        console.log('OLD SERVICES DELETED');
-      }
-
-      if (selectedServices.length > 0) {
-        const links = selectedServices.map(serviceId => ({
-          barber_id: editingBarber.id,
-          service_id: serviceId,
-          tenant_id: user.id,
-          user_id: user.id
-        }));
-        
-        console.log('INSERTING SERVICES PAYLOAD:', JSON.stringify(links, null, 2));
-        
-        const { data: linkResult, error: linkError } = await supabase
-          .from("barber_services")
-          .insert(links)
-          .select();
-        
-        if (linkError) {
-          console.error('INSERT SERVICES ERROR', linkError);
-          toast.error(`Erro ao vincular serviços: ${linkError.message}`);
-        } else {
-          console.log('INSERT SERVICES SUCCESS:', linkResult);
-        }
-      } else {
-        console.warn("NO SERVICES SELECTED FOR BARBER");
-        toast.warning("O profissional ficou sem serviços vinculados.");
-      }
-
-      toast.success("Barbeiro atualizado com sucesso!");
-      setIsEditDialogOpen(false);
-      setEditingBarber(null);
-      setSelectedServices([]);
-      
-      // Realtime Invalidation
-      const queryClient = (window as any).queryClient;
-      if (queryClient) {
-        queryClient.invalidateQueries({ queryKey: ["barbers"] });
-        queryClient.invalidateQueries({ queryKey: ["services"] });
-        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
-      }
-      
-      fetchBarbers();
+    if (updateError) {
+      console.error('UPDATE BARBER ERROR:', updateError);
+      toast.error(`Erro ao atualizar barbeiro: ${updateError.message}`);
+      return;
     }
+
+    if (!updateResult || updateResult.length === 0) {
+      console.error('UPDATE FAILED: No rows affected');
+      toast.error("Erro ao salvar: O registro não foi encontrado ou não foi alterado.");
+      return;
+    }
+
+    console.log('BARBER UPDATED SUCCESSFULLY:', updateResult);
+
+    // Sync Services: Delete and Re-insert
+    console.log('SYNCING SERVICES FOR BARBER:', editingBarber.id);
+    console.log('SELECTED SERVICES:', selectedServices);
+
+    const { error: deleteError } = await supabase
+      .from("barber_services")
+      .delete()
+      .eq("barber_id", editingBarber.id);
+    
+    if (deleteError) {
+      console.error('DELETE OLD SERVICES ERROR:', deleteError);
+      toast.error(`Erro ao limpar serviços antigos: ${deleteError.message}`);
+      // We continue to try inserting new ones even if delete failed (though it might cause duplicates if RLS is weird)
+    } else {
+      console.log('OLD SERVICES DELETED');
+    }
+
+    if (selectedServices.length > 0) {
+      const servicesPayload = selectedServices.map(serviceId => ({
+        barber_id: editingBarber.id,
+        service_id: serviceId,
+        tenant_id: user.id,
+        user_id: user.id
+      }));
+
+      console.log('INSERTING SERVICES PAYLOAD:', servicesPayload);
+      
+      const { data: servicesResult, error: servicesError } = await supabase
+        .from("barber_services")
+        .insert(servicesPayload)
+        .select();
+      
+      if (servicesError) {
+        console.error('INSERT SERVICES ERROR:', servicesError);
+        toast.error(`Barbeiro atualizado, mas erro ao vincular serviços: ${servicesError.message}`);
+      } else if (!servicesResult || servicesResult.length === 0) {
+        console.error('INSERT SERVICES FAILED: No data returned');
+        toast.error("Erro silencioso ao vincular serviços. Verifique os logs.");
+      } else {
+        console.log('SERVICES LINKED SUCCESSFULLY:', servicesResult);
+      }
+    } else {
+      console.warn("NO SERVICES SELECTED");
+      toast.warning("O profissional ficou sem serviços vinculados.");
+    }
+
+    toast.success("Barbeiro atualizado com sucesso!");
+    setIsEditDialogOpen(false);
+    setEditingBarber(null);
+    setSelectedServices([]);
+    
+    // Invalidate Caches
+    const queryClient = (window as any).queryClient;
+    if (queryClient) {
+      console.log('INVALIDATING QUERIES');
+      queryClient.invalidateQueries({ queryKey: ["barbers"] });
+      queryClient.invalidateQueries({ queryKey: ["barber-services"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    }
+    
+    fetchBarbers();
+    console.log('--- END UPDATE BARBER ---');
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean = false) {
