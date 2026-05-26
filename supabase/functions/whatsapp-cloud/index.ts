@@ -6,6 +6,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function normalizePhone(phone: string): string {
+  if (!phone) return "";
+  // Remove non-digits
+  let digits = phone.replace(/\D/g, "");
+  
+  // If it doesn't start with 55 and has 10 or 11 digits, add 55
+  if (!digits.startsWith("55") && (digits.length === 10 || digits.length === 11)) {
+    digits = "55" + digits;
+  }
+  
+  return digits;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -40,22 +53,69 @@ serve(async (req) => {
 
       try {
         let response;
+        const targetPhone = normalizePhone(msg.metadata?.phone || msg.wa_id);
+        
         if (conn.provider === 'z-api') {
+          const instanceId = conn.instance_id || Deno.env.get("ZAPI_INSTANCE_ID");
+          const token = conn.instance_token || Deno.env.get("ZAPI_TOKEN");
+          const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
           const baseUrl = conn.server_url || "https://api.z-api.io";
-          const headers: any = { "Content-Type": "application/json" };
           
-          console.log(`Sending WhatsApp via Z-API: ${conn.instance_id}`);
+          const headers: any = { 
+            "Content-Type": "application/json",
+          };
+          
+          if (clientToken) {
+            headers["Client-Token"] = clientToken;
+          }
+          
+          console.log(`Sending WhatsApp via Z-API to ${targetPhone} (Instance: ${instanceId})`);
 
-          response = await fetch(`${baseUrl}/instances/${conn.instance_id}/token/${conn.instance_token}/send-text`, {
+          const startTime = Date.now();
+          response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
             method: "POST",
             headers,
             body: JSON.stringify({
-              phone: msg.metadata?.phone || msg.wa_id,
+              phone: targetPhone,
               message: msg.content
             }),
           });
+          const endTime = Date.now();
+
+          const result = await response.json();
+          const executionTime = endTime - startTime;
+
+          // Log detail to automation_logs
+          await supabase.from("automation_logs").insert({
+            barber_id: msg.user_id,
+            status: response.ok ? 'sent' : 'error',
+            message_type: 'whatsapp_send',
+            phone: targetPhone,
+            response: {
+              status: response.status,
+              body: result,
+              execution_time_ms: executionTime,
+              instance_id: instanceId
+            }
+          });
+
+          if (response.ok && (result.messageId || result.id || result.messages)) {
+            await supabase.from("whatsapp_messages").update({ 
+              status: "sent", 
+              wa_id: (result.messages ? result.messages[0].id : (result.id || result.messageId)),
+              updated_at: new Date().toISOString()
+            }).eq("id", msg.id);
+          } else {
+            await supabase.from("whatsapp_messages").update({ 
+              status: "failed", 
+              error_message: JSON.stringify(result.error || result),
+              updated_at: new Date().toISOString()
+            }).eq("id", msg.id);
+          }
+          results.push({ id: msg.id, result });
+
         } else {
-          // Default to Meta Cloud API for backward compatibility
+          // Default to Meta Cloud API
           response = await fetch(`https://graph.facebook.com/v17.0/${conn.phone_number_id}/messages`, {
             method: "POST",
             headers: {
@@ -64,28 +124,36 @@ serve(async (req) => {
             },
             body: JSON.stringify({
               messaging_product: "whatsapp",
-              to: msg.metadata?.phone || msg.wa_id,
+              to: targetPhone,
               type: "text",
               text: { body: msg.content }
             }),
           });
-        }
 
-        const result = await response.json();
-        if (result.messages || result.id || result.messageId) {
-          await supabase.from("whatsapp_messages").update({ 
-            status: "sent", 
-            wa_id: (result.messages ? result.messages[0].id : (result.id || result.messageId)) 
-          }).eq("id", msg.id);
-        } else {
-          await supabase.from("whatsapp_messages").update({ 
-            status: "failed", 
-            error_message: JSON.stringify(result.error || result) 
-          }).eq("id", msg.id);
+          const result = await response.json();
+          if (result.messages || result.id) {
+            await supabase.from("whatsapp_messages").update({ 
+              status: "sent", 
+              wa_id: (result.messages ? result.messages[0].id : result.id),
+              updated_at: new Date().toISOString()
+            }).eq("id", msg.id);
+          } else {
+            await supabase.from("whatsapp_messages").update({ 
+              status: "failed", 
+              error_message: JSON.stringify(result.error || result),
+              updated_at: new Date().toISOString()
+            }).eq("id", msg.id);
+          }
+          results.push({ id: msg.id, result });
         }
-        results.push({ id: msg.id, result });
       } catch (err) {
+        console.error(`Error processing message ${msg.id}:`, err.message);
         results.push({ id: msg.id, error: err.message });
+        await supabase.from("whatsapp_messages").update({ 
+          status: "failed", 
+          error_message: err.message,
+          updated_at: new Date().toISOString()
+        }).eq("id", msg.id);
       }
     }
 
@@ -97,12 +165,16 @@ serve(async (req) => {
     const body = await req.json();
     const { user_id, event_type, phone, placeholders, appointment_id } = body;
 
+    if (!user_id) {
+      return new Response(JSON.stringify({ error: "user_id is required" }), { status: 400, headers: corsHeaders });
+    }
+
     // Fetch Connection
     const { data: conn } = await supabase
       .from("whatsapp_connections")
       .select("*")
-      .or(`barbershop_id.eq.${user_id},user_id.eq.${user_id}`)
-      .eq("status", "connected") // Z-API use 'connected'
+      .or(`barber_id.eq.${user_id},barbershop_id.eq.${user_id}`)
+      .eq("status", "connected")
       .maybeSingle();
 
     if (!conn) {
@@ -110,7 +182,7 @@ serve(async (req) => {
       const { data: connActive } = await supabase
         .from("whatsapp_connections")
         .select("*")
-        .or(`barbershop_id.eq.${user_id},user_id.eq.${user_id}`)
+        .or(`barber_id.eq.${user_id},barbershop_id.eq.${user_id}`)
         .eq("status", "active")
         .maybeSingle();
         
@@ -119,7 +191,7 @@ serve(async (req) => {
       }
     }
 
-    const activeConn = conn || (await supabase.from("whatsapp_connections").select("*").or(`barbershop_id.eq.${user_id},user_id.eq.${user_id}`).eq("status", "active").single()).data;
+    const activeConn = conn || (await supabase.from("whatsapp_connections").select("*").or(`barber_id.eq.${user_id},barbershop_id.eq.${user_id}`).eq("status", "active").single()).data;
 
     // Fetch Template
     const { data: template } = await supabase
@@ -155,7 +227,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: insertError.message }), { status: 500, headers: corsHeaders });
     }
 
-    // Trigger immediate process
+    // Trigger immediate process (background)
     fetch(`${supabaseUrl}/functions/v1/whatsapp-cloud/process-queue`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${supabaseKey}` }
