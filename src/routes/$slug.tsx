@@ -814,9 +814,9 @@ function ShopPageComponent() {
       const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
       const endTime = addMinutes(startTime, selectedService.duration_minutes || 30);
 
-      const appointmentPayload = {
+      const appointmentPayload: any = {
         user_id: shop.id,
-        tenant_id: shop.id, // Ensure tenant_id is set
+        tenant_id: shop.id,
         customer_id: finalCustId,
         service_id: selectedService.id,
         barber_id: selectedBarber.id,
@@ -839,14 +839,14 @@ function ShopPageComponent() {
           { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
           ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
         ],
-        source: 'portal' // Identifica a origem
+        source: 'portal'
       };
 
       console.log('DEBUG: Finalizing appointment with payload', appointmentPayload);
 
       const { error: appError, data: appointment } = await supabase
         .from("appointments")
-        .insert(appointmentPayload)
+        .insert([appointmentPayload])
         .select()
         .single();
 
