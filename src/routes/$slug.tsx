@@ -49,6 +49,39 @@ function ShopPageComponent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bookingCart, setBookingCart] = useState<any[]>([]);
+  
+  const addToBookingCart = () => {
+    if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) {
+      toast.error("Por favor, selecione serviço, barbeiro, data e horário.");
+      return;
+    }
+
+    const newItem = {
+      id: crypto.randomUUID(),
+      service_id: selectedService.id,
+      service_name: selectedService.name,
+      barber_id: selectedBarber.id,
+      barber_name: selectedBarber.name,
+      date: selectedDate,
+      start_time: selectedTime,
+      duration: selectedService.duration_minutes || 30,
+      price: selectedService.price || 0
+    };
+
+    setBookingCart(prev => [...prev, newItem]);
+    
+    // Reset selection for next service
+    setSelectedService(null);
+    setSelectedBarber(null);
+    setSelectedTime("");
+    setBookingStep(2); // Voltar para seleção de serviço
+    toast.success("Serviço adicionado ao agendamento!");
+  };
+
+  const removeFromBookingCart = (id: string) => {
+    setBookingCart(prev => prev.filter(item => item.id !== id));
+  };
   
   // Debug logs to trace route issues
   useEffect(() => {
@@ -892,8 +925,8 @@ function ShopPageComponent() {
           type: 'appointment_created',
           title: "Novo Agendamento",
           message: `${customerName} agendou ${serviceName} com ${barberName} às ${item?.start_time}`,
-          barberId: appt.barber_id,
-          customerId: finalCustId,
+          barberId: appt.barber_id || undefined,
+          customerId: finalCustId || undefined,
           metadata: { appointmentId: appt.id }
         });
 
@@ -908,8 +941,8 @@ function ShopPageComponent() {
               cliente: customerName,
               horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
               barbeiro: barberName,
-              valor: appt.total_price.toFixed(2),
-              customer_id: finalCustId
+              valor: (appt.total_price || 0).toFixed(2),
+              customer_id: finalCustId || ""
             },
             appointmentId: appt.id
           });
