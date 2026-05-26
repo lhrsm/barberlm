@@ -573,27 +573,34 @@ function ShopPageComponent() {
 
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
-    console.log('DEBUG: checkConflict triggered', { barberId, date, time, serviceId });
+    console.log('DEBUG: checkConflict (Barber)', { barberId, date, time, serviceId });
     const service = services.find(s => s.id === serviceId);
     if (!service) return false;
     
     const startTime = parseISO(`${date}T${time}:00`);
     const endTime = addMinutes(startTime, service.duration_minutes || 30);
+    const startIso = startTime.toISOString();
+    const endIso = endTime.toISOString();
 
     const { data, error } = await supabase
       .from("appointments")
-      .select("id")
+      .select("id, start_time, end_time, status")
       .eq("barber_id", barberId)
-      .eq("status", "scheduled")
-      .or(`and(start_time.lte.${startTime.toISOString()},end_time.gt.${startTime.toISOString()}),and(start_time.lt.${endTime.toISOString()},end_time.gte.${endTime.toISOString()}),and(start_time.gte.${startTime.toISOString()},end_time.lte.${endTime.toISOString()})`)
+      .in("status", ["scheduled", "confirmed", "in_progress"])
+      .lt("start_time", endIso)
+      .gt("end_time", startIso)
       .limit(1);
 
     if (error) {
-      console.error("Erro ao verificar conflitos:", error);
+      console.error("Erro ao verificar conflitos (barbeiro):", error);
       return false;
     }
 
-    return data && data.length > 0;
+    const hasConflict = data && data.length > 0;
+    if (hasConflict) {
+      console.log('CONFLITO DETECTADO (BARBEIRO):', data[0]);
+    }
+    return hasConflict;
   };
 
   const fetchAvailableTimes = async (barberId: string, date: string) => {
