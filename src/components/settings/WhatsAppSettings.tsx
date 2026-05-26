@@ -467,6 +467,43 @@ export function WhatsAppSettings() {
                        Nenhuma mensagem enviada nos últimos 7 dias.
                      </div>
                    )}
+                  </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="automations">
+            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm">
+              <CardContent className="p-0">
+                 <div className="divide-y">
+                   {automationLogs.length === 0 && (
+                     <div className="p-8 text-center text-muted-foreground text-sm">
+                       Nenhum log de automação encontrado.
+                     </div>
+                   )}
+                   {automationLogs.map((log) => (
+                     <div key={log.id} className="p-4 flex items-center justify-between text-sm hover:bg-slate-50 transition-colors">
+                       <div className="space-y-1">
+                         <div className="flex items-center gap-2">
+                           <Badge variant={log.status === 'success' || log.status === 'received' ? "default" : "destructive"} className={cn("text-[10px] uppercase", (log.status === 'success' || log.status === 'received') && "bg-emerald-500 hover:bg-emerald-600")}>
+                             {log.status === 'success' ? "Enviado" : log.status === 'received' ? "Webhook" : "Erro"}
+                           </Badge>
+                           <span className="text-muted-foreground text-xs">
+                             {new Date(log.created_at).toLocaleString('pt-BR')}
+                           </span>
+                         </div>
+                         <p className="font-medium text-slate-800 capitalize">
+                           {log.message_type?.replace('_', ' ')}
+                         </p>
+                         <p className="text-xs text-muted-foreground">Para/Info: {log.phone || log.response?.phone || 'N/A'}</p>
+                       </div>
+                       <div className="text-right">
+                         {log.error_message && (
+                           <p className="text-[10px] text-red-600 max-w-[200px]">{log.error_message}</p>
+                         )}
+                       </div>
+                     </div>
+                   ))}
                  </div>
               </CardContent>
             </Card>
