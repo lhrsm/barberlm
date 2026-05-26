@@ -829,10 +829,12 @@ export type Database = {
         Row: {
           barber_id: string | null
           created_at: string | null
+          customer_id: string | null
           id: string
           is_read: boolean | null
           link: string | null
           message: string
+          metadata: Json | null
           read: boolean | null
           read_at: string | null
           tenant_id: string | null
@@ -843,10 +845,12 @@ export type Database = {
         Insert: {
           barber_id?: string | null
           created_at?: string | null
+          customer_id?: string | null
           id?: string
           is_read?: boolean | null
           link?: string | null
           message: string
+          metadata?: Json | null
           read?: boolean | null
           read_at?: string | null
           tenant_id?: string | null
@@ -857,10 +861,12 @@ export type Database = {
         Update: {
           barber_id?: string | null
           created_at?: string | null
+          customer_id?: string | null
           id?: string
           is_read?: boolean | null
           link?: string | null
           message?: string
+          metadata?: Json | null
           read?: boolean | null
           read_at?: string | null
           tenant_id?: string | null
@@ -874,6 +880,13 @@ export type Database = {
             columns: ["barber_id"]
             isOneToOne: false
             referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
           {
@@ -2172,6 +2185,18 @@ export type Database = {
             } & "Could not choose the best candidate function between: public.cancel_appointment_by_token(token_val => text), public.cancel_appointment_by_token(token_val => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
           }
       check_expired_trials: { Args: never; Returns: undefined }
+      create_notification: {
+        Args: {
+          p_barber_id?: string
+          p_customer_id?: string
+          p_message: string
+          p_metadata?: Json
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       decrement_product_stock: {
         Args: { amount: number; prod_id: string }
         Returns: undefined
