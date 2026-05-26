@@ -1928,6 +1928,64 @@ export type Database = {
           },
         ]
       }
+      whatsapp_conversations: {
+        Row: {
+          appointment_id: string | null
+          barber_id: string | null
+          context: Json | null
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          phone: string
+          state: string
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          barber_id?: string | null
+          context?: Json | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          phone: string
+          state: string
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          barber_id?: string | null
+          context?: Json | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          phone?: string
+          state?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversations_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_instances: {
         Row: {
           barber_id: string | null

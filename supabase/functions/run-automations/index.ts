@@ -356,7 +356,9 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
         servico: appt.services?.name || "Serviço",
       };
 
-      const processedMessage = processAutomationTemplate(automation.template, variables);
+      const interactiveSuffix = `\n\nResponda com uma das opções abaixo:\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar`;
+      const processedMessage = processAutomationTemplate(automation.template, variables) + interactiveSuffix;
+      
       const result = await sendMessage(connection, phone, processedMessage);
       
       const logEntry = {
@@ -378,11 +380,26 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
       await supabase.from("automation_logs").insert(logEntry);
       
       if (result.success) {
+        // Create conversation state
+        await supabase.from("whatsapp_conversations").insert({
+          barber_id: appt.tenant_id,
+          customer_id: appt.customer_id,
+          appointment_id: appt.id,
+          phone: normalizePhone(phone),
+          state: 'awaiting_confirmation',
+          context: {
+            customer_name: variables.cliente_nome,
+            business_name: variables.barbearia_nome,
+            appointment_id: appt.id
+          }
+        });
+
         await supabase.from("appointments").update({ confirmation_sent: true }).eq("id", appt.id);
         sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
       } else {
         sentItems.push({ ...logEntry, customer_name: variables.cliente_nome, error_message: result.error, type: 'confirmation' });
       }
+
     } catch (err) {
       sentItems.push({ status: 'error', appointment_id: appt.id, error_message: err.message, type: 'confirmation' });
     }
