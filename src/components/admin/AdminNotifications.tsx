@@ -30,6 +30,8 @@ import { useNavigate } from "@tanstack/react-router";
 export function AdminNotifications() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const instanceId = useId().replace(/:/g, "");
+  
   
   const { data: notifications, isLoading } = useQuery({
     queryKey: ["admin-notifications"],
