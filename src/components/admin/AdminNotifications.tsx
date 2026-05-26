@@ -76,8 +76,9 @@ export function AdminNotifications() {
   });
 
   useEffect(() => {
+    const channelName = `admin-notifications-realtime-${instanceId}`;
     const channel = supabase
-      .channel('admin-notifications-realtime')
+      .channel(channelName)
       .on('postgres_changes', { 
         event: '*', 
         table: 'admin_notifications',
