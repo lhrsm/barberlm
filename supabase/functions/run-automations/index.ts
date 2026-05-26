@@ -43,17 +43,27 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    const body = await req.json().catch(() => ({}));
+    const targetTenantId = body.tenantId || body.barber_id;
+
     const brNow = getBRDate();
     log("Starting automation execution", { 
       server_time_utc: new Date().toISOString(), 
       br_time: brNow.toISOString(),
-      timezone: "America/Bahia (UTC-3)"
+      timezone: "America/Bahia (UTC-3)",
+      target_tenant: targetTenantId || "ALL"
     });
 
-    const { data: automations, error: autoError } = await supabase
+    let query = supabase
       .from("automations")
       .select("*")
       .eq("enabled", true);
+    
+    if (targetTenantId) {
+      query = query.eq("tenant_id", targetTenantId);
+    }
+
+    const { data: automations, error: autoError } = await query;
 
     if (autoError) {
       log("Error fetching automations", autoError);
