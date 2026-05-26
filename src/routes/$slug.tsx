@@ -1189,7 +1189,6 @@ function ShopPageComponent() {
     }
   }, [isBookingOpen, bookingStep, customerPhone, customerName, customerId]);
 
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
@@ -1200,7 +1199,7 @@ function ShopPageComponent() {
 
   if (!shop) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black text-white">
         <h1 className="text-4xl font-bold mb-2">404</h1>
         <p className="text-muted-foreground mb-4">Barbearia não encontrada.</p>
         <Button asChild>
@@ -1209,6 +1208,7 @@ function ShopPageComponent() {
       </div>
     );
   }
+
 
   return (
     <div 
