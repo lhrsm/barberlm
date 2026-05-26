@@ -138,8 +138,14 @@ function DashboardComponent() {
           table: 'appointments', 
           filter: `tenant_id=eq.${tenantId}` 
         }, () => {
+          console.log("Realtime: appointments changed, invalidating queries");
           fetchTodayAppointments();
           fetchStats();
+          // Invalidate React Query if available
+          const queryClient = (window as any).queryClient;
+          if (queryClient) {
+            queryClient.invalidateQueries({ queryKey: ["appointments"] });
+          }
         })
         .on('postgres_changes', { 
           event: '*', 
@@ -147,6 +153,7 @@ function DashboardComponent() {
           table: 'transactions', 
           filter: `tenant_id=eq.${tenantId}` 
         }, () => {
+          console.log("Realtime: transactions changed, invalidating queries");
           fetchStats();
         })
         .on('postgres_changes', { 
@@ -155,9 +162,21 @@ function DashboardComponent() {
           table: 'notifications', 
           filter: `tenant_id=eq.${tenantId}` 
         }, () => {
+          console.log("Realtime: notifications changed");
           fetchNotifications();
         })
-        .subscribe();
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'customers', 
+          filter: `tenant_id=eq.${tenantId}` 
+        }, () => {
+          console.log("Realtime: customers changed");
+          fetchStats();
+        })
+        .subscribe((status) => {
+          console.log(`Realtime: Subscription status for tenant ${tenantId}:`, status);
+        });
 
       return () => {
         supabase.removeChannel(channel);
