@@ -1808,7 +1808,29 @@ function ShopPageComponent() {
                           buttonClassName: "!h-16 !bg-transparent !border-none !px-4 !rounded-l-2xl hover:!bg-gray-100 transition-colors",
                         }}
                       />
+                      <style>{`
+                        .international-phone-portal .react-international-phone-input-container {
+                          width: 100%;
+                          border: 1px solid #e2e8f0;
+                          border-radius: 1rem;
+                          background: white;
+                          transition: all 0.2s;
+                        }
+                        .international-phone-portal .react-international-phone-input-container:focus-within {
+                          border-color: #D4AF37;
+                          box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+                        }
+                        .international-phone-portal .react-international-phone-input {
+                          width: 100% !important;
+                          border: none !important;
+                        }
+                        .international-phone-portal .react-international-phone-country-selector-button {
+                          border: none !important;
+                          border-right: 1px solid #f1f5f9 !important;
+                        }
+                      `}</style>
                     </div>
+
 
                     <AnimatePresence mode="wait">
                       {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && (
