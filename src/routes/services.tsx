@@ -91,13 +91,13 @@ function ServicesComponent() {
   }
 
   async function handleDeleteService(id: string) {
-    if (!confirm("Tem certeza que deseja excluir este serviço?")) return;
+    if (!confirm("Tem certeza que deseja excluir este serviço?") || !user) return;
 
     const { error } = await supabase
       .from("services")
       .delete()
       .eq("id", id)
-      .eq("tenant_id", user?.id);
+      .eq("tenant_id", user.id);
 
     if (error) {
       toast.error("Erro ao excluir serviço");
