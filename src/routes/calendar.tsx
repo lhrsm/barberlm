@@ -688,7 +688,13 @@ function CalendarComponent() {
                                 key={app.id}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  toast.info(`Agendamento: ${app.customers?.name} - ${app.services?.name}`);
+                                  setModalInitialData({
+                                    date: format(parseISO(app.start_time), "yyyy-MM-dd"),
+                                    time: format(parseISO(app.start_time), "HH:mm"),
+                                    step: 1,
+                                    editingId: app.id
+                                  });
+                                  setIsDialogOpen(true);
                                 }}
                                 className={cn(
                                   "p-1 rounded text-[10px] shadow-sm truncate animate-in fade-in zoom-in duration-200 border",
