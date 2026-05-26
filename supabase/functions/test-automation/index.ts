@@ -87,22 +87,19 @@ serve(async (req) => {
 
     const instanceId = connection.instance_id;
     const token = connection.instance_token;
-    const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
     const baseUrl = connection.server_url || "https://api.z-api.io";
 
-    const headers: any = { 
+    const headers = { 
       "Content-Type": "application/json" 
     };
-    
-    if (clientToken) {
-      headers["Client-Token"] = clientToken;
-    }
 
     let zapiResult: any = {};
     let ok = false;
 
     try {
-      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
+      const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
+      console.log(`[Test] Sending to ${targetPhone} via ${sendUrl}`);
+      const response = await fetch(sendUrl, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -112,6 +109,7 @@ serve(async (req) => {
       });
 
       zapiResult = await response.json();
+      console.log(`[Test] ZAPI SEND RESPONSE:`, JSON.stringify(zapiResult));
       ok = response.ok;
     } catch (fetchErr) {
       zapiResult = { error: fetchErr.message };
