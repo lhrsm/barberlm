@@ -444,7 +444,7 @@ function ShopPageComponent() {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
     } else {
-      // Pre-fill with session data if exists, but always show step 1 to confirm identity
+      // Pre-fill with session data if exists
       const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
       if (savedClient) {
         try {
@@ -453,14 +453,23 @@ function ShopPageComponent() {
           setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
+          
+          // Se já temos o customerId, pulamos a identificação (Step 1)
+          // Step 1: Boas-vindas/Telefone
+          // Step 2: Seleção de Serviço
+          console.log('DEBUG: Skipping to Step 2 as user is authenticated');
+          setBookingStep(2);
         } catch (e) {
           console.error("Error loading session:", e);
+          setBookingStep(1);
         }
+      } else {
+        setBookingStep(1);
       }
-      setBookingStep(1);
       setIsBookingOpen(true);
     }
   };
+
 
   const handlePhoneCheck = async () => {
     const normalized = normalizePhone(customerPhone);
@@ -2143,33 +2152,73 @@ function ShopPageComponent() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
+                onViewportEnter={() => {
+                  console.log('DEBUG: PAYMENT STEP REACHED');
+                  console.log('CUSTOMER ID', customerId);
+                  console.log('CUSTOMER NAME', customerName);
+                  console.log('CREDITS', customerCredits);
+                  console.log('CASHBACK', customerCashback);
+                  console.log('SERVICE TOTAL', calculateTotalBeforeCashback());
+                }}
               >
-                {shop.cashback_enabled && customerCashback > 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center justify-between p-5 bg-primary/5 border border-primary/20 rounded-[2rem] shadow-inner"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                        <Gift size={24} className="text-[#D4AF37]" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-black uppercase tracking-tighter">Você tem cashback!</p>
-                        <p className="text-xs font-bold text-[#D4AF37]">Saldo: R$ {customerCashback.toFixed(2)}</p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant={useCashback ? "default" : "outline"} 
-                      size="sm" 
-                      onClick={() => setUseCashback(!useCashback)}
-                      className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px]", useCashback ? "bg-primary text-white" : "border-primary/30 text-primary hover:bg-primary/10")}
-                      style={useCashback ? { backgroundColor: primaryColor } : {}}
+                {/* Highlight Cards for Balance */}
+                <div className="space-y-3">
+                  {shop.cashback_enabled && customerCashback > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center justify-between p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-[2rem] shadow-lg"
                     >
-                      {useCashback ? "Aplicado" : "Usar"}
-                    </Button>
-                  </motion.div>
-                )}
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+                          <Gift size={24} className="text-emerald-400" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">Cashback Disponível</p>
+                          <p className="text-lg font-black text-white leading-none">R$ {customerCashback.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant={useCashback ? "default" : "outline"} 
+                        size="sm" 
+                        onClick={() => setUseCashback(!useCashback)}
+                        className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px] transition-all", useCashback ? "bg-emerald-500 text-white border-none shadow-lg shadow-emerald-500/20" : "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10")}
+                      >
+                        {useCashback ? "Aplicado" : "Usar"}
+                      </Button>
+                    </motion.div>
+                  )}
+
+                  {customerCredits > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center justify-between p-5 bg-primary/10 border border-primary/20 rounded-[2rem] shadow-lg"
+                      style={{ backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center" style={{ backgroundColor: `${primaryColor}30` }}>
+                          <CircleDollarSign size={24} className="text-primary" style={{ color: primaryColor }} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: primaryColor }}>Créditos Disponíveis</p>
+                          <p className="text-lg font-black text-white leading-none">R$ {customerCredits.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant={useCredits ? "default" : "outline"} 
+                        size="sm" 
+                        onClick={() => setUseCredits(!useCredits)}
+                        className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px] transition-all", useCredits ? "text-white border-none shadow-lg shadow-primary/20" : "border-primary/30 text-primary hover:bg-primary/10")}
+                        style={useCredits ? { backgroundColor: primaryColor, boxShadow: `0 10px 15px -3px ${primaryColor}40` } : { color: primaryColor, borderColor: `${primaryColor}50` }}
+                      >
+                        {useCredits ? "Aplicado" : "Usar Créditos"}
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
+
+
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
@@ -2350,13 +2399,13 @@ function ShopPageComponent() {
                   {(useCashback || useCredits) && (
                     <div className="pt-2 border-t border-white/5 space-y-1">
                       {useCashback && (
-                        <div className="flex justify-between text-green-500 font-bold text-xs">
+                        <div className="flex justify-between text-emerald-400 font-bold text-xs">
                           <span>Desconto Cashback:</span> 
                           <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
                         </div>
                       )}
                       {useCredits && (
-                        <div className="flex justify-between text-green-500 font-bold text-xs">
+                        <div className="flex justify-between font-bold text-xs" style={{ color: primaryColor }}>
                           <span>Desconto Créditos:</span> 
                           <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
                         </div>
@@ -2366,8 +2415,9 @@ function ShopPageComponent() {
 
                   <div className="flex justify-between items-center border-t border-white/10 pt-4 mt-3">
                     <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
-                    <span className="text-3xl font-black text-black">R$ {calculateTotal().toFixed(2)}</span>
+                    <span className="text-3xl font-black text-white" style={{ color: calculateTotal() === 0 ? '#10b981' : 'white' }}>R$ {calculateTotal().toFixed(2)}</span>
                   </div>
+
                   
                   {shop.cashback_enabled && (
                     <div className="bg-primary/5 p-3 rounded-xl text-[11px] text-center mt-3 border border-primary/20 shadow-inner">
