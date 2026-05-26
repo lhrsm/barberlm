@@ -1,36 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { processAutomationTemplate } from "../_shared/template-parser.ts";
+import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-function getBRTimeInfo() {
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('pt-BR', {
-    timeZone: 'America/Bahia',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  });
-  const parts = formatter.formatToParts(now);
-  const info: any = {};
-  parts.forEach(p => info[p.type] = p.value);
-  return {
-    day: info.day,
-    month: info.month,
-    year: info.year,
-    hour: info.hour,
-    minute: info.minute,
-    iso: `${info.year}-${info.month}-${info.day}T${info.hour}:${info.minute}:${info.second}`
-  };
-}
 
 function normalizePhone(phone: string): string {
   if (!phone) return "";
