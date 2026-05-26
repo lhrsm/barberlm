@@ -384,7 +384,7 @@ function DashboardComponent() {
 
       const { error: transError } = await supabase
         .from("transactions")
-        .insert({
+        .insert([{
           amount: remainingToPay,
           type: "income",
           description: `Atendimento${deductionText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
@@ -395,7 +395,7 @@ function DashboardComponent() {
           user_id: tenantId,
           date: new Date().toISOString().split('T')[0],
           time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
-        });
+        }]);
       
       if (transError) console.error("Error creating transaction:", transError);
     }
