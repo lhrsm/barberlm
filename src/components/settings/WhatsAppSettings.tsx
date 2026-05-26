@@ -347,12 +347,15 @@ export function WhatsAppSettings() {
 
       {connections.length > 0 && (
         <Tabs defaultValue="templates" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px] bg-white border border-slate-200 text-black">
+          <TabsList className="grid w-full grid-cols-3 max-w-[500px] bg-white border border-slate-200 text-black">
             <TabsTrigger value="templates" className="gap-2">
               <Settings2 size={16} /> Templates
             </TabsTrigger>
             <TabsTrigger value="logs" className="gap-2">
-              <History size={16} /> Histórico
+              <History size={16} /> Mensagens
+            </TabsTrigger>
+            <TabsTrigger value="automations" className="gap-2">
+              <RefreshCw size={16} /> Automações
             </TabsTrigger>
           </TabsList>
 
