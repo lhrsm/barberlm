@@ -98,6 +98,16 @@ export function WhatsAppSettings() {
     if (data) setMessages(data);
   }
 
+  async function fetchAutomationLogs() {
+    const { data } = await supabase
+      .from("automation_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (data) setAutomationLogs(data);
+  }
+
   async function fetchConnections() {
     setLoading(true);
     const { data, error } = await supabase
