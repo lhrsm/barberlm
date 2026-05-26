@@ -103,7 +103,7 @@ export function AppointmentModal({
     }
 
     const [barbRes, custRes, servRes, barbServRes] = await Promise.all([
-      supabase.from("barbers").select("*").eq("user_id", tenantId).eq("active", true).order("name"),
+      supabase.from("barbers").select("*").eq("user_id", tenantId).order("name"),
       supabase.from("customers").select("*").eq("user_id", tenantId).order("name"),
       supabase.from("services").select("*").eq("user_id", tenantId).eq("active", true).order("name"),
       supabase.from("barber_services").select("*").eq("user_id", tenantId)
@@ -148,13 +148,14 @@ export function AppointmentModal({
     return services.filter(s => linkedServiceIds.includes(s.id));
   }, [services, barberServices, selectedBarber]);
 
-  const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
+  const checkConflict = async (barberId: string, date: string, time: string, serviceId: string, customerId: string) => {
     const service = services.find(s => s.id === serviceId);
     const timeWithSeconds = time.length === 5 ? `${time}:00` : time;
     const startTime = parseISO(`${date}T${timeWithSeconds}`);
     const endTime = addMinutes(startTime, service?.duration_minutes || 30);
 
-    const { data, error } = await supabase
+    // 1. Check Barber Conflict
+    const { data: barberConflict, error: barberError } = await supabase
       .from("appointments")
       .select("id")
       .eq("barber_id", barberId)
@@ -163,18 +164,39 @@ export function AppointmentModal({
       .or(`start_time.lt.${endTime.toISOString()},end_time.gt.${endTime.toISOString()}`)
       .limit(1);
 
-    if (error) return false;
-    return data && data.length > 0;
+    if (barberError) return { conflict: false };
+    if (barberConflict && barberConflict.length > 0) return { conflict: true, type: 'barber' };
+
+    // 2. Check Customer Conflict
+    if (customerId) {
+      const { data: customerConflict, error: customerError } = await supabase
+        .from("appointments")
+        .select("id")
+        .eq("customer_id", customerId)
+        .neq("status", "cancelled")
+        .or(`start_time.lte.${startTime.toISOString()},end_time.gte.${startTime.toISOString()}`)
+        .or(`start_time.lt.${endTime.toISOString()},end_time.gt.${endTime.toISOString()}`)
+        .limit(1);
+
+      if (customerError) return { conflict: false };
+      if (customerConflict && customerConflict.length > 0) return { conflict: true, type: 'customer' };
+    }
+
+    return { conflict: false };
   };
 
   const handleNextStep = async () => {
     if (currentStep === 2) {
       setIsLoading(true);
-      const hasConflict = await checkConflict(selectedBarber, selectedDate, selectedTime, selectedService);
+      const { conflict, type } = await checkConflict(selectedBarber, selectedDate, selectedTime, selectedService, selectedCustomer);
       setIsLoading(false);
       
-      if (hasConflict) {
-        toast.error("Este profissional já possui um agendamento neste horário.");
+      if (conflict) {
+        if (type === 'barber') {
+          toast.error("Este profissional já possui um agendamento neste horário.");
+        } else {
+          toast.error("Este cliente já possui um agendamento conflitante neste horário.");
+        }
         return;
       }
     }

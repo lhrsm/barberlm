@@ -156,10 +156,11 @@ export function usePlanLimits() {
     : 0;
 
   // Plan logic:
-  // 1. If active/trialing subscription exists, prioritize that
-  // 2. Otherwise use profile plan
-  const isTrial = (subscription?.status === 'trialing') || (plan === 'free' && trialDaysRemaining > 0);
-  const isExpired = plan === 'free' && trialDaysRemaining <= 0 && subscription?.status !== 'active';
+  // 1. If active/trialing/past_due subscription exists, it's NOT expired
+  // 2. Otherwise check trial days
+  const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status || '');
+  const isTrial = isSubscribed || (plan === 'free' && trialDaysRemaining > 0);
+  const isExpired = !isSubscribed && plan === 'free' && trialDaysRemaining <= 0;
 
   const checkLimit = (type: keyof typeof usage) => {
     if (!limits) return false;
