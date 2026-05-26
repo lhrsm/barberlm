@@ -29,55 +29,44 @@ serve(async (req) => {
       throw new Error("Conexão não encontrada");
     }
 
-    const instanceId = connection.instance_id || Deno.env.get("ZAPI_INSTANCE_ID");
-    const token = connection.instance_token || Deno.env.get("ZAPI_TOKEN");
-    const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
+    const instanceId = connection.instance_id;
+    const token = connection.instance_token;
     const baseUrl = connection.server_url || "https://api.z-api.io";
+
+    console.log(`[Z-API] Action: ${action} | Instance: ${instanceId}`);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
 
-    if (clientToken) {
-      headers["Client-Token"] = clientToken;
-    }
-
     if (action === "check-status") {
-      console.log(`[Z-API] Checking status for instance ${instanceId}`);
-      const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/status`, {
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/status`;
+      console.log(`[Z-API] GET Status URL: ${url}`);
+      
+      const res = await fetch(url, {
         method: "GET",
         headers
       });
       
       const result = await res.json();
-      console.log(`[Z-API] Status response for ${instanceId}:`, JSON.stringify(result));
-      console.log(`[Z-API] connected value:`, result?.connected);
+      console.log(`[Z-API] INSTANCE ID: ${instanceId}`);
+      console.log(`[Z-API] TOKEN: ${token}`);
+      console.log(`[Z-API] STATUS RESPONSE RAW:`, JSON.stringify(result));
+      console.log(`[Z-API] CONNECTED RESULT:`, result?.connected);
 
-      // Strict validation as requested by user
+      // Strict validation: Z-API returns { "connected": true } or { "connected": false }
       const isConnected = result?.connected === true;
-
       const status = isConnected ? 'connected' : 'disconnected';
 
-      // Update both tables
-      await Promise.all([
-        supabase
-          .from("whatsapp_connections")
-          .update({ 
-            status, 
-            connected: isConnected,
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", connectionId),
-        
-        supabase
-          .from("whatsapp_instances")
-          .update({ 
-            status, 
-            connected: isConnected,
-            updated_at: new Date().toISOString()
-          })
-          .eq("tenant_id", connection.barbershop_id)
-      ]);
+      // Update the DB state
+      await supabase
+        .from("whatsapp_connections")
+        .update({ 
+          status, 
+          connected: isConnected,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", connectionId);
 
       return new Response(JSON.stringify({ 
         success: true, 
@@ -96,9 +85,10 @@ serve(async (req) => {
         "update-webhook-received",
         "update-webhook-disconnected",
         "update-webhook-connected",
-        "update-webhook-message-status",
-        "update-webhook-chat-state"
+        "update-webhook-message-status"
       ];
+      
+      console.log(`[Z-API] Setting webhooks to: ${webhookUrl}`);
       
       const results = await Promise.all(types.map(async (webhookType) => {
         const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`, {
@@ -122,17 +112,14 @@ serve(async (req) => {
       });
       const result = await res.json();
       
-      const status = 'disconnected';
-      await Promise.all([
-        supabase
-          .from("whatsapp_connections")
-          .update({ status, connected: false })
-          .eq("id", connectionId),
-        supabase
-          .from("whatsapp_instances")
-          .update({ status, connected: false })
-          .eq("tenant_id", connection.barbershop_id)
-      ]);
+      await supabase
+        .from("whatsapp_connections")
+        .update({ 
+          status: 'disconnected', 
+          connected: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", connectionId);
 
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -141,7 +128,6 @@ serve(async (req) => {
     }
 
     throw new Error("Ação inválida");
-
 
   } catch (error) {
     console.error("[Z-API Edge Function] Error:", error.message);
