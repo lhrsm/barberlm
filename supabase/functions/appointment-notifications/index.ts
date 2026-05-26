@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,20 +38,10 @@ serve(async (req) => {
 
     const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled, business_name").eq("id", tenantId).single();
 
-    const formatDate = (dateStr: string) => {
-      const date = new Date(dateStr);
-      return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(date);
-    };
-
-    const formatTime = (dateStr: string) => {
-      const date = new Date(dateStr);
-      return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(date);
-    };
-
     const placeholders = {
       cliente_nome: customer?.name || "Cliente",
-      data: formatDate(appointment.start_time),
-      horario: formatTime(appointment.start_time),
+      data: formatBrazilDate(appointment.start_time),
+      horario: formatBrazilTime(appointment.start_time),
       servico: service?.name || "Serviço",
       barbeiro_nome: barber?.name || "Profissional",
       barbearia_nome: profile?.business_name || "Barbearia"
@@ -60,7 +51,6 @@ serve(async (req) => {
 
     if (type === "appointment_cancelled") {
       if (updatedBy.type === "customer") {
-        // Notify Barber and Admin
         notifications.push({
           target: "barber",
           message: `O cliente ${placeholders.cliente_nome} cancelou o atendimento agendado para ${placeholders.data} às ${placeholders.horario}.`
@@ -70,7 +60,6 @@ serve(async (req) => {
           message: `O cliente ${placeholders.cliente_nome} cancelou o agendamento de ${placeholders.data} às ${placeholders.horario}.`
         });
       } else if (updatedBy.type === "admin") {
-        // Notify Customer and Barber
         notifications.push({
           target: "customer",
           phone: customer?.phone,
@@ -81,7 +70,6 @@ serve(async (req) => {
           message: `A barbearia cancelou o atendimento de ${placeholders.cliente_nome} marcado para ${placeholders.data} às ${placeholders.horario}.`
         });
       } else if (updatedBy.type === "barber") {
-        // Notify Customer and Admin
         notifications.push({
           target: "customer",
           phone: customer?.phone,
@@ -104,13 +92,11 @@ serve(async (req) => {
           message: `O cliente ${placeholders.cliente_nome} reagendou o atendimento para ${newTime}.`
         });
       } else {
-        // Barber or Admin rescheduled, notify customer
         notifications.push({
           target: "customer",
           phone: customer?.phone,
           message: `Olá ${placeholders.cliente_nome}, seu atendimento foi reagendado para ${newTime} por ${updatedBy.type === 'barber' ? 'seu profissional' : 'nossa barbearia'}.`
         });
-        // Also notify the other party (if barber rescheduled, notify admin, and vice-versa)
         notifications.push({
           target: updatedBy.type === 'barber' ? 'admin' : 'barber',
           message: `O atendimento de ${placeholders.cliente_nome} foi reagendado para ${newTime} por ${updatedBy.type === 'barber' ? placeholders.barbeiro_nome : 'administrador'}.`
@@ -120,7 +106,6 @@ serve(async (req) => {
 
     // Send notifications
     for (const note of notifications) {
-      // 1. Dashboard Notification
       await supabase.from("notifications").insert({
         user_id: tenantId,
         barber_id: note.target === "barber" ? barber?.id : null,
@@ -130,17 +115,16 @@ serve(async (req) => {
         link: "/calendar"
       });
 
-      // 2. WhatsApp Notification (if enabled and target is customer)
       if (profile?.whatsapp_enabled && note.target === "customer" && note.phone) {
-        // Trigger generic WhatsApp send (should implement a wrapper that uses z-api)
-        // For now we'll call the existing whatsapp-send if available or directly handle
-        console.log(`[Notification] Triggering WhatsApp for ${note.phone}: ${note.message}`);
-        
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
         if (instance?.connected) {
           const baseUrl = instance.server_url || "https://api.z-api.io";
           const url = `${baseUrl}/instances/${instance.instance_id}/token/${instance.token}/send-text`;
-          const body = { phone: note.phone, message: note.message };
+          
+          let targetPhone = note.phone.replace(/\D/g, "");
+          if (targetPhone.length === 10 || targetPhone.length === 11) targetPhone = "55" + targetPhone;
+
+          const body = { phone: targetPhone, message: note.message };
           const headers: any = { "Content-Type": "application/json" };
           if (instance.client_token) headers["Client-Token"] = instance.client_token;
           
