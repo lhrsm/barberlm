@@ -7,17 +7,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper to get time in BR timezone (UTC-3)
+// Helper to get time in BR timezone (America/Bahia - UTC-3)
 function getBRDate() {
   const now = new Date();
-  const brOffset = -3 * 60;
-  return new Date(now.getTime() + (now.getTimezoneOffset() + brOffset) * 60000);
+  // America/Bahia is UTC-3
+  return new Date(now.getTime() - (3 * 60 * 60 * 1000));
 }
 
 function normalizePhone(phone: string): string {
   if (!phone) return "";
   let digits = phone.replace(/\D/g, "");
-  if (!digits.startsWith("55") && (digits.length === 10 || digits.length === 11)) {
+  // Brazil logic: add 55 if missing
+  if (digits.length === 10 || digits.length === 11) {
     digits = "55" + digits;
   }
   return digits;
@@ -28,74 +29,49 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const executionLogs: any[] = [];
-  const log = (msg: string, details?: any) => {
-    const entry = { timestamp: new Date().toISOString(), message: msg, details };
-    console.log(`[Automation] ${msg}`, details ? JSON.stringify(details) : "");
-    executionLogs.push(entry);
-  };
+  const startTime = Date.now();
+  const appointmentsFound: any[] = [];
+  const birthdaysFound: any[] = [];
+  const messagesSent: any[] = [];
+  const errors: string[] = [];
+  const ignoredRecords: any[] = [];
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
+  const brNow = getBRDate();
+  const serverTime = new Date().toISOString();
+  
+  console.log(`[Automation] Started at ${serverTime} (Server) / ${brNow.toISOString()} (BR)`);
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
     const body = await req.json().catch(() => ({}));
-    const targetTenantId = body.tenantId || body.barber_id;
+    const targetTenantId = body.tenantId;
 
-    const brNow = getBRDate();
-    const isScheduled = body.scheduled === true;
-
-    // Update status to 'executing'
+    // Update global status to 'executing'
     await supabase.from("automation_status").update({
       status: 'executing',
-      server_time: new Date().toISOString(),
+      server_time: serverTime,
       timezone: "America/Bahia"
     }).or("status.eq.active,status.eq.error,status.eq.offline");
 
-    log(`Automation execution started (${isScheduled ? 'SCHEDULED' : 'MANUAL'})`, { 
-      server_time_utc: new Date().toISOString(), 
-      br_time: brNow.toISOString(),
-      timezone: "America/Bahia (UTC-3)",
-      target_tenant: targetTenantId || "ALL",
-      source: isScheduled ? "pg_cron" : "manual_trigger"
-    });
-
-    let query = supabase
-      .from("automations")
-      .select("*")
-      .eq("enabled", true);
-    
+    // 1. Fetch enabled automations
+    let query = supabase.from("automations").select("*").eq("enabled", true);
     if (targetTenantId) {
       query = query.eq("tenant_id", targetTenantId);
     }
-
     const { data: automations, error: autoError } = await query;
 
-    if (autoError) {
-      log("Error fetching automations", autoError);
-      throw autoError;
-    }
+    if (autoError) throw autoError;
 
     if (!automations || automations.length === 0) {
-      log("No active automations found");
-    } else {
-      log(`Found ${automations.length} active automations`, automations.map(a => a.type));
+      console.log("[Automation] No active automations found.");
     }
 
-    const results = [];
-    let totalMessagesSent = 0;
-    let totalMessagesFailed = 0;
-    let totalRecordsFound = 0;
-    const errors: string[] = [];
-
+    // 2. Process each automation
     for (const automation of automations || []) {
-      log(`Processing automation: ${automation.type}`, { 
-        automation_id: automation.id, 
-        barber_id: automation.barber_id
-      });
-      
       const { data: connection } = await supabase
         .from("whatsapp_connections")
         .select("*")
@@ -104,120 +80,122 @@ serve(async (req) => {
         .maybeSingle();
 
       if (!connection) {
-        log(`SKIP: No connected WhatsApp for barber ${automation.barber_id}`);
+        console.log(`[Automation] SKIP: No connected WhatsApp for barber ${automation.barber_id}`);
+        ignoredRecords.push({ automation_id: automation.id, reason: "No connected WhatsApp" });
         continue;
       }
 
-      let res;
-      try {
-        if (automation.type === "birthday") {
-          res = await processBirthdayAutomation(supabase, automation, connection, log, brNow);
-        } else if (automation.type === "appointment_confirmation") {
-          res = await processAppointmentConfirmation(supabase, automation, connection, log, brNow);
-        } else if (automation.type === "appointment_reminder") {
-          res = await processAppointmentReminder(supabase, automation, connection, log, brNow);
-        } else {
-          log(`Automation type ${automation.type} not implemented yet.`);
-          continue;
-        }
-        
-        totalMessagesSent += res.sent || 0;
-        totalMessagesFailed += res.failed || 0;
-        totalRecordsFound += res.found || 0;
-        if (res.error) errors.push(`${automation.type}: ${res.error}`);
-        results.push(res);
-      } catch (err) {
-        log(`Error processing automation ${automation.type}`, err);
-        totalMessagesFailed++;
-        errors.push(`${automation.type}: ${err.message}`);
+      let res: any = { found: 0, sent: 0, failed: 0 };
+      
+      if (automation.type === "birthday") {
+        res = await processBirthdayAutomation(supabase, automation, connection, brNow);
+      } else if (automation.type === "appointment_confirmation") {
+        res = await processAppointmentConfirmation(supabase, automation, connection, brNow);
+      } else if (automation.type === "appointment_reminder") {
+        res = await processAppointmentReminder(supabase, automation, connection, brNow);
       }
+
+      if (res.appointments) appointmentsFound.push(...res.appointments);
+      if (res.birthdays) birthdaysFound.push(...res.birthdays);
+      if (res.sentItems) messagesSent.push(...res.sentItems);
+      if (res.errors) errors.push(...res.errors);
+      if (res.ignored) ignoredRecords.push(...res.ignored);
     }
 
-    log("Automation execution finished", { total_results: results });
-
-    // Update status to 'active' with final counts
+    const executionTime = `${Date.now() - startTime}ms`;
+    
+    // Update final status
     const { data: statusRows } = await supabase.from("automation_status").select("id").limit(1);
     if (statusRows && statusRows.length > 0) {
       await supabase.from("automation_status").update({
         status: 'active',
-        last_run_at: new Date().toISOString(),
-        total_processed: totalRecordsFound,
-        messages_sent: totalMessagesSent,
-        messages_failed: totalMessagesFailed,
-        last_error: errors.length > 0 ? errors.join("; ") : null
+        last_run_at: serverTime,
+        total_processed: appointmentsFound.length + birthdaysFound.length,
+        messages_sent: messagesSent.filter(m => m.status === 'success').length,
+        messages_failed: messagesSent.filter(m => m.status === 'error').length,
+        last_error: errors.length > 0 ? errors.slice(0, 3).join("; ") : null
       }).eq("id", statusRows[0].id);
     }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      results, 
-      logs: executionLogs,
+    const responseData = {
+      success: true,
+      serverTime,
+      brTime: brNow.toISOString(),
+      timezone: "America/Bahia",
+      appointmentsFound,
+      birthdaysFound,
+      messagesSent,
+      ignoredRecords,
+      errors,
+      executionTime,
       summary: {
         total_automations: automations?.length || 0,
-        records_found: totalRecordsFound,
-        messages_sent: totalMessagesSent,
-        messages_failed: totalMessagesFailed,
+        records_found: appointmentsFound.length + birthdaysFound.length,
+        messages_sent: messagesSent.filter(m => m.status === 'success').length,
+        messages_failed: messagesSent.filter(m => m.status === 'error').length,
         errors
       }
-    }), {
+    };
+
+    console.log("[Automation] Finished", JSON.stringify(responseData));
+
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
 
   } catch (error) {
-    log("Fatal automation error", error);
-    const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
+    console.error("[Automation] Fatal error:", error);
+    
     await supabase.from("automation_status").update({
       status: 'error',
       last_error: error.message,
-      last_run_at: new Date().toISOString()
-    }).neq("id", "00000000-0000-0000-0000-000000000000"); // Update all for safety
+      last_run_at: serverTime
+    }).neq("id", "00000000-0000-0000-0000-000000000000");
 
-    return new Response(JSON.stringify({ error: error.message, logs: executionLogs, success: false }), {
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error.message,
+      serverTime,
+      timezone: "America/Bahia"
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200, // Return 200 so frontend can handle the {success: false} object
+      status: 200,
     });
   }
 });
 
-async function processBirthdayAutomation(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
-  const day = String(brNow.getDate()).padStart(2, '0');
-  const month = String(brNow.getMonth() + 1).padStart(2, '0');
-  const birthdayStr = `${month}-${day}`;
+async function processBirthdayAutomation(supabase: any, automation: any, connection: any, brNow: Date) {
+  const day = String(brNow.getUTCDate()).padStart(2, '0');
+  const month = String(brNow.getUTCMonth() + 1).padStart(2, '0');
+  const birthdayPattern = `%-${month}-${day}`;
 
-  const { data: customers } = await supabase
+  const { data: customers, error } = await supabase
     .from("customers")
     .select("*")
-    .eq("barber_id", automation.barber_id);
-  
-  const bdayCustomers = customers?.filter((c: any) => {
-    if (!c.birth_date) return false;
-    return c.birth_date.endsWith(birthdayStr);
-  });
+    .eq("barber_id", automation.barber_id)
+    .like("birth_date", birthdayPattern);
 
-  if (!bdayCustomers || bdayCustomers.length === 0) {
-    log(`No birthdays found for today (${birthdayStr})`);
-    return { type: "birthday", found: 0, sent: 0, failed: 0 };
-  }
+  if (error) return { birthdays: [], errors: [error.message] };
+  if (!customers || customers.length === 0) return { birthdays: [] };
 
-  log(`Found ${bdayCustomers.length} potential birthday customers`);
+  const birthdays = customers.map(c => ({ id: c.id, name: c.name, type: 'birthday' }));
+  const sentItems = [];
+  const ignored = [];
 
-  let sentCount = 0;
-  let failedCount = 0;
-  for (const customer of bdayCustomers) {
-    const todayStart = new Date(new Date(brNow).setHours(0,0,0,0)).toISOString();
-    
+  for (const customer of customers) {
+    const todayStart = new Date(brNow).setUTCHours(0,0,0,0);
     const { data: existing } = await supabase
       .from("automation_logs")
       .select("id")
       .eq("automation_id", automation.id)
       .eq("customer_id", customer.id)
       .eq("message_type", "birthday")
-      .gte("created_at", todayStart)
+      .gte("created_at", new Date(todayStart).toISOString())
       .maybeSingle();
 
     if (existing) {
-      log(`SKIP: Birthday already sent today to ${customer.name}`);
+      ignored.push({ customer_id: customer.id, reason: "Already sent today" });
       continue;
     }
 
@@ -227,15 +205,9 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
     };
 
     const processedMessage = processAutomationTemplate(automation.template, variables);
-    const result = await sendMessage(connection, customer.phone, processedMessage, log);
+    const result = await sendMessage(connection, customer.phone, processedMessage);
     
-    if (result.success) {
-      sentCount++;
-    } else {
-      failedCount++;
-    }
-
-    await supabase.from("automation_logs").insert({
+    const logEntry = {
       automation_id: automation.id,
       tenant_id: automation.tenant_id,
       barber_id: automation.barber_id,
@@ -246,34 +218,41 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
       original_template: automation.template,
       processed_template: processedMessage,
       response: result.response,
-      error_message: result.error
-    });
+      error_message: result.error,
+      sent_at: new Date().toISOString()
+    };
+
+    await supabase.from("automation_logs").insert(logEntry);
+    sentItems.push({ ...logEntry, customer_name: customer.name });
   }
 
-  return { type: "birthday", found: bdayCustomers.length, sent: sentCount, failed: failedCount };
+  return { birthdays, sentItems, ignored };
 }
 
-async function processAppointmentConfirmation(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
+async function processAppointmentConfirmation(supabase: any, automation: any, connection: any, brNow: Date) {
+  // Confirmation window: created in the last 15 minutes
   const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   
-  const { data: appointments, error: apptError } = await supabase
+  const { data: appointments, error } = await supabase
     .from("appointments")
     .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
     .eq("barber_id", automation.barber_id)
     .eq("confirmation_sent", false)
     .gte("created_at", fifteenMinutesAgo);
 
-  if (apptError) {
-    return { type: "confirmation", error: apptError.message, found: 0, sent: 0, failed: 0 };
-  }
+  if (error) return { appointments: [], errors: [error.message] };
+  if (!appointments || appointments.length === 0) return { appointments: [] };
 
-  if (!appointments || appointments.length === 0) {
-    return { type: "confirmation", found: 0, sent: 0, failed: 0 };
-  }
+  const sentItems = [];
+  const ignored = [];
 
-  let sentCount = 0;
-  let failedCount = 0;
   for (const appt of appointments) {
+    const phone = appt.customers?.phone || appt.phone;
+    if (!phone) {
+      ignored.push({ appointment_id: appt.id, reason: "No phone number" });
+      continue;
+    }
+
     const variables = {
       cliente_nome: appt.customers?.name || appt.name,
       barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
@@ -284,23 +263,13 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
     };
 
     const processedMessage = processAutomationTemplate(automation.template, variables);
-    const phone = appt.customers?.phone || appt.phone;
-
-    if (!phone) {
-      log(`SKIP: Appointment ${appt.id} has no phone`);
-      continue;
-    }
-
-    const result = await sendMessage(connection, phone, processedMessage, log);
+    const result = await sendMessage(connection, phone, processedMessage);
     
     if (result.success) {
       await supabase.from("appointments").update({ confirmation_sent: true }).eq("id", appt.id);
-      sentCount++;
-    } else {
-      failedCount++;
     }
 
-    await supabase.from("automation_logs").insert({
+    const logEntry = {
       automation_id: automation.id,
       tenant_id: automation.tenant_id,
       barber_id: automation.barber_id,
@@ -312,19 +281,24 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
       original_template: automation.template,
       processed_template: processedMessage,
       response: result.response,
-      error_message: result.error
-    });
+      error_message: result.error,
+      sent_at: new Date().toISOString()
+    };
+
+    await supabase.from("automation_logs").insert(logEntry);
+    sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
   }
 
-  return { type: "confirmation", found: appointments.length, sent: sentCount, failed: failedCount };
+  return { appointments, sentItems, ignored };
 }
 
-async function processAppointmentReminder(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
+async function processAppointmentReminder(supabase: any, automation: any, connection: any, brNow: Date) {
   const delayHours = automation.trigger_delay || 24;
+  // Look for appointments happening in exactly 'delayHours' from now, with a 15-minute window
   const targetTimeStart = new Date(Date.now() + (delayHours * 60 * 60 * 1000)).toISOString();
   const targetTimeEnd = new Date(Date.now() + (delayHours * 60 * 60 * 1000) + (15 * 60 * 1000)).toISOString();
 
-  const { data: appointments, error: apptError } = await supabase
+  const { data: appointments, error } = await supabase
     .from("appointments")
     .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
     .eq("barber_id", automation.barber_id)
@@ -333,17 +307,19 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
     .gte("start_time", targetTimeStart)
     .lte("start_time", targetTimeEnd);
 
-  if (apptError) {
-    return { type: "reminder", error: apptError.message, found: 0, sent: 0, failed: 0 };
-  }
+  if (error) return { appointments: [], errors: [error.message] };
+  if (!appointments || appointments.length === 0) return { appointments: [] };
 
-  if (!appointments || appointments.length === 0) {
-    return { type: "reminder", found: 0, sent: 0, failed: 0 };
-  }
+  const sentItems = [];
+  const ignored = [];
 
-  let sentCount = 0;
-  let failedCount = 0;
   for (const appt of appointments) {
+    const phone = appt.customers?.phone || appt.phone;
+    if (!phone) {
+      ignored.push({ appointment_id: appt.id, reason: "No phone number" });
+      continue;
+    }
+
     const variables = {
       cliente_nome: appt.customers?.name || appt.name,
       barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
@@ -354,23 +330,13 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
     };
 
     const processedMessage = processAutomationTemplate(automation.template, variables);
-    const phone = appt.customers?.phone || appt.phone;
-
-    if (!phone) {
-      log(`SKIP: Appointment ${appt.id} has no phone`);
-      continue;
-    }
-
-    const result = await sendMessage(connection, phone, processedMessage, log);
+    const result = await sendMessage(connection, phone, processedMessage);
     
     if (result.success) {
       await supabase.from("appointments").update({ reminder_sent: true }).eq("id", appt.id);
-      sentCount++;
-    } else {
-      failedCount++;
     }
 
-    await supabase.from("automation_logs").insert({
+    const logEntry = {
       automation_id: automation.id,
       tenant_id: automation.tenant_id,
       barber_id: automation.barber_id,
@@ -382,24 +348,24 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
       original_template: automation.template,
       processed_template: processedMessage,
       response: result.response,
-      error_message: result.error
-    });
+      error_message: result.error,
+      sent_at: new Date().toISOString()
+    };
+
+    await supabase.from("automation_logs").insert(logEntry);
+    sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
   }
 
-  return { type: "reminder", found: appointments.length, sent: sentCount, failed: failedCount };
+  return { appointments, sentItems, ignored };
 }
 
-async function sendMessage(connection: any, phone: string, message: string, log: Function) {
+async function sendMessage(connection: any, phone: string, message: string) {
   try {
     const instanceId = connection.instance_id;
     const token = connection.instance_token;
     const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
     const baseUrl = connection.server_url || "https://api.z-api.io";
     
-    if (!instanceId || !token) {
-      throw new Error("Instance ID or Token missing");
-    }
-
     const targetPhone = normalizePhone(phone);
     const headers: any = { "Content-Type": "application/json" };
     if (clientToken) headers["Client-Token"] = clientToken;
@@ -411,12 +377,12 @@ async function sendMessage(connection: any, phone: string, message: string, log:
     });
 
     const data = await response.json();
-    if (!response.ok) {
-        log(`Z-API Error: ${response.status}`, data);
-    }
-    return { success: response.ok, response: data, error: !response.ok ? (data.message || data.error || `HTTP ${response.status}`) : null };
+    return { 
+      success: response.ok, 
+      response: data, 
+      error: !response.ok ? (data.message || data.error || `HTTP ${response.status}`) : null 
+    };
   } catch (error) {
-    log(`Error in sendMessage: ${error.message}`);
     return { success: false, error: error.message };
   }
 }
