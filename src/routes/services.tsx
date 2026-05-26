@@ -60,7 +60,7 @@ function ServicesComponent() {
     const { data, error } = await supabase
       .from("services")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("tenant_id", user.id)
       .eq("active", true)
       .order("name");
     if (error) toast.error("Erro ao buscar serviços");
@@ -75,7 +75,7 @@ function ServicesComponent() {
       ...newService,
       price: parseFloat(newService.price),
       duration_minutes: parseInt(newService.duration_minutes),
-      user_id: user.id,
+      tenant_id: user.id,
     });
 
     if (error) {
@@ -118,7 +118,7 @@ function ServicesComponent() {
       .insert({
         ...serviceToCopy,
         name: `${service.name} (Cópia)`,
-        user_id: user?.id
+        tenant_id: user?.id
       });
 
     if (error) {

@@ -136,7 +136,7 @@ function DashboardComponent() {
           event: '*', 
           schema: 'public', 
           table: 'appointments', 
-          filter: `user_id=eq.${tenantId}` 
+          filter: `tenant_id=eq.${tenantId}` 
         }, () => {
           fetchTodayAppointments();
           fetchStats();
@@ -145,7 +145,7 @@ function DashboardComponent() {
           event: '*', 
           schema: 'public', 
           table: 'transactions', 
-          filter: `user_id=eq.${tenantId}` 
+          filter: `tenant_id=eq.${tenantId}` 
         }, () => {
           fetchStats();
         })
@@ -153,7 +153,7 @@ function DashboardComponent() {
           event: '*', 
           schema: 'public', 
           table: 'notifications', 
-          filter: `user_id=eq.${tenantId}` 
+          filter: `tenant_id=eq.${tenantId}` 
         }, () => {
           fetchNotifications();
         })
@@ -170,7 +170,7 @@ function DashboardComponent() {
     const { data } = await supabase
       .from("notifications")
       .select("*")
-      .eq("user_id", tenantId)
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
       .limit(10);
     if (data) setNotifications(data);
@@ -187,7 +187,7 @@ function DashboardComponent() {
     const { data, error } = await supabase
       .from("customers")
       .select("id, name, phone, birth_date, avatar_url")
-      .eq("user_id", tenantId);
+      .eq("tenant_id", tenantId);
 
     if (error) {
       console.error("Error fetching birthdays:", error);
@@ -244,7 +244,7 @@ function DashboardComponent() {
     let query = supabase
       .from("appointments")
       .select("*, customers(name, phone, loyalty_points, avatar_url, credits), services(name), barbers(name)")
-      .eq("user_id", tenantId)
+      .eq("tenant_id", tenantId)
       .or(`status.neq.cancelled,refund_status.in.(pending,completed)`)
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);
@@ -371,7 +371,7 @@ function DashboardComponent() {
           category: "Serviço",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          user_id: tenantId,
+          tenant_id: tenantId,
           date: new Date().toISOString().split('T')[0],
           time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
         });
@@ -421,7 +421,7 @@ function DashboardComponent() {
           category: "Serviço",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
-          user_id: tenantId,
+          tenant_id: tenantId,
           date: new Date().toISOString().split('T')[0]
         });
       

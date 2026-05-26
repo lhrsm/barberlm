@@ -9,7 +9,6 @@ const corsHeaders = {
 
 function getBRTimeInfo() {
   const now = new Date();
-  // Using America/Bahia (UTC-3, no DST)
   const formatter = new Intl.DateTimeFormat('pt-BR', {
     timeZone: 'America/Bahia',
     year: 'numeric',
@@ -62,75 +61,92 @@ serve(async (req) => {
   const brTime = getBRTimeInfo();
   const serverTime = new Date().toISOString();
   
-  console.log(`[Automation] Started. Server: ${serverTime}, BR: ${brTime.iso}`);
+  console.log(`[Automation] Multi-tenant Execution Started. Server: ${serverTime}, BR: ${brTime.iso}`);
 
   try {
     const body = await req.json().catch(() => ({}));
     const targetTenantId = body.tenantId;
-    const forceMode = body.forceMode === true; // Novo parâmetro para teste forçado
+    const forceMode = body.forceMode === true;
 
-    await supabase.from("automation_status").update({
-      status: 'executing',
-      server_time: serverTime,
-      timezone: "America/Bahia"
-    }).or("status.eq.active,status.eq.error,status.eq.offline");
-
-    let query = supabase.from("automations").select("*").eq("enabled", true);
+    // Se tiver tenantId, buscamos apenas desse. Se não tiver (cron global), buscamos todos ativos.
+    let tenantQuery = supabase.from("profiles").select("id, business_name").eq("role", "tenant_admin");
     if (targetTenantId) {
-      query = query.eq("tenant_id", targetTenantId);
+      tenantQuery = tenantQuery.eq("id", targetTenantId);
     }
-    const { data: automations, error: autoError } = await query;
+    const { data: tenants, error: tenantError } = await tenantQuery;
+    if (tenantError) throw tenantError;
 
-    if (autoError) throw autoError;
+    console.log(`[Automation] Processing ${tenants?.length || 0} tenants.`);
 
-    for (const automation of automations || []) {
+    for (const tenant of tenants || []) {
+      const tenantId = tenant.id;
+      
+      // Update global status for the tenant if possible, or just global
+      await supabase.from("automation_status").update({
+        status: 'executing',
+        server_time: serverTime,
+        timezone: "America/Bahia"
+      }).eq('id', 'global'); // Or per tenant if we add tenant_id to status
+
+      const { data: automations, error: autoError } = await supabase
+        .from("automations")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("enabled", true);
+
+      if (autoError) {
+        errors.push(`Tenant ${tenantId}: ${autoError.message}`);
+        continue;
+      }
+
       const { data: connection } = await supabase
         .from("whatsapp_connections")
         .select("*")
-        .eq("barbershop_id", automation.tenant_id)
+        .eq("tenant_id", tenantId)
         .eq("status", "connected")
         .maybeSingle();
 
       if (!connection) {
-        ignoredRecords.push({ 
-          automation_id: automation.id, 
-          reason: "WhatsApp principal da barbearia não conectado",
-          tenant_id: automation.tenant_id,
-          type: automation.type
-        });
+        if (automations && automations.length > 0) {
+          ignoredRecords.push({ 
+            tenant_id: tenantId, 
+            business_name: tenant.business_name,
+            reason: "WhatsApp da barbearia não conectado" 
+          });
+        }
         continue;
       }
 
-      let res: any = { found: 0, sent: 0, failed: 0 };
-      
-      if (automation.type === "birthday") {
-        res = await processBirthdayAutomation(supabase, automation, connection, brTime, forceMode);
-      } else if (automation.type === "appointment_confirmation") {
-        res = await processAppointmentConfirmation(supabase, automation, connection, forceMode);
-      } else if (automation.type === "appointment_reminder") {
-        res = await processAppointmentReminder(supabase, automation, connection, forceMode);
-      }
+      for (const automation of automations || []) {
+        let res: any = { found: 0, sent: 0, failed: 0 };
+        
+        if (automation.type === "birthday") {
+          res = await processBirthdayAutomation(supabase, automation, connection, brTime, forceMode);
+        } else if (automation.type === "appointment_confirmation") {
+          res = await processAppointmentConfirmation(supabase, automation, connection, forceMode);
+        } else if (automation.type === "appointment_reminder") {
+          res = await processAppointmentReminder(supabase, automation, connection, forceMode);
+        }
 
-      if (res.appointments) appointmentsFound.push(...res.appointments);
-      if (res.birthdays) birthdaysFound.push(...res.birthdays);
-      if (res.sentItems) messagesSent.push(...res.sentItems);
-      if (res.errors) errors.push(...res.errors);
-      if (res.ignored) ignoredRecords.push(...res.ignored);
+        if (res.appointments) appointmentsFound.push(...res.appointments.map((a:any) => ({ ...a, tenant_id: tenantId })));
+        if (res.birthdays) birthdaysFound.push(...res.birthdays.map((b:any) => ({ ...b, tenant_id: tenantId })));
+        if (res.sentItems) messagesSent.push(...res.sentItems.map((s:any) => ({ ...s, tenant_id: tenantId })));
+        if (res.errors) errors.push(...res.errors.map((e:string) => `Tenant ${tenantId}: ${e}`));
+        if (res.ignored) ignoredRecords.push(...res.ignored.map((i:any) => ({ ...i, tenant_id: tenantId })));
+      }
     }
 
     const executionTime = `${Date.now() - startTime}ms`;
     
-    const { data: statusRows } = await supabase.from("automation_status").select("id").limit(1);
-    if (statusRows && statusRows.length > 0) {
-      await supabase.from("automation_status").update({
-        status: 'active',
-        last_run_at: serverTime,
-        total_processed: appointmentsFound.length + birthdaysFound.length,
-        messages_sent: messagesSent.filter(m => m.status === 'success').length,
-        messages_failed: messagesSent.filter(m => m.status === 'error').length,
-        last_error: errors.length > 0 ? errors.slice(0, 3).join("; ") : null
-      }).eq("id", statusRows[0].id);
-    }
+    // Update global status
+    await supabase.from("automation_status").update({
+      status: 'active',
+      last_run_at: serverTime,
+      total_processed: appointmentsFound.length + birthdaysFound.length,
+      messages_sent: messagesSent.filter(m => m.status === 'success').length,
+      messages_failed: messagesSent.filter(m => m.status === 'error').length,
+      last_error: errors.length > 0 ? errors.slice(0, 3).join("; ") : null
+    }).eq("id", 'global');
 
     const responseData = {
       success: true,
@@ -145,7 +161,7 @@ serve(async (req) => {
       errors,
       executionTime,
       summary: {
-        total_automations: automations?.length || 0,
+        tenants_processed: tenants?.length || 0,
         records_found: appointmentsFound.length + birthdaysFound.length,
         messages_sent: messagesSent.filter(m => m.status === 'success').length,
         messages_failed: messagesSent.filter(m => m.status === 'error').length,
@@ -179,7 +195,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
   
   const bdayCustomers = customers?.filter((c: any) => {
     if (!c.birth_date) return false;
-    const parts = c.birth_date.split('-'); // Esperado YYYY-MM-DD
+    const parts = c.birth_date.split('-');
     if (parts.length < 3) return false;
     const day = parts[2].padStart(2, '0');
     const month = parts[1].padStart(2, '0');
@@ -187,12 +203,10 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
   });
 
   if (!bdayCustomers || bdayCustomers.length === 0) {
-    // Adicionar log detalhado de por que nenhum cliente foi encontrado
-    const totalWithBday = customers?.length || 0;
     return { 
       birthdays: [], 
       ignored: [{ 
-        reason: `Nenhum aniversariante hoje (${brTime.day}/${brTime.month}). Analisados ${totalWithBday} clientes com data cadastrada.`,
+        reason: `Nenhum aniversariante hoje (${brTime.day}/${brTime.month}).`,
         type: 'birthday'
       }] 
     };
@@ -216,7 +230,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
         .maybeSingle();
 
       if (existing) {
-        ignored.push({ customer_id: customer.id, customer_name: customer.name, reason: "Mensagem de aniversário já enviada hoje", type: 'birthday' });
+        ignored.push({ customer_id: customer.id, customer_name: customer.name, reason: "Aniversário já enviado hoje", type: 'birthday' });
         continue;
       }
     }
@@ -233,7 +247,6 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
       const logEntry = {
         automation_id: automation.id,
         tenant_id: automation.tenant_id,
-        barber_id: automation.barber_id,
         customer_id: customer.id,
         status: "success",
         message_type: "birthday",
@@ -246,7 +259,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
       await supabase.from("automation_logs").insert(logEntry);
       sentItems.push({ ...logEntry, customer_name: customer.name });
     } else {
-      sentItems.push({ status: 'error', customer_name: customer.name, error_message: result.error });
+      sentItems.push({ status: 'error', customer_name: customer.name, error_message: result.error, type: 'birthday' });
     }
   }
 
@@ -273,7 +286,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
     return { 
       appointments: [], 
       ignored: [{ 
-        reason: forceMode ? "Nenhum agendamento pendente de confirmação encontrado." : "Nenhum agendamento criado nos últimos 15 minutos.",
+        reason: forceMode ? "Nenhum pendente de confirmação." : "Nenhum criado nos últimos 15min.",
         type: 'confirmation'
       }] 
     };
@@ -285,7 +298,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
   for (const appt of appointments) {
     const phone = appt.customers?.phone || appt.phone;
     if (!phone) {
-      ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Cliente sem telefone cadastrado", type: 'confirmation' });
+      ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Sem telefone", type: 'confirmation' });
       continue;
     }
 
@@ -319,7 +332,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
       await supabase.from("automation_logs").insert(logEntry);
       sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
     } else {
-      sentItems.push({ status: 'error', customer_name: variables.cliente_nome, error_message: result.error });
+      sentItems.push({ status: 'error', customer_name: variables.cliente_nome, error_message: result.error, type: 'confirmation' });
     }
   }
 
@@ -350,9 +363,8 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
     return { 
       appointments: [], 
       ignored: [{ 
-        reason: forceMode ? "Nenhum agendamento futuro pendente de lembrete." : `Nenhum agendamento na janela de ${delayHours}h.`,
-        type: 'reminder',
-        debug: { targetTimeStart, targetTimeEnd }
+        reason: forceMode ? "Nenhum pendente de lembrete." : `Fora da janela de ${delayHours}h.`,
+        type: 'reminder'
       }] 
     };
   }
@@ -363,21 +375,19 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
   for (const appt of appointments) {
     const phone = appt.customers?.phone || appt.phone;
     if (!phone) {
-      ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Cliente sem telefone cadastrado", type: 'reminder' });
+      ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Sem telefone", type: 'reminder' });
       continue;
     }
 
     const apptStartTime = new Date(appt.start_time).getTime();
     const diffMinutes = Math.floor((apptStartTime - now) / (60 * 1000));
 
-    // Se não for modo forçado, validamos se está na janela correta (caso o banco retorne algo fora por algum motivo)
     if (!forceMode && (diffMinutes < (delayHours * 60) || diffMinutes > (delayHours * 60 + 15))) {
         ignored.push({ 
             appointment_id: appt.id, 
             customer_name: appt.customers?.name || appt.name, 
-            reason: `Fora da janela. Diferença: ${diffMinutes} min. Esperado: ~${delayHours * 60} min.`,
-            type: 'reminder',
-            debug: { serverTime: new Date(now).toISOString(), apptStartTime: appt.start_time, diffMinutes }
+            reason: `Fora da janela (${diffMinutes} min).`,
+            type: 'reminder'
         });
         continue;
     }
@@ -412,7 +422,7 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
       await supabase.from("automation_logs").insert(logEntry);
       sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
     } else {
-      sentItems.push({ status: 'error', customer_name: variables.cliente_nome, error_message: result.error });
+      sentItems.push({ status: 'error', customer_name: variables.cliente_nome, error_message: result.error, type: 'reminder' });
     }
   }
 

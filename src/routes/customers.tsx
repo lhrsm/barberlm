@@ -110,7 +110,7 @@ function CustomersComponent() {
     const { data, error } = await supabase
       .from("customers")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("tenant_id", user.id)
       .order("name");
     if (error) toast.error("Erro ao buscar clientes");
     else setCustomers(data || []);
@@ -122,7 +122,7 @@ function CustomersComponent() {
 
     const { error } = await supabase.from("customers").insert({
       ...newCustomer,
-      user_id: user.id,
+      tenant_id: user.id,
     });
 
     if (error) {
