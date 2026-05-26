@@ -842,7 +842,7 @@ function ShopPageComponent() {
       if (hasBarberConflict) {
         toast.error("Este horário acabou de ser preenchido por outro cliente. Por favor, escolha outro.");
         setBookingStep(3);
-        fetchAvailableTimes(selectedBarber.id, selectedDate);
+        fetchAvailableTimes(selectedBarber.id, selectedDate, selectedService);
         setSubmitting(false);
         return;
       }
