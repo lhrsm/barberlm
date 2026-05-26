@@ -157,27 +157,26 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (!connection) return;
     setIsTesting(true);
     try {
-      const response = await fetch('/api/zapi/test-connection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instanceId: connection.instance_id,
-          token: connection.instance_token,
-          connectionId: connection.id
-        })
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'check-status', 
+          connectionId: connection.id 
+        }
       });
 
-      const result = await response.json();
+      if (error) throw error;
       
-      if (result.connected) {
+      if (data.connected) {
         toast.success("WhatsApp conectado!");
       } else {
-        console.log("[Z-API Test] Disconnected result:", result);
-        toast.error("WhatsApp desconectado.");
+        console.log("[Z-API Test] Disconnected result:", data);
+        toast.error("WhatsApp desconectado ou falha na autenticação.");
       }
       fetchConnection();
+      fetchLogs();
     } catch (err: any) {
-      toast.error("Erro ao testar conexão");
+      console.error("Erro ao testar conexão:", err);
+      toast.error("Erro ao testar conexão: " + (err.message || "Erro desconhecido"));
     } finally {
       setIsTesting(false);
     }
@@ -187,24 +186,28 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (!connection) return;
     setIsTesting(true);
     try {
-      const response = await fetch('/api/zapi/test-message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tenantId,
-          message: "Olá! Este é um teste de envio real do BarberLM via Z-API. 🚀",
-          phone: "5571999999999" // User mentioned this number in example
-        })
+      const { data, error } = await supabase.functions.invoke('whatsapp-cloud', {
+        body: {
+          user_id: tenantId,
+          event_type: 'reminder', // Use a generic one for test
+          phone: "5571999999999", // Reference number from user
+          placeholders: {
+            cliente: "Teste BarberLM",
+            horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+          }
+        }
       });
 
-      const result = await response.json();
+      if (error) throw error;
       
-      if (result.success) {
+      if (data.success) {
         toast.success("Mensagem de teste enviada!");
+        fetchLogs();
       } else {
-        toast.error("Erro ao enviar: " + (result.error || "Erro na API"));
+        toast.error("Erro ao enviar: " + (data.error || "Erro na API"));
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Erro ao testar envio:", err);
       toast.error("Erro ao testar envio");
     } finally {
       setIsTesting(false);
