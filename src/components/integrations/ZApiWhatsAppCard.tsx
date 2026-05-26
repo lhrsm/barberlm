@@ -40,9 +40,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isEditingWebhook, setIsEditingWebhook] = useState(false);
   const [tempWebhookUrl, setTempWebhookUrl] = useState("");
 
+  const [logs, setLogs] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("config");
+
   useEffect(() => {
     if (tenantId) {
       fetchConnection();
+      fetchLogs();
     }
   }, [tenantId]);
 
@@ -51,7 +55,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       const { data, error } = await supabase
         .from("whatsapp_connections")
         .select("*")
-        .eq("barbershop_id", tenantId)
+        .eq("barber_id", tenantId) // Standardized to barber_id
         .maybeSingle();
 
       if (data) {
@@ -62,6 +66,21 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchLogs() {
+    try {
+      const { data } = await supabase
+        .from("automation_logs")
+        .select("*")
+        .eq("barber_id", tenantId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      
+      if (data) setLogs(data);
+    } catch (error) {
+      console.error("Error fetching logs:", error);
     }
   }
 
