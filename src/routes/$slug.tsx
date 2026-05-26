@@ -292,20 +292,42 @@ function ShopPageComponent() {
   }, [bookingStep, selectedBarber, selectedDate, selectedService]);
 
   const fetchAvailableTimes = async (barberId: string, date: string, service: any) => {
-    if (!barberId || !service) return;
+    console.log('BOOKING DATA DEBUG: fetchAvailableTimes', { 
+      customerName, 
+      customerPhone, 
+      selectedService: service?.name, 
+      barberId, 
+      date 
+    });
+
+    if (!barberId || !service) {
+      console.warn('DEBUG: No professional or service selected, skipping fetchAvailableTimes');
+      return;
+    }
+
     setFetchingTimes(true);
     try {
-      const { data: barber } = await supabase.from("barbers").select("*").eq("id", barberId).single();
-      if (!barber) return;
+      const barber = barbers.find(b => b.id === barberId);
+      if (!barber) {
+        console.error("DEBUG: Barber not found in local state", { barberId, barbersCount: barbers.length });
+        return;
+      }
 
       const dateObj = parseISO(date);
       const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
+      
       const dayMap: Record<string, string> = {
-        'segunda-feira': 'monday', 'terça-feira': 'tuesday', 'quarta-feira': 'wednesday',
-        'quinta-feira': 'thursday', 'sexta-feira': 'friday', 'sábado': 'saturday', 'domingo': 'sunday'
+        'segunda-feira': 'monday',
+        'terça-feira': 'tuesday',
+        'quarta-feira': 'wednesday',
+        'quinta-feira': 'thursday',
+        'sexta-feira': 'friday',
+        'sábado': 'saturday',
+        'domingo': 'sunday'
       };
+      
       const dayKey = dayMap[dayName] || dayName;
-      const workingHours = barber.working_hours?.[dayKey];
+      const workingHours = (barber.working_hours as any)?.[dayKey];
 
       if (!workingHours || !workingHours.enabled) {
         setAvailableTimes([]);
@@ -321,10 +343,13 @@ function ShopPageComponent() {
       for (let hour = startHour; hour <= endHour; hour++) {
         for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
           if (hour === endHour && min >= endMin) break;
+          
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
           const checkTime = new Date(y, m - 1, d, hour, min, 0);
+          const now = new Date();
+          const isToday = y === now.getFullYear() && (m - 1) === now.getMonth() && d === now.getDate();
           
-          if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
+          if (isToday && checkTime < now) continue;
 
           const checkTimeMs = checkTime.getTime();
           const serviceEndMs = checkTimeMs + (service.duration_minutes || 30) * 60 * 1000;
@@ -339,7 +364,7 @@ function ShopPageComponent() {
 
           if (isBusyApp) continue;
 
-          // Check Customer Conflit in Cart (Any barber)
+          // Check Customer Conflict in Cart (Any barber)
           const isBusyCartCustomer = bookingCart.some(item => {
             const [itemHour, itemMin] = item.start_time.split(':').map(Number);
             const itemStart = new Date(y, m - 1, d, itemHour, itemMin, 0).getTime();
