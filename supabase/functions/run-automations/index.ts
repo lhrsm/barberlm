@@ -7,6 +7,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper to get time in BR timezone (UTC-3)
+function getBRDate() {
+  const now = new Date();
+  const brOffset = -3 * 60;
+  return new Date(now.getTime() + (now.getTimezoneOffset() + brOffset) * 60000);
+}
+
 function normalizePhone(phone: string): string {
   if (!phone) return "";
   let digits = phone.replace(/\D/g, "");
@@ -34,12 +41,27 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    log("Starting automation execution");
+    const body = await req.json().catch(() => ({}));
+    const targetTenantId = body.tenantId || body.barber_id;
 
-    const { data: automations, error: autoError } = await supabase
+    const brNow = getBRDate();
+    log("Starting automation execution", { 
+      server_time_utc: new Date().toISOString(), 
+      br_time: brNow.toISOString(),
+      timezone: "America/Bahia (UTC-3)",
+      target_tenant: targetTenantId || "ALL"
+    });
+
+    let query = supabase
       .from("automations")
       .select("*")
       .eq("enabled", true);
+    
+    if (targetTenantId) {
+      query = query.eq("tenant_id", targetTenantId);
+    }
+
+    const { data: automations, error: autoError } = await query;
 
     if (autoError) {
       log("Error fetching automations", autoError);
@@ -55,7 +77,11 @@ serve(async (req) => {
     const results = [];
 
     for (const automation of automations || []) {
-      log(`Processing automation: ${automation.type}`, { automation_id: automation.id, barber_id: automation.barber_id });
+      log(`Processing automation: ${automation.type}`, { 
+        automation_id: automation.id, 
+        barber_id: automation.barber_id,
+        tenant_id: automation.tenant_id
+      });
       
       const { data: connection } = await supabase
         .from("whatsapp_connections")
@@ -65,17 +91,17 @@ serve(async (req) => {
         .maybeSingle();
 
       if (!connection) {
-        log(`No connected WhatsApp for barber ${automation.barber_id}. Skipping.`, { barber_id: automation.barber_id });
+        log(`SKIP: No connected WhatsApp for barber ${automation.barber_id}`);
         continue;
       }
 
       let res;
       if (automation.type === "birthday") {
-        res = await processBirthdayAutomation(supabase, automation, connection, log);
+        res = await processBirthdayAutomation(supabase, automation, connection, log, brNow);
       } else if (automation.type === "appointment_confirmation") {
-        res = await processAppointmentConfirmation(supabase, automation, connection, log);
+        res = await processAppointmentConfirmation(supabase, automation, connection, log, brNow);
       } else if (automation.type === "appointment_reminder") {
-        res = await processAppointmentReminder(supabase, automation, connection, log);
+        res = await processAppointmentReminder(supabase, automation, connection, log, brNow);
       } else {
         log(`Automation type ${automation.type} not implemented yet.`);
         continue;
@@ -99,20 +125,19 @@ serve(async (req) => {
   }
 });
 
-async function processBirthdayAutomation(supabase: any, automation: any, connection: any, log: Function) {
-  const today = new Date();
-  const day = String(today.getDate()).padStart(2, '0');
-  const month = String(today.getMonth() + 1).padStart(2, '0');
+async function processBirthdayAutomation(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
+  const day = String(brNow.getDate()).padStart(2, '0');
+  const month = String(brNow.getMonth() + 1).padStart(2, '0');
   const birthdayStr = `${month}-${day}`;
 
   const { data: customers } = await supabase
     .from("customers")
     .select("*")
-    .eq("barber_id", automation.barber_id);
+    .eq("barber_id", automation.barber_id)
+    .eq("birthday_sent", false);
   
   const bdayCustomers = customers?.filter((c: any) => {
     if (!c.birth_date) return false;
-    // Assuming birth_date is YYYY-MM-DD or MM-DD
     return c.birth_date.endsWith(birthdayStr);
   });
 
@@ -121,41 +146,44 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
     return { type: "birthday", sent: 0 };
   }
 
-  log(`Found ${bdayCustomers.length} customers with birthday today`);
+  log(`Found ${bdayCustomers.length} potential birthday customers`);
 
   let sentCount = 0;
   for (const customer of bdayCustomers) {
+    const todayStart = new Date(new Date(brNow).setHours(0,0,0,0)).toISOString();
+    
     const { data: existing } = await supabase
       .from("automation_logs")
       .select("id")
       .eq("automation_id", automation.id)
       .eq("customer_id", customer.id)
-      .gte("created_at", new Date(new Date().setHours(0,0,0,0)).toISOString())
+      .gte("created_at", todayStart)
       .maybeSingle();
 
     if (existing) {
-      log(`Birthday message already sent today to ${customer.name}`);
+      log(`SKIP: Birthday already sent today to ${customer.name}`);
       continue;
     }
 
     const variables = {
       cliente_nome: customer.name,
-      barbearia_nome: "Nossa Barbearia",
+      barbearia_nome: connection.instance_name || "Nossa Barbearia",
     };
 
     const processedMessage = processAutomationTemplate(automation.template, variables);
 
-    log(`Sending birthday message to ${customer.name}`, {
-      phone: customer.phone,
-      template: automation.template,
-      processed: processedMessage,
-      variables
-    });
+    log(`SENDING birthday to ${customer.name}`, { phone: customer.phone });
 
     const result = await sendMessage(connection, customer.phone, processedMessage, log);
     
+    if (result.success) {
+      await supabase.from("customers").update({ birthday_sent: true }).eq("id", customer.id);
+      sentCount++;
+    }
+
     await supabase.from("automation_logs").insert({
       automation_id: automation.id,
+      tenant_id: automation.tenant_id,
       barber_id: automation.barber_id,
       customer_id: customer.id,
       status: result.success ? "success" : "error",
@@ -166,21 +194,20 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
       response: result.response,
       error_message: result.error
     });
-
-    if (result.success) sentCount++;
   }
 
   return { type: "birthday", sent: sentCount };
 }
 
-async function processAppointmentConfirmation(supabase: any, automation: any, connection: any, log: Function) {
-  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+async function processAppointmentConfirmation(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
+  const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   
   const { data: appointments, error: apptError } = await supabase
     .from("appointments")
     .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
     .eq("barber_id", automation.barber_id)
-    .gte("created_at", tenMinutesAgo);
+    .eq("confirmation_sent", false)
+    .gte("created_at", fifteenMinutesAgo);
 
   if (apptError) {
     log("Error fetching appointments for confirmation", apptError);
@@ -188,26 +215,14 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
   }
 
   if (!appointments || appointments.length === 0) {
-    log(`No new appointments found in the last 10 minutes for barber ${automation.barber_id}`);
+    log(`No new appointments needing confirmation in the last 15 minutes`);
     return { type: "confirmation", sent: 0 };
   }
 
-  log(`Found ${appointments.length} new appointments for confirmation`);
+  log(`Found ${appointments.length} appointments needing confirmation`);
 
   let sentCount = 0;
   for (const appt of appointments) {
-    const { data: existing } = await supabase
-      .from("automation_logs")
-      .select("id")
-      .eq("appointment_id", appt.id)
-      .eq("message_type", "appointment_confirmation")
-      .maybeSingle();
-
-    if (existing) {
-      log(`Confirmation already sent for appointment ${appt.id}`);
-      continue;
-    }
-
     const variables = {
       cliente_nome: appt.customers?.name || appt.name,
       barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
@@ -218,24 +233,23 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
     };
 
     const processedMessage = processAutomationTemplate(automation.template, variables);
-
     const phone = appt.customers?.phone || appt.phone;
+
     if (!phone) {
-      log(`Appointment ${appt.id} has no phone number. Skipping.`);
+      log(`SKIP: Appointment ${appt.id} has no phone`);
       continue;
     }
 
-    log(`Sending confirmation for appointment ${appt.id}`, {
-      phone,
-      template: automation.template,
-      processed: processedMessage,
-      variables
-    });
-
     const result = await sendMessage(connection, phone, processedMessage, log);
     
+    if (result.success) {
+      await supabase.from("appointments").update({ confirmation_sent: true }).eq("id", appt.id);
+      sentCount++;
+    }
+
     await supabase.from("automation_logs").insert({
       automation_id: automation.id,
+      tenant_id: automation.tenant_id,
       barber_id: automation.barber_id,
       customer_id: appt.customer_id,
       appointment_id: appt.id,
@@ -247,26 +261,24 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
       response: result.response,
       error_message: result.error
     });
-
-    if (result.success) sentCount++;
   }
 
   return { type: "confirmation", sent: sentCount };
 }
 
-async function processAppointmentReminder(supabase: any, automation: any, connection: any, log: Function) {
+async function processAppointmentReminder(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
   const delayHours = automation.trigger_delay || 24;
-  const now = new Date();
-  
-  const targetTimeStart = new Date(now.getTime() + (delayHours * 60 * 60 * 1000)).toISOString();
-  // Check in a 1-hour window to catch it (since it runs every 5 mins, this is safe)
-  const targetTimeEnd = new Date(now.getTime() + ((delayHours + 1) * 60 * 60 * 1000)).toISOString();
+  const targetTimeStart = new Date(Date.now() + (delayHours * 60 * 60 * 1000)).toISOString();
+  const targetTimeEnd = new Date(Date.now() + (delayHours * 60 * 60 * 1000) + (15 * 60 * 1000)).toISOString();
+
+  log(`Searching for reminders in window: ${targetTimeStart} to ${targetTimeEnd} (Delay: ${delayHours}h)`);
 
   const { data: appointments, error: apptError } = await supabase
     .from("appointments")
     .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
     .eq("barber_id", automation.barber_id)
     .eq("status", "scheduled")
+    .eq("reminder_sent", false)
     .gte("start_time", targetTimeStart)
     .lte("start_time", targetTimeEnd);
 
@@ -276,26 +288,14 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
   }
 
   if (!appointments || appointments.length === 0) {
-    log(`No appointments found for reminder (window: ${targetTimeStart} - ${targetTimeEnd}) for barber ${automation.barber_id}`);
+    log(`No appointments found for reminder in window`);
     return { type: "reminder", sent: 0 };
   }
 
-  log(`Found ${appointments.length} appointments for reminder in window`);
+  log(`Found ${appointments.length} appointments for reminder`);
 
   let sentCount = 0;
   for (const appt of appointments) {
-    const { data: existing } = await supabase
-      .from("automation_logs")
-      .select("id")
-      .eq("appointment_id", appt.id)
-      .eq("message_type", "appointment_reminder")
-      .maybeSingle();
-
-    if (existing) {
-      log(`Reminder already sent for appointment ${appt.id}`);
-      continue;
-    }
-
     const variables = {
       cliente_nome: appt.customers?.name || appt.name,
       barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
@@ -306,24 +306,23 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
     };
 
     const processedMessage = processAutomationTemplate(automation.template, variables);
-
     const phone = appt.customers?.phone || appt.phone;
+
     if (!phone) {
-      log(`Appointment ${appt.id} has no phone number. Skipping.`);
+      log(`SKIP: Appointment ${appt.id} has no phone`);
       continue;
     }
 
-    log(`Sending reminder for appointment ${appt.id}`, {
-      phone,
-      template: automation.template,
-      processed: processedMessage,
-      variables
-    });
-
     const result = await sendMessage(connection, phone, processedMessage, log);
     
+    if (result.success) {
+      await supabase.from("appointments").update({ reminder_sent: true }).eq("id", appt.id);
+      sentCount++;
+    }
+
     await supabase.from("automation_logs").insert({
       automation_id: automation.id,
+      tenant_id: automation.tenant_id,
       barber_id: automation.barber_id,
       customer_id: appt.customer_id,
       appointment_id: appt.id,
@@ -335,8 +334,6 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
       response: result.response,
       error_message: result.error
     });
-
-    if (result.success) sentCount++;
   }
 
   return { type: "reminder", sent: sentCount };
@@ -354,32 +351,19 @@ async function sendMessage(connection: any, phone: string, message: string, log:
     }
 
     const targetPhone = normalizePhone(phone);
-
-    const headers: any = { 
-      "Content-Type": "application/json" 
-    };
-    
-    if (clientToken) {
-      headers["Client-Token"] = clientToken;
-    }
-
-    log(`Calling Z-API for phone ${targetPhone}`);
+    const headers: any = { "Content-Type": "application/json" };
+    if (clientToken) headers["Client-Token"] = clientToken;
 
     const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        phone: targetPhone,
-        message: message
-      })
+      body: JSON.stringify({ phone: targetPhone, message: message })
     });
 
     const data = await response.json();
-    log(`Z-API Response for ${targetPhone}:`, data);
-    
     return { success: response.ok, response: data };
   } catch (error) {
-    log(`Error sending message: ${error.message}`);
+    log(`Error in sendMessage: ${error.message}`);
     return { success: false, error: error.message };
   }
 }

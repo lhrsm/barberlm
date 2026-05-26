@@ -89,6 +89,7 @@ export type Database = {
           cancel_token: string | null
           cashback_earned: number | null
           cashback_used: number | null
+          confirmation_sent: boolean | null
           created_at: string
           credit_used: number | null
           customer_id: string | null
@@ -104,6 +105,7 @@ export type Database = {
           refund_requested_at: string | null
           refund_status: string | null
           refund_type: string | null
+          reminder_sent: boolean | null
           service_id: string | null
           start_time: string
           status: string | null
@@ -116,6 +118,7 @@ export type Database = {
           cancel_token?: string | null
           cashback_earned?: number | null
           cashback_used?: number | null
+          confirmation_sent?: boolean | null
           created_at?: string
           credit_used?: number | null
           customer_id?: string | null
@@ -131,6 +134,7 @@ export type Database = {
           refund_requested_at?: string | null
           refund_status?: string | null
           refund_type?: string | null
+          reminder_sent?: boolean | null
           service_id?: string | null
           start_time: string
           status?: string | null
@@ -143,6 +147,7 @@ export type Database = {
           cancel_token?: string | null
           cashback_earned?: number | null
           cashback_used?: number | null
+          confirmation_sent?: boolean | null
           created_at?: string
           credit_used?: number | null
           customer_id?: string | null
@@ -158,6 +163,7 @@ export type Database = {
           refund_requested_at?: string | null
           refund_status?: string | null
           refund_type?: string | null
+          reminder_sent?: boolean | null
           service_id?: string | null
           start_time?: string
           status?: string | null
@@ -604,6 +610,7 @@ export type Database = {
           avatar_url: string | null
           barber_id: string | null
           birth_date: string | null
+          birthday_sent: boolean | null
           cashback_balance: number
           created_at: string
           credits: number | null
@@ -619,6 +626,7 @@ export type Database = {
           avatar_url?: string | null
           barber_id?: string | null
           birth_date?: string | null
+          birthday_sent?: boolean | null
           cashback_balance?: number
           created_at?: string
           credits?: number | null
@@ -634,6 +642,7 @@ export type Database = {
           avatar_url?: string | null
           barber_id?: string | null
           birth_date?: string | null
+          birthday_sent?: boolean | null
           cashback_balance?: number
           created_at?: string
           credits?: number | null

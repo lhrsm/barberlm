@@ -367,7 +367,7 @@ function AutomationsComponent() {
               ) : (
                 <Play size={18} />
               )}
-              Executar agora
+              Executar automações agora
             </Button>
             <Button variant="outline" className="gap-2" asChild>
               <a href="/integrations">
