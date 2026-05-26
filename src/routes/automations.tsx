@@ -143,8 +143,11 @@ function AutomationsComponent() {
   const [isIAExecuting, setIsIAExecuting] = useState(false);
   const [isTesting, setIsTesting] = useState<string | null>(null);
   const [isRunningAll, setIsRunningAll] = useState(false);
+  const [isForcingAll, setIsForcingAll] = useState(false);
   const [executionSummary, setExecutionSummary] = useState<any>(null);
-  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
+  const [isSummaryDialogOpen] = useState(false);
+  const [isManualSummaryOpen, setIsManualSummaryOpen] = useState(false);
+
 
   const fetchServerInfo = async () => {
     const { data } = await supabase.rpc('get_server_info');
@@ -227,14 +230,16 @@ function AutomationsComponent() {
     }
   };
 
-  const handleRunAllAutomations = async () => {
+  const handleRunAllAutomations = async (forceMode = false) => {
     if (!tenantId) return;
-    setIsRunningAll(true);
+    if (forceMode) setIsForcingAll(true);
+    else setIsRunningAll(true);
+    
     setExecutionSummary(null);
     
     try {
       const { data, error } = await supabase.functions.invoke('run-automations', {
-        body: { tenantId }
+        body: { tenantId, forceMode }
       });
 
       if (error) throw error;
@@ -246,7 +251,7 @@ function AutomationsComponent() {
         const found = (data.appointmentsFound?.length || 0) + (data.birthdaysFound?.length || 0);
         const failed = data.messagesSent?.filter((m: any) => m.status === 'error').length || 0;
 
-        if (found === 0) {
+        if (found === 0 && (!data.ignoredRecords || data.ignoredRecords.length === 0)) {
           toast.info("Nenhuma automação precisava ser processada no momento.");
         } else if (sent > 0) {
           toast.success(`${sent} mensagens enviadas com sucesso!`);
@@ -254,7 +259,7 @@ function AutomationsComponent() {
           toast.error(`${failed} mensagens falharam ao enviar.`);
         }
 
-        setIsSummaryDialogOpen(true);
+        setIsManualSummaryOpen(true);
         fetchLogs();
         fetchCronStatus();
       } else {
@@ -265,8 +270,10 @@ function AutomationsComponent() {
       toast.error(err.message || "Erro ao processar execução das automações");
     } finally {
       setIsRunningAll(false);
+      setIsForcingAll(false);
     }
   };
+
 
 
   useEffect(() => {
@@ -478,11 +485,24 @@ function AutomationsComponent() {
             <h2 className="text-3xl font-bold tracking-tight">Automações Inteligentes</h2>
             <p className="text-muted-foreground">Configure notificações e lembretes automáticos para seus clientes.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50" 
+              onClick={() => handleRunAllAutomations(true)}
+              disabled={isForcingAll}
+            >
+              {isForcingAll ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Play size={18} />
+              )}
+              Processar todos os agendamentos agora
+            </Button>
             <Button 
               variant="default" 
               className="gap-2 bg-emerald-600 hover:bg-emerald-700" 
-              onClick={handleRunAllAutomations}
+              onClick={() => handleRunAllAutomations(false)}
               disabled={isRunningAll}
             >
               {isRunningAll ? (
@@ -490,7 +510,7 @@ function AutomationsComponent() {
               ) : (
                 <Play size={18} />
               )}
-              Executar automações agora
+              Executar cron agora
             </Button>
             <Button variant="outline" className="gap-2" asChild>
               <a href="/integrations">
@@ -498,6 +518,7 @@ function AutomationsComponent() {
               </a>
             </Button>
           </div>
+
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
