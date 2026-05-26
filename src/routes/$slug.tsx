@@ -814,33 +814,39 @@ function ShopPageComponent() {
       const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
       const endTime = addMinutes(startTime, selectedService.duration_minutes || 30);
 
+      const appointmentPayload = {
+        user_id: shop.id,
+        tenant_id: shop.id, // Ensure tenant_id is set
+        customer_id: finalCustId,
+        service_id: selectedService.id,
+        barber_id: selectedBarber.id,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        total_price: selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0),
+        original_total: selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0),
+        credit_used: useCredits ? Math.min(customerCredits, calculateTotalBeforeCredits()) : 0,
+        cashback_used: useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0,
+        pix_amount: paymentMethod === 'pix' ? calculateTotal() : 0,
+        barbershop_amount: paymentMethod === 'barbershop' ? calculateTotal() : 0,
+        final_amount: calculateTotal(),
+        status: "scheduled",
+        payment_method: paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop'),
+        payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
+        notes: useCashback ? 
+          `Pagamento: Cashback (R$ ${Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)})` : 
+          useCredits ? `Pagamento: Créditos (R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : null,
+        items: [
+          { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
+          ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
+        ],
+        source: 'portal' // Identifica a origem
+      };
+
+      console.log('DEBUG: Finalizing appointment with payload', appointmentPayload);
+
       const { error: appError, data: appointment } = await supabase
         .from("appointments")
-        .insert({
-          user_id: shop.id,
-          customer_id: finalCustId,
-          service_id: selectedService.id,
-          barber_id: selectedBarber.id,
-          start_time: startTime.toISOString(),
-          end_time: endTime.toISOString(),
-          total_price: selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0),
-          original_total: selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0),
-          credit_used: useCredits ? Math.min(customerCredits, calculateTotalBeforeCredits()) : 0,
-          cashback_used: useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0,
-          pix_amount: paymentMethod === 'pix' ? calculateTotal() : 0,
-          barbershop_amount: paymentMethod === 'barbershop' ? calculateTotal() : 0,
-          final_amount: calculateTotal(),
-          status: "scheduled",
-          payment_method: paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop'),
-          payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
-          notes: useCashback ? 
-            `Pagamento: Cashback (R$ ${Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)})` : 
-            useCredits ? `Pagamento: Créditos (R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : null,
-          items: [
-            { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
-            ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
-          ]
-        })
+        .insert(appointmentPayload)
         .select()
         .single();
 
