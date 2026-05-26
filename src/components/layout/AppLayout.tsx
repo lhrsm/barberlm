@@ -106,7 +106,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     if (!user || role === 'super_admin') return;
 
     const channel = supabase
-      .channel('tenant-support-notifications')
+      .channel(`tenant-support-notifications-${instanceId}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
         table: 'ticket_messages',
