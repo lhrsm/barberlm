@@ -68,6 +68,7 @@ function ShopPageComponent() {
   }, []);
   
   // Booking state
+  const [bookingCart, setBookingCart] = useState<any[]>([]);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [bookingStep, setBookingStep] = useState(1);
