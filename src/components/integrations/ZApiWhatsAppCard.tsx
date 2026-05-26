@@ -107,7 +107,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook/${tenantId}`;
 
     const upsertData = {
-      barbershop_id: tenantId,
+      barber_id: tenantId,
       instance_id: instanceId,
       instance_token: instanceToken,
       server_url: cleanApiUrl,
