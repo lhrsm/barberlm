@@ -103,7 +103,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
     cleanApiUrl = cleanApiUrl.replace(/\/$/, "");
 
-    const webhookUrl = `${window.location.origin}/api/webhooks/zapi/${tenantId}`;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+    const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook/${tenantId}`;
 
     const upsertData = {
       barbershop_id: tenantId,
