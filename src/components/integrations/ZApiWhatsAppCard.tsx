@@ -14,7 +14,6 @@ import {
   MessageSquare,
   History,
   FileText,
-  QrCode,
   Phone
 } from "lucide-react";
 
@@ -75,7 +74,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         .maybeSingle();
 
       if (data) {
-        const conn = data as WhatsAppConnection;
+        const conn = data as any;
         setConnection(conn);
         setFormData({
           instance_id: conn.instance_id || "",
@@ -97,7 +96,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
             instance_id: settings.instance_id || "",
             instance_token: settings.instance_token || "",
             client_token: settings.client_token || "",
-            api_url: settings.server_url || "https://api.z-api.io",
+            api_url: (settings as any).server_url || "https://api.z-api.io",
             phone: settings.whatsapp_number || ""
           });
         }
@@ -203,13 +202,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         client_token: clientToken,
         whatsapp_number: phone,
         server_url: cleanApiUrl
-      });
+      } as any);
 
-      setConnection(saved as WhatsAppConnection);
+      setConnection(saved as any);
       setTempWebhookUrl(webhookUrl);
       toast.success("Configurações salvas e sincronizadas!");
       
-      await setupWebhook(saved as WhatsAppConnection);
+      await setupWebhook(saved as any);
       await fetchConnection();
     } catch (err: any) {
       toast.error("Erro ao salvar: " + err.message);
@@ -418,7 +417,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
             <TabsList className="bg-transparent h-12 gap-6 p-0">
               <TabsTrigger 
                 value="config" 
-                className="data-[state=active]:bg-transparent data-[state=active]:text-blue-400 data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-blue-400 rounded-none px-2 h-full text-slate-400 transition-all font-medium"
+                className="data-[state=active]:bg-transparent data-[state=active]:text-blue-400 data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-blue-400 rounded-none px-2 h-full h-full text-slate-400 transition-all font-medium"
               >
                 Configuração
               </TabsTrigger>
