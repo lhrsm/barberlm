@@ -1916,57 +1916,48 @@ export type Database = {
       whatsapp_instances: {
         Row: {
           barber_id: string | null
-          barbershop_id: string
           client_token: string | null
           connected: boolean | null
           created_at: string
           id: string
           instance_id: string
-          instance_name: string | null
-          last_connection: string | null
           phone: string | null
           provider: string
           server_url: string
           status: string
-          tenant_id: string | null
+          tenant_id: string
           token: string
           updated_at: string
           webhook_url: string | null
         }
         Insert: {
           barber_id?: string | null
-          barbershop_id: string
           client_token?: string | null
           connected?: boolean | null
           created_at?: string
           id?: string
           instance_id: string
-          instance_name?: string | null
-          last_connection?: string | null
           phone?: string | null
           provider?: string
           server_url: string
           status?: string
-          tenant_id?: string | null
+          tenant_id: string
           token: string
           updated_at?: string
           webhook_url?: string | null
         }
         Update: {
           barber_id?: string | null
-          barbershop_id?: string
           client_token?: string | null
           connected?: boolean | null
           created_at?: string
           id?: string
           instance_id?: string
-          instance_name?: string | null
-          last_connection?: string | null
           phone?: string | null
           provider?: string
           server_url?: string
           status?: string
-          tenant_id?: string | null
+          tenant_id?: string
           token?: string
           updated_at?: string
           webhook_url?: string | null
@@ -1974,15 +1965,8 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "whatsapp_connections_barbershop_id_fkey"
-            columns: ["barbershop_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "whatsapp_connections_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
