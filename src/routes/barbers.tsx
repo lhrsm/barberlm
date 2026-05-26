@@ -158,46 +158,74 @@ function BarbersComponent() {
     e.preventDefault();
     if (!user) return;
 
-    console.log('ADDING BARBER', newBarber);
-    const { data: barber, error } = await supabase.from("barbers").insert({
+    console.log('--- START ADD BARBER ---');
+    console.log('NEW BARBER DATA:', newBarber);
+    console.log('SELECTED SERVICES:', selectedServices);
+
+    const { data: barber, error: barberError } = await supabase.from("barbers").insert({
       ...newBarber,
       tenant_id: user.id,
       user_id: user.id,
       active: true,
     }).select().single();
 
-    if (error) {
-      console.error('INSERT BARBER ERROR', error);
-      toast.error("Erro ao adicionar barbeiro");
-    } else {
-      console.log('BARBER INSERTED', barber);
-      // Add links to services
-      if (selectedServices.length > 0) {
-        console.log('SELECTED SERVICES TO LINK', selectedServices);
-        const links = selectedServices.map(serviceId => ({
-          barber_id: barber.id,
-          service_id: serviceId,
-          tenant_id: user.id,
-          user_id: user.id
-        }));
-        
-        const { data: linkResult, error: linkError } = await supabase.from("barber_services").insert(links).select();
-        console.log('INSERT SERVICES RESULT', linkResult);
-        if (linkError) {
-          console.error('INSERT SERVICES ERROR', linkError);
-          toast.error("Erro ao vincular serviços ao barbeiro");
-        }
-      } else {
-        toast.warning("Nenhum serviço selecionado para o profissional.");
-      }
-
-      toast.success("Barbeiro cadastrado com sucesso!");
-      setIsAddDialogOpen(false);
-      setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0, working_hours: DEFAULT_WORKING_HOURS });
-      setSelectedServices([]);
-      fetchBarbers();
-      refreshLimits();
+    if (barberError) {
+      console.error('INSERT BARBER ERROR:', barberError);
+      toast.error(`Erro ao adicionar barbeiro: ${barberError.message}`);
+      return;
     }
+
+    console.log('BARBER CREATED SUCCESSFULLY:', barber);
+    console.log('BARBER ID:', barber?.id);
+
+    if (selectedServices.length > 0) {
+      const servicesPayload = selectedServices.map(serviceId => ({
+        barber_id: barber.id,
+        service_id: serviceId,
+        tenant_id: user.id,
+        user_id: user.id
+      }));
+
+      console.log('SERVICES PAYLOAD:', servicesPayload);
+      
+      const { data: servicesResult, error: servicesError } = await supabase
+        .from("barber_services")
+        .insert(servicesPayload)
+        .select();
+
+      console.log('SERVICES INSERT RESULT:', servicesResult);
+
+      if (servicesError) {
+        console.error('INSERT SERVICES ERROR:', servicesError);
+        toast.error(`Barbeiro criado, mas erro ao vincular serviços: ${servicesError.message}`);
+      } else if (!servicesResult || servicesResult.length === 0) {
+        console.error('INSERT SERVICES FAILED: No data returned');
+        toast.error("Erro silencioso ao vincular serviços. Verifique os logs.");
+      } else {
+        console.log('SERVICES LINKED SUCCESSFULLY');
+      }
+    } else {
+      console.warn('NO SERVICES SELECTED');
+      toast.warning("Barbeiro criado sem serviços vinculados.");
+    }
+
+    toast.success("Barbeiro cadastrado com sucesso!");
+    setIsAddDialogOpen(false);
+    setNewBarber({ name: "", phone: "", email: "", avatar_url: "", category: "Proprietário", commission_rate: 0, working_hours: DEFAULT_WORKING_HOURS });
+    setSelectedServices([]);
+    
+    // Invalidate Caches
+    const queryClient = (window as any).queryClient;
+    if (queryClient) {
+      console.log('INVALIDATING QUERIES');
+      queryClient.invalidateQueries({ queryKey: ["barbers"] });
+      queryClient.invalidateQueries({ queryKey: ["barber-services"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    }
+
+    fetchBarbers();
+    refreshLimits();
+    console.log('--- END ADD BARBER ---');
   }
 
   async function handleUpdateBarber(e: React.FormEvent) {
