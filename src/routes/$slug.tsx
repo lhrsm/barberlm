@@ -438,8 +438,9 @@ function ShopPageComponent() {
 
   const primaryColor = shop?.primary_color || "#7c3aed";
 
-  const handleBookingAction = () => {
-    console.log('DEBUG: handleBookingAction triggered');
+  const handleBookingAction = async () => {
+    console.log('DEBUG: handleBookingAction triggered, isBookingOpen:', isBookingOpen);
+
     if (shop?.scheduling_mode === 'manual') {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
@@ -453,6 +454,22 @@ function ShopPageComponent() {
           setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
+
+          // Fetch fresh data for credits/cashback
+          if (parsedClient.customer_id) {
+            const { data } = await supabase
+              .from('customers')
+              .select('*')
+              .eq('id', parsedClient.customer_id)
+              .maybeSingle();
+            
+            if (data) {
+              console.log('DEBUG: Fresh customer data loaded for portal session', data);
+              setCustomerCashback(data.cashback_balance || 0);
+              setCustomerCredits(data.credits || 0);
+              setCustomerLoyaltyPoints(data.loyalty_points || 0);
+            }
+          }
           
           // Se já temos o customerId, pulamos a identificação (Step 1)
           // Step 1: Boas-vindas/Telefone
@@ -469,6 +486,7 @@ function ShopPageComponent() {
       setIsBookingOpen(true);
     }
   };
+
 
 
   const handlePhoneCheck = async () => {
@@ -1189,10 +1207,6 @@ function ShopPageComponent() {
     }
   }, [isBookingOpen, bookingStep, customerPhone, customerName, customerId]);
 
-  if (isPortalRoute || isProfissionalRoute) {
-    return <Outlet />;
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
@@ -1203,7 +1217,7 @@ function ShopPageComponent() {
 
   if (!shop) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black text-white">
         <h1 className="text-4xl font-bold mb-2">404</h1>
         <p className="text-muted-foreground mb-4">Barbearia não encontrada.</p>
         <Button asChild>
@@ -1212,6 +1226,7 @@ function ShopPageComponent() {
       </div>
     );
   }
+
 
   return (
     <div 
@@ -1261,48 +1276,52 @@ function ShopPageComponent() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      {!isEmbedded && (
-        <header className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-4",
-          scrolled ? "py-2" : "py-6"
-        )}>
-          <motion.div 
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className={cn(
-              "mx-auto max-w-5xl rounded-full flex items-center justify-between gap-4 transition-all duration-500 border border-white/10",
-              scrolled ? "bg-black/60 backdrop-blur-xl px-6 h-14 shadow-2xl" : "bg-transparent px-2 h-16 border-transparent"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              {shop.logo_url ? (
-                <img src={shop.logo_url} alt={shop.business_name} className="h-9 w-9 object-contain rounded-lg" />
-              ) : (
-                <div className="h-9 w-9 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
-                  <Scissors className="h-5 w-5 text-[#D4AF37]" />
+      {/* Main Content */}
+      {(!isPortalRoute && !isProfissionalRoute) ? (
+        <>
+          {/* Header */}
+          {!isEmbedded && (
+            <header className={cn(
+              "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-4",
+              scrolled ? "py-2" : "py-6"
+            )}>
+              <motion.div 
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className={cn(
+                  "mx-auto max-w-5xl rounded-full flex items-center justify-between gap-4 transition-all duration-500 border border-white/10",
+                  scrolled ? "bg-black/60 backdrop-blur-xl px-6 h-14 shadow-2xl" : "bg-transparent px-2 h-16 border-transparent"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  {shop.logo_url ? (
+                    <img src={shop.logo_url} alt={shop.business_name} className="h-9 w-9 object-contain rounded-lg" />
+                  ) : (
+                    <div className="h-9 w-9 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
+                      <Scissors className="h-5 w-5 text-[#D4AF37]" />
+                    </div>
+                  )}
+                  <h1 className="font-bold text-base sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
                 </div>
-              )}
-              <h1 className="font-bold text-base sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
-            </div>
 
-            <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
-              <a href="#inicio" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Início</a>
-              <a href="#servicos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Serviços</a>
-              <a href="#produtos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Produtos</a>
-              <a href="#profissionais" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Profissionais</a>
-              <a href="#contato" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Contato</a>
-            </nav>
+                <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
+                  <a href="#inicio" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Início</a>
+                  <a href="#servicos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Serviços</a>
+                  <a href="#produtos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Produtos</a>
+                  <a href="#profissionais" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Profissionais</a>
+                  <a href="#contato" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Contato</a>
+                </nav>
 
-            <Button 
-              className="bg-black text-white border border-[#D4AF37] shadow-lg hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all h-10 px-6 rounded-full text-sm font-bold" 
-              onClick={handleBookingAction}
-            >
-              {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar'}
-            </Button>
-          </motion.div>
-        </header>
-      )}
+                <Button 
+                  className="bg-black text-white border border-[#D4AF37] shadow-lg hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all h-10 px-6 rounded-full text-sm font-bold" 
+                  onClick={handleBookingAction}
+                >
+                  {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar'}
+                </Button>
+              </motion.div>
+            </header>
+          )}
+
 
       <main className={cn("space-y-0", isEmbedded && "py-0")}>
         {/* Hero Section */}
@@ -1735,6 +1754,13 @@ function ShopPageComponent() {
           </Button>
         </div>
       </main>
+    </>
+  ) : (
+    <Outlet />
+  )}
+
+
+
 
       <Dialog open={isBookingOpen} onOpenChange={(open) => {
         setIsBookingOpen(open);
