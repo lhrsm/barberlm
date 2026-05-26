@@ -438,7 +438,7 @@ function ShopPageComponent() {
 
   const primaryColor = shop?.primary_color || "#7c3aed";
 
-  const handleBookingAction = () => {
+  const handleBookingAction = async () => {
     console.log('DEBUG: handleBookingAction triggered, isBookingOpen:', isBookingOpen);
 
     if (shop?.scheduling_mode === 'manual') {
@@ -454,6 +454,22 @@ function ShopPageComponent() {
           setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
+
+          // Fetch fresh data for credits/cashback
+          if (parsedClient.customer_id) {
+            const { data } = await supabase
+              .from('customers')
+              .select('*')
+              .eq('id', parsedClient.customer_id)
+              .maybeSingle();
+            
+            if (data) {
+              console.log('DEBUG: Fresh customer data loaded for portal session', data);
+              setCustomerCashback(data.cashback_balance || 0);
+              setCustomerCredits(data.credits || 0);
+              setCustomerLoyaltyPoints(data.loyalty_points || 0);
+            }
+          }
           
           // Se já temos o customerId, pulamos a identificação (Step 1)
           // Step 1: Boas-vindas/Telefone
@@ -470,6 +486,7 @@ function ShopPageComponent() {
       setIsBookingOpen(true);
     }
   };
+
 
 
   const handlePhoneCheck = async () => {
