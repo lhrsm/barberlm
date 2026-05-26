@@ -2157,28 +2157,56 @@ function ShopPageComponent() {
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center justify-between p-5 bg-primary/5 border border-primary/20 rounded-[2rem] shadow-inner"
+                    className="flex items-center justify-between p-5 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] shadow-inner"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                        <Gift size={24} className="text-[#D4AF37]" />
+                      <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+                        <Gift size={24} className="text-emerald-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-black uppercase tracking-tighter">Você tem cashback!</p>
-                        <p className="text-xs font-bold text-[#D4AF37]">Saldo: R$ {customerCashback.toFixed(2)}</p>
+                        <p className="text-sm font-black text-white uppercase tracking-tighter">Você tem cashback!</p>
+                        <p className="text-xs font-bold text-emerald-500">Saldo: R$ {customerCashback.toFixed(2)}</p>
                       </div>
                     </div>
                     <Button 
                       variant={useCashback ? "default" : "outline"} 
                       size="sm" 
                       onClick={() => setUseCashback(!useCashback)}
-                      className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px]", useCashback ? "bg-primary text-white" : "border-primary/30 text-primary hover:bg-primary/10")}
-                      style={useCashback ? { backgroundColor: primaryColor } : {}}
+                      className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px]", useCashback ? "bg-emerald-600 text-white border-none" : "border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10")}
+                      style={useCashback ? { backgroundColor: "#10b981" } : {}}
                     >
                       {useCashback ? "Aplicado" : "Usar"}
                     </Button>
                   </motion.div>
                 )}
+
+                {customerCredits > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-between p-5 bg-primary/5 border border-primary/20 rounded-[2rem] shadow-inner"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                        <CircleDollarSign size={24} className="text-primary" style={{ color: primaryColor }} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-white uppercase tracking-tighter">Créditos Disponíveis</p>
+                        <p className="text-xs font-bold text-primary" style={{ color: primaryColor }}>Saldo: R$ {customerCredits.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant={useCredits ? "default" : "outline"} 
+                      size="sm" 
+                      onClick={() => setUseCredits(!useCredits)}
+                      className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px]", useCredits ? "bg-primary text-white border-none" : "border-primary/30 text-primary hover:bg-primary/10")}
+                      style={useCredits ? { backgroundColor: primaryColor } : {}}
+                    >
+                      {useCredits ? "Aplicado" : "Usar"}
+                    </Button>
+                  </motion.div>
+                )}
+
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
