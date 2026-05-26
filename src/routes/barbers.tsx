@@ -263,6 +263,13 @@ function BarbersComponent() {
       setIsEditDialogOpen(false);
       setEditingBarber(null);
       setSelectedServices([]);
+      
+      // Realtime Invalidation
+      const queryClient = (window as any).queryClient;
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["barbers"] });
+      }
+      
       fetchBarbers();
     }
   }
