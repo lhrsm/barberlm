@@ -871,9 +871,63 @@ function AutomationsComponent() {
           </TabsContent>
         </Tabs>
 
+        {/* Execution Summary Dialog */}
+        <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="text-emerald-500" />
+                Resultado da Execução
+              </DialogTitle>
+              <DialogDescription>
+                Detalhamento do processamento das automações.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="text-xs text-muted-foreground uppercase font-bold">Encontrados</div>
+                  <div className="text-2xl font-bold">{executionSummary?.records_found || 0}</div>
+                </div>
+                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
+                  <div className="text-xs text-emerald-600 uppercase font-bold">Enviados</div>
+                  <div className="text-2xl font-bold text-emerald-700">{executionSummary?.messages_sent || 0}</div>
+                </div>
+                <div className="p-3 bg-red-50 border border-red-100 rounded-lg">
+                  <div className="text-xs text-red-600 uppercase font-bold">Falhas</div>
+                  <div className="text-2xl font-bold text-red-700">{executionSummary?.messages_failed || 0}</div>
+                </div>
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="text-xs text-muted-foreground uppercase font-bold">Automações</div>
+                  <div className="text-2xl font-bold">{executionSummary?.total_automations || 0}</div>
+                </div>
+              </div>
+
+              {executionSummary?.errors && executionSummary.errors.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-bold text-red-600 flex items-center gap-1">
+                    <AlertCircle size={14} /> Erros encontrados:
+                  </div>
+                  <div className="max-h-[150px] overflow-y-auto space-y-1">
+                    {executionSummary.errors.map((err: string, i: number) => (
+                      <div key={i} className="text-xs p-2 bg-red-50 text-red-700 rounded border border-red-100">
+                        {err}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setIsSummaryDialogOpen(false)}>Fechar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Edit Modal */}
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+
             <DialogHeader>
               <DialogTitle>Configurar {selectedAutomation?.title}</DialogTitle>
               <DialogDescription>Personalize o canal e o conteúdo da mensagem.</DialogDescription>
