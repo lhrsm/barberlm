@@ -77,7 +77,9 @@ function SettingsComponent() {
     font_color: "#000000",
     pix_key: "",
     pix_qr_code_url: "",
+    whatsapp_number: "",
   });
+
 
   useEffect(() => {
     if (!loading && !user) {
@@ -141,7 +143,9 @@ function SettingsComponent() {
           font_color: profile.font_color || "#000000",
           pix_key: profile.pix_key || "",
           pix_qr_code_url: profile.pix_qr_code_url || "",
+          whatsapp_number: profile.whatsapp_number || "",
         });
+
       } else {
         console.warn("No profile rows found in database for user ID:", user.id);
         toast.error("Perfil não encontrado. Tente sair e entrar novamente.");
@@ -200,7 +204,9 @@ function SettingsComponent() {
         font_color: updatedData.font_color,
         pix_key: updatedData.pix_key,
         pix_qr_code_url: updatedData.pix_qr_code_url,
+        whatsapp_number: updatedData.whatsapp_number,
         updated_at: new Date().toISOString(),
+
       })
       .eq("id", user.id);
 
@@ -405,6 +411,16 @@ function SettingsComponent() {
                     <p className="text-xs text-muted-foreground">Este será o link que seus clientes usarão para agendar.</p>
                   </div>
                   <div className="grid gap-2">
+                    <Label htmlFor="whatsapp_number">WhatsApp da Barbearia</Label>
+                    <Input 
+                      id="whatsapp_number" 
+                      value={formData.whatsapp_number} 
+                      onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
+                      placeholder="Ex: 5571999999999"
+                    />
+                    <p className="text-xs text-muted-foreground">Número oficial que será usado para o botão de contato e automações.</p>
+                  </div>
+                  <div className="grid gap-2">
                     <Label htmlFor="address">Endereço Físico</Label>
                     <Input 
                       id="address" 
@@ -414,6 +430,7 @@ function SettingsComponent() {
                     />
                     <p className="text-xs text-muted-foreground">O endereço completo que aparecerá para os clientes.</p>
                   </div>
+
                   <div className="grid gap-2">
                     <Label htmlFor="google_maps_url">Link do Google Maps (Embed)</Label>
                     <Input 
