@@ -49,39 +49,6 @@ function ShopPageComponent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [bookingCart, setBookingCart] = useState<any[]>([]);
-  
-  const addToBookingCart = () => {
-    if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) {
-      toast.error("Por favor, selecione serviço, barbeiro, data e horário.");
-      return;
-    }
-
-    const newItem = {
-      id: crypto.randomUUID(),
-      service_id: selectedService.id,
-      service_name: selectedService.name,
-      barber_id: selectedBarber.id,
-      barber_name: selectedBarber.name,
-      date: selectedDate,
-      start_time: selectedTime,
-      duration: selectedService.duration_minutes || 30,
-      price: selectedService.price || 0
-    };
-
-    setBookingCart(prev => [...prev, newItem]);
-    
-    // Reset selection for next service
-    setSelectedService(null);
-    setSelectedBarber(null);
-    setSelectedTime("");
-    setBookingStep(2); // Voltar para seleção de serviço
-    toast.success("Serviço adicionado ao agendamento!");
-  };
-
-  const removeFromBookingCart = (id: string) => {
-    setBookingCart(prev => prev.filter(item => item.id !== id));
-  };
   
   // Debug logs to trace route issues
   useEffect(() => {
@@ -102,7 +69,23 @@ function ShopPageComponent() {
   
   // Booking state
   const [bookingCart, setBookingCart] = useState<any[]>([]);
-  
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [bookingStep, setBookingStep] = useState(1);
+  const [selectedService, setSelectedService] = useState<any>(null);
+  const [selectedBarber, setSelectedBarber] = useState<any>(null);
+  const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelTokenInput, setCancelTokenInput] = useState("");
+  const [ratingAppointment, setRatingAppointment] = useState<any>(null);
+  const [ratingValue, setRatingValue] = useState(5);
+  const [ratingComment, setRatingComment] = useState("");
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [modalBarber, setModalBarber] = useState<any>(null);
+  const [isPixVisible, setIsPixVisible] = useState(false);
+  const [selectedProductForModal, setSelectedProductProductForModal] = useState<any>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("Todos");
+
   const addToBookingCart = () => {
     if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) {
       toast.error("Por favor, selecione serviço, barbeiro, data e horário.");
@@ -134,23 +117,6 @@ function ShopPageComponent() {
   const removeFromBookingCart = (id: string) => {
     setBookingCart(prev => prev.filter(item => item.id !== id));
   };
-
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [bookingStep, setBookingStep] = useState(1);
-  const [selectedService, setSelectedService] = useState<any>(null);
-  const [selectedBarber, setSelectedBarber] = useState<any>(null);
-  const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [cancelTokenInput, setCancelTokenInput] = useState("");
-  const [ratingAppointment, setRatingAppointment] = useState<any>(null);
-  const [ratingValue, setRatingValue] = useState(5);
-  const [ratingComment, setRatingComment] = useState("");
-  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
-  const [modalBarber, setModalBarber] = useState<any>(null);
-  const [isPixVisible, setIsPixVisible] = useState(false);
-  const [selectedProductForModal, setSelectedProductProductForModal] = useState<any>(null);
-  const [activeCategory, setActiveCategory] = useState<string>("Todos");
 
   const categories = useMemo(() => {
     const cats = ["Todos", ...new Set(products.map(p => p.category).filter(Boolean))];
