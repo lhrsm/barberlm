@@ -570,16 +570,17 @@ function DashboardComponent() {
         }
       } else {
         // Fallback: se não tiver tipo de reembolso definido, registra como despesa (estorno padrão)
-        await supabase.from("transactions").insert({
+        await supabase.from("transactions").insert([{
           amount: totalPrice,
           type: "expense",
           description: `Cancelamento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
           category: "Cancelamento",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
+          tenant_id: tenantId,
           user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
-        });
+        }]);
         toast.success("Agendamento cancelado!");
       }
     } else {
