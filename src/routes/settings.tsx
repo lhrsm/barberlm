@@ -453,10 +453,15 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
-                    <p className="text-xs text-muted-foreground">Este será o link que seus clientes usarão para agendar.</p>
-                  </div>
-
+            <TabsContent value="whatsapp" className="space-y-4">
+              <Card className="bg-white border-2 border-slate-200 text-black">
+                <CardHeader>
+                  <CardTitle>Configuração do WhatsApp</CardTitle>
+                  <CardDescription>Configure a integração com o WhatsApp para automações.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                     <div className="grid gap-2">
                       <Label htmlFor="whatsapp_number">WhatsApp da Barbearia (Single Source)</Label>
                       <Input 

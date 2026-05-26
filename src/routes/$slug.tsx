@@ -2408,6 +2408,58 @@ function ShopPageComponent() {
                   )}
                 </div>
 
+                <div className="bg-zinc-900/50 backdrop-blur-md p-6 rounded-3xl border border-white/5 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <TicketPercent size={20} className="text-primary" style={{ color: primaryColor }} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tem um cupom?</p>
+                      <p className="text-sm font-bold text-white">Aplicar desconto</p>
+                    </div>
+                  </div>
+
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-primary/10 p-4 rounded-2xl border border-primary/20" style={{ backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}>
+                      <div className="flex items-center gap-3">
+                        <Tag size={18} className="text-primary" style={{ color: primaryColor }} />
+                        <div>
+                          <p className="text-sm font-bold text-white uppercase">{appliedCoupon.code}</p>
+                          <p className="text-[10px] font-black text-primary uppercase" style={{ color: primaryColor }}>
+                            Cupom Aplicado: -R$ {calculateDiscount().toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => setAppliedCoupon(null)}
+                        className="text-zinc-500 hover:text-red-400 hover:bg-red-400/10"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="CÓDIGO DO CUPOM" 
+                        className="bg-black/40 border-white/10 text-white placeholder:text-zinc-600 font-bold uppercase tracking-wider h-12 rounded-xl"
+                        value={couponCode}
+                        onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                      />
+                      <Button 
+                        onClick={handleApplyCoupon}
+                        disabled={isApplyingCoupon || !couponCode.trim()}
+                        className="h-12 px-6 rounded-xl font-bold uppercase tracking-tighter transition-all hover:scale-105 active:scale-95"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+
 
 
                 <div className="space-y-4">
@@ -2603,10 +2655,23 @@ function ShopPageComponent() {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center border-t border-white/10 pt-4 mt-3">
-                    <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
-                    <span className="text-3xl font-black text-white" style={{ color: calculateTotal() === 0 ? '#10b981' : 'white' }}>R$ {calculateTotal().toFixed(2)}</span>
+                  <div className="space-y-2 pt-2 border-t border-white/10 mt-3">
+                    <div className="flex justify-between items-center text-zinc-400 font-bold text-xs uppercase tracking-widest">
+                      <span>Subtotal:</span> 
+                      <span>R$ {calculateSubtotal().toFixed(2)}</span>
+                    </div>
+                    {appliedCoupon && (
+                      <div className="flex justify-between items-center text-primary font-black text-xs uppercase tracking-widest" style={{ color: primaryColor }}>
+                        <span className="flex items-center gap-1"><Tag size={12} /> Cupom ({appliedCoupon.code}):</span> 
+                        <span>- R$ {calculateDiscount().toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
+                      <span className="text-3xl font-black text-white" style={{ color: calculateTotal() === 0 ? '#10b981' : 'white' }}>R$ {calculateTotal().toFixed(2)}</span>
+                    </div>
                   </div>
+
 
                   
                   {shop.cashback_enabled && (
