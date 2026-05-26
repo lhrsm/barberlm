@@ -437,15 +437,47 @@ function SettingsComponent() {
                     </div>
                     <p className="text-xs text-muted-foreground">Este será o link que seus clientes usarão para agendar.</p>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="whatsapp_number">WhatsApp da Barbearia</Label>
-                    <Input 
-                      id="whatsapp_number" 
-                      value={formData.whatsapp_number} 
-                      onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                      placeholder="Ex: 5571999999999"
-                    />
-                    <p className="text-xs text-muted-foreground">Número oficial que será usado para o botão de contato e automações.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="whatsapp_number">WhatsApp da Barbearia (Single Source)</Label>
+                      <Input 
+                        id="whatsapp_number" 
+                        value={formData.whatsapp_number} 
+                        onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
+                        placeholder="Ex: 5571999999999"
+                      />
+                      <p className="text-xs text-muted-foreground font-medium text-amber-600">Este número será usado em TODAS as automações.</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="instance_id">ID da Instância Z-API</Label>
+                      <Input 
+                        id="instance_id" 
+                        value={formData.instance_id} 
+                        onChange={(e) => setFormData({ ...formData, instance_id: e.target.value })}
+                        placeholder="Ex: 3F3A5..."
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="instance_token">Token da Instância Z-API</Label>
+                      <Input 
+                        id="instance_token" 
+                        type="password"
+                        value={formData.instance_token} 
+                        onChange={(e) => setFormData({ ...formData, instance_token: e.target.value })}
+                        placeholder="Token da instância"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="client_token">Client Token Z-API</Label>
+                      <Input 
+                        id="client_token" 
+                        type="password"
+                        value={formData.client_token} 
+                        onChange={(e) => setFormData({ ...formData, client_token: e.target.value })}
+                        placeholder="F0A1B..."
+                      />
+                      <p className="text-[10px] text-muted-foreground">Obrigatório para automações funcionarem corretamente.</p>
+                    </div>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="address">Endereço Físico</Label>
