@@ -107,7 +107,7 @@ serve(async (req) => {
         let { data: connection } = await supabase
           .from("whatsapp_connections")
           .select("*")
-          .eq("tenant_id", tenantId)
+          .or(`tenant_id.eq.${tenantId},barbershop_id.eq.${tenantId}`)
           .maybeSingle();
 
         if (!connection) {
@@ -115,22 +115,24 @@ serve(async (req) => {
             ignoredRecords.push({ 
               tenant_id: tenantId, 
               business_name: tenant.business_name,
-              reason: "WhatsApp da barbearia não configurado" 
+              reason: "WhatsApp da barbearia não configurado (Nenhuma conexão encontrada no banco)" 
             });
           }
           continue;
         }
 
         // Live check if not marked as connected in DB
-        if (connection.status !== 'connected') {
-          console.log(`[Automation] DB status is ${connection.status} for ${tenant.business_name}. Performing live check...`);
+        if (connection.status !== 'connected' || connection.connected !== true) {
+          console.log(`[Automation] DB status for ${tenant.business_name} is ${connection.status}. Performing live check...`);
           try {
             const statusUrl = `${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
             const statusRes = await fetch(statusUrl, { method: "GET" });
             const statusData = await statusRes.json();
             
-            console.log(`[Automation] ZAPI STATUS RESPONSE for ${tenant.business_name}:`, JSON.stringify(statusData));
-            console.log(`[Automation] CONNECTED?`, statusData?.connected);
+            console.log(`[Automation] INSTANCE ID: ${connection.instance_id}`);
+            console.log(`[Automation] TOKEN: ${connection.instance_token}`);
+            console.log(`[Automation] STATUS RESPONSE RAW for ${tenant.business_name}:`, JSON.stringify(statusData));
+            console.log(`[Automation] CONNECTED RESULT:`, statusData?.connected);
             
             connection.last_status_response = statusData; // Store for logging
 
@@ -143,6 +145,7 @@ serve(async (req) => {
                 updated_at: new Date().toISOString() 
               }).eq("id", connection.id);
               connection.status = 'connected';
+              connection.connected = true;
             } else {
               console.log(`[Automation] Instance is indeed disconnected.`);
             }
@@ -151,7 +154,7 @@ serve(async (req) => {
           }
         }
 
-        if (connection.status !== 'connected') {
+        if (connection.status !== 'connected' || connection.connected !== true) {
           if (automations && automations.length > 0) {
             // Log ignored because of connection
             try {
