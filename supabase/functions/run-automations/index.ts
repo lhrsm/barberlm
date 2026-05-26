@@ -104,53 +104,62 @@ serve(async (req) => {
           continue;
         }
 
-        // BUSCA SEMPRE CONFIGURAÇÃO ATUAL DO BANCO (SINGLE SOURCE OF TRUTH)
-        console.log(`[Automation] Fetching REALTIME settings for tenant ${tenant.business_name} (${tenantId})`);
-        let { data: settings, error: settingsError } = await supabase
-          .from("barbershop_settings")
+        // PRIORIDADE 1: whatsapp_connections (Onde salvamos a configuração via Integrações -> Z-API)
+        console.log(`[Automation] Fetching WhatsApp Connection for tenant ${tenant.business_name} (${tenantId})`);
+        let { data: connection, error: connError } = await supabase
+          .from("whatsapp_connections")
           .select("*")
-          .eq("barber_id", tenantId)
+          .eq("barbershop_id", tenantId)
           .maybeSingle();
 
-        if (settingsError) {
-          console.error(`[Automation] Error fetching settings for ${tenant.business_name}:`, settingsError);
+        if (connError) {
+          console.error(`[Automation] Error fetching whatsapp_connections for ${tenant.business_name}:`, connError);
+        }
+
+        // PRIORIDADE 2: barbershop_settings (Fallback ou sincronização)
+        if (!connection || !connection.instance_id || !connection.instance_token) {
+          console.log(`[Automation] No connection found in whatsapp_connections for ${tenant.business_name}. Checking barbershop_settings...`);
+          let { data: settings, error: settingsError } = await supabase
+            .from("barbershop_settings")
+            .select("*")
+            .eq("barber_id", tenantId)
+            .maybeSingle();
+
+          if (settingsError) {
+            console.error(`[Automation] Error fetching settings for ${tenant.business_name}:`, settingsError);
+          }
+          
+          if (settings && settings.instance_id && settings.instance_token) {
+            connection = {
+              ...connection,
+              instance_id: settings.instance_id,
+              instance_token: settings.instance_token,
+              client_token: settings.client_token,
+              server_url: settings.server_url || "https://api.z-api.io",
+              phone: settings.whatsapp_number
+            };
+          }
         }
 
         // DEBUG OBRIGATÓRIO
-        console.log('--- SETTINGS DEBUG ---');
+        console.log('--- CONNECTION DEBUG ---');
         console.log('TENANT:', tenant.business_name);
-        console.log('SETTINGS OBJECT:', JSON.stringify(settings));
-        console.log('INSTANCE ID:', settings?.instance_id);
-        console.log('INSTANCE TOKEN:', settings?.instance_token ? '***' : 'MISSING');
-        console.log('CLIENT TOKEN:', settings?.client_token ? '***' : 'MISSING');
-        console.log('WHATSAPP NUMBER:', settings?.whatsapp_number);
+        console.log('INSTANCE ID:', connection?.instance_id);
+        console.log('INSTANCE TOKEN:', connection?.instance_token ? '***' : 'MISSING');
+        console.log('CLIENT TOKEN:', connection?.client_token ? '***' : 'MISSING');
+        console.log('WHATSAPP NUMBER:', connection?.phone);
         console.log('----------------------');
 
-        if (!settings || !settings.instance_id || !settings.instance_token) {
-          // Fallback to whatsapp_connections for backward compatibility if needed, 
-          // but the user wants a single source of truth in barbershop_settings.
-          console.log(`[Automation] No settings found in barbershop_settings for ${tenant.business_name}. Checking legacy table...`);
-          
-          let { data: legacyConn } = await supabase
-            .from("whatsapp_connections")
-            .select("*")
-            .or(`tenant_id.eq.${tenantId},barbershop_id.eq.${tenantId}`)
-            .maybeSingle();
-          
-          if (!legacyConn) {
-            if (automations && automations.length > 0) {
-              ignoredRecords.push({ 
-                tenant_id: tenantId, 
-                business_name: tenant.business_name,
-                reason: "WhatsApp da barbearia não configurado (Single source missing)" 
-              });
-            }
-            continue;
+        if (!connection || !connection.instance_id || !connection.instance_token) {
+          if (automations && automations.length > 0) {
+            ignoredRecords.push({ 
+              tenant_id: tenantId, 
+              business_name: tenant.business_name,
+              reason: "Telefone da instância WhatsApp não configurado" 
+            });
           }
-          settings = legacyConn; // Use legacy if available
+          continue;
         }
-
-        const connection = settings;
 
         // Live check with status endpoint
         try {
