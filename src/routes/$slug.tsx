@@ -733,348 +733,137 @@ function ShopPageComponent() {
   const handleFinalizeBooking = async () => {
     const normalized = normalizePhone(customerPhone);
     console.log('DEBUG: Finalizing booking with normalized phone:', { original: customerPhone, normalized });
-    
-    if (!customerName || !normalized) {
-      toast.error("Por favor, preencha seu nome e telefone.");
+
+    if (!normalized || normalized.length < 10) {
+      toast.error("Por favor, informe um WhatsApp válido com DDD.");
+      setBookingStep(1);
       return;
+    }
+
+    if (!customerName || customerName.trim().length < 3) {
+      toast.error("Por favor, informe seu nome completo.");
+      setBookingStep(1);
+      return;
+    }
+
+    if (bookingCart.length === 0 && !selectedService) {
+      toast.error("Seu agendamento está vazio.");
+      setBookingStep(2);
+      return;
+    }
+
+    // Combine any currently selected service into the cart if it's ready
+    let finalCart = [...bookingCart];
+    if (selectedService && selectedBarber && selectedDate && selectedTime) {
+      finalCart.push({
+        id: crypto.randomUUID(),
+        service_id: selectedService.id,
+        service_name: selectedService.name,
+        barber_id: selectedBarber.id,
+        barber_name: selectedBarber.name,
+        date: selectedDate,
+        start_time: selectedTime,
+        duration: selectedService.duration_minutes || 30,
+        price: selectedService.price || 0
+      });
     }
 
     setSubmitting(true);
     try {
-      // 1. Create or get customer
+      // 1. Ensure customer exists
       let finalCustId = customerId;
-      let currentCashback = 0;
-      let currentCredits = 0;
-
       if (!finalCustId) {
-        console.log('DEBUG: Customer ID not in state, searching by phone', normalized);
-        const { data: customerData, error: customerError } = await supabase
+        console.log('DEBUG: Creating new customer', { name: customerName, phone: normalized });
+        const { data: newCust, error: custError } = await supabase
           .from("customers")
-          .select("id, cashback_balance, credits")
-          .eq("phone", normalized)
-          .eq("user_id", shop.id)
-          .maybeSingle();
-        
-        if (customerData) {
-          console.log('DEBUG: Customer found by phone', customerData.id);
-          finalCustId = customerData.id;
-          currentCashback = Number(customerData.cashback_balance || 0);
-          currentCredits = Number(customerData.credits || 0);
-        }
-      } else {
-        // Se já temos o ID, vamos apenas garantir que temos os saldos atualizados
-        console.log('DEBUG: Customer ID exists in state', finalCustId);
-        const { data: walletData } = await supabase
-          .from("customers")
-          .select("cashback_balance, credits")
-          .eq("id", finalCustId)
-          .maybeSingle();
-        
-        if (walletData) {
-          currentCashback = Number(walletData.cashback_balance || 0);
-          currentCredits = Number(walletData.credits || 0);
-        }
-      }
-
-      if (!finalCustId) {
-        console.log('BARBER', selectedBarber);
-        console.log('BARBER ID', selectedBarber?.id);
-
-        if (!selectedBarber?.id) {
-          console.error('Barber ID missing');
-          toast.error("Erro interno: Identificador do profissional não encontrado.");
-          setSubmitting(false);
-          return;
-        }
-
-        console.log('DEBUG: Creating new customer with shop.id', shop.id, 'and barber.id', selectedBarber.id);
-        
-        const payload = {
-          user_id: shop.id,
-          barber_id: selectedBarber.id,
-          name: customerName,
-          phone: normalized,
-          cashback_balance: 0
-        };
-        
-        console.log('INSERT CUSTOMER DATA', payload);
-
-        const { data: newCustomer, error: createError } = await supabase
-          .from("customers")
-          .insert([payload])
-          .select("id")
+          .insert([{
+            user_id: shop.id,
+            name: customerName,
+            phone: normalized
+          }])
+          .select()
           .single();
         
-        if (createError) {
-          console.error('DEBUG: Error creating customer', createError);
-          throw createError;
-        }
-        if (!newCustomer) throw new Error("Falha ao criar cliente");
-        finalCustId = newCustomer.id;
-        console.log('DEBUG: New customer created', finalCustId);
-        setCustomerCashback(0);
+        if (custError) throw custError;
+        finalCustId = newCust.id;
+        setCustomerId(finalCustId);
+      } else {
+        // Sync name if changed
+        await supabase.from("customers").update({ name: customerName }).eq("id", finalCustId);
       }
 
-      // Automatically create or update client_auth session for the portal
-      const sessionData = {
-        phone: normalized,
-        customer_id: finalCustId,
-        name: customerName
-      };
-      localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
+      // Generate Group ID for multiple appointments
+      const appointmentGroupId = crypto.randomUUID();
+      const finalPaymentMethod = paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop');
 
-      // Ensure client_auth record exists
-      await supabase
-        .from("client_auth")
-        .upsert({
-          phone: normalized,
-          customer_id: finalCustId
-        }, { onConflict: 'phone' });
+      // 2. Create Appointments
+      const appointmentPromises = finalCart.map(item => {
+        const timeWithSeconds = item.start_time.length === 5 ? `${item.start_time}:00` : item.start_time;
+        const startTime = parseISO(`${item.date}T${timeWithSeconds}`);
+        const endTime = addMinutes(startTime, item.duration);
 
-
-      // 1.5 Check for conflicts (Barber AND Customer)
-      const startTimeCheck = parseISO(`${selectedDate}T${selectedTime}:00`);
-      const serviceCheck = services.find(s => s.id === selectedService.id);
-      const endTimeCheck = addMinutes(startTimeCheck, serviceCheck?.duration_minutes || 30);
-
-      // Check Barber Conflict
-      const hasBarberConflict = await checkConflict(selectedBarber.id, selectedDate, selectedTime, selectedService.id);
-      if (hasBarberConflict) {
-        toast.error("Este horário acabou de ser preenchido por outro cliente. Por favor, escolha outro.");
-        setBookingStep(3);
-        fetchAvailableTimes(selectedBarber.id, selectedDate, selectedService);
-        setSubmitting(false);
-        return;
-      }
-
-  const addToBookingCart = () => {
-    if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) {
-      toast.error("Por favor, selecione serviço, barbeiro, data e horário.");
-      return;
-    }
-
-    const newItem = {
-      id: crypto.randomUUID(),
-      service_id: selectedService.id,
-      service_name: selectedService.name,
-      barber_id: selectedBarber.id,
-      barber_name: selectedBarber.name,
-      date: selectedDate,
-      start_time: selectedTime,
-      duration: selectedService.duration_minutes || 30,
-      price: selectedService.price || 0
-    };
-
-    setBookingCart([...bookingCart, newItem]);
-    
-    // Reset selection for next service
-    setSelectedService(null);
-    setSelectedBarber(null);
-    setSelectedTime("");
-    setBookingStep(2); // Voltar para seleção de serviço
-    toast.success("Serviço adicionado ao agendamento!");
-  };
-
-  const removeFromBookingCart = (id: string) => {
-    setBookingCart(bookingCart.filter(item => item.id !== id));
-  };
-
-      // Check Customer Conflict
-      if (finalCustId) {
-        console.log('DEBUG: Checking customer conflicts', { finalCustId, date: selectedDate });
-        
-        const dayStart = `${selectedDate}T00:00:00.000Z`;
-        const dayEnd = `${selectedDate}T23:59:59.999Z`;
-
-        const { data: customerConflict, error: custConfError } = await supabase
-          .from("appointments")
-          .select("id, start_time, end_time, status")
-          .eq("customer_id", finalCustId)
-          .in("status", ["scheduled", "confirmed", "in_progress"])
-          .gte("start_time", dayStart)
-          .lte("start_time", dayEnd);
-
-        if (custConfError) {
-           console.error("Erro ao verificar conflitos (cliente):", custConfError);
-        } else {
-          console.log('CUSTOMER APPOINTMENTS TODAY:', customerConflict);
-          
-          const newStartMs = startTimeCheck.getTime();
-          const newEndMs = endTimeCheck.getTime();
-          
-          const hasOverlap = customerConflict?.some(app => {
-            const existingStartMs = new Date(app.start_time).getTime();
-            const existingEndMs = new Date(app.end_time).getTime();
-            
-            const conflict = newStartMs < existingEndMs && newEndMs > existingStartMs;
-            if (conflict) {
-              console.log('CONFLICT CALCULATED (CLIENTE):', {
-                appointmentId: app.id,
-                new: { start: startTimeCheck.toISOString(), end: endTimeCheck.toISOString() },
-                existing: { start: app.start_time, end: app.end_time }
-              });
-            }
-            return conflict;
-          });
-
-          if (hasOverlap) {
-            toast.error("Você já possui um agendamento que conflita com este horário.");
-            setSubmitting(false);
-            return;
-          }
-        }
-      }
-
-      // 2. Create appointment
-      const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
-      const endTime = addMinutes(startTime, selectedService.duration_minutes || 30);
-
-      const appointmentPayload: any = {
-        user_id: shop.id,
-        tenant_id: shop.id,
-        customer_id: finalCustId,
-        service_id: selectedService.id,
-        barber_id: selectedBarber.id,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        subtotal_amount: calculateSubtotal(),
-        discount_amount: calculateDiscount(),
-        coupon_id: appliedCoupon?.id,
-        coupon_code: appliedCoupon?.code,
-        total_price: calculateSubtotal(), // Keeping total_price as subtotal for compatibility with commissions
-        original_total: calculateSubtotal(),
-        credit_used: useCredits ? Math.min(customerCredits, calculateTotalBeforeCredits()) : 0,
-        cashback_used: useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0,
-        pix_amount: paymentMethod === 'pix' ? calculateTotal() : 0,
-        barbershop_amount: paymentMethod === 'barbershop' ? calculateTotal() : 0,
-        final_amount: calculateTotal(),
-        status: "scheduled",
-        payment_method: paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop'),
-        payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
-        notes: (appliedCoupon ? `Cupom: ${appliedCoupon.code}. ` : "") + (useCashback ? 
-          `Pagamento: Cashback (R$ ${Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)})` : 
-          useCredits ? `Pagamento: Créditos (R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : ""),
-        items: [
-          { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
-          ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
-        ],
-        source: 'portal'
-      };
-
-      console.log('DEBUG: Finalizing appointment with payload', appointmentPayload);
-
-      const { error: appError, data: appointment } = await supabase
-        .from("appointments")
-        .insert([appointmentPayload])
-        .select()
-        .single();
-
-      if (appError) throw appError;
-
-      // Update coupon usage count
-      if (appliedCoupon) {
-        await supabase.rpc('increment_coupon_usage', { p_coupon_id: appliedCoupon.id });
-      }
-
-      // Realtime Invalidation
-      const queryClient = (window as any).queryClient;
-      if (queryClient) {
-        queryClient.invalidateQueries({ queryKey: ["appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-      }
-
-      // 2.5 Create notifications
-      const notificationMessage = `${customerName} agendou ${selectedService.name} às ${format(startTime, "HH:mm")}`;
-      
-      // Centralized notification for Barbershop and Barber
-      await createNotification({
-        userId: shop.id,
-        type: 'appointment_created',
-        title: "Novo Agendamento",
-        message: notificationMessage,
-        barberId: selectedBarber.id,
-        customerId: finalCustId,
-        metadata: { appointmentId: appointment.id }
+        return supabase.from("appointments").insert([{
+          user_id: shop.id,
+          tenant_id: shop.id,
+          customer_id: finalCustId,
+          service_id: item.service_id,
+          barber_id: item.barber_id,
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          total_price: item.price,
+          original_total: item.price,
+          status: "scheduled",
+          payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
+          payment_method: finalPaymentMethod,
+          source: 'online',
+          appointment_group_id: appointmentGroupId,
+          items: [{
+            id: item.service_id,
+            name: item.service_name,
+            type: 'service',
+            price: item.price,
+            quantity: 1
+          }]
+        }]).select().single();
       });
 
-      // Send WhatsApp Confirmation
-      if (shop.whatsapp_enabled) {
-        triggerWhatsAppMessage({
-          userId: shop.id,
-          eventType: 'appointment_confirmation',
-          phone: normalizePhone(customerPhone),
-          placeholders: {
-            cliente: customerName,
-            horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
-            barbeiro: selectedBarber.name,
-            valor: (selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0)).toFixed(2),
-            customer_id: finalCustId
-          },
-          appointmentId: appointment.id
-        });
-      }
+      const appointmentResults = await Promise.all(appointmentPromises);
+      const createdAppointments = appointmentResults.map(res => {
+        if (res.error) throw res.error;
+        return res.data;
+      });
 
-      // 3. Create transaction for the appointment (remaining amount - new revenue)
-      if (paymentMethod === 'pix' || paymentMethod === 'barbershop' || calculateTotal() === 0) {
-        const finalPaymentMethod = paymentMethod === 'pix' ? 'PIX' : (paymentMethod === 'barbershop' ? 'BARBEARIA' : 'CRÉDITOS/CASHBACK');
-        const remainingAmount = calculateTotal();
-        
-        // Registrar transação para constar no operacional (mesmo se for 0 em dinheiro novo)
-        await supabase.from("transactions").insert([{
+      // 3. Handle Product Sales if any
+      if (selectedProducts.length > 0) {
+        const totalProducts = selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0);
+        await supabase.from("product_sales").insert([{
           user_id: shop.id,
-          barber_id: selectedBarber.id,
-          appointment_id: appointment.id,
-          type: "income",
-          category: "Serviço",
-          amount: remainingAmount,
-          description: `Agendamento (${finalPaymentMethod}): ${selectedService.name} - Cliente: ${customerName}${useCredits ? ` (Abatimento Créditos: R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : ""}`,
-          date: new Date().toISOString().split('T')[0]
+          customer_id: finalCustId,
+          total_amount: totalProducts,
+          status: 'completed',
+          items: selectedProducts.map(p => ({
+            product_id: p.id,
+            name: p.name,
+            price: p.price,
+            quantity: p.quantity || 1
+          }))
         }]);
 
-        // 4. Products faturamento (Products table tracks total sales regardless of credit use for stock/performance)
+        // Update stock
         for (const item of selectedProducts) {
-          console.log('DEBUG: Inserting product sale', { productId: item.id, shopId: shop.id, barberId: selectedBarber.id });
-          const productSalePayload = {
-            user_id: shop.id,
-            barber_id: selectedBarber.id,
-            customer_id: finalCustId,
-            total_amount: item.price * (item.quantity || 1),
-            status: 'completed' as "completed",
-            items: [{
-              product_id: item.id,
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity || 1
-            }] as any
-          };
-          console.log('INSERT PRODUCT SALE DATA', productSalePayload);
-          
-          const { error: saleError } = await supabase.from("product_sales").insert([productSalePayload]);
-          
-          if (saleError) {
-            console.error('DEBUG: Error inserting product sale', saleError);
-            // We don't throw here to not break the appointment, but log it
-          }
+          await (supabase as any).rpc('decrement_product_stock', { 
+            prod_id: item.id, 
+            amount: item.quantity || 1 
+          });
         }
       }
 
-      // 4.5. Update stock regardless of payment method
-      for (const item of selectedProducts) {
-        await (supabase as any).rpc('decrement_product_stock', { 
-          prod_id: item.id, 
-          amount: item.quantity || 1 
-        });
-      }
+      // 4. Update Customer Wallet (Deductions)
+      const totalDiscount = calculateDiscount();
+      const totalValue = calculateSubtotal();
+      const cashbackToDeduct = useCashback ? Math.min(customerCashback, totalValue - totalDiscount) : 0;
+      const creditsToDeduct = useCredits ? Math.min(customerCredits, totalValue - totalDiscount - cashbackToDeduct) : 0;
 
-      // 5. Update Customer Wallet (Deductions only)
-      const cashbackToDeduct = useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0;
-      const creditsToDeduct = useCredits ? Math.min(customerCredits, calculateTotalBeforeCredits()) : 0;
-      
       if (cashbackToDeduct > 0 || creditsToDeduct > 0) {
         await supabase
           .from("customers")
@@ -1085,31 +874,60 @@ function ShopPageComponent() {
           .eq("id", finalCustId);
       }
 
-      toast.success("Agendamento concluído com sucesso! Redirecionando para o seu painel...");
-      
-      // Reset state and close modal
-      setIsBookingOpen(false);
-      setBookingStep(1);
-      setSelectedProducts([]);
-      setPaymentMethod(null);
-      setUseCashback(false);
-      
-      // Delay redirection slightly to allow the toast message to be read
-      setTimeout(() => {
-        const portalUrl = `/${slug}/portal`;
-        if (window.self !== window.top) {
-          // If in iframe, tell parent to redirect
-          window.parent.postMessage({ type: 'BOOKING_SUCCESS', redirectUrl: portalUrl }, '*');
-          // Fallback if message not handled
-          setTimeout(() => {
-            window.parent.location.href = portalUrl;
-          }, 500);
-        } else {
-          window.location.href = portalUrl;
+      // Invalidate cache
+      const queryClient = (window as any).queryClient;
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
+      }
+
+      // 5. Notifications
+      for (const appt of createdAppointments) {
+        const item = finalCart.find(i => i.service_id === appt.service_id);
+        const barberName = item?.barber_name || "Barbeiro";
+        const serviceName = item?.service_name || "Serviço";
+        
+        await createNotification({
+          userId: shop.id,
+          type: 'appointment_created',
+          title: "Novo Agendamento",
+          message: `${customerName} agendou ${serviceName} com ${barberName} às ${item?.start_time}`,
+          barberId: appt.barber_id,
+          customerId: finalCustId,
+          metadata: { appointmentId: appt.id }
+        });
+
+        // WhatsApp Confirmation per appointment
+        if (shop.whatsapp_enabled) {
+          const startTime = parseISO(appt.start_time);
+          triggerWhatsAppMessage({
+            userId: shop.id,
+            eventType: 'appointment_confirmation',
+            phone: normalized,
+            placeholders: {
+              cliente: customerName,
+              horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
+              barbeiro: barberName,
+              valor: appt.total_price.toFixed(2),
+              customer_id: finalCustId
+            },
+            appointmentId: appt.id
+          });
         }
+      }
+
+      toast.success("Agendamentos realizados com sucesso!");
+      
+      // Reset and redirect
+      setIsBookingOpen(false);
+      setBookingCart([]);
+      setSelectedProducts([]);
+      setBookingStep(1);
+      
+      setTimeout(() => {
+        window.location.href = `/${slug}/portal`;
       }, 2000);
-      
-      
+
     } catch (error: any) {
       toast.error("Erro ao realizar agendamento: " + error.message);
     } finally {
