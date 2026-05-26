@@ -147,6 +147,20 @@ serve(async (req) => {
 
         if (connection.status !== 'connected') {
           if (automations && automations.length > 0) {
+            // Log ignored because of connection
+            try {
+              await supabase.from("automation_logs").insert({
+                tenant_id: tenantId,
+                status: "error",
+                message_type: "connection_check",
+                error_message: "WhatsApp desconectado (verificado via Z-API)",
+                response: connection.last_status_response || { status: 'disconnected' },
+                sent_at: new Date().toISOString()
+              });
+            } catch (logErr) {
+              console.error("[Automation] Error logging connection failure:", logErr);
+            }
+
             ignoredRecords.push({ 
               tenant_id: tenantId, 
               business_name: tenant.business_name,
