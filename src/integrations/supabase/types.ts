@@ -228,9 +228,15 @@ export type Database = {
       }
       automation_logs: {
         Row: {
+          appointment_id: string | null
           automation_id: string
+          barber_id: string | null
+          created_at: string | null
           customer_id: string | null
+          error_message: string | null
           id: string
+          message_type: string | null
+          phone: string | null
           provider: string | null
           response: Json | null
           sent_at: string
@@ -238,9 +244,15 @@ export type Database = {
           tenant_id: string
         }
         Insert: {
+          appointment_id?: string | null
           automation_id: string
+          barber_id?: string | null
+          created_at?: string | null
           customer_id?: string | null
+          error_message?: string | null
           id?: string
+          message_type?: string | null
+          phone?: string | null
           provider?: string | null
           response?: Json | null
           sent_at?: string
@@ -248,9 +260,15 @@ export type Database = {
           tenant_id: string
         }
         Update: {
+          appointment_id?: string | null
           automation_id?: string
+          barber_id?: string | null
+          created_at?: string | null
           customer_id?: string | null
+          error_message?: string | null
           id?: string
+          message_type?: string | null
+          phone?: string | null
           provider?: string | null
           response?: Json | null
           sent_at?: string
@@ -258,6 +276,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "automation_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "automation_logs_automation_id_fkey"
             columns: ["automation_id"]
