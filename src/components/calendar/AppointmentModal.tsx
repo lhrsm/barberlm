@@ -91,8 +91,31 @@ export function AppointmentModal({
   useEffect(() => {
     if (isOpen && user) {
       fetchInitialData();
+      if (editingAppointmentId) {
+        fetchEditingData();
+      }
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, editingAppointmentId]);
+
+  async function fetchEditingData() {
+    if (!editingAppointmentId) return;
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("*")
+      .eq("id", editingAppointmentId)
+      .single();
+    
+    if (data && !error) {
+      setSelectedBarber(data.barber_id);
+      setSelectedService(data.service_id);
+      setSelectedCustomer(data.customer_id);
+      const start = parseISO(data.start_time);
+      setSelectedDate(format(start, "yyyy-MM-dd"));
+      setSelectedTime(format(start, "HH:mm"));
+      setPaymentStatus(data.payment_status);
+      setPaymentMethod(data.payment_method === 'credits' ? 'wallet' : 'cash');
+    }
+  }
 
   async function fetchInitialData() {
     if (!user) return;
