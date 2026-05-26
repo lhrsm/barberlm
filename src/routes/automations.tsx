@@ -137,6 +137,7 @@ function AutomationsComponent() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isIAExecuting, setIsIAExecuting] = useState(false);
   const [isTesting, setIsTesting] = useState<string | null>(null);
+  const [isRunningAll, setIsRunningAll] = useState(false);
 
   const handleTestAutomation = async (automation: any) => {
     if (!tenantId) return;
@@ -169,6 +170,33 @@ function AutomationsComponent() {
       setIsTesting(null);
     }
   };
+
+  const handleRunAllAutomations = async () => {
+    if (!tenantId) return;
+    setIsRunningAll(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('run-automations', {
+        body: { tenantId }
+      });
+
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success("Execução de automações concluída!");
+        console.log("Logs de execução:", data.logs);
+        fetchLogs();
+      } else {
+        toast.error("Erro ao executar automações: " + (data.error || "Erro desconhecido"));
+      }
+    } catch (err: any) {
+      console.error("Run All Error:", err);
+      toast.error(err.message || "Erro ao processar execução das automações");
+    } finally {
+      setIsRunningAll(false);
+    }
+  };
+
 
 
   useEffect(() => {
@@ -328,6 +356,19 @@ function AutomationsComponent() {
             <p className="text-muted-foreground">Configure notificações e lembretes automáticos para seus clientes.</p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="default" 
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700" 
+              onClick={handleRunAllAutomations}
+              disabled={isRunningAll}
+            >
+              {isRunningAll ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Play size={18} />
+              )}
+              Executar agora
+            </Button>
             <Button variant="outline" className="gap-2" asChild>
               <a href="/integrations">
                 <Settings2 size={18} /> Configurar Integrações
@@ -533,13 +574,14 @@ function AutomationsComponent() {
                         <th className="px-6 py-4">Telefone</th>
                         <th className="px-6 py-4">Canal</th>
                         <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4">Mensagem</th>
                         <th className="px-6 py-4 text-right">Data & Hora</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {logs.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                          <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
                             <div className="flex flex-col items-center gap-2 opacity-50">
                               <History size={40} className="mb-2" />
                               <p className="font-medium">Nenhum registro de envio encontrado.</p>
@@ -592,17 +634,25 @@ function AutomationsComponent() {
                                 {log.status === 'success' || log.status === 'sent' ? (
                                   <span className="flex items-center gap-1"><Check size={10} /> Sucesso</span>
                                 ) : (
-                                  <span className="flex items-center gap-1"><AlertCircle size={10} /> Falha</span>
+                                  <div className="flex flex-col">
+                                    <span className="flex items-center gap-1"><AlertCircle size={10} /> Falha</span>
+                                    {log.error_message && <span className="text-[8px] lowercase block max-w-[100px] truncate">{log.error_message}</span>}
+                                  </div>
                                 )}
                               </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="max-w-[150px] truncate text-[11px] text-muted-foreground" title={log.processed_template}>
+                                {log.processed_template || '-'}
+                              </div>
                             </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex flex-col items-end">
                                 <span className="font-bold text-foreground/80 tabular-nums">
-                                  {new Date(log.sent_at).toLocaleDateString('pt-BR')}
+                                  {new Date(log.sent_at || log.created_at).toLocaleDateString('pt-BR')}
                                 </span>
                                 <span className="text-xs text-muted-foreground tabular-nums">
-                                  {new Date(log.sent_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                  {new Date(log.sent_at || log.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               </div>
                             </td>
