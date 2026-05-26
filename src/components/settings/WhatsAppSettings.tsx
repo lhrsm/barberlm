@@ -68,6 +68,7 @@ export function WhatsAppSettings() {
       fetchConnections();
       fetchTemplates();
       fetchMessages();
+      fetchAutomationLogs();
 
       const channel = supabase
         .channel('whatsapp-logs')
