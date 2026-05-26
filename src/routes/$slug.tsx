@@ -836,16 +836,19 @@ function ShopPageComponent() {
 
       // Check Customer Conflict
       if (finalCustId) {
-        const { data: customerConflict } = await supabase
+        const { data: customerConflict, error: custConfError } = await supabase
           .from("appointments")
-          .select("id")
+          .select("id, start_time, end_time, status")
           .eq("customer_id", finalCustId)
-          .neq("status", "cancelled")
-          .or(`start_time.lte.${startTimeCheck.toISOString()},end_time.gte.${startTimeCheck.toISOString()}`)
-          .or(`start_time.lt.${endTimeCheck.toISOString()},end_time.gt.${endTimeCheck.toISOString()}`)
+          .in("status", ["scheduled", "confirmed", "in_progress"])
+          .lt("start_time", endTimeCheck.toISOString())
+          .gt("end_time", startTimeCheck.toISOString())
           .limit(1);
 
-        if (customerConflict && customerConflict.length > 0) {
+        if (custConfError) {
+           console.error("Erro ao verificar conflitos (cliente):", custConfError);
+        } else if (customerConflict && customerConflict.length > 0) {
+          console.log('CONFLITO DETECTADO (CLIENTE):', customerConflict[0]);
           toast.error("Você já possui um agendamento que conflita com este horário.");
           setSubmitting(false);
           return;
