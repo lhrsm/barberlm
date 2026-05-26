@@ -360,7 +360,7 @@ export function AppointmentModal({
         });
       }
 
-      toast.success("Agendamento criado com sucesso!");
+      toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
       setOpen(false);
       setCurrentStep(1);
       refreshLimits();
