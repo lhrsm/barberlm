@@ -2005,6 +2005,18 @@ export type Database = {
         Returns: undefined
       }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
+      get_cron_status: {
+        Args: never
+        Returns: {
+          end_time: string
+          jobid: number
+          jobname: string
+          last_run: string
+          return_message: string
+          start_time: string
+          status: string
+        }[]
+      }
       get_my_profile_role: { Args: never; Returns: string }
       get_my_tenant_id: { Args: never; Returns: string }
       has_active_subscription: {
