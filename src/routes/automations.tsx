@@ -148,9 +148,10 @@ function AutomationsComponent() {
   const fetchServerInfo = async () => {
     const { data } = await supabase.rpc('get_server_info');
     if (data) {
-      setServerInfo(data);
+      setServerInfo(data as any);
     }
   };
+
 
   const calculateNextRun = () => {
     // Use server time if available, otherwise fallback to local but we'll sync it
