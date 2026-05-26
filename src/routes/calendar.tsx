@@ -391,6 +391,7 @@ function CalendarComponent() {
               initialDate={modalInitialData.date}
               initialTime={modalInitialData.time}
               initialStep={modalInitialData.step}
+              editingAppointmentId={modalInitialData.editingId}
               onSuccess={() => fetchData()}
               trigger={
                 <Button className="gap-2 bg-black text-white hover:scale-110 transition-all duration-300" variant={canAddAppointment ? "default" : "secondary"}>
