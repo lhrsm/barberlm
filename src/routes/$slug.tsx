@@ -2152,7 +2152,16 @@ function ShopPageComponent() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
+                onViewportEnter={() => {
+                  console.log('DEBUG: PAYMENT STEP REACHED');
+                  console.log('CUSTOMER ID', customerId);
+                  console.log('CUSTOMER NAME', customerName);
+                  console.log('CREDITS', customerCredits);
+                  console.log('CASHBACK', customerCashback);
+                  console.log('SERVICE TOTAL', calculateTotalBeforeCashback());
+                }}
               >
+
                 {shop.cashback_enabled && customerCashback > 0 && (
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
