@@ -165,30 +165,16 @@ serve(async (req) => {
     }
 
     // Fetch Connection
-    const { data: conn } = await supabase
+    const { data: activeConn } = await supabase
       .from("whatsapp_connections")
       .select("*")
-      .eq("barbershop_id", user_id)
-
+      .or(`tenant_id.eq.${user_id},barbershop_id.eq.${user_id}`)
       .eq("status", "connected")
       .maybeSingle();
 
-    if (!conn) {
-      // Tentar status active também caso seja a outra integração
-      const { data: connActive } = await supabase
-        .from("whatsapp_connections")
-        .select("*")
-        .eq("barbershop_id", user_id)
-
-        .eq("status", "active")
-        .maybeSingle();
-        
-      if (!connActive) {
-        return new Response(JSON.stringify({ error: "No active WhatsApp connection" }), { status: 404, headers: corsHeaders });
-      }
+    if (!activeConn) {
+      return new Response(JSON.stringify({ error: "Nenhuma conexão ativa do WhatsApp encontrada para este tenant." }), { status: 404, headers: corsHeaders });
     }
-
-    const activeConn = conn || (await supabase.from("whatsapp_connections").select("*").eq("barbershop_id", user_id).eq("status", "active").single()).data;
 
     // Fetch Template
     const { data: template } = await supabase
