@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -33,6 +33,8 @@ import { toast } from "sonner";
 export function NotificationsCenter() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const instanceId = useId().replace(/:/g, ""); // Remove colons for channel name compatibility
+  
   
   const { data: notifications, isLoading } = useQuery({
     queryKey: ["notifications"],
@@ -77,8 +79,9 @@ export function NotificationsCenter() {
   });
 
   useEffect(() => {
+    const channelName = `notifications-realtime-${instanceId}`;
     const channel = supabase
-      .channel('notifications-realtime')
+      .channel(channelName)
       .on('postgres_changes', { 
         event: 'INSERT', 
         table: 'notifications',
@@ -108,7 +111,7 @@ export function NotificationsCenter() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, navigate]);
+  }, [queryClient, navigate, instanceId]);
 
   const getIcon = (type: string | null) => {
     switch (type) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -30,6 +30,8 @@ import { useNavigate } from "@tanstack/react-router";
 export function AdminNotifications() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const instanceId = useId().replace(/:/g, "");
+  
   
   const { data: notifications, isLoading } = useQuery({
     queryKey: ["admin-notifications"],
@@ -74,8 +76,9 @@ export function AdminNotifications() {
   });
 
   useEffect(() => {
+    const channelName = `admin-notifications-realtime-${instanceId}`;
     const channel = supabase
-      .channel('admin-notifications-realtime')
+      .channel(channelName)
       .on('postgres_changes', { 
         event: '*', 
         table: 'admin_notifications',
@@ -88,7 +91,7 @@ export function AdminNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, instanceId]);
 
   const getIcon = (type: string) => {
     switch (type) {

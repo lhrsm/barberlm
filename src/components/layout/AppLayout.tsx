@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { 
   Calendar, 
@@ -67,6 +67,7 @@ const barberNavItems = (slug: string) => [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const instanceId = useId().replace(/:/g, "");
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId } = useTenant();
   const { role: authRole, user: authUser, loading: authLoading, profile: authProfile } = useAuth();
   const { session, loading: profLoading, logout: profLogout } = useProfessionalAuth();
@@ -105,7 +106,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     if (!user || role === 'super_admin') return;
 
     const channel = supabase
-      .channel('tenant-support-notifications')
+      .channel(`tenant-support-notifications-${instanceId}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
         table: 'ticket_messages',
@@ -135,7 +136,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, role, tenantId]);
+  }, [user, role, tenantId, instanceId]);
 
   const businessName = String(tenantProfile?.business_name || "Barbex");
 
