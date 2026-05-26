@@ -198,9 +198,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
   }
   
-
-  }
-  
   async function sendTestMessage() {
     if (!connection) return;
     setIsTesting(true);
