@@ -248,7 +248,7 @@ export function AppointmentModal({
           type: 'service',
           price: service?.price,
           quantity: 1
-        }]
+        }] as any
       }]).select().single();
 
       if (error) throw error;
