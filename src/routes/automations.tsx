@@ -330,7 +330,7 @@ function AutomationsComponent() {
     if (!tenantId) return;
     const { data } = await supabase
       .from("automation_logs")
-      .select("*, automations(type)")
+      .select("*, automations(type), customers(name)")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
       .limit(20);
@@ -873,7 +873,7 @@ function AutomationsComponent() {
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex flex-col">
-                                <span className="font-medium text-foreground/80">Cliente #{log.customer_id?.substring(0, 8)}</span>
+                                <span className="font-medium text-foreground/80">{log.customers?.name || `Cliente #${log.customer_id?.substring(0, 8)}`}</span>
                                 <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">ID: {log.id.substring(0, 6)}</span>
                               </div>
                             </td>

@@ -149,7 +149,8 @@ function CustomersComponent() {
         notes: editingCustomer.notes,
         birth_date: editingCustomer.birth_date || null,
       })
-      .eq("id", editingCustomer.id);
+      .eq("id", editingCustomer.id)
+      .eq("tenant_id", user.id);
 
     if (error) {
       toast.error("Erro ao atualizar cliente");
@@ -166,7 +167,8 @@ function CustomersComponent() {
     const { error } = await supabase
       .from("customers")
       .delete()
-      .eq("id", selectedCustomer.id);
+      .eq("id", selectedCustomer.id)
+      .eq("tenant_id", user.id);
 
     if (error) {
       toast.error("Erro ao excluir cliente. Verifique se ele possui agendamentos vinculados.");

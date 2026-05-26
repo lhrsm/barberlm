@@ -96,7 +96,8 @@ function ServicesComponent() {
     const { error } = await supabase
       .from("services")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("tenant_id", user.id);
 
     if (error) {
       toast.error("Erro ao excluir serviço");

@@ -257,6 +257,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
         sent_at: new Date().toISOString()
       };
       await supabase.from("automation_logs").insert(logEntry);
+      await supabase.from("customers").update({ birthday_sent: true }).eq("id", customer.id);
       sentItems.push({ ...logEntry, customer_name: customer.name });
     } else {
       sentItems.push({ status: 'error', customer_name: customer.name, error_message: result.error, type: 'birthday' });
