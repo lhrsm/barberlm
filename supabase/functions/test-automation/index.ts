@@ -69,7 +69,11 @@ serve(async (req) => {
     // Live check
     console.log(`[Test] Performing live check for instance ${connection.instance_id}...`);
     const statusUrl = `${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
-    const statusRes = await fetch(statusUrl, { method: "GET" });
+    const statusHeaders: any = { "Content-Type": "application/json" };
+    if (connection.client_token) {
+      statusHeaders["client-token"] = connection.client_token;
+    }
+    const statusRes = await fetch(statusUrl, { method: "GET", headers: statusHeaders });
     const statusData = await statusRes.json();
     console.log(`[Test] INSTANCE ID: ${connection.instance_id}`);
     console.log(`[Test] TOKEN: ${connection.instance_token}`);
