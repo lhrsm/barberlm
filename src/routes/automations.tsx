@@ -634,7 +634,10 @@ function AutomationsComponent() {
                                 {log.status === 'success' || log.status === 'sent' ? (
                                   <span className="flex items-center gap-1"><Check size={10} /> Sucesso</span>
                                 ) : (
-                                  <span className="flex items-center gap-1"><AlertCircle size={10} /> Falha</span>
+                                  <div className="flex flex-col">
+                                    <span className="flex items-center gap-1"><AlertCircle size={10} /> Falha</span>
+                                    {log.error_message && <span className="text-[8px] lowercase block max-w-[100px] truncate">{log.error_message}</span>}
+                                  </div>
                                 )}
                               </Badge>
                             </td>
