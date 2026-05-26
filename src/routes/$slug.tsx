@@ -1735,7 +1735,11 @@ function ShopPageComponent() {
             {shop.scheduling_mode === 'manual' ? 'Agendar WhatsApp' : 'Agendar Agora'}
           </Button>
         </div>
-      </main>
+        </main>
+      ) : (
+        <Outlet />
+      )}
+
 
       <Dialog open={isBookingOpen} onOpenChange={(open) => {
         setIsBookingOpen(open);
