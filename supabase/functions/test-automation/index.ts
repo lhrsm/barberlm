@@ -29,13 +29,11 @@ serve(async (req) => {
 
     const { automationId, automationType, template, phone: testPhone } = await req.json();
 
-    // Get the authenticated user (barber)
     const authHeader = req.headers.get('Authorization')!;
     const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
 
     if (!user) throw new Error("Não autorizado");
 
-    // Get WhatsApp connection
     const { data: connection } = await supabase
       .from("whatsapp_connections")
       .select("*")
@@ -47,10 +45,9 @@ serve(async (req) => {
       throw new Error("WhatsApp não conectado. Por favor, conecte seu WhatsApp nas configurações.");
     }
 
-    // Try to find a real appointment to get variables
     const { data: appt } = await supabase
       .from("appointments")
-      .select("*, customers(*), profiles:barber_id(*)")
+      .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
       .eq("barber_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -62,12 +59,12 @@ serve(async (req) => {
       data: appt ? new Date(appt.start_time).toLocaleDateString('pt-BR') : "26/05/2026",
       horario: appt ? new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : "14:30",
       profissional: appt?.profiles?.responsible_name || "Seu Barbeiro",
-      servico: "Corte Social",
+      servico: appt?.services?.name || "Corte Social",
     };
 
     const processedMessage = processAutomationTemplate(template, mockData);
 
-    const targetPhone = testPhone || connection.phone || "5571999999999"; // Fallback phone
+    const targetPhone = testPhone || connection.phone || "5571999999999"; 
 
     const instanceId = connection.instance_id;
     const token = connection.instance_token;
@@ -93,7 +90,6 @@ serve(async (req) => {
 
     const zapiResult = await response.json();
 
-    // Log the test
     await supabase.from("automation_logs").insert({
       automation_id: automationId,
       barber_id: user.id,
