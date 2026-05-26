@@ -90,9 +90,12 @@ export type Database = {
           cashback_earned: number | null
           cashback_used: number | null
           confirmation_sent: boolean | null
+          coupon_code: string | null
+          coupon_id: string | null
           created_at: string
           credit_used: number | null
           customer_id: string | null
+          discount_amount: number | null
           end_time: string
           final_amount: number | null
           id: string
@@ -110,6 +113,7 @@ export type Database = {
           source: string | null
           start_time: string
           status: string | null
+          subtotal_amount: number | null
           tenant_id: string | null
           total_price: number | null
           updated_by_id: string | null
@@ -123,9 +127,12 @@ export type Database = {
           cashback_earned?: number | null
           cashback_used?: number | null
           confirmation_sent?: boolean | null
+          coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           credit_used?: number | null
           customer_id?: string | null
+          discount_amount?: number | null
           end_time: string
           final_amount?: number | null
           id?: string
@@ -143,6 +150,7 @@ export type Database = {
           source?: string | null
           start_time: string
           status?: string | null
+          subtotal_amount?: number | null
           tenant_id?: string | null
           total_price?: number | null
           updated_by_id?: string | null
@@ -156,9 +164,12 @@ export type Database = {
           cashback_earned?: number | null
           cashback_used?: number | null
           confirmation_sent?: boolean | null
+          coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           credit_used?: number | null
           customer_id?: string | null
+          discount_amount?: number | null
           end_time?: string
           final_amount?: number | null
           id?: string
@@ -176,6 +187,7 @@ export type Database = {
           source?: string | null
           start_time?: string
           status?: string | null
+          subtotal_amount?: number | null
           tenant_id?: string | null
           total_price?: number | null
           updated_by_id?: string | null
@@ -188,6 +200,13 @@ export type Database = {
             columns: ["barber_id"]
             isOneToOne: false
             referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
             referencedColumns: ["id"]
           },
           {
@@ -711,6 +730,62 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          active: boolean | null
+          code: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          max_discount: number | null
+          minimum_amount: number | null
+          starts_at: string | null
+          tenant_id: string
+          type: string
+          usage_limit: number | null
+          used_count: number | null
+          value: number
+        }
+        Insert: {
+          active?: boolean | null
+          code: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          max_discount?: number | null
+          minimum_amount?: number | null
+          starts_at?: string | null
+          tenant_id: string
+          type: string
+          usage_limit?: number | null
+          used_count?: number | null
+          value: number
+        }
+        Update: {
+          active?: boolean | null
+          code?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          max_discount?: number | null
+          minimum_amount?: number | null
+          starts_at?: string | null
+          tenant_id?: string
+          type?: string
+          usage_limit?: number | null
+          used_count?: number | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
