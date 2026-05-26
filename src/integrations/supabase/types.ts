@@ -311,6 +311,42 @@ export type Database = {
           },
         ]
       }
+      automation_status: {
+        Row: {
+          id: string
+          last_error: string | null
+          last_run_at: string | null
+          messages_failed: number | null
+          messages_sent: number | null
+          server_time: string | null
+          status: string | null
+          timezone: string | null
+          total_processed: number | null
+        }
+        Insert: {
+          id?: string
+          last_error?: string | null
+          last_run_at?: string | null
+          messages_failed?: number | null
+          messages_sent?: number | null
+          server_time?: string | null
+          status?: string | null
+          timezone?: string | null
+          total_processed?: number | null
+        }
+        Update: {
+          id?: string
+          last_error?: string | null
+          last_run_at?: string | null
+          messages_failed?: number | null
+          messages_sent?: number | null
+          server_time?: string | null
+          status?: string | null
+          timezone?: string | null
+          total_processed?: number | null
+        }
+        Relationships: []
+      }
       automations: {
         Row: {
           barber_id: string | null
