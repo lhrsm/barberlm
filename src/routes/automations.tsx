@@ -574,13 +574,14 @@ function AutomationsComponent() {
                         <th className="px-6 py-4">Telefone</th>
                         <th className="px-6 py-4">Canal</th>
                         <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4">Mensagem</th>
                         <th className="px-6 py-4 text-right">Data & Hora</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {logs.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                          <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
                             <div className="flex flex-col items-center gap-2 opacity-50">
                               <History size={40} className="mb-2" />
                               <p className="font-medium">Nenhum registro de envio encontrado.</p>
