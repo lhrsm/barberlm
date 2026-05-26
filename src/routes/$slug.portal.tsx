@@ -241,21 +241,10 @@ function ClientPortalComponent() {
       return;
     }
 
-    // Reset booking state
-    setSelectedService(null);
-    setSelectedBarber(null);
-    setSelectedDate(format(new Date(), "yyyy-MM-dd"));
-    setSelectedTime("");
-    setSelectedProducts([]);
-    setPaymentMethod(null);
-    setUseCashback(false);
-    setUseCredits(false);
-    
-    // Start directly at service selection
-    setBookingStep(1); 
-    setIsBookingOpen(true);
-    console.log('booking modal open, step 1 (services)');
+    // Apenas emitir o evento para o pai (ShopPageComponent) abrir a modal unificada
+    window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'));
   };
+
 
 
   async function fetchClientData(customerId: string) {
