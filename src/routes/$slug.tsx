@@ -310,7 +310,10 @@ function ShopPageComponent() {
     if (!service || !barber) return false;
     
     const performsService = barber.barber_services?.some((bs: any) => bs.service_id === service.id);
-    if (!performsService) return false;
+    if (!performsService) {
+      console.log(`BARBER ${barber.name} DOES NOT PERFORM SERVICE ${service.name}`);
+      return false;
+    }
 
     const dateObj = parseISO(date);
     const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
