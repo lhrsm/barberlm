@@ -34,10 +34,9 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
 
-  const brTime = getBRTimeInfo();
   const serverTime = new Date().toISOString();
   
-  console.log(`[Automation] Multi-tenant Execution Started. Server: ${serverTime}, BR: ${brTime.iso}`);
+  console.log(`[Automation] Multi-tenant Execution Started. Server: ${serverTime}`);
 
   try {
     const body = await req.json().catch(() => ({}));
@@ -60,7 +59,7 @@ serve(async (req) => {
       await supabase.from("automation_status").update({
         status: 'executing',
         server_time: serverTime,
-        timezone: "America/Bahia"
+        timezone: "America/Sao_Paulo"
       }).eq('id', globalStatusId);
     }
 
@@ -136,7 +135,7 @@ serve(async (req) => {
             let res: any = { found: 0, sent: 0, failed: 0 };
             
             if (automation.type === "birthday") {
-              res = await processBirthdayAutomation(supabase, automation, connection, brTime, forceMode);
+              res = await processBirthdayAutomation(supabase, automation, connection, forceMode);
             } else if (automation.type === "appointment_confirmation") {
               res = await processAppointmentConfirmation(supabase, automation, connection, forceMode);
             } else if (automation.type === "appointment_reminder") {
@@ -148,67 +147,54 @@ serve(async (req) => {
             if (res.appointments) appointmentsFound.push(...res.appointments.map((a:any) => ({ ...a, tenant_id: tenantId })));
             if (res.birthdays) birthdaysFound.push(...res.birthdays.map((b:any) => ({ ...b, tenant_id: tenantId })));
             if (res.sentItems) messagesSent.push(...res.sentItems.map((s:any) => ({ ...s, tenant_id: tenantId })));
-            if (res.errors) errors.push(...res.errors.map((e:string) => `Tenant ${tenant.business_name}: ${e}`));
-            if (res.ignored) ignoredRecords.push(...res.ignored.map((i:any) => ({ ...i, tenant_id: tenantId })));
-          } catch (autoLoopErr) {
-            console.error(`[Automation] Error processing automation ${automation.type} for tenant ${tenantId}:`, autoLoopErr);
-            errors.push(`Tenant ${tenant.business_name} - Automação ${automation.type}: ${autoLoopErr.message}`);
+
+          } catch (autoRunErr) {
+            errors.push(`Automation ${automation.name} for ${tenant.business_name}: ${autoRunErr.message}`);
           }
         }
-      } catch (tenantLoopErr) {
-        console.error(`[Automation] Critical error for tenant ${tenantId}:`, tenantLoopErr);
-        errors.push(`Tenant ${tenant.business_name}: ${tenantLoopErr.message}`);
+      } catch (tenantErr) {
+        errors.push(`Error processing tenant ${tenant.business_name}: ${tenantErr.message}`);
       }
     }
 
-    const executionTime = `${Date.now() - startTime}ms`;
-    
+    const duration = Date.now() - startTime;
+    const finalResult = {
+      success: true,
+      execution_time_ms: duration,
+      tenants_processed: tenants?.length || 0,
+      appointments_processed: appointmentsFound.length,
+      birthdays_processed: birthdaysFound.length,
+      messages_sent: messagesSent.filter(m => m.status === "success").length,
+      messages_failed: messagesSent.filter(m => m.status === "error").length,
+      ignored_tenants: ignoredRecords,
+      errors: errors.length > 0 ? errors : null
+    };
+
     if (globalStatusId) {
       await supabase.from("automation_status").update({
-        status: 'active',
-        last_run_at: serverTime,
-        total_processed: appointmentsFound.length + birthdaysFound.length,
-        messages_sent: messagesSent.filter(m => m.status === 'success').length,
-        messages_failed: messagesSent.filter(m => m.status === 'error').length,
-        last_error: errors.length > 0 ? errors.slice(0, 3).join("; ") : null
-      }).eq("id", globalStatusId);
+        status: 'idle',
+        last_run: serverTime,
+        last_result: finalResult
+      }).eq('id', globalStatusId);
     }
 
-    return new Response(JSON.stringify({
-      success: true,
-      serverTime,
-      brTime: brTime.iso,
-      timezone: "America/Bahia",
-      forceMode,
-      appointmentsFound,
-      birthdaysFound,
-      messagesSent,
-      ignoredRecords,
-      errors,
-      executionTime,
-      summary: {
-        tenants_processed: tenants?.length || 0,
-        records_found: appointmentsFound.length + birthdaysFound.length,
-        messages_sent: messagesSent.filter(m => m.status === 'success').length,
-        messages_failed: messagesSent.filter(m => m.status === 'error').length,
-        ignored: ignoredRecords.length,
-        errors
-      }
-    }), {
+    console.log("[Automation] Execution Finished:", JSON.stringify(finalResult));
+
+    return new Response(JSON.stringify(finalResult), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
 
   } catch (error) {
     console.error("[Automation] Global Error:", error);
-    return new Response(JSON.stringify({ success: false, error: error.message, serverTime, timezone: "America/Bahia" }), {
+    return new Response(JSON.stringify({ success: false, error: error.message, serverTime, timezone: "America/Sao_Paulo" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   }
 });
 
-async function processBirthdayAutomation(supabase: any, automation: any, connection: any, brTime: any, forceMode: boolean) {
+async function processBirthdayAutomation(supabase: any, automation: any, connection: any, forceMode: boolean) {
   const { data: customers, error } = await supabase
     .from("customers")
     .select("*")
@@ -217,13 +203,17 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 
   if (error) return { birthdays: [], errors: [error.message] };
   
+  const now = new Date();
+  const todayDay = String(now.getDate()).padStart(2, '0');
+  const todayMonth = String(now.getMonth() + 1).padStart(2, '0');
+
   const bdayCustomers = customers?.filter((c: any) => {
     if (!c.birth_date) return false;
     const parts = c.birth_date.split('-');
     if (parts.length < 3) return false;
     const day = parts[2].padStart(2, '0');
     const month = parts[1].padStart(2, '0');
-    return day === brTime.day && month === brTime.month;
+    return day === todayDay && month === todayMonth;
   });
 
   if (!bdayCustomers || bdayCustomers.length === 0) {
@@ -236,7 +226,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 
   for (const customer of bdayCustomers) {
     try {
-      const todayISO = `${brTime.year}-${brTime.month}-${brTime.day}`;
+      const todayISO = now.toISOString().split('T')[0];
       
       if (!forceMode) {
         const { data: existing } = await supabase
@@ -326,8 +316,8 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
       const variables = {
         cliente_nome: appt.customers?.name || appt.name,
         barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
-        data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
-        horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        data: formatBrazilDate(appt.start_time),
+        horario: formatBrazilTime(appt.start_time),
         profissional: appt.barbers?.name || "Seu Barbeiro",
         servico: appt.services?.name || "Serviço",
       };
@@ -422,8 +412,8 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
       const variables = {
         cliente_nome: appt.customers?.name || appt.name,
         barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
-        data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
-        horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        data: formatBrazilDate(appt.start_time),
+        horario: formatBrazilTime(appt.start_time),
         profissional: appt.barbers?.name || "Seu Barbeiro",
         servico: appt.services?.name || "Serviço",
       };
