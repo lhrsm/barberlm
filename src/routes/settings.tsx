@@ -453,12 +453,9 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </div>
                     <p className="text-xs text-muted-foreground">Este será o link que seus clientes usarão para agendar.</p>
                   </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="whatsapp_number">WhatsApp da Barbearia (Single Source)</Label>
