@@ -2396,6 +2396,43 @@ function ShopPageComponent() {
                   console.log('SERVICE TOTAL', calculateTotalBeforeCashback());
                 }}
               >
+                {/* Your Booking Cart Section */}
+                {bookingCart.length > 0 && (
+                  <div className="bg-zinc-50 border border-zinc-100 rounded-3xl p-6 space-y-4">
+                    <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                      <Calendar size={14} /> Seu Agendamento ({bookingCart.length})
+                    </h5>
+                    <div className="space-y-3">
+                      {bookingCart.map(item => (
+                        <div key={item.id} className="flex items-center justify-between p-3 bg-white border border-zinc-100 rounded-2xl shadow-sm">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-black text-black uppercase truncate">{item.service_name}</p>
+                            <p className="text-[10px] font-bold text-zinc-500">{item.barber_name} • {item.start_time}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-black text-black">R$ {item.price.toFixed(2)}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-zinc-400 hover:text-red-500 transition-colors"
+                              onClick={() => removeFromBookingCart(item.id)}
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      <Button 
+                        variant="link" 
+                        className="text-[10px] font-black uppercase tracking-widest text-zinc-500 h-auto p-0"
+                        onClick={() => setBookingStep(2)}
+                      >
+                        + Adicionar outro serviço
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Highlight Cards for Balance */}
                 <div className="space-y-3">
                   {shop.cashback_enabled && customerCashback > 0 && (
