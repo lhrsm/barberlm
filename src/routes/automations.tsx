@@ -572,7 +572,12 @@ function AutomationsComponent() {
               <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Horário do Servidor</div>
               <div className="text-xl font-bold flex items-center gap-2">
                 <Clock size={18} className="text-primary" />
-                {serverInfo ? new Date(serverInfo.server_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                {(() => {
+                  if (!serverInfo) return "--:--:--";
+                  const elapsed = Date.now() - serverInfo.fetch_time;
+                  const currentServerTime = new Date(new Date(serverInfo.server_time).getTime() + elapsed);
+                  return currentServerTime.toLocaleTimeString('pt-BR');
+                })()}
               </div>
               <div className="text-[10px] text-muted-foreground uppercase mt-1">
                 {serverInfo?.timezone || 'America/Bahia'} (UTC-3)
