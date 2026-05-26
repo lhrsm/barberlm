@@ -2008,13 +2008,13 @@ export type Database = {
       get_cron_status: {
         Args: never
         Returns: {
-          end_time: string
-          jobid: number
-          jobname: string
-          last_run: string
-          return_message: string
-          start_time: string
-          status: string
+          cron_end_time: string
+          cron_job_id: number
+          cron_job_name: string
+          cron_last_run: string
+          cron_return_message: string
+          cron_start_time: string
+          cron_status: string
         }[]
       }
       get_my_profile_role: { Args: never; Returns: string }
