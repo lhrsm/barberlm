@@ -441,51 +441,102 @@ function AutomationsComponent() {
           </div>
         </div>
 
-        {cronStatus && (
-          <Card className="bg-muted/30 border-dashed">
-            <CardContent className="py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "p-2 rounded-full",
-                  cronStatus.cron_status === 'succeeded' ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
-                )}>
-                  <Clock size={20} />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card className={cn(
+            "border-2 transition-all duration-300",
+            automationStatus?.status === 'executing' ? "border-amber-500 bg-amber-50/50" :
+            automationStatus?.status === 'error' ? "border-red-500 bg-red-50/50" :
+            automationStatus?.status === 'active' ? "border-emerald-500 bg-emerald-50/50" :
+            "border-muted bg-muted/30"
+          )}>
+            <CardContent className="p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                  <Zap size={16} className={cn(
+                    automationStatus?.status === 'executing' ? "text-amber-500 animate-pulse" :
+                    automationStatus?.status === 'error' ? "text-red-500" :
+                    automationStatus?.status === 'active' ? "text-emerald-500" :
+                    "text-muted-foreground"
+                  )} />
+                  Scheduler: {automationStatus?.status || 'Inativo'}
                 </div>
-                <div>
-                  <p className="text-sm font-medium">Status do Scheduler (pg_cron)</p>
-                  <p className="text-xs text-muted-foreground">
-                    Executa a cada 5 minutos. Próxima execução prevista em breve.
-                  </p>
+                <Badge variant={
+                  automationStatus?.status === 'active' ? "default" :
+                  automationStatus?.status === 'executing' ? "secondary" :
+                  "destructive"
+                } className="h-5">
+                  {automationStatus?.status === 'active' ? 'Funcionando' : 
+                   automationStatus?.status === 'executing' ? 'Executando' : 
+                   automationStatus?.status === 'error' ? 'Erro' : 'Offline'}
+                </Badge>
+              </div>
+              
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Última execução:</span>
+                  <span className="font-semibold">{automationStatus?.last_run_at ? new Date(automationStatus.last_run_at).toLocaleTimeString('pt-BR') : '--:--'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Próxima em:</span>
+                  <span className="font-mono font-bold text-primary">{nextRunIn}</span>
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 w-full md:w-auto">
-                <div>
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Última Execução</p>
-                  <p className="text-sm font-semibold">
-                    {cronStatus.cron_last_run ? new Date(cronStatus.cron_last_run).toLocaleString('pt-BR') : 'Nunca'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Resultado</p>
-                  <Badge variant={cronStatus.cron_status === 'succeeded' ? "default" : "destructive"} className="h-5">
-                    {cronStatus.cron_status === 'succeeded' ? 'Sucesso' : 'Falha'}
-                  </Badge>
-                </div>
-                <div className="hidden md:block">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Job Name</p>
-                  <p className="text-sm font-mono text-muted-foreground">{cronStatus.cron_job_name}</p>
-                </div>
-              </div>
-
-              {cronStatus.cron_status !== 'succeeded' && cronStatus.cron_return_message && (
-                <div className="w-full md:w-auto mt-2 md:mt-0 text-xs text-red-500 bg-red-50 p-2 rounded border border-red-100 font-mono">
-                  {cronStatus.cron_return_message}
+              {automationStatus?.last_error && (
+                <div className="text-[10px] text-red-600 bg-red-100/50 p-2 rounded border border-red-200 truncate" title={automationStatus.last_error}>
+                  {automationStatus.last_error}
                 </div>
               )}
             </CardContent>
           </Card>
-        )}
+
+          <Card className="bg-muted/30 border-dashed">
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Processamento</div>
+              <div className="text-2xl font-bold flex items-baseline gap-2">
+                {automationStatus?.total_processed || 0}
+                <span className="text-xs font-normal text-muted-foreground uppercase">Automações Ativas</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Na última execução do sistema
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-muted/30 border-dashed">
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Envios (Z-API)</div>
+              <div className="flex gap-4">
+                <div>
+                  <div className="text-xl font-bold text-emerald-600">
+                    {automationStatus?.messages_sent || 0}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground uppercase">Sucesso</div>
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-red-500">
+                    {automationStatus?.messages_failed || 0}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground uppercase">Falha</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-muted/30 border-dashed">
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Horário do Sistema</div>
+              <div className="text-xl font-bold flex items-center gap-2">
+                <Clock size={18} className="text-primary" />
+                {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+              <div className="text-[10px] text-muted-foreground uppercase mt-1">
+                {automationStatus?.timezone || 'America/Sao_Paulo'} (UTC-3)
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
 
         <Tabs defaultValue="all" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
