@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, Plus, Minus } from "lucide-react";
+import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, Plus, Minus, Tag, TicketPercent } from "lucide-react";
 import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -109,6 +109,12 @@ function ShopPageComponent() {
   const [loadingDayData, setLoadingDayData] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
   const [showPixStep, setShowPixStep] = useState(false);
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
 
   useEffect(() => {
     if (slug) {
@@ -897,8 +903,12 @@ function ShopPageComponent() {
         barber_id: selectedBarber.id,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
-        total_price: selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0),
-        original_total: selectedService.price + selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0),
+        subtotal_amount: calculateSubtotal(),
+        discount_amount: calculateDiscount(),
+        coupon_id: appliedCoupon?.id,
+        coupon_code: appliedCoupon?.code,
+        total_price: calculateSubtotal(), // Keeping total_price as subtotal for compatibility with commissions
+        original_total: calculateSubtotal(),
         credit_used: useCredits ? Math.min(customerCredits, calculateTotalBeforeCredits()) : 0,
         cashback_used: useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0,
         pix_amount: paymentMethod === 'pix' ? calculateTotal() : 0,
@@ -907,9 +917,9 @@ function ShopPageComponent() {
         status: "scheduled",
         payment_method: paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop'),
         payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
-        notes: useCashback ? 
+        notes: (appliedCoupon ? `Cupom: ${appliedCoupon.code}. ` : "") + (useCashback ? 
           `Pagamento: Cashback (R$ ${Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)})` : 
-          useCredits ? `Pagamento: Créditos (R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : null,
+          useCredits ? `Pagamento: Créditos (R$ ${Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)})` : ""),
         items: [
           { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
           ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
@@ -926,6 +936,11 @@ function ShopPageComponent() {
         .single();
 
       if (appError) throw appError;
+
+      // Update coupon usage count
+      if (appliedCoupon) {
+        await supabase.rpc('increment_coupon_usage', { p_coupon_id: appliedCoupon.id });
+      }
 
       // Realtime Invalidation
       const queryClient = (window as any).queryClient;
@@ -1170,13 +1185,43 @@ function ShopPageComponent() {
     }
   };
 
-  const calculateTotalBeforeCashback = () => {
+  const calculateSubtotal = () => {
     const servicePrice = selectedService?.price || 0;
     const productsTotal = selectedProducts.reduce((acc, p) => acc + ((p.price || 0) * (p.quantity || 1)), 0);
     return servicePrice + productsTotal;
   };
 
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+    const subtotal = calculateSubtotal();
+    let discount = 0;
+    
+    if (appliedCoupon.type === 'fixed') {
+      discount = appliedCoupon.value;
+    } else {
+      discount = subtotal * (appliedCoupon.value / 100);
+    }
+    
+    if (appliedCoupon.max_discount) {
+      discount = Math.min(discount, appliedCoupon.max_discount);
+    }
+    
+    return discount;
+  };
+
   const calculateTotalBeforeCredits = () => {
+    return Math.max(0, calculateSubtotal() - calculateDiscount());
+  };
+
+  const calculateTotalBeforeCashback = () => {
+    let total = calculateTotalBeforeCredits();
+    if (useCredits) {
+      total = Math.max(0, total - Math.min(customerCredits, total));
+    }
+    return total;
+  };
+
+  const calculateTotal = () => {
     let total = calculateTotalBeforeCashback();
     if (useCashback) {
       total = Math.max(0, total - Math.min(customerCashback, total));
@@ -1184,13 +1229,55 @@ function ShopPageComponent() {
     return total;
   };
 
-  const calculateTotal = () => {
-    let total = calculateTotalBeforeCredits();
-    if (useCredits) {
-      total = Math.max(0, total - Math.min(customerCredits, total));
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || !shop?.id) return;
+    
+    setIsApplyingCoupon(true);
+    try {
+      const { data: coupon, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('tenant_id', shop.id)
+        .eq('code', couponCode.toUpperCase().trim())
+        .eq('active', true)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!coupon) {
+        toast.error("Cupom inválido ou inexistente.");
+        return;
+      }
+
+      // Validations
+      const now = new Date();
+      if (coupon.expires_at && new Date(coupon.expires_at) < now) {
+        toast.error("Este cupom já expirou.");
+        return;
+      }
+
+      if (coupon.usage_limit && (coupon.used_count || 0) >= coupon.usage_limit) {
+        toast.error("Este cupom atingiu o limite de usos.");
+        return;
+      }
+
+      const subtotal = calculateSubtotal();
+      if (coupon.minimum_amount && subtotal < coupon.minimum_amount) {
+        toast.error(`Pedido mínimo de R$ ${coupon.minimum_amount.toFixed(2)} não atingido.`);
+        return;
+      }
+
+      setAppliedCoupon(coupon);
+      setCouponCode("");
+      toast.success("Cupom aplicado com sucesso!");
+    } catch (error: any) {
+      console.error("Error applying coupon:", error);
+      toast.error("Erro ao aplicar cupom.");
+    } finally {
+      setIsApplyingCoupon(false);
     }
-    return total;
   };
+
 
   const addToCart = (product: any) => {
     const existing = selectedProducts.find(p => p.id === product.id);
@@ -2321,6 +2408,58 @@ function ShopPageComponent() {
                   )}
                 </div>
 
+                <div className="bg-zinc-900/50 backdrop-blur-md p-6 rounded-3xl border border-white/5 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <TicketPercent size={20} className="text-primary" style={{ color: primaryColor }} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tem um cupom?</p>
+                      <p className="text-sm font-bold text-white">Aplicar desconto</p>
+                    </div>
+                  </div>
+
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-primary/10 p-4 rounded-2xl border border-primary/20" style={{ backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}>
+                      <div className="flex items-center gap-3">
+                        <Tag size={18} className="text-primary" style={{ color: primaryColor }} />
+                        <div>
+                          <p className="text-sm font-bold text-white uppercase">{appliedCoupon.code}</p>
+                          <p className="text-[10px] font-black text-primary uppercase" style={{ color: primaryColor }}>
+                            Cupom Aplicado: -R$ {calculateDiscount().toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => setAppliedCoupon(null)}
+                        className="text-zinc-500 hover:text-red-400 hover:bg-red-400/10"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="CÓDIGO DO CUPOM" 
+                        className="bg-black/40 border-white/10 text-white placeholder:text-zinc-600 font-bold uppercase tracking-wider h-12 rounded-xl"
+                        value={couponCode}
+                        onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                      />
+                      <Button 
+                        onClick={handleApplyCoupon}
+                        disabled={isApplyingCoupon || !couponCode.trim()}
+                        className="h-12 px-6 rounded-xl font-bold uppercase tracking-tighter transition-all hover:scale-105 active:scale-95"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+
 
 
                 <div className="space-y-4">
@@ -2516,10 +2655,23 @@ function ShopPageComponent() {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center border-t border-white/10 pt-4 mt-3">
-                    <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
-                    <span className="text-3xl font-black text-white" style={{ color: calculateTotal() === 0 ? '#10b981' : 'white' }}>R$ {calculateTotal().toFixed(2)}</span>
+                  <div className="space-y-2 pt-2 border-t border-white/10 mt-3">
+                    <div className="flex justify-between items-center text-zinc-400 font-bold text-xs uppercase tracking-widest">
+                      <span>Subtotal:</span> 
+                      <span>R$ {calculateSubtotal().toFixed(2)}</span>
+                    </div>
+                    {appliedCoupon && (
+                      <div className="flex justify-between items-center text-primary font-black text-xs uppercase tracking-widest" style={{ color: primaryColor }}>
+                        <span className="flex items-center gap-1"><Tag size={12} /> Cupom ({appliedCoupon.code}):</span> 
+                        <span>- R$ {calculateDiscount().toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
+                      <span className="text-3xl font-black text-white" style={{ color: calculateTotal() === 0 ? '#10b981' : 'white' }}>R$ {calculateTotal().toFixed(2)}</span>
+                    </div>
                   </div>
+
 
                   
                   {shop.cashback_enabled && (
