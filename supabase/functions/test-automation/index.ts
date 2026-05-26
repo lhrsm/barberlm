@@ -43,20 +43,37 @@ serve(async (req) => {
     const tenantId = profile?.tenant_id || profile?.id;
     if (!tenantId) throw new Error("Tenant não encontrado");
 
-    const { data: connection } = await supabase
-      .from("whatsapp_connections")
+    // BUSCA SEMPRE CONFIGURAÇÃO ATUAL DO BANCO (SINGLE SOURCE OF TRUTH)
+    const { data: settings } = await supabase
+      .from("barbershop_settings")
       .select("*")
-      .or(`tenant_id.eq.${tenantId},barbershop_id.eq.${tenantId}`)
+      .eq("barber_id", tenantId)
       .maybeSingle();
 
+    let connection = settings;
+
     if (!connection) {
-      throw new Error("WhatsApp principal da barbearia não configurado (Conexão não encontrada no banco).");
+      console.log(`[Test] No settings found in barbershop_settings. Checking legacy...`);
+      const { data: legacyConn } = await supabase
+        .from("whatsapp_connections")
+        .select("*")
+        .or(`tenant_id.eq.${tenantId},barbershop_id.eq.${tenantId}`)
+        .maybeSingle();
+      
+      if (!legacyConn) {
+        throw new Error("WhatsApp principal da barbearia não configurado (Single source missing).");
+      }
+      connection = legacyConn;
     }
 
     // Live check
     console.log(`[Test] Performing live check for instance ${connection.instance_id}...`);
     const statusUrl = `${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
-    const statusRes = await fetch(statusUrl, { method: "GET" });
+    const statusHeaders: any = { "Content-Type": "application/json" };
+    if (connection.client_token) {
+      statusHeaders["client-token"] = connection.client_token;
+    }
+    const statusRes = await fetch(statusUrl, { method: "GET", headers: statusHeaders });
     const statusData = await statusRes.json();
     console.log(`[Test] INSTANCE ID: ${connection.instance_id}`);
     console.log(`[Test] TOKEN: ${connection.instance_token}`);
@@ -92,9 +109,12 @@ serve(async (req) => {
     const token = connection.instance_token;
     const baseUrl = connection.server_url || "https://api.z-api.io";
 
-    const headers = { 
+    const headers: any = { 
       "Content-Type": "application/json" 
     };
+    if (connection.client_token) {
+      headers["client-token"] = connection.client_token;
+    }
 
     let zapiResult: any = {};
     let ok = false;

@@ -78,6 +78,10 @@ function SettingsComponent() {
     pix_key: "",
     pix_qr_code_url: "",
     whatsapp_number: "",
+    // Z-API settings
+    instance_id: "",
+    instance_token: "",
+    client_token: "",
   });
 
 
@@ -108,21 +112,31 @@ function SettingsComponent() {
     console.log("Fetching profile for user ID:", user.id, "Email:", user.email);
     
     try {
-      // Use a more direct query to avoid maybeSingle() caching if any
-      const { data, error, status } = await supabase
+      // Fetch profile
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id);
-
-      if (error) {
-        console.error("Supabase error fetching profile:", error);
-        toast.error(`Erro ao carregar configurações: ${error.message || "Erro desconhecido"}`);
+      
+      if (profileError) {
+        console.error("Supabase error fetching profile:", profileError);
+        toast.error(`Erro ao carregar configurações: ${profileError.message}`);
         return;
       }
 
-      if (data && data.length > 0) {
-        const profile = data[0];
-        console.log("Profile data successfully loaded from Supabase:", profile);
+      // Fetch barbershop settings
+      const { data: settingsData, error: settingsError } = await supabase
+        .from("barbershop_settings")
+        .select("*")
+        .eq("barber_id", user.id)
+        .maybeSingle();
+
+      if (settingsError) {
+        console.error("Error fetching barbershop settings:", settingsError);
+      }
+
+      if (profileData && profileData.length > 0) {
+        const profile = profileData[0];
         setFormData({
           business_name: profile.business_name || "",
           slug: profile.slug || "",
@@ -143,12 +157,13 @@ function SettingsComponent() {
           font_color: profile.font_color || "#000000",
           pix_key: profile.pix_key || "",
           pix_qr_code_url: profile.pix_qr_code_url || "",
-          whatsapp_number: profile.whatsapp_number || "",
+          whatsapp_number: settingsData?.whatsapp_number || profile.whatsapp_number || "",
+          instance_id: settingsData?.instance_id || "",
+          instance_token: settingsData?.instance_token || "",
+          client_token: settingsData?.client_token || "",
         });
-
       } else {
-        console.warn("No profile rows found in database for user ID:", user.id);
-        toast.error("Perfil não encontrado. Tente sair e entrar novamente.");
+        toast.error("Perfil não encontrado.");
       }
     } catch (e: any) {
       console.error("Unexpected error in fetchProfile:", e);
@@ -182,7 +197,7 @@ function SettingsComponent() {
       updatedData.payment_gateway_key = "";
     }
 
-    const { error } = await supabase
+    const { error: profileError } = await supabase
       .from("profiles")
       .update({
         business_name: updatedData.business_name,
@@ -206,17 +221,29 @@ function SettingsComponent() {
         pix_qr_code_url: updatedData.pix_qr_code_url,
         whatsapp_number: updatedData.whatsapp_number,
         updated_at: new Date().toISOString(),
-
       })
       .eq("id", user.id);
 
+    // Save to barbershop_settings
+    const { error: settingsError } = await supabase
+      .from("barbershop_settings")
+      .upsert({
+        barber_id: user.id,
+        instance_id: updatedData.instance_id,
+        instance_token: updatedData.instance_token,
+        client_token: updatedData.client_token,
+        whatsapp_number: updatedData.whatsapp_number,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'barber_id' });
+
     setSaving(false);
 
-    if (error) {
-      if (error.code === "23505") {
+    if (profileError || settingsError) {
+      const error = profileError || settingsError;
+      if (error?.code === "23505") {
         toast.error("Este endereço (URL) já está em uso.");
       } else {
-        toast.error("Erro ao salvar configurações");
+        toast.error("Erro ao salvar configurações: " + error?.message);
       }
       return;
     }
@@ -410,15 +437,47 @@ function SettingsComponent() {
                     </div>
                     <p className="text-xs text-muted-foreground">Este será o link que seus clientes usarão para agendar.</p>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="whatsapp_number">WhatsApp da Barbearia</Label>
-                    <Input 
-                      id="whatsapp_number" 
-                      value={formData.whatsapp_number} 
-                      onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                      placeholder="Ex: 5571999999999"
-                    />
-                    <p className="text-xs text-muted-foreground">Número oficial que será usado para o botão de contato e automações.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="whatsapp_number">WhatsApp da Barbearia (Single Source)</Label>
+                      <Input 
+                        id="whatsapp_number" 
+                        value={formData.whatsapp_number} 
+                        onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
+                        placeholder="Ex: 5571999999999"
+                      />
+                      <p className="text-xs text-muted-foreground font-medium text-amber-600">Este número será usado em TODAS as automações.</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="instance_id">ID da Instância Z-API</Label>
+                      <Input 
+                        id="instance_id" 
+                        value={formData.instance_id} 
+                        onChange={(e) => setFormData({ ...formData, instance_id: e.target.value })}
+                        placeholder="Ex: 3F3A5..."
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="instance_token">Token da Instância Z-API</Label>
+                      <Input 
+                        id="instance_token" 
+                        type="password"
+                        value={formData.instance_token} 
+                        onChange={(e) => setFormData({ ...formData, instance_token: e.target.value })}
+                        placeholder="Token da instância"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="client_token">Client Token Z-API</Label>
+                      <Input 
+                        id="client_token" 
+                        type="password"
+                        value={formData.client_token} 
+                        onChange={(e) => setFormData({ ...formData, client_token: e.target.value })}
+                        placeholder="F0A1B..."
+                      />
+                      <p className="text-[10px] text-muted-foreground">Obrigatório para automações funcionarem corretamente.</p>
+                    </div>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="address">Endereço Físico</Label>

@@ -29,15 +29,26 @@ serve(async (req) => {
       throw new Error("Conexão não encontrada");
     }
 
-    const instanceId = connection.instance_id;
-    const token = connection.instance_token;
-    const baseUrl = connection.server_url || "https://api.z-api.io";
+    // First try to get full settings from barbershop_settings
+    const { data: settings } = await supabase
+      .from("barbershop_settings")
+      .select("*")
+      .eq("barber_id", connection.barbershop_id)
+      .maybeSingle();
+
+    const instanceId = settings?.instance_id || connection.instance_id;
+    const token = settings?.instance_token || connection.instance_token;
+    const clientToken = settings?.client_token;
+    const baseUrl = settings?.server_url || connection.server_url || "https://api.z-api.io";
 
     console.log(`[Z-API] Action: ${action} | Instance: ${instanceId}`);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
+    if (clientToken) {
+      headers["client-token"] = clientToken;
+    }
 
     if (action === "check-status") {
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/status`;

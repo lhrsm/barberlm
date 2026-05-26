@@ -508,6 +508,47 @@ export type Database = {
           },
         ]
       }
+      barbershop_settings: {
+        Row: {
+          barber_id: string
+          client_token: string | null
+          created_at: string
+          id: string
+          instance_id: string | null
+          instance_token: string | null
+          updated_at: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          barber_id: string
+          client_token?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          instance_token?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          barber_id?: string
+          client_token?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          instance_token?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "barbershop_settings_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       barbershops: {
         Row: {
           created_at: string | null
