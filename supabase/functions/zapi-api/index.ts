@@ -78,7 +78,7 @@ serve(async (req) => {
             connected: isConnected,
             updated_at: new Date().toISOString()
           })
-          .eq("barber_id", connection.barber_id)
+          .eq("tenant_id", connection.barbershop_id)
       ]);
 
       return new Response(JSON.stringify({ 
@@ -133,7 +133,7 @@ serve(async (req) => {
         supabase
           .from("whatsapp_instances")
           .update({ status, connected: false })
-          .eq("barber_id", connection.barber_id)
+          .eq("tenant_id", connection.barbershop_id)
       ]);
 
       return new Response(JSON.stringify(result), {
@@ -142,7 +142,20 @@ serve(async (req) => {
       });
     }
 
+    if (action === "get-qrcode") {
+      const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/qr-code`, {
+        method: "GET",
+        headers
+      });
+      const result = await res.json();
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     throw new Error("Ação inválida");
+
 
   } catch (error) {
     console.error("[Z-API Edge Function] Error:", error.message);

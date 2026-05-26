@@ -1853,7 +1853,7 @@ export type Database = {
           {
             foreignKeyName: "whatsapp_connections_barbershop_id_fkey"
             columns: ["barbershop_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },

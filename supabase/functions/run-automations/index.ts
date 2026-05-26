@@ -86,12 +86,16 @@ serve(async (req) => {
       const { data: connection } = await supabase
         .from("whatsapp_connections")
         .select("*")
-        .eq("barber_id", automation.barber_id)
+        .eq("barbershop_id", automation.tenant_id)
         .eq("status", "connected")
         .maybeSingle();
 
       if (!connection) {
-        ignoredRecords.push({ automation_id: automation.id, reason: "WhatsApp não conectado para este barbeiro" });
+        ignoredRecords.push({ 
+          automation_id: automation.id, 
+          reason: "WhatsApp principal da barbearia não conectado",
+          tenant_id: automation.tenant_id
+        });
         continue;
       }
 

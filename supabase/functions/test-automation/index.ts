@@ -34,16 +34,25 @@ serve(async (req) => {
 
     if (!user) throw new Error("Não autorizado");
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("tenant_id")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.tenant_id) throw new Error("Tenant não encontrado");
+
     const { data: connection } = await supabase
       .from("whatsapp_connections")
       .select("*")
-      .eq("barber_id", user.id)
+      .eq("barbershop_id", profile.tenant_id)
       .eq("status", "connected")
       .maybeSingle();
 
     if (!connection) {
-      throw new Error("WhatsApp não conectado. Por favor, conecte seu WhatsApp nas configurações.");
+      throw new Error("WhatsApp principal da barbearia não conectado. Por favor, conecte o WhatsApp nas configurações da barbearia.");
     }
+
 
     const { data: appt } = await supabase
       .from("appointments")
@@ -92,7 +101,9 @@ serve(async (req) => {
 
     await supabase.from("automation_logs").insert({
       automation_id: automationId,
+      tenant_id: profile.tenant_id,
       barber_id: user.id,
+
       status: response.ok ? "success" : "error",
       message_type: automationType + "_test",
       phone: normalizePhone(targetPhone),
