@@ -58,7 +58,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       const { data, error } = await supabase
         .from("whatsapp_connections")
         .select("*")
-        .eq("barber_id", tenantId) // Standardized to barber_id
+        .eq("barbershop_id", tenantId)
+
         .maybeSingle();
 
       if (data) {
@@ -77,7 +78,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       const { data } = await supabase
         .from("automation_logs")
         .select("*")
-        .eq("barber_id", tenantId)
+        .eq("barbershop_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(20);
       
@@ -107,8 +108,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook/${tenantId}`;
 
     const upsertData = {
-      barber_id: tenantId,
       barbershop_id: tenantId,
+
       instance_id: instanceId,
       instance_token: instanceToken,
       server_url: cleanApiUrl,
