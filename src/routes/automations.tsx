@@ -135,15 +135,30 @@ function AutomationsComponent() {
   const [cronStatus, setCronStatus] = useState<any>(null);
   const [automationStatus, setAutomationStatus] = useState<any>(null);
   const [nextRunIn, setNextRunIn] = useState<string>("");
+  const [serverInfo, setServerInfo] = useState<{ server_time: string; timezone: string; br_time: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isIAExecuting, setIsIAExecuting] = useState(false);
   const [isTesting, setIsTesting] = useState<string | null>(null);
   const [isRunningAll, setIsRunningAll] = useState(false);
+  const [executionSummary, setExecutionSummary] = useState<any>(null);
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
+
+  const fetchServerInfo = async () => {
+    const { data } = await supabase.rpc('get_server_info');
+    if (data) {
+      setServerInfo(data);
+    }
+  };
 
   const calculateNextRun = () => {
-    const now = new Date();
+    // Use server time if available, otherwise fallback to local but we'll sync it
+    const now = serverInfo ? new Date(serverInfo.server_time) : new Date();
+    
+    // Adjust now by adding the time elapsed since the last fetch if we want high precision
+    // but for a 5-min cron, simple 1s interval is fine if we re-sync periodically
+    
     const minutes = now.getMinutes();
     const nextMinutes = Math.ceil((minutes + 0.01) / 5) * 5;
     const nextRun = new Date(now);
@@ -155,6 +170,11 @@ function AutomationsComponent() {
     }
     
     const diff = nextRun.getTime() - now.getTime();
+    if (diff < 0) {
+      setNextRunIn("00:00");
+      return;
+    }
+    
     const mins = Math.floor(diff / 60000);
     const secs = Math.floor((diff % 60000) / 1000);
     
@@ -162,9 +182,15 @@ function AutomationsComponent() {
   };
 
   useEffect(() => {
+    fetchServerInfo();
+    const serverSyncTimer = setInterval(fetchServerInfo, 30000); // Sync server time every 30s
     const timer = setInterval(calculateNextRun, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    return () => {
+      clearInterval(timer);
+      clearInterval(serverSyncTimer);
+    };
+  }, [serverInfo?.server_time]);
+
 
   const handleTestAutomation = async (automation: any) => {
     if (!tenantId) return;
