@@ -1795,9 +1795,9 @@ function ShopPageComponent() {
                         </span>
                       )}
                     </div>
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-white rounded-2xl shadow-sm group-focus-within:shadow-md transition-shadow pointer-events-none border border-gray-200 group-focus-within:border-[#D4AF37]/50"></div>
+                    <div className="relative group international-phone-portal">
                       <PhoneInput
+
                         defaultCountry={typeof window !== 'undefined' ? (navigator.language.split('-')[1]?.toLowerCase() || 'br') : 'br'}
                         value={customerPhone}
                         onChange={(phone) => setCustomerPhone(phone)}
