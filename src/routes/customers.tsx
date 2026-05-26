@@ -123,6 +123,7 @@ function CustomersComponent() {
     const { error } = await supabase.from("customers").insert({
       ...newCustomer,
       tenant_id: user.id,
+      user_id: user.id,
     });
 
     if (error) {

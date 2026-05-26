@@ -372,6 +372,7 @@ function DashboardComponent() {
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
           tenant_id: tenantId,
+          user_id: tenantId,
           date: new Date().toISOString().split('T')[0],
           time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
         });
@@ -422,6 +423,7 @@ function DashboardComponent() {
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
           tenant_id: tenantId,
+          user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
         });
       

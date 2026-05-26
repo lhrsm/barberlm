@@ -76,6 +76,7 @@ function ServicesComponent() {
       price: parseFloat(newService.price),
       duration_minutes: parseInt(newService.duration_minutes),
       tenant_id: user.id,
+      user_id: user.id,
     });
 
     if (error) {
@@ -118,7 +119,8 @@ function ServicesComponent() {
       .insert({
         ...serviceToCopy,
         name: `${service.name} (Cópia)`,
-        tenant_id: user?.id
+        tenant_id: user?.id,
+        user_id: user?.id
       });
 
     if (error) {

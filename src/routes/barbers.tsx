@@ -161,6 +161,7 @@ function BarbersComponent() {
     const { data: barber, error } = await supabase.from("barbers").insert({
       ...newBarber,
       tenant_id: user.id,
+      user_id: user.id,
       active: true,
     }).select().single();
 
@@ -172,7 +173,8 @@ function BarbersComponent() {
         const links = selectedServices.map(serviceId => ({
           barber_id: barber.id,
           service_id: serviceId,
-          tenant_id: user.id
+          tenant_id: user.id,
+          user_id: user.id
         }));
         await supabase.from("barber_services").insert(links);
       }
@@ -213,7 +215,8 @@ function BarbersComponent() {
         const links = selectedServices.map(serviceId => ({
           barber_id: editingBarber.id,
           service_id: serviceId,
-          tenant_id: user.id
+          tenant_id: user.id,
+          user_id: user.id
         }));
         await supabase.from("barber_services").insert(links);
       }
@@ -275,6 +278,7 @@ function BarbersComponent() {
       category: barber.category,
       commission_rate: barber.commission_rate,
       tenant_id: user.id,
+      user_id: user.id,
     }).select().single();
 
     if (error) {
@@ -285,7 +289,8 @@ function BarbersComponent() {
         const links = barber.barber_services.map((bs: any) => ({
           barber_id: newBarberData.id,
           service_id: bs.service_id,
-          tenant_id: user.id
+          tenant_id: user.id,
+          user_id: user.id
         }));
         await supabase.from("barber_services").insert(links);
       }
