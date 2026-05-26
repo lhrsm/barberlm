@@ -67,6 +67,7 @@ serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const targetTenantId = body.tenantId;
+    const forceMode = body.forceMode === true; // Novo parâmetro para teste forçado
 
     await supabase.from("automation_status").update({
       status: 'executing',
@@ -94,7 +95,8 @@ serve(async (req) => {
         ignoredRecords.push({ 
           automation_id: automation.id, 
           reason: "WhatsApp principal da barbearia não conectado",
-          tenant_id: automation.tenant_id
+          tenant_id: automation.tenant_id,
+          type: automation.type
         });
         continue;
       }
@@ -102,11 +104,11 @@ serve(async (req) => {
       let res: any = { found: 0, sent: 0, failed: 0 };
       
       if (automation.type === "birthday") {
-        res = await processBirthdayAutomation(supabase, automation, connection, brTime);
+        res = await processBirthdayAutomation(supabase, automation, connection, brTime, forceMode);
       } else if (automation.type === "appointment_confirmation") {
-        res = await processAppointmentConfirmation(supabase, automation, connection);
+        res = await processAppointmentConfirmation(supabase, automation, connection, forceMode);
       } else if (automation.type === "appointment_reminder") {
-        res = await processAppointmentReminder(supabase, automation, connection);
+        res = await processAppointmentReminder(supabase, automation, connection, forceMode);
       }
 
       if (res.appointments) appointmentsFound.push(...res.appointments);
@@ -135,6 +137,7 @@ serve(async (req) => {
       serverTime,
       brTime: brTime.iso,
       timezone: "America/Bahia",
+      forceMode,
       appointmentsFound,
       birthdaysFound,
       messagesSent,
@@ -146,6 +149,7 @@ serve(async (req) => {
         records_found: appointmentsFound.length + birthdaysFound.length,
         messages_sent: messagesSent.filter(m => m.status === 'success').length,
         messages_failed: messagesSent.filter(m => m.status === 'error').length,
+        ignored: ignoredRecords.length,
         errors
       }
     };
@@ -164,25 +168,35 @@ serve(async (req) => {
   }
 });
 
-async function processBirthdayAutomation(supabase: any, automation: any, connection: any, brTime: any) {
-  const birthdayPattern = `%-${brTime.month}-${brTime.day}`;
-
+async function processBirthdayAutomation(supabase: any, automation: any, connection: any, brTime: any, forceMode: boolean) {
   const { data: customers, error } = await supabase
     .from("customers")
     .select("*")
-    .eq("barber_id", automation.barber_id)
+    .eq("tenant_id", automation.tenant_id)
     .not("birth_date", "is", null);
 
   if (error) return { birthdays: [], errors: [error.message] };
   
-  // Filter in JS to be safe with date types and formats
   const bdayCustomers = customers?.filter((c: any) => {
     if (!c.birth_date) return false;
-    // Handle both YYYY-MM-DD and potentially other formats if database varies
-    return c.birth_date.includes(`-${brTime.month}-${brTime.day}`);
+    const parts = c.birth_date.split('-'); // Esperado YYYY-MM-DD
+    if (parts.length < 3) return false;
+    const day = parts[2].padStart(2, '0');
+    const month = parts[1].padStart(2, '0');
+    return day === brTime.day && month === brTime.month;
   });
 
-  if (!bdayCustomers || bdayCustomers.length === 0) return { birthdays: [] };
+  if (!bdayCustomers || bdayCustomers.length === 0) {
+    // Adicionar log detalhado de por que nenhum cliente foi encontrado
+    const totalWithBday = customers?.length || 0;
+    return { 
+      birthdays: [], 
+      ignored: [{ 
+        reason: `Nenhum aniversariante hoje (${brTime.day}/${brTime.month}). Analisados ${totalWithBday} clientes com data cadastrada.`,
+        type: 'birthday'
+      }] 
+    };
+  }
 
   const birthdays = bdayCustomers.map(c => ({ id: c.id, name: c.name, type: 'birthday' }));
   const sentItems = [];
@@ -191,18 +205,20 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
   for (const customer of bdayCustomers) {
     const todayISO = `${brTime.year}-${brTime.month}-${brTime.day}`;
     
-    const { data: existing } = await supabase
-      .from("automation_logs")
-      .select("id")
-      .eq("automation_id", automation.id)
-      .eq("customer_id", customer.id)
-      .eq("message_type", "birthday")
-      .filter('created_at', 'gte', `${todayISO}T00:00:00`)
-      .maybeSingle();
+    if (!forceMode) {
+      const { data: existing } = await supabase
+        .from("automation_logs")
+        .select("id")
+        .eq("automation_id", automation.id)
+        .eq("customer_id", customer.id)
+        .eq("message_type", "birthday")
+        .filter('created_at', 'gte', `${todayISO}T00:00:00`)
+        .maybeSingle();
 
-    if (existing) {
-      ignored.push({ customer_id: customer.id, reason: "Mensagem de aniversário já enviada hoje" });
-      continue;
+      if (existing) {
+        ignored.push({ customer_id: customer.id, customer_name: customer.name, reason: "Mensagem de aniversário já enviada hoje", type: 'birthday' });
+        continue;
+      }
     }
 
     const variables = {
@@ -213,40 +229,55 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
     const processedMessage = processAutomationTemplate(automation.template, variables);
     const result = await sendMessage(connection, customer.phone, processedMessage);
     
-    const logEntry = {
-      automation_id: automation.id,
-      tenant_id: automation.tenant_id,
-      barber_id: automation.barber_id,
-      customer_id: customer.id,
-      status: result.success ? "success" : "error",
-      message_type: "birthday",
-      phone: normalizePhone(customer.phone),
-      original_template: automation.template,
-      processed_template: processedMessage,
-      response: result.response,
-      error_message: result.error,
-      sent_at: new Date().toISOString()
-    };
-
-    await supabase.from("automation_logs").insert(logEntry);
-    sentItems.push({ ...logEntry, customer_name: customer.name });
+    if (result.success) {
+      const logEntry = {
+        automation_id: automation.id,
+        tenant_id: automation.tenant_id,
+        barber_id: automation.barber_id,
+        customer_id: customer.id,
+        status: "success",
+        message_type: "birthday",
+        phone: normalizePhone(customer.phone),
+        original_template: automation.template,
+        processed_template: processedMessage,
+        response: result.response,
+        sent_at: new Date().toISOString()
+      };
+      await supabase.from("automation_logs").insert(logEntry);
+      sentItems.push({ ...logEntry, customer_name: customer.name });
+    } else {
+      sentItems.push({ status: 'error', customer_name: customer.name, error_message: result.error });
+    }
   }
 
   return { birthdays, sentItems, ignored };
 }
 
-async function processAppointmentConfirmation(supabase: any, automation: any, connection: any) {
+async function processAppointmentConfirmation(supabase: any, automation: any, connection: any, forceMode: boolean) {
   const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   
-  const { data: appointments, error } = await supabase
+  let query = supabase
     .from("appointments")
-    .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
-    .eq("barber_id", automation.barber_id)
-    .eq("confirmation_sent", false)
-    .gte("created_at", fifteenMinutesAgo);
+    .select("*, customers(*), profiles:tenant_id(*), services:service_id(*)")
+    .eq("tenant_id", automation.tenant_id)
+    .eq("confirmation_sent", false);
+
+  if (!forceMode) {
+    query = query.gte("created_at", fifteenMinutesAgo);
+  }
+  
+  const { data: appointments, error } = await query;
 
   if (error) return { appointments: [], errors: [error.message] };
-  if (!appointments || appointments.length === 0) return { appointments: [] };
+  if (!appointments || appointments.length === 0) {
+    return { 
+      appointments: [], 
+      ignored: [{ 
+        reason: forceMode ? "Nenhum agendamento pendente de confirmação encontrado." : "Nenhum agendamento criado nos últimos 15 minutos.",
+        type: 'confirmation'
+      }] 
+    };
+  }
 
   const sentItems = [];
   const ignored = [];
@@ -254,7 +285,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
   for (const appt of appointments) {
     const phone = appt.customers?.phone || appt.phone;
     if (!phone) {
-      ignored.push({ appointment_id: appt.id, reason: "Cliente sem telefone cadastrado" });
+      ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Cliente sem telefone cadastrado", type: 'confirmation' });
       continue;
     }
 
@@ -272,47 +303,59 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
     
     if (result.success) {
       await supabase.from("appointments").update({ confirmation_sent: true }).eq("id", appt.id);
+      const logEntry = {
+        automation_id: automation.id,
+        tenant_id: automation.tenant_id,
+        customer_id: appt.customer_id,
+        appointment_id: appt.id,
+        status: "success",
+        message_type: "appointment_confirmation",
+        phone: normalizePhone(phone),
+        original_template: automation.template,
+        processed_template: processedMessage,
+        response: result.response,
+        sent_at: new Date().toISOString()
+      };
+      await supabase.from("automation_logs").insert(logEntry);
+      sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
+    } else {
+      sentItems.push({ status: 'error', customer_name: variables.cliente_nome, error_message: result.error });
     }
-
-    const logEntry = {
-      automation_id: automation.id,
-      tenant_id: automation.tenant_id,
-      barber_id: automation.barber_id,
-      customer_id: appt.customer_id,
-      appointment_id: appt.id,
-      status: result.success ? "success" : "error",
-      message_type: "appointment_confirmation",
-      phone: normalizePhone(phone),
-      original_template: automation.template,
-      processed_template: processedMessage,
-      response: result.response,
-      error_message: result.error,
-      sent_at: new Date().toISOString()
-    };
-
-    await supabase.from("automation_logs").insert(logEntry);
-    sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
   }
 
   return { appointments, sentItems, ignored };
 }
 
-async function processAppointmentReminder(supabase: any, automation: any, connection: any) {
+async function processAppointmentReminder(supabase: any, automation: any, connection: any, forceMode: boolean) {
   const delayHours = automation.trigger_delay || 24;
-  const targetTimeStart = new Date(Date.now() + (delayHours * 60 * 60 * 1000)).toISOString();
-  const targetTimeEnd = new Date(Date.now() + (delayHours * 60 * 60 * 1000) + (15 * 60 * 1000)).toISOString();
+  const now = Date.now();
+  const targetTimeStart = new Date(now + (delayHours * 60 * 60 * 1000)).toISOString();
+  const targetTimeEnd = new Date(now + (delayHours * 60 * 60 * 1000) + (15 * 60 * 1000)).toISOString();
 
-  const { data: appointments, error } = await supabase
+  let query = supabase
     .from("appointments")
-    .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
-    .eq("barber_id", automation.barber_id)
+    .select("*, customers(*), profiles:tenant_id(*), services:service_id(*)")
+    .eq("tenant_id", automation.tenant_id)
     .eq("status", "scheduled")
-    .eq("reminder_sent", false)
-    .gte("start_time", targetTimeStart)
-    .lte("start_time", targetTimeEnd);
+    .eq("reminder_sent", false);
+
+  if (!forceMode) {
+    query = query.gte("start_time", targetTimeStart).lte("start_time", targetTimeEnd);
+  }
+
+  const { data: appointments, error } = await query;
 
   if (error) return { appointments: [], errors: [error.message] };
-  if (!appointments || appointments.length === 0) return { appointments: [] };
+  if (!appointments || appointments.length === 0) {
+    return { 
+      appointments: [], 
+      ignored: [{ 
+        reason: forceMode ? "Nenhum agendamento futuro pendente de lembrete." : `Nenhum agendamento na janela de ${delayHours}h.`,
+        type: 'reminder',
+        debug: { targetTimeStart, targetTimeEnd }
+      }] 
+    };
+  }
 
   const sentItems = [];
   const ignored = [];
@@ -320,8 +363,23 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
   for (const appt of appointments) {
     const phone = appt.customers?.phone || appt.phone;
     if (!phone) {
-      ignored.push({ appointment_id: appt.id, reason: "Cliente sem telefone cadastrado" });
+      ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Cliente sem telefone cadastrado", type: 'reminder' });
       continue;
+    }
+
+    const apptStartTime = new Date(appt.start_time).getTime();
+    const diffMinutes = Math.floor((apptStartTime - now) / (60 * 1000));
+
+    // Se não for modo forçado, validamos se está na janela correta (caso o banco retorne algo fora por algum motivo)
+    if (!forceMode && (diffMinutes < (delayHours * 60) || diffMinutes > (delayHours * 60 + 15))) {
+        ignored.push({ 
+            appointment_id: appt.id, 
+            customer_name: appt.customers?.name || appt.name, 
+            reason: `Fora da janela. Diferença: ${diffMinutes} min. Esperado: ~${delayHours * 60} min.`,
+            type: 'reminder',
+            debug: { serverTime: new Date(now).toISOString(), apptStartTime: appt.start_time, diffMinutes }
+        });
+        continue;
     }
 
     const variables = {
@@ -338,26 +396,24 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
     
     if (result.success) {
       await supabase.from("appointments").update({ reminder_sent: true }).eq("id", appt.id);
+      const logEntry = {
+        automation_id: automation.id,
+        tenant_id: automation.tenant_id,
+        customer_id: appt.customer_id,
+        appointment_id: appt.id,
+        status: "success",
+        message_type: "appointment_reminder",
+        phone: normalizePhone(phone),
+        original_template: automation.template,
+        processed_template: processedMessage,
+        response: result.response,
+        sent_at: new Date().toISOString()
+      };
+      await supabase.from("automation_logs").insert(logEntry);
+      sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
+    } else {
+      sentItems.push({ status: 'error', customer_name: variables.cliente_nome, error_message: result.error });
     }
-
-    const logEntry = {
-      automation_id: automation.id,
-      tenant_id: automation.tenant_id,
-      barber_id: automation.barber_id,
-      customer_id: appt.customer_id,
-      appointment_id: appt.id,
-      status: result.success ? "success" : "error",
-      message_type: "appointment_reminder",
-      phone: normalizePhone(phone),
-      original_template: automation.template,
-      processed_template: processedMessage,
-      response: result.response,
-      error_message: result.error,
-      sent_at: new Date().toISOString()
-    };
-
-    await supabase.from("automation_logs").insert(logEntry);
-    sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
   }
 
   return { appointments, sentItems, ignored };

@@ -143,8 +143,11 @@ function AutomationsComponent() {
   const [isIAExecuting, setIsIAExecuting] = useState(false);
   const [isTesting, setIsTesting] = useState<string | null>(null);
   const [isRunningAll, setIsRunningAll] = useState(false);
+  const [isForcingAll, setIsForcingAll] = useState(false);
   const [executionSummary, setExecutionSummary] = useState<any>(null);
-  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
+  const [isSummaryDialogOpen] = useState(false);
+  const [isManualSummaryOpen, setIsManualSummaryOpen] = useState(false);
+
 
   const fetchServerInfo = async () => {
     const { data } = await supabase.rpc('get_server_info');
@@ -227,14 +230,16 @@ function AutomationsComponent() {
     }
   };
 
-  const handleRunAllAutomations = async () => {
+  const handleRunAllAutomations = async (forceMode = false) => {
     if (!tenantId) return;
-    setIsRunningAll(true);
+    if (forceMode) setIsForcingAll(true);
+    else setIsRunningAll(true);
+    
     setExecutionSummary(null);
     
     try {
       const { data, error } = await supabase.functions.invoke('run-automations', {
-        body: { tenantId }
+        body: { tenantId, forceMode }
       });
 
       if (error) throw error;
@@ -246,7 +251,7 @@ function AutomationsComponent() {
         const found = (data.appointmentsFound?.length || 0) + (data.birthdaysFound?.length || 0);
         const failed = data.messagesSent?.filter((m: any) => m.status === 'error').length || 0;
 
-        if (found === 0) {
+        if (found === 0 && (!data.ignoredRecords || data.ignoredRecords.length === 0)) {
           toast.info("Nenhuma automação precisava ser processada no momento.");
         } else if (sent > 0) {
           toast.success(`${sent} mensagens enviadas com sucesso!`);
@@ -254,7 +259,7 @@ function AutomationsComponent() {
           toast.error(`${failed} mensagens falharam ao enviar.`);
         }
 
-        setIsSummaryDialogOpen(true);
+        setIsManualSummaryOpen(true);
         fetchLogs();
         fetchCronStatus();
       } else {
@@ -265,8 +270,10 @@ function AutomationsComponent() {
       toast.error(err.message || "Erro ao processar execução das automações");
     } finally {
       setIsRunningAll(false);
+      setIsForcingAll(false);
     }
   };
+
 
 
   useEffect(() => {
@@ -478,11 +485,24 @@ function AutomationsComponent() {
             <h2 className="text-3xl font-bold tracking-tight">Automações Inteligentes</h2>
             <p className="text-muted-foreground">Configure notificações e lembretes automáticos para seus clientes.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50" 
+              onClick={() => handleRunAllAutomations(true)}
+              disabled={isForcingAll}
+            >
+              {isForcingAll ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Play size={18} />
+              )}
+              Processar todos os agendamentos agora
+            </Button>
             <Button 
               variant="default" 
               className="gap-2 bg-emerald-600 hover:bg-emerald-700" 
-              onClick={handleRunAllAutomations}
+              onClick={() => handleRunAllAutomations(false)}
               disabled={isRunningAll}
             >
               {isRunningAll ? (
@@ -490,7 +510,7 @@ function AutomationsComponent() {
               ) : (
                 <Play size={18} />
               )}
-              Executar automações agora
+              Executar cron agora
             </Button>
             <Button variant="outline" className="gap-2" asChild>
               <a href="/integrations">
@@ -498,6 +518,7 @@ function AutomationsComponent() {
               </a>
             </Button>
           </div>
+
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -893,108 +914,8 @@ function AutomationsComponent() {
           </TabsContent>
         </Tabs>
 
-        {/* Execution Summary Dialog */}
-        <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-2xl">
-                <Sparkles className="text-emerald-500" />
-                Relatório de Execução
-              </DialogTitle>
-              <DialogDescription>
-                Processamento finalizado em {executionSummary?.executionTime}.
-                <div className="flex gap-2 mt-2 text-[10px] font-mono text-muted-foreground uppercase tracking-widest bg-muted/50 p-2 rounded">
-                  <span>Server: {executionSummary?.serverTime ? new Date(executionSummary.serverTime).toLocaleTimeString() : '-'}</span>
-                  <span>Timezone: {executionSummary?.timezone || 'UTC'}</span>
-                </div>
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-6 py-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl">
-                  <div className="text-[10px] text-slate-500 uppercase font-black tracking-wider">Encontrados</div>
-                  <div className="text-2xl font-black text-slate-900">{(executionSummary?.appointmentsFound?.length || 0) + (executionSummary?.birthdaysFound?.length || 0)}</div>
-                </div>
-                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
-                  <div className="text-[10px] text-emerald-600 uppercase font-black tracking-wider">Enviados</div>
-                  <div className="text-2xl font-black text-emerald-700">{executionSummary?.messagesSent?.filter((m: any) => m.status === 'success').length || 0}</div>
-                </div>
-                <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
-                  <div className="text-[10px] text-red-600 uppercase font-black tracking-wider">Falhas</div>
-                  <div className="text-2xl font-black text-red-700">{executionSummary?.messagesSent?.filter((m: any) => m.status === 'error').length || 0}</div>
-                </div>
-                <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
-                  <div className="text-[10px] text-amber-600 uppercase font-black tracking-wider">Ignorados</div>
-                  <div className="text-2xl font-black text-amber-700">{executionSummary?.ignoredRecords?.length || 0}</div>
-                </div>
-              </div>
+        {/* A modal anterior foi removida em favor da nova modal de resumo manual que é mais completa */}
 
-              <div className="space-y-4">
-                {/* Appointments / Birthdays List */}
-                {((executionSummary?.appointmentsFound?.length || 0) > 0 || (executionSummary?.birthdaysFound?.length || 0) > 0) && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-bold flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> Registros Processados</h4>
-                    <div className="space-y-1">
-                      {executionSummary.appointmentsFound?.map((item: any) => (
-                        <div key={item.id} className="text-xs p-2 bg-muted/50 rounded flex justify-between items-center">
-                          <span className="font-medium">Agendamento: {item.customers?.name || item.name || 'Cliente'}</span>
-                          <Badge variant="outline" className="text-[9px] uppercase">{new Date(item.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Badge>
-                        </div>
-                      ))}
-                      {executionSummary.birthdaysFound?.map((item: any) => (
-                        <div key={item.id} className="text-xs p-2 bg-pink-50 text-pink-700 rounded flex justify-between items-center border border-pink-100">
-                          <span className="font-medium">Aniversariante: {item.name}</span>
-                          <Badge variant="outline" className="text-[9px] uppercase border-pink-200 text-pink-600">B-Day</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Ignored Records */}
-                {executionSummary?.ignoredRecords && executionSummary.ignoredRecords.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-bold flex items-center gap-2 text-amber-600"><Ban size={16} /> Registros Ignorados</h4>
-                    <div className="max-h-[120px] overflow-y-auto space-y-1">
-                      {executionSummary.ignoredRecords.map((item: any, i: number) => (
-                        <div key={i} className="text-xs p-2 bg-amber-50 text-amber-700 rounded border border-amber-100 flex justify-between">
-                          <span>{item.reason}</span>
-                          <span className="opacity-60 text-[10px] uppercase font-bold">{item.automation_id?.substring(0,8)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Errors */}
-                {executionSummary?.errors && executionSummary.errors.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-bold flex items-center gap-2 text-red-600"><AlertCircle size={16} /> Erros Técnicos</h4>
-                    <div className="max-h-[120px] overflow-y-auto space-y-1">
-                      {executionSummary.errors.map((err: string, i: number) => (
-                        <div key={i} className="text-xs p-2 bg-red-50 text-red-700 rounded border border-red-100">
-                          {err}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Empty State */}
-                {(!executionSummary?.appointmentsFound?.length && !executionSummary?.birthdaysFound?.length && !executionSummary?.errors?.length) && (
-                  <div className="py-8 text-center text-muted-foreground bg-muted/20 rounded-xl border border-dashed">
-                    <p className="text-sm font-medium">Nenhum dado relevante encontrado nesta execução.</p>
-                    <p className="text-xs mt-1">Isso significa que não havia agendamentos ou aniversariantes pendentes no momento.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            <DialogFooter>
-              <Button className="w-full sm:w-auto font-bold" onClick={() => setIsSummaryDialogOpen(false)}>Entendido</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
         {/* Edit Modal */}
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
@@ -1104,7 +1025,120 @@ function AutomationsComponent() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={isManualSummaryOpen} onOpenChange={setIsManualSummaryOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle2 className="text-emerald-500" />
+                Resumo da Execução {executionSummary?.forceMode ? "(MODO FORÇADO)" : ""}
+              </DialogTitle>
+              <DialogDescription>
+                Detalhamento técnico da última execução das automações.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-3 bg-muted/50 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-primary">{executionSummary?.summary?.records_found || 0}</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground">Encontrados</div>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-emerald-600">{executionSummary?.summary?.messages_sent || 0}</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground">Enviados</div>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-amber-600">{executionSummary?.summary?.ignored || 0}</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground">Ignorados</div>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-red-600">{executionSummary?.summary?.messages_failed || 0}</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground">Falhas</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <Clock size={16} /> Detalhes do Servidor
+                  </h4>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-muted-foreground">Horário Servidor:</span>
+                    <p className="font-mono">{executionSummary?.serverTime ? new Date(executionSummary.serverTime).toLocaleTimeString('pt-BR') : '---'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Timezone:</span>
+                    <p className="font-mono">{executionSummary?.timezone || 'America/Bahia'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {executionSummary?.ignoredRecords?.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-amber-600">
+                      <History size={16} /> Registros Ignorados / Debug
+                    </h4>
+                  </div>
+                  <div className="space-y-2">
+                    {executionSummary.ignoredRecords.map((item: any, idx: number) => (
+                      <div key={idx} className="bg-muted/30 p-3 rounded-lg border border-dashed text-xs space-y-1">
+                        <div className="flex justify-between items-start">
+                          <span className="font-bold text-primary capitalize">{item.type || 'Geral'}</span>
+                          <Badge variant="outline" className="text-[10px]">{item.customer_name || 'Agendamento'}</Badge>
+                        </div>
+                        <p className="text-muted-foreground">{item.reason}</p>
+                        {item.debug && (
+                          <pre className="text-[9px] bg-black/5 p-1 rounded mt-1 overflow-x-auto">
+                            {JSON.stringify(item.debug, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {executionSummary?.messagesSent?.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-emerald-600">
+                      <Check size={16} /> Mensagens Processadas
+                    </h4>
+                  </div>
+                  <div className="space-y-2">
+                    {executionSummary.messagesSent.map((item: any, idx: number) => (
+                      <div key={idx} className={cn(
+                        "p-3 rounded-lg border text-xs flex justify-between items-center",
+                        item.status === 'success' ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"
+                      )}>
+                        <div>
+                          <p className="font-bold">{item.customer_name}</p>
+                          <p className="text-muted-foreground text-[10px]">{item.phone}</p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={item.status === 'success' ? 'default' : 'destructive'} className={item.status === 'success' ? "bg-emerald-500" : ""}>
+                            {item.status === 'success' ? 'Enviado' : 'Erro'}
+                          </Badge>
+                          {item.error_message && <p className="text-[9px] text-red-500 mt-1 max-w-[200px] truncate">{item.error_message}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button onClick={() => setIsManualSummaryOpen(false)}>Fechar Resumo</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
+
     </AppLayout>
   );
 }
