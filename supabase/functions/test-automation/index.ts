@@ -43,14 +43,27 @@ serve(async (req) => {
     const tenantId = profile?.tenant_id || profile?.id;
     if (!tenantId) throw new Error("Tenant não encontrado");
 
-    const { data: connection } = await supabase
-      .from("whatsapp_connections")
+    // BUSCA SEMPRE CONFIGURAÇÃO ATUAL DO BANCO (SINGLE SOURCE OF TRUTH)
+    const { data: settings } = await supabase
+      .from("barbershop_settings")
       .select("*")
-      .or(`tenant_id.eq.${tenantId},barbershop_id.eq.${tenantId}`)
+      .eq("barber_id", tenantId)
       .maybeSingle();
 
+    let connection = settings;
+
     if (!connection) {
-      throw new Error("WhatsApp principal da barbearia não configurado (Conexão não encontrada no banco).");
+      console.log(`[Test] No settings found in barbershop_settings. Checking legacy...`);
+      const { data: legacyConn } = await supabase
+        .from("whatsapp_connections")
+        .select("*")
+        .or(`tenant_id.eq.${tenantId},barbershop_id.eq.${tenantId}`)
+        .maybeSingle();
+      
+      if (!legacyConn) {
+        throw new Error("WhatsApp principal da barbearia não configurado (Single source missing).");
+      }
+      connection = legacyConn;
     }
 
     // Live check
