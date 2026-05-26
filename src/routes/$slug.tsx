@@ -337,9 +337,10 @@ function ShopPageComponent() {
     }
 
     const barberAppointments = appointments?.filter(a => a.barber_id === barber.id) || [];
+    console.log(`CHECKING AVAILABILITY for ${barber.name} on ${date}. Appointments:`, barberAppointments.length);
     const [startHour, startMin] = workingHours.start.split(':').map(Number);
     const [endHour, endMin] = workingHours.end.split(':').map(Number);
-    const interval = 30;
+    const interval = 30; // Min interval to check for a free slot
 
     for (let hour = startHour; hour <= endHour; hour++) {
       for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
