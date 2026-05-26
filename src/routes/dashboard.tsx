@@ -260,16 +260,22 @@ function DashboardComponent() {
     const dayStart = startOfDay(selectedDate).toISOString();
     const dayEnd = endOfDay(selectedDate).toISOString();
     
+    console.log('FETCHING APPOINTMENTS FOR:', { tenantId, dayStart, dayEnd });
+
     let query = supabase
       .from("appointments")
       .select("*, customers(name, phone, loyalty_points, avatar_url, credits), services(name), barbers(name)")
       .eq("tenant_id", tenantId)
-      .or(`status.neq.cancelled,refund_status.in.(pending,completed)`)
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);
 
+    // Filter by status if not 'all'
     if (statusFilter !== "all") {
       query = query.eq("status", statusFilter);
+    } else {
+      // In 'all', we might want to show everything except definitely cancelled ones 
+      // OR show them but marked. The original code was using a complex OR.
+      // Let's simplify and show all for that day.
     }
 
     const { data, error } = await query.order("start_time", { ascending: false });
