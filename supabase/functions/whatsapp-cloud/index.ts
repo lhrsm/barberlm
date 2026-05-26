@@ -56,20 +56,15 @@ serve(async (req) => {
         const targetPhone = normalizePhone(msg.metadata?.phone || msg.wa_id);
         
         if (conn.provider === 'z-api') {
-          const instanceId = conn.instance_id || Deno.env.get("ZAPI_INSTANCE_ID");
-          const token = conn.instance_token || Deno.env.get("ZAPI_TOKEN");
-          const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
+          const instanceId = conn.instance_id;
+          const token = conn.instance_token;
           const baseUrl = conn.server_url || "https://api.z-api.io";
           
-          const headers: any = { 
+          const headers = { 
             "Content-Type": "application/json",
           };
           
-          if (clientToken) {
-            headers["Client-Token"] = clientToken;
-          }
-          
-          console.log(`Sending WhatsApp via Z-API to ${targetPhone} (Instance: ${instanceId})`);
+          console.log(`[Z-API] Sending via ${baseUrl} to ${targetPhone}`);
 
           const startTime = Date.now();
           response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
