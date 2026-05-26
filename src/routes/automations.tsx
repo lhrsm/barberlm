@@ -239,11 +239,11 @@ function AutomationsComponent() {
       if (error) throw error;
       
       if (data.success) {
-        setExecutionSummary(data.summary);
+        setExecutionSummary(data);
         
-        const sent = data.summary?.messages_sent || 0;
-        const found = data.summary?.records_found || 0;
-        const failed = data.summary?.messages_failed || 0;
+        const sent = data.messagesSent?.filter((m: any) => m.status === 'success').length || 0;
+        const found = (data.appointmentsFound?.length || 0) + (data.birthdaysFound?.length || 0);
+        const failed = data.messagesSent?.filter((m: any) => m.status === 'error').length || 0;
 
         if (found === 0) {
           toast.info("Nenhuma automação precisava ser processada no momento.");
