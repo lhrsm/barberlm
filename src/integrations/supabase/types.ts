@@ -2303,6 +2303,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_coupon_usage: {
+        Args: { p_coupon_id: string }
+        Returns: undefined
+      }
       is_profile_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
       is_super_admin_user: { Args: never; Returns: boolean }
