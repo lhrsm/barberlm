@@ -78,7 +78,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     return data;
   })
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    const { userId, supabase: supabaseClient } = context;
     const startTime = Date.now();
     console.log("[Checkout Server] 🚀 INICIANDO handler de createCheckoutSession", {
       priceId: data.priceId,
@@ -88,8 +88,21 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     });
     
     try {
+      // Buscar trial atual do banco de dados
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("trial_end")
+        .eq("id", userId)
+        .maybeSingle();
+      
+      const trialEnd = profile?.trial_end ? new Date(profile.trial_end) : null;
+      const now = new Date();
+      const trialRemainingSeconds = trialEnd && trialEnd > now 
+        ? Math.floor((trialEnd.getTime() - now.getTime()) / 1000)
+        : 0;
+
       const stripe = createStripeClient(data.environment);
-      console.log("[Checkout Server] 💳 Cliente Stripe criado para ambiente:", data.environment);
+      console.log("[Checkout Server] 💳 Cliente Stripe criado para ambiente:", data.environment, "Trial remaining (s):", trialRemainingSeconds);
     
       let stripePrice;
       try {
