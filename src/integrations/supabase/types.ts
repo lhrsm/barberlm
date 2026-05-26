@@ -782,6 +782,7 @@ export type Database = {
           message: string
           read: boolean | null
           read_at: string | null
+          tenant_id: string | null
           title: string
           type: string | null
           user_id: string
@@ -795,6 +796,7 @@ export type Database = {
           message: string
           read?: boolean | null
           read_at?: string | null
+          tenant_id?: string | null
           title: string
           type?: string | null
           user_id: string
@@ -808,6 +810,7 @@ export type Database = {
           message?: string
           read?: boolean | null
           read_at?: string | null
+          tenant_id?: string | null
           title?: string
           type?: string | null
           user_id?: string
@@ -818,6 +821,13 @@ export type Database = {
             columns: ["barber_id"]
             isOneToOne: false
             referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1502,6 +1512,7 @@ export type Database = {
           date: string | null
           description: string | null
           id: string
+          tenant_id: string | null
           time: string | null
           type: string
           user_id: string
@@ -1515,6 +1526,7 @@ export type Database = {
           date?: string | null
           description?: string | null
           id?: string
+          tenant_id?: string | null
           time?: string | null
           type: string
           user_id: string
@@ -1528,6 +1540,7 @@ export type Database = {
           date?: string | null
           description?: string | null
           id?: string
+          tenant_id?: string | null
           time?: string | null
           type?: string
           user_id?: string
@@ -1545,6 +1558,13 @@ export type Database = {
             columns: ["barber_id"]
             isOneToOne: false
             referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
