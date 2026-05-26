@@ -46,11 +46,11 @@ serve(async (req) => {
     const { data: connection } = await supabase
       .from("whatsapp_connections")
       .select("*")
-      .eq("tenant_id", tenantId)
+      .or(`tenant_id.eq.${tenantId},barbershop_id.eq.${tenantId}`)
       .maybeSingle();
 
     if (!connection) {
-      throw new Error("WhatsApp principal da barbearia não configurado.");
+      throw new Error("WhatsApp principal da barbearia não configurado (Conexão não encontrada no banco).");
     }
 
     // Live check
@@ -58,10 +58,13 @@ serve(async (req) => {
     const statusUrl = `${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
     const statusRes = await fetch(statusUrl, { method: "GET" });
     const statusData = await statusRes.json();
-    console.log(`[Test] ZAPI STATUS RESPONSE:`, JSON.stringify(statusData));
+    console.log(`[Test] INSTANCE ID: ${connection.instance_id}`);
+    console.log(`[Test] TOKEN: ${connection.instance_token}`);
+    console.log(`[Test] STATUS RESPONSE RAW:`, JSON.stringify(statusData));
+    console.log(`[Test] CONNECTED RESULT:`, statusData?.connected);
 
     if (statusData?.connected !== true) {
-      throw new Error("WhatsApp principal da barbearia não conectado na Z-API. Por favor, escaneie o QR Code nas configurações.");
+      throw new Error("WhatsApp principal da barbearia não conectado na Z-API (Validado via /status).");
     }
 
     const { data: appt } = await supabase
