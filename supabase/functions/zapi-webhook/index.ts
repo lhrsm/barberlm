@@ -23,7 +23,7 @@ serve(async (req) => {
 
     const { instanceId, type, text, phone } = body;
 
-    // 1. Handling connection updates (Already exists in current webhook, but keeping logic consistent)
+    // 1. Handling connection updates
     if (type === "Connected" || type === "Disconnected") {
       const status = type.toLowerCase();
       await supabase.from("whatsapp_instances").update({ status, connected: type === "Connected" }).eq("instance_id", instanceId);
@@ -51,6 +51,8 @@ serve(async (req) => {
         return new Response("No conversation", { status: 200 });
       }
 
+      console.log(`Processing message for conversation ${conversation.id} in state ${conversation.state}`);
+
       const connection = await getWhatsAppSettings(supabase, conversation.barber_id);
       if (!connection) return new Response("No Z-API settings", { status: 200 });
 
@@ -67,14 +69,19 @@ serve(async (req) => {
         } 
         else if (['2', '2️⃣', 'reagendar'].includes(messageText)) {
           // Start reschedule flow
-          await sendMessage(connection, normalizedPhone, `Perfeito 👍\n\nPor favor, acesse o link abaixo para escolher um novo horário:\n\nhttps://barberlm.app/agendar/${conversation.barber_id}?reschedule=${conversation.appointment_id}`);
-          // Reusing existing web booking logic is safer for now as requested "NÃO criar lógica paralela"
-          // but if we want full conversational we need a date/time picker logic
+          console.log(`User ${normalizedPhone} requested reschedule for appointment ${conversation.appointment_id}`);
+          
+          await sendMessage(connection, normalizedPhone, `Perfeito 👍\n\nPor favor, acesse o link abaixo para escolher um novo horário:\n\nhttps://barberlm.app/agendar/${conversation.barber_id}?reschedule=${conversation.appointment_id}\n\nO sistema irá atualizar seu agendamento automaticamente assim que você escolher.`);
+          
+          // Move to a pending state if we want to track progress, but the link handle it
           await supabase.from("whatsapp_conversations").delete().eq("id", conversation.id);
         }
         else if (['3', '3️⃣', 'cancelar'].includes(messageText)) {
           await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar seu agendamento?\n\n1️⃣ Sim\n2️⃣ Não`);
           await supabase.from("whatsapp_conversations").update({ state: 'awaiting_cancel_confirmation' }).eq("id", conversation.id);
+        }
+        else {
+          await sendMessage(connection, normalizedPhone, `Desculpe, não entendi.\n\nPor favor, responda com:\n1️⃣ para Confirmar\n2️⃣ para Reagendar\n3️⃣ para Cancelar`);
         }
       } 
       else if (state === 'awaiting_cancel_confirmation') {
