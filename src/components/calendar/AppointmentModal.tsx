@@ -303,9 +303,21 @@ export function AppointmentModal({
         }]
       };
 
-      const { data: appointmentData, error } = await supabase.from("appointments").insert([appointmentPayload]).select().single();
-
-      if (error) throw error;
+      let appointmentData;
+      if (editingAppointmentId) {
+        const { data, error } = await supabase
+          .from("appointments")
+          .update(appointmentPayload)
+          .eq("id", editingAppointmentId)
+          .select()
+          .single();
+        if (error) throw error;
+        appointmentData = data;
+      } else {
+        const { data, error } = await supabase.from("appointments").insert([appointmentPayload]).select().single();
+        if (error) throw error;
+        appointmentData = data;
+      }
 
       // Notifications
       const customer = customers.find(c => c.id === selectedCustomer);
