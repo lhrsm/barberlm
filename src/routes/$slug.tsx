@@ -1258,8 +1258,12 @@ function ShopPageComponent() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      {!isEmbedded && (
+      {/* Main Content (Only for landing page) */}
+      {(!isPortalRoute && !isProfissionalRoute) ? (
+        <>
+          {/* Header */}
+          {!isEmbedded && (
+
         <header className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-4",
           scrolled ? "py-2" : "py-6"
