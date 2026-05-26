@@ -800,14 +800,37 @@ function ShopPageComponent() {
         }, { onConflict: 'phone' });
 
 
-      // 1.5 Check for conflict again to be sure
-      const hasConflict = await checkConflict(selectedBarber.id, selectedDate, selectedTime, selectedService.id);
-      if (hasConflict) {
-        toast.error("Este horário acabou de ser preenchido. Por favor, escolha outro.");
+      // 1.5 Check for conflicts (Barber AND Customer)
+      const startTimeCheck = parseISO(`${selectedDate}T${selectedTime}:00`);
+      const serviceCheck = services.find(s => s.id === selectedService.id);
+      const endTimeCheck = addMinutes(startTimeCheck, serviceCheck?.duration_minutes || 30);
+
+      // Check Barber Conflict
+      const hasBarberConflict = await checkConflict(selectedBarber.id, selectedDate, selectedTime, selectedService.id);
+      if (hasBarberConflict) {
+        toast.error("Este horário acabou de ser preenchido por outro cliente. Por favor, escolha outro.");
         setBookingStep(3);
         fetchAvailableTimes(selectedBarber.id, selectedDate);
         setSubmitting(false);
         return;
+      }
+
+      // Check Customer Conflict
+      if (finalCustId) {
+        const { data: customerConflict } = await supabase
+          .from("appointments")
+          .select("id")
+          .eq("customer_id", finalCustId)
+          .neq("status", "cancelled")
+          .or(`start_time.lte.${startTimeCheck.toISOString()},end_time.gte.${startTimeCheck.toISOString()}`)
+          .or(`start_time.lt.${endTimeCheck.toISOString()},end_time.gt.${endTimeCheck.toISOString()}`)
+          .limit(1);
+
+        if (customerConflict && customerConflict.length > 0) {
+          toast.error("Você já possui um agendamento que conflita com este horário.");
+          setSubmitting(false);
+          return;
+        }
       }
 
       // 2. Create appointment
