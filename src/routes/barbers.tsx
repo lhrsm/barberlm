@@ -282,6 +282,8 @@ function BarbersComponent() {
       const queryClient = (window as any).queryClient;
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ["barbers"] });
+        queryClient.invalidateQueries({ queryKey: ["services"] });
+        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
       }
       
       fetchBarbers();
