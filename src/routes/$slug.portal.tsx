@@ -1566,28 +1566,6 @@ function ClientPortalComponent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-white border-[#D4AF37] border-2 h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl text-black">
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
-            <div className="h-20 w-20 rounded-full bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37]">
-              <Calendar size={40} />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black uppercase italic tracking-tighter">Agendamento Unificado</h2>
-              <p className="text-gray-500 text-sm">Estamos redirecionando você para o fluxo oficial de agendamento da {shop?.business_name}.</p>
-            </div>
-            <Button 
-              className="bg-black text-white hover:bg-black/90 font-bold px-8 h-12 rounded-xl"
-              onClick={() => {
-                setIsBookingOpen(false);
-                window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'));
-              }}
-            >
-              Continuar para Agendamento
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={isRefundModalOpen} onOpenChange={setIsRefundModalOpen}>
         <DialogContent>
