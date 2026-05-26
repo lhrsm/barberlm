@@ -1,0 +1,743 @@
+import { createFileRoute, useNavigate, Outlet, useLocation } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, Plus, Minus, Tag, TicketPercent } from "lucide-react";
+import { toast } from "sonner";
+import { createNotification } from "@/utils/notifications";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { format, addMinutes, parseISO, isSameDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
+import { triggerWhatsAppMessage } from "@/utils/whatsapp";
+import { normalizePhone } from "@/utils/phone";
+import { PhoneInput } from 'react-international-phone';
+import 'react-international-phone/style.css';
+
+export const Route = createFileRoute("/$slug")({
+  component: ShopPageComponent,
+  head: ({ params }) => {
+    return {
+      title: `Barbearia | ${params.slug}`,
+      meta: [
+        { name: "description", content: "Agende seu horário online de forma rápida e fácil." },
+        { property: "og:title", content: "Barbearia Premium" },
+        { property: "og:description", content: "Experiência premium de barbearia com agendamento online." },
+      ],
+    };
+  },
+});
+
+function ShopPageComponent() {
+  const { slug } = Route.useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
+  const isEmbedded = searchParams.get('embed') === 'true';
+  const initialPhone = searchParams.get('phone') || "";
+  const initialName = searchParams.get('name') || "";
+  const [shop, setShop] = useState<any>(null);
+  const [services, setServices] = useState<any[]>([]);
+  const [barbers, setBarbers] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [scrolled, setScrolled] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [bookingStep, setBookingStep] = useState(1);
+  const [selectedService, setSelectedService] = useState<any>(null);
+  const [selectedBarber, setSelectedBarber] = useState<any>(null);
+  const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelTokenInput, setCancelTokenInput] = useState("");
+  const [ratingAppointment, setRatingAppointment] = useState<any>(null);
+  const [ratingValue, setRatingValue] = useState(5);
+  const [ratingComment, setRatingComment] = useState("");
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [modalBarber, setModalBarber] = useState<any>(null);
+  const [isPixVisible, setIsPixVisible] = useState(false);
+  const [selectedProductForModal, setSelectedProductProductForModal] = useState<any>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("Todos");
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedTime, setSelectedTime] = useState("09:00");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
+  const [customerCashback, setCustomerCashback] = useState(0);
+  const [customerCredits, setCustomerCredits] = useState(0);
+  const [useCashback, setUseCashback] = useState(false);
+  const [useCredits, setUseCredits] = useState(false);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [fetchingTimes, setFetchingTimes] = useState(false);
+  const [dayAppointments, setDayAppointments] = useState<any[]>([]);
+  const [loadingDayData, setLoadingDayData] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
+  const [showPixStep, setShowPixStep] = useState(false);
+  
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
+  const categories = useMemo(() => {
+    const cats = ["Todos", ...new Set(products.map(p => p.category).filter(Boolean))];
+    return cats;
+  }, [products]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (slug) {
+      fetchShopData(slug);
+      const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
+      if (savedClient) {
+        try {
+          const parsedClient = JSON.parse(savedClient);
+          setCustomerPhone(parsedClient.phone);
+          setCustomerName(parsedClient.name);
+          setCustomerId(parsedClient.customer_id);
+        } catch (e) {
+          console.error('Error parsing saved client session:', e);
+        }
+      }
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    const handleOpenBooking = () => {
+      handleBookingAction();
+    };
+    window.addEventListener('OPEN_BOOKING_MODAL', handleOpenBooking);
+    return () => window.removeEventListener('OPEN_BOOKING_MODAL', handleOpenBooking);
+  }, [shop, customerPhone]);
+
+  useEffect(() => {
+    async function findCustomer() {
+      if (!shop?.id || !customerPhone) return;
+      const normalizedPhone = normalizePhone(customerPhone);
+      if (normalizedPhone.length < 10) {
+        if (bookingStep === 1) {
+          setCustomerId(null);
+          if (!localStorage.getItem(`client_portal_session_${slug}`)) {
+            setCustomerName("");
+          }
+        }
+        return;
+      }
+      setIsSearchingCustomer(true);
+      try {
+        const { data } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('phone', normalizedPhone)
+          .eq('user_id', shop.id)
+          .maybeSingle();
+        if (data) {
+          setCustomerId(data.id);
+          setCustomerName(data.name || "");
+          setCustomerCashback(data.cashback_balance || 0);
+          setCustomerCredits(data.credits || 0);
+        } else {
+          setCustomerId(null);
+          if (!localStorage.getItem(`client_portal_session_${slug}`)) {
+            if (customerId) setCustomerName("");
+          }
+        }
+      } catch (err) {
+        console.error('Error finding customer:', err);
+      } finally {
+        setIsSearchingCustomer(false);
+      }
+    }
+    if (bookingStep === 1 && isBookingOpen) {
+      const timer = setTimeout(() => { findCustomer(); }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [customerPhone, shop?.id, bookingStep, isBookingOpen, slug]);
+
+  useEffect(() => {
+    if (isEmbedded && initialPhone) {
+      setCustomerPhone(initialPhone);
+      if (initialName) setCustomerName(initialName);
+      const timer = setTimeout(() => {
+        const normalized = normalizePhone(initialPhone);
+        handlePhoneCheckWithParams(normalized, initialName);
+      }, 500);
+      return () => clearTimeout(timer);
+    } else if (isEmbedded) {
+      setIsBookingOpen(true);
+    }
+  }, [isEmbedded, initialPhone, initialName, shop?.id]);
+
+  const handlePhoneCheckWithParams = async (phone: string, name?: string) => {
+    if (!phone || phone.length < 8 || !shop?.id) return;
+    setSubmitting(true);
+    try {
+      const customer = await checkCustomerCashback(phone);
+      setCustomerPhone(phone);
+      if (name) setCustomerName(name);
+      else if (customer?.name) setCustomerName(customer.name);
+      setIsBookingOpen(true);
+      setBookingStep(2);
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao verificar identificação");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedDate && shop?.id && isBookingOpen) {
+      fetchDayData(selectedDate);
+    }
+  }, [selectedDate, shop?.id, isBookingOpen]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && shop?.font_family && shop.font_family !== 'Inter') {
+      const fontId = 'custom-shop-font';
+      let link = document.getElementById(fontId) as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.id = fontId;
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+      const fontName = shop.font_family.replace(/\s+/g, '+');
+      link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;700&display=swap`;
+    }
+  }, [shop?.font_family]);
+
+  useEffect(() => {
+    if (bookingStep === 4 && selectedBarber && selectedDate) {
+      setSelectedTime("");
+      fetchAvailableTimes(selectedBarber.id, selectedDate);
+    }
+  }, [bookingStep, selectedBarber, selectedDate]);
+
+  const fetchDayData = async (date: string) => {
+    if (!shop?.id) return;
+    setLoadingDayData(true);
+    try {
+      const startOfDay = `${date}T00:00:00Z`;
+      const endOfDay = `${date}T23:59:59Z`;
+      const { data } = await supabase
+        .from("appointments")
+        .select("id, barber_id, start_time, end_time, status")
+        .eq("user_id", shop.id)
+        .in("status", ["scheduled", "confirmed", "in_progress"])
+        .gte("start_time", startOfDay)
+        .lte("start_time", endOfDay);
+      setDayAppointments(data || []);
+    } catch (error) {
+      console.error("Error fetching day data:", error);
+    } finally {
+      setLoadingDayData(false);
+    }
+  };
+
+  const isBarberAvailableOnDate = (barber: any, date: string, service: any, appointments: any[]) => {
+    if (!service || !barber) return false;
+    const performsService = barber.barber_services?.some((bs: any) => bs.service_id === service.id);
+    if (!performsService) return false;
+    const dateObj = parseISO(date);
+    const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
+    const dayMap: Record<string, string> = {
+      'segunda-feira': 'monday',
+      'terça-feira': 'tuesday',
+      'quarta-feira': 'wednesday',
+      'quinta-feira': 'thursday',
+      'sexta-feira': 'friday',
+      'sábado': 'saturday',
+      'domingo': 'sunday'
+    };
+    const dayKey = dayMap[dayName] || dayName;
+    const workingHours = barber.working_hours?.[dayKey];
+    if (!workingHours || !workingHours.enabled) return false;
+    const barberAppointments = appointments?.filter(a => a.barber_id === barber.id) || [];
+    const [startHour, startMin] = workingHours.start.split(':').map(Number);
+    const [endHour, endMin] = workingHours.end.split(':').map(Number);
+    const interval = 30;
+    for (let hour = startHour; hour <= endHour; hour++) {
+      for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
+        if (hour === endHour && min >= endMin) break;
+        const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+        const [y, m, d] = date.split('-').map(Number);
+        const checkTime = new Date(y, m - 1, d, hour, min, 0);
+        if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
+        const isBusy = barberAppointments.some(app => {
+          const appStart = new Date(app.start_time).getTime();
+          const appEnd = new Date(app.end_time).getTime();
+          const checkTimeMs = checkTime.getTime();
+          const serviceEndMs = checkTimeMs + (service.duration_minutes || 30) * 60 * 1000;
+          return checkTimeMs < appEnd && serviceEndMs > appStart;
+        });
+        if (!isBusy) return true;
+      }
+    }
+    return false;
+  };
+
+  async function fetchShopData(targetSlug: string) {
+    if (!targetSlug) return;
+    setLoading(true);
+    try {
+      const normalizedSlug = targetSlug.trim().toLowerCase();
+      const { data: currentShop, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("slug", normalizedSlug)
+        .maybeSingle();
+      if (profileError || !currentShop) {
+        setLoading(false);
+        return;
+      }
+      setShop(currentShop);
+      const [servicesRes, barbersRes, productsRes] = await Promise.all([
+        supabase.from("services").select("*").eq("user_id", currentShop.id).eq("active", true),
+        supabase.from("barbers").select("*, barber_services(service_id)").eq("user_id", currentShop.id).eq("active", true),
+        supabase.from("products").select("*").eq("user_id", currentShop.id).eq("active", true),
+      ]);
+      setServices(servicesRes.data || []);
+      setBarbers(barbersRes.data || []);
+      setProducts(productsRes.data || []);
+      if (typeof document !== 'undefined') document.title = `${currentShop.business_name} | Barbearia Premium`;
+    } catch (error) {
+      console.error("Error fetching shop data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleBookingAction = async () => {
+    if (shop?.scheduling_mode === 'manual') {
+      const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
+      window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
+    } else {
+      const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
+      if (savedClient) {
+        try {
+          const parsedClient = JSON.parse(savedClient);
+          setCustomerPhone(parsedClient.phone);
+          setCustomerName(parsedClient.name);
+          setCustomerId(parsedClient.customer_id);
+          if (parsedClient.customer_id) {
+            const { data } = await supabase.from('customers').select('*').eq('id', parsedClient.customer_id).maybeSingle();
+            if (data) {
+              setCustomerCashback(data.cashback_balance || 0);
+              setCustomerCredits(data.credits || 0);
+            }
+          }
+          setBookingStep(2);
+        } catch (e) {
+          setBookingStep(1);
+        }
+      } else {
+        setBookingStep(1);
+      }
+      setIsBookingOpen(true);
+    }
+  };
+
+  const handlePhoneCheck = async () => {
+    const normalized = normalizePhone(customerPhone);
+    if (!customerPhone || normalized.length < 8) {
+      toast.error("Por favor, informe um WhatsApp válido.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      let currentCustomer = null;
+      if (!customerId) {
+        const { data } = await supabase.from("customers").select("id, name").eq("phone", normalized).eq("user_id", shop.id).maybeSingle();
+        currentCustomer = data;
+      }
+      if (customerId || currentCustomer) {
+        const name = customerName || currentCustomer?.name;
+        if (name) {
+          setCustomerName(name);
+          toast.success(`Bem-vindo de volta, ${name}!`);
+        }
+        if (currentCustomer?.id) setCustomerId(currentCustomer.id);
+        setBookingStep(2);
+      } else {
+        if (!customerName || customerName.trim().length < 3) {
+          toast.info("Por favor, informe seu nome completo.");
+        } else {
+          setBookingStep(2);
+        }
+      }
+    } catch (e: any) {
+      toast.error("Erro ao verificar identificação: " + e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSelectService = (service: any) => {
+    setSelectedService(service);
+    const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
+    if (savedClient) {
+      try {
+        const parsedClient = JSON.parse(savedClient);
+        setCustomerPhone(parsedClient.phone);
+        setCustomerName(parsedClient.name);
+        setBookingStep(3);
+      } catch (e) {
+        setBookingStep(1);
+      }
+    } else {
+      setBookingStep(1);
+    }
+    setIsBookingOpen(true);
+  };
+
+  const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
+    const service = services.find(s => s.id === serviceId);
+    if (!service) return false;
+    const startTime = parseISO(`${date}T${time}:00`);
+    const endTime = addMinutes(startTime, service.duration_minutes || 30);
+    const startIso = startTime.toISOString();
+    const endIso = endTime.toISOString();
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("id, start_time, end_time, status")
+      .eq("barber_id", barberId)
+      .in("status", ["scheduled", "confirmed", "in_progress"])
+      .lt("start_time", endIso)
+      .gt("end_time", startIso)
+      .limit(1);
+    if (error) return false;
+    return data && data.length > 0;
+  };
+
+  const fetchAvailableTimes = async (barberId: string, date: string) => {
+    if (!barberId) return;
+    setFetchingTimes(true);
+    try {
+      const barber = barbers.find(b => b.id === barberId);
+      if (!barber) return;
+      const dateObj = parseISO(date);
+      const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
+      const dayMap: Record<string, string> = {
+        'segunda-feira': 'monday', 'terça-feira': 'tuesday', 'quarta-feira': 'wednesday',
+        'quinta-feira': 'thursday', 'sexta-feira': 'friday', 'sábado': 'saturday', 'domingo': 'sunday'
+      };
+      const dayKey = dayMap[dayName] || dayName;
+      const workingHours = barber.working_hours?.[dayKey];
+      if (!workingHours || !workingHours.enabled) {
+        setAvailableTimes([]);
+        return;
+      }
+      const startOfDayTime = `${date}T00:00:00.000Z`;
+      const endOfDayTime = `${date}T23:59:59.999Z`;
+      const { data: appointments, error } = await supabase
+        .from("appointments")
+        .select("start_time, end_time")
+        .eq("barber_id", barberId)
+        .eq("status", "scheduled")
+        .gte("start_time", startOfDayTime)
+        .lte("start_time", endOfDayTime);
+      if (error) throw error;
+      const times = [];
+      const [startHour, startMin] = workingHours.start.split(':').map(Number);
+      const [endHour, endMin] = workingHours.end.split(':').map(Number);
+      for (let hour = startHour; hour <= endHour; hour++) {
+        for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
+          if (hour === endHour && min >= endMin) break;
+          const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+          const [y, m, d] = date.split('-').map(Number);
+          const checkTime = new Date(y, m - 1, d, hour, min, 0);
+          if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
+          const isBusy = appointments?.some(app => {
+            const appStart = new Date(app.start_time).getTime();
+            const appEnd = new Date(app.end_time).getTime();
+            const checkTimeMs = checkTime.getTime();
+            const slotEndMs = checkTimeMs + 30 * 60 * 1000;
+            return checkTimeMs < appEnd && slotEndMs > appStart;
+          });
+          if (!isBusy) times.push(timeStr);
+        }
+      }
+      setAvailableTimes(times);
+    } catch (error) {
+      console.error("Error fetching times:", error);
+      toast.error("Erro ao carregar horários disponíveis.");
+    } finally {
+      setFetchingTimes(false);
+    }
+  };
+
+  const handleFinalizeBooking = async () => {
+    const normalized = normalizePhone(customerPhone);
+    if (!customerName || !normalized) {
+      toast.error("Por favor, preencha seu nome e telefone.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      let finalCustId = customerId;
+      if (!finalCustId) {
+        const { data: customerData } = await supabase.from("customers").select("id").eq("phone", normalized).eq("user_id", shop.id).maybeSingle();
+        if (customerData) finalCustId = customerData.id;
+      }
+      if (!finalCustId) {
+        const { data: newCustomer } = await supabase.from("customers").insert([{
+          user_id: shop.id, barber_id: selectedBarber.id, name: customerName, phone: normalized, cashback_balance: 0
+        }]).select("id").single();
+        finalCustId = newCustomer.id;
+      }
+      const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
+      const endTime = addMinutes(startTime, selectedService.duration_minutes || 30);
+      const subtotal = calculateSubtotal();
+      const discount = calculateDiscount();
+      const total = calculateTotal();
+      const appointmentPayload: any = {
+        user_id: shop.id,
+        tenant_id: shop.id,
+        customer_id: finalCustId,
+        service_id: selectedService.id,
+        barber_id: selectedBarber.id,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        total_price: total,
+        original_total: subtotal,
+        subtotal_amount: subtotal,
+        discount_amount: discount,
+        coupon_id: appliedCoupon?.id || null,
+        coupon_code: appliedCoupon?.code || null,
+        credit_used: useCredits ? Math.min(customerCredits, calculateTotalBeforeCredits()) : 0,
+        cashback_used: useCashback ? Math.min(customerCashback, calculateTotalBeforeCashback()) : 0,
+        final_amount: total,
+        status: "scheduled",
+        payment_method: paymentMethod || 'barbershop',
+        payment_status: (paymentMethod === 'pix' || total === 0) ? 'paid' : 'pending',
+        items: [
+          { id: selectedService.id, name: selectedService.name, type: 'service', price: selectedService.price, quantity: 1 },
+          ...selectedProducts.map(p => ({ id: p.id, name: p.name, type: 'product', price: p.price, quantity: p.quantity || 1 }))
+        ],
+        source: 'portal'
+      };
+      const { error: appError, data: appointment } = await supabase.from("appointments").insert([appointmentPayload]).select().single();
+      if (appError) throw appError;
+      if (appliedCoupon) {
+        await supabase.from("coupons").update({ used_count: (appliedCoupon.used_count || 0) + 1 }).eq("id", appliedCoupon.id);
+      }
+      toast.success("Agendamento concluído!");
+      setIsBookingOpen(false);
+      window.location.href = `/${slug}/portal`;
+    } catch (error: any) {
+      toast.error("Erro ao realizar agendamento: " + error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const calculateSubtotal = () => {
+    const serviceTotal = selectedService?.price || 0;
+    const productsTotal = selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0);
+    return serviceTotal + productsTotal;
+  };
+
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+    const subtotal = calculateSubtotal();
+    let discount = 0;
+    if (appliedCoupon.type === 'fixed') discount = appliedCoupon.value;
+    else discount = subtotal * (appliedCoupon.value / 100);
+    if (appliedCoupon.max_discount) discount = Math.min(discount, appliedCoupon.max_discount);
+    return discount;
+  };
+
+  const calculateTotalBeforeCredits = () => Math.max(0, calculateSubtotal() - calculateDiscount());
+  const calculateTotalBeforeCashback = () => Math.max(0, calculateTotalBeforeCredits() - (useCredits ? customerCredits : 0));
+  const calculateTotal = () => Math.max(0, calculateTotalBeforeCashback() - (useCashback ? customerCashback : 0));
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || !shop?.id) return;
+    setIsApplyingCoupon(true);
+    try {
+      const { data: coupon, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('tenant_id', shop.id)
+        .eq('code', couponCode.toUpperCase().trim())
+        .eq('active', true)
+        .maybeSingle();
+      if (error) throw error;
+      if (!coupon) {
+        toast.error("Cupom inválido.");
+        return;
+      }
+      const now = new Date();
+      if (coupon.expires_at && new Date(coupon.expires_at) < now) {
+        toast.error("Cupom expirado.");
+        return;
+      }
+      if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
+        toast.error("Cupom esgotado.");
+        return;
+      }
+      const subtotal = calculateSubtotal();
+      if (coupon.minimum_amount && subtotal < coupon.minimum_amount) {
+        toast.error(`Pedido mínimo de R$ ${coupon.minimum_amount.toFixed(2)} não atingido.`);
+        return;
+      }
+      setAppliedCoupon(coupon);
+      toast.success("Cupom aplicado!");
+    } catch (error: any) {
+      toast.error("Erro ao aplicar cupom.");
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const checkCustomerCashback = async (phone: string) => {
+    const normalized = normalizePhone(phone);
+    if (normalized.length >= 10) {
+      setSubmitting(true);
+      try {
+        const { data } = await supabase.from("customers").select("id, cashback_balance, loyalty_points, name, credits").eq("phone", normalized).eq("user_id", shop.id).maybeSingle();
+        if (data) {
+          setCustomerCashback(data.cashback_balance || 0);
+          setCustomerCredits(data.credits || 0);
+          setCustomerId(data.id);
+          return data;
+        }
+      } finally {
+        setSubmitting(false);
+      }
+    }
+    return null;
+  };
+
+  const addToCart = (product: any) => {
+    const existing = selectedProducts.find(p => p.id === product.id);
+    if (existing) setSelectedProducts(selectedProducts.map(p => p.id === product.id ? { ...p, quantity: (p.quantity || 1) + 1 } : p));
+    else setSelectedProducts([...selectedProducts, { ...product, quantity: 1 }]);
+    toast.success(`${product.name} adicionado`);
+  };
+
+  const removeFromCart = (productId: string) => setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
+  const updateQuantity = (productId: string, delta: number) => setSelectedProducts(selectedProducts.map(p => p.id === productId ? { ...p, quantity: Math.max(1, (p.quantity || 1) + delta) } : p));
+  const toggleProduct = (product: any) => selectedProducts.find(p => p.id === product.id) ? removeFromCart(product.id) : addToCart(product);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-black"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div></div>;
+  if (!shop) return <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black text-white"><h1>404</h1></div>;
+
+  return (
+    <div className="min-h-screen bg-black text-white selection:bg-[#D4AF37]/30 overflow-x-hidden" style={{ fontFamily: shop?.font_family ? `'${shop.font_family}', sans-serif` : 'Inter, sans-serif' }}>
+      <main className="space-y-0">
+        <section id="inicio" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black z-10" />
+          <div className="absolute inset-0 z-0"><div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074')] bg-cover bg-center scale-105" /></div>
+          <div className="relative z-20 max-w-5xl mx-auto px-4 text-center space-y-8">
+            <h2 className="text-5xl md:text-8xl font-black tracking-tighter uppercase italic leading-none">Seu estilo <br/><span className="text-[#D4AF37]">começa aqui.</span></h2>
+            <Button size="lg" className="h-14 px-10 text-lg font-black bg-black text-white border-2 border-[#D4AF37] rounded-full hover:bg-[#D4AF37] hover:text-black transition-all" onClick={handleBookingAction}>Agendar Agora</Button>
+          </div>
+        </section>
+
+        <section id="servicos" className="py-24 bg-black">
+          <div className="max-w-6xl mx-auto px-4">
+            <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white mb-16">Nossos Serviços</h3>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {services.map((service) => (
+                <Card key={service.id} className="p-8 rounded-[2rem] bg-white text-black">
+                  <div className="flex justify-between items-start mb-6">
+                    <h4 className="text-2xl font-black uppercase tracking-tight">{service.name}</h4>
+                    <p className="text-3xl font-black">R$ {service.price.toFixed(2)}</p>
+                  </div>
+                  <Button className="w-full h-12 rounded-xl font-bold" onClick={() => handleSelectService(service)}>Agendar</Button>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <Dialog open={isBookingOpen} onOpenChange={(open) => { setIsBookingOpen(open); if (!open) setBookingStep(1); }}>
+        <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden bg-white h-[90vh] flex flex-col rounded-[2.5rem]">
+          <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+            {bookingStep === 1 && (
+              <div className="space-y-6">
+                <h4 className="text-3xl font-black uppercase italic tracking-tighter text-black">Olá!</h4>
+                <div className="space-y-2">
+                  <Label>WhatsApp</Label>
+                  <PhoneInput defaultCountry="br" value={customerPhone} onChange={setCustomerPhone} />
+                </div>
+                <Button className="w-full h-16 rounded-2xl font-black uppercase" onClick={handlePhoneCheck}>Continuar</Button>
+              </div>
+            )}
+            {bookingStep === 2 && (
+              <div className="space-y-4">
+                <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Selecione o Serviço</h5>
+                {services.map(s => (
+                  <div key={s.id} className="p-5 rounded-[2rem] bg-gray-50 border cursor-pointer flex justify-between items-center" onClick={() => { setSelectedService(s); setBookingStep(3); }}>
+                    <p className="font-black uppercase">{s.name}</p>
+                    <p className="font-black text-xl">R$ {s.price.toFixed(2)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {bookingStep === 3 && (
+              <div className="space-y-4">
+                <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Profissional</h5>
+                <div className="grid grid-cols-2 gap-4">
+                  {barbers.map(b => (
+                    <div key={b.id} className={cn("p-6 rounded-[2.5rem] cursor-pointer text-center border", selectedBarber?.id === b.id ? "border-[#D4AF37] bg-gray-50" : "bg-white")} onClick={() => { setSelectedBarber(b); setBookingStep(4); }}>
+                      <p className="font-black uppercase">{b.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {bookingStep === 4 && (
+              <div className="space-y-4">
+                <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Data e Hora</h5>
+                <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+                <div className="grid grid-cols-3 gap-2">
+                  {availableTimes.map(time => (
+                    <Button key={time} variant={selectedTime === time ? "default" : "outline"} onClick={() => setSelectedTime(time)}>{time}</Button>
+                  ))}
+                </div>
+                <Button className="w-full" onClick={() => setBookingStep(5)}>Continuar</Button>
+              </div>
+            )}
+            {bookingStep === 5 && (
+              <div className="space-y-6">
+                <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Resumo e Cupom</h5>
+                <div className="space-y-2">
+                  <Label>Cupom de Desconto</Label>
+                  <div className="flex gap-2">
+                    <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="CÓDIGO" />
+                    <Button onClick={handleApplyCoupon} disabled={isApplyingCoupon}>Aplicar</Button>
+                  </div>
+                </div>
+                <div className="space-y-2 border-t pt-4">
+                  <div className="flex justify-between"><span>Subtotal:</span><span>R$ {calculateSubtotal().toFixed(2)}</span></div>
+                  {appliedCoupon && <div className="flex justify-between text-green-600"><span>Desconto:</span><span>-R$ {calculateDiscount().toFixed(2)}</span></div>}
+                  <div className="flex justify-between font-black text-xl"><span>Total:</span><span>R$ {calculateTotal().toFixed(2)}</span></div>
+                </div>
+                <Button className="w-full h-16 rounded-2xl font-black uppercase" onClick={handleFinalizeBooking} disabled={submitting}>Confirmar Agendamento</Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
