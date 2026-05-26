@@ -158,6 +158,7 @@ function BarbersComponent() {
     e.preventDefault();
     if (!user) return;
 
+    console.log('ADDING BARBER', newBarber);
     const { data: barber, error } = await supabase.from("barbers").insert({
       ...newBarber,
       tenant_id: user.id,
@@ -166,17 +167,28 @@ function BarbersComponent() {
     }).select().single();
 
     if (error) {
+      console.error('INSERT BARBER ERROR', error);
       toast.error("Erro ao adicionar barbeiro");
     } else {
+      console.log('BARBER INSERTED', barber);
       // Add links to services
       if (selectedServices.length > 0) {
+        console.log('SELECTED SERVICES TO LINK', selectedServices);
         const links = selectedServices.map(serviceId => ({
           barber_id: barber.id,
           service_id: serviceId,
           tenant_id: user.id,
           user_id: user.id
         }));
-        await supabase.from("barber_services").insert(links);
+        
+        const { data: linkResult, error: linkError } = await supabase.from("barber_services").insert(links).select();
+        console.log('INSERT SERVICES RESULT', linkResult);
+        if (linkError) {
+          console.error('INSERT SERVICES ERROR', linkError);
+          toast.error("Erro ao vincular serviços ao barbeiro");
+        }
+      } else {
+        toast.warning("Nenhum serviço selecionado para o profissional.");
       }
 
       toast.success("Barbeiro cadastrado com sucesso!");
