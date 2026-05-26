@@ -1735,11 +1735,12 @@ function ShopPageComponent() {
             {shop.scheduling_mode === 'manual' ? 'Agendar WhatsApp' : 'Agendar Agora'}
           </Button>
         </div>
-        </main>
-      </>
-    ) : (
-      <Outlet />
-    )}
+      </main>
+    </>
+  ) : (
+    <Outlet />
+  )}
+
 
 
 
