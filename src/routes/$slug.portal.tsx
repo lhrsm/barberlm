@@ -937,101 +937,57 @@ function ClientPortalComponent() {
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-[#D4AF37] mb-2">Barbe<span className="text-white">X</span></h1>
-          <p className="text-white/90">Portal do Cliente</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 text-center"
+        >
+          <h1 className="text-4xl font-black text-[#D4AF37] mb-2 uppercase italic tracking-tighter">Barber<span className="text-white">LM</span></h1>
+          <p className="text-white/60 text-xs font-black uppercase tracking-[0.3em]">Portal do Cliente</p>
+        </motion.div>
 
-        <Card className="w-full max-w-md bg-white rounded-2xl shadow-2xl border-2 border-[#D4AF37] p-2">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-black">{shop?.business_name}</CardTitle>
-            <CardDescription className="text-gray-600">Acesse seu portal para gerenciar seus agendamentos</CardDescription>
+        <Card className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border-none p-2 overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#D4AF37] via-black to-[#D4AF37]" />
+          <CardHeader className="text-center pt-8">
+            <CardTitle className="text-3xl font-black uppercase italic tracking-tighter text-black leading-none">{shop?.business_name}</CardTitle>
+            <CardDescription className="text-gray-500 font-medium mt-2">Acesse seu histórico e agendamentos</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4">
+          <CardContent className="p-6">
+            <form onSubmit={isRegistering ? handleRegister : (e) => handleLogin(e)} className="space-y-6">
               {isRegistering && (
-                <>
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-4"
+                >
                   <div className="space-y-2">
-                    <Label htmlFor="reg-name" className="text-black font-semibold">Seu Nome</Label>
-                    <Input 
-                      id="reg-name" 
-                      placeholder="João Silva" 
-                      className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
-                      value={customerName} 
-                      onChange={(e) => setCustomerName(e.target.value)} 
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email" className="text-black font-semibold">E-mail (Opcional)</Label>
+                    <Label htmlFor="reg-name" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Seu Nome Completo</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                       <Input 
-                        id="reg-email" 
-                        type="email"
-                        placeholder="joao@email.com" 
-                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
-                        value={customerEmail} 
-                        onChange={(e) => setCustomerEmail(e.target.value)} 
+                        id="reg-name" 
+                        placeholder="João Silva" 
+                        className="h-14 pl-12 border-gray-100 bg-gray-50 focus:bg-white focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black text-lg font-bold rounded-2xl transition-all"
+                        value={customerName} 
+                        onChange={(e) => setCustomerName(e.target.value)} 
+                        required 
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-birth" className="text-black font-semibold">Data de Nascimento</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="reg-birth" 
-                        type="text"
-                        placeholder="dd/mm/aaaa"
-                        className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black" 
-                        value={customerBirthDate} 
-                        onChange={(e) => {
-                          let value = e.target.value.replace(/\D/g, "");
-                          if (value.length > 8) value = value.slice(0, 8);
-                          if (value.length > 4) {
-                            value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
-                          } else if (value.length > 2) {
-                            value = `${value.slice(0, 2)}/${value.slice(2)}`;
-                          }
-                          setCustomerBirthDate(value);
-                        }} 
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-avatar" className="text-black font-semibold">Foto de Perfil (Opcional)</Label>
-                    <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 overflow-hidden shrink-0">
-                        {customerAvatar ? (
-                          <img src={URL.createObjectURL(customerAvatar)} alt="Preview" className="h-full w-full object-cover" />
-                        ) : (
-                          <Camera className="h-5 w-5 text-gray-400" />
-                        )}
-                      </div>
-                      <Input 
-                        id="reg-avatar" 
-                        type="file"
-                        accept="image/*"
-                        className="h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-black hover:file:bg-gray-100"
-                        onChange={(e) => setCustomerAvatar(e.target.files?.[0] || null)}
-                      />
-                    </div>
-                  </div>
-                </>
+                </motion.div>
               )}
+              
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-black font-semibold">Telefone WhatsApp</Label>
+                <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">WhatsApp</Label>
                 <div className="relative international-phone-portal">
                   <PhoneInput
                     defaultCountry="br"
                     value={phone}
                     onChange={(p) => setPhone(p)}
                     className="w-full"
-                    inputClassName="!w-full !h-12 !bg-white !border-gray-200 !focus:border-[#D4AF37] !focus:ring-[#D4AF37] !text-black !text-lg !font-medium !rounded-2xl !pl-12"
+                    inputClassName="!w-full !h-14 !bg-gray-50 !border-gray-100 !focus:bg-white !focus:border-[#D4AF37] !focus:ring-[#D4AF37] !text-black !text-lg !font-bold !rounded-2xl !pl-12 !transition-all"
                     countrySelectorStyleProps={{
-                      buttonClassName: "!h-12 !bg-transparent !border-none !absolute !left-0 !z-10 !rounded-l-2xl",
+                      buttonClassName: "!h-14 !bg-transparent !border-none !absolute !left-0 !z-10 !rounded-l-2xl",
                       flagClassName: "!ml-2"
                     }}
                   />
@@ -1049,32 +1005,35 @@ function ClientPortalComponent() {
 
               <Button 
                 type="submit" 
-                className="w-full h-11 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-bold text-lg" 
+                className="w-full h-16 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-black text-xl uppercase tracking-tighter rounded-2xl shadow-xl shadow-black/10" 
                 disabled={submitting}
               >
-                {submitting ? "Processando..." : (isRegistering ? "Cadastrar" : "Entrar")}
+                {submitting ? "Processando..." : (isRegistering ? "Criar Conta" : "Entrar no Portal")}
               </Button>
             </form>
-            <div className="mt-6 text-center">
+            
+            <div className="mt-8 text-center pt-6 border-t border-gray-50">
               <button 
-                className="text-sm text-[#D4AF37] font-semibold hover:underline" 
+                className="text-xs text-gray-400 font-bold uppercase tracking-widest hover:text-[#D4AF37] transition-colors" 
                 onClick={() => setIsRegistering(!isRegistering)}
               >
-                {isRegistering ? "Já tem conta? Entre aqui" : "Ainda não tem conta? Cadastre-se"}
+                {isRegistering ? "Já tem conta? Fazer Login" : "Não tem conta? Cadastrar-se"}
               </button>
             </div>
           </CardContent>
         </Card>
+        
         <Button 
-          variant="link" 
-          className="mt-6 text-white hover:text-[#D4AF37] transition-colors" 
+          variant="ghost" 
+          className="mt-8 text-white/40 hover:text-[#D4AF37] transition-colors uppercase font-black tracking-widest text-[10px]" 
           onClick={() => navigate({ to: `/${slug}` })}
         >
-          Voltar para a barbearia
+          <ChevronLeft className="mr-2" size={14} /> Voltar para a barbearia
         </Button>
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-black pb-20">
