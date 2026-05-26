@@ -47,6 +47,13 @@ serve(async (req) => {
     const brNow = getBRDate();
     const isScheduled = body.scheduled === true;
 
+    // Update status to 'executing'
+    await supabase.from("automation_status").update({
+      status: 'executing',
+      server_time: new Date().toISOString(),
+      timezone: "America/Sao_Paulo"
+    }).eq("status", "active").or("status.eq.error").or("status.eq.offline");
+
     log(`Automation execution started (${isScheduled ? 'SCHEDULED' : 'MANUAL'})`, { 
       server_time_utc: new Date().toISOString(), 
       br_time: brNow.toISOString(),
@@ -68,6 +75,11 @@ serve(async (req) => {
 
     if (autoError) {
       log("Error fetching automations", autoError);
+      await supabase.from("automation_status").update({
+        status: 'error',
+        last_error: `Fetch Automations: ${autoError.message}`,
+        last_run_at: new Date().toISOString()
+      }).eq("id", (await supabase.from("automation_status").select("id").limit(1).single()).data?.id);
       throw autoError;
     }
 
@@ -78,6 +90,8 @@ serve(async (req) => {
     }
 
     const results = [];
+    let totalMessagesSent = 0;
+    let totalMessagesFailed = 0;
 
     for (const automation of automations || []) {
       log(`Processing automation: ${automation.type}`, { 
@@ -99,28 +113,69 @@ serve(async (req) => {
       }
 
       let res;
-      if (automation.type === "birthday") {
-        res = await processBirthdayAutomation(supabase, automation, connection, log, brNow);
-      } else if (automation.type === "appointment_confirmation") {
-        res = await processAppointmentConfirmation(supabase, automation, connection, log, brNow);
-      } else if (automation.type === "appointment_reminder") {
-        res = await processAppointmentReminder(supabase, automation, connection, log, brNow);
-      } else {
-        log(`Automation type ${automation.type} not implemented yet.`);
-        continue;
+      try {
+        if (automation.type === "birthday") {
+          res = await processBirthdayAutomation(supabase, automation, connection, log, brNow);
+        } else if (automation.type === "appointment_confirmation") {
+          res = await processAppointmentConfirmation(supabase, automation, connection, log, brNow);
+        } else if (automation.type === "appointment_reminder") {
+          res = await processAppointmentReminder(supabase, automation, connection, log, brNow);
+        } else {
+          log(`Automation type ${automation.type} not implemented yet.`);
+          continue;
+        }
+        totalMessagesSent += res.sent || 0;
+        totalMessagesFailed += res.failed || 0;
+        results.push(res);
+      } catch (err) {
+        log(`Error processing automation ${automation.type}`, err);
+        totalMessagesFailed++;
       }
-      results.push(res);
     }
 
     log("Automation execution finished", { total_results: results });
 
-    return new Response(JSON.stringify({ success: true, results, logs: executionLogs }), {
+    // Update status to 'active' with final counts
+    const { data: statusRow } = await supabase.from("automation_status").select("id").limit(1).single();
+    if (statusRow) {
+      await supabase.from("automation_status").update({
+        status: 'active',
+        last_run_at: new Date().toISOString(),
+        total_processed: automations?.length || 0,
+        messages_sent: totalMessagesSent,
+        messages_failed: totalMessagesFailed,
+        last_error: null
+      }).eq("id", statusRow.id);
+    }
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      results, 
+      logs: executionLogs,
+      summary: {
+        total_automations: automations?.length || 0,
+        messages_sent: totalMessagesSent,
+        messages_failed: totalMessagesFailed
+      }
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
 
   } catch (error) {
     console.error("Automation Error:", error.message);
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+    const { data: statusRow } = await supabase.from("automation_status").select("id").limit(1).single();
+    if (statusRow) {
+      await supabase.from("automation_status").update({
+        status: 'error',
+        last_error: error.message,
+        last_run_at: new Date().toISOString()
+      }).eq("id", statusRow.id);
+    }
     return new Response(JSON.stringify({ error: error.message, logs: executionLogs }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
