@@ -204,6 +204,7 @@ function BarbersComponent() {
     e.preventDefault();
     if (!editingBarber || !user) return;
 
+    console.log('UPDATING BARBER', editingBarber.id);
     const { error } = await supabase
       .from("barbers")
       .update({
@@ -218,19 +219,35 @@ function BarbersComponent() {
       .eq("id", editingBarber.id);
 
     if (error) {
+      console.error('UPDATE BARBER ERROR', error);
       toast.error("Erro ao atualizar barbeiro");
     } else {
+      console.log('BARBER UPDATED SUCCESS');
       // Update services: delete existing and insert new
-      await supabase.from("barber_services").delete().eq("barber_id", editingBarber.id);
+      const { error: deleteError } = await supabase.from("barber_services").delete().eq("barber_id", editingBarber.id);
       
+      if (deleteError) {
+        console.error('DELETE OLD SERVICES ERROR', deleteError);
+      }
+
       if (selectedServices.length > 0) {
+        console.log('INSERTING NEW SERVICES', selectedServices);
         const links = selectedServices.map(serviceId => ({
           barber_id: editingBarber.id,
           service_id: serviceId,
           tenant_id: user.id,
           user_id: user.id
         }));
-        await supabase.from("barber_services").insert(links);
+        
+        const { data: linkResult, error: linkError } = await supabase.from("barber_services").insert(links).select();
+        console.log('INSERT SERVICES RESULT', linkResult);
+        
+        if (linkError) {
+          console.error('INSERT SERVICES ERROR', linkError);
+          toast.error("Erro ao atualizar serviços do barbeiro");
+        }
+      } else {
+        toast.warning("O profissional ficou sem serviços vinculados.");
       }
 
       toast.success("Barbeiro atualizado com sucesso!");
