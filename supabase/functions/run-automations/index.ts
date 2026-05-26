@@ -137,7 +137,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
   
   const { data: appointments } = await supabase
     .from("appointments")
-    .select("*, customers(*), profiles:barber_id(*)")
+    .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
     .eq("barber_id", automation.barber_id)
     .gte("created_at", tenMinutesAgo);
 
@@ -160,6 +160,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
       data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
       horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       profissional: appt.profiles?.responsible_name || "Seu Barbeiro",
+      servico: appt.services?.name || "Serviço",
     });
 
     const phone = appt.customers?.phone || appt.phone;
@@ -188,18 +189,15 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
 }
 
 async function processAppointmentReminder(supabase: any, automation: any, connection: any) {
-  // trigger_delay is in hours
   const delayHours = automation.trigger_delay || 24;
   const now = new Date();
   
-  // Calculate window: targetTime is (now + delayHours)
-  // We check for appointments starting in the next hour or similar
   const targetTimeStart = new Date(now.getTime() + (delayHours * 60 * 60 * 1000)).toISOString();
   const targetTimeEnd = new Date(now.getTime() + ((delayHours + 1) * 60 * 60 * 1000)).toISOString();
 
   const { data: appointments } = await supabase
     .from("appointments")
-    .select("*, customers(*), profiles:barber_id(*)")
+    .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
     .eq("barber_id", automation.barber_id)
     .eq("status", "scheduled")
     .gte("start_time", targetTimeStart)
@@ -223,6 +221,8 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
       barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
       data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
       horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      profissional: appt.profiles?.responsible_name || "Seu Barbeiro",
+      servico: appt.services?.name || "Serviço",
     });
 
     const phone = appt.customers?.phone || appt.phone;
