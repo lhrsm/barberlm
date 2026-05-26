@@ -158,17 +158,22 @@ export function AppointmentModal({
     const startIso = startTime.toISOString();
     const endIso = endTime.toISOString();
 
-    console.log('DEBUG: checkConflict (Admin)', { barberId, startIso, endIso, customerId });
+    console.log('DEBUG: checkConflict (Admin)', { barberId, startIso, endIso, customerId, editingAppointmentId });
 
     // 1. Check Barber Conflict
-    const { data: barberConflict, error: barberError } = await supabase
+    let barberQuery = supabase
       .from("appointments")
       .select("id, start_time, end_time, status")
       .eq("barber_id", barberId)
       .in("status", ["scheduled", "confirmed", "in_progress"])
       .lt("start_time", endIso)
-      .gt("end_time", startIso)
-      .limit(1);
+      .gt("end_time", startIso);
+
+    if (editingAppointmentId) {
+      barberQuery = barberQuery.neq("id", editingAppointmentId);
+    }
+
+    const { data: barberConflict, error: barberError } = await barberQuery.limit(1);
 
     if (barberError) {
       console.error("Barber conflict query error:", barberError);
