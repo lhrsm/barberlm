@@ -387,15 +387,14 @@ function CalendarComponent() {
 
             <AppointmentModal
               open={isDialogOpen}
-              onOpenChange={setIsDialogOpen}
-              initialDate={modalInitialData.date}
-              initialTime={modalInitialData.time}
-              initialStep={modalInitialData.step}
-              editingAppointmentId={modalInitialData.editingId}
               onOpenChange={(open) => {
                 setIsDialogOpen(open);
                 if (!open) setModalInitialData({});
               }}
+              initialDate={modalInitialData.date}
+              initialTime={modalInitialData.time}
+              initialStep={modalInitialData.step}
+              editingAppointmentId={modalInitialData.editingId}
               onSuccess={() => fetchData()}
               trigger={
                 <Button 
