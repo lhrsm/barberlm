@@ -91,7 +91,7 @@ export function AdminNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, instanceId]);
 
   const getIcon = (type: string) => {
     switch (type) {
