@@ -33,6 +33,8 @@ import { toast } from "sonner";
 export function NotificationsCenter() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const instanceId = useId().replace(/:/g, ""); // Remove colons for channel name compatibility
+  
   
   const { data: notifications, isLoading } = useQuery({
     queryKey: ["notifications"],
