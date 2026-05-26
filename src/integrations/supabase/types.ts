@@ -422,6 +422,7 @@ export type Database = {
           created_at: string | null
           id: string
           service_id: string | null
+          tenant_id: string | null
           user_id: string | null
         }
         Insert: {
@@ -429,6 +430,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           service_id?: string | null
+          tenant_id?: string | null
           user_id?: string | null
         }
         Update: {
@@ -436,6 +438,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           service_id?: string | null
+          tenant_id?: string | null
           user_id?: string | null
         }
         Relationships: [
