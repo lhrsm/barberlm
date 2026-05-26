@@ -78,6 +78,10 @@ function SettingsComponent() {
     pix_key: "",
     pix_qr_code_url: "",
     whatsapp_number: "",
+    // Z-API settings
+    instance_id: "",
+    instance_token: "",
+    client_token: "",
   });
 
 
