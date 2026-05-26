@@ -179,7 +179,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
           ...(isRecurring && { 
             subscription_data: { 
               metadata: { userId: userId, environment: data.environment },
-              ...(trialDays && { trial_period_days: trialDays })
+              ...(stripeTrialEnd && { trial_end: stripeTrialEnd })
             } 
           }),
         }),
