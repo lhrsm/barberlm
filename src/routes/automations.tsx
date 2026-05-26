@@ -137,6 +137,7 @@ function AutomationsComponent() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isIAExecuting, setIsIAExecuting] = useState(false);
   const [isTesting, setIsTesting] = useState<string | null>(null);
+  const [isRunningAll, setIsRunningAll] = useState(false);
 
   const handleTestAutomation = async (automation: any) => {
     if (!tenantId) return;
@@ -168,7 +169,32 @@ function AutomationsComponent() {
     } finally {
       setIsTesting(null);
     }
+  const handleRunAllAutomations = async () => {
+    if (!tenantId) return;
+    setIsRunningAll(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('run-automations', {
+        body: { tenantId }
+      });
+
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success("Execução de automações concluída!");
+        console.log("Logs de execução:", data.logs);
+        fetchLogs();
+      } else {
+        toast.error("Erro ao executar automações: " + (data.error || "Erro desconhecido"));
+      }
+    } catch (err: any) {
+      console.error("Run All Error:", err);
+      toast.error(err.message || "Erro ao processar execução das automações");
+    } finally {
+      setIsRunningAll(false);
+    }
   };
+
 
 
   useEffect(() => {
@@ -328,6 +354,19 @@ function AutomationsComponent() {
             <p className="text-muted-foreground">Configure notificações e lembretes automáticos para seus clientes.</p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="default" 
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700" 
+              onClick={handleRunAllAutomations}
+              disabled={isRunningAll}
+            >
+              {isRunningAll ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Play size={18} />
+              )}
+              Executar agora
+            </Button>
             <Button variant="outline" className="gap-2" asChild>
               <a href="/integrations">
                 <Settings2 size={18} /> Configurar Integrações
