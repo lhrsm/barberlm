@@ -298,7 +298,7 @@ export function CouponManagement() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Switch 
-                        checked={coupon.active} 
+                        checked={!!coupon.active} 
                         onCheckedChange={(v) => toggleCouponMutation.mutate({ id: coupon.id, active: v })}
                       />
                       <Badge variant={coupon.active ? "default" : "secondary"}>

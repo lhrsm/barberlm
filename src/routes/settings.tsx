@@ -35,6 +35,7 @@ import {
   History
 } from "lucide-react";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
+import { CouponManagement } from "@/components/admin/CouponManagement";
 
 import {
   Dialog,
@@ -270,7 +271,7 @@ function SettingsComponent() {
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 max-w-[1000px] bg-white border border-slate-200 text-black">
+            <TabsList className="grid w-full grid-cols-5 md:grid-cols-9 max-w-[1100px] bg-white border border-slate-200 text-black">
               <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
                 <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
               </TabsTrigger>
@@ -283,7 +284,11 @@ function SettingsComponent() {
               <TabsTrigger value="scheduling" className="gap-2 text-xs sm:text-sm">
                 <Calendar size={16} /> <span className="hidden sm:inline">Agendamento</span>
               </TabsTrigger>
+              <TabsTrigger value="coupons" className="gap-2 text-xs sm:text-sm">
+                <Gift size={16} /> <span className="hidden sm:inline">Cupons</span>
+              </TabsTrigger>
               <TabsTrigger value="whatsapp" className="gap-2 text-xs sm:text-sm">
+
                 <MessageSquare size={16} /> <span className="hidden sm:inline">WhatsApp</span>
               </TabsTrigger>
               <TabsTrigger value="payments" className="gap-2 text-xs sm:text-sm">
@@ -431,6 +436,23 @@ function SettingsComponent() {
                         title="Ver página"
                       >
                         <a href={`/${formData.slug}`} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="coupons" className="space-y-4">
+              <Card className="bg-white border-2 border-slate-200 text-black">
+                <CardContent className="pt-6">
+                  <CouponManagement />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       </Button>
