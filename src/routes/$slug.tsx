@@ -2052,7 +2052,11 @@ function ShopPageComponent() {
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       {barbers
-                        .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments))
+                        .filter(b => {
+                          const isAvailable = isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments);
+                          console.log(`FILTERING BARBER ${b.name}: ${isAvailable}`);
+                          return isAvailable;
+                        })
                         .map(b => (
                         <motion.div 
                           key={b.id} 
