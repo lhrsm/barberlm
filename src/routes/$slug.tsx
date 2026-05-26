@@ -696,9 +696,12 @@ function ShopPageComponent() {
           }
 
           const isBusy = appointments?.some(app => {
-            const appStart = parseISO(app.start_time);
-            const appEnd = parseISO(app.end_time);
-            return checkTime >= appStart && checkTime < appEnd;
+            const appStart = new Date(app.start_time).getTime();
+            const appEnd = new Date(app.end_time).getTime();
+            const checkTimeMs = checkTime.getTime();
+            const slotEndMs = checkTimeMs + 30 * 60 * 1000; // 30 min duration
+            
+            return checkTimeMs < appEnd && slotEndMs > appStart;
           });
 
           if (!isBusy) {
