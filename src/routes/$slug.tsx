@@ -2161,60 +2161,63 @@ function ShopPageComponent() {
                   console.log('SERVICE TOTAL', calculateTotalBeforeCashback());
                 }}
               >
-
-                {shop.cashback_enabled && customerCashback > 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center justify-between p-5 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] shadow-inner"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
-                        <Gift size={24} className="text-emerald-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-white uppercase tracking-tighter">Você tem cashback!</p>
-                        <p className="text-xs font-bold text-emerald-500">Saldo: R$ {customerCashback.toFixed(2)}</p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant={useCashback ? "default" : "outline"} 
-                      size="sm" 
-                      onClick={() => setUseCashback(!useCashback)}
-                      className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px]", useCashback ? "bg-emerald-600 text-white border-none" : "border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10")}
-                      style={useCashback ? { backgroundColor: "#10b981" } : {}}
+                {/* Highlight Cards for Balance */}
+                <div className="space-y-3">
+                  {shop.cashback_enabled && customerCashback > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center justify-between p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-[2rem] shadow-lg"
                     >
-                      {useCashback ? "Aplicado" : "Usar"}
-                    </Button>
-                  </motion.div>
-                )}
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+                          <Gift size={24} className="text-emerald-400" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">Cashback Disponível</p>
+                          <p className="text-lg font-black text-white leading-none">R$ {customerCashback.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant={useCashback ? "default" : "outline"} 
+                        size="sm" 
+                        onClick={() => setUseCashback(!useCashback)}
+                        className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px] transition-all", useCashback ? "bg-emerald-500 text-white border-none shadow-lg shadow-emerald-500/20" : "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10")}
+                      >
+                        {useCashback ? "Aplicado" : "Usar"}
+                      </Button>
+                    </motion.div>
+                  )}
 
-                {customerCredits > 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center justify-between p-5 bg-primary/5 border border-primary/20 rounded-[2rem] shadow-inner"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                        <CircleDollarSign size={24} className="text-primary" style={{ color: primaryColor }} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-white uppercase tracking-tighter">Créditos Disponíveis</p>
-                        <p className="text-xs font-bold text-primary" style={{ color: primaryColor }}>Saldo: R$ {customerCredits.toFixed(2)}</p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant={useCredits ? "default" : "outline"} 
-                      size="sm" 
-                      onClick={() => setUseCredits(!useCredits)}
-                      className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px]", useCredits ? "bg-primary text-white border-none" : "border-primary/30 text-primary hover:bg-primary/10")}
-                      style={useCredits ? { backgroundColor: primaryColor } : {}}
+                  {customerCredits > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center justify-between p-5 bg-primary/10 border border-primary/20 rounded-[2rem] shadow-lg"
+                      style={{ backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}
                     >
-                      {useCredits ? "Aplicado" : "Usar"}
-                    </Button>
-                  </motion.div>
-                )}
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center" style={{ backgroundColor: `${primaryColor}30` }}>
+                          <CircleDollarSign size={24} className="text-primary" style={{ color: primaryColor }} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: primaryColor }}>Créditos Disponíveis</p>
+                          <p className="text-lg font-black text-white leading-none">R$ {customerCredits.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant={useCredits ? "default" : "outline"} 
+                        size="sm" 
+                        onClick={() => setUseCredits(!useCredits)}
+                        className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px] transition-all", useCredits ? "text-white border-none shadow-lg shadow-primary/20" : "border-primary/30 text-primary hover:bg-primary/10")}
+                        style={useCredits ? { backgroundColor: primaryColor, boxShadow: `0 10px 15px -3px ${primaryColor}40` } : { color: primaryColor, borderColor: `${primaryColor}50` }}
+                      >
+                        {useCredits ? "Aplicado" : "Usar Créditos"}
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
+
 
 
                 <div className="space-y-4">
