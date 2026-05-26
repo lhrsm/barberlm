@@ -67,6 +67,7 @@ const barberNavItems = (slug: string) => [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const instanceId = useId().replace(/:/g, "");
   const { tenantProfile, isImpersonating, stopImpersonation, tenantId } = useTenant();
   const { role: authRole, user: authUser, loading: authLoading, profile: authProfile } = useAuth();
   const { session, loading: profLoading, logout: profLogout } = useProfessionalAuth();
