@@ -1736,9 +1736,11 @@ function ShopPageComponent() {
           </Button>
         </div>
         </main>
-      ) : (
-        <Outlet />
-      )}
+      </>
+    ) : (
+      <Outlet />
+    )}
+
 
 
       <Dialog open={isBookingOpen} onOpenChange={(open) => {
