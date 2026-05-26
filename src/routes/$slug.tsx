@@ -316,7 +316,7 @@ function ShopPageComponent() {
     }
   };
 
-  const isBarberAvailableOnDate = (barber: any, date: string, service: any, appointments: any[]) => {
+  const isBarberAvailableOnDate = (barber: any, date: string, service: any, appointments: any[], cartItems: any[] = []) => {
     if (!service || !barber) return false;
     
     const performsService = barber.barber_services?.some((bs: any) => bs.service_id === service.id);
@@ -345,7 +345,9 @@ function ShopPageComponent() {
     }
 
     const barberAppointments = appointments?.filter(a => a.barber_id === barber.id) || [];
-    console.log(`CHECKING AVAILABILITY for ${barber.name} on ${date}. Appointments:`, barberAppointments.length);
+    const barberCartItems = cartItems.filter(item => item.barber_id === barber.id && item.date === date);
+    
+    console.log(`CHECKING AVAILABILITY for ${barber.name} on ${date}. Appointments: ${barberAppointments.length}, CartItems: ${barberCartItems.length}`);
     const [startHour, startMin] = workingHours.start.split(':').map(Number);
     const [endHour, endMin] = workingHours.end.split(':').map(Number);
     const interval = 30; // Min interval to check for a free slot
@@ -359,20 +361,29 @@ function ShopPageComponent() {
         
         if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
 
-        const isBusy = barberAppointments.some(app => {
+        const checkTimeMs = checkTime.getTime();
+        const serviceEndMs = checkTimeMs + (service.duration_minutes || 30) * 60 * 1000;
+
+        // Check Existing Appointments
+        const isBusyApp = barberAppointments.some(app => {
           const appStart = new Date(app.start_time).getTime();
           const appEnd = new Date(app.end_time).getTime();
-          const checkTimeMs = checkTime.getTime();
-          const serviceEndMs = checkTimeMs + (service.duration_minutes || 30) * 60 * 1000;
-          
           const conflict = checkTimeMs < appEnd && serviceEndMs > appStart;
-          if (conflict) {
-            console.log(`CONFLICT FOUND at ${timeStr} with appointment ${app.id}: ${app.start_time} - ${app.end_time}`);
-          }
           return conflict;
         });
 
-        if (!isBusy) return true;
+        if (isBusyApp) continue;
+
+        // Check Items Already in Cart
+        const isBusyCart = barberCartItems.some(item => {
+          const [itemHour, itemMin] = item.start_time.split(':').map(Number);
+          const itemStart = new Date(y, m - 1, d, itemHour, itemMin, 0).getTime();
+          const itemEnd = itemStart + (item.duration || 30) * 60 * 1000;
+          const conflict = checkTimeMs < itemEnd && serviceEndMs > itemStart;
+          return conflict;
+        });
+
+        if (!isBusyCart) return true;
       }
     }
     return false;
