@@ -188,22 +188,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       setIsTesting(false);
   }
   
-  async function fetchQRCode() {
-    if (!connection) return;
-    try {
-      const { data, error } = await supabase.functions.invoke('zapi-api', {
-        body: { 
-          action: 'get-qrcode', 
-          connectionId: connection.id 
-        }
-      });
-      if (data?.value) {
-        setQrCode(data.value);
-      }
-    } catch (err) {
-      console.error("Erro ao buscar QR Code:", err);
-    }
-  }
 
   }
   
