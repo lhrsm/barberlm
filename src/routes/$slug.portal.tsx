@@ -160,7 +160,6 @@ function ClientPortalComponent() {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'BOOKING_SUCCESS') {
-        setIsBookingOpen(false);
         if (client?.customer_id) {
           fetchClientData(client.customer_id);
         }
@@ -171,6 +170,7 @@ function ClientPortalComponent() {
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [client?.customer_id, slug]);
+
 
   // Sync customer phone and name from client session for booking
   useEffect(() => {
