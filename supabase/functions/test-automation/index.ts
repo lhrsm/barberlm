@@ -47,11 +47,21 @@ serve(async (req) => {
       .from("whatsapp_connections")
       .select("*")
       .eq("tenant_id", tenantId)
-      .eq("status", "connected")
       .maybeSingle();
 
     if (!connection) {
-      throw new Error("WhatsApp principal da barbearia não conectado. Por favor, conecte o WhatsApp nas configurações da barbearia.");
+      throw new Error("WhatsApp principal da barbearia não configurado.");
+    }
+
+    // Live check
+    console.log(`[Test] Performing live check for instance ${connection.instance_id}...`);
+    const statusUrl = `${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
+    const statusRes = await fetch(statusUrl, { method: "GET" });
+    const statusData = await statusRes.json();
+    console.log(`[Test] ZAPI STATUS RESPONSE:`, JSON.stringify(statusData));
+
+    if (statusData?.connected !== true) {
+      throw new Error("WhatsApp principal da barbearia não conectado na Z-API. Por favor, escaneie o QR Code nas configurações.");
     }
 
     const { data: appt } = await supabase
