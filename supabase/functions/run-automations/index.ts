@@ -132,10 +132,16 @@ serve(async (req) => {
             console.log(`[Automation] ZAPI STATUS RESPONSE for ${tenant.business_name}:`, JSON.stringify(statusData));
             console.log(`[Automation] CONNECTED?`, statusData?.connected);
             
+            connection.last_status_response = statusData; // Store for logging
+
             // Strict validation as requested by user
             if (statusData?.connected === true) {
               console.log(`[Automation] Instance is ACTUALLY connected. Updating DB status.`);
-              await supabase.from("whatsapp_connections").update({ status: 'connected', connected: true, updated_at: new Date().toISOString() }).eq("id", connection.id);
+              await supabase.from("whatsapp_connections").update({ 
+                status: 'connected', 
+                connected: true, 
+                updated_at: new Date().toISOString() 
+              }).eq("id", connection.id);
               connection.status = 'connected';
             } else {
               console.log(`[Automation] Instance is indeed disconnected.`);
