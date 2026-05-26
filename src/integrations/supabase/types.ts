@@ -112,6 +112,8 @@ export type Database = {
           status: string | null
           tenant_id: string | null
           total_price: number | null
+          updated_by_id: string | null
+          updated_by_type: string | null
           user_id: string
         }
         Insert: {
@@ -143,6 +145,8 @@ export type Database = {
           status?: string | null
           tenant_id?: string | null
           total_price?: number | null
+          updated_by_id?: string | null
+          updated_by_type?: string | null
           user_id: string
         }
         Update: {
@@ -174,6 +178,8 @@ export type Database = {
           status?: string | null
           tenant_id?: string | null
           total_price?: number | null
+          updated_by_id?: string | null
+          updated_by_type?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1110,6 +1116,7 @@ export type Database = {
           cashback_enabled: boolean
           cashback_percentage: number
           created_at: string
+          effective_plan: string | null
           email: string | null
           font_color: string | null
           font_family: string | null
@@ -1128,11 +1135,13 @@ export type Database = {
           role: string | null
           scheduling_mode: string | null
           secondary_color: string | null
+          selected_plan: string | null
           slug: string | null
           status: string | null
           suspension_reason: string | null
           tenant_id: string | null
           trial_end: string | null
+          trial_start: string | null
           updated_at: string
           whatsapp_enabled: boolean | null
           whatsapp_number: string | null
@@ -1145,6 +1154,7 @@ export type Database = {
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          effective_plan?: string | null
           email?: string | null
           font_color?: string | null
           font_family?: string | null
@@ -1163,11 +1173,13 @@ export type Database = {
           role?: string | null
           scheduling_mode?: string | null
           secondary_color?: string | null
+          selected_plan?: string | null
           slug?: string | null
           status?: string | null
           suspension_reason?: string | null
           tenant_id?: string | null
           trial_end?: string | null
+          trial_start?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
@@ -1180,6 +1192,7 @@ export type Database = {
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
+          effective_plan?: string | null
           email?: string | null
           font_color?: string | null
           font_family?: string | null
@@ -1198,11 +1211,13 @@ export type Database = {
           role?: string | null
           scheduling_mode?: string | null
           secondary_color?: string | null
+          selected_plan?: string | null
           slug?: string | null
           status?: string | null
           suspension_reason?: string | null
           tenant_id?: string | null
           trial_end?: string | null
+          trial_start?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean | null
           whatsapp_number?: string | null
@@ -2095,6 +2110,7 @@ export type Database = {
               error: true
             } & "Could not choose the best candidate function between: public.cancel_appointment_by_token(token_val => text), public.cancel_appointment_by_token(token_val => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
           }
+      check_expired_trials: { Args: never; Returns: undefined }
       decrement_product_stock: {
         Args: { amount: number; prod_id: string }
         Returns: undefined
