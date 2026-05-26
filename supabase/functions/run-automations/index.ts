@@ -81,12 +81,17 @@ serve(async (req) => {
     for (const tenant of tenants || []) {
       const tenantId = tenant.id;
       
-      // Update global status for the tenant if possible, or just global
+    // Update global status for the tenant if possible, or just global
+    const { data: statusRows } = await supabase.from("automation_status").select("id").limit(1);
+    const globalStatusId = statusRows?.[0]?.id;
+
+    if (globalStatusId) {
       await supabase.from("automation_status").update({
         status: 'executing',
         server_time: serverTime,
         timezone: "America/Bahia"
-      }).eq('id', 'global'); // Or per tenant if we add tenant_id to status
+      }).eq('id', globalStatusId);
+    }
 
       const { data: automations, error: autoError } = await supabase
         .from("automations")
@@ -139,14 +144,16 @@ serve(async (req) => {
     const executionTime = `${Date.now() - startTime}ms`;
     
     // Update global status
-    await supabase.from("automation_status").update({
-      status: 'active',
-      last_run_at: serverTime,
-      total_processed: appointmentsFound.length + birthdaysFound.length,
-      messages_sent: messagesSent.filter(m => m.status === 'success').length,
-      messages_failed: messagesSent.filter(m => m.status === 'error').length,
-      last_error: errors.length > 0 ? errors.slice(0, 3).join("; ") : null
-    }).eq("id", 'global');
+    if (globalStatusId) {
+      await supabase.from("automation_status").update({
+        status: 'active',
+        last_run_at: serverTime,
+        total_processed: appointmentsFound.length + birthdaysFound.length,
+        messages_sent: messagesSent.filter(m => m.status === 'success').length,
+        messages_failed: messagesSent.filter(m => m.status === 'error').length,
+        last_error: errors.length > 0 ? errors.slice(0, 3).join("; ") : null
+      }).eq("id", globalStatusId);
+    }
 
     const responseData = {
       success: true,
