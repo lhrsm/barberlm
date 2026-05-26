@@ -124,6 +124,7 @@ serve(async (req) => {
 
         for (const automation of automations || []) {
           try {
+            console.log(`[Automation] Processing ${automation.type} for tenant ${tenant.business_name}`);
             let res: any = { found: 0, sent: 0, failed: 0 };
             
             if (automation.type === "birthday") {
@@ -132,6 +133,9 @@ serve(async (req) => {
               res = await processAppointmentConfirmation(supabase, automation, connection, forceMode);
             } else if (automation.type === "appointment_reminder") {
               res = await processAppointmentReminder(supabase, automation, connection, forceMode);
+            } else {
+              console.log(`[Automation] Type ${automation.type} not implemented yet.`);
+              continue;
             }
 
             if (res.appointments) appointmentsFound.push(...res.appointments.map((a:any) => ({ ...a, tenant_id: tenantId })));
@@ -141,6 +145,19 @@ serve(async (req) => {
             if (res.ignored) ignoredRecords.push(...res.ignored.map((i:any) => ({ ...i, tenant_id: tenantId })));
           } catch (autoLoopErr) {
             console.error(`[Automation] Error processing automation ${automation.type} for tenant ${tenantId}:`, autoLoopErr);
+            // Salvar log de erro mesmo se a função de processamento falhar catastroficamente
+            try {
+              await supabase.from("automation_logs").insert({
+                automation_id: automation.id,
+                tenant_id: tenantId,
+                status: "error",
+                message_type: automation.type,
+                error_message: `Internal processing error: ${autoLoopErr.message}`,
+                sent_at: new Date().toISOString()
+              });
+            } catch (logErr) {
+              console.error("[Automation] Critical failure to log error:", logErr);
+            }
             errors.push(`Tenant ${tenant.business_name} - Automação ${automation.type}: ${autoLoopErr.message}`);
           }
         }
