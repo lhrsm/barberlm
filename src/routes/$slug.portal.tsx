@@ -36,10 +36,13 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { normalizePhone, formatPhoneMask } from "@/utils/phone";
+import { PhoneInput } from 'react-international-phone';
+import 'react-international-phone/style.css';
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
 });
+
 
 function ClientPortalComponent() {
   const { slug } = Route.useParams();
