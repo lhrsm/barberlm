@@ -1913,7 +1913,7 @@ export type Database = {
           },
         ]
       }
-      whatsapp_connections: {
+      whatsapp_instances: {
         Row: {
           barber_id: string | null
           barbershop_id: string
@@ -1923,13 +1923,13 @@ export type Database = {
           id: string
           instance_id: string
           instance_name: string | null
-          instance_token: string
           last_connection: string | null
           phone: string | null
           provider: string
           server_url: string
           status: string
           tenant_id: string | null
+          token: string
           updated_at: string
           webhook_url: string | null
         }
@@ -1942,13 +1942,13 @@ export type Database = {
           id?: string
           instance_id: string
           instance_name?: string | null
-          instance_token: string
           last_connection?: string | null
           phone?: string | null
           provider?: string
           server_url: string
           status?: string
           tenant_id?: string | null
+          token: string
           updated_at?: string
           webhook_url?: string | null
         }
@@ -1961,13 +1961,13 @@ export type Database = {
           id?: string
           instance_id?: string
           instance_name?: string | null
-          instance_token?: string
           last_connection?: string | null
           phone?: string | null
           provider?: string
           server_url?: string
           status?: string
           tenant_id?: string | null
+          token?: string
           updated_at?: string
           webhook_url?: string | null
         }
@@ -1983,68 +1983,6 @@ export type Database = {
             foreignKeyName: "whatsapp_connections_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      whatsapp_instances: {
-        Row: {
-          api_key: string | null
-          api_url: string | null
-          barber_id: string | null
-          connected: boolean | null
-          connection_type: string | null
-          created_at: string
-          id: string
-          instance_name: string | null
-          name: string
-          phone: string | null
-          provider: string
-          qrcode: string | null
-          status: string
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          api_key?: string | null
-          api_url?: string | null
-          barber_id?: string | null
-          connected?: boolean | null
-          connection_type?: string | null
-          created_at?: string
-          id?: string
-          instance_name?: string | null
-          name: string
-          phone?: string | null
-          provider?: string
-          qrcode?: string | null
-          status?: string
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          api_key?: string | null
-          api_url?: string | null
-          barber_id?: string | null
-          connected?: boolean | null
-          connection_type?: string | null
-          created_at?: string
-          id?: string
-          instance_name?: string | null
-          name?: string
-          phone?: string | null
-          provider?: string
-          qrcode?: string | null
-          status?: string
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "whatsapp_instances_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
