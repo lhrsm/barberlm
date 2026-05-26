@@ -530,6 +530,7 @@ function AutomationsComponent() {
                       <tr>
                         <th className="px-6 py-4">Automação</th>
                         <th className="px-6 py-4">Cliente</th>
+                        <th className="px-6 py-4">Telefone</th>
                         <th className="px-6 py-4">Canal</th>
                         <th className="px-6 py-4">Status</th>
                         <th className="px-6 py-4 text-right">Data & Hora</th>
@@ -570,6 +571,9 @@ function AutomationsComponent() {
                                 <span className="font-medium text-foreground/80">Cliente #{log.customer_id?.substring(0, 8)}</span>
                                 <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">ID: {log.id.substring(0, 6)}</span>
                               </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="font-medium text-muted-foreground tabular-nums">{log.phone || '-'}</span>
                             </td>
                             <td className="px-6 py-4">
                               <Badge variant="outline" className="gap-1.5 py-0.5 bg-background font-bold text-[10px] uppercase">
