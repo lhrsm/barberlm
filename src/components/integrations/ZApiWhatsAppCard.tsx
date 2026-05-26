@@ -376,7 +376,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 <Input 
                   name="api_url" 
                   defaultValue={connection?.server_url || "https://api.z-api.io"} 
-                  className="bg-white/5 border-white/10 focus:border-blue-500/50 transition-all h-11" 
+                  className="bg-white/5 border-white/10 focus:border-blue-500/50 transition-all h-11"
+                  placeholder="https://api.z-api.io"
                 />
               </div>
             </div>
