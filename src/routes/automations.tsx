@@ -276,7 +276,7 @@ function AutomationsComponent() {
       fetchCronStatus();
       
       // Real-time updates for automation status
-      const channel = supabase
+      const statusChannel = supabase
         .channel('automation_status_changes')
         .on('postgres_changes', { 
           event: '*', 
@@ -286,9 +286,24 @@ function AutomationsComponent() {
           fetchCronStatus();
         })
         .subscribe();
+
+      // Real-time updates for logs
+      const logsChannel = supabase
+        .channel('automation_logs_changes')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'automation_logs',
+          filter: `tenant_id=eq.${tenantId}`
+        }, () => {
+          fetchLogs();
+          fetchCronStatus();
+        })
+        .subscribe();
         
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(statusChannel);
+        supabase.removeChannel(logsChannel);
       };
     }
   }, [tenantId]);
