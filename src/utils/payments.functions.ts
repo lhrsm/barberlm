@@ -78,7 +78,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     return data;
   })
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    const { userId, supabase: supabaseClient } = context;
     const startTime = Date.now();
     console.log("[Checkout Server] 🚀 INICIANDO handler de createCheckoutSession", {
       priceId: data.priceId,
@@ -88,8 +88,21 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     });
     
     try {
+      // Buscar trial atual do banco de dados
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("trial_end")
+        .eq("id", userId)
+        .maybeSingle();
+      
+      const trialEnd = profile?.trial_end ? new Date(profile.trial_end) : null;
+      const now = new Date();
+      const trialRemainingSeconds = trialEnd && trialEnd > now 
+        ? Math.floor((trialEnd.getTime() - now.getTime()) / 1000)
+        : 0;
+
       const stripe = createStripeClient(data.environment);
-      console.log("[Checkout Server] 💳 Cliente Stripe criado para ambiente:", data.environment);
+      console.log("[Checkout Server] 💳 Cliente Stripe criado para ambiente:", data.environment, "Trial remaining (s):", trialRemainingSeconds);
     
       let stripePrice;
       try {
@@ -133,13 +146,16 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
       console.log(`[Checkout Server] ✅ Customer ID obtido em ${Date.now() - startTime}ms:`, customerId);
 
-      // Aplicar trial de 15 dias para todos os planos pagos recorrentes (conforme solicitado)
-      const trialDays = isRecurring ? 15 : undefined;
+      // Usar o trial_end existente para que a cobrança só inicie após o trial de 15 dias inicial
+      // Se o trial já expirou, não adicionamos trial_end na sessão (cobrança imediata)
+      const stripeTrialEnd = trialRemainingSeconds > 60 // Pelo menos 1 minuto sobrando
+        ? Math.floor(Date.now() / 1000) + trialRemainingSeconds
+        : undefined;
 
       console.log("[Checkout Server] 🏗️ Criando sessão de checkout...", {
         priceId: stripePrice.id,
         customerId,
-        trialDays,
+        trialEnd: stripeTrialEnd ? new Date(stripeTrialEnd * 1000).toISOString() : "Imediato",
         mode: isRecurring ? "subscription" : "payment"
       });
 
@@ -163,7 +179,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
           ...(isRecurring && { 
             subscription_data: { 
               metadata: { userId: userId, environment: data.environment },
-              ...(trialDays && { trial_period_days: trialDays })
+              ...(stripeTrialEnd && { trial_end: stripeTrialEnd })
             } 
           }),
         }),

@@ -78,7 +78,7 @@ export function usePlanLimits() {
 
     try {
       const [profileRes, subRes, barbRes, servRes, prodRes, appRes, whatsappRes] = await Promise.all([
-        supabase.from("profiles").select("plan, created_at").eq("id", tenantId).maybeSingle(),
+        supabase.from("profiles").select("plan, created_at, trial_end").eq("id", tenantId).maybeSingle(),
         supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end, stripe_customer_id, price_id").eq("user_id", tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from("barbers").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
         supabase.from("services").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
@@ -93,15 +93,23 @@ export function usePlanLimits() {
 
       if (profileRes.data) {
         console.log("[usePlanLimits] Profile data:", profileRes.data);
-        const currentPlan = (profileRes.data.plan as string)?.toLowerCase() as PlanType || "free";
-        setPlan(currentPlan);
         
-        // Calculate trial end (15 days from creation as fallback)
-        const createdAtStr = profileRes.data.created_at;
-        const createdAt = createdAtStr ? new Date(createdAtStr) : new Date();
-        const trialEnd = new Date(createdAt);
-        trialEnd.setDate(createdAt.getDate() + 15);
-        setTrialEndsAt(trialEnd.toISOString());
+        // Regra Principal: Durante trial effective_plan = PRO mesmo que selected_plan = ELITE
+        const trialEndStr = profileRes.data.trial_end;
+        const now = new Date();
+        const trialEnd = trialEndStr ? new Date(trialEndStr) : null;
+        const trialActive = trialEnd && trialEnd > now;
+        
+        let currentPlan: PlanType = "free";
+        
+        if (trialActive) {
+          currentPlan = "pro";
+        } else {
+          currentPlan = (profileRes.data.plan as string)?.toLowerCase() as PlanType || "free";
+        }
+        
+        setPlan(currentPlan);
+        setTrialEndsAt(trialEndStr || null);
       }
 
       if (subRes.data) {
@@ -114,9 +122,13 @@ export function usePlanLimits() {
           priceId: subRes.data.price_id || null,
         });
 
-        // If status is 'trialing' and we have current_period_end, that is our actual trial end from Stripe
-        if (subRes.data.status === 'trialing' && subRes.data.current_period_end) {
-          setTrialEndsAt(subRes.data.current_period_end);
+        // Se tem assinatura ativa ou em trial no stripe, isso sobrescreve o plano do profile
+        const isSubscribed = ['active', 'trialing', 'past_due'].includes(subRes.data.status || '');
+        if (isSubscribed && subRes.data.price_id) {
+          const planFromPrice = subRes.data.price_id.split('_')[0] as PlanType;
+          if (["starter", "pro", "elite"].includes(planFromPrice)) {
+            setPlan(planFromPrice);
+          }
         }
       } else {
         console.log("[usePlanLimits] No subscription found for user");
