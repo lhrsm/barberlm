@@ -58,19 +58,10 @@ function ClientPortalComponent() {
   const [customerData, setCustomerData] = useState<any>(null);
   const [phone, setPhone] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [bookingStep, setBookingStep] = useState(1);
-  const [selectedService, setSelectedService] = useState<any>(null);
-  const [selectedBarber, setSelectedBarber] = useState<any>(null);
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [selectedTime, setSelectedTime] = useState("");
-  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'barbershop' | 'credits' | null>(null);
-  const [useCashback, setUseCashback] = useState(false);
-  const [useCredits, setUseCredits] = useState(false);
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+
   
   // Auth state
   // phone state is already declared above
