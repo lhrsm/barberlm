@@ -112,7 +112,7 @@ export function WhatsAppSettings() {
   async function fetchConnections() {
     setLoading(true);
     const { data, error } = await supabase
-      .from("whatsapp_connections")
+      .from("whatsapp_instances")
       .select("*")
       .order("created_at", { ascending: true });
 
@@ -141,12 +141,12 @@ export function WhatsAppSettings() {
     }
 
     const { data, error } = await supabase
-      .from("whatsapp_connections")
+      .from("whatsapp_instances")
       .insert({
         barbershop_id: user.id,
         instance_id: newConnection.business_name,
         server_url: "", 
-        instance_token: newConnection.access_token,
+        token: newConnection.access_token,
         status: 'active',
         last_connection: new Date().toISOString(),
       } as any)
@@ -173,7 +173,7 @@ export function WhatsAppSettings() {
 
   async function handleDeleteConnection(id: string) {
     const { error } = await supabase
-      .from("whatsapp_connections")
+      .from("whatsapp_instances")
       .delete()
       .eq("id", id);
 
