@@ -550,16 +550,17 @@ function DashboardComponent() {
           // mas documentar o movimento. O valor original de 'income' continua lá, 
           // mas agora o cliente tem o crédito para usar.
           // Usando valor total original para o crédito
-          await supabase.from("transactions").insert({
+          await supabase.from("transactions").insert([{
             amount: 0,
             type: "income",
             description: `Crédito Gerado: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'} (R$ ${totalPrice.toFixed(2)})`,
             category: "Crédito Cliente",
             barber_id: appointment.barber_id,
             appointment_id: appointment.id,
+            tenant_id: tenantId,
             user_id: tenantId,
             date: new Date().toISOString().split('T')[0]
-          });
+          }]);
 
           toast.success("Agendamento cancelado e valor convertido em créditos!");
         } catch (err) {
