@@ -1189,9 +1189,6 @@ function ShopPageComponent() {
     }
   }, [isBookingOpen, bookingStep, customerPhone, customerName, customerId]);
 
-  if (isPortalRoute || isProfissionalRoute) {
-    return <Outlet />;
-  }
 
   if (loading) {
     return (
