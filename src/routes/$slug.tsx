@@ -847,6 +847,38 @@ function ShopPageComponent() {
         return;
       }
 
+  const addToBookingCart = () => {
+    if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) {
+      toast.error("Por favor, selecione serviço, barbeiro, data e horário.");
+      return;
+    }
+
+    const newItem = {
+      id: crypto.randomUUID(),
+      service_id: selectedService.id,
+      service_name: selectedService.name,
+      barber_id: selectedBarber.id,
+      barber_name: selectedBarber.name,
+      date: selectedDate,
+      start_time: selectedTime,
+      duration: selectedService.duration_minutes || 30,
+      price: selectedService.price || 0
+    };
+
+    setBookingCart([...bookingCart, newItem]);
+    
+    // Reset selection for next service
+    setSelectedService(null);
+    setSelectedBarber(null);
+    setSelectedTime("");
+    setBookingStep(2); // Voltar para seleção de serviço
+    toast.success("Serviço adicionado ao agendamento!");
+  };
+
+  const removeFromBookingCart = (id: string) => {
+    setBookingCart(bookingCart.filter(item => item.id !== id));
+  };
+
       // Check Customer Conflict
       if (finalCustId) {
         console.log('DEBUG: Checking customer conflicts', { finalCustId, date: selectedDate });
