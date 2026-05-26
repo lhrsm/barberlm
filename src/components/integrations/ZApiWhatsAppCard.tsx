@@ -27,11 +27,11 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-interface WhatsAppConnection {
+interface WhatsAppInstance {
   id: string;
   instance_id: string;
   server_url: string;
-  instance_token: string;
+  token: string;
   client_token?: string;
   status: string;
   webhook_url: string | null;
@@ -40,7 +40,7 @@ interface WhatsAppConnection {
 }
 
 export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
-  const [connection, setConnection] = useState<WhatsAppConnection | null>(null);
+  const [connection, setConnection] = useState<WhatsAppInstance | null>(null);
   const [loading, setLoading] = useState(true);
   const [isTesting, setIsTesting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -68,9 +68,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   async function fetchConnection() {
     try {
       const { data, error } = await supabase
-        .from("whatsapp_connections")
+        .from("whatsapp_instances")
         .select("*")
-        .eq("barbershop_id", tenantId)
+        .eq("tenant_id", tenantId)
         .maybeSingle();
 
       if (data) {
@@ -78,7 +78,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         setConnection(conn);
         setFormData({
           instance_id: conn.instance_id || "",
-          instance_token: conn.instance_token || "",
+          instance_token: conn.token || "",
           client_token: conn.client_token || "",
           api_url: conn.server_url || "https://api.z-api.io",
           phone: conn.phone || ""
@@ -177,21 +177,22 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook/${tenantId}`;
 
     const upsertData = {
-      barbershop_id: tenantId,
       instance_id: instanceId,
-      instance_token: instanceToken,
+      token: instanceToken,
       client_token: clientToken,
       server_url: cleanApiUrl,
       webhook_url: webhookUrl,
       phone: phone,
       provider: 'z-api',
-      tenant_id: tenantId
+      tenant_id: tenantId,
+      barber_id: tenantId,
+      status: connection?.status || 'disconnected'
     };
 
     try {
       const { data: saved, error } = connection?.id 
-        ? await supabase.from("whatsapp_connections").update(upsertData).eq("id", connection.id).select().single()
-        : await supabase.from("whatsapp_connections").insert([upsertData]).select().single();
+        ? await supabase.from("whatsapp_instances").update(upsertData).eq("id", connection.id).select().single()
+        : await supabase.from("whatsapp_instances").insert([upsertData]).select().single();
 
       if (error) throw error;
 
@@ -217,7 +218,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
   }
 
-  async function setupWebhook(conn: WhatsAppConnection) {
+  async function setupWebhook(conn: WhatsAppInstance) {
     if (!conn.webhook_url) return;
     try {
       await supabase.functions.invoke('zapi-api', {
@@ -302,7 +303,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     
     try {
       await supabase
-        .from('whatsapp_connections')
+        .from('whatsapp_instances')
         .update({ webhook_url: null })
         .eq('id', connection.id);
       
@@ -319,7 +320,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     
     try {
       await supabase
-        .from('whatsapp_connections')
+        .from('whatsapp_instances')
         .update({ webhook_url: tempWebhookUrl })
         .eq('id', connection.id);
       
