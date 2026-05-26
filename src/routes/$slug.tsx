@@ -287,14 +287,16 @@ function ShopPageComponent() {
     if (!shop?.id) return;
     setLoadingDayData(true);
     try {
+      // Use a range that covers the whole day in UTC, but filtering more precisely in memory
+      // to avoid timezone shifts. 
       const startOfDay = `${date}T00:00:00Z`;
       const endOfDay = `${date}T23:59:59Z`;
       
       const { data } = await supabase
         .from("appointments")
-        .select("barber_id, start_time, end_time")
+        .select("id, barber_id, start_time, end_time, status")
         .eq("user_id", shop.id)
-        .eq("status", "scheduled")
+        .in("status", ["scheduled", "confirmed", "in_progress"])
         .gte("start_time", startOfDay)
         .lte("start_time", endOfDay);
         
