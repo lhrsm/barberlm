@@ -187,14 +187,19 @@ export function AppointmentModal({
 
     // 2. Check Customer Conflict
     if (customerId) {
-      const { data: customerConflict, error: customerError } = await supabase
+      let customerQuery = supabase
         .from("appointments")
         .select("id, start_time, end_time, status")
         .eq("customer_id", customerId)
         .in("status", ["scheduled", "confirmed", "in_progress"])
         .lt("start_time", endIso)
-        .gt("end_time", startIso)
-        .limit(1);
+        .gt("end_time", startIso);
+
+      if (editingAppointmentId) {
+        customerQuery = customerQuery.neq("id", editingAppointmentId);
+      }
+
+      const { data: customerConflict, error: customerError } = await customerQuery.limit(1);
 
       if (customerError) {
         console.error("Customer conflict query error:", customerError);
