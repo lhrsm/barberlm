@@ -91,10 +91,22 @@ function AdminDashboard() {
         return acc + (plan ? Number(plan.price_monthly) : 0);
       }, 0);
 
-      const totalTransacted = appointments?.reduce((acc, curr) => acc + (curr.final_amount || 0), 0) || 0;
-      const totalCashback = appointments?.reduce((acc, curr) => acc + (curr.cashback_earned || 0), 0) || 0;
+      const completedAppointments = appointments?.filter(a => a.status === 'completed') || [];
+      const totalTransacted = completedAppointments.reduce((acc, curr) => acc + (curr.final_amount || 0), 0) || 0;
+      const totalCashback = completedAppointments.reduce((acc, curr) => acc + (curr.cashback_earned || 0), 0) || 0;
       const totalCredits = customers?.reduce((acc, curr) => acc + (curr.credits || 0), 0) || 0;
       const totalCustomers = customers?.length || 0;
+
+      // Real-time activity mapping based on latest DB records
+      const recentActivity = appointments?.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      ).slice(0, 4).map(app => ({
+        title: `Novo agendamento: ${app.status === 'pending' ? 'Aguardando' : 'Confirmado'}`,
+        time: formatDistanceToNow(new Date(app.created_at), { addSuffix: true, locale: ptBR }),
+        type: "appointment",
+        icon: CalendarCheck,
+        color: app.status === 'completed' ? "text-emerald-400" : "text-blue-400"
+      })) || [];
 
       return {
         totalTenants,
@@ -104,7 +116,8 @@ function AdminDashboard() {
         totalCashback,
         totalCredits,
         totalCustomers,
-        totalBarbers: barberCount || 0
+        totalBarbers: barberCount || 0,
+        recentActivity
       };
     }
   });
