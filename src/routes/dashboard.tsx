@@ -499,16 +499,17 @@ function DashboardComponent() {
 
       if (appointment.refund_type === 'refund') {
         // Estorno: Remove da receita (cria uma saída/despesa para abater)
-        await supabase.from("transactions").insert({
+        await supabase.from("transactions").insert([{
           amount: totalPrice,
           type: "expense",
           description: `Estorno (Cancelamento Pix): ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
           category: "Estorno",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
+          tenant_id: tenantId,
           user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
-        });
+        }]);
         toast.success("Agendamento cancelado e estorno registrado como saída!");
       } else if (appointment.refund_type === 'credits') {
         // Créditos: Adiciona ao saldo do cliente
