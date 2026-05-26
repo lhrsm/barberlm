@@ -579,13 +579,19 @@ async function sendMessage(connection: any, phone: string, message: string) {
   try {
     const instanceId = connection.instance_id;
     const token = connection.instance_token;
+    const clientToken = connection.client_token;
     const baseUrl = connection.server_url || "https://api.z-api.io";
     
     const targetPhone = normalizePhone(phone);
-    const headers = { "Content-Type": "application/json" };
+    const headers: any = { "Content-Type": "application/json" };
+    
+    if (clientToken) {
+      headers["client-token"] = clientToken;
+    }
 
     const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
     console.log(`[Automation] Sending message to ${targetPhone} via ${sendUrl}`);
+    console.log(`[Automation] Using Client-Token: ${clientToken ? 'YES' : 'NO'}`);
     
     const response = await fetch(sendUrl, {
       method: "POST",
