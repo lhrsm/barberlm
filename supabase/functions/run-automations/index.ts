@@ -104,14 +104,47 @@ serve(async (req) => {
           continue;
         }
 
-        const { data: connection } = await supabase
+        let { data: connection } = await supabase
           .from("whatsapp_connections")
           .select("*")
           .eq("tenant_id", tenantId)
-          .eq("status", "connected")
           .maybeSingle();
 
         if (!connection) {
+          if (automations && automations.length > 0) {
+            ignoredRecords.push({ 
+              tenant_id: tenantId, 
+              business_name: tenant.business_name,
+              reason: "WhatsApp da barbearia não configurado" 
+            });
+          }
+          continue;
+        }
+
+        // Live check if not marked as connected in DB
+        if (connection.status !== 'connected') {
+          console.log(`[Automation] DB status is ${connection.status} for ${tenant.business_name}. Performing live check...`);
+          try {
+            const statusRes = await fetch(`${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`, {
+              method: "GET",
+              headers: connection.client_token ? { "Client-Token": connection.client_token } : {}
+            });
+            const statusData = await statusRes.json();
+            console.log(`[Automation] Live status response for ${tenant.business_name}:`, JSON.stringify(statusData));
+            
+            if (statusData?.connected === true) {
+              console.log(`[Automation] Instance is ACTUALLY connected. Updating DB status.`);
+              await supabase.from("whatsapp_connections").update({ status: 'connected', connected: true }).eq("id", connection.id);
+              connection.status = 'connected';
+            } else {
+              console.log(`[Automation] Instance is indeed disconnected.`);
+            }
+          } catch (statusErr) {
+            console.error(`[Automation] Failed to check live status for ${tenant.business_name}:`, statusErr);
+          }
+        }
+
+        if (connection.status !== 'connected') {
           if (automations && automations.length > 0) {
             ignoredRecords.push({ 
               tenant_id: tenantId, 
