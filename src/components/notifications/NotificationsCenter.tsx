@@ -110,7 +110,7 @@ export function NotificationsCenter() {
     };
   }, [queryClient, navigate]);
 
-  const getIcon = (type: string) => {
+  const getIcon = (type: string | null) => {
     switch (type) {
       case 'appointment_created': return <Calendar className="h-4 w-4 text-green-500" />;
       case 'appointment_cancelled': return <X className="h-4 w-4 text-red-500" />;
