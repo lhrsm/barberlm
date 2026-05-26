@@ -279,12 +279,6 @@ function ClientPortalComponent() {
   }, [isEditModalOpen, editingAppointment, newDate]);
 
   async function fetchAvailableTimes(barberId: string, date: string) {
-    console.log('DEBUG: SERVICE', selectedService);
-    console.log('DEBUG: PROFESSIONAL', barberId);
-    console.log('DEBUG: DATE', date);
-    console.log('DEBUG: SALON', shop?.id);
-    console.log('DEBUG: SLUG', slug);
-
     if (!barberId) {
       console.warn('DEBUG: No professional selected, skipping fetchAvailableTimes');
       return;
@@ -303,8 +297,6 @@ function ClientPortalComponent() {
         return;
       }
 
-      console.log('BARBER FOUND', { name: barber.name, working_hours: barber.working_hours });
-
       const dateObj = parseISO(date);
       const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
       
@@ -321,18 +313,13 @@ function ClientPortalComponent() {
       const dayKey = dayMap[dayName] || dayName;
       const workingHours = (barber.working_hours as any)?.[dayKey];
 
-      console.log('WORKING HOURS CHECK', { dayName, dayKey, workingHours });
-
       if (!workingHours || !workingHours.enabled) {
-        console.warn('BARBER NOT WORKING ON THIS DAY', { dayKey });
         setAvailableTimes([]);
         return;
       }
 
       const startOfDayTime = `${date}T00:00:00.000Z`;
       const endOfDayTime = `${date}T23:59:59.999Z`;
-
-      console.log('QUERY RANGE', { startOfDayTime, endOfDayTime });
 
       const { data: appointments, error: apptError } = await supabase
         .from("appointments")
@@ -342,34 +329,22 @@ function ClientPortalComponent() {
         .gte("start_time", startOfDayTime)
         .lte("start_time", endOfDayTime);
 
-      if (apptError) {
-        console.error("Error fetching appointments:", apptError);
-      }
-
-      console.log('APPOINTMENTS FOUND', appointments?.length || 0);
-
       const times = [];
       const [startHour, startMin] = workingHours.start.split(':').map(Number);
       const [endHour, endMin] = workingHours.end.split(':').map(Number);
-      const interval = selectedService?.duration_minutes || 30;
-
-      console.log('LOOP PARAMS', { startHour, startMin, endHour, endMin, interval });
+      const interval = 30;
 
       for (let hour = startHour; hour <= endHour; hour++) {
         for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
           if (hour === endHour && min >= endMin) break;
           
           const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-          
           const [y, m, d] = date.split('-').map(Number);
           const checkTime = new Date(y, m - 1, d, hour, min, 0);
-          
           const now = new Date();
           const isToday = y === now.getFullYear() && (m - 1) === now.getMonth() && d === now.getDate();
           
-          if (isToday && checkTime < now) {
-            continue;
-          }
+          if (isToday && checkTime < now) continue;
 
           const isBusy = appointments?.some(app => {
             if (editingAppointment && app.start_time === editingAppointment.start_time) return false;
@@ -378,13 +353,10 @@ function ClientPortalComponent() {
             return checkTime >= appStart && checkTime < appEnd;
           });
 
-          if (!isBusy) {
-            times.push(timeStr);
-          }
+          if (!isBusy) times.push(timeStr);
         }
       }
       
-      console.log('DEBUG: AVAILABLE SLOTS', times);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
@@ -393,13 +365,6 @@ function ClientPortalComponent() {
     }
   }
 
-  // Effect to fetch available times for the booking modal
-  useEffect(() => {
-    if (isBookingOpen && bookingStep === 3 && selectedBarber && selectedDate) {
-      setSelectedTime(""); // Reset time when barber or date changes
-      fetchAvailableTimes(selectedBarber.id, selectedDate);
-    }
-  }, [isBookingOpen, bookingStep, selectedBarber, selectedDate]);
 
 
   const handleEditAppointment = (app: any) => {
