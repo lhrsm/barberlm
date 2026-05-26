@@ -29,9 +29,68 @@ serve(async (req) => {
       throw new Error("Conexão não encontrada");
     }
 
-    const instanceId = String(connection.instance_id).trim();
-    const token = String(connection.instance_token).trim();
-    const baseUrl = "https://api.z-api.io";
+    const instanceId = connection.instance_id || Deno.env.get("ZAPI_INSTANCE_ID");
+    const token = connection.instance_token || Deno.env.get("ZAPI_TOKEN");
+    const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
+    const baseUrl = connection.server_url || "https://api.z-api.io";
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (clientToken) {
+      headers["Client-Token"] = clientToken;
+    }
+
+    if (action === "check-status") {
+      console.log(`Checking status for instance ${instanceId}`);
+      const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/status`, {
+        method: "GET",
+        headers
+      });
+      
+      const result = await res.json();
+      console.log(`Status result:`, JSON.stringify(result));
+
+      const isConnected = result.connected === true || 
+                        result.connected === 'true' || 
+                        result.value === 'CONNECTED' ||
+                        result.status === 'CONNECTED' ||
+                        result.status === 'connected';
+
+      const status = isConnected ? 'connected' : 'disconnected';
+
+      // Update both tables
+      await Promise.all([
+        supabase
+          .from("whatsapp_connections")
+          .update({ 
+            status, 
+            connected: isConnected,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", connectionId),
+        
+        supabase
+          .from("whatsapp_instances")
+          .update({ 
+            status, 
+            connected: isConnected,
+            updated_at: new Date().toISOString()
+          })
+          .eq("barber_id", connection.barber_id)
+      ]);
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        connected: isConnected, 
+        status,
+        raw: result 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     if (action === "set-webhook") {
       const webhookUrl = data.webhookUrl;
@@ -46,7 +105,7 @@ serve(async (req) => {
       const results = await Promise.all(types.map(async (webhookType) => {
         const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({ value: webhookUrl })
         });
         return res.json();
@@ -61,14 +120,21 @@ serve(async (req) => {
     if (action === "disconnect") {
       const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/disconnect`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" }
+        headers
       });
       const result = await res.json();
       
-      await supabase
-        .from("whatsapp_connections")
-        .update({ status: 'disconnected', connected: false })
-        .eq("id", connectionId);
+      const status = 'disconnected';
+      await Promise.all([
+        supabase
+          .from("whatsapp_connections")
+          .update({ status, connected: false })
+          .eq("id", connectionId),
+        supabase
+          .from("whatsapp_instances")
+          .update({ status, connected: false })
+          .eq("barber_id", connection.barber_id)
+      ]);
 
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
