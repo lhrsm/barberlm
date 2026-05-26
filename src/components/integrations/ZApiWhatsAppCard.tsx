@@ -303,6 +303,31 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </div>
         </CardHeader>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-6 pb-6 border-b border-white/5 bg-black/20">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Última Sincronização</span>
+            <span className="text-xs text-slate-300 flex items-center gap-1.5">
+              <History size={12} className="text-blue-500/60" />
+              {connection?.updated_at ? new Date(connection.updated_at).toLocaleString('pt-BR') : 'Nunca'}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Último Envio</span>
+            <span className="text-xs text-slate-300 flex items-center gap-1.5">
+              <MessageSquare size={12} className="text-emerald-500/60" />
+              {logs.length > 0 ? new Date(logs[0].created_at).toLocaleString('pt-BR') : 'Nenhum'}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Instância</span>
+            <span className="text-xs text-slate-300 font-mono">{connection?.instance_id || '---'}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Servidor</span>
+            <span className="text-xs text-slate-300 truncate">{connection?.server_url || '---'}</span>
+          </div>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="px-6 border-b border-white/5">
             <TabsList className="bg-transparent h-12 gap-6 p-0">
@@ -316,7 +341,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 value="logs" 
                 className="data-[state=active]:bg-transparent data-[state=active]:text-blue-400 data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-blue-400 rounded-none px-2 h-full text-slate-400 transition-all font-medium"
               >
-                Logs de Envio
+                Logs de Atividade
               </TabsTrigger>
             </TabsList>
           </div>
