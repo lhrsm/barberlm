@@ -1258,52 +1258,52 @@ function ShopPageComponent() {
         )}
       </AnimatePresence>
 
-      {/* Main Content (Only for landing page) */}
+      {/* Main Content */}
       {(!isPortalRoute && !isProfissionalRoute) ? (
         <>
           {/* Header */}
           {!isEmbedded && (
-
-        <header className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-4",
-          scrolled ? "py-2" : "py-6"
-        )}>
-          <motion.div 
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className={cn(
-              "mx-auto max-w-5xl rounded-full flex items-center justify-between gap-4 transition-all duration-500 border border-white/10",
-              scrolled ? "bg-black/60 backdrop-blur-xl px-6 h-14 shadow-2xl" : "bg-transparent px-2 h-16 border-transparent"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              {shop.logo_url ? (
-                <img src={shop.logo_url} alt={shop.business_name} className="h-9 w-9 object-contain rounded-lg" />
-              ) : (
-                <div className="h-9 w-9 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
-                  <Scissors className="h-5 w-5 text-[#D4AF37]" />
+            <header className={cn(
+              "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-4",
+              scrolled ? "py-2" : "py-6"
+            )}>
+              <motion.div 
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className={cn(
+                  "mx-auto max-w-5xl rounded-full flex items-center justify-between gap-4 transition-all duration-500 border border-white/10",
+                  scrolled ? "bg-black/60 backdrop-blur-xl px-6 h-14 shadow-2xl" : "bg-transparent px-2 h-16 border-transparent"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  {shop.logo_url ? (
+                    <img src={shop.logo_url} alt={shop.business_name} className="h-9 w-9 object-contain rounded-lg" />
+                  ) : (
+                    <div className="h-9 w-9 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
+                      <Scissors className="h-5 w-5 text-[#D4AF37]" />
+                    </div>
+                  )}
+                  <h1 className="font-bold text-base sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
                 </div>
-              )}
-              <h1 className="font-bold text-base sm:text-lg tracking-tight truncate">{shop.business_name}</h1>
-            </div>
 
-            <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
-              <a href="#inicio" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Início</a>
-              <a href="#servicos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Serviços</a>
-              <a href="#produtos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Produtos</a>
-              <a href="#profissionais" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Profissionais</a>
-              <a href="#contato" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Contato</a>
-            </nav>
+                <nav className="hidden md:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-white/70">
+                  <a href="#inicio" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Início</a>
+                  <a href="#servicos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Serviços</a>
+                  <a href="#produtos" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Produtos</a>
+                  <a href="#profissionais" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Profissionais</a>
+                  <a href="#contato" className="hover:text-[#D4AF37] transition-colors cursor-pointer">Contato</a>
+                </nav>
 
-            <Button 
-              className="bg-black text-white border border-[#D4AF37] shadow-lg hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all h-10 px-6 rounded-full text-sm font-bold" 
-              onClick={handleBookingAction}
-            >
-              {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar'}
-            </Button>
-          </motion.div>
-        </header>
-      )}
+                <Button 
+                  className="bg-black text-white border border-[#D4AF37] shadow-lg hover:scale-105 hover:bg-[#D4AF37] hover:text-black transition-all h-10 px-6 rounded-full text-sm font-bold" 
+                  onClick={handleBookingAction}
+                >
+                  {shop.scheduling_mode === 'manual' ? 'WhatsApp' : 'Agendar'}
+                </Button>
+              </motion.div>
+            </header>
+          )}
+
 
       <main className={cn("space-y-0", isEmbedded && "py-0")}>
         {/* Hero Section */}
