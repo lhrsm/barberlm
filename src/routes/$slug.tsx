@@ -444,7 +444,7 @@ function ShopPageComponent() {
       const message = encodeURIComponent(`Olá! Gostaria de agendar um horário na ${shop.business_name}.`);
       window.open(`https://wa.me/${shop.whatsapp_number}?text=${message}`, '_blank');
     } else {
-      // Pre-fill with session data if exists, but always show step 1 to confirm identity
+      // Pre-fill with session data if exists
       const savedClient = localStorage.getItem(`client_portal_session_${slug}`);
       if (savedClient) {
         try {
@@ -453,14 +453,23 @@ function ShopPageComponent() {
           setCustomerPhone(parsedClient.phone);
           setCustomerName(parsedClient.name);
           setCustomerId(parsedClient.customer_id);
+          
+          // Se já temos o customerId, pulamos a identificação (Step 1)
+          // Step 1: Boas-vindas/Telefone
+          // Step 2: Seleção de Serviço
+          console.log('DEBUG: Skipping to Step 2 as user is authenticated');
+          setBookingStep(2);
         } catch (e) {
           console.error("Error loading session:", e);
+          setBookingStep(1);
         }
+      } else {
+        setBookingStep(1);
       }
-      setBookingStep(1);
       setIsBookingOpen(true);
     }
   };
+
 
   const handlePhoneCheck = async () => {
     const normalized = normalizePhone(customerPhone);
