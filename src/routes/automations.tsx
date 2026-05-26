@@ -398,7 +398,7 @@ function AutomationsComponent() {
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "p-2 rounded-full",
-                  cronStatus.status === 'succeeded' ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
+                  cronStatus.cron_status === 'succeeded' ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
                 )}>
                   <Clock size={20} />
                 </div>
@@ -414,24 +414,24 @@ function AutomationsComponent() {
                 <div>
                   <p className="text-[10px] uppercase font-bold text-muted-foreground">Última Execução</p>
                   <p className="text-sm font-semibold">
-                    {cronStatus.last_run ? new Date(cronStatus.last_run).toLocaleString('pt-BR') : 'Nunca'}
+                    {cronStatus.cron_last_run ? new Date(cronStatus.cron_last_run).toLocaleString('pt-BR') : 'Nunca'}
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] uppercase font-bold text-muted-foreground">Resultado</p>
-                  <Badge variant={cronStatus.status === 'succeeded' ? "default" : "destructive"} className="h-5">
-                    {cronStatus.status === 'succeeded' ? 'Sucesso' : 'Falha'}
+                  <Badge variant={cronStatus.cron_status === 'succeeded' ? "default" : "destructive"} className="h-5">
+                    {cronStatus.cron_status === 'succeeded' ? 'Sucesso' : 'Falha'}
                   </Badge>
                 </div>
                 <div className="hidden md:block">
                   <p className="text-[10px] uppercase font-bold text-muted-foreground">Job Name</p>
-                  <p className="text-sm font-mono text-muted-foreground">{cronStatus.jobname}</p>
+                  <p className="text-sm font-mono text-muted-foreground">{cronStatus.cron_job_name}</p>
                 </div>
               </div>
 
-              {cronStatus.status !== 'succeeded' && cronStatus.return_message && (
+              {cronStatus.cron_status !== 'succeeded' && cronStatus.cron_return_message && (
                 <div className="w-full md:w-auto mt-2 md:mt-0 text-xs text-red-500 bg-red-50 p-2 rounded border border-red-100 font-mono">
-                  {cronStatus.return_message}
+                  {cronStatus.cron_return_message}
                 </div>
               )}
             </CardContent>
