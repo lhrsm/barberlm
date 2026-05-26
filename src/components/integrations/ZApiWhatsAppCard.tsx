@@ -78,7 +78,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       const { data } = await supabase
         .from("automation_logs")
         .select("*")
-        .eq("barbershop_id", tenantId)
+        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(20);
       
