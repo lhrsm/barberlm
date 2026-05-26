@@ -295,7 +295,26 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="px-6 border-b border-white/5">
+            <TabsList className="bg-transparent h-12 gap-6 p-0">
+              <TabsTrigger 
+                value="config" 
+                className="data-[state=active]:bg-transparent data-[state=active]:text-blue-400 data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-blue-400 rounded-none px-2 h-full text-slate-400 transition-all font-medium"
+              >
+                Configuração
+              </TabsTrigger>
+              <TabsTrigger 
+                value="logs" 
+                className="data-[state=active]:bg-transparent data-[state=active]:text-blue-400 data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-blue-400 rounded-none px-2 h-full text-slate-400 transition-all font-medium"
+              >
+                Logs de Envio
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="config" className="p-0 m-0">
+            <CardContent className="space-y-8 pt-6">
           <form onSubmit={saveSettings} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
