@@ -327,7 +327,7 @@ export function AppointmentModal({
       await supabase.from("notifications").insert([
         {
           user_id: tenantId,
-          title: "Novo Agendamento (Manual)",
+          title: editingAppointmentId ? "Agendamento Editado (Manual)" : "Novo Agendamento (Manual)",
           message: notificationMessage,
           type: "appointment",
           link: "/calendar"
