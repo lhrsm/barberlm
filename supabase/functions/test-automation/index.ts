@@ -109,9 +109,12 @@ serve(async (req) => {
     const token = connection.instance_token;
     const baseUrl = connection.server_url || "https://api.z-api.io";
 
-    const headers = { 
+    const headers: any = { 
       "Content-Type": "application/json" 
     };
+    if (connection.client_token) {
+      headers["client-token"] = connection.client_token;
+    }
 
     let zapiResult: any = {};
     let ok = false;
