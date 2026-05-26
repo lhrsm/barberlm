@@ -138,8 +138,8 @@ function CalendarComponent() {
 
     let appQuery = supabase
       .from("appointments")
-      .select("*, customers(name), services(name, duration_minutes), barbers(name)")
-      .eq("user_id", user.id)
+      .select("*, customers(name, phone), services(name, duration_minutes), barbers(name)")
+      .eq("tenant_id", user.id) // Ensure we filter by tenant_id
       .gte("start_time", start.toISOString())
       .lte("start_time", end.toISOString());
     
