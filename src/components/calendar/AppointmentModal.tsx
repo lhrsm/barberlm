@@ -335,7 +335,7 @@ export function AppointmentModal({
         {
           user_id: tenantId,
           barber_id: selectedBarber,
-          title: "Novo Agendamento Manual",
+          title: editingAppointmentId ? "Agendamento Manual Editado" : "Novo Agendamento Manual",
           message: notificationMessage,
           type: "appointment",
           link: "/calendar"
