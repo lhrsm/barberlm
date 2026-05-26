@@ -140,18 +140,6 @@ serve(async (req) => {
       });
     }
 
-    if (action === "get-qrcode") {
-      const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/qr-code`, {
-        method: "GET",
-        headers
-      });
-      const result = await res.json();
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
     throw new Error("Ação inválida");
 
 
