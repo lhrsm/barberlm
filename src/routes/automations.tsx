@@ -874,53 +874,103 @@ function AutomationsComponent() {
 
         {/* Execution Summary Dialog */}
         <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-2xl">
                 <Sparkles className="text-emerald-500" />
-                Resultado da Execução
+                Relatório de Execução
               </DialogTitle>
               <DialogDescription>
-                Detalhamento do processamento das automações.
+                Processamento finalizado em {executionSummary?.executionTime}.
+                <div className="flex gap-2 mt-2 text-[10px] font-mono text-muted-foreground uppercase tracking-widest bg-muted/50 p-2 rounded">
+                  <span>Server: {executionSummary?.serverTime ? new Date(executionSummary.serverTime).toLocaleTimeString() : '-'}</span>
+                  <span>Timezone: {executionSummary?.timezone || 'UTC'}</span>
+                </div>
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-muted rounded-lg">
-                  <div className="text-xs text-muted-foreground uppercase font-bold">Encontrados</div>
-                  <div className="text-2xl font-bold">{executionSummary?.records_found || 0}</div>
+            
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                  <div className="text-[10px] text-slate-500 uppercase font-black tracking-wider">Encontrados</div>
+                  <div className="text-2xl font-black text-slate-900">{(executionSummary?.appointmentsFound?.length || 0) + (executionSummary?.birthdaysFound?.length || 0)}</div>
                 </div>
-                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
-                  <div className="text-xs text-emerald-600 uppercase font-bold">Enviados</div>
-                  <div className="text-2xl font-bold text-emerald-700">{executionSummary?.messages_sent || 0}</div>
+                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
+                  <div className="text-[10px] text-emerald-600 uppercase font-black tracking-wider">Enviados</div>
+                  <div className="text-2xl font-black text-emerald-700">{executionSummary?.messagesSent?.filter((m: any) => m.status === 'success').length || 0}</div>
                 </div>
-                <div className="p-3 bg-red-50 border border-red-100 rounded-lg">
-                  <div className="text-xs text-red-600 uppercase font-bold">Falhas</div>
-                  <div className="text-2xl font-bold text-red-700">{executionSummary?.messages_failed || 0}</div>
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
+                  <div className="text-[10px] text-red-600 uppercase font-black tracking-wider">Falhas</div>
+                  <div className="text-2xl font-black text-red-700">{executionSummary?.messagesSent?.filter((m: any) => m.status === 'error').length || 0}</div>
                 </div>
-                <div className="p-3 bg-muted rounded-lg">
-                  <div className="text-xs text-muted-foreground uppercase font-bold">Automações</div>
-                  <div className="text-2xl font-bold">{executionSummary?.total_automations || 0}</div>
+                <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                  <div className="text-[10px] text-amber-600 uppercase font-black tracking-wider">Ignorados</div>
+                  <div className="text-2xl font-black text-amber-700">{executionSummary?.ignoredRecords?.length || 0}</div>
                 </div>
               </div>
 
-              {executionSummary?.errors && executionSummary.errors.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-sm font-bold text-red-600 flex items-center gap-1">
-                    <AlertCircle size={14} /> Erros encontrados:
+              <div className="space-y-4">
+                {/* Appointments / Birthdays List */}
+                {((executionSummary?.appointmentsFound?.length || 0) > 0 || (executionSummary?.birthdaysFound?.length || 0) > 0) && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-bold flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> Registros Processados</h4>
+                    <div className="space-y-1">
+                      {executionSummary.appointmentsFound?.map((item: any) => (
+                        <div key={item.id} className="text-xs p-2 bg-muted/50 rounded flex justify-between items-center">
+                          <span className="font-medium">Agendamento: {item.customers?.name || item.name || 'Cliente'}</span>
+                          <Badge variant="outline" className="text-[9px] uppercase">{new Date(item.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Badge>
+                        </div>
+                      ))}
+                      {executionSummary.birthdaysFound?.map((item: any) => (
+                        <div key={item.id} className="text-xs p-2 bg-pink-50 text-pink-700 rounded flex justify-between items-center border border-pink-100">
+                          <span className="font-medium">Aniversariante: {item.name}</span>
+                          <Badge variant="outline" className="text-[9px] uppercase border-pink-200 text-pink-600">B-Day</Badge>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="max-h-[150px] overflow-y-auto space-y-1">
-                    {executionSummary.errors.map((err: string, i: number) => (
-                      <div key={i} className="text-xs p-2 bg-red-50 text-red-700 rounded border border-red-100">
-                        {err}
-                      </div>
-                    ))}
+                )}
+
+                {/* Ignored Records */}
+                {executionSummary?.ignoredRecords && executionSummary.ignoredRecords.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-bold flex items-center gap-2 text-amber-600"><Ban size={16} /> Registros Ignorados</h4>
+                    <div className="max-h-[120px] overflow-y-auto space-y-1">
+                      {executionSummary.ignoredRecords.map((item: any, i: number) => (
+                        <div key={i} className="text-xs p-2 bg-amber-50 text-amber-700 rounded border border-amber-100 flex justify-between">
+                          <span>{item.reason}</span>
+                          <span className="opacity-60 text-[10px] uppercase font-bold">{item.automation_id?.substring(0,8)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {/* Errors */}
+                {executionSummary?.errors && executionSummary.errors.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-bold flex items-center gap-2 text-red-600"><AlertCircle size={16} /> Erros Técnicos</h4>
+                    <div className="max-h-[120px] overflow-y-auto space-y-1">
+                      {executionSummary.errors.map((err: string, i: number) => (
+                        <div key={i} className="text-xs p-2 bg-red-50 text-red-700 rounded border border-red-100">
+                          {err}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {(!executionSummary?.appointmentsFound?.length && !executionSummary?.birthdaysFound?.length && !executionSummary?.errors?.length) && (
+                  <div className="py-8 text-center text-muted-foreground bg-muted/20 rounded-xl border border-dashed">
+                    <p className="text-sm font-medium">Nenhum dado relevante encontrado nesta execução.</p>
+                    <p className="text-xs mt-1">Isso significa que não havia agendamentos ou aniversariantes pendentes no momento.</p>
+                  </div>
+                )}
+              </div>
             </div>
             <DialogFooter>
-              <Button onClick={() => setIsSummaryDialogOpen(false)}>Fechar</Button>
+              <Button className="w-full sm:w-auto font-bold" onClick={() => setIsSummaryDialogOpen(false)}>Entendido</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
