@@ -333,8 +333,20 @@ function CalendarComponent() {
 
   const getAppointmentsForTime = (date: Date, hour: number) => {
     return appointments.filter(app => {
-      const appDate = parseISO(app.start_time);
-      return isSameDay(appDate, date) && appDate.getHours() === hour;
+      const appDate = new Date(app.start_time);
+      const startOfHourDate = new Date(date);
+      startOfHourDate.setHours(hour, 0, 0, 0);
+      
+      const endOfHourDate = new Date(date);
+      endOfHourDate.setHours(hour + 1, 0, 0, 0);
+      
+      // Appointment overlaps with this hour slot
+      const appStartMs = appDate.getTime();
+      const appEndMs = new Date(app.end_time).getTime();
+      const slotStartMs = startOfHourDate.getTime();
+      const slotEndMs = endOfHourDate.getTime();
+      
+      return appStartMs < slotEndMs && appEndMs > slotStartMs;
     });
   };
 
