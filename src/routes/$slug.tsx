@@ -1188,9 +1188,10 @@ function ShopPageComponent() {
   };
 
   const calculateSubtotal = () => {
-    const servicePrice = selectedService?.price || 0;
+    const servicesTotal = bookingCart.reduce((acc, item) => acc + (item.price || 0), 0);
+    const currentServicePrice = selectedService?.price || 0;
     const productsTotal = selectedProducts.reduce((acc, p) => acc + ((p.price || 0) * (p.quantity || 1)), 0);
-    return servicePrice + productsTotal;
+    return servicesTotal + currentServicePrice + productsTotal;
   };
 
   const calculateDiscount = () => {
