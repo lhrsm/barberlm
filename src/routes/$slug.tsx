@@ -310,7 +310,10 @@ function ShopPageComponent() {
     if (!service || !barber) return false;
     
     const performsService = barber.barber_services?.some((bs: any) => bs.service_id === service.id);
-    if (!performsService) return false;
+    if (!performsService) {
+      console.log(`BARBER ${barber.name} DOES NOT PERFORM SERVICE ${service.name}`);
+      return false;
+    }
 
     const dateObj = parseISO(date);
     const dayName = format(dateObj, "eeee", { locale: ptBR }).toLowerCase();
@@ -2049,7 +2052,11 @@ function ShopPageComponent() {
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       {barbers
-                        .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments))
+                        .filter(b => {
+                          const isAvailable = isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments);
+                          console.log(`FILTERING BARBER ${b.name}: ${isAvailable}`);
+                          return isAvailable;
+                        })
                         .map(b => (
                         <motion.div 
                           key={b.id} 
