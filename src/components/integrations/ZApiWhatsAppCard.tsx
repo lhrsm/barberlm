@@ -282,7 +282,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               </div>
               <div>
                 <CardTitle className="text-xl font-bold tracking-tight">WhatsApp Z-API</CardTitle>
-                <CardDescription className="text-slate-400">Integração oficial sem Client-Token</CardDescription>
+                <CardDescription className="text-slate-400">Integração oficial com Client-Token</CardDescription>
               </div>
             </div>
             
