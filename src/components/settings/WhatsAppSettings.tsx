@@ -20,6 +20,7 @@ import {
   BookOpen
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ export function WhatsAppSettings() {
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
   const [testingConnection, setTestingConnection] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
+  const [automationLogs, setAutomationLogs] = useState<any[]>([]);
   
   const [newConnection, setNewConnection] = useState({
     business_name: "",
@@ -67,6 +69,7 @@ export function WhatsAppSettings() {
       fetchConnections();
       fetchTemplates();
       fetchMessages();
+      fetchAutomationLogs();
 
       const channel = supabase
         .channel('whatsapp-logs')
@@ -94,6 +97,16 @@ export function WhatsAppSettings() {
       .limit(20);
 
     if (data) setMessages(data);
+  }
+
+  async function fetchAutomationLogs() {
+    const { data } = await supabase
+      .from("automation_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (data) setAutomationLogs(data);
   }
 
   async function fetchConnections() {
@@ -335,12 +348,15 @@ export function WhatsAppSettings() {
 
       {connections.length > 0 && (
         <Tabs defaultValue="templates" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px] bg-white border border-slate-200 text-black">
+          <TabsList className="grid w-full grid-cols-3 max-w-[500px] bg-white border border-slate-200 text-black">
             <TabsTrigger value="templates" className="gap-2">
               <Settings2 size={16} /> Templates
             </TabsTrigger>
             <TabsTrigger value="logs" className="gap-2">
-              <History size={16} /> Histórico
+              <History size={16} /> Mensagens
+            </TabsTrigger>
+            <TabsTrigger value="automations" className="gap-2">
+              <RefreshCw size={16} /> Automações
             </TabsTrigger>
           </TabsList>
 
@@ -452,6 +468,43 @@ export function WhatsAppSettings() {
                        Nenhuma mensagem enviada nos últimos 7 dias.
                      </div>
                    )}
+                  </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="automations">
+            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm">
+              <CardContent className="p-0">
+                 <div className="divide-y">
+                   {automationLogs.length === 0 && (
+                     <div className="p-8 text-center text-muted-foreground text-sm">
+                       Nenhum log de automação encontrado.
+                     </div>
+                   )}
+                   {automationLogs.map((log) => (
+                     <div key={log.id} className="p-4 flex items-center justify-between text-sm hover:bg-slate-50 transition-colors">
+                       <div className="space-y-1">
+                         <div className="flex items-center gap-2">
+                           <Badge variant={log.status === 'success' || log.status === 'received' ? "default" : "destructive"} className={cn("text-[10px] uppercase", (log.status === 'success' || log.status === 'received') && "bg-emerald-500 hover:bg-emerald-600")}>
+                             {log.status === 'success' ? "Enviado" : log.status === 'received' ? "Webhook" : "Erro"}
+                           </Badge>
+                           <span className="text-muted-foreground text-xs">
+                             {new Date(log.created_at).toLocaleString('pt-BR')}
+                           </span>
+                         </div>
+                         <p className="font-medium text-slate-800 capitalize">
+                           {log.message_type?.replace('_', ' ')}
+                         </p>
+                         <p className="text-xs text-muted-foreground">Para/Info: {log.phone || log.response?.phone || 'N/A'}</p>
+                       </div>
+                       <div className="text-right">
+                         {log.error_message && (
+                           <p className="text-[10px] text-red-600 max-w-[200px]">{log.error_message}</p>
+                         )}
+                       </div>
+                     </div>
+                   ))}
                  </div>
               </CardContent>
             </Card>

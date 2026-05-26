@@ -20,20 +20,20 @@ serve(async (req) => {
     const url = new URL(req.url);
     const body = await req.json();
     
-    // Extrair barbershopId da URL (formato: .../zapi-webhook/[barbershopId])
+    // Extract barberId from URL if present (format: .../zapi-webhook/[barberId])
     const pathParts = url.pathname.split('/');
-    const barbershopIdFromUrl = pathParts[pathParts.length - 1] !== 'zapi-webhook' ? pathParts[pathParts.length - 1] : null;
+    const barberIdFromUrl = pathParts[pathParts.length - 1] !== 'zapi-webhook' ? pathParts[pathParts.length - 1] : null;
 
     console.log("Z-API Webhook received:", JSON.stringify(body));
-    console.log("BarbershopId from URL:", barbershopIdFromUrl);
+    console.log("BarberId from URL:", barberIdFromUrl);
 
-    const { instanceId, type } = body;
+    const { instanceId, type, phone } = body;
 
-    // Se o barbershopId estiver na URL, usamos ele. Caso contrário, tentamos achar pela instância.
-    let tenantId = barbershopIdFromUrl;
+    let barberId = barberIdFromUrl;
     let connection = null;
 
-    if (!tenantId) {
+    // Find connection by instanceId if not provided in URL
+    if (!barberId) {
       const { data: conn } = await supabase
         .from("whatsapp_connections")
         .select("*")
@@ -42,52 +42,51 @@ serve(async (req) => {
       
       if (conn) {
         connection = conn;
-        tenantId = conn.barbershop_id;
+        barberId = conn.barber_id;
       }
     }
 
-    if (!tenantId) {
-      console.warn(`Barbearia não identificada para o evento Z-API`);
-      return new Response(JSON.stringify({ status: "ignored", reason: "tenant_not_found" }), { 
+    if (!barberId) {
+      console.warn(`Barbeiro não identificado para o evento Z-API instance ${instanceId}`);
+      return new Response(JSON.stringify({ status: "ignored", reason: "barber_not_found" }), { 
         headers: corsHeaders,
-        status: 200 // Z-API espera 200 para não repetir
+        status: 200 
       });
     }
 
-    // Salvar Log do Webhook
-    const { error: logError } = await supabase.from("webhook_logs").insert({
-      barbershop_id: tenantId,
-      event_type: type || 'Unknown',
-      payload: body,
-      status: 'success'
+    // Save Webhook Log
+    const { error: logError } = await supabase.from("automation_logs").insert({
+      barber_id: barberId,
+      status: 'received',
+      message_type: type || 'webhook_event',
+      phone: phone,
+      response: body
     });
 
     if (logError) console.error("Erro ao salvar log de webhook:", logError);
 
-    // Processar lógica de negócio
+    // Business Logic
     switch (type) {
-      case "ReceivedMessage": {
-        const message = body.text?.message || body.image?.caption || "Mensagem recebida";
-        const from = body.phone;
-
-        await supabase.from("whatsapp_messages").insert({
-          user_id: tenantId,
-          barbershop_id: tenantId,
-          content: message,
-          status: 'received',
-          metadata: { phone: from, raw: body }
-        });
-        break;
-      }
       case "Connected": {
         await supabase
           .from("whatsapp_connections")
           .update({ 
             status: 'connected', 
+            connected: true,
             updated_at: new Date().toISOString(),
-            phone: body.phone || connection?.phone
+            phone: phone || connection?.phone
           })
-          .eq("barbershop_id", tenantId);
+          .eq("instance_id", instanceId);
+
+        // Also update whatsapp_instances to keep synced
+        await supabase
+          .from("whatsapp_instances")
+          .update({ 
+            status: 'connected', 
+            connected: true,
+            phone: phone
+          })
+          .eq("instance_name", body.instanceId || instanceId); // Best effort sync
         break;
       }
       case "Disconnected": {
@@ -95,9 +94,22 @@ serve(async (req) => {
           .from("whatsapp_connections")
           .update({ 
             status: 'disconnected', 
+            connected: false,
             updated_at: new Date().toISOString() 
           })
-          .eq("barbershop_id", tenantId);
+          .eq("instance_id", instanceId);
+
+        await supabase
+          .from("whatsapp_instances")
+          .update({ 
+            status: 'disconnected', 
+            connected: false
+          })
+          .eq("instance_name", body.instanceId || instanceId);
+        break;
+      }
+      case "ReceivedMessage": {
+        // Handle received message if needed
         break;
       }
     }
@@ -110,7 +122,7 @@ serve(async (req) => {
     console.error("Webhook Error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200, // Retornamos 200 mesmo em erro interno para evitar retentativas infinitas da Z-API se o payload estiver correto
+      status: 200,
     });
   }
 });

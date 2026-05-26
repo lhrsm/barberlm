@@ -11,13 +11,16 @@ import {
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
-  MessageSquare
+  MessageSquare,
+  History,
+  FileText
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -40,9 +43,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isEditingWebhook, setIsEditingWebhook] = useState(false);
   const [tempWebhookUrl, setTempWebhookUrl] = useState("");
 
+  const [logs, setLogs] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("config");
+
   useEffect(() => {
     if (tenantId) {
       fetchConnection();
+      fetchLogs();
     }
   }, [tenantId]);
 
@@ -51,7 +58,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       const { data, error } = await supabase
         .from("whatsapp_connections")
         .select("*")
-        .eq("barbershop_id", tenantId)
+        .eq("barber_id", tenantId) // Standardized to barber_id
         .maybeSingle();
 
       if (data) {
@@ -62,6 +69,21 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchLogs() {
+    try {
+      const { data } = await supabase
+        .from("automation_logs")
+        .select("*")
+        .eq("barber_id", tenantId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      
+      if (data) setLogs(data);
+    } catch (error) {
+      console.error("Error fetching logs:", error);
     }
   }
 
@@ -81,9 +103,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
     cleanApiUrl = cleanApiUrl.replace(/\/$/, "");
 
-    const webhookUrl = `${window.location.origin}/api/webhooks/zapi/${tenantId}`;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+    const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook/${tenantId}`;
 
     const upsertData = {
+      barber_id: tenantId,
       barbershop_id: tenantId,
       instance_id: instanceId,
       instance_token: instanceToken,
@@ -276,7 +300,26 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="px-6 border-b border-white/5">
+            <TabsList className="bg-transparent h-12 gap-6 p-0">
+              <TabsTrigger 
+                value="config" 
+                className="data-[state=active]:bg-transparent data-[state=active]:text-blue-400 data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-blue-400 rounded-none px-2 h-full text-slate-400 transition-all font-medium"
+              >
+                Configuração
+              </TabsTrigger>
+              <TabsTrigger 
+                value="logs" 
+                className="data-[state=active]:bg-transparent data-[state=active]:text-blue-400 data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-blue-400 rounded-none px-2 h-full text-slate-400 transition-all font-medium"
+              >
+                Logs de Envio
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="config" className="p-0 m-0">
+            <CardContent className="space-y-8 pt-6">
           <form onSubmit={saveSettings} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
@@ -404,6 +447,45 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
             </div>
           )}
         </CardContent>
+        </TabsContent>
+        
+        <TabsContent value="logs" className="p-0 m-0">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              {logs.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed border-white/5 rounded-2xl">
+                  <FileText className="mx-auto h-12 w-12 text-slate-600 mb-4" />
+                  <p className="text-slate-400">Nenhum log de automação encontrado.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {logs.map((log) => (
+                    <div key={log.id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={log.status === 'success' || log.status === 'received' ? "default" : "destructive"} className={cn("text-[10px] uppercase", (log.status === 'success' || log.status === 'received') && "bg-emerald-500 hover:bg-emerald-600")}>
+                            {log.status === 'success' ? "Enviado" : log.status === 'received' ? "Webhook" : "Erro"}
+                          </Badge>
+                          <span className="text-slate-400 text-xs">
+                            {new Date(log.created_at).toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium text-slate-200 capitalize">
+                          {log.message_type?.replace('_', ' ')}
+                        </p>
+                        <p className="text-xs text-slate-400">Info: {log.phone || 'N/A'}</p>
+                      </div>
+                      {log.error_message && (
+                        <p className="text-[10px] text-red-400 max-w-xs">{log.error_message}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </TabsContent>
+      </Tabs>
         
         <CardFooter className="bg-white/5 border-t border-white/5 px-6 py-4">
           <div className="flex justify-between items-center w-full">
