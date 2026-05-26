@@ -78,7 +78,7 @@ serve(async (req) => {
             connected: isConnected,
             updated_at: new Date().toISOString()
           })
-          .eq("barber_id", connection.barber_id)
+          .eq("tenant_id", connection.barbershop_id)
       ]);
 
       return new Response(JSON.stringify({ 
@@ -133,7 +133,7 @@ serve(async (req) => {
         supabase
           .from("whatsapp_instances")
           .update({ status, connected: false })
-          .eq("barber_id", connection.barber_id)
+          .eq("tenant_id", connection.barbershop_id)
       ]);
 
       return new Response(JSON.stringify(result), {
