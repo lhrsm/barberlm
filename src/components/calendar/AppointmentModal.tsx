@@ -37,6 +37,7 @@ interface AppointmentModalProps {
   initialDate?: string;
   initialTime?: string;
   initialStep?: number;
+  editingAppointmentId?: string;
 }
 
 export function AppointmentModal({ 
@@ -46,7 +47,8 @@ export function AppointmentModal({
   onOpenChange,
   initialDate,
   initialTime,
-  initialStep = 1
+  initialStep = 1,
+  editingAppointmentId
 }: AppointmentModalProps) {
   const { user, role } = useAuth();
   const { checkLimit, limits, refresh: refreshLimits } = usePlanLimits();
@@ -89,8 +91,31 @@ export function AppointmentModal({
   useEffect(() => {
     if (isOpen && user) {
       fetchInitialData();
+      if (editingAppointmentId) {
+        fetchEditingData();
+      }
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, editingAppointmentId]);
+
+  async function fetchEditingData() {
+    if (!editingAppointmentId) return;
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("*")
+      .eq("id", editingAppointmentId)
+      .single();
+    
+    if (data && !error) {
+      if (data.barber_id) setSelectedBarber(data.barber_id);
+      if (data.service_id) setSelectedService(data.service_id);
+      if (data.customer_id) setSelectedCustomer(data.customer_id);
+      const start = parseISO(data.start_time);
+      setSelectedDate(format(start, "yyyy-MM-dd"));
+      setSelectedTime(format(start, "HH:mm"));
+      if (data.payment_status) setPaymentStatus(data.payment_status);
+      setPaymentMethod(data.payment_method === 'credits' ? 'wallet' : 'cash');
+    }
+  }
 
   async function fetchInitialData() {
     if (!user) return;
@@ -153,33 +178,61 @@ export function AppointmentModal({
     const timeWithSeconds = time.length === 5 ? `${time}:00` : time;
     const startTime = parseISO(`${date}T${timeWithSeconds}`);
     const endTime = addMinutes(startTime, service?.duration_minutes || 30);
+    const startIso = startTime.toISOString();
+    const endIso = endTime.toISOString();
+
+    console.log('DEBUG: checkConflict (Admin)', { barberId, startIso, endIso, customerId, editingAppointmentId });
 
     // 1. Check Barber Conflict
-    const { data: barberConflict, error: barberError } = await supabase
+    let barberQuery = supabase
       .from("appointments")
-      .select("id")
+      .select("id, start_time, end_time, status")
       .eq("barber_id", barberId)
-      .neq("status", "cancelled")
-      .or(`start_time.lte.${startTime.toISOString()},end_time.gte.${startTime.toISOString()}`)
-      .or(`start_time.lt.${endTime.toISOString()},end_time.gt.${endTime.toISOString()}`)
-      .limit(1);
+      .in("status", ["scheduled", "confirmed", "in_progress"])
+      .lt("start_time", endIso)
+      .gt("end_time", startIso);
 
-    if (barberError) return { conflict: false };
-    if (barberConflict && barberConflict.length > 0) return { conflict: true, type: 'barber' };
+    if (editingAppointmentId) {
+      barberQuery = barberQuery.neq("id", editingAppointmentId);
+    }
+
+    const { data: barberConflict, error: barberError } = await barberQuery.limit(1);
+
+    if (barberError) {
+      console.error("Barber conflict query error:", barberError);
+      return { conflict: false };
+    }
+    
+    if (barberConflict && barberConflict.length > 0) {
+      console.log('BARBER CONFLICT DETECTED:', barberConflict[0]);
+      return { conflict: true, type: 'barber' };
+    }
 
     // 2. Check Customer Conflict
     if (customerId) {
-      const { data: customerConflict, error: customerError } = await supabase
+      let customerQuery = supabase
         .from("appointments")
-        .select("id")
+        .select("id, start_time, end_time, status")
         .eq("customer_id", customerId)
-        .neq("status", "cancelled")
-        .or(`start_time.lte.${startTime.toISOString()},end_time.gte.${startTime.toISOString()}`)
-        .or(`start_time.lt.${endTime.toISOString()},end_time.gt.${endTime.toISOString()}`)
-        .limit(1);
+        .in("status", ["scheduled", "confirmed", "in_progress"])
+        .lt("start_time", endIso)
+        .gt("end_time", startIso);
 
-      if (customerError) return { conflict: false };
-      if (customerConflict && customerConflict.length > 0) return { conflict: true, type: 'customer' };
+      if (editingAppointmentId) {
+        customerQuery = customerQuery.neq("id", editingAppointmentId);
+      }
+
+      const { data: customerConflict, error: customerError } = await customerQuery.limit(1);
+
+      if (customerError) {
+        console.error("Customer conflict query error:", customerError);
+        return { conflict: false };
+      }
+      
+      if (customerConflict && customerConflict.length > 0) {
+        console.log('CUSTOMER CONFLICT DETECTED:', customerConflict[0]);
+        return { conflict: true, type: 'customer' };
+      }
     }
 
     return { conflict: false };
@@ -273,9 +326,21 @@ export function AppointmentModal({
         }]
       };
 
-      const { data: appointmentData, error } = await supabase.from("appointments").insert([appointmentPayload]).select().single();
-
-      if (error) throw error;
+      let appointmentData;
+      if (editingAppointmentId) {
+        const { data, error } = await supabase
+          .from("appointments")
+          .update(appointmentPayload)
+          .eq("id", editingAppointmentId)
+          .select()
+          .single();
+        if (error) throw error;
+        appointmentData = data;
+      } else {
+        const { data, error } = await supabase.from("appointments").insert([appointmentPayload]).select().single();
+        if (error) throw error;
+        appointmentData = data;
+      }
 
       // Notifications
       const customer = customers.find(c => c.id === selectedCustomer);
@@ -285,7 +350,7 @@ export function AppointmentModal({
       await supabase.from("notifications").insert([
         {
           user_id: tenantId,
-          title: "Novo Agendamento (Manual)",
+          title: editingAppointmentId ? "Agendamento Editado (Manual)" : "Novo Agendamento (Manual)",
           message: notificationMessage,
           type: "appointment",
           link: "/calendar"
@@ -293,7 +358,7 @@ export function AppointmentModal({
         {
           user_id: tenantId,
           barber_id: selectedBarber,
-          title: "Novo Agendamento Manual",
+          title: editingAppointmentId ? "Agendamento Manual Editado" : "Novo Agendamento Manual",
           message: notificationMessage,
           type: "appointment",
           link: "/calendar"
@@ -318,7 +383,7 @@ export function AppointmentModal({
         });
       }
 
-      toast.success("Agendamento criado com sucesso!");
+      toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
       setOpen(false);
       setCurrentStep(1);
       refreshLimits();
@@ -358,7 +423,7 @@ export function AppointmentModal({
           {canAddAppointment ? (
             <>
               <DialogHeader>
-                <DialogTitle>Novo Agendamento - Passo {currentStep} de 4</DialogTitle>
+                <DialogTitle>{editingAppointmentId ? "Editar Agendamento" : "Novo Agendamento"} - Passo {currentStep} de 4</DialogTitle>
               </DialogHeader>
               
               <div className="py-4 space-y-4">

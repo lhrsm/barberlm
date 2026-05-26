@@ -287,14 +287,16 @@ function ShopPageComponent() {
     if (!shop?.id) return;
     setLoadingDayData(true);
     try {
+      // Use a range that covers the whole day in UTC, but filtering more precisely in memory
+      // to avoid timezone shifts. 
       const startOfDay = `${date}T00:00:00Z`;
       const endOfDay = `${date}T23:59:59Z`;
       
       const { data } = await supabase
         .from("appointments")
-        .select("barber_id, start_time, end_time")
+        .select("id, barber_id, start_time, end_time, status")
         .eq("user_id", shop.id)
-        .eq("status", "scheduled")
+        .in("status", ["scheduled", "confirmed", "in_progress"])
         .gte("start_time", startOfDay)
         .lte("start_time", endOfDay);
         
@@ -335,9 +337,10 @@ function ShopPageComponent() {
     }
 
     const barberAppointments = appointments?.filter(a => a.barber_id === barber.id) || [];
+    console.log(`CHECKING AVAILABILITY for ${barber.name} on ${date}. Appointments:`, barberAppointments.length);
     const [startHour, startMin] = workingHours.start.split(':').map(Number);
     const [endHour, endMin] = workingHours.end.split(':').map(Number);
-    const interval = 30;
+    const interval = 30; // Min interval to check for a free slot
 
     for (let hour = startHour; hour <= endHour; hour++) {
       for (let min = (hour === startHour ? startMin : 0); min < 60; min += interval) {
@@ -349,9 +352,16 @@ function ShopPageComponent() {
         if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
 
         const isBusy = barberAppointments.some(app => {
-          const appStart = parseISO(app.start_time);
-          const appEnd = parseISO(app.end_time);
-          return checkTime >= appStart && checkTime < appEnd;
+          const appStart = parseISO(app.start_time).getTime();
+          const appEnd = parseISO(app.end_time).getTime();
+          const checkTimeMs = checkTime.getTime();
+          const serviceEndMs = addMinutes(checkTime, service.duration_minutes || 30).getTime();
+          
+          const conflict = checkTimeMs < appEnd && serviceEndMs > appStart;
+          if (conflict) {
+            console.log(`CONFLICT FOUND at ${timeStr} with appointment ${app.id}: ${app.start_time} - ${app.end_time}`);
+          }
+          return conflict;
         });
 
         if (!isBusy) return true;
@@ -564,27 +574,34 @@ function ShopPageComponent() {
 
 
   const checkConflict = async (barberId: string, date: string, time: string, serviceId: string) => {
-    console.log('DEBUG: checkConflict triggered', { barberId, date, time, serviceId });
+    console.log('DEBUG: checkConflict (Barber)', { barberId, date, time, serviceId });
     const service = services.find(s => s.id === serviceId);
     if (!service) return false;
     
     const startTime = parseISO(`${date}T${time}:00`);
     const endTime = addMinutes(startTime, service.duration_minutes || 30);
+    const startIso = startTime.toISOString();
+    const endIso = endTime.toISOString();
 
     const { data, error } = await supabase
       .from("appointments")
-      .select("id")
+      .select("id, start_time, end_time, status")
       .eq("barber_id", barberId)
-      .eq("status", "scheduled")
-      .or(`and(start_time.lte.${startTime.toISOString()},end_time.gt.${startTime.toISOString()}),and(start_time.lt.${endTime.toISOString()},end_time.gte.${endTime.toISOString()}),and(start_time.gte.${startTime.toISOString()},end_time.lte.${endTime.toISOString()})`)
+      .in("status", ["scheduled", "confirmed", "in_progress"])
+      .lt("start_time", endIso)
+      .gt("end_time", startIso)
       .limit(1);
 
     if (error) {
-      console.error("Erro ao verificar conflitos:", error);
+      console.error("Erro ao verificar conflitos (barbeiro):", error);
       return false;
     }
 
-    return data && data.length > 0;
+    const hasConflict = data && data.length > 0;
+    if (hasConflict) {
+      console.log('CONFLITO DETECTADO (BARBEIRO):', data[0]);
+    }
+    return hasConflict;
   };
 
   const fetchAvailableTimes = async (barberId: string, date: string) => {
@@ -820,16 +837,19 @@ function ShopPageComponent() {
 
       // Check Customer Conflict
       if (finalCustId) {
-        const { data: customerConflict } = await supabase
+        const { data: customerConflict, error: custConfError } = await supabase
           .from("appointments")
-          .select("id")
+          .select("id, start_time, end_time, status")
           .eq("customer_id", finalCustId)
-          .neq("status", "cancelled")
-          .or(`start_time.lte.${startTimeCheck.toISOString()},end_time.gte.${startTimeCheck.toISOString()}`)
-          .or(`start_time.lt.${endTimeCheck.toISOString()},end_time.gt.${endTimeCheck.toISOString()}`)
+          .in("status", ["scheduled", "confirmed", "in_progress"])
+          .lt("start_time", endTimeCheck.toISOString())
+          .gt("end_time", startTimeCheck.toISOString())
           .limit(1);
 
-        if (customerConflict && customerConflict.length > 0) {
+        if (custConfError) {
+           console.error("Erro ao verificar conflitos (cliente):", custConfError);
+        } else if (customerConflict && customerConflict.length > 0) {
+          console.log('CONFLITO DETECTADO (CLIENTE):', customerConflict[0]);
           toast.error("Você já possui um agendamento que conflita com este horário.");
           setSubmitting(false);
           return;

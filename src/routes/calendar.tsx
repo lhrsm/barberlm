@@ -86,7 +86,7 @@ function CalendarComponent() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [modalInitialData, setModalInitialData] = useState<{date?: string, time?: string, step?: number}>({});
+  const [modalInitialData, setModalInitialData] = useState<{date?: string, time?: string, step?: number, editingId?: string}>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const canAddAppointment = checkLimit("monthlyAppointments");
@@ -387,15 +387,25 @@ function CalendarComponent() {
 
             <AppointmentModal
               open={isDialogOpen}
-              onOpenChange={setIsDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) setModalInitialData({});
+              }}
               initialDate={modalInitialData.date}
               initialTime={modalInitialData.time}
               initialStep={modalInitialData.step}
+              editingAppointmentId={modalInitialData.editingId}
               onSuccess={() => fetchData()}
               trigger={
-                <Button className="gap-2 bg-black text-white hover:scale-110 transition-all duration-300" variant={canAddAppointment ? "default" : "secondary"}>
+                <Button 
+                  className="gap-2 bg-black text-white hover:scale-110 transition-all duration-300" 
+                  variant={canAddAppointment ? "default" : "secondary"}
+                  onClick={() => {
+                    setModalInitialData({ editingId: undefined });
+                    setIsDialogOpen(true);
+                  }}
+                >
                   <Plus size={18} /> <span className="hidden md:inline">Novo Agendamento</span>
-
                 </Button>
               }
             />
@@ -433,7 +443,8 @@ function CalendarComponent() {
                           setModalInitialData({
                             time: `${hour.toString().padStart(2, '0')}:00`,
                             date: format(currentDate, "yyyy-MM-dd"),
-                            step: 1
+                            step: 1,
+                            editingId: undefined
                           });
                           setIsDialogOpen(true);
                         }}
@@ -441,7 +452,16 @@ function CalendarComponent() {
                         {getAppointmentsForTime(currentDate, hour).map(app => (
                           <div 
                             key={app.id}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setModalInitialData({
+                                date: format(parseISO(app.start_time), "yyyy-MM-dd"),
+                                time: format(parseISO(app.start_time), "HH:mm"),
+                                step: 1,
+                                editingId: app.id
+                              });
+                              setIsDialogOpen(true);
+                            }}
                             className={cn(
                               "flex flex-col p-2 rounded-md text-xs shadow-sm min-w-[150px] max-w-[250px] animate-in fade-in zoom-in duration-200 border-2",
                               getStatusColor(app.status, app.barber_id)
@@ -667,7 +687,8 @@ function CalendarComponent() {
                               setModalInitialData({
                                 time: `${hour.toString().padStart(2, '0')}:00`,
                                 date: format(day, "yyyy-MM-dd"),
-                                step: 2
+                                step: 2,
+                                editingId: undefined
                               });
                               setIsDialogOpen(true);
                             }}
@@ -678,7 +699,13 @@ function CalendarComponent() {
                                 key={app.id}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  toast.info(`Agendamento: ${app.customers?.name} - ${app.services?.name}`);
+                                  setModalInitialData({
+                                    date: format(parseISO(app.start_time), "yyyy-MM-dd"),
+                                    time: format(parseISO(app.start_time), "HH:mm"),
+                                    step: 1,
+                                    editingId: app.id
+                                  });
+                                  setIsDialogOpen(true);
                                 }}
                                 className={cn(
                                   "p-1 rounded text-[10px] shadow-sm truncate animate-in fade-in zoom-in duration-200 border",
