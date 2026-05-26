@@ -68,7 +68,6 @@ serve(async (req) => {
     const targetTenantId = body.tenantId;
     const forceMode = body.forceMode === true;
 
-    // Se tiver tenantId, buscamos apenas desse. Se não tiver (cron global), buscamos todos ativos.
     let tenantQuery = supabase.from("profiles").select("id, business_name").eq("role", "tenant_admin");
     if (targetTenantId) {
       tenantQuery = tenantQuery.eq("id", targetTenantId);
@@ -78,10 +77,7 @@ serve(async (req) => {
 
     console.log(`[Automation] Processing ${tenants?.length || 0} tenants.`);
 
-    for (const tenant of tenants || []) {
-      const tenantId = tenant.id;
-      
-    // Update global status for the tenant if possible, or just global
+    // Status global
     const { data: statusRows } = await supabase.from("automation_status").select("id").limit(1);
     const globalStatusId = statusRows?.[0]?.id;
 
@@ -93,51 +89,64 @@ serve(async (req) => {
       }).eq('id', globalStatusId);
     }
 
-      const { data: automations, error: autoError } = await supabase
-        .from("automations")
-        .select("*")
-        .eq("tenant_id", tenantId)
-        .eq("enabled", true);
+    for (const tenant of tenants || []) {
+      const tenantId = tenant.id;
+      
+      try {
+        const { data: automations, error: autoError } = await supabase
+          .from("automations")
+          .select("*")
+          .eq("tenant_id", tenantId)
+          .eq("enabled", true);
 
-      if (autoError) {
-        errors.push(`Tenant ${tenantId}: ${autoError.message}`);
-        continue;
-      }
-
-      const { data: connection } = await supabase
-        .from("whatsapp_connections")
-        .select("*")
-        .eq("tenant_id", tenantId)
-        .eq("status", "connected")
-        .maybeSingle();
-
-      if (!connection) {
-        if (automations && automations.length > 0) {
-          ignoredRecords.push({ 
-            tenant_id: tenantId, 
-            business_name: tenant.business_name,
-            reason: "WhatsApp da barbearia não conectado" 
-          });
-        }
-        continue;
-      }
-
-      for (const automation of automations || []) {
-        let res: any = { found: 0, sent: 0, failed: 0 };
-        
-        if (automation.type === "birthday") {
-          res = await processBirthdayAutomation(supabase, automation, connection, brTime, forceMode);
-        } else if (automation.type === "appointment_confirmation") {
-          res = await processAppointmentConfirmation(supabase, automation, connection, forceMode);
-        } else if (automation.type === "appointment_reminder") {
-          res = await processAppointmentReminder(supabase, automation, connection, forceMode);
+        if (autoError) {
+          errors.push(`Tenant ${tenant.business_name} (${tenantId}): ${autoError.message}`);
+          continue;
         }
 
-        if (res.appointments) appointmentsFound.push(...res.appointments.map((a:any) => ({ ...a, tenant_id: tenantId })));
-        if (res.birthdays) birthdaysFound.push(...res.birthdays.map((b:any) => ({ ...b, tenant_id: tenantId })));
-        if (res.sentItems) messagesSent.push(...res.sentItems.map((s:any) => ({ ...s, tenant_id: tenantId })));
-        if (res.errors) errors.push(...res.errors.map((e:string) => `Tenant ${tenantId}: ${e}`));
-        if (res.ignored) ignoredRecords.push(...res.ignored.map((i:any) => ({ ...i, tenant_id: tenantId })));
+        const { data: connection } = await supabase
+          .from("whatsapp_connections")
+          .select("*")
+          .eq("tenant_id", tenantId)
+          .eq("status", "connected")
+          .maybeSingle();
+
+        if (!connection) {
+          if (automations && automations.length > 0) {
+            ignoredRecords.push({ 
+              tenant_id: tenantId, 
+              business_name: tenant.business_name,
+              reason: "WhatsApp da barbearia não conectado" 
+            });
+          }
+          continue;
+        }
+
+        for (const automation of automations || []) {
+          try {
+            let res: any = { found: 0, sent: 0, failed: 0 };
+            
+            if (automation.type === "birthday") {
+              res = await processBirthdayAutomation(supabase, automation, connection, brTime, forceMode);
+            } else if (automation.type === "appointment_confirmation") {
+              res = await processAppointmentConfirmation(supabase, automation, connection, forceMode);
+            } else if (automation.type === "appointment_reminder") {
+              res = await processAppointmentReminder(supabase, automation, connection, forceMode);
+            }
+
+            if (res.appointments) appointmentsFound.push(...res.appointments.map((a:any) => ({ ...a, tenant_id: tenantId })));
+            if (res.birthdays) birthdaysFound.push(...res.birthdays.map((b:any) => ({ ...b, tenant_id: tenantId })));
+            if (res.sentItems) messagesSent.push(...res.sentItems.map((s:any) => ({ ...s, tenant_id: tenantId })));
+            if (res.errors) errors.push(...res.errors.map((e:string) => `Tenant ${tenant.business_name}: ${e}`));
+            if (res.ignored) ignoredRecords.push(...res.ignored.map((i:any) => ({ ...i, tenant_id: tenantId })));
+          } catch (autoLoopErr) {
+            console.error(`[Automation] Error processing automation ${automation.type} for tenant ${tenantId}:`, autoLoopErr);
+            errors.push(`Tenant ${tenant.business_name} - Automação ${automation.type}: ${autoLoopErr.message}`);
+          }
+        }
+      } catch (tenantLoopErr) {
+        console.error(`[Automation] Critical error for tenant ${tenantId}:`, tenantLoopErr);
+        errors.push(`Tenant ${tenant.business_name}: ${tenantLoopErr.message}`);
       }
     }
 
@@ -183,7 +192,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error("[Automation] Error:", error);
+    console.error("[Automation] Global Error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message, serverTime, timezone: "America/Bahia" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
@@ -224,50 +233,58 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
   const ignored = [];
 
   for (const customer of bdayCustomers) {
-    const todayISO = `${brTime.year}-${brTime.month}-${brTime.day}`;
-    
-    if (!forceMode) {
-      const { data: existing } = await supabase
-        .from("automation_logs")
-        .select("id")
-        .eq("automation_id", automation.id)
-        .eq("customer_id", customer.id)
-        .eq("message_type", "birthday")
-        .filter('created_at', 'gte', `${todayISO}T00:00:00`)
-        .maybeSingle();
+    try {
+      const todayISO = `${brTime.year}-${brTime.month}-${brTime.day}`;
+      
+      if (!forceMode) {
+        const { data: existing } = await supabase
+          .from("automation_logs")
+          .select("id")
+          .eq("automation_id", automation.id)
+          .eq("customer_id", customer.id)
+          .eq("message_type", "birthday")
+          .filter('created_at', 'gte', `${todayISO}T00:00:00`)
+          .maybeSingle();
 
-      if (existing) {
-        ignored.push({ customer_id: customer.id, customer_name: customer.name, reason: "Aniversário já enviado hoje", type: 'birthday' });
-        continue;
+        if (existing) {
+          ignored.push({ customer_id: customer.id, customer_name: customer.name, reason: "Aniversário já enviado hoje", type: 'birthday' });
+          continue;
+        }
       }
-    }
 
-    const variables = {
-      cliente_nome: customer.name,
-      barbearia_nome: connection.instance_name || "Nossa Barbearia",
-    };
+      const variables = {
+        cliente_nome: customer.name,
+        barbearia_nome: connection.instance_name || "Nossa Barbearia",
+      };
 
-    const processedMessage = processAutomationTemplate(automation.template, variables);
-    const result = await sendMessage(connection, customer.phone, processedMessage);
-    
-    if (result.success) {
+      const processedMessage = processAutomationTemplate(automation.template, variables);
+      const result = await sendMessage(connection, customer.phone, processedMessage);
+      
       const logEntry = {
         automation_id: automation.id,
         tenant_id: automation.tenant_id,
         customer_id: customer.id,
-        status: "success",
+        status: result.success ? "success" : "error",
         message_type: "birthday",
         phone: normalizePhone(customer.phone),
         original_template: automation.template,
         processed_template: processedMessage,
         response: result.response,
+        error_message: result.error,
         sent_at: new Date().toISOString()
       };
+      
       await supabase.from("automation_logs").insert(logEntry);
-      await supabase.from("customers").update({ birthday_sent: true }).eq("id", customer.id);
-      sentItems.push({ ...logEntry, customer_name: customer.name });
-    } else {
-      sentItems.push({ status: 'error', customer_name: customer.name, error_message: result.error, type: 'birthday' });
+      
+      if (result.success) {
+        await supabase.from("customers").update({ birthday_sent: true }).eq("id", customer.id);
+        sentItems.push({ ...logEntry, customer_name: customer.name });
+      } else {
+        sentItems.push({ ...logEntry, customer_name: customer.name, error_message: result.error, type: 'birthday' });
+      }
+    } catch (err) {
+      console.error(`Error processing birthday for ${customer.id}:`, err);
+      sentItems.push({ status: 'error', customer_name: customer.name, error_message: err.message, type: 'birthday' });
     }
   }
 
@@ -279,7 +296,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
   
   let query = supabase
     .from("appointments")
-    .select("*, customers(*), profiles:tenant_id(*), services:service_id(*)")
+    .select("*, customers(*), profiles:tenant_id(*), services:service_id(*), barbers:barber_id(*)")
     .eq("tenant_id", automation.tenant_id)
     .eq("confirmation_sent", false);
 
@@ -304,43 +321,52 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
   const ignored = [];
 
   for (const appt of appointments) {
-    const phone = appt.customers?.phone || appt.phone;
-    if (!phone) {
-      ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Sem telefone", type: 'confirmation' });
-      continue;
-    }
+    try {
+      const phone = appt.customers?.phone || appt.phone;
+      if (!phone) {
+        ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Sem telefone", type: 'confirmation' });
+        continue;
+      }
 
-    const variables = {
-      cliente_nome: appt.customers?.name || appt.name,
-      barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
-      data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
-      horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      profissional: appt.profiles?.responsible_name || "Seu Barbeiro",
-      servico: appt.services?.name || "Serviço",
-    };
+      const variables = {
+        cliente_nome: appt.customers?.name || appt.name,
+        barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
+        data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
+        horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        profissional: appt.barbers?.name || appt.profiles?.responsible_name || "Seu Barbeiro",
+        servico: appt.services?.name || "Serviço",
+      };
 
-    const processedMessage = processAutomationTemplate(automation.template, variables);
-    const result = await sendMessage(connection, phone, processedMessage);
-    
-    if (result.success) {
-      await supabase.from("appointments").update({ confirmation_sent: true }).eq("id", appt.id);
+      const processedMessage = processAutomationTemplate(automation.template, variables);
+      const result = await sendMessage(connection, phone, processedMessage);
+      
       const logEntry = {
         automation_id: automation.id,
         tenant_id: automation.tenant_id,
         customer_id: appt.customer_id,
         appointment_id: appt.id,
-        status: "success",
+        barber_id: appt.barber_id,
+        status: result.success ? "success" : "error",
         message_type: "appointment_confirmation",
         phone: normalizePhone(phone),
         original_template: automation.template,
         processed_template: processedMessage,
         response: result.response,
+        error_message: result.error,
         sent_at: new Date().toISOString()
       };
+      
       await supabase.from("automation_logs").insert(logEntry);
-      sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
-    } else {
-      sentItems.push({ status: 'error', customer_name: variables.cliente_nome, error_message: result.error, type: 'confirmation' });
+      
+      if (result.success) {
+        await supabase.from("appointments").update({ confirmation_sent: true }).eq("id", appt.id);
+        sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
+      } else {
+        sentItems.push({ ...logEntry, customer_name: variables.cliente_nome, error_message: result.error, type: 'confirmation' });
+      }
+    } catch (err) {
+      console.error(`Error processing confirmation for ${appt.id}:`, err);
+      sentItems.push({ status: 'error', appointment_id: appt.id, error_message: err.message, type: 'confirmation' });
     }
   }
 
@@ -355,7 +381,7 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
 
   let query = supabase
     .from("appointments")
-    .select("*, customers(*), profiles:tenant_id(*), services:service_id(*)")
+    .select("*, customers(*), profiles:tenant_id(*), services:service_id(*), barbers:barber_id(*)")
     .eq("tenant_id", automation.tenant_id)
     .eq("status", "scheduled")
     .eq("reminder_sent", false);
@@ -381,56 +407,65 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
   const ignored = [];
 
   for (const appt of appointments) {
-    const phone = appt.customers?.phone || appt.phone;
-    if (!phone) {
-      ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Sem telefone", type: 'reminder' });
-      continue;
-    }
-
-    const apptStartTime = new Date(appt.start_time).getTime();
-    const diffMinutes = Math.floor((apptStartTime - now) / (60 * 1000));
-
-    if (!forceMode && (diffMinutes < (delayHours * 60) || diffMinutes > (delayHours * 60 + 15))) {
-        ignored.push({ 
-            appointment_id: appt.id, 
-            customer_name: appt.customers?.name || appt.name, 
-            reason: `Fora da janela (${diffMinutes} min).`,
-            type: 'reminder'
-        });
+    try {
+      const phone = appt.customers?.phone || appt.phone;
+      if (!phone) {
+        ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Sem telefone", type: 'reminder' });
         continue;
-    }
+      }
 
-    const variables = {
-      cliente_nome: appt.customers?.name || appt.name,
-      barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
-      data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
-      horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      profissional: appt.profiles?.responsible_name || "Seu Barbeiro",
-      servico: appt.services?.name || "Serviço",
-    };
+      const apptStartTime = new Date(appt.start_time).getTime();
+      const diffMinutes = Math.floor((apptStartTime - now) / (60 * 1000));
 
-    const processedMessage = processAutomationTemplate(automation.template, variables);
-    const result = await sendMessage(connection, phone, processedMessage);
-    
-    if (result.success) {
-      await supabase.from("appointments").update({ reminder_sent: true }).eq("id", appt.id);
+      if (!forceMode && (diffMinutes < (delayHours * 60) || diffMinutes > (delayHours * 60 + 15))) {
+          ignored.push({ 
+              appointment_id: appt.id, 
+              customer_name: appt.customers?.name || appt.name, 
+              reason: `Fora da janela (${diffMinutes} min).`,
+              type: 'reminder'
+          });
+          continue;
+      }
+
+      const variables = {
+        cliente_nome: appt.customers?.name || appt.name,
+        barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
+        data: new Date(appt.start_time).toLocaleDateString('pt-BR'),
+        horario: new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        profissional: appt.barbers?.name || appt.profiles?.responsible_name || "Seu Barbeiro",
+        servico: appt.services?.name || "Serviço",
+      };
+
+      const processedMessage = processAutomationTemplate(automation.template, variables);
+      const result = await sendMessage(connection, phone, processedMessage);
+      
       const logEntry = {
         automation_id: automation.id,
         tenant_id: automation.tenant_id,
         customer_id: appt.customer_id,
         appointment_id: appt.id,
-        status: "success",
+        barber_id: appt.barber_id,
+        status: result.success ? "success" : "error",
         message_type: "appointment_reminder",
         phone: normalizePhone(phone),
         original_template: automation.template,
         processed_template: processedMessage,
         response: result.response,
+        error_message: result.error,
         sent_at: new Date().toISOString()
       };
+      
       await supabase.from("automation_logs").insert(logEntry);
-      sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
-    } else {
-      sentItems.push({ status: 'error', customer_name: variables.cliente_nome, error_message: result.error, type: 'reminder' });
+      
+      if (result.success) {
+        await supabase.from("appointments").update({ reminder_sent: true }).eq("id", appt.id);
+        sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
+      } else {
+        sentItems.push({ ...logEntry, customer_name: variables.cliente_nome, error_message: result.error, type: 'reminder' });
+      }
+    } catch (err) {
+      console.error(`Error processing reminder for ${appt.id}:`, err);
+      sentItems.push({ status: 'error', appointment_id: appt.id, error_message: err.message, type: 'reminder' });
     }
   }
 
