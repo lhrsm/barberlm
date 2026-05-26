@@ -104,54 +104,83 @@ serve(async (req) => {
           continue;
         }
 
-        let { data: connection } = await supabase
-          .from("whatsapp_connections")
+        // BUSCA SEMPRE CONFIGURAÇÃO ATUAL DO BANCO (SINGLE SOURCE OF TRUTH)
+        console.log(`[Automation] Fetching REALTIME settings for tenant ${tenant.business_name} (${tenantId})`);
+        let { data: settings, error: settingsError } = await supabase
+          .from("barbershop_settings")
           .select("*")
-          .or(`tenant_id.eq.${tenantId},barbershop_id.eq.${tenantId}`)
+          .eq("barber_id", tenantId)
           .maybeSingle();
 
-        if (!connection) {
-          if (automations && automations.length > 0) {
-            ignoredRecords.push({ 
-              tenant_id: tenantId, 
-              business_name: tenant.business_name,
-              reason: "WhatsApp da barbearia não configurado (Nenhuma conexão encontrada no banco)" 
-            });
-          }
-          continue;
+        if (settingsError) {
+          console.error(`[Automation] Error fetching settings for ${tenant.business_name}:`, settingsError);
         }
 
-        // Live check if not marked as connected in DB
-        if (connection.status !== 'connected' || connection.connected !== true) {
-          console.log(`[Automation] DB status for ${tenant.business_name} is ${connection.status}. Performing live check...`);
-          try {
-            const statusUrl = `${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
-            const statusRes = await fetch(statusUrl, { method: "GET" });
-            const statusData = await statusRes.json();
-            
-            console.log(`[Automation] INSTANCE ID: ${connection.instance_id}`);
-            console.log(`[Automation] TOKEN: ${connection.instance_token}`);
-            console.log(`[Automation] STATUS RESPONSE RAW for ${tenant.business_name}:`, JSON.stringify(statusData));
-            console.log(`[Automation] CONNECTED RESULT:`, statusData?.connected);
-            
-            connection.last_status_response = statusData; // Store for logging
+        // DEBUG OBRIGATÓRIO
+        console.log('--- SETTINGS DEBUG ---');
+        console.log('TENANT:', tenant.business_name);
+        console.log('SETTINGS OBJECT:', JSON.stringify(settings));
+        console.log('INSTANCE ID:', settings?.instance_id);
+        console.log('INSTANCE TOKEN:', settings?.instance_token ? '***' : 'MISSING');
+        console.log('CLIENT TOKEN:', settings?.client_token ? '***' : 'MISSING');
+        console.log('WHATSAPP NUMBER:', settings?.whatsapp_number);
+        console.log('----------------------');
 
-            // Strict validation as requested by user
-            if (statusData?.connected === true) {
-              console.log(`[Automation] Instance is ACTUALLY connected. Updating DB status.`);
-              await supabase.from("whatsapp_connections").update({ 
-                status: 'connected', 
-                connected: true, 
-                updated_at: new Date().toISOString() 
-              }).eq("id", connection.id);
-              connection.status = 'connected';
-              connection.connected = true;
-            } else {
-              console.log(`[Automation] Instance is indeed disconnected.`);
+        if (!settings || !settings.instance_id || !settings.instance_token) {
+          // Fallback to whatsapp_connections for backward compatibility if needed, 
+          // but the user wants a single source of truth in barbershop_settings.
+          console.log(`[Automation] No settings found in barbershop_settings for ${tenant.business_name}. Checking legacy table...`);
+          
+          let { data: legacyConn } = await supabase
+            .from("whatsapp_connections")
+            .select("*")
+            .or(`tenant_id.eq.${tenantId},barbershop_id.eq.${tenantId}`)
+            .maybeSingle();
+          
+          if (!legacyConn) {
+            if (automations && automations.length > 0) {
+              ignoredRecords.push({ 
+                tenant_id: tenantId, 
+                business_name: tenant.business_name,
+                reason: "WhatsApp da barbearia não configurado (Single source missing)" 
+              });
             }
-          } catch (statusErr) {
-            console.error(`[Automation] Failed to check live status for ${tenant.business_name}:`, statusErr);
+            continue;
           }
+          settings = legacyConn; // Use legacy if available
+        }
+
+        const connection = settings;
+
+        // Live check with status endpoint
+        try {
+          const baseUrl = connection.server_url || "https://api.z-api.io";
+          const statusUrl = `${baseUrl}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
+          
+          const headers: any = { "Content-Type": "application/json" };
+          if (connection.client_token) {
+            headers["client-token"] = connection.client_token;
+          }
+
+          console.log(`[Automation] Performing live check for ${tenant.business_name} at ${statusUrl}`);
+          const statusRes = await fetch(statusUrl, { method: "GET", headers });
+          const statusData = await statusRes.json();
+          
+          console.log(`[Automation] STATUS RESPONSE RAW for ${tenant.business_name}:`, JSON.stringify(statusData));
+          
+          connection.last_status_response = statusData;
+
+          if (statusData?.connected === true) {
+            console.log(`[Automation] ${tenant.business_name} is CONNECTED.`);
+            connection.status = 'connected';
+            connection.connected = true;
+          } else {
+            console.log(`[Automation] ${tenant.business_name} is DISCONNECTED. Reason: ${statusData?.message || 'Unknown'}`);
+            connection.status = 'disconnected';
+            connection.connected = false;
+          }
+        } catch (statusErr) {
+          console.error(`[Automation] Failed to check live status for ${tenant.business_name}:`, statusErr);
         }
 
         if (connection.status !== 'connected' || connection.connected !== true) {
