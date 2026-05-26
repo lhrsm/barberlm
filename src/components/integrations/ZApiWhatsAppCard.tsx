@@ -162,6 +162,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (!connection) return;
     setIsTesting(true);
     try {
+      console.log(`[Z-API Test] Testing instance ${connection.instance_id}`);
+      
+      // 1. Validate Connection
       const { data, error } = await supabase.functions.invoke('zapi-api', {
         body: { 
           action: 'check-status', 
@@ -171,12 +174,18 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
 
       if (error) throw error;
       
-      if (data.connected) {
-        toast.success("WhatsApp conectado!");
-        setQrCode(null);
+      console.log(`[Z-API Test] Status response:`, data);
+      
+      if (data.connected === true) {
+        toast.success("WhatsApp conectado com sucesso!");
+        
+        // 2. Automatically try to send a test message as requested
+        toast.info("Enviando mensagem de teste...");
+        await sendTestMessage();
+        
       } else {
         console.log("[Z-API Test] Disconnected result:", data);
-        toast.error("WhatsApp desconectado na Z-API. Por favor, verifique no painel da Z-API.");
+        toast.error("WhatsApp desconectado na Z-API (connected: false).");
       }
 
       fetchConnection();
@@ -186,6 +195,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       toast.error("Erro ao testar conexão: " + (err.message || "Erro desconhecido"));
     } finally {
       setIsTesting(false);
+    }
   }
   
 
