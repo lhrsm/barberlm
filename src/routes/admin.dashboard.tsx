@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { 
@@ -66,11 +68,10 @@ function AdminDashboard() {
       // Fetch Plans
       const { data: plans } = await supabase.from("plans").select("*");
       
-      // Fetch Appointments (for total transacted)
+      // Fetch ALL Appointments for stats
       const { data: appointments } = await supabase
         .from("appointments")
-        .select("final_amount, cashback_earned, credit_used")
-        .eq("status", "completed");
+        .select("final_amount, cashback_earned, credit_used, status, created_at");
 
       // Fetch Customers (for credits and total count)
       const { data: customers } = await supabase
@@ -90,10 +91,22 @@ function AdminDashboard() {
         return acc + (plan ? Number(plan.price_monthly) : 0);
       }, 0);
 
-      const totalTransacted = appointments?.reduce((acc, curr) => acc + (curr.final_amount || 0), 0) || 0;
-      const totalCashback = appointments?.reduce((acc, curr) => acc + (curr.cashback_earned || 0), 0) || 0;
+      const completedAppointments = appointments?.filter(a => a.status === 'completed') || [];
+      const totalTransacted = completedAppointments.reduce((acc, curr) => acc + (curr.final_amount || 0), 0) || 0;
+      const totalCashback = completedAppointments.reduce((acc, curr) => acc + (curr.cashback_earned || 0), 0) || 0;
       const totalCredits = customers?.reduce((acc, curr) => acc + (curr.credits || 0), 0) || 0;
       const totalCustomers = customers?.length || 0;
+
+      // Real-time activity mapping based on latest DB records
+      const recentActivity = appointments?.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      ).slice(0, 4).map(app => ({
+        title: `Novo agendamento: ${app.status === 'pending' ? 'Aguardando' : 'Confirmado'}`,
+        time: formatDistanceToNow(new Date(app.created_at), { addSuffix: true, locale: ptBR }),
+        type: "appointment",
+        icon: CalendarCheck,
+        color: app.status === 'completed' ? "text-emerald-400" : "text-blue-400"
+      })) || [];
 
       return {
         totalTenants,
@@ -103,7 +116,8 @@ function AdminDashboard() {
         totalCashback,
         totalCredits,
         totalCustomers,
-        totalBarbers: barberCount || 0
+        totalBarbers: barberCount || 0,
+        recentActivity
       };
     }
   });
@@ -296,8 +310,19 @@ function AdminDashboard() {
           <Card className="glass border-white/5 rounded-3xl overflow-hidden">
             <CardContent className="p-0">
               <div className="divide-y divide-white/5">
-                {stats?.totalTenants === 0 ? (
-                   <div className="p-8 text-center text-gray-500 italic">Nenhuma atividade registrada.</div>
+                {stats?.recentActivity && stats.recentActivity.length > 0 ? (
+                  stats.recentActivity.map((item, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors cursor-pointer group">
+                      <div className={cn("p-2 rounded-xl bg-white/5 group-hover:scale-110 transition-transform", item.color)}>
+                        <item.icon size={16} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">{item.title}</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-tighter font-bold">{item.time}</p>
+                      </div>
+                      <ArrowUpRight size={14} className="text-gray-600 group-hover:text-white transition-colors" />
+                    </div>
+                  ))
                 ) : (
                   [
                     { title: "Nova Barbearia Cadastrada", time: "Há 5 minutos", type: "tenant", icon: Building2, color: "text-blue-400" },
