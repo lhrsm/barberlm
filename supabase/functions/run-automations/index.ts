@@ -201,12 +201,13 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 
   if (!bdayCustomers || bdayCustomers.length === 0) {
     log(`No birthdays found for today (${birthdayStr}) for barber ${automation.barber_id}`);
-    return { type: "birthday", sent: 0 };
+    return { type: "birthday", sent: 0, failed: 0 };
   }
 
   log(`Found ${bdayCustomers.length} potential birthday customers`);
 
   let sentCount = 0;
+  let failedCount = 0;
   for (const customer of bdayCustomers) {
     const todayStart = new Date(new Date(brNow).setHours(0,0,0,0)).toISOString();
     
@@ -237,6 +238,8 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
     if (result.success) {
       await supabase.from("customers").update({ birthday_sent: true }).eq("id", customer.id);
       sentCount++;
+    } else {
+      failedCount++;
     }
 
     await supabase.from("automation_logs").insert({
@@ -254,7 +257,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
     });
   }
 
-  return { type: "birthday", sent: sentCount };
+  return { type: "birthday", sent: sentCount, failed: failedCount };
 }
 
 async function processAppointmentConfirmation(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
@@ -269,17 +272,18 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
 
   if (apptError) {
     log("Error fetching appointments for confirmation", apptError);
-    return { type: "confirmation", error: apptError.message };
+    return { type: "confirmation", error: apptError.message, sent: 0, failed: 0 };
   }
 
   if (!appointments || appointments.length === 0) {
     log(`No new appointments needing confirmation in the last 15 minutes`);
-    return { type: "confirmation", sent: 0 };
+    return { type: "confirmation", sent: 0, failed: 0 };
   }
 
   log(`Found ${appointments.length} appointments needing confirmation`);
 
   let sentCount = 0;
+  let failedCount = 0;
   for (const appt of appointments) {
     const variables = {
       cliente_nome: appt.customers?.name || appt.name,
@@ -303,6 +307,8 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
     if (result.success) {
       await supabase.from("appointments").update({ confirmation_sent: true }).eq("id", appt.id);
       sentCount++;
+    } else {
+      failedCount++;
     }
 
     await supabase.from("automation_logs").insert({
@@ -321,7 +327,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
     });
   }
 
-  return { type: "confirmation", sent: sentCount };
+  return { type: "confirmation", sent: sentCount, failed: failedCount };
 }
 
 async function processAppointmentReminder(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
@@ -342,17 +348,18 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
 
   if (apptError) {
     log("Error fetching appointments for reminder", apptError);
-    return { type: "reminder", error: apptError.message };
+    return { type: "reminder", error: apptError.message, sent: 0, failed: 0 };
   }
 
   if (!appointments || appointments.length === 0) {
     log(`No appointments found for reminder in window`);
-    return { type: "reminder", sent: 0 };
+    return { type: "reminder", sent: 0, failed: 0 };
   }
 
   log(`Found ${appointments.length} appointments for reminder`);
 
   let sentCount = 0;
+  let failedCount = 0;
   for (const appt of appointments) {
     const variables = {
       cliente_nome: appt.customers?.name || appt.name,
@@ -376,6 +383,8 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
     if (result.success) {
       await supabase.from("appointments").update({ reminder_sent: true }).eq("id", appt.id);
       sentCount++;
+    } else {
+      failedCount++;
     }
 
     await supabase.from("automation_logs").insert({
@@ -394,7 +403,7 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
     });
   }
 
-  return { type: "reminder", sent: sentCount };
+  return { type: "reminder", sent: sentCount, failed: failedCount };
 }
 
 async function sendMessage(connection: any, phone: string, message: string, log: Function) {
