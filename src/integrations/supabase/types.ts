@@ -941,6 +941,7 @@ export type Database = {
           refund_reason: string | null
           refund_requested_at: string | null
           status: Database["public"]["Enums"]["product_sale_status"]
+          tenant_id: string | null
           total_amount: number
           updated_at: string
           user_id: string
@@ -955,6 +956,7 @@ export type Database = {
           refund_reason?: string | null
           refund_requested_at?: string | null
           status?: Database["public"]["Enums"]["product_sale_status"]
+          tenant_id?: string | null
           total_amount: number
           updated_at?: string
           user_id: string
@@ -969,6 +971,7 @@ export type Database = {
           refund_reason?: string | null
           refund_requested_at?: string | null
           status?: Database["public"]["Enums"]["product_sale_status"]
+          tenant_id?: string | null
           total_amount?: number
           updated_at?: string
           user_id?: string
@@ -986,6 +989,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_sales_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
