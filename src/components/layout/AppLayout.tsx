@@ -136,7 +136,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, role, tenantId]);
+  }, [user, role, tenantId, instanceId]);
 
   const businessName = String(tenantProfile?.business_name || "Barbex");
 
