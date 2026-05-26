@@ -36,16 +36,17 @@ serve(async (req) => {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("tenant_id")
+      .select("id, tenant_id")
       .eq("id", user.id)
       .single();
 
-    if (!profile?.tenant_id) throw new Error("Tenant não encontrado");
+    const tenantId = profile?.tenant_id || profile?.id;
+    if (!tenantId) throw new Error("Tenant não encontrado");
 
     const { data: connection } = await supabase
       .from("whatsapp_connections")
       .select("*")
-      .eq("barbershop_id", profile.tenant_id)
+      .eq("tenant_id", tenantId)
       .eq("status", "connected")
       .maybeSingle();
 
@@ -53,21 +54,20 @@ serve(async (req) => {
       throw new Error("WhatsApp principal da barbearia não conectado. Por favor, conecte o WhatsApp nas configurações da barbearia.");
     }
 
-
     const { data: appt } = await supabase
       .from("appointments")
-      .select("*, customers(*), profiles:barber_id(*), services:service_id(*)")
-      .eq("barber_id", user.id)
+      .select("*, customers(*), barbers:barber_id(*), profiles:tenant_id(*), services:service_id(*)")
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     const mockData = {
       cliente_nome: appt?.customers?.name || appt?.name || "João da Silva",
-      barbearia_nome: appt?.profiles?.business_name || "Sua Barbearia",
+      barbearia_nome: appt?.profiles?.business_name || connection.instance_name || "Sua Barbearia",
       data: appt ? new Date(appt.start_time).toLocaleDateString('pt-BR') : "26/05/2026",
       horario: appt ? new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : "14:30",
-      profissional: appt?.profiles?.responsible_name || "Seu Barbeiro",
+      profissional: appt?.barbers?.name || appt?.profiles?.responsible_name || "Seu Barbeiro",
       servico: appt?.services?.name || "Corte Social",
     };
 
@@ -88,33 +88,42 @@ serve(async (req) => {
       headers["Client-Token"] = clientToken;
     }
 
-    const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        phone: normalizePhone(targetPhone),
-        message: processedMessage
-      })
-    });
+    let zapiResult: any = {};
+    let ok = false;
 
-    const zapiResult = await response.json();
+    try {
+      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          phone: normalizePhone(targetPhone),
+          message: processedMessage
+        })
+      });
+
+      zapiResult = await response.json();
+      ok = response.ok;
+    } catch (fetchErr) {
+      zapiResult = { error: fetchErr.message };
+      ok = false;
+    }
 
     await supabase.from("automation_logs").insert({
       automation_id: automationId,
-      tenant_id: profile.tenant_id,
+      tenant_id: tenantId,
       barber_id: user.id,
-
-      status: response.ok ? "success" : "error",
+      status: ok ? "success" : "error",
       message_type: automationType + "_test",
       phone: normalizePhone(targetPhone),
       original_template: template,
       processed_template: processedMessage,
       response: zapiResult,
-      error_message: response.ok ? null : JSON.stringify(zapiResult)
+      error_message: ok ? null : (zapiResult.message || zapiResult.error || "Erro na Z-API"),
+      sent_at: new Date().toISOString()
     });
 
-    if (!response.ok) {
-      throw new Error(zapiResult.message || "Erro na Z-API");
+    if (!ok) {
+      throw new Error(zapiResult.message || zapiResult.error || "Erro na Z-API");
     }
 
     return new Response(JSON.stringify({ 
