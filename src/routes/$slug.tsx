@@ -352,10 +352,10 @@ function ShopPageComponent() {
         if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
 
         const isBusy = barberAppointments.some(app => {
-          const appStart = parseISO(app.start_time).getTime();
-          const appEnd = parseISO(app.end_time).getTime();
+          const appStart = new Date(app.start_time).getTime();
+          const appEnd = new Date(app.end_time).getTime();
           const checkTimeMs = checkTime.getTime();
-          const serviceEndMs = addMinutes(checkTime, service.duration_minutes || 30).getTime();
+          const serviceEndMs = checkTimeMs + (service.duration_minutes || 30) * 60 * 1000;
           
           const conflict = checkTimeMs < appEnd && serviceEndMs > appStart;
           if (conflict) {
@@ -696,9 +696,12 @@ function ShopPageComponent() {
           }
 
           const isBusy = appointments?.some(app => {
-            const appStart = parseISO(app.start_time);
-            const appEnd = parseISO(app.end_time);
-            return checkTime >= appStart && checkTime < appEnd;
+            const appStart = new Date(app.start_time).getTime();
+            const appEnd = new Date(app.end_time).getTime();
+            const checkTimeMs = checkTime.getTime();
+            const slotEndMs = checkTimeMs + 30 * 60 * 1000; // 30 min duration
+            
+            return checkTimeMs < appEnd && slotEndMs > appStart;
           });
 
           if (!isBusy) {
@@ -837,22 +840,47 @@ function ShopPageComponent() {
 
       // Check Customer Conflict
       if (finalCustId) {
+        console.log('DEBUG: Checking customer conflicts', { finalCustId, date: selectedDate });
+        
+        const dayStart = `${selectedDate}T00:00:00.000Z`;
+        const dayEnd = `${selectedDate}T23:59:59.999Z`;
+
         const { data: customerConflict, error: custConfError } = await supabase
           .from("appointments")
           .select("id, start_time, end_time, status")
           .eq("customer_id", finalCustId)
           .in("status", ["scheduled", "confirmed", "in_progress"])
-          .lt("start_time", endTimeCheck.toISOString())
-          .gt("end_time", startTimeCheck.toISOString())
-          .limit(1);
+          .gte("start_time", dayStart)
+          .lte("start_time", dayEnd);
 
         if (custConfError) {
            console.error("Erro ao verificar conflitos (cliente):", custConfError);
-        } else if (customerConflict && customerConflict.length > 0) {
-          console.log('CONFLITO DETECTADO (CLIENTE):', customerConflict[0]);
-          toast.error("Você já possui um agendamento que conflita com este horário.");
-          setSubmitting(false);
-          return;
+        } else {
+          console.log('CUSTOMER APPOINTMENTS TODAY:', customerConflict);
+          
+          const newStartMs = startTimeCheck.getTime();
+          const newEndMs = endTimeCheck.getTime();
+          
+          const hasOverlap = customerConflict?.some(app => {
+            const existingStartMs = new Date(app.start_time).getTime();
+            const existingEndMs = new Date(app.end_time).getTime();
+            
+            const conflict = newStartMs < existingEndMs && newEndMs > existingStartMs;
+            if (conflict) {
+              console.log('CONFLICT CALCULATED (CLIENTE):', {
+                appointmentId: app.id,
+                new: { start: startTimeCheck.toISOString(), end: endTimeCheck.toISOString() },
+                existing: { start: app.start_time, end: app.end_time }
+              });
+            }
+            return conflict;
+          });
+
+          if (hasOverlap) {
+            toast.error("Você já possui um agendamento que conflita com este horário.");
+            setSubmitting(false);
+            return;
+          }
         }
       }
 
