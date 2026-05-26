@@ -1119,11 +1119,21 @@ function ClientPortalComponent() {
             </div>
           </div>
           <Button 
-            onClick={handlePortalBooking} 
+            onClick={() => {
+              // Limpar estados do agendamento local para garantir que a modal padrão abra do zero
+              // Mas aqui vamos apenas redirecionar ou emitir um evento se quisermos usar o componente pai.
+              // Como estamos em /$slug/portal, o componente pai ShopPageComponent está ativo e tem o isBookingOpen.
+              // Podemos tentar emitir um evento ou usar o contexto se disponível.
+              // No BarberLM, o $slug.tsx envolve o Outlet.
+              
+              // Emitir evento para o pai (ShopPageComponent)
+              window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'));
+            }} 
             className="gap-2 bg-black text-white border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all duration-300 hover:scale-105"
           >
             <Calendar size={18} /> Novo Agendamento
           </Button>
+
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">
