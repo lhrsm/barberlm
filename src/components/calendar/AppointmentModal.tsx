@@ -228,8 +228,9 @@ export function AppointmentModal({
       const startTime = parseISO(`${selectedDate}T${timeWithSeconds}`);
       const endTime = addMinutes(startTime, service?.duration_minutes || 30);
 
-      const { data: appointmentData, error } = await supabase.from("appointments").insert({
+      const appointmentPayload: any = {
         user_id: tenantId,
+        tenant_id: tenantId,
         customer_id: selectedCustomer,
         service_id: selectedService,
         barber_id: selectedBarber,
@@ -240,6 +241,7 @@ export function AppointmentModal({
         status: "scheduled",
         payment_status: paymentStatus,
         payment_method: paymentMethod === 'wallet' ? 'credits' : 'barbershop',
+        source: 'admin',
         items: [{
           id: selectedService,
           name: service?.name,
@@ -247,7 +249,9 @@ export function AppointmentModal({
           price: service?.price,
           quantity: 1
         }]
-      }).select().single();
+      };
+
+      const { data: appointmentData, error } = await supabase.from("appointments").insert([appointmentPayload]).select().single();
 
       if (error) throw error;
 

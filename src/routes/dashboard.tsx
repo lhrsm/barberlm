@@ -138,8 +138,14 @@ function DashboardComponent() {
           table: 'appointments', 
           filter: `tenant_id=eq.${tenantId}` 
         }, () => {
+          console.log("Realtime: appointments changed, invalidating queries");
           fetchTodayAppointments();
           fetchStats();
+          // Invalidate React Query if available
+          const queryClient = (window as any).queryClient;
+          if (queryClient) {
+            queryClient.invalidateQueries({ queryKey: ["appointments"] });
+          }
         })
         .on('postgres_changes', { 
           event: '*', 
@@ -147,6 +153,7 @@ function DashboardComponent() {
           table: 'transactions', 
           filter: `tenant_id=eq.${tenantId}` 
         }, () => {
+          console.log("Realtime: transactions changed, invalidating queries");
           fetchStats();
         })
         .on('postgres_changes', { 
@@ -155,9 +162,21 @@ function DashboardComponent() {
           table: 'notifications', 
           filter: `tenant_id=eq.${tenantId}` 
         }, () => {
+          console.log("Realtime: notifications changed");
           fetchNotifications();
         })
-        .subscribe();
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'customers', 
+          filter: `tenant_id=eq.${tenantId}` 
+        }, () => {
+          console.log("Realtime: customers changed");
+          fetchStats();
+        })
+        .subscribe((status) => {
+          console.log(`Realtime: Subscription status for tenant ${tenantId}:`, status);
+        });
 
       return () => {
         supabase.removeChannel(channel);
@@ -241,19 +260,26 @@ function DashboardComponent() {
     const dayStart = startOfDay(selectedDate).toISOString();
     const dayEnd = endOfDay(selectedDate).toISOString();
     
+    console.log('FETCHING APPOINTMENTS FOR:', { tenantId, dayStart, dayEnd });
+
     let query = supabase
       .from("appointments")
       .select("*, customers(name, phone, loyalty_points, avatar_url, credits), services(name), barbers(name)")
       .eq("tenant_id", tenantId)
-      .or(`status.neq.cancelled,refund_status.in.(pending,completed)`)
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);
 
+    // Filter by status if not 'all'
     if (statusFilter !== "all") {
       query = query.eq("status", statusFilter);
+    } else {
+      // In 'all', we might want to show everything except definitely cancelled ones 
+      // OR show them but marked. The original code was using a complex OR.
+      // Let's simplify and show all for that day.
     }
 
-    const { data } = await query.order("start_time", { ascending: false });
+    const { data, error } = await query.order("start_time", { ascending: false });
+    console.log('DASHBOARD APPOINTMENTS DEBUG:', { tenantId, date: selectedDate, count: data?.length, error });
     if (data) setTodayAppointments(data);
   }
 
@@ -364,7 +390,7 @@ function DashboardComponent() {
 
       const { error: transError } = await supabase
         .from("transactions")
-        .insert({
+        .insert([{
           amount: remainingToPay,
           type: "income",
           description: `Atendimento${deductionText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
@@ -375,7 +401,7 @@ function DashboardComponent() {
           user_id: tenantId,
           date: new Date().toISOString().split('T')[0],
           time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
-        });
+        }]);
       
       if (transError) console.error("Error creating transaction:", transError);
     }
@@ -415,7 +441,7 @@ function DashboardComponent() {
 
       const { error: transError } = await supabase
         .from("transactions")
-        .insert({
+        .insert([{
           amount: remainingToPay,
           type: "income",
           description: `Atendimento${creditText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
@@ -425,7 +451,7 @@ function DashboardComponent() {
           tenant_id: tenantId,
           user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
-        });
+        }]);
       
       if (transError) console.error("Error creating transaction on payment status toggle:", transError);
     } else if (newStatus === 'pending') {
@@ -479,16 +505,17 @@ function DashboardComponent() {
 
       if (appointment.refund_type === 'refund') {
         // Estorno: Remove da receita (cria uma saída/despesa para abater)
-        await supabase.from("transactions").insert({
+        await supabase.from("transactions").insert([{
           amount: totalPrice,
           type: "expense",
           description: `Estorno (Cancelamento Pix): ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
           category: "Estorno",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
+          tenant_id: tenantId,
           user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
-        });
+        }]);
         toast.success("Agendamento cancelado e estorno registrado como saída!");
       } else if (appointment.refund_type === 'credits') {
         // Créditos: Adiciona ao saldo do cliente
@@ -516,29 +543,30 @@ function DashboardComponent() {
           // @ts-ignore
 
           // 2. Adicionar crédito à carteira
-          await supabase.from("wallet_transactions").insert({
+          await supabase.from("wallet_transactions").insert([{
             wallet_id: wallet.id,
             amount: totalPrice,
             type: "credit",
             description: `Crédito por cancelamento: ${appointment.services?.name || 'Serviço'}`,
             appointment_id: appointment.id,
             user_id: tenantId
-          });
+          }]);
 
           // 3. Registrar na transação como 0 para não contar como receita nova nem saída, 
           // mas documentar o movimento. O valor original de 'income' continua lá, 
           // mas agora o cliente tem o crédito para usar.
           // Usando valor total original para o crédito
-          await supabase.from("transactions").insert({
+          await supabase.from("transactions").insert([{
             amount: 0,
             type: "income",
             description: `Crédito Gerado: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'} (R$ ${totalPrice.toFixed(2)})`,
             category: "Crédito Cliente",
             barber_id: appointment.barber_id,
             appointment_id: appointment.id,
+            tenant_id: tenantId,
             user_id: tenantId,
             date: new Date().toISOString().split('T')[0]
-          });
+          }]);
 
           toast.success("Agendamento cancelado e valor convertido em créditos!");
         } catch (err) {
@@ -548,16 +576,17 @@ function DashboardComponent() {
         }
       } else {
         // Fallback: se não tiver tipo de reembolso definido, registra como despesa (estorno padrão)
-        await supabase.from("transactions").insert({
+        await supabase.from("transactions").insert([{
           amount: totalPrice,
           type: "expense",
           description: `Cancelamento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
           category: "Cancelamento",
           barber_id: appointment.barber_id,
           appointment_id: appointment.id,
+          tenant_id: tenantId,
           user_id: tenantId,
           date: new Date().toISOString().split('T')[0]
-        });
+        }]);
         toast.success("Agendamento cancelado!");
       }
     } else {
