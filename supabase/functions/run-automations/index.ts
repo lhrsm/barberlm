@@ -10,10 +10,8 @@ const corsHeaders = {
 // Helper to get time in BR timezone (UTC-3)
 function getBRDate() {
   const now = new Date();
-  // UTC-3 offset is 180 minutes
   const brOffset = -3 * 60;
-  const brDate = new Date(now.getTime() + (now.getTimezoneOffset() + brOffset) * 60000);
-  return brDate;
+  return new Date(now.getTime() + (now.getTimezoneOffset() + brOffset) * 60000);
 }
 
 function normalizePhone(phone: string): string {
@@ -81,7 +79,8 @@ serve(async (req) => {
     for (const automation of automations || []) {
       log(`Processing automation: ${automation.type}`, { 
         automation_id: automation.id, 
-        barber_id: automation.barber_id 
+        barber_id: automation.barber_id,
+        tenant_id: automation.tenant_id
       });
       
       const { data: connection } = await supabase
@@ -92,7 +91,7 @@ serve(async (req) => {
         .maybeSingle();
 
       if (!connection) {
-        log(`SKIP: No connected WhatsApp for barber ${automation.barber_id}`, { barber_id: automation.barber_id });
+        log(`SKIP: No connected WhatsApp for barber ${automation.barber_id}`);
         continue;
       }
 
@@ -135,12 +134,10 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
     .from("customers")
     .select("*")
     .eq("barber_id", automation.barber_id)
-    .eq("birthday_sent", false); // Only those who haven't received it (reset this daily?)
-    // Actually, checking daily might be better with logs or a timestamp.
+    .eq("birthday_sent", false);
   
   const bdayCustomers = customers?.filter((c: any) => {
     if (!c.birth_date) return false;
-    // Handle YYYY-MM-DD or MM-DD
     return c.birth_date.endsWith(birthdayStr);
   });
 
@@ -153,13 +150,14 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 
   let sentCount = 0;
   for (const customer of bdayCustomers) {
-    // Double check with logs to avoid double sending if flags fail
+    const todayStart = new Date(new Date(brNow).setHours(0,0,0,0)).toISOString();
+    
     const { data: existing } = await supabase
       .from("automation_logs")
       .select("id")
       .eq("automation_id", automation.id)
       .eq("customer_id", customer.id)
-      .gte("created_at", new Date(brNow.setHours(0,0,0,0)).toISOString())
+      .gte("created_at", todayStart)
       .maybeSingle();
 
     if (existing) {
@@ -174,10 +172,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 
     const processedMessage = processAutomationTemplate(automation.template, variables);
 
-    log(`SENDING birthday to ${customer.name}`, {
-      phone: customer.phone,
-      processed: processedMessage
-    });
+    log(`SENDING birthday to ${customer.name}`, { phone: customer.phone });
 
     const result = await sendMessage(connection, customer.phone, processedMessage, log);
     
@@ -188,6 +183,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 
     await supabase.from("automation_logs").insert({
       automation_id: automation.id,
+      tenant_id: automation.tenant_id,
       barber_id: automation.barber_id,
       customer_id: customer.id,
       status: result.success ? "success" : "error",
@@ -204,7 +200,6 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 }
 
 async function processAppointmentConfirmation(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
-  // Check appointments created in the last 15 minutes that haven't been confirmed
   const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   
   const { data: appointments, error: apptError } = await supabase
@@ -254,6 +249,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
 
     await supabase.from("automation_logs").insert({
       automation_id: automation.id,
+      tenant_id: automation.tenant_id,
       barber_id: automation.barber_id,
       customer_id: appt.customer_id,
       appointment_id: appt.id,
@@ -272,9 +268,6 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
 
 async function processAppointmentReminder(supabase: any, automation: any, connection: any, log: Function, brNow: Date) {
   const delayHours = automation.trigger_delay || 24;
-  
-  // Target time is exactly now + delayHours
-  // We look in a window of 15 minutes to be safe (cron runs every 5)
   const targetTimeStart = new Date(Date.now() + (delayHours * 60 * 60 * 1000)).toISOString();
   const targetTimeEnd = new Date(Date.now() + (delayHours * 60 * 60 * 1000) + (15 * 60 * 1000)).toISOString();
 
@@ -295,7 +288,7 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
   }
 
   if (!appointments || appointments.length === 0) {
-    log(`No appointments found for reminder in the specified window`);
+    log(`No appointments found for reminder in window`);
     return { type: "reminder", sent: 0 };
   }
 
@@ -329,6 +322,7 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
 
     await supabase.from("automation_logs").insert({
       automation_id: automation.id,
+      tenant_id: automation.tenant_id,
       barber_id: automation.barber_id,
       customer_id: appt.customer_id,
       appointment_id: appt.id,
@@ -357,21 +351,13 @@ async function sendMessage(connection: any, phone: string, message: string, log:
     }
 
     const targetPhone = normalizePhone(phone);
-    const headers: any = { 
-      "Content-Type": "application/json" 
-    };
-    
-    if (clientToken) {
-      headers["Client-Token"] = clientToken;
-    }
+    const headers: any = { "Content-Type": "application/json" };
+    if (clientToken) headers["Client-Token"] = clientToken;
 
     const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        phone: targetPhone,
-        message: message
-      })
+      body: JSON.stringify({ phone: targetPhone, message: message })
     });
 
     const data = await response.json();
