@@ -176,8 +176,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         setQrCode(null);
       } else {
         console.log("[Z-API Test] Disconnected result:", data);
-        toast.error("WhatsApp desconectado ou falha na autenticação.");
-        fetchQRCode();
+        toast.error("WhatsApp desconectado na Z-API. Por favor, verifique no painel da Z-API.");
       }
 
       fetchConnection();
