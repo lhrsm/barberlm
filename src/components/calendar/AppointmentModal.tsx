@@ -153,33 +153,51 @@ export function AppointmentModal({
     const timeWithSeconds = time.length === 5 ? `${time}:00` : time;
     const startTime = parseISO(`${date}T${timeWithSeconds}`);
     const endTime = addMinutes(startTime, service?.duration_minutes || 30);
+    const startIso = startTime.toISOString();
+    const endIso = endTime.toISOString();
+
+    console.log('DEBUG: checkConflict (Admin)', { barberId, startIso, endIso, customerId });
 
     // 1. Check Barber Conflict
     const { data: barberConflict, error: barberError } = await supabase
       .from("appointments")
-      .select("id")
+      .select("id, start_time, end_time, status")
       .eq("barber_id", barberId)
-      .neq("status", "cancelled")
-      .or(`start_time.lte.${startTime.toISOString()},end_time.gte.${startTime.toISOString()}`)
-      .or(`start_time.lt.${endTime.toISOString()},end_time.gt.${endTime.toISOString()}`)
+      .in("status", ["scheduled", "confirmed", "in_progress"])
+      .lt("start_time", endIso)
+      .gt("end_time", startIso)
       .limit(1);
 
-    if (barberError) return { conflict: false };
-    if (barberConflict && barberConflict.length > 0) return { conflict: true, type: 'barber' };
+    if (barberError) {
+      console.error("Barber conflict query error:", barberError);
+      return { conflict: false };
+    }
+    
+    if (barberConflict && barberConflict.length > 0) {
+      console.log('BARBER CONFLICT DETECTED:', barberConflict[0]);
+      return { conflict: true, type: 'barber' };
+    }
 
     // 2. Check Customer Conflict
     if (customerId) {
       const { data: customerConflict, error: customerError } = await supabase
         .from("appointments")
-        .select("id")
+        .select("id, start_time, end_time, status")
         .eq("customer_id", customerId)
-        .neq("status", "cancelled")
-        .or(`start_time.lte.${startTime.toISOString()},end_time.gte.${startTime.toISOString()}`)
-        .or(`start_time.lt.${endTime.toISOString()},end_time.gt.${endTime.toISOString()}`)
+        .in("status", ["scheduled", "confirmed", "in_progress"])
+        .lt("start_time", endIso)
+        .gt("end_time", startIso)
         .limit(1);
 
-      if (customerError) return { conflict: false };
-      if (customerConflict && customerConflict.length > 0) return { conflict: true, type: 'customer' };
+      if (customerError) {
+        console.error("Customer conflict query error:", customerError);
+        return { conflict: false };
+      }
+      
+      if (customerConflict && customerConflict.length > 0) {
+        console.log('CUSTOMER CONFLICT DETECTED:', customerConflict[0]);
+        return { conflict: true, type: 'customer' };
+      }
     }
 
     return { conflict: false };
