@@ -104,15 +104,69 @@ serve(async (req) => {
           continue;
         }
 
-        const { data: connection } = await supabase
+        let { data: connection } = await supabase
           .from("whatsapp_connections")
           .select("*")
           .eq("tenant_id", tenantId)
-          .eq("status", "connected")
           .maybeSingle();
 
         if (!connection) {
           if (automations && automations.length > 0) {
+            ignoredRecords.push({ 
+              tenant_id: tenantId, 
+              business_name: tenant.business_name,
+              reason: "WhatsApp da barbearia não configurado" 
+            });
+          }
+          continue;
+        }
+
+        // Live check if not marked as connected in DB
+        if (connection.status !== 'connected') {
+          console.log(`[Automation] DB status is ${connection.status} for ${tenant.business_name}. Performing live check...`);
+          try {
+            const statusUrl = `${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
+            const statusRes = await fetch(statusUrl, { method: "GET" });
+            const statusData = await statusRes.json();
+            
+            console.log(`[Automation] ZAPI STATUS RESPONSE for ${tenant.business_name}:`, JSON.stringify(statusData));
+            console.log(`[Automation] CONNECTED?`, statusData?.connected);
+            
+            connection.last_status_response = statusData; // Store for logging
+
+            // Strict validation as requested by user
+            if (statusData?.connected === true) {
+              console.log(`[Automation] Instance is ACTUALLY connected. Updating DB status.`);
+              await supabase.from("whatsapp_connections").update({ 
+                status: 'connected', 
+                connected: true, 
+                updated_at: new Date().toISOString() 
+              }).eq("id", connection.id);
+              connection.status = 'connected';
+            } else {
+              console.log(`[Automation] Instance is indeed disconnected.`);
+            }
+          } catch (statusErr) {
+            console.error(`[Automation] Failed to check live status for ${tenant.business_name}:`, statusErr);
+          }
+        }
+
+        if (connection.status !== 'connected') {
+          if (automations && automations.length > 0) {
+            // Log ignored because of connection
+            try {
+              await supabase.from("automation_logs").insert({
+                tenant_id: tenantId,
+                status: "error",
+                message_type: "connection_check",
+                error_message: "WhatsApp desconectado (verificado via Z-API)",
+                response: connection.last_status_response || { status: 'disconnected' },
+                sent_at: new Date().toISOString()
+              });
+            } catch (logErr) {
+              console.error("[Automation] Error logging connection failure:", logErr);
+            }
+
             ignoredRecords.push({ 
               tenant_id: tenantId, 
               business_name: tenant.business_name,
@@ -493,26 +547,30 @@ async function sendMessage(connection: any, phone: string, message: string) {
   try {
     const instanceId = connection.instance_id;
     const token = connection.instance_token;
-    const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
     const baseUrl = connection.server_url || "https://api.z-api.io";
     
     const targetPhone = normalizePhone(phone);
-    const headers: any = { "Content-Type": "application/json" };
-    if (clientToken) headers["Client-Token"] = clientToken;
+    const headers = { "Content-Type": "application/json" };
 
-    const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
+    const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
+    console.log(`[Automation] Sending message to ${targetPhone} via ${sendUrl}`);
+    
+    const response = await fetch(sendUrl, {
       method: "POST",
       headers,
       body: JSON.stringify({ phone: targetPhone, message: message })
     });
 
     const data = await response.json();
+    console.log(`[Automation] ZAPI SEND RESPONSE:`, JSON.stringify(data));
+    
     return { 
       success: response.ok, 
       response: data, 
       error: !response.ok ? (data.message || data.error || `HTTP ${response.status}`) : null 
     };
   } catch (error) {
+    console.error(`[Automation] Send error:`, error);
     return { success: false, error: error.message };
   }
 }

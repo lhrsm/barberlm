@@ -43,20 +43,18 @@ serve(async (req) => {
     }
 
     if (action === "check-status") {
-      console.log(`Checking status for instance ${instanceId}`);
+      console.log(`[Z-API] Checking status for instance ${instanceId}`);
       const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/status`, {
         method: "GET",
         headers
       });
       
       const result = await res.json();
-      console.log(`Status result:`, JSON.stringify(result));
+      console.log(`[Z-API] Status response for ${instanceId}:`, JSON.stringify(result));
+      console.log(`[Z-API] connected value:`, result?.connected);
 
-      const isConnected = result.connected === true || 
-                        result.connected === 'true' || 
-                        result.value === 'CONNECTED' ||
-                        result.status === 'CONNECTED' ||
-                        result.status === 'connected';
+      // Strict validation as requested by user
+      const isConnected = result?.connected === true;
 
       const status = isConnected ? 'connected' : 'disconnected';
 
@@ -136,18 +134,6 @@ serve(async (req) => {
           .eq("tenant_id", connection.barbershop_id)
       ]);
 
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
-    if (action === "get-qrcode") {
-      const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/qr-code`, {
-        method: "GET",
-        headers
-      });
-      const result = await res.json();
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

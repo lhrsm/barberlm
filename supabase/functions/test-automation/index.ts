@@ -47,11 +47,21 @@ serve(async (req) => {
       .from("whatsapp_connections")
       .select("*")
       .eq("tenant_id", tenantId)
-      .eq("status", "connected")
       .maybeSingle();
 
     if (!connection) {
-      throw new Error("WhatsApp principal da barbearia não conectado. Por favor, conecte o WhatsApp nas configurações da barbearia.");
+      throw new Error("WhatsApp principal da barbearia não configurado.");
+    }
+
+    // Live check
+    console.log(`[Test] Performing live check for instance ${connection.instance_id}...`);
+    const statusUrl = `${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
+    const statusRes = await fetch(statusUrl, { method: "GET" });
+    const statusData = await statusRes.json();
+    console.log(`[Test] ZAPI STATUS RESPONSE:`, JSON.stringify(statusData));
+
+    if (statusData?.connected !== true) {
+      throw new Error("WhatsApp principal da barbearia não conectado na Z-API. Por favor, escaneie o QR Code nas configurações.");
     }
 
     const { data: appt } = await supabase
@@ -77,22 +87,19 @@ serve(async (req) => {
 
     const instanceId = connection.instance_id;
     const token = connection.instance_token;
-    const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
     const baseUrl = connection.server_url || "https://api.z-api.io";
 
-    const headers: any = { 
+    const headers = { 
       "Content-Type": "application/json" 
     };
-    
-    if (clientToken) {
-      headers["Client-Token"] = clientToken;
-    }
 
     let zapiResult: any = {};
     let ok = false;
 
     try {
-      const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
+      const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
+      console.log(`[Test] Sending to ${targetPhone} via ${sendUrl}`);
+      const response = await fetch(sendUrl, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -102,6 +109,7 @@ serve(async (req) => {
       });
 
       zapiResult = await response.json();
+      console.log(`[Test] ZAPI SEND RESPONSE:`, JSON.stringify(zapiResult));
       ok = response.ok;
     } catch (fetchErr) {
       zapiResult = { error: fetchErr.message };
