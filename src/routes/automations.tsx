@@ -330,7 +330,7 @@ function AutomationsComponent() {
     if (!tenantId) return;
     const { data } = await supabase
       .from("automation_logs")
-      .select("*, automations(type)")
+      .select("*, automations(type), customers(name)")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
       .limit(20);
@@ -339,12 +339,23 @@ function AutomationsComponent() {
   }
 
   async function fetchCronStatus() {
+    if (!tenantId) return;
     try {
-      const { data: cronData, error: cronError } = await supabase.rpc('get_cron_status');
+      const { data: cronData } = await supabase.rpc('get_cron_status');
       if (cronData && cronData.length > 0) {
         setCronStatus(cronData[0]);
       }
       
+      // Calculate real stats for this tenant from the DB
+      const [{ count: activeCount }, { data: logStats }] = await Promise.all([
+        supabase.from("automations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("enabled", true),
+        supabase.from("automation_logs").select("status").eq("tenant_id", tenantId)
+      ]);
+
+      const sent = logStats?.filter(l => l.status === 'success').length || 0;
+      const failed = logStats?.filter(l => l.status === 'error').length || 0;
+
+      // Also get the latest global status for the scheduler info
       const { data: statusData } = await supabase
         .from("automation_status")
         .select("*")
@@ -352,7 +363,12 @@ function AutomationsComponent() {
         .maybeSingle();
       
       if (statusData) {
-        setAutomationStatus(statusData);
+        setAutomationStatus({
+          ...statusData,
+          total_processed: activeCount || 0,
+          messages_sent: sent,
+          messages_failed: failed
+        });
       }
     } catch (err) {
       console.error("Error fetching status:", err);
@@ -857,7 +873,7 @@ function AutomationsComponent() {
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex flex-col">
-                                <span className="font-medium text-foreground/80">Cliente #{log.customer_id?.substring(0, 8)}</span>
+                                <span className="font-medium text-foreground/80">{log.customers?.name || `Cliente #${log.customer_id?.substring(0, 8)}`}</span>
                                 <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">ID: {log.id.substring(0, 6)}</span>
                               </div>
                             </td>

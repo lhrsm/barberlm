@@ -60,7 +60,7 @@ function ServicesComponent() {
     const { data, error } = await supabase
       .from("services")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("tenant_id", user.id)
       .eq("active", true)
       .order("name");
     if (error) toast.error("Erro ao buscar serviços");
@@ -75,6 +75,7 @@ function ServicesComponent() {
       ...newService,
       price: parseFloat(newService.price),
       duration_minutes: parseInt(newService.duration_minutes),
+      tenant_id: user.id,
       user_id: user.id,
     });
 
@@ -90,12 +91,13 @@ function ServicesComponent() {
   }
 
   async function handleDeleteService(id: string) {
-    if (!confirm("Tem certeza que deseja excluir este serviço?")) return;
+    if (!confirm("Tem certeza que deseja excluir este serviço?") || !user) return;
 
     const { error } = await supabase
       .from("services")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("tenant_id", user.id);
 
     if (error) {
       toast.error("Erro ao excluir serviço");
@@ -118,6 +120,7 @@ function ServicesComponent() {
       .insert({
         ...serviceToCopy,
         name: `${service.name} (Cópia)`,
+        tenant_id: user?.id,
         user_id: user?.id
       });
 

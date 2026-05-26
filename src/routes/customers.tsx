@@ -110,7 +110,7 @@ function CustomersComponent() {
     const { data, error } = await supabase
       .from("customers")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("tenant_id", user.id)
       .order("name");
     if (error) toast.error("Erro ao buscar clientes");
     else setCustomers(data || []);
@@ -122,6 +122,7 @@ function CustomersComponent() {
 
     const { error } = await supabase.from("customers").insert({
       ...newCustomer,
+      tenant_id: user.id,
       user_id: user.id,
     });
 
@@ -148,7 +149,8 @@ function CustomersComponent() {
         notes: editingCustomer.notes,
         birth_date: editingCustomer.birth_date || null,
       })
-      .eq("id", editingCustomer.id);
+      .eq("id", editingCustomer.id)
+      .eq("tenant_id", user.id);
 
     if (error) {
       toast.error("Erro ao atualizar cliente");
@@ -160,12 +162,13 @@ function CustomersComponent() {
   }
 
   async function handleDeleteCustomer() {
-    if (!selectedCustomer) return;
+    if (!selectedCustomer || !user) return;
 
     const { error } = await supabase
       .from("customers")
       .delete()
-      .eq("id", selectedCustomer.id);
+      .eq("id", selectedCustomer.id)
+      .eq("tenant_id", user.id);
 
     if (error) {
       toast.error("Erro ao excluir cliente. Verifique se ele possui agendamentos vinculados.");

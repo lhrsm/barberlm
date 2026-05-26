@@ -97,7 +97,7 @@ function BarbersComponent() {
     const { data, error } = await supabase
       .from("services")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("tenant_id", user.id)
       .eq("active", true)
       .order("name");
     if (error) toast.error("Erro ao buscar serviços");
@@ -112,7 +112,7 @@ function BarbersComponent() {
         *,
         barber_services(service_id)
       `)
-      .eq("user_id", user.id)
+      .eq("tenant_id", user.id)
       .order("name");
     
     if (error) {
@@ -160,6 +160,7 @@ function BarbersComponent() {
 
     const { data: barber, error } = await supabase.from("barbers").insert({
       ...newBarber,
+      tenant_id: user.id,
       user_id: user.id,
       active: true,
     }).select().single();
@@ -172,6 +173,7 @@ function BarbersComponent() {
         const links = selectedServices.map(serviceId => ({
           barber_id: barber.id,
           service_id: serviceId,
+          tenant_id: user.id,
           user_id: user.id
         }));
         await supabase.from("barber_services").insert(links);
@@ -213,6 +215,7 @@ function BarbersComponent() {
         const links = selectedServices.map(serviceId => ({
           barber_id: editingBarber.id,
           service_id: serviceId,
+          tenant_id: user.id,
           user_id: user.id
         }));
         await supabase.from("barber_services").insert(links);
@@ -274,6 +277,7 @@ function BarbersComponent() {
       avatar_url: barber.avatar_url,
       category: barber.category,
       commission_rate: barber.commission_rate,
+      tenant_id: user.id,
       user_id: user.id,
     }).select().single();
 
@@ -285,6 +289,7 @@ function BarbersComponent() {
         const links = barber.barber_services.map((bs: any) => ({
           barber_id: newBarberData.id,
           service_id: bs.service_id,
+          tenant_id: user.id,
           user_id: user.id
         }));
         await supabase.from("barber_services").insert(links);
