@@ -146,13 +146,16 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
       console.log(`[Checkout Server] ✅ Customer ID obtido em ${Date.now() - startTime}ms:`, customerId);
 
-      // Aplicar trial de 15 dias para todos os planos pagos recorrentes (conforme solicitado)
-      const trialDays = isRecurring ? 15 : undefined;
+      // Usar o trial_end existente para que a cobrança só inicie após o trial de 15 dias inicial
+      // Se o trial já expirou, não adicionamos trial_end na sessão (cobrança imediata)
+      const stripeTrialEnd = trialRemainingSeconds > 60 // Pelo menos 1 minuto sobrando
+        ? Math.floor(Date.now() / 1000) + trialRemainingSeconds
+        : undefined;
 
       console.log("[Checkout Server] 🏗️ Criando sessão de checkout...", {
         priceId: stripePrice.id,
         customerId,
-        trialDays,
+        trialEnd: stripeTrialEnd ? new Date(stripeTrialEnd * 1000).toISOString() : "Imediato",
         mode: isRecurring ? "subscription" : "payment"
       });
 
