@@ -359,7 +359,14 @@ function BarbersComponent() {
                   <DialogHeader>
                     <DialogTitle>Adicionar Novo Barbeiro</DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handleAddBarber} className="space-y-4 pt-4">
+                  <form onSubmit={(e) => {
+                    if (selectedServices.length === 0) {
+                      e.preventDefault();
+                      toast.error("Selecione pelo menos um serviço para o profissional.");
+                      return;
+                    }
+                    handleAddBarber(e);
+                  }} className="space-y-4 pt-4">
                     <div className="space-y-2">
                       <Label htmlFor="avatar">Foto do Profissional</Label>
                       <div className="flex items-center gap-4">
