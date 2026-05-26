@@ -162,7 +162,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (!connection) return;
     setIsTesting(true);
     try {
-      console.log(`[Z-API Test] Testing instance ${connection.instance_id}`);
+      console.log(`[Z-API Test] INSTANCE ID: ${connection.instance_id}`);
+      console.log(`[Z-API Test] TOKEN: ${connection.instance_token}`);
       
       // 1. Validate Connection
       const { data, error } = await supabase.functions.invoke('zapi-api', {
