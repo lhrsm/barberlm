@@ -400,7 +400,7 @@ export function AppointmentModal({
           {canAddAppointment ? (
             <>
               <DialogHeader>
-                <DialogTitle>Novo Agendamento - Passo {currentStep} de 4</DialogTitle>
+                <DialogTitle>{editingAppointmentId ? "Editar Agendamento" : "Novo Agendamento"} - Passo {currentStep} de 4</DialogTitle>
               </DialogHeader>
               
               <div className="py-4 space-y-4">
