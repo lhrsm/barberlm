@@ -112,21 +112,31 @@ function SettingsComponent() {
     console.log("Fetching profile for user ID:", user.id, "Email:", user.email);
     
     try {
-      // Use a more direct query to avoid maybeSingle() caching if any
-      const { data, error, status } = await supabase
+      // Fetch profile
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id);
-
-      if (error) {
-        console.error("Supabase error fetching profile:", error);
-        toast.error(`Erro ao carregar configurações: ${error.message || "Erro desconhecido"}`);
+      
+      if (profileError) {
+        console.error("Supabase error fetching profile:", profileError);
+        toast.error(`Erro ao carregar configurações: ${profileError.message}`);
         return;
       }
 
-      if (data && data.length > 0) {
-        const profile = data[0];
-        console.log("Profile data successfully loaded from Supabase:", profile);
+      // Fetch barbershop settings
+      const { data: settingsData, error: settingsError } = await supabase
+        .from("barbershop_settings")
+        .select("*")
+        .eq("barber_id", user.id)
+        .maybeSingle();
+
+      if (settingsError) {
+        console.error("Error fetching barbershop settings:", settingsError);
+      }
+
+      if (profileData && profileData.length > 0) {
+        const profile = profileData[0];
         setFormData({
           business_name: profile.business_name || "",
           slug: profile.slug || "",
@@ -147,12 +157,13 @@ function SettingsComponent() {
           font_color: profile.font_color || "#000000",
           pix_key: profile.pix_key || "",
           pix_qr_code_url: profile.pix_qr_code_url || "",
-          whatsapp_number: profile.whatsapp_number || "",
+          whatsapp_number: settingsData?.whatsapp_number || profile.whatsapp_number || "",
+          instance_id: settingsData?.instance_id || "",
+          instance_token: settingsData?.instance_token || "",
+          client_token: settingsData?.client_token || "",
         });
-
       } else {
-        console.warn("No profile rows found in database for user ID:", user.id);
-        toast.error("Perfil não encontrado. Tente sair e entrar novamente.");
+        toast.error("Perfil não encontrado.");
       }
     } catch (e: any) {
       console.error("Unexpected error in fetchProfile:", e);
