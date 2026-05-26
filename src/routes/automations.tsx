@@ -132,6 +132,7 @@ function AutomationsComponent() {
   
   const [automations, setAutomations] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
+  const [cronStatus, setCronStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -186,6 +187,7 @@ function AutomationsComponent() {
         toast.success("Execução de automações concluída!");
         console.log("Logs de execução:", data.logs);
         fetchLogs();
+        fetchCronStatus();
       } else {
         toast.error("Erro ao executar automações: " + (data.error || "Erro desconhecido"));
       }
@@ -203,6 +205,7 @@ function AutomationsComponent() {
     if (tenantId) {
       fetchAutomations();
       fetchLogs();
+      fetchCronStatus();
     }
   }, [tenantId]);
 
@@ -227,6 +230,18 @@ function AutomationsComponent() {
       .limit(20);
     
     if (data) setLogs(data);
+  }
+
+  async function fetchCronStatus() {
+    try {
+      const { data, error } = await supabase.rpc('get_cron_status');
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setCronStatus(data[0]);
+      }
+    } catch (err) {
+      console.error("Error fetching cron status:", err);
+    }
   }
 
   async function handleToggleAutomation(type: string, currentEnabled: boolean) {
@@ -376,6 +391,52 @@ function AutomationsComponent() {
             </Button>
           </div>
         </div>
+
+        {cronStatus && (
+          <Card className="bg-muted/30 border-dashed">
+            <CardContent className="py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "p-2 rounded-full",
+                  cronStatus.status === 'succeeded' ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
+                )}>
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Status do Scheduler (pg_cron)</p>
+                  <p className="text-xs text-muted-foreground">
+                    Executa a cada 5 minutos. Próxima execução prevista em breve.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 w-full md:w-auto">
+                <div>
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Última Execução</p>
+                  <p className="text-sm font-semibold">
+                    {cronStatus.last_run ? new Date(cronStatus.last_run).toLocaleString('pt-BR') : 'Nunca'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Resultado</p>
+                  <Badge variant={cronStatus.status === 'succeeded' ? "default" : "destructive"} className="h-5">
+                    {cronStatus.status === 'succeeded' ? 'Sucesso' : 'Falha'}
+                  </Badge>
+                </div>
+                <div className="hidden md:block">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Job Name</p>
+                  <p className="text-sm font-mono text-muted-foreground">{cronStatus.jobname}</p>
+                </div>
+              </div>
+
+              {cronStatus.status !== 'succeeded' && cronStatus.return_message && (
+                <div className="w-full md:w-auto mt-2 md:mt-0 text-xs text-red-500 bg-red-50 p-2 rounded border border-red-100 font-mono">
+                  {cronStatus.return_message}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="all" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
