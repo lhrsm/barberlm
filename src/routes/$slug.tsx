@@ -2399,13 +2399,13 @@ function ShopPageComponent() {
                   {(useCashback || useCredits) && (
                     <div className="pt-2 border-t border-white/5 space-y-1">
                       {useCashback && (
-                        <div className="flex justify-between text-green-500 font-bold text-xs">
+                        <div className="flex justify-between text-emerald-400 font-bold text-xs">
                           <span>Desconto Cashback:</span> 
                           <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
                         </div>
                       )}
                       {useCredits && (
-                        <div className="flex justify-between text-green-500 font-bold text-xs">
+                        <div className="flex justify-between font-bold text-xs" style={{ color: primaryColor }}>
                           <span>Desconto Créditos:</span> 
                           <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
                         </div>
@@ -2415,8 +2415,9 @@ function ShopPageComponent() {
 
                   <div className="flex justify-between items-center border-t border-white/10 pt-4 mt-3">
                     <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
-                    <span className="text-3xl font-black text-black">R$ {calculateTotal().toFixed(2)}</span>
+                    <span className="text-3xl font-black text-white" style={{ color: calculateTotal() === 0 ? '#10b981' : 'white' }}>R$ {calculateTotal().toFixed(2)}</span>
                   </div>
+
                   
                   {shop.cashback_enabled && (
                     <div className="bg-primary/5 p-3 rounded-xl text-[11px] text-center mt-3 border border-primary/20 shadow-inner">
