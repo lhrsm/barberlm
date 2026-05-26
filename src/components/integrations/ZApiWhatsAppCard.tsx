@@ -175,7 +175,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
 
       if (error) throw error;
       
-      console.log(`[Z-API Test] Status response:`, data);
+      console.log(`[Z-API Test] STATUS RAW:`, data.raw);
+      console.log(`[Z-API Test] CONNECTED RESULT:`, data.connected);
       
       if (data.connected === true) {
         toast.success("WhatsApp conectado com sucesso!");
