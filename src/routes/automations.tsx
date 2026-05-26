@@ -638,13 +638,18 @@ function AutomationsComponent() {
                                 )}
                               </Badge>
                             </td>
+                            <td className="px-6 py-4">
+                              <div className="max-w-[150px] truncate text-[11px] text-muted-foreground" title={log.processed_template}>
+                                {log.processed_template || '-'}
+                              </div>
+                            </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex flex-col items-end">
                                 <span className="font-bold text-foreground/80 tabular-nums">
-                                  {new Date(log.sent_at).toLocaleDateString('pt-BR')}
+                                  {new Date(log.sent_at || log.created_at).toLocaleDateString('pt-BR')}
                                 </span>
                                 <span className="text-xs text-muted-foreground tabular-nums">
-                                  {new Date(log.sent_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                  {new Date(log.sent_at || log.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               </div>
                             </td>
