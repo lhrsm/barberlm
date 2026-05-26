@@ -37,6 +37,7 @@ interface AppointmentModalProps {
   initialDate?: string;
   initialTime?: string;
   initialStep?: number;
+  editingAppointmentId?: string;
 }
 
 export function AppointmentModal({ 
