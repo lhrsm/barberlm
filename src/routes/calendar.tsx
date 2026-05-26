@@ -442,7 +442,16 @@ function CalendarComponent() {
                         {getAppointmentsForTime(currentDate, hour).map(app => (
                           <div 
                             key={app.id}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setModalInitialData({
+                                date: format(parseISO(app.start_time), "yyyy-MM-dd"),
+                                time: format(parseISO(app.start_time), "HH:mm"),
+                                step: 1,
+                                editingId: app.id
+                              });
+                              setIsDialogOpen(true);
+                            }}
                             className={cn(
                               "flex flex-col p-2 rounded-md text-xs shadow-sm min-w-[150px] max-w-[250px] animate-in fade-in zoom-in duration-200 border-2",
                               getStatusColor(app.status, app.barber_id)
