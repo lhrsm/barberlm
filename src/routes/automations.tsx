@@ -309,7 +309,7 @@ function AutomationsComponent() {
       .from("automation_logs")
       .select("*, automations(type)")
       .eq("tenant_id", tenantId)
-      .order("sent_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(20);
     
     if (data) setLogs(data);
