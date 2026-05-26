@@ -27,6 +27,7 @@ import {
   Share2
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
+import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { TrialExpiredBlock } from "@/components/subscription/TrialExpiredBlock";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
@@ -178,6 +179,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <h1 className="text-xl font-bold text-primary truncate max-w-[150px]">{businessName}</h1>
         </div>
         <div className="flex items-center gap-2">
+          <NotificationsCenter />
           {role === 'super_admin' && <AdminNotifications />}
           <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             {isMobileMenuOpen ? <X /> : <Menu />}
@@ -228,6 +230,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
               {businessName}
             </h1>
+            <NotificationsCenter />
             {role === 'super_admin' && <AdminNotifications />}
           </div>
 

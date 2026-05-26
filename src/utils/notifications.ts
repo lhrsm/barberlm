@@ -34,8 +34,8 @@ export const createNotification = async ({
       p_type: type,
       p_title: title,
       p_message: message,
-      p_barber_id: barberId || null,
-      p_customer_id: customerId || null,
+      p_barber_id: barberId || undefined,
+      p_customer_id: customerId || undefined,
       p_metadata: metadata
     });
 

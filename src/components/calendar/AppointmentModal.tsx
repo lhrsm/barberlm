@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
+import { createNotification } from "@/utils/notifications";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "@tanstack/react-router";
 
@@ -345,24 +346,19 @@ export function AppointmentModal({
       // Notifications
       const customer = customers.find(c => c.id === selectedCustomer);
       const barber = barbers.find(b => b.id === selectedBarber);
-      const notificationMessage = `Agendamento manual: ${service?.name} para ${customer?.name} às ${selectedTime}`;
+      const notificationMessage = `${customer?.name} agendou ${service?.name} às ${selectedTime}`;
       
-      await supabase.from("notifications").insert([
-        {
-          user_id: tenantId,
-          title: editingAppointmentId ? "Agendamento Editado (Manual)" : "Novo Agendamento (Manual)",
+      // Centralized notification for Barbershop and Barber
+      await Promise.all([
+        createNotification({
+          userId: tenantId,
+          type: 'appointment_created',
+          title: editingAppointmentId ? "Agendamento Editado" : "Novo Agendamento",
           message: notificationMessage,
-          type: "appointment",
-          link: "/calendar"
-        },
-        {
-          user_id: tenantId,
-          barber_id: selectedBarber,
-          title: editingAppointmentId ? "Agendamento Manual Editado" : "Novo Agendamento Manual",
-          message: notificationMessage,
-          type: "appointment",
-          link: "/calendar"
-        }
+          barberId: selectedBarber,
+          customerId: selectedCustomer,
+          metadata: { appointmentId: appointmentData.id }
+        })
       ]);
 
       const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", tenantId).single();
