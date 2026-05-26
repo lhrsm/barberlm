@@ -157,27 +157,26 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (!connection) return;
     setIsTesting(true);
     try {
-      const response = await fetch('/api/zapi/test-connection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instanceId: connection.instance_id,
-          token: connection.instance_token,
-          connectionId: connection.id
-        })
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'check-status', 
+          connectionId: connection.id 
+        }
       });
 
-      const result = await response.json();
+      if (error) throw error;
       
-      if (result.connected) {
+      if (data.connected) {
         toast.success("WhatsApp conectado!");
       } else {
-        console.log("[Z-API Test] Disconnected result:", result);
-        toast.error("WhatsApp desconectado.");
+        console.log("[Z-API Test] Disconnected result:", data);
+        toast.error("WhatsApp desconectado ou falha na autenticação.");
       }
       fetchConnection();
+      fetchLogs();
     } catch (err: any) {
-      toast.error("Erro ao testar conexão");
+      console.error("Erro ao testar conexão:", err);
+      toast.error("Erro ao testar conexão: " + (err.message || "Erro desconhecido"));
     } finally {
       setIsTesting(false);
     }
@@ -187,24 +186,28 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (!connection) return;
     setIsTesting(true);
     try {
-      const response = await fetch('/api/zapi/test-message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tenantId,
-          message: "Olá! Este é um teste de envio real do BarberLM via Z-API. 🚀",
-          phone: "5571999999999" // User mentioned this number in example
-        })
+      const { data, error } = await supabase.functions.invoke('whatsapp-cloud', {
+        body: {
+          user_id: tenantId,
+          event_type: 'reminder', // Use a generic one for test
+          phone: "5571999999999", // Reference number from user
+          placeholders: {
+            cliente: "Teste BarberLM",
+            horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+          }
+        }
       });
 
-      const result = await response.json();
+      if (error) throw error;
       
-      if (result.success) {
+      if (data.success) {
         toast.success("Mensagem de teste enviada!");
+        fetchLogs();
       } else {
-        toast.error("Erro ao enviar: " + (result.error || "Erro na API"));
+        toast.error("Erro ao enviar: " + (data.error || "Erro na API"));
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Erro ao testar envio:", err);
       toast.error("Erro ao testar envio");
     } finally {
       setIsTesting(false);
@@ -279,7 +282,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               </div>
               <div>
                 <CardTitle className="text-xl font-bold tracking-tight">WhatsApp Z-API</CardTitle>
-                <CardDescription className="text-slate-400">Integração oficial sem Client-Token</CardDescription>
+                <CardDescription className="text-slate-400">Integração oficial com Client-Token</CardDescription>
               </div>
             </div>
             
@@ -300,6 +303,31 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </div>
         </CardHeader>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-6 pb-6 border-b border-white/5 bg-black/20">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Última Sincronização</span>
+            <span className="text-xs text-slate-300 flex items-center gap-1.5">
+              <History size={12} className="text-blue-500/60" />
+              {connection?.updated_at ? new Date(connection.updated_at).toLocaleString('pt-BR') : 'Nunca'}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Último Envio</span>
+            <span className="text-xs text-slate-300 flex items-center gap-1.5">
+              <MessageSquare size={12} className="text-emerald-500/60" />
+              {logs.length > 0 ? new Date(logs[0].created_at).toLocaleString('pt-BR') : 'Nenhum'}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Instância</span>
+            <span className="text-xs text-slate-300 font-mono">{connection?.instance_id || '---'}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Servidor</span>
+            <span className="text-xs text-slate-300 truncate">{connection?.server_url || '---'}</span>
+          </div>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="px-6 border-b border-white/5">
             <TabsList className="bg-transparent h-12 gap-6 p-0">
@@ -313,7 +341,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 value="logs" 
                 className="data-[state=active]:bg-transparent data-[state=active]:text-blue-400 data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-blue-400 rounded-none px-2 h-full text-slate-400 transition-all font-medium"
               >
-                Logs de Envio
+                Logs de Atividade
               </TabsTrigger>
             </TabsList>
           </div>
@@ -348,7 +376,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 <Input 
                   name="api_url" 
                   defaultValue={connection?.server_url || "https://api.z-api.io"} 
-                  className="bg-white/5 border-white/10 focus:border-blue-500/50 transition-all h-11" 
+                  className="bg-white/5 border-white/10 focus:border-blue-500/50 transition-all h-11"
+                  placeholder="https://api.z-api.io"
                 />
               </div>
             </div>

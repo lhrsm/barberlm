@@ -6,6 +6,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function normalizePhone(phone: string): string {
+  if (!phone) return "";
+  let digits = phone.replace(/\D/g, "");
+  if (!digits.startsWith("55") && (digits.length === 10 || digits.length === 11)) {
+    digits = "55" + digits;
+  }
+  return digits;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -72,10 +81,8 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
   const today = new Date();
   const day = String(today.getDate()).padStart(2, '0');
   const month = String(today.getMonth() + 1).padStart(2, '0');
-  const birthdayStr = `${month}-${day}`; // Format MM-DD for matching
+  const birthdayStr = `${month}-${day}`;
 
-  // Find customers with birthday today
-  // In Postgres: birth_date::text LIKE '%MM-DD'
   const { data: customers } = await supabase
     .from("customers")
     .select("*")
@@ -90,7 +97,6 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 
   let sentCount = 0;
   for (const customer of bdayCustomers) {
-    // Check if already sent today
     const { data: existing } = await supabase
       .from("automation_logs")
       .select("id")
@@ -103,7 +109,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 
     const message = replaceVariables(automation.template, {
       cliente_nome: customer.name,
-      barbearia_nome: "Nossa Barbearia", // Fetch from profile if possible
+      barbearia_nome: "Nossa Barbearia",
     });
 
     const result = await sendMessage(connection, customer.phone, message);
@@ -114,7 +120,7 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
       customer_id: customer.id,
       status: result.success ? "success" : "error",
       message_type: "birthday",
-      phone: customer.phone,
+      phone: normalizePhone(customer.phone),
       response: result.response,
       error_message: result.error
     });
@@ -126,7 +132,6 @@ async function processBirthdayAutomation(supabase: any, automation: any, connect
 }
 
 async function processAppointmentConfirmation(supabase: any, automation: any, connection: any) {
-  // Find appointments created in the last 10 minutes that haven't been notified
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
   
   const { data: appointments } = await supabase
@@ -168,7 +173,7 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
       appointment_id: appt.id,
       status: result.success ? "success" : "error",
       message_type: "appointment_confirmation",
-      phone: phone,
+      phone: normalizePhone(phone),
       response: result.response,
       error_message: result.error
     });
@@ -180,7 +185,6 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
 }
 
 async function processAppointmentReminder(supabase: any, automation: any, connection: any) {
-  // Find appointments starting in trigger_delay minutes (± 5 minutes window)
   const delayMinutes = automation.trigger_delay || 60;
   const targetTimeStart = new Date(Date.now() + (delayMinutes - 5) * 60 * 1000).toISOString();
   const targetTimeEnd = new Date(Date.now() + (delayMinutes + 5) * 60 * 1000).toISOString();
@@ -224,7 +228,7 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
       appointment_id: appt.id,
       status: result.success ? "success" : "error",
       message_type: "appointment_reminder",
-      phone: phone,
+      phone: normalizePhone(phone),
       response: result.response,
       error_message: result.error
     });
@@ -245,18 +249,26 @@ function replaceVariables(template: string, vars: Record<string, string>) {
 
 async function sendMessage(connection: any, phone: string, message: string) {
   try {
-    const instanceId = connection.instance_id;
-    const token = connection.instance_token;
-    const cleanPhone = phone.replace(/\D/g, "");
+    const instanceId = connection.instance_id || Deno.env.get("ZAPI_INSTANCE_ID");
+    const token = connection.instance_token || Deno.env.get("ZAPI_TOKEN");
+    const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
+    const baseUrl = connection.server_url || "https://api.z-api.io";
     
-    // Ensure phone has country code if missing (DDI 55 for Brazil)
-    const formattedPhone = cleanPhone.length <= 11 ? `55${cleanPhone}` : cleanPhone;
+    const targetPhone = normalizePhone(phone);
 
-    const response = await fetch(`https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`, {
+    const headers: any = { 
+      "Content-Type": "application/json" 
+    };
+    
+    if (clientToken) {
+      headers["Client-Token"] = clientToken;
+    }
+
+    const response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
-        phone: formattedPhone,
+        phone: targetPhone,
         message: message
       })
     });

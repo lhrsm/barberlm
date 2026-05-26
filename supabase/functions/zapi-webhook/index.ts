@@ -25,7 +25,6 @@ serve(async (req) => {
     const barberIdFromUrl = pathParts[pathParts.length - 1] !== 'zapi-webhook' ? pathParts[pathParts.length - 1] : null;
 
     console.log("Z-API Webhook received:", JSON.stringify(body));
-    console.log("BarberId from URL:", barberIdFromUrl);
 
     const { instanceId, type, phone } = body;
 
@@ -55,63 +54,50 @@ serve(async (req) => {
     }
 
     // Save Webhook Log
-    const { error: logError } = await supabase.from("automation_logs").insert({
+    await supabase.from("automation_logs").insert({
       barber_id: barberId,
       status: 'received',
       message_type: type || 'webhook_event',
-      phone: phone,
+      phone: phone || body.phone,
       response: body
     });
 
-    if (logError) console.error("Erro ao salvar log de webhook:", logError);
-
     // Business Logic
-    switch (type) {
-      case "Connected": {
-        await supabase
-          .from("whatsapp_connections")
-          .update({ 
-            status: 'connected', 
-            connected: true,
-            updated_at: new Date().toISOString(),
-            phone: phone || connection?.phone
-          })
-          .eq("instance_id", instanceId);
+    let status = '';
+    let isConnected = false;
 
-        // Also update whatsapp_instances to keep synced
-        await supabase
-          .from("whatsapp_instances")
-          .update({ 
-            status: 'connected', 
-            connected: true,
-            phone: phone
-          })
-          .eq("instance_name", body.instanceId || instanceId); // Best effort sync
-        break;
-      }
-      case "Disconnected": {
-        await supabase
-          .from("whatsapp_connections")
-          .update({ 
-            status: 'disconnected', 
-            connected: false,
-            updated_at: new Date().toISOString() 
-          })
-          .eq("instance_id", instanceId);
+    if (type === "Connected" || type === "update-webhook-connected") {
+      status = 'connected';
+      isConnected = true;
+    } else if (type === "Disconnected" || type === "update-webhook-disconnected") {
+      status = 'disconnected';
+      isConnected = false;
+    }
 
-        await supabase
-          .from("whatsapp_instances")
-          .update({ 
-            status: 'disconnected', 
-            connected: false
-          })
-          .eq("instance_name", body.instanceId || instanceId);
-        break;
-      }
-      case "ReceivedMessage": {
-        // Handle received message if needed
-        break;
-      }
+    if (status) {
+      console.log(`Updating status for barber ${barberId} to ${status}`);
+      
+      // Update whatsapp_connections
+      await supabase
+        .from("whatsapp_connections")
+        .update({ 
+          status, 
+          connected: isConnected,
+          updated_at: new Date().toISOString(),
+          phone: phone || connection?.phone || body.phone
+        })
+        .eq("barber_id", barberId);
+
+      // Sync with whatsapp_instances
+      await supabase
+        .from("whatsapp_instances")
+        .update({ 
+          status, 
+          connected: isConnected,
+          phone: phone || body.phone,
+          updated_at: new Date().toISOString()
+        })
+        .eq("barber_id", barberId);
     }
 
     return new Response(JSON.stringify({ status: "success" }), {
