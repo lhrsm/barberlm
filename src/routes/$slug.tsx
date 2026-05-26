@@ -1730,16 +1730,16 @@ function ShopPageComponent() {
       <Dialog open={isBookingOpen} onOpenChange={(open) => {
         setIsBookingOpen(open);
         if (!open) {
+          // If logged in via portal, we might want to stay on step 2/3 on next open if it was already chosen
+          // but usually it's better to reset to step 1 (where it will auto-identify and skip)
+          const isPortalActive = !!localStorage.getItem(`client_portal_session_${slug}`);
           setBookingStep(1);
-          // Don't reset if we want to persist between modal closes in the same session,
-          // but user wants them to persist anyway.
-          // However, for a fresh start on next click, we might want to clear, 
-          // but the user says "maintain until finalized".
           setUseCashback(false);
           setUseCredits(false);
           setPaymentMethod(null);
         }
       }}>
+
         <DialogContent className={cn("sm:max-w-[480px] p-0 overflow-hidden bg-white border-2 border-[#D4AF37] h-[90vh] flex flex-col rounded-[2.5rem] shadow-2xl", isEmbedded && "w-full max-w-full m-0 h-full rounded-none border-none")}>
           <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar flex flex-col bg-gradient-to-b from-white/[0.02] to-transparent">
           {!isEmbedded && (
