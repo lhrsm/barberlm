@@ -2794,11 +2794,11 @@ function ShopPageComponent() {
           </div>
 
           {bookingStep > 1 && (
-            <DialogFooter className="flex justify-between items-center sm:justify-between px-0 pt-6 mt-6 border-t border-white/5 shrink-0">
+            <DialogFooter className="flex justify-between items-center sm:justify-between px-0 pt-6 mt-6 border-t border-zinc-100 shrink-0">
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm" 
-                className="text-slate-400 hover:text-white"
+                className="bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
                 onClick={() => {
                   if (bookingStep === 5 && paymentMethod) {
                     setPaymentMethod(null);
