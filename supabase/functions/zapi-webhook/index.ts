@@ -292,7 +292,7 @@ serve(async (req) => {
         }
 
         case 'awaiting_cancel_confirmation': {
-          if (['1', '1️⃣', 'sim', 'cancelar'].some(s => messageText.includes(s))) {
+          if (['1', '1️⃣', 'sim', 'cancelar', 'yes', 'cancel'].some(s => messageText.includes(s))) {
             if (context.scope === 'all') {
               for (const appt of context.appointments) {
                 await supabase.from("appointments").update({ status: 'cancelled' }).eq("id", appt.id);
