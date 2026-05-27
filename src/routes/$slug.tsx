@@ -2303,8 +2303,8 @@ function ShopPageComponent() {
                           className={cn(
                             "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
                             useCashback 
-                              ? "bg-primary text-white hover:opacity-90 border-primary" 
-                              : "bg-white text-primary hover:bg-primary/5 border border-primary/30"
+                              ? "bg-black text-white hover:bg-zinc-800" 
+                              : "bg-white text-black hover:bg-zinc-50 border border-zinc-200"
                           )}
                         >
                           {useCashback ? "Aplicado" : "Usar"}
