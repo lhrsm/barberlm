@@ -2662,10 +2662,10 @@ function ShopPageComponent() {
 
                   
                   {shop.cashback_enabled && (
-                    <div className="bg-primary/5 p-3 rounded-xl text-[11px] text-center mt-3 border border-primary/20 shadow-inner">
-                      <span className="text-slate-300 font-medium">Você receberá </span>
-                      <span className="text-primary font-black">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
-                      <span className="text-slate-300 font-medium"> de volta nesta reserva!</span>
+                    <div className="bg-emerald-50 p-3 rounded-xl text-[11px] text-center mt-3 border border-emerald-100">
+                      <span className="text-zinc-600 font-medium">Você receberá </span>
+                      <span className="text-emerald-700 font-black">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
+                      <span className="text-zinc-600 font-medium"> de volta nesta reserva!</span>
                     </div>
                   )}
                 </div>
