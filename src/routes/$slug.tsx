@@ -2389,7 +2389,7 @@ function ShopPageComponent() {
                       <Button 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
-                        className="bg-primary text-white hover:opacity-90 border border-primary rounded-xl font-semibold shadow-sm transition-all duration-200 h-12 px-6"
+                        className="bg-black text-white hover:bg-zinc-800 rounded-xl font-semibold shadow-md transition-all duration-200 h-12 px-6"
                       >
                         {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
                       </Button>
