@@ -66,7 +66,7 @@ export function AppointmentDetailsModal({
           services(name, duration_minutes, price),
           barbers(name)
         `)
-        .eq("id", appointmentId)
+        .eq("id", appointmentId!)
         .single();
 
       if (error) throw error;
