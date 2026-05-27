@@ -225,10 +225,8 @@ function ShopPageComponent() {
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           
-          if (data.name && bookingStep === 1) {
-            // Restore auto-advancing behavior if found
-            setBookingStep(2);
-          }
+          // Removed auto-advancing behavior - user must click Continue
+          console.log('Customer identified, waiting for user to click Continue');
         } else {
           console.log('CUSTOMER NOT FOUND for phone:', normalizedPhone);
           setCustomerId(null);
