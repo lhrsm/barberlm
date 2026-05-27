@@ -193,23 +193,14 @@ async function processZapiWebhook(body: any) {
 
     const appointments = await getAppointmentsFromConversation();
     const isMultiple = appointments.length > 1;
-    const isSingle = appointments.length === 1;
-
+    
     console.log('CONVERSATION', conversation);
     console.log('APPOINTMENTS FOUND', appointments);
     console.log('APPOINTMENTS COUNT', appointments.length);
     console.log('IS MULTIPLE', isMultiple);
     console.log('SELECTED OPTION', option);
-
-    nextContext.appointments = appointments.map(a => ({
-      id: a.id,
-      service_name: a.services?.name,
-      barber_name: a.barbers?.name,
-      start_time: a.start_time,
-      duration: a.services?.duration,
-      barber_id: a.barber_id,
-      payment_status: a.payment_status
-    }));
+    console.log('CURRENT STATE', state);
+    console.log('CURRENT ACTION', context.action);
 
     // 2. STATE MACHINE
     try {
