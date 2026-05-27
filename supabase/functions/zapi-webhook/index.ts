@@ -21,67 +21,74 @@ function normalizePhone(phone: string): string {
   return digits;
 }
 
-function extractIncomingOption(body: any): { option: string, text: string, id: string } {
-  let option = "";
+function removeAccents(str: string): string {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function extractSelectedOption(payload: any): string {
   let text = "";
   let id = "";
 
-  // 1. Check for List Response (Z-API standard)
-  if (body.optionListReply) {
-    id = body.optionListReply.id || "";
-    text = body.optionListReply.title || "";
-  } 
-  // 2. Check for Button Response
-  else if (body.buttonReply) {
-    id = body.buttonReply.buttonId || "";
-    text = body.buttonReply.buttonText || "";
-  }
-  // 3. Check for Interactive List Response (Another variation)
-  else if (body.listResponse) {
-    id = body.listResponse.id || "";
-    text = body.listResponse.title || "";
-  }
-  // 4. Check for top-level selected IDs (sometimes used in different versions)
-  else if (body.selectedRowId || body.selectedId) {
-    id = body.selectedRowId || body.selectedId || "";
-    text = body.text?.message || body.message?.text || body.text || "";
-  }
-  // 5. Check for nested message properties (WPPConnect/Common formats)
-  else if (body.message?.listResponseMessage) {
-    id = body.message.listResponseMessage.singleSelectReply?.selectedRowId || body.message.listResponseMessage.title || "";
-    text = body.message.listResponseMessage.title || body.message.listResponseMessage.singleSelectReply?.selectedRowId || "";
-  }
-  else if (body.message?.buttonsResponseMessage) {
-    id = body.message.buttonsResponseMessage.selectedButtonId || "";
-    text = body.message.buttonsResponseMessage.selectedDisplayText || "";
-  }
-  // 6. Text fallback
-  else {
-    text = body.text?.message || body.message?.text || body.text || body.body || "";
+  // Check all possible paths provided by the user
+  const possiblePaths = [
+    payload.message?.listResponseMessage?.title,
+    payload.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
+    payload.listResponseMessage?.title,
+    payload.selectedRowId,
+    payload.selectedId,
+    payload.buttonReply?.id,
+    payload.buttonReply?.title,
+    payload.buttonsResponseMessage?.selectedButtonId,
+    payload.buttonsResponseMessage?.selectedDisplayText,
+    payload.message?.text,
+    payload.text,
+    payload.body,
+    payload.optionListReply?.title,
+    payload.optionListReply?.id
+  ];
+
+  for (const val of possiblePaths) {
+    if (val && typeof val === 'string') {
+      text = val;
+      break;
+    }
   }
 
-  const cleanText = String(text || "").trim().toLowerCase();
-  const cleanId = String(id || "").trim().toLowerCase();
+  // Also check if any of these are the primary source of ID
+  id = payload.message?.listResponseMessage?.singleSelectReply?.selectedRowId || 
+       payload.selectedRowId || 
+       payload.selectedId || 
+       payload.buttonReply?.id || 
+       payload.buttonsResponseMessage?.selectedButtonId ||
+       payload.optionListReply?.id || "";
 
-  // Map to internal actions
-  if (cleanId === 'confirm' || cleanId === '1' || cleanText === 'confirmar agendamento' || cleanText === 'confirmar' || cleanText === '1' || cleanText === '1️⃣') {
-    option = 'confirm';
-  } else if (cleanId === 'reschedule' || cleanId === '2' || cleanText === 'reagendar' || cleanText === '2' || cleanText === '2️⃣') {
-    option = 'reschedule';
-  } else if (cleanId === 'cancel' || cleanId === '3' || cleanText === 'cancelar' || cleanText === '3' || cleanText === '3️⃣') {
-    option = 'cancel';
-  } else if (cleanId === 'all' || cleanText === 'todos' || cleanText === '1' || cleanText === '1️⃣') {
-    option = 'all';
-  } else if (cleanId === 'single' || cleanId === 'one' || cleanText === 'apenas um' || cleanText === 'um' || cleanText === '2' || cleanText === '2️⃣') {
-    option = 'single';
-  } else {
-    // Attempt fuzzy match for keywords
-    if (cleanText.includes('confirmar')) option = 'confirm';
-    else if (cleanText.includes('reagendar')) option = 'reschedule';
-    else if (cleanText.includes('cancelar')) option = 'cancel';
-  }
+  const cleanText = removeAccents(String(text || "").trim().toLowerCase());
+  const cleanId = removeAccents(String(id || "").trim().toLowerCase());
 
-  return { option, text: cleanText, id: cleanId };
+  console.log('EXTRACTION - Clean Text:', cleanText);
+  console.log('EXTRACTION - Clean ID:', cleanId);
+
+  // Mappings
+  const confirmPatterns = ['confirmar agendamento', 'confirmar', 'confirm', '1', 'confirm_appointment', 'confirmar_agendamento', '1️⃣'];
+  const reschedulePatterns = ['reagendar', 'reschedule', '2', 'reschedule_appointment', '2️⃣'];
+  const cancelPatterns = ['cancelar', 'cancel', '3', 'cancel_appointment', '3️⃣'];
+  const allPatterns = ['todos', 'all', '1', '1️⃣'];
+  const singlePatterns = ['apenas um específico', 'apenas um', 'especifico', 'single', '2', '2️⃣'];
+
+  if (confirmPatterns.includes(cleanId) || confirmPatterns.includes(cleanText)) return 'confirm';
+  if (reschedulePatterns.includes(cleanId) || reschedulePatterns.includes(cleanText)) return 'reschedule';
+  if (cancelPatterns.includes(cleanId) || cancelPatterns.includes(cleanText)) return 'cancel';
+  if (allPatterns.includes(cleanId) || allPatterns.includes(cleanText)) return 'all';
+  if (singlePatterns.includes(cleanId) || singlePatterns.includes(cleanText)) return 'single';
+
+  // Fallback fuzzy
+  if (cleanText.includes('confirmar')) return 'confirm';
+  if (cleanText.includes('reagendar')) return 'reschedule';
+  if (cleanText.includes('cancelar')) return 'cancel';
+  if (cleanText.includes('todos')) return 'all';
+  if (cleanText.includes('apenas um') || cleanText.includes('especifico')) return 'single';
+
+  return "";
 }
 
 
