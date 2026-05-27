@@ -1853,135 +1853,104 @@ function ShopPageComponent() {
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="space-y-8 py-4"
+                className="space-y-6 py-4"
               >
-                <div className="space-y-3">
-                  <h4 className="text-3xl font-black uppercase italic tracking-tighter text-black">Olá!</h4>
-                  <p className="text-gray-600 text-sm font-medium leading-relaxed">
-                    Informe seu WhatsApp para começarmos seu agendamento premium.
+                <div className="space-y-2">
+                  <h4 className="text-2xl font-bold text-black tracking-tight">Olá! 👋</h4>
+                  <p className="text-zinc-600 text-sm font-medium">
+                    Informe seu WhatsApp para começarmos seu agendamento.
                   </p>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="grid gap-3 p-6 bg-gray-50 rounded-3xl border border-gray-100 shadow-inner">
+                  <div className="grid gap-3 p-5 bg-zinc-50 rounded-2xl border border-zinc-100">
                     <div className="flex justify-between items-center">
-                      <Label className="text-xs font-black uppercase tracking-widest text-gray-500 ml-1">Seu WhatsApp</Label>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Seu WhatsApp</Label>
                       {(submitting || isSearchingCustomer) && (
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] animate-pulse">
-                          Buscando cliente...
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 animate-pulse">
+                          Buscando...
                         </span>
                       )}
                     </div>
                     <div className="relative group international-phone-portal">
                       <PhoneInput
-
                         defaultCountry={typeof window !== 'undefined' ? (navigator.language.split('-')[1]?.toLowerCase() || 'br') : 'br'}
                         value={customerPhone}
                         onChange={(phone) => setCustomerPhone(phone)}
                         placeholder="(00) 00000-0000"
                         className="relative z-10 w-full"
-                        inputClassName="!w-full !h-16 !bg-transparent !border-none !text-2xl !font-black !tracking-tight !text-black !placeholder:text-gray-400 focus:!outline-none !pl-4"
+                        inputClassName="!w-full !h-14 !bg-white !border-zinc-300 !text-xl !font-medium !text-black !placeholder:text-zinc-400 focus:!outline-none !pl-4 !rounded-xl"
                         countrySelectorStyleProps={{
-                          buttonClassName: "!h-16 !bg-transparent !border-none !px-4 !rounded-l-2xl hover:!bg-gray-100 transition-colors",
+                          buttonClassName: "!h-14 !bg-white !border-zinc-300 !px-4 !rounded-l-xl hover:!bg-zinc-50 transition-colors",
                         }}
                       />
                       <style>{`
                         .international-phone-portal .react-international-phone-input-container {
                           width: 100%;
-                          border: 1px solid #e2e8f0;
-                          border-radius: 1rem;
-                          background: white;
-                          transition: all 0.2s;
-                        }
-                        .international-phone-portal .react-international-phone-input-container:focus-within {
-                          border-color: #D4AF37;
-                          box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+                          border: none;
+                          background: transparent;
                         }
                         .international-phone-portal .react-international-phone-input {
                           width: 100% !important;
-                          border: none !important;
+                          border: 1px solid #d4d4d8 !important;
+                          border-radius: 0.75rem !important;
                         }
                         .international-phone-portal .react-international-phone-country-selector-button {
-                          border: none !important;
-                          border-right: 1px solid #f1f5f9 !important;
+                          border: 1px solid #d4d4d8 !important;
+                          border-right: none !important;
+                          border-radius: 0.75rem 0 0 0.75rem !important;
                         }
                       `}</style>
                     </div>
-
 
                     <AnimatePresence mode="wait">
                       {normalizePhone(customerPhone).length >= 10 && !isSearchingCustomer && (
                         <motion.div 
                           key={customerId ? "found" : "new"}
-                          initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
-                          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                          exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
-                          transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="mt-4"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="mt-2"
                         >
                           {customerId ? (
-                            <div className="p-6 rounded-[2rem] border-2 border-primary/30 bg-primary/5 backdrop-blur-md flex items-center gap-5 group shadow-xl shadow-primary/5">
-                              <div 
-                                className="h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 border-2 border-primary/20 group-hover:scale-110 transition-transform duration-500 shadow-lg"
-                                style={{ backgroundColor: primaryColor + '20' }}
-                              >
-                                <CheckCircle2 className="text-primary" size={28} style={{ color: primaryColor }} />
+                            <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/10 p-5 transition-all duration-300 flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-full bg-zinc-100 flex items-center justify-center shrink-0">
+                                <CheckCircle2 className="text-black" size={24} />
                               </div>
                               <div className="flex-1">
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mb-1" style={{ color: primaryColor }}>Cliente Identificado</p>
-                                <h3 className="text-2xl font-black text-black tracking-tight leading-none">
-                                  Olá, {customerName.split(' ')[0]}! <span className="inline-block animate-bounce ml-1">👋</span>
+                                <h3 className="text-lg font-bold text-black tracking-tight leading-tight">
+                                  Olá, {customerName.split(' ')[0]}! 👋
                                 </h3>
-                                <p className="text-xs text-gray-500 font-bold mt-1">Que bom ter você de volta!</p>
+                                <p className="text-xs text-zinc-500 font-medium">Que bom ter você de volta!</p>
                               </div>
                             </div>
                           ) : (
-                            <div className="grid gap-4 p-6 bg-zinc-900 rounded-[2rem] border border-zinc-800 shadow-2xl relative overflow-hidden group">
-                              {/* Decorative element */}
-                              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" style={{ backgroundColor: primaryColor + '10' }} />
-                              
-                              <div className="relative z-10 space-y-3">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-1 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
-                                <div className="relative">
-                                  <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={20} />
-                                  <Input 
-                                    placeholder="Digite seu nome completo" 
-                                    value={customerName} 
-                                    onChange={(e) => setCustomerName(e.target.value)}
-                                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-600 h-16 pl-12 text-xl font-black focus-visible:ring-primary/50 rounded-2xl transition-all focus:bg-zinc-800 border-2 focus:border-primary/30"
-                                  />
-                                </div>
-                                <p className="text-[10px] font-medium text-zinc-500 ml-1 flex items-center gap-2">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" style={{ backgroundColor: primaryColor }} />
-                                  Usamos seu nome para organizar sua agenda
-                                </p>
-                              </div>
+                            <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/10 p-5 transition-all duration-300 space-y-3">
+                              <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
+                              <Input 
+                                placeholder="Digite seu nome completo" 
+                                value={customerName} 
+                                onChange={(e) => setCustomerName(e.target.value)}
+                                className="bg-white text-black border border-zinc-300 placeholder:text-zinc-500 rounded-xl h-12 text-base font-medium focus-visible:ring-zinc-400"
+                              />
                             </div>
                           )}
                         </motion.div>
                       )}
                     </AnimatePresence>
-
                   </div>
 
                   <Button 
-                    className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-tighter shadow-2xl bg-black text-white hover:bg-black/90 hover:scale-[1.02] transition-all relative overflow-hidden group" 
+                    className="w-full h-14 bg-black text-white hover:bg-zinc-800 rounded-xl font-medium transition-all duration-200 shadow-lg shadow-black/5" 
                     onClick={handlePhoneCheck}
                     disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
-                    style={customerId ? { backgroundColor: primaryColor, boxShadow: `0 10px 30px -10px ${primaryColor}60` } : {}}
                   >
-                    <span className="relative z-10">
-                      {submitting ? "Verificando..." : (customerId ? "Continuar Agendamento" : "Cadastrar e Continuar")}
-                    </span>
-                    {customerId && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-transform" />
-                    )}
+                    {submitting ? "Verificando..." : "Continuar"}
                   </Button>
-
                 </div>
 
-                <p className="text-[10px] text-center text-slate-600 font-bold uppercase tracking-[0.2em] pt-4">
-                  Ambiente Seguro & Privado
+                <p className="text-[10px] text-center text-zinc-400 font-bold uppercase tracking-widest pt-2">
+                  Ambiente Seguro
                 </p>
               </motion.div>
             )}
