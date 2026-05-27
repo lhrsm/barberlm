@@ -957,8 +957,8 @@ function ShopPageComponent() {
       setBookingStep(1);
       
       setTimeout(() => {
-        // Redirecionamento usando navigate para manter o estado da aplicação e sessão do portal
-        navigate(`/${slug}/portal`, { replace: true });
+        // Redirecionamento usando navigate do TanStack Router
+        navigate({ to: `/${slug}/portal` });
       }, 2000);
 
     } catch (error: any) {
