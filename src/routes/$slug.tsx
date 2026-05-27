@@ -282,7 +282,8 @@ function ShopPageComponent() {
       else if (customer?.name) setCustomerName(customer.name);
       
       setIsBookingOpen(true);
-      setBookingStep(2);
+      // Mantemos no Step 1 para mostrar a identificação visual conforme solicitado
+      setBookingStep(1);
     } catch (error: any) {
       console.error("Error checking phone:", error);
       toast.error(error.message || "Erro ao verificar identificação");
