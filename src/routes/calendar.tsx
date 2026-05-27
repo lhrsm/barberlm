@@ -72,8 +72,6 @@ function CalendarComponent() {
   const { session, loading: profLoading } = useProfessionalAuth();
   const navigate = useNavigate();
 
-  // Removed redundant local session effect
-
   const user = authUser || (session ? { id: session.barber_id, email: session.phone } : null);
   const role = authRole || (session ? 'barber' : null);
   const loading = authLoading || profLoading;
@@ -107,7 +105,6 @@ function CalendarComponent() {
     if (user && role !== 'super_admin') {
       fetchData();
 
-      // Realtime subscription (only if we have a real supabase user)
       let channel: any;
       if (user) {
         channel = supabase
@@ -119,7 +116,6 @@ function CalendarComponent() {
             filter: role === 'barber' ? `barber_id=eq.${user.id}` : undefined
           }, () => {
             fetchData();
-            // Also refresh limits
             refreshLimits();
           })
           .subscribe();
@@ -138,8 +134,8 @@ function CalendarComponent() {
 
     let appQuery = supabase
       .from("appointments")
-      .select("*, customers(name, phone), services(name, duration_minutes), barbers(name)")
-      .eq("tenant_id", user.id) // Ensure we filter by tenant_id
+      .select("*, customers(name, phone, avatar_url), services(name, duration_minutes), barbers(name)")
+      .eq("tenant_id", user.id)
       .gte("start_time", start.toISOString())
       .lte("start_time", end.toISOString());
     
@@ -165,10 +161,7 @@ function CalendarComponent() {
 
   const handleMarkAsPaid = async (appointment: any) => {
     if (!user) return;
-    
-    // Check if user is the barber assigned or an admin
     const canManage = role === 'admin' || role === 'tenant_admin' || role === 'super_admin' || appointment.barber_id === user.id;
-    
     if (!canManage) {
       toast.error("Você não tem permissão para alterar este agendamento.");
       return;
@@ -176,7 +169,6 @@ function CalendarComponent() {
 
     setIsLoading(true);
     try {
-      // Get customer data for credits
       const { data: customerData } = await supabase
         .from("customers")
         .select("credits, name")
@@ -185,24 +177,16 @@ function CalendarComponent() {
       
       const availableCredits = Number(customerData?.credits || 0);
 
-      // 1. Update appointment status (Concluído + Pago)
       const { error: updateErr } = await supabase
         .from("appointments")
-        .update({ 
-          payment_status: 'paid', 
-          status: 'completed' 
-        })
+        .update({ payment_status: 'paid', status: 'completed' })
         .eq("id", appointment.id);
 
       if (updateErr) throw updateErr;
 
-      // Ensure realtime listeners are aware of the update by fetching fresh data
       await fetchData();
 
-      // 2. Create transactions for items (Now that it's paid and completed)
       let items = appointment.items || [];
-      
-      // Fallback for old appointments without items
       if (items.length === 0 && appointment.service_id) {
         items = [{
           id: appointment.service_id,
@@ -222,34 +206,15 @@ function CalendarComponent() {
         const remainingToPay = totalPrice - usedCredits;
 
         if (usedCredits > 0) {
-          // Atualizar créditos do cliente e agendamento
           await Promise.all([
-            supabase
-              .from("customers")
-              .update({ credits: availableCredits - usedCredits })
-              .eq("id", appointment.customer_id),
-            supabase
-              .from("appointments")
-              .update({ 
-                credit_used: usedCredits,
-                final_amount: remainingToPay,
-                barbershop_amount: remainingToPay
-              })
-              .eq("id", appointment.id)
+            supabase.from("customers").update({ credits: availableCredits - usedCredits }).eq("id", appointment.customer_id),
+            supabase.from("appointments").update({ credit_used: usedCredits, final_amount: remainingToPay, barbershop_amount: remainingToPay }).eq("id", appointment.id)
           ]);
         } else {
-          await supabase
-            .from("appointments")
-            .update({ 
-              final_amount: totalPrice,
-              barbershop_amount: totalPrice
-            })
-            .eq("id", appointment.id);
+          await supabase.from("appointments").update({ final_amount: totalPrice, barbershop_amount: totalPrice }).eq("id", appointment.id);
         }
 
-        // Criar uma ÚNICA transação para registro financeiro (mesmo se valor for 0 para constar no operacional)
         const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
-        
         await supabase.from("transactions").insert({
           user_id: user.id,
           barber_id: appointment.barber_id,
@@ -286,35 +251,19 @@ function CalendarComponent() {
         }]);
       }
 
-      // Atualizar pontos de fidelidade do cliente ao marcar como pago
       if (appointment.customer_id) {
-        const { data: customerData } = await supabase
-          .from("customers")
-          .select("loyalty_points")
-          .eq("id", appointment.customer_id)
-          .single();
-        
+        const { data: customerData } = await supabase.from("customers").select("loyalty_points").eq("id", appointment.customer_id).single();
         const currentPoints = customerData?.loyalty_points || 0;
-        
-        await supabase
-          .from("customers")
-          .update({ loyalty_points: currentPoints + 1 })
-          .eq("id", appointment.customer_id);
+        await supabase.from("customers").update({ loyalty_points: currentPoints + 1 }).eq("id", appointment.customer_id);
       }
 
       toast.success("Pagamento registrado e agendamento concluído!");
       fetchData();
       
-      // Invalidate queries for other views
       const queryClient = (window as any).queryClient;
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ["appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
         queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
       }
     } catch (error: any) {
       toast.error("Erro ao registrar pagamento: " + error.message);
@@ -325,10 +274,7 @@ function CalendarComponent() {
 
   const weekDays = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 0 });
-    return eachDayOfInterval({
-      start,
-      end: addDays(start, 6),
-    });
+    return eachDayOfInterval({ start, end: addDays(start, 6) });
   }, [currentDate]);
 
   const getAppointmentsForTime = (date: Date, hour: number) => {
@@ -336,66 +282,71 @@ function CalendarComponent() {
       const appDate = new Date(app.start_time);
       const startOfHourDate = new Date(date);
       startOfHourDate.setHours(hour, 0, 0, 0);
-      
       const endOfHourDate = new Date(date);
       endOfHourDate.setHours(hour + 1, 0, 0, 0);
-      
-      // Appointment overlaps with this hour slot
       const appStartMs = appDate.getTime();
       const appEndMs = new Date(app.end_time).getTime();
       const slotStartMs = startOfHourDate.getTime();
       const slotEndMs = endOfHourDate.getTime();
-      
       return appStartMs < slotEndMs && appEndMs > slotStartMs;
     });
   };
 
   const getStatusColor = (status: string, barberId: string) => {
-    if (status === 'completed') return "border-emerald-500 bg-white text-emerald-700";
-    if (status === 'confirmed') return "border-blue-500 bg-white text-blue-700";
-    if (status === 'cancelled') return "border-red-500 bg-white text-red-700";
-    if (status === 'scheduled') return "border-amber-500 bg-white text-amber-700";
-    
-    const index = barbers.findIndex(b => b.id === barberId);
-    const colors = ["border-blue-500", "border-purple-500", "border-emerald-500", "border-orange-500", "border-pink-500", "border-cyan-500"];
-    const baseColor = colors[index % 6] || "border-blue-500";
-    return `${baseColor} bg-white text-black`;
+    if (status === 'completed') return "bg-zinc-100 text-zinc-600 border-zinc-200";
+    if (status === 'confirmed') return "bg-emerald-500 text-white border-emerald-600";
+    if (status === 'cancelled') return "bg-red-500 text-white border-red-600";
+    if (status === 'scheduled') return "bg-blue-500 text-white border-blue-600";
+    if (status === 'awaiting_payment') return "bg-amber-500 text-white border-amber-600";
+    return "bg-black text-white border-zinc-800";
   };
 
   if (loading || !user) return null;
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full space-y-4">
+      <div className="flex flex-col h-full space-y-6">
         {!canAddAppointment && (
-          <Alert>
-            <Crown className="h-4 w-4" />
-            <AlertTitle>Limite de Agendamentos</AlertTitle>
-            <AlertDescription className="flex items-center justify-between">
-              Você atingiu o limite mensal de {limits.monthlyAppointments} agendamentos do plano gratuito.
-              <Button variant="link" size="sm" asChild className="p-0 h-auto">
+          <Alert className="bg-amber-50 border-amber-200">
+            <Crown className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800">Limite de Agendamentos</AlertTitle>
+            <AlertDescription className="flex items-center justify-between text-amber-700">
+              Você atingiu o limite mensal de {limits.monthlyAppointments} agendamentos.
+              <Button variant="link" size="sm" asChild className="p-0 h-auto text-amber-900 font-bold underline">
                 <Link to="/subscription">Fazer Upgrade</Link>
               </Button>
             </AlertDescription>
           </Alert>
         )}
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <CalendarIcon className="text-primary" />
+            <h2 className="text-3xl font-black flex items-center gap-3 text-black">
+              <CalendarIcon className="text-black h-8 w-8" />
               Agenda
             </h2>
-            <p className="text-muted-foreground">Gerencie seus atendimentos diários.</p>
+            <p className="text-zinc-500 font-medium mt-1">Gerencie os agendamentos da barbearia</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week")} className="w-full md:w-auto">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="day">Dia</TabsTrigger>
-                <TabsTrigger value="week">Semana</TabsTrigger>
-              </TabsList>
-            </Tabs>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center bg-zinc-100 p-1 rounded-xl border border-zinc-200">
+              <Button 
+                variant={view === "day" ? "default" : "ghost"} 
+                size="sm" 
+                onClick={() => setView("day")}
+                className={cn("rounded-lg h-9 px-6 font-bold", view === "day" ? "bg-black text-white shadow-md hover:bg-black/90" : "text-zinc-500 hover:text-black")}
+              >
+                Dia
+              </Button>
+              <Button 
+                variant={view === "week" ? "default" : "ghost"} 
+                size="sm" 
+                onClick={() => setView("week")}
+                className={cn("rounded-lg h-9 px-6 font-bold", view === "week" ? "bg-black text-white shadow-md hover:bg-black/90" : "text-zinc-500 hover:text-black")}
+              >
+                Semana
+              </Button>
+            </div>
 
             <AppointmentModal
               open={isDialogOpen}
@@ -410,54 +361,51 @@ function CalendarComponent() {
               onSuccess={() => fetchData()}
               trigger={
                 <Button 
-                  className="gap-2 bg-black text-white hover:scale-110 transition-all duration-300" 
+                  className="gap-2 bg-black text-white hover:scale-[1.05] transition-all duration-300 rounded-xl h-11 px-6 shadow-lg shadow-black/10" 
                   variant={canAddAppointment ? "default" : "secondary"}
                   onClick={() => {
                     setModalInitialData({ editingId: undefined });
                     setIsDialogOpen(true);
                   }}
                 >
-                  <Plus size={18} /> <span className="hidden md:inline">Novo Agendamento</span>
+                  <Plus size={20} /> <span className="font-bold">Novo Agendamento</span>
                 </Button>
               }
             />
           </div>
         </div>
 
-        <Card className="flex-1 overflow-hidden flex flex-col bg-white border-2 border-slate-100 shadow-sm text-black">
-          <div className="p-4 border-b flex items-center justify-between bg-muted/30">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="icon" onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}>
-                <ChevronLeft size={18} />
-              </Button>
-              <h3 className="font-semibold text-lg min-w-[200px] text-center capitalize">
+        <Card className="flex-1 overflow-hidden flex flex-col bg-white border border-zinc-200 rounded-2xl shadow-xl shadow-black/5 text-black">
+          <div className="p-5 border-b flex items-center justify-between bg-zinc-50/50">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" className="rounded-full border-zinc-200 hover:border-black transition-all h-9 w-9" onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}>
+                  <ChevronLeft size={18} />
+                </Button>
+                <Button variant="outline" size="icon" className="rounded-full border-zinc-200 hover:border-black transition-all h-9 w-9" onClick={() => setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))}>
+                  <ChevronRight size={18} />
+                </Button>
+              </div>
+              <h3 className="font-bold text-xl min-w-[240px] text-center capitalize tracking-tight">
                 {format(currentDate, view === 'day' ? "EEEE, d 'de' MMMM" : "'Semana de' d 'de' MMMM", { locale: ptBR })}
               </h3>
-              <Button variant="outline" size="icon" onClick={() => setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))}>
-                <ChevronRight size={18} />
-              </Button>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setCurrentDate(new Date())}>Hoje</Button>
+            <Button variant="ghost" size="sm" className="font-bold text-zinc-500 hover:text-black" onClick={() => setCurrentDate(new Date())}>Hoje</Button>
           </div>
 
           <ScrollArea className="flex-1">
             <div className="min-w-[800px] md:min-w-0">
               {view === 'day' ? (
-                <div className="flex flex-col divide-y">
+                <div className="flex flex-col divide-y divide-zinc-100">
                   {HOURS.map(hour => (
-                    <div key={hour} className="flex group min-h-[80px]">
-                      <div className="w-20 py-4 px-2 text-right text-sm text-muted-foreground font-medium border-r bg-muted/5">
+                    <div key={hour} className="flex group min-h-[100px]">
+                      <div className="w-24 py-6 px-4 text-right text-xs text-zinc-400 font-bold border-r border-zinc-100 bg-zinc-50/20">
                         {hour.toString().padStart(2, '0')}:00
                       </div>
                       <div 
-                        className="flex-1 p-2 relative gap-2 flex flex-wrap content-start bg-background/50 group-hover:bg-muted/10 transition-colors cursor-pointer"
+                        className="flex-1 p-3 relative gap-3 flex flex-wrap content-start bg-white group-hover:bg-zinc-50/5 transition-all cursor-pointer"
                         onClick={() => {
-                          setModalInitialData({
-                            time: `${hour.toString().padStart(2, '0')}:00`,
-                            date: format(currentDate, "yyyy-MM-dd"),
-                            step: 1,
-                            editingId: undefined
-                          });
+                          setModalInitialData({ time: `${hour.toString().padStart(2, '0')}:00`, date: format(currentDate, "yyyy-MM-dd"), step: 1, editingId: undefined });
                           setIsDialogOpen(true);
                         }}
                       >
@@ -466,205 +414,73 @@ function CalendarComponent() {
                             key={app.id}
                             onClick={(e) => {
                               e.stopPropagation();
-                              setModalInitialData({
-                                date: format(parseISO(app.start_time), "yyyy-MM-dd"),
-                                time: format(parseISO(app.start_time), "HH:mm"),
-                                step: 1,
-                                editingId: app.id
-                              });
+                              setModalInitialData({ date: format(parseISO(app.start_time), "yyyy-MM-dd"), time: format(parseISO(app.start_time), "HH:mm"), step: 1, editingId: app.id });
                               setIsDialogOpen(true);
                             }}
                             className={cn(
-                              "flex flex-col p-2 rounded-md text-xs shadow-sm min-w-[150px] max-w-[250px] animate-in fade-in zoom-in duration-200 border-2",
+                              "flex flex-col p-3 rounded-xl text-xs shadow-md min-w-[200px] max-w-[300px] animate-in fade-in zoom-in duration-300 border cursor-pointer hover:scale-[1.02] transition-all",
                               getStatusColor(app.status, app.barber_id)
                             )}
-
                           >
-                            <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                {customers.find(c => c.id === app.customer_id)?.avatar_url && (
-                                  <img 
-                                    src={customers.find(c => c.id === app.customer_id)?.avatar_url} 
-                                    alt={app.customers?.name} 
-                                    className="h-5 w-5 rounded-full object-cover border border-white/20"
-                                  />
+                                {app.customers?.avatar_url ? (
+                                  <img src={app.customers.avatar_url} alt={app.customers?.name} className="h-6 w-6 rounded-full object-cover border border-white/20 shadow-sm" />
+                                ) : (
+                                  <div className="h-6 w-6 rounded-full bg-black/10 flex items-center justify-center text-[10px] font-bold">
+                                    {app.customers?.name?.charAt(0)}
+                                  </div>
                                 )}
-                                <span className="font-bold truncate">{app.customers?.name}</span>
+                                <span className="font-bold truncate text-[13px]">{app.customers?.name}</span>
                               </div>
                               {app.refund_requested_at && (
-                                <Badge className={cn(
-                                  "text-[8px] h-4 px-1",
-                                  app.refund_status === 'completed' ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-500 hover:bg-amber-600'
-                                )}>
-                                  {app.refund_type === 'refund' ? 'Estorno' : 'Crédito'} {app.refund_status === 'completed' ? 'Conc.' : 'Pend.'}
+                                <Badge className={cn("text-[9px] h-4 px-1", app.refund_status === 'completed' ? 'bg-green-600' : 'bg-amber-500')}>
+                                  {app.refund_type === 'refund' ? 'Estorno' : 'Crédito'} {app.refund_status === 'completed' ? 'C' : 'P'}
                                 </Badge>
                               )}
                             </div>
-                            <span className="opacity-90 flex items-center gap-1 text-[10px]">
-                              <Scissors size={10} /> {app.services?.name}
-                            </span>
-                            <span className="opacity-90 flex items-center gap-1 text-[10px]">
-                              <User size={10} /> {app.barbers?.name}
-                            </span>
-                            <div className="flex justify-between items-center mt-1 gap-1">
-                              <span className="font-mono text-[10px] bg-black/20 rounded px-1">
+                            <div className="space-y-1 opacity-90">
+                              <span className="flex items-center gap-1.5 text-[11px] font-medium">
+                                <Scissors size={12} /> {app.services?.name}
+                              </span>
+                              <span className="flex items-center gap-1.5 text-[11px] font-medium">
+                                <User size={12} /> {app.barbers?.name}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center mt-3 pt-2 border-t border-black/5">
+                              <span className="font-black text-[11px] bg-black/10 rounded px-1.5 py-0.5">
                                 {format(parseISO(app.start_time), "HH:mm")}
                               </span>
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1.5">
                                 {app.payment_status === 'pending' && app.status !== 'cancelled' && (
                                   <Button 
                                     variant="ghost" 
                                     size="sm" 
-                                    className="h-6 px-2 text-white bg-emerald-500/30 hover:bg-emerald-500/50 text-[10px] gap-1"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleMarkAsPaid(app);
-                                    }}
+                                    className="h-7 px-3 text-white bg-emerald-600 hover:bg-emerald-700 text-[10px] font-bold rounded-lg shadow-sm"
+                                    onClick={(e) => { e.stopPropagation(); handleMarkAsPaid(app); }}
                                   >
-                                    <CheckCircle2 size={10} />
-                                    <span>Pagar</span>
+                                    <CheckCircle2 size={12} /> Pagar
                                   </Button>
                                 )}
-                                
-                                {app.refund_requested_at && app.refund_status === 'pending' && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-6 px-2 text-white bg-amber-500/30 hover:bg-amber-500/50 text-[10px] gap-1"
-                                    onClick={async (e) => {
-                                      e.stopPropagation();
-                                      if (confirm(`Confirmar ${app.refund_type === 'refund' ? 'estorno' : 'créditos'} para este cliente?`)) {
-                                        try {
-                                          const now = new Date();
-                                          const formattedDate = format(now, "yyyy-MM-dd");
-                                          const formattedTime = format(now, "HH:mm:ss");
-
-                                          if (app.refund_type === 'credits') {
-                                            // Handle credits
-                                            const { data: currentCust } = await supabase
-                                              .from("customers")
-                                              .select("credits")
-                                              .eq("id", app.customer_id)
-                                              .single();
-                                            
-                                            const newCredits = Number(currentCust?.credits || 0) + Number(app.total_price || 0);
-                                            await supabase.from("customers").update({ credits: newCredits }).eq("id", app.customer_id);
-                                            
-                                            // Remove original income from transactions when converting to credits
-                                            await supabase.from("transactions").insert({ 
-                                              user_id: user.id, 
-                                              barber_id: app.barber_id, 
-                                              appointment_id: app.id, 
-                                              type: "expense", 
-                                              category: "Estorno (Créditos)", 
-                                              amount: app.total_price, 
-                                              description: `Conversão em Créditos: ${app.services?.name} - Cliente: ${app.customers?.name}`, 
-                                              date: formattedDate, 
-                                              time: formattedTime 
-                                            });
-                                          } else if (app.refund_type === 'refund') {
-                                            // Estorno: cria uma SAÍDA equivalente à entrada original.
-                                            await supabase.from("transactions").insert({
-                                              user_id: user.id,
-                                              barber_id: app.barber_id,
-                                              appointment_id: app.id,
-                                              type: "expense",
-                                              category: "Estorno",
-                                              amount: app.total_price,
-                                              description: `Estorno de Pagamento: ${app.services?.name} - Cliente: ${app.customers?.name}`,
-                                              date: formattedDate,
-                                              time: formattedTime
-                                            });
-                                          }
-                                          
-                                          // Update status to cancelled and refund_status to completed
-                                          await supabase.from("appointments").update({ 
-                                            status: "cancelled",
-                                            refund_status: "completed"
-                                          }).eq("id", app.id);
-                                          
-                                          toast.success("Solicitação processada e agendamento cancelado");
-                                          
-                                          // Trigger re-fetch for all calendar and related data
-                                          await fetchData();
-                                        } catch (err) {
-                                          console.error("Erro ao processar estorno:", err);
-                                          toast.error("Erro ao processar solicitação");
-                                        }
-                                      }
-                                    }}
-                                  >
-                                    <RefreshCcw size={10} />
-                                    <span>Aprovar {app.refund_type === 'refund' ? 'Estorno' : 'Créditos'}</span>
-                                  </Button>
-                                )}
-
-                                {app.status === 'scheduled' && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-6 px-2 text-white bg-blue-500/30 hover:bg-blue-500/50 text-[10px] gap-1"
-                                    onClick={async (e) => {
-                                      e.stopPropagation();
-                                      if (confirm("Deseja confirmar este agendamento?")) {
-                                        const { error } = await supabase
-                                          .from("appointments")
-                                          .update({ status: 'confirmed' })
-                                          .eq("id", app.id);
-                                        if (error) {
-                                          toast.error("Erro ao confirmar agendamento");
-                                        } else {
-                                          fetchData();
-                                          toast.success("Agendamento confirmado com sucesso");
-                                        }
-                                      }
-                                    }}
-                                  >
-                                    <CheckCircle2 size={10} />
-                                    <span>Confirmar</span>
-                                  </Button>
-                                )}
-
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  className="h-5 w-5 text-white hover:bg-red-500/50"
-                                   onClick={async (e) => {
-                                     e.stopPropagation();
-                                     if (confirm("Deseja cancelar este agendamento?")) {
-                                       setIsLoading(true);
-                                       try {
-                                         const { error } = await supabase
-                                           .from("appointments")
-                                           .update({ 
-                                             status: "cancelled",
-                                             updated_by_type: role === 'barber' ? 'barber' : 'admin',
-                                             updated_by_id: user.id
-                                           })
-                                           .eq("id", app.id);
-                                         
-                                         if (error) throw error;
-
-                                         // Call notification edge function
-                                         await supabase.functions.invoke('appointment-notifications', {
-                                           body: {
-                                             appointmentId: app.id,
-                                             type: 'appointment_cancelled',
-                                             updatedBy: { type: role === 'barber' ? 'barber' : 'admin', id: user.id }
-                                           }
-                                         });
-
-                                         fetchData();
-                                         toast.success("Agendamento cancelado");
-                                       } catch (err: any) {
-                                         toast.error("Erro ao cancelar: " + err.message);
-                                       } finally {
-                                         setIsLoading(false);
-                                       }
-                                     }
-                                   }}
+                                  className="h-7 w-7 text-white bg-red-600/20 hover:bg-red-600 rounded-lg transition-colors"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (confirm("Deseja cancelar este agendamento?")) {
+                                      setIsLoading(true);
+                                      try {
+                                        const { error } = await supabase.from("appointments").update({ status: "cancelled", updated_by_type: role === 'barber' ? 'barber' : 'admin', updated_by_id: user.id }).eq("id", app.id);
+                                        if (error) throw error;
+                                        await supabase.functions.invoke('appointment-notifications', { body: { appointmentId: app.id, type: 'appointment_cancelled', updatedBy: { type: role === 'barber' ? 'barber' : 'admin', id: user.id } } });
+                                        fetchData();
+                                        toast.success("Agendamento cancelado");
+                                      } catch (err: any) { toast.error("Erro ao cancelar: " + err.message); } finally { setIsLoading(false); }
+                                    }
+                                  }}
                                 >
-                                  <X size={12} />
+                                  <X size={14} />
                                 </Button>
                               </div>
                             </div>
@@ -675,57 +491,23 @@ function CalendarComponent() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-[80px_repeat(7,1fr)] divide-x divide-y border-b">
-                  <div className="bg-muted/5 border-r" />
+                <div className="grid grid-cols-[100px_repeat(7,1fr)] divide-x divide-zinc-100 border-b border-zinc-100">
+                  <div className="bg-zinc-50/30 border-r border-zinc-100" />
                   {weekDays.map(day => (
-                    <div key={day.toString()} className={cn(
-                      "p-2 text-center text-sm font-semibold bg-muted/30 capitalize",
-                      isSameDay(day, new Date()) && "text-primary bg-primary/5"
-                    )}>
+                    <div key={day.toString()} className={cn("p-4 text-center text-sm font-bold bg-zinc-50/10 capitalize border-b border-zinc-100", isSameDay(day, new Date()) && "text-black bg-zinc-100")}>
                       {format(day, "EEE, dd", { locale: ptBR })}
                     </div>
                   ))}
-                  
                   {HOURS.map(hour => (
                     <React.Fragment key={hour}>
-                      <div className="py-4 px-2 text-right text-xs text-muted-foreground font-medium border-r bg-muted/5">
+                      <div className="py-6 px-4 text-right text-xs text-zinc-400 font-bold border-r border-zinc-100 bg-zinc-50/20">
                         {hour.toString().padStart(2, '0')}:00
                       </div>
                       {weekDays.map(day => (
-                        <div 
-                          key={`${day}-${hour}`} 
-                          className="min-h-[100px] p-1 group hover:bg-muted/10 transition-colors cursor-pointer relative"
-                            onClick={() => {
-                              setModalInitialData({
-                                time: `${hour.toString().padStart(2, '0')}:00`,
-                                date: format(day, "yyyy-MM-dd"),
-                                step: 2,
-                                editingId: undefined
-                              });
-                              setIsDialogOpen(true);
-                            }}
-                        >
-                          <div className="flex flex-col gap-1">
+                        <div key={`${day}-${hour}`} className="min-h-[120px] p-2 group hover:bg-zinc-50/50 transition-all cursor-pointer relative border-b border-zinc-100" onClick={() => { setModalInitialData({ time: `${hour.toString().padStart(2, '0')}:00`, date: format(day, "yyyy-MM-dd"), step: 2, editingId: undefined }); setIsDialogOpen(true); }}>
+                          <div className="flex flex-col gap-2">
                             {getAppointmentsForTime(day, hour).map(app => (
-                              <div 
-                                key={app.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setModalInitialData({
-                                    date: format(parseISO(app.start_time), "yyyy-MM-dd"),
-                                    time: format(parseISO(app.start_time), "HH:mm"),
-                                    step: 1,
-                                    editingId: app.id
-                                  });
-                                  setIsDialogOpen(true);
-                                }}
-                                className={cn(
-                                  "p-1 rounded text-[10px] shadow-sm truncate animate-in fade-in zoom-in duration-200 border",
-                                  getStatusColor(app.status, app.barber_id)
-                                )}
-
-                                title={`${app.customers?.name} - ${app.services?.name} (${app.barbers?.name})`}
-                              >
+                              <div key={app.id} onClick={(e) => { e.stopPropagation(); setModalInitialData({ date: format(parseISO(app.start_time), "yyyy-MM-dd"), time: format(parseISO(app.start_time), "HH:mm"), step: 1, editingId: app.id }); setIsDialogOpen(true); }} className={cn("p-2 rounded-lg text-[10px] shadow-sm truncate animate-in fade-in zoom-in duration-300 border font-bold", getStatusColor(app.status, app.barber_id))} title={`${app.customers?.name} - ${app.services?.name} (${app.barbers?.name})`}>
                                 {app.customers?.name.split(' ')[0]}
                               </div>
                             ))}
