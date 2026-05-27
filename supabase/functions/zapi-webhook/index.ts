@@ -21,67 +21,74 @@ function normalizePhone(phone: string): string {
   return digits;
 }
 
-function extractIncomingOption(body: any): { option: string, text: string, id: string } {
-  let option = "";
+function removeAccents(str: string): string {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function extractSelectedOption(payload: any): string {
   let text = "";
   let id = "";
 
-  // 1. Check for List Response (Z-API standard)
-  if (body.optionListReply) {
-    id = body.optionListReply.id || "";
-    text = body.optionListReply.title || "";
-  } 
-  // 2. Check for Button Response
-  else if (body.buttonReply) {
-    id = body.buttonReply.buttonId || "";
-    text = body.buttonReply.buttonText || "";
-  }
-  // 3. Check for Interactive List Response (Another variation)
-  else if (body.listResponse) {
-    id = body.listResponse.id || "";
-    text = body.listResponse.title || "";
-  }
-  // 4. Check for top-level selected IDs (sometimes used in different versions)
-  else if (body.selectedRowId || body.selectedId) {
-    id = body.selectedRowId || body.selectedId || "";
-    text = body.text?.message || body.message?.text || body.text || "";
-  }
-  // 5. Check for nested message properties (WPPConnect/Common formats)
-  else if (body.message?.listResponseMessage) {
-    id = body.message.listResponseMessage.singleSelectReply?.selectedRowId || body.message.listResponseMessage.title || "";
-    text = body.message.listResponseMessage.title || body.message.listResponseMessage.singleSelectReply?.selectedRowId || "";
-  }
-  else if (body.message?.buttonsResponseMessage) {
-    id = body.message.buttonsResponseMessage.selectedButtonId || "";
-    text = body.message.buttonsResponseMessage.selectedDisplayText || "";
-  }
-  // 6. Text fallback
-  else {
-    text = body.text?.message || body.message?.text || body.text || body.body || "";
+  // Check all possible paths provided by the user
+  const possiblePaths = [
+    payload.message?.listResponseMessage?.title,
+    payload.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
+    payload.listResponseMessage?.title,
+    payload.selectedRowId,
+    payload.selectedId,
+    payload.buttonReply?.id,
+    payload.buttonReply?.title,
+    payload.buttonsResponseMessage?.selectedButtonId,
+    payload.buttonsResponseMessage?.selectedDisplayText,
+    payload.message?.text,
+    payload.text,
+    payload.body,
+    payload.optionListReply?.title,
+    payload.optionListReply?.id
+  ];
+
+  for (const val of possiblePaths) {
+    if (val && typeof val === 'string') {
+      text = val;
+      break;
+    }
   }
 
-  const cleanText = String(text || "").trim().toLowerCase();
-  const cleanId = String(id || "").trim().toLowerCase();
+  // Also check if any of these are the primary source of ID
+  id = payload.message?.listResponseMessage?.singleSelectReply?.selectedRowId || 
+       payload.selectedRowId || 
+       payload.selectedId || 
+       payload.buttonReply?.id || 
+       payload.buttonsResponseMessage?.selectedButtonId ||
+       payload.optionListReply?.id || "";
 
-  // Map to internal actions
-  if (cleanId === 'confirm' || cleanId === '1' || cleanText === 'confirmar agendamento' || cleanText === 'confirmar' || cleanText === '1' || cleanText === '1️⃣') {
-    option = 'confirm';
-  } else if (cleanId === 'reschedule' || cleanId === '2' || cleanText === 'reagendar' || cleanText === '2' || cleanText === '2️⃣') {
-    option = 'reschedule';
-  } else if (cleanId === 'cancel' || cleanId === '3' || cleanText === 'cancelar' || cleanText === '3' || cleanText === '3️⃣') {
-    option = 'cancel';
-  } else if (cleanId === 'all' || cleanText === 'todos' || cleanText === '1' || cleanText === '1️⃣') {
-    option = 'all';
-  } else if (cleanId === 'single' || cleanId === 'one' || cleanText === 'apenas um' || cleanText === 'um' || cleanText === '2' || cleanText === '2️⃣') {
-    option = 'single';
-  } else {
-    // Attempt fuzzy match for keywords
-    if (cleanText.includes('confirmar')) option = 'confirm';
-    else if (cleanText.includes('reagendar')) option = 'reschedule';
-    else if (cleanText.includes('cancelar')) option = 'cancel';
-  }
+  const cleanText = removeAccents(String(text || "").trim().toLowerCase());
+  const cleanId = removeAccents(String(id || "").trim().toLowerCase());
 
-  return { option, text: cleanText, id: cleanId };
+  console.log('EXTRACTION - Clean Text:', cleanText);
+  console.log('EXTRACTION - Clean ID:', cleanId);
+
+  // Mappings
+  const confirmPatterns = ['confirmar agendamento', 'confirmar', 'confirm', '1', 'confirm_appointment', 'confirmar_agendamento', '1️⃣'];
+  const reschedulePatterns = ['reagendar', 'reschedule', '2', 'reschedule_appointment', '2️⃣'];
+  const cancelPatterns = ['cancelar', 'cancel', '3', 'cancel_appointment', '3️⃣'];
+  const allPatterns = ['todos', 'all', '1', '1️⃣'];
+  const singlePatterns = ['apenas um específico', 'apenas um', 'especifico', 'single', '2', '2️⃣'];
+
+  if (confirmPatterns.includes(cleanId) || confirmPatterns.includes(cleanText)) return 'confirm';
+  if (reschedulePatterns.includes(cleanId) || reschedulePatterns.includes(cleanText)) return 'reschedule';
+  if (cancelPatterns.includes(cleanId) || cancelPatterns.includes(cleanText)) return 'cancel';
+  if (allPatterns.includes(cleanId) || allPatterns.includes(cleanText)) return 'all';
+  if (singlePatterns.includes(cleanId) || singlePatterns.includes(cleanText)) return 'single';
+
+  // Fallback fuzzy
+  if (cleanText.includes('confirmar')) return 'confirm';
+  if (cleanText.includes('reagendar')) return 'reschedule';
+  if (cleanText.includes('cancelar')) return 'cancel';
+  if (cleanText.includes('todos')) return 'all';
+  if (cleanText.includes('apenas um') || cleanText.includes('especifico')) return 'single';
+
+  return "";
 }
 
 
@@ -102,8 +109,8 @@ async function logAutomationInteraction(supabase: any, conversation: any, messag
       phone: conversation.phone,
       message_type: "appointment_confirmation_interaction",
       status: error ? "error" : "success",
-      original_template: message,
-      processed_template: `State: ${stateChange.from} -> ${stateChange.to} | Action: ${action || 'none'}`,
+      original_template: JSON.stringify(payload), // Store raw payload for debugging
+      processed_template: `State: ${stateChange.from} -> ${stateChange.to} | Action: ${action || 'none'} | Msg: ${message}`,
       response: response,
       error_message: error,
       sent_at: new Date().toISOString()
@@ -113,13 +120,11 @@ async function logAutomationInteraction(supabase: any, conversation: any, messag
   }
 }
 
-async function processWebhook(body: any) {
+async function processZapiWebhook(body: any) {
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
-
-  console.log("Z-API Webhook Processing:", JSON.stringify(body));
 
   const { instanceId, type, phone } = body;
 
@@ -131,16 +136,11 @@ async function processWebhook(body: any) {
 
   if (type === "ReceivedMessage") {
     const normalizedPhone = normalizePhone(phone);
-    const { option, text: messageText, id: responseActionId } = extractIncomingOption(body);
+    const option = extractSelectedOption(body);
+    const messageText = body.text?.message || body.message?.text || body.text || body.body || "";
 
-    console.log('ZAPI WEBHOOK RAW PAYLOAD', JSON.stringify(body));
+    console.log('EXTRACTED PHONE', normalizedPhone);
     console.log('EXTRACTED OPTION', option);
-    console.log('PHONE', phone);
-
-    if (!messageText && !responseActionId) {
-      console.log("No text or action ID in message");
-      return;
-    }
 
     // Find active conversation
     const { data: conversation, error: convError } = await supabase
@@ -153,11 +153,11 @@ async function processWebhook(body: any) {
       .maybeSingle();
 
     if (convError || !conversation) {
-      console.log("No active conversation for", normalizedPhone, convError);
+      console.log("No active conversation for", normalizedPhone);
       return;
     }
 
-    console.log('CONVERSATION FOUND', JSON.stringify(conversation));
+    console.log('CONVERSATION FOUND', conversation.id);
     console.log('CURRENT STATE', conversation.state);
 
     const connection = await getWhatsAppSettings(supabase, conversation.barber_id);
@@ -170,6 +170,7 @@ async function processWebhook(body: any) {
     const state = conversation.state;
     let nextState = state;
     let nextContext = { ...context };
+    let responseSent: any = null;
 
     // 1. HELPERS
     const triggerNotification = async (appointmentId: string, type: string) => {
@@ -194,8 +195,9 @@ async function processWebhook(body: any) {
 
     const finishConversation = async (message: string) => {
       const res = await sendMessage(connection, normalizedPhone, message);
-      console.log('ZAPI SEND RESPONSE (Finish)', JSON.stringify(res));
+      console.log('FINISH CONVERSATION RESULT', JSON.stringify(res));
       await supabase.from("whatsapp_conversations").update({ active: false, state: 'completed' }).eq("id", conversation.id);
+      return res;
     };
 
     const listAppointments = (appointments: any[]) => {
@@ -207,257 +209,223 @@ async function processWebhook(body: any) {
     };
 
     // 2. STATE MACHINE
-    switch (state) {
-      case 'awaiting_main_action': {
-        console.log(`[Webhook] Processing action for ${normalizedPhone}. Option: "${option}"`);
-        
-        if (option === 'confirm' || option === 'reschedule' || option === 'cancel') {
-          nextContext.action = option;
-        } else {
-          console.log('[Webhook] No match for action. Sending invalid option message.');
-          const res = await sendMessage(connection, normalizedPhone, `Desculpe, não entendi.\n\nPor favor, escolha uma opção:`, {
-            list: {
-              buttonLabel: "Ver opções",
-              title: "Opções disponíveis",
-              options: [
-                { id: 'confirm', title: 'Confirmar agendamento', description: 'Confirmar todos ou um atendimento específico' },
-                { id: 'reschedule', title: 'Reagendar', description: 'Alterar data ou horário do atendimento' },
-                { id: 'cancel', title: 'Cancelar', description: 'Cancelar todos ou um atendimento específico' }
-              ]
-            }
-          });
-          console.log('ZAPI SEND RESPONSE (Invalid Option)', JSON.stringify(res));
-          return;
+    try {
+      switch (state) {
+        case 'awaiting_main_action': {
+          if (option === 'confirm' || option === 'reschedule' || option === 'cancel') {
+            nextContext.action = option;
+            nextState = 'awaiting_scope_selection';
+            
+            const actionLabel = option === 'confirm' ? 'confirmar' : option === 'reschedule' ? 'reagendar' : 'cancelar';
+            const question = `Você deseja ${actionLabel}:\n\n1️⃣ Todos os agendamentos\n2️⃣ Apenas um específico`;
+            
+            responseSent = await sendMessage(connection, normalizedPhone, question, {
+              buttons: [
+                { id: 'all', label: 'Todos' },
+                { id: 'single', label: 'Apenas um' }
+              ],
+              title: "Escolha o que deseja " + actionLabel
+            });
+          } else {
+            console.log('INVALID OPTION IN awaiting_main_action', option);
+            responseSent = await sendMessage(connection, normalizedPhone, `Não consegui entender sua escolha. Responda:\n\n1️⃣ Confirmar\n2️⃣ Reagendar\n3️⃣ Cancelar`, {
+              list: {
+                buttonLabel: "Ver opções",
+                title: "Opções disponíveis",
+                options: [
+                  { id: 'confirm', title: 'Confirmar agendamento', description: 'Confirmar todos ou um atendimento específico' },
+                  { id: 'reschedule', title: 'Reagendar', description: 'Alterar data ou horário do atendimento' },
+                  { id: 'cancel', title: 'Cancelar', description: 'Cancelar todos ou um atendimento específico' }
+                ]
+              }
+            });
+          }
+          break;
         }
 
-        // If multiple appointments, ask for scope
-        if (context.appointments && context.appointments.length > 1) {
-          nextState = 'awaiting_scope_selection';
-          const actionLabel = nextContext.action === 'confirm' ? 'confirmar' : nextContext.action === 'reschedule' ? 'reagendar' : 'cancelar';
-          
-          console.log(`[Webhook] Sending scope selection message for ${nextContext.action}`);
-          const res = await sendMessage(connection, normalizedPhone, `Você deseja ${actionLabel}:\n\n1️⃣ Todos os agendamentos\n2️⃣ Apenas um específico`, {
-            buttons: [
-              { id: 'all', label: 'Todos' },
-              { id: 'single', label: 'Apenas um' }
-            ],
-            title: "Escolha o que deseja " + actionLabel
-          });
-          console.log('BUTTONS SEND RESULT', JSON.stringify(res));
-        } else {
-          // Single appointment flow
-          const apptId = context.appointments?.[0]?.id || conversation.appointment_id;
-          nextContext.selected_appointment_id = apptId;
-          
-          if (nextContext.action === 'confirm') {
-            await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", apptId);
-            await triggerNotification(apptId, 'appointment_confirmed');
-            await finishConversation(`✅ Agendamento confirmado com sucesso! Esperamos você na ${context.business_name || 'barbearia'}.`);
+        case 'awaiting_scope_selection': {
+          if (option === 'all') {
+            nextContext.scope = 'all';
+            const appointments = context.appointments || [];
+            
+            if (context.action === 'confirm') {
+              for (const appt of appointments) {
+                await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", appt.id);
+                await triggerNotification(appt.id, 'appointment_confirmed');
+              }
+              responseSent = await finishConversation(`✅ Todos os seus agendamentos foram confirmados com sucesso!`);
+            } else if (context.action === 'cancel') {
+              nextState = 'awaiting_cancel_confirmation';
+              responseSent = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar TODOS os seus agendamentos?`, {
+                buttons: [
+                  { id: 'all', label: 'Sim, cancelar tudo' },
+                  { id: 'keep', label: 'Não, manter todos' }
+                ]
+              });
+            } else if (context.action === 'reschedule') {
+              nextContext.reschedule_queue = appointments.map(a => a.id);
+              nextContext.current_reschedule_index = 0;
+              const currentApptId = nextContext.reschedule_queue[0];
+              const appt = appointments.find(a => a.id === currentApptId);
+              
+              nextState = 'awaiting_reschedule_date';
+              responseSent = await sendMessage(connection, normalizedPhone, `Vamos reagendar seus atendimentos um por um.\n\nPara o serviço de *${appt.service_name}*, qual a nova data desejada? (Ex: Hoje, Amanhã, ou uma data como 25/05)`);
+            }
+          } else if (option === 'single') {
+            nextContext.scope = 'single';
+            nextState = 'awaiting_single_appointment_selection';
+            const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
+            responseSent = await sendMessage(connection, normalizedPhone, `Qual agendamento você deseja ${actionLabel}?\n\n${listAppointments(context.appointments)}`);
+          } else {
+            const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
+            responseSent = await sendMessage(connection, normalizedPhone, `Por favor, escolha uma opção para ${actionLabel}:`, {
+              buttons: [
+                { id: 'all', label: 'Todos' },
+                { id: 'single', label: 'Apenas um' }
+              ]
+            });
+          }
+          break;
+        }
+
+        case 'awaiting_single_appointment_selection': {
+          const index = parseInt(messageText.replace(/\D/g, '')) - 1;
+          const appointments = context.appointments || [];
+          if (isNaN(index) || index < 0 || index >= appointments.length) {
+            responseSent = await sendMessage(connection, normalizedPhone, `Opção inválida. Escolha o número correspondente ao agendamento:\n\n${listAppointments(appointments)}`);
             return;
-          } else if (nextContext.action === 'cancel') {
+          }
+
+          const selectedAppt = appointments[index];
+          nextContext.selected_appointment_id = selectedAppt.id;
+
+          if (context.action === 'confirm') {
+            await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", selectedAppt.id);
+            await triggerNotification(selectedAppt.id, 'appointment_confirmed');
+            responseSent = await finishConversation(`✅ O agendamento de *${selectedAppt.service_name}* foi confirmado com sucesso!`);
+          } else if (context.action === 'cancel') {
             nextState = 'awaiting_cancel_confirmation';
-            const res = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar seu agendamento?`, {
+            responseSent = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar o agendamento de *${selectedAppt.service_name}*?`, {
               buttons: [
                 { id: '1', label: 'Sim, cancelar' },
                 { id: '2', label: 'Não, manter' }
               ]
             });
-            console.log('ZAPI SEND RESPONSE (Cancel Confirm)', JSON.stringify(res));
-          } else if (nextContext.action === 'reschedule') {
-            nextState = 'awaiting_reschedule_date';
-            const res = await sendMessage(connection, normalizedPhone, `Para qual data você deseja reagendar? (Ex: Hoje, Amanhã, ou uma data como 25/05)`);
-            console.log('ZAPI SEND RESPONSE (Reschedule Date)', JSON.stringify(res));
-          }
-        }
-        break;
-      }
-
-      case 'awaiting_scope_selection': {
-        if (option === 'all') {
-          console.log('[Webhook] Matched scope: ALL');
-          nextContext.scope = 'all';
-          const appointments = context.appointments || [];
-          
-          if (context.action === 'confirm') {
-            for (const appt of appointments) {
-              await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", appt.id);
-              await triggerNotification(appt.id, 'appointment_confirmed');
-            }
-            await finishConversation(`✅ Todos os seus agendamentos foram confirmados com sucesso!`);
-            return;
-          } else if (context.action === 'cancel') {
-            nextState = 'awaiting_cancel_confirmation';
-            const res = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar TODOS os seus agendamentos?`, {
-              buttons: [
-                { id: 'all', label: 'Sim, cancelar tudo' },
-                { id: 'keep', label: 'Não, manter todos' }
-              ]
-            });
-            console.log('ZAPI SEND RESPONSE (Cancel Scope Confirm)', JSON.stringify(res));
           } else if (context.action === 'reschedule') {
-            nextContext.reschedule_queue = appointments.map(a => a.id);
-            nextContext.current_reschedule_index = 0;
-            const currentApptId = nextContext.reschedule_queue[0];
-            const appt = appointments.find(a => a.id === currentApptId);
-            
             nextState = 'awaiting_reschedule_date';
-            const res = await sendMessage(connection, normalizedPhone, `Vamos reagendar seus atendimentos um por um.\n\nPara o serviço de *${appt.service_name}*, qual a nova data desejada?`);
-            console.log('ZAPI SEND RESPONSE (Reschedule Multiple Start)', JSON.stringify(res));
+            responseSent = await sendMessage(connection, normalizedPhone, `Para qual data você deseja reagendar o serviço de *${selectedAppt.service_name}*? (Ex: 25/05)`);
           }
-        } else if (option === 'single') {
-          console.log('[Webhook] Matched scope: SINGLE');
-          nextContext.scope = 'single';
-          nextState = 'awaiting_single_appointment_selection';
-          const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
-          const res = await sendMessage(connection, normalizedPhone, `Qual agendamento você deseja ${actionLabel}?\n\n${listAppointments(context.appointments)}`);
-          console.log('ZAPI SEND RESPONSE (Single Selection List)', JSON.stringify(res));
-        } else {
-          const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
-          await sendMessage(connection, normalizedPhone, `Por favor, escolha uma opção para ${actionLabel}:`, {
-            buttons: [
-              { id: 'all', label: 'Todos' },
-              { id: 'single', label: 'Apenas um' }
-            ]
-          });
-        }
-        break;
-      }
-
-      case 'awaiting_single_appointment_selection': {
-        const index = parseInt(messageText.replace(/\D/g, '')) - 1;
-        const appointments = context.appointments || [];
-        if (isNaN(index) || index < 0 || index >= appointments.length) {
-          await sendMessage(connection, normalizedPhone, `Opção inválida. Escolha o número correspondente ao agendamento:\n\n${listAppointments(appointments)}`);
-          return;
+          break;
         }
 
-        const selectedAppt = appointments[index];
-        nextContext.selected_appointment_id = selectedAppt.id;
-
-        if (context.action === 'confirm') {
-          await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", selectedAppt.id);
-          await triggerNotification(selectedAppt.id, 'appointment_confirmed');
-          await finishConversation(`✅ O agendamento de *${selectedAppt.service_name}* foi confirmado com sucesso!`);
-          return;
-        } else if (context.action === 'cancel') {
-          nextState = 'awaiting_cancel_confirmation';
-          const res = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar o agendamento de *${selectedAppt.service_name}*?`, {
-            buttons: [
-              { id: '1', label: 'Sim, cancelar' },
-              { id: '2', label: 'Não, manter' }
-            ]
-          });
-          console.log('ZAPI SEND RESPONSE (Cancel Single Confirm)', JSON.stringify(res));
-        } else if (context.action === 'reschedule') {
-          nextState = 'awaiting_reschedule_date';
-          const res = await sendMessage(connection, normalizedPhone, `Para qual data você deseja reagendar o serviço de *${selectedAppt.service_name}*?`);
-          console.log('ZAPI SEND RESPONSE (Reschedule Single Date)', JSON.stringify(res));
-        }
-        break;
-      }
-
-      case 'awaiting_cancel_confirmation': {
-        const isYes = ['1', '1️⃣', 'sim', 'cancelar', 'yes', 'cancel', 'all'].some(s => option === s || messageText.includes(s));
-        if (isYes) {
-          if (context.scope === 'all') {
-            for (const appt of context.appointments) {
-              await supabase.from("appointments").update({ status: 'cancelled' }).eq("id", appt.id);
-              await triggerNotification(appt.id, 'appointment_cancelled');
+        case 'awaiting_cancel_confirmation': {
+          const isYes = ['1', '1️⃣', 'sim', 'cancelar', 'yes', 'cancel', 'all'].some(s => option === s || messageText.toLowerCase().includes(s));
+          if (isYes) {
+            if (context.scope === 'all') {
+              for (const appt of context.appointments) {
+                await supabase.from("appointments").update({ status: 'cancelled' }).eq("id", appt.id);
+                await triggerNotification(appt.id, 'appointment_cancelled');
+              }
+              responseSent = await finishConversation(`❌ Todos os seus agendamentos foram cancelados com sucesso.`);
+            } else {
+              const apptId = context.selected_appointment_id || conversation.appointment_id;
+              await supabase.from("appointments").update({ status: 'cancelled' }).eq("id", apptId);
+              await triggerNotification(apptId, 'appointment_cancelled');
+              responseSent = await finishConversation(`❌ Seu agendamento foi cancelado com sucesso.`);
             }
-            await finishConversation(`❌ Todos os seus agendamentos foram cancelados com sucesso.`);
           } else {
+            responseSent = await finishConversation(`Ufa! Agendamento mantido. ✅ Se precisar de algo mais, estamos à disposição.`);
+          }
+          break;
+        }
+
+        case 'awaiting_reschedule_date': {
+          let targetDate = "";
+          const now = new Date();
+          const cleanText = removeAccents(messageText.toLowerCase());
+          
+          if (cleanText.includes('hoje')) {
+            targetDate = format(now, "yyyy-MM-dd");
+          } else if (cleanText.includes('amanha')) {
+            targetDate = format(new Date(now.getTime() + 24 * 60 * 60 * 1000), "yyyy-MM-dd");
+          } else {
+            const dateMatch = messageText.match(/(\d{1,2})\/(\d{1,2})/);
+            if (dateMatch) {
+              const day = dateMatch[1].padStart(2, '0');
+              const month = dateMatch[2].padStart(2, '0');
+              const year = now.getFullYear();
+              targetDate = `${year}-${month}-${day}`;
+            }
+          }
+
+          if (targetDate) {
+            nextContext.new_date = targetDate;
+            const slots = await getAvailableSlots(supabase, conversation.barber_id, targetDate);
+            if (slots.length > 0) {
+              nextState = 'awaiting_reschedule_time';
+              const formattedDate = format(parse(targetDate, "yyyy-MM-dd", new Date()), "dd/MM");
+              responseSent = await sendMessage(connection, normalizedPhone, `Ótimo! Para o dia ${formattedDate}, temos estes horários disponíveis:\n\n${slots.slice(0, 10).join('\n')}\n\nQual horário você prefere? (Ex: 14:30)`);
+            } else {
+              responseSent = await sendMessage(connection, normalizedPhone, `Infelizmente não temos horários disponíveis para esta data. Por favor, escolha outra data:`);
+            }
+          } else {
+            responseSent = await sendMessage(connection, normalizedPhone, `Não consegui entender a data. Por favor, informe no formato DD/MM ou diga "Amanhã":`);
+          }
+          break;
+        }
+
+        case 'awaiting_reschedule_time': {
+          const timeMatch = messageText.match(/(\d{2}):(\d{2})/);
+          if (timeMatch) {
+            const newTime = timeMatch[0];
+            const newStart = `${context.new_date}T${newTime}:00`;
             const apptId = context.selected_appointment_id || conversation.appointment_id;
-            await supabase.from("appointments").update({ status: 'cancelled' }).eq("id", apptId);
-            await triggerNotification(apptId, 'appointment_cancelled');
-            await finishConversation(`❌ Seu agendamento foi cancelado com sucesso.`);
-          }
-        } else {
-          await finishConversation(`Ufa! Agendamento mantido. ✅ Se precisar de algo mais, estamos à disposição.`);
-        }
-        return;
-      }
 
-      case 'awaiting_reschedule_date': {
-        let targetDate = "";
-        const now = new Date();
-        
-        if (['hoje'].includes(messageText)) {
-          targetDate = format(now, "yyyy-MM-dd");
-        } else if (['amanhã', 'amanha'].includes(messageText)) {
-          targetDate = format(new Date(now.getTime() + 24 * 60 * 60 * 1000), "yyyy-MM-dd");
-        } else {
-          const dateMatch = messageText.match(/(\d{1,2})\/(\d{1,2})/);
-          if (dateMatch) {
-            const day = dateMatch[1].padStart(2, '0');
-            const month = dateMatch[2].padStart(2, '0');
-            const year = now.getFullYear();
-            targetDate = `${year}-${month}-${day}`;
-          }
-        }
+            const { data: appt } = await supabase.from("appointments").select("duration").eq("id", apptId).single();
+            const duration = appt?.duration || 30;
+            const newEnd = format(addMinutes(parse(newStart, "yyyy-MM-dd'T'HH:mm:ss", new Date()), duration), "yyyy-MM-dd'T'HH:mm:ss");
 
-        if (targetDate) {
-          nextContext.new_date = targetDate;
-          const slots = await getAvailableSlots(supabase, conversation.barber_id, targetDate);
-          if (slots.length > 0) {
-            nextState = 'awaiting_reschedule_time';
-            const formattedDate = format(parse(targetDate, "yyyy-MM-dd", new Date()), "dd/MM");
-            await sendMessage(connection, normalizedPhone, `Ótimo! Para o dia ${formattedDate}, temos estes horários disponíveis:\n\n${slots.slice(0, 10).join('\n')}\n\nQual horário você prefere?`);
+            await supabase.from("appointments").update({
+              start_time: newStart,
+              end_time: newEnd,
+              status: 'pending'
+            }).eq("id", apptId);
+
+            await triggerNotification(apptId, 'appointment_rescheduled');
+
+            if (context.reschedule_queue && context.current_reschedule_index < context.reschedule_queue.length - 1) {
+              nextContext.current_reschedule_index++;
+              const nextApptId = context.reschedule_queue[nextContext.current_reschedule_index];
+              const nextAppt = context.appointments.find(a => a.id === nextApptId);
+              nextContext.selected_appointment_id = nextApptId;
+              nextState = 'awaiting_reschedule_date';
+              responseSent = await sendMessage(connection, normalizedPhone, `✅ Reagendado!\n\nAgora para o serviço de *${nextAppt.service_name}*, qual a nova data desejada?`);
+            } else {
+              responseSent = await finishConversation(`✅ Tudo pronto! Seu agendamento foi reagendado para ${format(parse(newStart, "yyyy-MM-dd'T'HH:mm:ss", new Date()), "dd/MM 'às' HH:mm")}.`);
+            }
           } else {
-            await sendMessage(connection, normalizedPhone, `Infelizmente não temos horários disponíveis para esta data. Por favor, escolha outra data:`);
+            responseSent = await sendMessage(connection, normalizedPhone, `Por favor, informe o horário no formato HH:MM (ex: 14:30):`);
           }
-        } else {
-          await sendMessage(connection, normalizedPhone, `Não consegui entender a data. Por favor, informe no formato DD/MM ou diga "Amanhã":`);
+          break;
         }
-        break;
       }
 
-      case 'awaiting_reschedule_time': {
-        const timeMatch = messageText.match(/(\d{2}):(\d{2})/);
-        if (timeMatch) {
-          const newTime = timeMatch[0];
-          const newStart = `${context.new_date}T${newTime}:00`;
-          const apptId = context.selected_appointment_id || conversation.appointment_id;
+      console.log('NEXT STATE', nextState);
 
-          // Fetch current appt to get duration
-          const { data: appt } = await supabase.from("appointments").select("duration").eq("id", apptId).single();
-          const duration = appt?.duration || 30;
-          const newEnd = format(addMinutes(parse(newStart, "yyyy-MM-dd'T'HH:mm:ss", new Date()), duration), "yyyy-MM-dd'T'HH:mm:ss");
+      // Update conversation state
+      await supabase.from("whatsapp_conversations").update({
+        state: nextState,
+        context: nextContext,
+        updated_at: new Date().toISOString()
+      }).eq("id", conversation.id);
 
-          await supabase.from("appointments").update({
-            start_time: newStart,
-            end_time: newEnd,
-            status: 'pending' // Reset to pending after reschedule
-          }).eq("id", apptId);
+      // Log interaction
+      await logAutomationInteraction(supabase, conversation, messageText, { from: state, to: nextState }, nextContext.action, body, responseSent);
 
-          await triggerNotification(apptId, 'appointment_rescheduled');
-
-          // Check if there are more in the queue
-          if (context.reschedule_queue && context.current_reschedule_index < context.reschedule_queue.length - 1) {
-            nextContext.current_reschedule_index++;
-            const nextApptId = context.reschedule_queue[nextContext.current_reschedule_index];
-            const nextAppt = context.appointments.find(a => a.id === nextApptId);
-            nextContext.selected_appointment_id = nextApptId;
-            nextState = 'awaiting_reschedule_date';
-            await sendMessage(connection, normalizedPhone, `✅ Reagendado!\n\nAgora para o serviço de *${nextAppt.service_name}*, qual a nova data desejada?`);
-          } else {
-            await finishConversation(`✅ Tudo pronto! Seu agendamento foi reagendado para ${format(parse(newStart, "yyyy-MM-dd'T'HH:mm:ss", new Date()), "dd/MM 'às' HH:mm")}.`);
-          }
-        } else {
-          await sendMessage(connection, normalizedPhone, `Por favor, informe o horário no formato HH:MM (ex: 14:30):`);
-        }
-        break;
-      }
+    } catch (error) {
+      console.error('ERROR IN STATE MACHINE', error);
+      await logAutomationInteraction(supabase, conversation, messageText, { from: state, to: nextState }, nextContext.action, body, null, error.message);
     }
-
-    // Update conversation state
-    await supabase.from("whatsapp_conversations").update({
-      state: nextState,
-      context: nextContext,
-      updated_at: new Date().toISOString()
-    }).eq("id", conversation.id);
-
-    // Log interaction
-    await logAutomationInteraction(supabase, conversation, messageText, { from: state, to: nextState }, nextContext.action, body);
   }
 }
 
@@ -468,10 +436,12 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    
-    // Process asynchronously to avoid Z-API timeout
-    processWebhook(body).catch(err => {
-      console.error("Critical error processing webhook asynchronously:", err);
+    console.log('WEBHOOK RECEIVED');
+    console.log('RAW PAYLOAD', JSON.stringify(body));
+
+    // Process asynchronously to avoid Z-API timeout and "loading" state
+    processZapiWebhook(body).catch(err => {
+      console.error("Webhook async error:", err);
     });
 
     // Return 200 OK immediately
