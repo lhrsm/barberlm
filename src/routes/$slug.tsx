@@ -1990,10 +1990,9 @@ function ShopPageComponent() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className={cn(
-                          "p-5 rounded-[2rem] cursor-pointer transition-all flex justify-between items-center group relative overflow-hidden",
-                          selectedService?.id === s.id ? "bg-black text-white" : "bg-gray-50 border border-gray-100 hover:bg-gray-100"
+                          "bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-4 transition-all duration-300 hover:shadow-lg hover:border-zinc-300 cursor-pointer flex justify-between items-center group relative overflow-hidden",
+                          selectedService?.id === s.id ? "border-sky-600 ring-2 ring-sky-600/20" : ""
                         )}
-                        style={selectedService?.id === s.id ? { backgroundColor: "black" } : {}}
                         onClick={() => {
                           if (!isEmbedded && (!customerName || customerName.length < 3)) {
                             toast.error("Por favor, informe seu nome primeiro.");
@@ -2004,16 +2003,13 @@ function ShopPageComponent() {
                         }}
                       >
                         <div className="relative z-10">
-                          <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-white" : "text-black")}>{s.name}</p>
+                          <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-sky-700" : "text-black")}>{s.name}</p>
                           <div className="flex items-center gap-2 mt-1">
-                             <Clock size={12} className={selectedService?.id === s.id ? "text-white/70" : "text-gray-400"} />
-                             <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-white/70" : "text-gray-400")}>{s.duration_minutes} min</p>
+                             <Clock size={12} className={selectedService?.id === s.id ? "text-sky-600" : "text-gray-400"} />
+                             <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-sky-600" : "text-gray-400")}>{s.duration_minutes} min</p>
                           </div>
                         </div>
-                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-[#D4AF37]" : "text-black")}>R$ {s.price.toFixed(2)}</p>
-                        {selectedService?.id === s.id && (
-                          <motion.div layoutId="service-bg" className="absolute inset-0 bg-white/10 pointer-events-none" />
-                        )}
+                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-sky-600" : "text-black")}>R$ {s.price.toFixed(2)}</p>
                       </motion.div>
                     ))}
                   </div>
