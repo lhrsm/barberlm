@@ -289,7 +289,8 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
     .from("appointments")
     .select("*, customers(*), profiles:tenant_id(*), services:service_id(*), barbers:barber_id(*)")
     .eq("tenant_id", automation.tenant_id)
-    .eq("confirmation_sent", false);
+    .eq("confirmation_sent", false)
+    .eq("status", "scheduled");
 
   if (!forceMode) {
     query = query.gte("created_at", fifteenMinutesAgo);
@@ -302,72 +303,121 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
     return { appointments: [], ignored: [{ reason: "Nenhum pendente.", type: 'confirmation' }] };
   }
 
+  // Group appointments by customer and appointment_group_id (or just customer if group_id is null)
+  const groupedAppointments: Record<string, any[]> = {};
+  for (const appt of appointments) {
+    const key = appt.appointment_group_id || `single_${appt.id}`;
+    if (!groupedAppointments[key]) groupedAppointments[key] = [];
+    groupedAppointments[key].push(appt);
+  }
+
   const sentItems = [];
   const ignored = [];
 
-  for (const appt of appointments) {
+  for (const groupKey in groupedAppointments) {
+    const group = groupedAppointments[groupKey];
+    const firstAppt = group[0];
+    const phone = firstAppt.customers?.phone || firstAppt.phone;
+
+    if (!phone) {
+      ignored.push({ 
+        appointment_ids: group.map(a => a.id), 
+        customer_name: firstAppt.customers?.name || firstAppt.name, 
+        reason: "Sem telefone", 
+        type: 'confirmation' 
+      });
+      continue;
+    }
+
     try {
-      const phone = appt.customers?.phone || appt.phone;
-      if (!phone) {
-        ignored.push({ appointment_id: appt.id, customer_name: appt.customers?.name || appt.name, reason: "Sem telefone", type: 'confirmation' });
-        continue;
+      const customerName = firstAppt.customers?.name || firstAppt.name;
+      const businessName = firstAppt.profiles?.business_name || "Nossa Barbearia";
+      
+      let message = `Olá ${customerName} 👋\n\n`;
+      message += `Seu agendamento na ${businessName} foi realizado com sucesso!\n\n`;
+      
+      if (group.length > 1) {
+        message += `Você possui ${group.length} atendimentos:\n\n`;
+        group.forEach((appt, index) => {
+          message += `${index + 1}️⃣ Serviço: ${appt.services?.name || "Serviço"}\n`;
+          message += `💈 Profissional: ${appt.barbers?.name || "Seu Barbeiro"}\n`;
+          message += `📅 Data: ${formatBrazilDate(appt.start_time)}\n`;
+          message += `⏰ Horário: ${formatBrazilTime(appt.start_time)}\n\n`;
+        });
+      } else {
+        message += `Detalhes do seu agendamento:\n\n`;
+        message += `✅ Serviço: ${firstAppt.services?.name || "Serviço"}\n`;
+        message += `💈 Profissional: ${firstAppt.barbers?.name || "Seu Barbeiro"}\n`;
+        message += `📅 Data: ${formatBrazilDate(firstAppt.start_time)}\n`;
+        message += `⏰ Horário: ${formatBrazilTime(firstAppt.start_time)}\n\n`;
       }
 
-      const variables = {
-        cliente_nome: appt.customers?.name || appt.name,
-        barbearia_nome: appt.profiles?.business_name || "Nossa Barbearia",
-        data: formatBrazilDate(appt.start_time),
-        horario: formatBrazilTime(appt.start_time),
-        profissional: appt.barbers?.name || "Seu Barbeiro",
-        servico: appt.services?.name || "Serviço",
-      };
+      message += `Escolha uma opção:\n\n✅ Confirmar agendamento\n🔁 Reagendar\n❌ Cancelar`;
 
-      const interactiveSuffix = `\n\nResponda com uma das opções abaixo:\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar`;
-      const processedMessage = processAutomationTemplate(automation.template, variables) + interactiveSuffix;
+      const result = await sendMessage(connection, phone, message);
       
-      const result = await sendMessage(connection, phone, processedMessage);
+      const status = result.success ? "success" : "error";
       
-      const logEntry = {
-        automation_id: automation.id,
-        tenant_id: automation.tenant_id,
-        customer_id: appt.customer_id,
-        appointment_id: appt.id,
-        barber_id: appt.barber_id,
-        status: result.success ? "success" : "error",
-        message_type: "appointment_confirmation",
-        phone: normalizePhone(phone),
-        original_template: automation.template,
-        processed_template: processedMessage,
-        response: result.response,
-        error_message: result.error,
-        sent_at: new Date().toISOString()
-      };
-      
-      await supabase.from("automation_logs").insert(logEntry);
+      // Log for each appointment in the group
+      for (const appt of group) {
+        const logEntry = {
+          automation_id: automation.id,
+          tenant_id: automation.tenant_id,
+          customer_id: appt.customer_id,
+          appointment_id: appt.id,
+          barber_id: appt.barber_id,
+          status,
+          message_type: "appointment_confirmation",
+          phone: normalizePhone(phone),
+          original_template: automation.template,
+          processed_template: message,
+          response: result.response,
+          error_message: result.error,
+          sent_at: new Date().toISOString()
+        };
+        await supabase.from("automation_logs").insert(logEntry);
+        await supabase.from("appointments").update({ confirmation_sent: true }).eq("id", appt.id);
+      }
       
       if (result.success) {
         // Create conversation state
+        const normalizedPhone = normalizePhone(phone);
+        
+        // Check for existing active conversation and deactivate it
+        await supabase.from("whatsapp_conversations")
+          .update({ active: false })
+          .eq("phone", normalizedPhone)
+          .eq("active", true);
+
         await supabase.from("whatsapp_conversations").insert({
-          barber_id: appt.tenant_id,
-          customer_id: appt.customer_id,
-          appointment_id: appt.id,
-          phone: normalizePhone(phone),
-          state: 'awaiting_confirmation',
+          barber_id: automation.tenant_id,
+          customer_id: firstAppt.customer_id,
+          appointment_id: group.length === 1 ? firstAppt.id : null,
+          appointment_group_id: firstAppt.appointment_group_id,
+          phone: normalizedPhone,
+          state: 'awaiting_main_action',
+          active: true,
           context: {
-            customer_name: variables.cliente_nome,
-            business_name: variables.barbearia_nome,
-            appointment_id: appt.id
+            customer_name: customerName,
+            business_name: businessName,
+            appointments: group.map(a => ({
+              id: a.id,
+              service_name: a.services?.name,
+              barber_name: a.barbers?.name,
+              start_time: a.start_time,
+              barber_id: a.barber_id,
+              service_id: a.service_id
+            }))
           }
         });
 
-        await supabase.from("appointments").update({ confirmation_sent: true }).eq("id", appt.id);
-        sentItems.push({ ...logEntry, customer_name: variables.cliente_nome });
+        sentItems.push({ customer_name: customerName, status: "success" });
       } else {
-        sentItems.push({ ...logEntry, customer_name: variables.cliente_nome, error_message: result.error, type: 'confirmation' });
+        sentItems.push({ customer_name: customerName, status: "error", error_message: result.error });
       }
 
     } catch (err) {
-      sentItems.push({ status: 'error', appointment_id: appt.id, error_message: err.message, type: 'confirmation' });
+      sentItems.push({ status: 'error', error_message: err.message });
     }
   }
 
