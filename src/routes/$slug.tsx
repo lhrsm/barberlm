@@ -957,7 +957,8 @@ function ShopPageComponent() {
       setBookingStep(1);
       
       setTimeout(() => {
-        window.location.href = `/${slug}/portal`;
+        // Redirecionamento usando navigate do TanStack Router
+        navigate({ to: `/${slug}/portal` });
       }, 2000);
 
     } catch (error: any) {
@@ -2638,24 +2639,22 @@ function ShopPageComponent() {
                 {(!paymentMethod && calculateTotal() > 0) ? (
                   <div className="grid grid-cols-1 gap-3 mt-6">
                     <Button 
-                      variant="outline" 
-                      className="flex items-center justify-between h-20 px-6 bg-[#111] border-white/10 hover:border-primary/50 transition-all group rounded-2xl"
+                      className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg group"
                       onClick={() => setPaymentMethod('barbershop')}
                     >
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                          <Scissors size={24} className="text-slate-400 group-hover:text-primary" />
+                        <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                          <Scissors size={24} className="text-white" />
                         </div>
                         <div className="text-left">
                           <p className="text-sm font-black text-white">Pagar na Barbearia</p>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Pague após o serviço</p>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Pague após o serviço</p>
                         </div>
                       </div>
-                      <ChevronRight size={20} className="text-slate-600 group-hover:text-primary transition-colors" />
+                      <ChevronRight size={20} className="text-zinc-600 group-hover:text-white transition-colors" />
                     </Button>
                     <Button 
-                      className="flex items-center justify-between h-20 px-6 shadow-xl transition-all hover:scale-[1.01] rounded-2xl group"
-                      style={{ backgroundColor: primaryColor }}
+                      className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg group"
                       onClick={() => setPaymentMethod('pix')}
                     >
                       <div className="flex items-center gap-4">
@@ -2683,8 +2682,7 @@ function ShopPageComponent() {
                     </div>
                     
                     <Button 
-                      className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
-                      style={{ backgroundColor: primaryColor }}
+                      className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
                       onClick={(e) => {
                         e.preventDefault();
                         handleFinalizeBooking();
@@ -2798,14 +2796,11 @@ function ShopPageComponent() {
                       <div className="pt-2">
                         <Button 
                           id="btn-confirm-booking"
-                          className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
-                          style={{ backgroundColor: primaryColor }}
+                          className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
                           onClick={(e) => {
                             e.preventDefault();
                             const normalized = normalizePhone(customerPhone);
                             console.log('DEBUG: Finalizing booking with normalized phone:', normalized);
-                            // Não atualizamos o estado visual com o valor normalizado para evitar DDI duplicado
-                            // setCustomerPhone(normalized); 
                             handleFinalizeBooking();
                           }} 
                           disabled={submitting}
@@ -2815,7 +2810,7 @@ function ShopPageComponent() {
                         
                         <Button 
                           variant="secondary" 
-                          className="w-full mt-3 h-12 text-sm font-bold border border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 rounded-xl" 
+                          className="w-full mt-3 h-12 bg-white text-black hover:bg-zinc-100 border border-black rounded-xl font-medium shadow-sm transition-all duration-200" 
                           onClick={() => setPaymentMethod(null)}
                         >
                           Alterar forma de pagamento
