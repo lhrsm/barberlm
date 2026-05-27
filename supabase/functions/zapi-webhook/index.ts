@@ -21,7 +21,7 @@ function normalizePhone(phone: string): string {
   return digits;
 }
 
-async function logAutomationInteraction(supabase: any, conversation: any, message: string, stateChange: { from: string, to: string }, action?: string, error?: string) {
+async function logAutomationInteraction(supabase: any, conversation: any, message: string, stateChange: { from: string, to: string }, action?: string, payload?: any, response?: any, error?: string) {
   try {
     const { data: automation } = await supabase
       .from("automations")
@@ -38,8 +38,9 @@ async function logAutomationInteraction(supabase: any, conversation: any, messag
       phone: conversation.phone,
       message_type: "appointment_confirmation_interaction",
       status: error ? "error" : "success",
-      original_template: message, // Received message
+      original_template: message, // Received message or selection
       processed_template: `State: ${stateChange.from} -> ${stateChange.to} | Action: ${action || 'none'}`,
+      response: response,
       error_message: error,
       sent_at: new Date().toISOString()
     });
@@ -47,6 +48,7 @@ async function logAutomationInteraction(supabase: any, conversation: any, messag
     console.error("Error logging interaction:", e);
   }
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -72,9 +74,34 @@ serve(async (req) => {
 
     if (type === "ReceivedMessage") {
       const normalizedPhone = normalizePhone(phone);
-      const messageText = text?.message?.trim()?.toLowerCase() || "";
+      
+      // Handle different response types from Z-API
+      let messageText = text?.message?.trim()?.toLowerCase() || "";
+      let responseActionId = "";
 
-      if (!messageText) return new Response("No text", { status: 200 });
+      // List Response
+      if (body.optionListReply) {
+        responseActionId = body.optionListReply.id;
+        messageText = body.optionListReply.title?.toLowerCase() || "";
+        console.log(`[Webhook] List Selection: ${responseActionId} (${messageText})`);
+      } 
+      // Button Response
+      else if (body.buttonReply) {
+        responseActionId = body.buttonReply.buttonId;
+        messageText = body.buttonReply.buttonText?.toLowerCase() || "";
+        console.log(`[Webhook] Button Click: ${responseActionId} (${messageText})`);
+      }
+      // Interactive List Response (Another variation)
+      else if (body.listResponse) {
+        responseActionId = body.listResponse.id;
+        messageText = body.listResponse.title?.toLowerCase() || "";
+        console.log(`[Webhook] Interactive List Selection: ${responseActionId} (${messageText})`);
+      }
+
+      if (!messageText && !responseActionId) {
+        console.log("No text or action ID in message");
+        return new Response("No content", { status: 200 });
+      }
 
       // Find active conversation
       const { data: conversation } = await supabase
@@ -99,7 +126,7 @@ serve(async (req) => {
       let nextState = state;
       let nextContext = { ...context };
 
-      console.log('INCOMING MESSAGE', messageText);
+      console.log('INCOMING MESSAGE', messageText, 'Action:', responseActionId);
       console.log('ACTIVE CONVERSATION', JSON.stringify(conversation));
       console.log('CURRENT STATE', state);
 
@@ -141,11 +168,17 @@ serve(async (req) => {
       // 2. STATE MACHINE
       switch (state) {
         case 'awaiting_main_action': {
-          console.log(`[Webhook] Processing action for ${normalizedPhone}. Text: "${messageText}"`);
+          console.log(`[Webhook] Processing action for ${normalizedPhone}. Text: "${messageText}" Action: "${responseActionId}"`);
           
-          const isConfirm = ['1', '1️⃣', 'confirmar', 'confirm', 'confirmar agendamento'].some(s => messageText.includes(s));
-          const isReschedule = ['2', '2️⃣', 'reagendar', 'reschedule'].some(s => messageText.includes(s));
-          const isCancel = ['3', '3️⃣', 'cancelar', 'cancel'].some(s => messageText.includes(s));
+          const isConfirm = ['confirm', 'confirmar', 'confirmar agendamento', '1'].some(s => 
+            responseActionId === s || messageText === s || messageText.includes('confirmar') || messageText === '1️⃣'
+          );
+          const isReschedule = ['reschedule', 'reagendar', '2'].some(s => 
+            responseActionId === s || messageText === s || messageText.includes('reagendar') || messageText === '2️⃣'
+          );
+          const isCancel = ['cancel', 'cancelar', '3'].some(s => 
+            responseActionId === s || messageText === s || messageText.includes('cancelar') || messageText === '3️⃣'
+          );
 
           if (isConfirm) {
             console.log('[Webhook] Matched: CONFIRM');
@@ -158,13 +191,18 @@ serve(async (req) => {
             nextContext.action = 'cancel';
           } else {
             console.log('[Webhook] No match for action. Sending invalid option message.');
-            const res = await sendMessage(connection, normalizedPhone, `Desculpe, não entendi.\n\nPor favor, escolha uma opção:\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar`, {
-              buttons: [
-                { id: 'confirm', label: 'Confirmar' },
-                { id: 'reschedule', label: 'Reagendar' },
-                { id: 'cancel', label: 'Cancelar' }
-              ]
+            const res = await sendMessage(connection, normalizedPhone, `Desculpe, não entendi.\n\nPor favor, escolha uma opção:`, {
+              list: {
+                buttonLabel: "Ver opções",
+                title: "Opções disponíveis",
+                options: [
+                  { id: 'confirm', title: 'Confirmar agendamento', description: 'Confirmar todos ou um atendimento específico' },
+                  { id: 'reschedule', title: 'Reagendar', description: 'Alterar data ou horário do atendimento' },
+                  { id: 'cancel', title: 'Cancelar', description: 'Cancelar todos ou um atendimento específico' }
+                ]
+              }
             });
+
             console.log('ZAPI SEND RESPONSE (Invalid Option)', JSON.stringify(res));
             return new Response("Invalid option", { status: 200 });
           }
@@ -174,15 +212,17 @@ serve(async (req) => {
             nextState = 'awaiting_scope_selection';
             const actionLabel = nextContext.action === 'confirm' ? 'confirmar' : nextContext.action === 'reschedule' ? 'reagendar' : 'cancelar';
             
-            const res = await sendMessage(connection, normalizedPhone, `Você deseja ${actionLabel}:`, {
+            const res = await sendMessage(connection, normalizedPhone, `Você deseja ${actionLabel}:\n\n1️⃣ Todos os agendamentos\n2️⃣ Apenas um específico`, {
               buttons: [
-                { id: '1', label: 'Todos' },
-                { id: '2', label: 'Apenas um' }
+                { id: 'all', label: 'Todos' },
+                { id: 'single', label: 'Apenas um' }
               ],
               title: "Escolha o que deseja " + actionLabel
             });
             console.log('ZAPI SEND RESPONSE (Scope Selection)', JSON.stringify(res));
           } else {
+            // ... keep existing code
+
             // Single appointment flow
             const apptId = context.appointments?.[0]?.id || conversation.appointment_id;
             nextContext.selected_appointment_id = apptId;
@@ -210,7 +250,10 @@ serve(async (req) => {
         }
 
         case 'awaiting_scope_selection': {
-          if (['1', '1️⃣', 'todos', 'tudo', 'all'].some(s => messageText.includes(s))) {
+          const isAll = ['1', '1️⃣', 'todos', 'tudo', 'all'].some(s => responseActionId === s || messageText.includes(s));
+          const isSingle = ['2', '2️⃣', 'apenas um', 'específico', 'single'].some(s => responseActionId === s || messageText.includes(s));
+
+          if (isAll) {
             console.log('[Webhook] Matched scope: ALL');
             nextContext.scope = 'all';
             const appointments = context.appointments || [];
@@ -225,8 +268,8 @@ serve(async (req) => {
               nextState = 'awaiting_cancel_confirmation';
               const res = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar TODOS os seus agendamentos?`, {
                 buttons: [
-                  { id: '1', label: 'Sim, cancelar tudo' },
-                  { id: '2', label: 'Não, manter todos' }
+                  { id: 'all', label: 'Sim, cancelar tudo' },
+                  { id: 'keep', label: 'Não, manter todos' }
                 ]
               });
               console.log('ZAPI SEND RESPONSE (Cancel Scope Confirm)', JSON.stringify(res));
@@ -241,7 +284,7 @@ serve(async (req) => {
               const res = await sendMessage(connection, normalizedPhone, `Vamos reagendar seus atendimentos um por um.\n\nPara o serviço de *${appt.service_name}*, qual a nova data desejada?`);
               console.log('ZAPI SEND RESPONSE (Reschedule Multiple Start)', JSON.stringify(res));
             }
-          } else if (['2', '2️⃣', 'apenas um', 'específico', 'single'].some(s => messageText.includes(s))) {
+          } else if (isSingle) {
             console.log('[Webhook] Matched scope: SINGLE');
             nextContext.scope = 'single';
             nextState = 'awaiting_single_appointment_selection';
@@ -249,13 +292,15 @@ serve(async (req) => {
             const res = await sendMessage(connection, normalizedPhone, `Qual agendamento você deseja ${actionLabel}?\n\n${listAppointments(context.appointments)}`);
             console.log('ZAPI SEND RESPONSE (Single Selection List)', JSON.stringify(res));
           } else {
-            await sendMessage(connection, normalizedPhone, `Por favor, escolha uma opção:`, {
+            const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
+            await sendMessage(connection, normalizedPhone, `Por favor, escolha uma opção para ${actionLabel}:`, {
               buttons: [
-                { id: '1', label: 'Todos' },
-                { id: '2', label: 'Apenas um' }
+                { id: 'all', label: 'Todos' },
+                { id: 'single', label: 'Apenas um' }
               ]
             });
           }
+
           break;
         }
 
@@ -435,8 +480,11 @@ serve(async (req) => {
         conversation, 
         messageText, 
         { from: state, to: nextState }, 
-        nextContext.action
+        nextContext.action,
+        null, // Payload can be added if needed
+        null  // Response from sendMessage can be passed here if we capture it
       );
+
 
       return new Response(JSON.stringify({ status: "success", state: nextState }), { headers: corsHeaders });
     }

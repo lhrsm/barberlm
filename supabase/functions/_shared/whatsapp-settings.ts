@@ -16,7 +16,27 @@ export interface ZApiButton {
   label: string;
 }
 
-export async function sendMessage(connection: any, phone: string, message: string, options?: { buttons?: ZApiButton[], title?: string, footer?: string }) {
+export interface ZApiOption {
+  id: string;
+  title: string;
+  description?: string;
+}
+
+export async function sendMessage(
+  connection: any, 
+  phone: string, 
+  message: string, 
+  options?: { 
+    buttons?: ZApiButton[], 
+    title?: string, 
+    footer?: string,
+    list?: {
+      buttonLabel: string;
+      title: string;
+      options: ZApiOption[];
+    }
+  }
+) {
   const instanceId = connection.instance_id;
   const token = connection.token;
   const clientToken = connection.client_token;
@@ -34,19 +54,54 @@ export async function sendMessage(connection: any, phone: string, message: strin
   }
 
   console.log('SENDING MESSAGE TO:', targetPhone);
-  console.log('MESSAGE CONTENT:', message);
+  
+  // 1. Try sending as List if provided
+  if (options?.list && options.list.options.length > 0) {
+    const listPayload = {
+      phone: targetPhone,
+      message: message,
+      optionList: {
+        title: options.list.title,
+        buttonLabel: options.list.buttonLabel,
+        options: options.list.options.map(o => ({
+          id: o.id,
+          title: o.title,
+          description: o.description || ""
+        }))
+      }
+    };
 
-  // If buttons are provided, try to send them first
+    console.log('LIST PAYLOAD:', JSON.stringify(listPayload));
+
+    try {
+      const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-option-list`;
+      const response = await fetch(sendUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(listPayload)
+      });
+
+      const data = await response.json();
+      console.log('LIST SEND RESULT:', JSON.stringify(data));
+
+      if (response.ok) return { success: true, response: data, error: null };
+      console.log('LIST SEND ERROR (API):', data.message || data.error);
+    } catch (error) {
+      console.log('LIST SEND ERROR (Fetch):', error.message);
+    }
+  }
+
+  // 2. Try sending as Buttons if provided
   if (options?.buttons && options.buttons.length > 0) {
     const buttonsPayload = {
       phone: targetPhone,
       message: message,
-      title: options.title || "",
-      footer: options.footer || "",
-      buttons: options.buttons.map(b => ({
-        id: b.id,
-        label: b.label
-      }))
+      buttonList: {
+        buttons: options.buttons.map(b => ({
+          id: b.id,
+          label: b.label
+        }))
+      }
     };
 
     console.log('BUTTONS PAYLOAD:', JSON.stringify(buttonsPayload));
@@ -62,19 +117,14 @@ export async function sendMessage(connection: any, phone: string, message: strin
       const data = await response.json();
       console.log('BUTTONS SEND RESULT:', JSON.stringify(data));
 
-      if (response.ok) {
-        return { success: true, response: data, error: null };
-      }
-      
+      if (response.ok) return { success: true, response: data, error: null };
       console.log('BUTTONS SEND ERROR (API):', data.message || data.error);
-      // If API returned error, fall through to fallback text
     } catch (error) {
       console.log('BUTTONS SEND ERROR (Fetch):', error.message);
-      // If fetch failed, fall through to fallback text
     }
   }
 
-  // Fallback or standard text message
+  // 3. Fallback or standard text message
   console.log('SENDING STANDARD TEXT MESSAGE (OR FALLBACK)');
   try {
     const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
@@ -97,3 +147,4 @@ export async function sendMessage(connection: any, phone: string, message: strin
     return { success: false, error: error.message };
   }
 }
+
