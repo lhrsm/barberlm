@@ -2124,9 +2124,9 @@ function ShopPageComponent() {
                             onClick={() => setSelectedTime(time)}
                             className={cn(
                               "relative h-12 rounded-xl text-lg font-black tracking-tight transition-all border flex items-center justify-center gap-2 overflow-hidden group",
-                              isSelected 
-                                ? "bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-200" 
-                                : "bg-white border-zinc-200 text-zinc-500 hover:border-sky-300 hover:text-sky-600 hover:shadow-md hover:shadow-zinc-100"
+                                isSelected 
+                                  ? "bg-primary text-white border-primary shadow-md" 
+                                  : "bg-white border-zinc-200 text-zinc-500 hover:border-primary/50 hover:text-primary hover:shadow-md hover:shadow-zinc-100"
                             )}
                           >
                             {isSelected && (
@@ -2171,14 +2171,14 @@ function ShopPageComponent() {
                 <div className="grid grid-cols-2 gap-4">
                   <Button 
                     variant="outline"
-                    className="h-14 bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200"
+                    className="h-14 bg-white text-primary hover:bg-primary/5 border border-primary/30 rounded-xl font-medium transition-all duration-200"
                     onClick={addToBookingCart}
                     disabled={!selectedTime}
                   >
                     + Adicionar outro
                   </Button>
                   <Button 
-                    className="h-14 bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="h-14 bg-primary text-white hover:opacity-90 border border-primary rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
                       if (!selectedTime) {
                         toast.error("Por favor, selecione um horário.");
@@ -2303,8 +2303,8 @@ function ShopPageComponent() {
                           className={cn(
                             "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
                             useCashback 
-                              ? "bg-blue-500 text-white hover:bg-blue-600 border-blue-500" 
-                              : "bg-white text-blue-600 hover:bg-blue-50 border border-blue-300"
+                              ? "bg-primary text-white hover:opacity-90 border-primary" 
+                              : "bg-white text-primary hover:bg-primary/5 border border-primary/30"
                           )}
                         >
                           {useCashback ? "Aplicado" : "Usar"}
@@ -2336,8 +2336,8 @@ function ShopPageComponent() {
                           className={cn(
                             "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
                             useCredits 
-                              ? "bg-blue-500 text-white hover:bg-blue-600 border-blue-500" 
-                              : "bg-white text-blue-600 hover:bg-blue-50 border border-blue-300"
+                              ? "bg-primary text-white hover:opacity-90 border-primary" 
+                              : "bg-white text-primary hover:bg-primary/5 border border-primary/30"
                           )}
                         >
                           {useCredits ? "Aplicado" : "Usar Créditos"}
@@ -2389,7 +2389,7 @@ function ShopPageComponent() {
                       <Button 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
-                        className="bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-xl font-semibold shadow-sm transition-all duration-200 h-12 px-6"
+                        className="bg-primary text-white hover:opacity-90 border border-primary rounded-xl font-semibold shadow-sm transition-all duration-200 h-12 px-6"
                       >
                         {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
                       </Button>
@@ -2718,7 +2718,7 @@ function ShopPageComponent() {
                                     <Button 
                                       variant="outline" 
                                       size="lg" 
-                                      className="w-full h-12 bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200"
+                                      className="w-full h-12 bg-white text-primary hover:bg-primary/5 border border-primary/30 rounded-xl font-medium transition-all duration-200"
                                       onClick={() => {
                                         navigator.clipboard.writeText(shop.pix_key);
                                         toast.success("Chave PIX copiada!");
@@ -2778,7 +2778,7 @@ function ShopPageComponent() {
                             <Button
                               disabled={(!paymentMethod && calculateTotal() > 0) || submitting}
                               onClick={handleFinalizeBooking}
-                              className="w-full h-14 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold shadow-md transition-all"
+                              className="w-full h-14 rounded-xl bg-primary hover:opacity-90 text-white font-semibold shadow-md transition-all"
                             >
                               {submitting ? "Confirmando..." : (!paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento"))}
                             </Button>
@@ -2786,7 +2786,7 @@ function ShopPageComponent() {
                             {paymentMethod && (
                               <Button 
                                 variant="outline" 
-                                className="w-full h-12 bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200" 
+                                className="w-full h-12 bg-white text-primary hover:bg-primary/5 border border-primary/30 rounded-xl font-medium transition-all duration-200" 
                                 onClick={() => setPaymentMethod(null)}
                               >
                                 Alterar forma de pagamento
@@ -2818,7 +2818,7 @@ function ShopPageComponent() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200"
+                className="bg-white text-primary hover:bg-primary/5 border border-primary/30 rounded-xl font-medium transition-all duration-200"
                 onClick={() => {
                   if (bookingStep === 5 && paymentMethod) {
                     setPaymentMethod(null);

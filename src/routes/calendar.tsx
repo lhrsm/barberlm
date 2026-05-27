@@ -16,6 +16,7 @@ import {
   RefreshCcw
 } from "lucide-react";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
+import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -76,6 +77,8 @@ function CalendarComponent() {
   const [services, setServices] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [modalInitialData, setModalInitialData] = useState<{date?: string, time?: string, step?: number, editingId?: string}>({});
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
   const canAddAppointment = checkLimit("monthlyAppointments");
@@ -283,12 +286,17 @@ function CalendarComponent() {
                             key={app.id}
                             onClick={(e) => {
                               e.stopPropagation();
-                              setModalInitialData({ date: format(parseISO(app.start_time), "yyyy-MM-dd"), time: format(parseISO(app.start_time), "HH:mm"), step: 1, editingId: app.id });
-                              setIsDialogOpen(true);
+                              setSelectedAppointmentId(app.id);
+                              setDetailsModalOpen(true);
                             }}
                             className={cn(
-                              "px-3 py-2 rounded-lg shadow-sm border cursor-pointer transition-all duration-200 hover:scale-[1.02] flex flex-col gap-0.5 min-w-[150px] text-xs",
-                              "bg-sky-500 hover:bg-sky-600 text-white border-sky-400"
+                              "px-3 py-2 rounded-lg shadow-sm border cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-md flex flex-col gap-0.5 min-w-[150px] text-xs",
+                              app.status === 'confirmed' ? "bg-emerald-500 border-emerald-400 text-white" :
+                              app.status === 'scheduled' ? "bg-blue-500 border-blue-400 text-white" :
+                              app.status === 'awaiting_payment' ? "bg-amber-500 border-amber-400 text-white" :
+                              app.status === 'cancelled' ? "bg-red-500 border-red-400 text-white" :
+                              app.status === 'completed' ? "bg-zinc-500 border-zinc-400 text-white" :
+                              "bg-sky-500 border-sky-400 text-white"
                             )}
                           >
                             <span className="font-bold truncate">{app.customers?.name || "Cliente"}</span>
@@ -322,12 +330,17 @@ function CalendarComponent() {
                                 key={app.id}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setModalInitialData({ date: format(parseISO(app.start_time), "yyyy-MM-dd"), time: format(parseISO(app.start_time), "HH:mm"), step: 1, editingId: app.id });
-                                  setIsDialogOpen(true);
+                                  setSelectedAppointmentId(app.id);
+                                  setDetailsModalOpen(true);
                                 }}
                                 className={cn(
-                                  "h-full p-1 rounded-md shadow-sm border text-[10px] truncate transition-all duration-200 hover:scale-[1.02]",
-                                  "bg-sky-500 hover:bg-sky-600 text-white border-sky-400"
+                                  "h-full p-1 rounded-md shadow-sm border text-[10px] truncate transition-all duration-200 hover:scale-[1.02] hover:shadow-md",
+                                  app.status === 'confirmed' ? "bg-emerald-500 border-emerald-400 text-white" :
+                                  app.status === 'scheduled' ? "bg-blue-500 border-blue-400 text-white" :
+                                  app.status === 'awaiting_payment' ? "bg-amber-500 border-amber-400 text-white" :
+                                  app.status === 'cancelled' ? "bg-red-500 border-red-400 text-white" :
+                                  app.status === 'completed' ? "bg-zinc-500 border-zinc-400 text-white" :
+                                  "bg-sky-500 border-sky-400 text-white"
                                 )}
                               >
                                 {app.customers?.name}
@@ -343,6 +356,22 @@ function CalendarComponent() {
             </div>
           </ScrollArea>
         </Card>
+
+        <AppointmentDetailsModal
+          open={detailsModalOpen}
+          onOpenChange={setDetailsModalOpen}
+          appointmentId={selectedAppointmentId}
+          onSuccess={() => fetchData()}
+          onReschedule={(app) => {
+            setModalInitialData({ 
+              date: format(parseISO(app.start_time), "yyyy-MM-dd"), 
+              time: format(parseISO(app.start_time), "HH:mm"), 
+              step: 1, 
+              editingId: app.id 
+            });
+            setIsDialogOpen(true);
+          }}
+        />
       </div>
     </AppLayout>
   );
