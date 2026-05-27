@@ -280,13 +280,13 @@ async function processZapiWebhook(body: any) {
                 options: [
                   { 
                     id: action === 'confirm' ? 'confirm_all' : action === 'reschedule' ? 'reschedule_all' : 'cancel_all', 
-                    title: action === 'confirm' ? 'Confirmar todos' : action === 'reschedule' ? 'Reagendar todos' : 'Cancelar todos',
-                    description: `Desejo ${actionVerb} todos os atendimentos deste pedido`
+                    title: action === 'confirm' ? 'Todos os agendamentos' : action === 'reschedule' ? 'Todos os agendamentos' : 'Todos os agendamentos',
+                    description: `${actionVerb.charAt(0).toUpperCase() + actionVerb.slice(1)} todos os atendimentos deste pedido`
                   },
                   { 
                     id: action === 'confirm' ? 'confirm_single' : action === 'reschedule' ? 'reschedule_single' : 'cancel_single', 
-                    title: action === 'confirm' ? 'Confirmar um específico' : action === 'reschedule' ? 'Reagendar um específico' : 'Cancelar um específico',
-                    description: `Desejo escolher qual atendimento ${actionVerb}`
+                    title: action === 'confirm' ? 'Um agendamento específico' : action === 'reschedule' ? 'Um agendamento específico' : 'Um agendamento específico',
+                    description: `Escolher qual atendimento deseja ${actionVerb}`
                   }
                 ]
               }
