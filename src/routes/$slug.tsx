@@ -2035,52 +2035,44 @@ function ShopPageComponent() {
                 </div>
 
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Quem irá te atender?</h5>
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Quem irá te atender?</h5>
                   
                   {loadingDayData ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#D4AF37]" />
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sky-600" />
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando disponibilidades...</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       {barbers
-                        .filter(b => {
-                          const isAvailable = isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments);
-                          console.log(`FILTERING BARBER ${b.name}: ${isAvailable}`);
-                          return isAvailable;
-                        })
+                        .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments))
                         .map(b => (
                         <motion.div 
                           key={b.id} 
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                           className={cn(
-                            "p-6 rounded-[2.5rem] cursor-pointer text-center space-y-4 transition-all relative overflow-hidden group border",
-                            selectedBarber?.id === b.id ? "border-[#D4AF37] bg-gray-50 shadow-2xl" : "bg-white border-gray-100 hover:bg-gray-50"
+                            "bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 hover:shadow-lg hover:border-zinc-300 cursor-pointer text-center space-y-3 relative overflow-hidden group",
+                            selectedBarber?.id === b.id ? "border-sky-600 ring-2 ring-sky-600/20 shadow-sky-100" : ""
                           )}
-                          style={selectedBarber?.id === b.id ? { borderColor: "#D4AF37" } : {}}
                           onClick={() => {
                             setSelectedBarber(b);
                             setBookingStep(4);
                           }}
                         >
                           <div className="relative z-10">
-                            <div className="h-20 w-20 rounded-[1.5rem] bg-black/40 mx-auto overflow-hidden border-2 border-white/5 group-hover:border-primary/50 transition-colors">
+                            <div className="h-16 w-16 rounded-2xl bg-zinc-100 mx-auto overflow-hidden border border-zinc-200 group-hover:border-sky-400 transition-colors">
                               {b.avatar_url ? (
                                 <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
                               ) : (
-                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-black">{b.name?.[0] || '?'}</div>
+                                <div className="h-full w-full flex items-center justify-center font-black text-xl text-zinc-400">{b.name?.[0] || '?'}</div>
                               )}
                             </div>
-                            <div className="mt-4">
-                              <p className="font-black uppercase tracking-tight text-sm text-black leading-none">{b.name}</p>
-                              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-2">{b.specialty || 'Especialista'}</p>
+                            <div className="mt-3">
+                              <p className={cn("font-bold uppercase tracking-tight text-sm leading-none", selectedBarber?.id === b.id ? "text-sky-700" : "text-black")}>{b.name}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-1">{b.specialty || 'Especialista'}</p>
                             </div>
                           </div>
-                          {selectedBarber?.id === b.id && (
-                             <motion.div layoutId="barber-glow" className="absolute inset-0 bg-[#D4AF37]/10 blur-xl pointer-events-none" />
-                          )}
                         </motion.div>
                       ))}
                     </div>
