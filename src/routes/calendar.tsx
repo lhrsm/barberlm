@@ -58,6 +58,36 @@ export const Route = createFileRoute("/calendar")({
   component: CalendarComponent,
 });
 
+function getCalendarStatusConfig(status: string) {
+  const normalized = String(status || '').toLowerCase();
+
+  if (['completed', 'concluido', 'concluído', 'done'].includes(normalized)) {
+    return {
+      label: 'Concluído',
+      className: 'bg-emerald-500 text-white border-emerald-600'
+    };
+  }
+
+  if (['cancelled', 'canceled', 'cancelado'].includes(normalized)) {
+    return {
+      label: 'Cancelado',
+      className: 'bg-red-500 text-white border-red-600'
+    };
+  }
+
+  if (['confirmed', 'confirmado'].includes(normalized)) {
+    return {
+      label: 'Confirmado',
+      className: 'bg-sky-500 text-white border-sky-600'
+    };
+  }
+
+  return {
+    label: 'Pendente',
+    className: 'bg-orange-500 text-white border-orange-600'
+  };
+}
+
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8:00 to 20:00
 
 function CalendarComponent() {
@@ -300,36 +330,36 @@ function CalendarComponent() {
                           setIsDialogOpen(true);
                         }}
                       >
-                        {getAppointmentsForTime(currentDate, hour).map(app => (
-                          <div 
-                            key={app.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedAppointmentId(app.id);
-                              setDetailsModalOpen(true);
-                            }}
-                            className={cn(
-                              "px-3 py-2 rounded-xl shadow-lg border-2 cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-xl flex flex-col gap-1 min-w-[180px]",
-                              app.status === 'confirmed' ? "bg-emerald-500 border-emerald-400 text-white" :
-                              app.status === 'scheduled' ? "bg-blue-500 border-blue-400 text-white" :
-                              app.status === 'awaiting_payment' ? "bg-amber-500 border-amber-400 text-white" :
-                              app.status === 'cancelled' ? "bg-red-500 border-red-400 text-white" :
-                              app.status === 'completed' ? "bg-sky-500 border-sky-400 text-white" :
-                              "bg-blue-600 border-blue-500 text-white"
-                            )}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-black tracking-tight text-[11px]">
-                                {format(parseISO(app.start_time), "HH:mm")}
-                              </span>
-                              <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[8px] font-black uppercase px-1.5 py-0">
-                                {app.status === 'confirmed' ? 'Confirmado' : app.status === 'scheduled' ? 'Agendado' : 'Pendente'}
-                              </Badge>
+                        {getAppointmentsForTime(currentDate, hour).map(app => {
+                          const statusConfig = getCalendarStatusConfig(app.status);
+                          console.log('CALENDAR CARD STATUS', app.id, app.status);
+                          
+                          return (
+                            <div 
+                              key={app.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedAppointmentId(app.id);
+                                setDetailsModalOpen(true);
+                              }}
+                              className={cn(
+                                "px-3 py-2 rounded-xl shadow-lg border-2 cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-xl flex flex-col gap-1 min-w-[180px]",
+                                statusConfig.className
+                              )}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-black tracking-tight text-[11px]">
+                                  {format(parseISO(app.start_time), "HH:mm")}
+                                </span>
+                                <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[8px] font-black uppercase px-1.5 py-0">
+                                  {statusConfig.label}
+                                </Badge>
+                              </div>
+                              <span className="font-bold truncate text-[12px] leading-none mt-0.5">{app.customers?.name || "Cliente"}</span>
+                              <span className="opacity-90 text-[10px] truncate font-medium">{app.services?.name || "Serviço"}</span>
                             </div>
-                            <span className="font-bold truncate text-[12px] leading-none mt-0.5">{app.customers?.name || "Cliente"}</span>
-                            <span className="opacity-90 text-[10px] truncate font-medium">{app.services?.name || "Serviço"}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -352,28 +382,32 @@ function CalendarComponent() {
                               setIsDialogOpen(true);
                             }}
                           >
-                             {getAppointmentsForTime(day, hour).map(app => (
-                              <div 
-                                key={app.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedAppointmentId(app.id);
-                                  setDetailsModalOpen(true);
-                                }}
-                                className={cn(
-                                  "h-full p-2 rounded-lg shadow-md border-2 text-[10px] flex flex-col justify-center gap-0.5 transition-all duration-300 hover:scale-[1.05] hover:z-10 hover:shadow-lg",
-                                  app.status === 'confirmed' ? "bg-emerald-500 border-emerald-400 text-white" :
-                                  app.status === 'scheduled' ? "bg-blue-500 border-blue-400 text-white" :
-                                  app.status === 'awaiting_payment' ? "bg-amber-500 border-amber-400 text-white" :
-                                  app.status === 'cancelled' ? "bg-red-500 border-red-400 text-white" :
-                                  app.status === 'completed' ? "bg-sky-500 border-sky-400 text-white" :
-                                  "bg-blue-600 border-blue-500 text-white"
-                                )}
-                              >
-                                <div className="font-black text-[8px] opacity-80">{format(parseISO(app.start_time), "HH:mm")}</div>
-                                <div className="font-bold truncate leading-none">{app.customers?.name}</div>
-                              </div>
-                             ))}
+                             {getAppointmentsForTime(day, hour).map(app => {
+                              const statusConfig = getCalendarStatusConfig(app.status);
+                              console.log('CALENDAR CARD STATUS', app.id, app.status);
+
+                              return (
+                                <div 
+                                  key={app.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedAppointmentId(app.id);
+                                    setDetailsModalOpen(true);
+                                  }}
+                                  className={cn(
+                                    "h-full p-2 rounded-lg shadow-md border-2 text-[10px] flex flex-col justify-center gap-0.5 transition-all duration-300 hover:scale-[1.05] hover:z-10 hover:shadow-lg",
+                                    statusConfig.className
+                                  )}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="font-black text-[8px] opacity-80">{format(parseISO(app.start_time), "HH:mm")}</div>
+                                    <div className="font-black text-[7px] bg-white/20 px-1 rounded uppercase">{statusConfig.label}</div>
+                                  </div>
+                                  <div className="font-bold truncate leading-none">{app.customers?.name}</div>
+                                  <div className="opacity-80 text-[7px] truncate">{app.services?.name}</div>
+                                </div>
+                              );
+                             })}
                           </div>
                         ))}
                       </div>
