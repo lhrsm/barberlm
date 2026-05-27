@@ -2097,7 +2097,7 @@ function ShopPageComponent() {
                       <p className="text-lg font-black uppercase tracking-tight text-zinc-900">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setBookingStep(3)} className="bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200 h-9 px-4">Alterar</Button>
+                  <Button variant="outline" size="sm" onClick={() => setBookingStep(3)} className="bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200 h-9 px-4">Alterar</Button>
                 </div>
 
                 <div className="space-y-6">
@@ -2171,14 +2171,14 @@ function ShopPageComponent() {
                 <div className="grid grid-cols-2 gap-4">
                   <Button 
                     variant="outline"
-                    className="h-14 bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
+                    className="h-14 bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200"
                     onClick={addToBookingCart}
                     disabled={!selectedTime}
                   >
                     + Adicionar outro
                   </Button>
                   <Button 
-                    className="h-14 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="h-14 bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
                       if (!selectedTime) {
                         toast.error("Por favor, selecione um horário.");
@@ -2303,8 +2303,8 @@ function ShopPageComponent() {
                           className={cn(
                             "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
                             useCashback 
-                              ? "bg-sky-600 text-white hover:bg-sky-700 border-sky-600" 
-                              : "bg-white text-sky-700 hover:bg-sky-50 border border-sky-300"
+                              ? "bg-blue-500 text-white hover:bg-blue-600 border-blue-500" 
+                              : "bg-white text-blue-600 hover:bg-blue-50 border border-blue-300"
                           )}
                         >
                           {useCashback ? "Aplicado" : "Usar"}
@@ -2336,8 +2336,8 @@ function ShopPageComponent() {
                           className={cn(
                             "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
                             useCredits 
-                              ? "bg-sky-600 text-white hover:bg-sky-700 border-sky-600" 
-                              : "bg-white text-sky-700 hover:bg-sky-50 border border-sky-300"
+                              ? "bg-blue-500 text-white hover:bg-blue-600 border-blue-500" 
+                              : "bg-white text-blue-600 hover:bg-blue-50 border border-blue-300"
                           )}
                         >
                           {useCredits ? "Aplicado" : "Usar Créditos"}
@@ -2389,7 +2389,7 @@ function ShopPageComponent() {
                       <Button 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
-                        className="bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 h-12 px-6"
+                        className="bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-xl font-semibold shadow-sm transition-all duration-200 h-12 px-6"
                       >
                         {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
                       </Button>
@@ -2818,7 +2818,7 @@ function ShopPageComponent() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
+                className="bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200"
                 onClick={() => {
                   if (bookingStep === 5 && paymentMethod) {
                     setPaymentMethod(null);
