@@ -2586,14 +2586,14 @@ function ShopPageComponent() {
                         {selectedProducts.map(p => (
                           <div key={p.id} className="flex justify-between items-center text-xs pl-3 relative group">
                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-zinc-200" />
-                            <span className="text-zinc-600">{p.name} <span className="text-zinc-900 font-black ml-1">x{p.quantity || 1}</span></span>
+                            <span className="text-zinc-600">{p.name} <span className="text-zinc-900 font-bold ml-1">x{p.quantity || 1}</span></span>
                             <div className="flex items-center gap-3">
                               <span className="text-zinc-900 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
                               <button 
                                 onClick={() => toggleProduct(p)}
-                                className="text-zinc-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                className="text-zinc-400 hover:text-red-500 transition-colors opacity-100"
                               >
-                                <Trash2 size={12} />
+                                <Trash2 size={14} />
                               </button>
                             </div>
                           </div>
