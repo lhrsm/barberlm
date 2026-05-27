@@ -1245,12 +1245,8 @@ function ShopPageComponent() {
   };
 
 
-  // Avanço automático apenas para clientes JÁ IDENTIFICADOS no banco (ex: portal ou busca automática)
-  useEffect(() => {
-    if (isBookingOpen && bookingStep === 1 && customerPhone && customerName && customerId) {
-      handlePhoneCheck();
-    }
-  }, [isBookingOpen, bookingStep, customerPhone, customerName, customerId]);
+  // Remoção do avanço automático para garantir que o cliente veja a identificação no card
+  // conforme solicitado pela nova UX do BarberLM.
 
   if (loading) {
     return (
