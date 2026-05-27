@@ -26,7 +26,7 @@ function extractIncomingOption(body: any): { option: string, text: string, id: s
   let text = "";
   let id = "";
 
-  // 1. Check for List Response (Z-API)
+  // 1. Check for List Response (Z-API standard)
   if (body.optionListReply) {
     id = body.optionListReply.id || "";
     text = body.optionListReply.title || "";
@@ -41,29 +41,34 @@ function extractIncomingOption(body: any): { option: string, text: string, id: s
     id = body.listResponse.id || "";
     text = body.listResponse.title || "";
   }
-  // 4. Check for nested message properties (WPPConnect/Common formats)
+  // 4. Check for top-level selected IDs (sometimes used in different versions)
+  else if (body.selectedRowId || body.selectedId) {
+    id = body.selectedRowId || body.selectedId || "";
+    text = body.text?.message || body.message?.text || body.text || "";
+  }
+  // 5. Check for nested message properties (WPPConnect/Common formats)
   else if (body.message?.listResponseMessage) {
-    id = body.message.listResponseMessage.title?.id || body.message.listResponseMessage.singleSelectReply?.selectedRowId || "";
+    id = body.message.listResponseMessage.singleSelectReply?.selectedRowId || body.message.listResponseMessage.title || "";
     text = body.message.listResponseMessage.title || body.message.listResponseMessage.singleSelectReply?.selectedRowId || "";
   }
   else if (body.message?.buttonsResponseMessage) {
     id = body.message.buttonsResponseMessage.selectedButtonId || "";
     text = body.message.buttonsResponseMessage.selectedDisplayText || "";
   }
-  // 5. Text fallback
+  // 6. Text fallback
   else {
     text = body.text?.message || body.message?.text || body.text || body.body || "";
   }
 
-  const cleanText = text.trim().toLowerCase();
-  const cleanId = id.trim().toLowerCase();
+  const cleanText = String(text || "").trim().toLowerCase();
+  const cleanId = String(id || "").trim().toLowerCase();
 
   // Map to internal actions
-  if (cleanId === 'confirm' || cleanText === 'confirmar agendamento' || cleanText === 'confirmar' || cleanText === '1' || cleanText === '1️⃣') {
+  if (cleanId === 'confirm' || cleanId === '1' || cleanText === 'confirmar agendamento' || cleanText === 'confirmar' || cleanText === '1' || cleanText === '1️⃣') {
     option = 'confirm';
-  } else if (cleanId === 'reschedule' || cleanText === 'reagendar' || cleanText === '2' || cleanText === '2️⃣') {
+  } else if (cleanId === 'reschedule' || cleanId === '2' || cleanText === 'reagendar' || cleanText === '2' || cleanText === '2️⃣') {
     option = 'reschedule';
-  } else if (cleanId === 'cancel' || cleanText === 'cancelar' || cleanText === '3' || cleanText === '3️⃣') {
+  } else if (cleanId === 'cancel' || cleanId === '3' || cleanText === 'cancelar' || cleanText === '3' || cleanText === '3️⃣') {
     option = 'cancel';
   } else if (cleanId === 'all' || cleanText === 'todos' || cleanText === '1' || cleanText === '1️⃣') {
     option = 'all';
@@ -78,6 +83,7 @@ function extractIncomingOption(body: any): { option: string, text: string, id: s
 
   return { option, text: cleanText, id: cleanId };
 }
+
 
 async function logAutomationInteraction(supabase: any, conversation: any, message: string, stateChange: { from: string, to: string }, action?: string, payload?: any, response?: any, error?: string) {
   try {
