@@ -125,7 +125,8 @@ serve(async (req) => {
       };
 
       const finishConversation = async (message: string) => {
-        await sendMessage(connection, normalizedPhone, message);
+        const res = await sendMessage(connection, normalizedPhone, message);
+        console.log('ZAPI SEND RESPONSE (Finish)', JSON.stringify(res));
         await supabase.from("whatsapp_conversations").update({ active: false, state: 'completed' }).eq("id", conversation.id);
       };
 
@@ -140,7 +141,7 @@ serve(async (req) => {
       // 2. STATE MACHINE
       switch (state) {
         case 'awaiting_main_action': {
-          const isConfirm = ['1', '1️⃣', 'confirmar', 'confirmar agendamento', 'sim', 'ok'].some(s => messageText.includes(s));
+          const isConfirm = ['1', '1️⃣', 'confirmar'].some(s => messageText.includes(s));
           const isReschedule = ['2', '2️⃣', 'reagendar'].some(s => messageText.includes(s));
           const isCancel = ['3', '3️⃣', 'cancelar'].some(s => messageText.includes(s));
 
@@ -151,7 +152,14 @@ serve(async (req) => {
           } else if (isCancel) {
             nextContext.action = 'cancel';
           } else {
-            await sendMessage(connection, normalizedPhone, `Desculpe, não entendi.\n\nPor favor, escolha uma opção:\n\n✅ Confirmar agendamento\n🔁 Reagendar\n❌ Cancelar`);
+            const res = await sendMessage(connection, normalizedPhone, `Desculpe, não entendi.\n\nPor favor, escolha uma opção:`, {
+              buttons: [
+                { id: '1', label: 'Confirmar' },
+                { id: '2', label: 'Reagendar' },
+                { id: '3', label: 'Cancelar' }
+              ]
+            });
+            console.log('ZAPI SEND RESPONSE (Invalid Option)', JSON.stringify(res));
             return new Response("Invalid option", { status: 200 });
           }
 
@@ -159,7 +167,15 @@ serve(async (req) => {
           if (context.appointments && context.appointments.length > 1) {
             nextState = 'awaiting_scope_selection';
             const actionLabel = nextContext.action === 'confirm' ? 'confirmar' : nextContext.action === 'reschedule' ? 'reagendar' : 'cancelar';
-            await sendMessage(connection, normalizedPhone, `Você deseja ${actionLabel}:\n\n1️⃣ Todos os agendamentos\n2️⃣ Apenas um agendamento específico`);
+            
+            const res = await sendMessage(connection, normalizedPhone, `Você deseja ${actionLabel}:`, {
+              buttons: [
+                { id: '1', label: 'Todos' },
+                { id: '2', label: 'Apenas um' }
+              ],
+              title: "Escolha o que deseja " + actionLabel
+            });
+            console.log('ZAPI SEND RESPONSE (Scope Selection)', JSON.stringify(res));
           } else {
             // Single appointment flow
             const apptId = context.appointments?.[0]?.id || conversation.appointment_id;
@@ -171,10 +187,17 @@ serve(async (req) => {
               await finishConversation(`✅ Agendamento confirmado com sucesso! Esperamos você na ${context.business_name || 'barbearia'}.`);
             } else if (nextContext.action === 'cancel') {
               nextState = 'awaiting_cancel_confirmation';
-              await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar seu agendamento?\n\n1️⃣ Sim, cancelar\n2️⃣ Não, manter agendamento`);
+              const res = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar seu agendamento?`, {
+                buttons: [
+                  { id: '1', label: 'Sim, cancelar' },
+                  { id: '2', label: 'Não, manter' }
+                ]
+              });
+              console.log('ZAPI SEND RESPONSE (Cancel Confirm)', JSON.stringify(res));
             } else if (nextContext.action === 'reschedule') {
               nextState = 'awaiting_reschedule_date';
-              await sendMessage(connection, normalizedPhone, `Para qual data você deseja reagendar? (Ex: Hoje, Amanhã, ou uma data como 25/05)`);
+              const res = await sendMessage(connection, normalizedPhone, `Para qual data você deseja reagendar? (Ex: Hoje, Amanhã, ou uma data como 25/05)`);
+              console.log('ZAPI SEND RESPONSE (Reschedule Date)', JSON.stringify(res));
             }
           }
           break;
@@ -193,7 +216,13 @@ serve(async (req) => {
               await finishConversation(`✅ Todos os seus agendamentos foram confirmados com sucesso!`);
             } else if (nextContext.action === 'cancel') {
               nextState = 'awaiting_cancel_confirmation';
-              await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar TODOS os seus agendamentos?\n\n1️⃣ Sim, cancelar tudo\n2️⃣ Não, manter agendamentos`);
+              const res = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar TODOS os seus agendamentos?`, {
+                buttons: [
+                  { id: '1', label: 'Sim, cancelar tudo' },
+                  { id: '2', label: 'Não, manter todos' }
+                ]
+              });
+              console.log('ZAPI SEND RESPONSE (Cancel Scope Confirm)', JSON.stringify(res));
             } else if (nextContext.action === 'reschedule') {
               // Rescheduling multiple is tricky, we'll do them one by one
               nextContext.reschedule_queue = appointments.map(a => a.id);
@@ -202,15 +231,22 @@ serve(async (req) => {
               const appt = appointments.find(a => a.id === currentApptId);
               
               nextState = 'awaiting_reschedule_date';
-              await sendMessage(connection, normalizedPhone, `Vamos reagendar seus atendimentos um por um.\n\nPara o serviço de *${appt.service_name}*, qual a nova data desejada?`);
+              const res = await sendMessage(connection, normalizedPhone, `Vamos reagendar seus atendimentos um por um.\n\nPara o serviço de *${appt.service_name}*, qual a nova data desejada?`);
+              console.log('ZAPI SEND RESPONSE (Reschedule Multiple Start)', JSON.stringify(res));
             }
           } else if (['2', '2️⃣', 'apenas um', 'específico'].some(s => messageText.includes(s))) {
             nextContext.scope = 'single';
             nextState = 'awaiting_single_appointment_selection';
             const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
-            await sendMessage(connection, normalizedPhone, `Qual agendamento você deseja ${actionLabel}?\n\n${listAppointments(context.appointments)}`);
+            const res = await sendMessage(connection, normalizedPhone, `Qual agendamento você deseja ${actionLabel}?\n\n${listAppointments(context.appointments)}`);
+            console.log('ZAPI SEND RESPONSE (Single Selection List)', JSON.stringify(res));
           } else {
-            await sendMessage(connection, normalizedPhone, `Por favor, escolha uma opção:\n\n1️⃣ Todos os agendamentos\n2️⃣ Apenas um agendamento específico`);
+            await sendMessage(connection, normalizedPhone, `Por favor, escolha uma opção:`, {
+              buttons: [
+                { id: '1', label: 'Todos' },
+                { id: '2', label: 'Apenas um' }
+              ]
+            });
           }
           break;
         }
@@ -232,10 +268,17 @@ serve(async (req) => {
             await finishConversation(`✅ O agendamento de *${selectedAppt.service_name}* foi confirmado com sucesso!`);
           } else if (context.action === 'cancel') {
             nextState = 'awaiting_cancel_confirmation';
-            await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar o agendamento de *${selectedAppt.service_name}*?\n\n1️⃣ Sim, cancelar\n2️⃣ Não, manter agendamento`);
+            const res = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar o agendamento de *${selectedAppt.service_name}*?`, {
+              buttons: [
+                { id: '1', label: 'Sim, cancelar' },
+                { id: '2', label: 'Não, manter' }
+              ]
+            });
+            console.log('ZAPI SEND RESPONSE (Cancel Single Confirm)', JSON.stringify(res));
           } else if (context.action === 'reschedule') {
             nextState = 'awaiting_reschedule_date';
-            await sendMessage(connection, normalizedPhone, `Para qual data você deseja reagendar o serviço de *${selectedAppt.service_name}*?`);
+            const res = await sendMessage(connection, normalizedPhone, `Para qual data você deseja reagendar o serviço de *${selectedAppt.service_name}*?`);
+            console.log('ZAPI SEND RESPONSE (Reschedule Single Date)', JSON.stringify(res));
           }
           break;
         }
@@ -276,7 +319,8 @@ serve(async (req) => {
               const month = dateMatch[2].padStart(2, '0');
               targetDate = `${now.getFullYear()}-${month}-${day}`;
             } else {
-              await sendMessage(connection, normalizedPhone, `Não consegui entender a data. Por favor, envie no formato DD/MM (ex: 25/05) ou escreva 'Hoje' ou 'Amanhã'.`);
+              const res = await sendMessage(connection, normalizedPhone, `Não consegui entender a data. Por favor, envie no formato DD/MM (ex: 25/05) ou escreva 'Hoje' ou 'Amanhã'.`);
+              console.log('ZAPI SEND RESPONSE (Invalid Date)', JSON.stringify(res));
               return new Response("Invalid date", { status: 200 });
             }
           }
@@ -302,12 +346,14 @@ serve(async (req) => {
           const slots = await getAvailableSlots(supabase, appt.barber_id, targetDate, appt.services?.duration_minutes || 30);
           
           if (slots.length === 0) {
-            await sendMessage(connection, normalizedPhone, `Infelizmente não há horários disponíveis para o dia ${format(new Date(targetDate + "T12:00:00"), "dd/MM")}. Por favor, escolha outra data.`);
+            const res = await sendMessage(connection, normalizedPhone, `Infelizmente não há horários disponíveis para o dia ${format(new Date(targetDate + "T12:00:00"), "dd/MM")}. Por favor, escolha outra data.`);
+            console.log('ZAPI SEND RESPONSE (No Slots)', JSON.stringify(res));
           } else {
             nextState = 'awaiting_reschedule_time';
             nextContext.available_slots = slots;
             const slotsMsg = slots.slice(0, 10).map((s, i) => `${i + 1}️⃣ ${s}`).join('\n');
-            await sendMessage(connection, normalizedPhone, `Horários disponíveis para ${format(new Date(targetDate + "T12:00:00"), "dd/MM")}:\n\n${slotsMsg}\n\nResponda com o número da opção desejada.`);
+            const res = await sendMessage(connection, normalizedPhone, `Horários disponíveis para ${format(new Date(targetDate + "T12:00:00"), "dd/MM")}:\n\n${slotsMsg}\n\nResponda com o número da opção desejada.`);
+            console.log('ZAPI SEND RESPONSE (Slots List)', JSON.stringify(res));
           }
           break;
         }
@@ -318,7 +364,8 @@ serve(async (req) => {
           
           if (isNaN(index) || index < 0 || index >= slots.length) {
             const slotsMsg = slots.slice(0, 10).map((s, i) => `${i + 1}️⃣ ${s}`).join('\n');
-            await sendMessage(connection, normalizedPhone, `Opção inválida. Escolha um número da lista:\n\n${slotsMsg}`);
+            const res = await sendMessage(connection, normalizedPhone, `Opção inválida. Escolha um número da lista:\n\n${slotsMsg}`);
+            console.log('ZAPI SEND RESPONSE (Invalid Slot)', JSON.stringify(res));
             return new Response("Invalid index", { status: 200 });
           }
 
@@ -351,7 +398,8 @@ serve(async (req) => {
             const nextAppt = context.appointments.find(a => a.id === nextApptId);
             
             nextState = 'awaiting_reschedule_date';
-            await sendMessage(connection, normalizedPhone, `✅ Reagendado!\n\nAgora, para o serviço de *${nextAppt.service_name}*, qual a nova data desejada?`);
+            const res = await sendMessage(connection, normalizedPhone, `✅ Reagendado!\n\nAgora, para o serviço de *${nextAppt.service_name}*, qual a nova data desejada?`);
+            console.log('ZAPI SEND RESPONSE (Reschedule Next)', JSON.stringify(res));
           } else {
             await finishConversation(`✅ Reagendamento concluído com sucesso! Seu novo horário é dia ${format(new Date(startTime), "dd/MM")} às ${selectedTime}.`);
           }
@@ -363,6 +411,8 @@ serve(async (req) => {
           await supabase.from("whatsapp_conversations").update({ active: false }).eq("id", conversation.id);
         }
       }
+
+      console.log('NEXT STATE', nextState);
 
       // Save next state and context
       await supabase.from("whatsapp_conversations").update({ 
