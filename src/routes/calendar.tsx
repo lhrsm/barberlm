@@ -351,15 +351,13 @@ function CalendarComponent() {
   };
 
   const getStatusColor = (status: string, barberId: string) => {
-    if (status === 'completed') return "border-emerald-500 bg-white text-emerald-700";
-    if (status === 'confirmed') return "border-blue-500 bg-white text-blue-700";
-    if (status === 'cancelled') return "border-red-500 bg-white text-red-700";
-    if (status === 'scheduled') return "border-amber-500 bg-white text-amber-700";
+    if (status === 'completed') return "bg-zinc-100 text-zinc-600 border-zinc-200";
+    if (status === 'confirmed') return "bg-emerald-500 text-white border-emerald-600";
+    if (status === 'cancelled') return "bg-red-500 text-white border-red-600";
+    if (status === 'scheduled') return "bg-blue-500 text-white border-blue-600";
+    if (status === 'awaiting_payment') return "bg-amber-500 text-white border-amber-600";
     
-    const index = barbers.findIndex(b => b.id === barberId);
-    const colors = ["border-blue-500", "border-purple-500", "border-emerald-500", "border-orange-500", "border-pink-500", "border-cyan-500"];
-    const baseColor = colors[index % 6] || "border-blue-500";
-    return `${baseColor} bg-white text-black`;
+    return "bg-black text-white border-zinc-800";
   };
 
   if (loading || !user) return null;
