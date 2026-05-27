@@ -411,7 +411,7 @@ export function AppointmentModal({
       }}>
         {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
         <DialogContent 
-          className="sm:max-w-[425px]" 
+          className="sm:max-w-[425px] bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-xl" 
           onOpenAutoFocus={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
@@ -419,7 +419,7 @@ export function AppointmentModal({
           {canAddAppointment ? (
             <>
               <DialogHeader>
-                <DialogTitle>{editingAppointmentId ? "Editar Agendamento" : "Novo Agendamento"} - Passo {currentStep} de 4</DialogTitle>
+                <DialogTitle className="text-zinc-900 font-bold">{editingAppointmentId ? "Editar Agendamento" : "Novo Agendamento"} - Passo {currentStep} de 4</DialogTitle>
               </DialogHeader>
               
               <div className="py-4 space-y-4">
@@ -567,19 +567,32 @@ export function AppointmentModal({
                 )}
               </div>
               
-              <DialogFooter className="flex gap-2 sm:justify-between">
+              <DialogFooter className="flex gap-2 sm:justify-between pt-4 border-t border-zinc-100">
                 {currentStep > 1 ? (
-                  <Button variant="outline" onClick={() => setCurrentStep(prev => prev - 1)} disabled={isLoading}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCurrentStep(prev => prev - 1)} 
+                    disabled={isLoading}
+                    className="rounded-xl border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                  >
                     Voltar
                   </Button>
                 ) : <div />}
                 
                 {currentStep < 4 ? (
-                  <Button onClick={handleNextStep} disabled={isLoading}>
+                  <Button 
+                    onClick={handleNextStep} 
+                    disabled={isLoading}
+                    className="rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-semibold shadow-sm"
+                  >
                     {isLoading ? "Validando..." : "Próximo"}
                   </Button>
                 ) : (
-                  <Button onClick={handleCreateAppointment} disabled={isLoading}>
+                  <Button 
+                    onClick={handleCreateAppointment} 
+                    disabled={isLoading}
+                    className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow-sm"
+                  >
                     {isLoading ? "Salvando..." : "Confirmar"}
                   </Button>
                 )}

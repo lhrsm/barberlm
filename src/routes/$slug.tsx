@@ -224,8 +224,8 @@ function ShopPageComponent() {
           setCustomerCredits(data.credits || 0);
           
           if (data.name && bookingStep === 1) {
-            // Toast removed as requested, now using visual identification in modal
-            console.log('DEBUG: Customer identified visually in modal');
+            // Restore auto-advancing behavior if found
+            setBookingStep(2);
           }
         } else {
           console.log('CUSTOMER NOT FOUND for phone:', normalizedPhone);
@@ -282,8 +282,8 @@ function ShopPageComponent() {
       else if (customer?.name) setCustomerName(customer.name);
       
       setIsBookingOpen(true);
-      // Mantemos no Step 1 para mostrar a identificação visual conforme solicitado
-      setBookingStep(1);
+      // Restaurando para ir para o step 2 (seleção de serviço) automaticamente
+      setBookingStep(2);
     } catch (error: any) {
       console.error("Error checking phone:", error);
       toast.error(error.message || "Erro ao verificar identificação");
