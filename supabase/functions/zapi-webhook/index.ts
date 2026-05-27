@@ -72,14 +72,17 @@ function extractSelectedOption(payload: any): string {
   const confirmPatterns = ['confirmar agendamento', 'confirmar', 'confirm', '1', 'confirm_appointment', 'confirmar_agendamento', '1️⃣'];
   const reschedulePatterns = ['reagendar', 'reschedule', '2', 'reschedule_appointment', '2️⃣'];
   const cancelPatterns = ['cancelar', 'cancel', '3', 'cancel_appointment', '3️⃣'];
-  const allPatterns = ['todos', 'all', '1', '1️⃣'];
-  const singlePatterns = ['apenas um específico', 'apenas um', 'especifico', 'single', '2', '2️⃣'];
+  const allPatterns = ['todos os agendamentos', 'confirmar todos', 'confirmar_todos', 'todos', 'all', '1', '1️⃣', 'confirm_all', 'reschedule_all', 'cancel_all'];
+  const singlePatterns = ['um agendamento especifico', 'um agendamento específico', 'apenas um especifico', 'apenas um específico', 'especifico', 'específico', 'single', '2', '2️⃣', 'confirm_single', 'reschedule_single', 'cancel_single'];
 
   if (confirmPatterns.includes(cleanId) || confirmPatterns.includes(cleanText)) return 'confirm';
   if (reschedulePatterns.includes(cleanId) || reschedulePatterns.includes(cleanText)) return 'reschedule';
   if (cancelPatterns.includes(cleanId) || cancelPatterns.includes(cleanText)) return 'cancel';
   if (allPatterns.includes(cleanId) || allPatterns.includes(cleanText)) return 'all';
   if (singlePatterns.includes(cleanId) || singlePatterns.includes(cleanText)) return 'single';
+
+  // Check for appt_ prefix in ID
+  if (cleanId.startsWith('appt_')) return cleanId;
 
   // Fallback fuzzy
   if (cleanText.includes('confirmar')) return 'confirm';
