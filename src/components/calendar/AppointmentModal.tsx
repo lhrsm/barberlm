@@ -29,6 +29,7 @@ import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 import { createNotification } from "@/utils/notifications";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AppointmentModalProps {
   trigger?: React.ReactNode;
@@ -53,6 +54,7 @@ export function AppointmentModal({
 }: AppointmentModalProps) {
   const { user, role } = useAuth();
   const { checkLimit, limits, refresh: refreshLimits } = usePlanLimits();
+  const queryClient = useQueryClient();
   
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = externalOpen !== undefined ? externalOpen : internalOpen;
@@ -386,16 +388,14 @@ export function AppointmentModal({
       if (onSuccess) onSuccess();
 
       // Invalidate queries
-      const queryClient = (window as any).queryClient;
-      if (queryClient) {
-        queryClient.invalidateQueries({ queryKey: ["appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-      }
+      console.log('STATUS UPDATED', appointmentData.id, appointmentData.status);
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["customerAppointments"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
     } catch (error: any) {
       toast.error("Erro ao criar agendamento: " + error.message);
     } finally {

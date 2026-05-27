@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useTenant } from "@/hooks/use-tenant";
@@ -60,6 +61,7 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardComponent() {
   const { user, profile: authProfile, role, loading: authLoading } = useAuth();
   const { tenantId, isLoading: tenantLoading } = useTenant();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { plan, usage, limits, trialDaysRemaining, isTrial, isExpired } = usePlanLimits();
   const loading = authLoading || tenantLoading;
@@ -137,15 +139,21 @@ function DashboardComponent() {
           schema: 'public', 
           table: 'appointments', 
           filter: `tenant_id=eq.${tenantId}` 
-        }, () => {
-          console.log("Realtime: appointments changed, invalidating queries");
+        }, (payload: any) => {
+          console.log('REALTIME PAYLOAD', payload);
+          console.log('STATUS UPDATED', payload.new?.id, payload.new?.status);
+          
           fetchTodayAppointments();
           fetchStats();
-          // Invalidate React Query if available
-          const queryClient = (window as any).queryClient;
-          if (queryClient) {
-            queryClient.invalidateQueries({ queryKey: ["appointments"] });
-          }
+          
+          // Invalida todas as queries relacionadas
+          queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['calendar'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+          queryClient.invalidateQueries({ queryKey: ['customerAppointments'] });
+          queryClient.invalidateQueries({ queryKey: ['calendar-appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
         })
         .on('postgres_changes', { 
           event: '*', 

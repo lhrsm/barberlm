@@ -30,6 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AppointmentDetailsModalProps {
   appointmentId?: string;
@@ -49,6 +50,7 @@ export function AppointmentDetailsModal({
   const [appointment, setAppointment] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
   const [actionLoading, setActionLoading] = React.useState(false);
+  const queryClient = useQueryClient();
 
   React.useEffect(() => {
     if (open && appointmentId) {
@@ -93,7 +95,18 @@ export function AppointmentDetailsModal({
 
       if (error) throw error;
 
+      console.log('STATUS UPDATED', appointment.id, newStatus);
+
       toast.success(`Status atualizado para ${getStatusLabel(newStatus)}`);
+      
+      // Invalida todas as queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['customerAppointments'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar-appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-appointments'] });
+      
       if (onSuccess) onSuccess();
       onOpenChange(false);
     } catch (error: any) {
