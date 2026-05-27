@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, Plus, Minus, Tag, TicketPercent } from "lucide-react";
+import { Scissors, Calendar, MapPin, Phone, MessageSquare, Clock, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Package, Gift, Trash2, Star, QrCode, User as UserIcon, RefreshCcw, CircleDollarSign, ArrowLeft, Plus, Minus, Tag, TicketPercent, X } from "lucide-react";
 import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -2247,14 +2247,14 @@ function ShopPageComponent() {
                 }}
               >
                 {/* Your Booking Cart Section */}
-                {bookingCart.length > 0 && (
+                {(bookingCart.length > 0 || selectedService) && (
                   <div className="bg-zinc-50 border border-zinc-100 rounded-3xl p-6 space-y-4">
                     <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                      <Calendar size={14} /> Seu Agendamento ({bookingCart.length})
+                      <Calendar size={14} /> Seu Agendamento ({bookingCart.length + (selectedService ? 1 : 0)})
                     </h5>
                     <div className="space-y-3">
                       {bookingCart.map(item => (
-                        <div key={item.id} className="flex items-center justify-between p-3 bg-white border border-zinc-100 rounded-2xl shadow-sm">
+                        <div key={item.id} className="flex items-center justify-between p-3 bg-white border border-zinc-100 rounded-2xl shadow-sm group relative">
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-black text-black uppercase truncate">{item.service_name}</p>
                             <p className="text-[10px] font-bold text-zinc-500">{item.barber_name} • {item.start_time}</p>
@@ -2272,10 +2272,42 @@ function ShopPageComponent() {
                           </div>
                         </div>
                       ))}
+                      
+                      {selectedService && (
+                        <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-2xl shadow-sm group relative">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-black text-black uppercase truncate">{selectedService.name}</p>
+                            <p className="text-[10px] font-bold text-zinc-500">{selectedBarber?.name} • {selectedTime}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-black text-black">R$ {selectedService.price.toFixed(2)}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-zinc-400 hover:text-red-500 transition-colors"
+                              onClick={() => {
+                                setSelectedService(null);
+                                setSelectedBarber(null);
+                                setSelectedTime("");
+                                if (bookingCart.length === 0) setBookingStep(2);
+                              }}
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
                       <Button 
                         variant="link" 
                         className="text-[10px] font-black uppercase tracking-widest text-zinc-500 h-auto p-0"
-                        onClick={() => setBookingStep(2)}
+                        onClick={() => {
+                          if (selectedService && selectedBarber && selectedDate && selectedTime) {
+                            addToBookingCart();
+                          } else {
+                            setBookingStep(2);
+                          }
+                        }}
                       >
                         + Adicionar outro serviço
                       </Button>
@@ -2525,13 +2557,53 @@ function ShopPageComponent() {
                     </div>
                   </div>
 
-                  <div className="space-y-3 pt-2">
-                    <div className="flex justify-between items-center group">
-                      <span className="text-zinc-500 font-medium flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-700 group-hover:bg-primary transition-colors" />
-                        Serviço
-                      </span> 
-                      <span className="font-bold text-zinc-100">{selectedService?.name}</span>
+                  <div className="space-y-4 pt-2">
+                    {/* Lista de Serviços */}
+                    <div className="space-y-3">
+                      {bookingCart.map((item) => (
+                        <div key={item.id} className="flex flex-col gap-1 pb-3 border-b border-white/5 last:border-b-0 relative group">
+                          <button 
+                            onClick={() => removeFromBookingCart(item.id)}
+                            className="absolute right-0 top-0 p-1 text-zinc-600 hover:text-red-500 transition-colors"
+                            title="Remover serviço"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                          <div className="flex justify-between items-center pr-8">
+                            <span className="font-bold text-zinc-100">{item.service_name}</span>
+                            <span className="text-zinc-200 font-bold">R$ {(item.price || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                            <span className="flex items-center gap-1.5"><UserIcon size={10} /> {item.barber_name}</span>
+                            <span>{format(parseISO(item.date), "dd/MM/yyyy")} às {item.start_time}</span>
+                          </div>
+                        </div>
+                      ))}
+
+                      {selectedService && (
+                        <div className="flex flex-col gap-1 pb-3 border-b border-white/5 last:border-b-0 relative group">
+                          <button 
+                            onClick={() => {
+                              setSelectedService(null);
+                              setSelectedBarber(null);
+                              setSelectedTime("");
+                              if (bookingCart.length === 0) setBookingStep(2);
+                            }}
+                            className="absolute right-0 top-0 p-1 text-zinc-600 hover:text-red-500 transition-colors"
+                            title="Remover serviço"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                          <div className="flex justify-between items-center pr-8">
+                            <span className="font-bold text-zinc-100">{selectedService.name}</span>
+                            <span className="text-zinc-200 font-bold">R$ {(selectedService.price || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                            <span className="flex items-center gap-1.5"><UserIcon size={10} /> {selectedBarber?.name}</span>
+                            <span>{format(parseISO(selectedDate), "dd/MM/yyyy")} às {selectedTime}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     {selectedProducts.length > 0 && (
@@ -2541,33 +2613,22 @@ function ShopPageComponent() {
                           <span className="text-[10px] font-bold text-zinc-500">{selectedProducts.length} itens</span>
                         </div>
                         {selectedProducts.map(p => (
-                          <div key={p.id} className="flex justify-between items-center text-xs pl-3 relative">
+                          <div key={p.id} className="flex justify-between items-center text-xs pl-3 relative group">
                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-zinc-800" />
                             <span className="text-zinc-400">{p.name} <span className="text-primary font-black ml-1" style={{ color: primaryColor }}>x{p.quantity || 1}</span></span>
-                            <span className="text-zinc-200 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
+                            <div className="flex items-center gap-3">
+                              <span className="text-zinc-200 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
+                              <button 
+                                onClick={() => toggleProduct(p)}
+                                className="text-zinc-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
                     )}
-                    
-                    <div className="flex justify-between items-center group">
-                      <span className="text-zinc-500 font-medium flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-700 group-hover:bg-primary transition-colors" />
-                        Profissional
-                      </span> 
-                      <span className="font-bold text-zinc-100">{selectedBarber?.name}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center group">
-                      <span className="text-zinc-500 font-medium flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-700 group-hover:bg-primary transition-colors" />
-                        Data e Hora
-                      </span> 
-                      <div className="text-right">
-                        <p className="font-bold text-zinc-100">{format(parseISO(selectedDate), "dd 'de' MMMM", { locale: ptBR })}</p>
-                        <p className="text-[10px] font-black text-primary uppercase tracking-tighter" style={{ color: primaryColor }}>às {selectedTime}</p>
-                      </div>
-                    </div>
                   </div>
 
                   {(useCashback || useCredits) && (
