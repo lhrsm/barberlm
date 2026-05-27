@@ -2321,22 +2321,22 @@ function ShopPageComponent() {
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-[2rem] shadow-lg"
+                      className="flex items-center justify-between p-5 bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 transition-all duration-300 hover:shadow-xl"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
-                          <Gift size={24} className="text-emerald-400" />
+                        <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
+                          <Gift size={24} className="text-emerald-600" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">Cashback Disponível</p>
-                          <p className="text-lg font-black text-white leading-none">R$ {customerCashback.toFixed(2)}</p>
+                          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-0.5">Cashback Disponível</p>
+                          <p className="text-lg font-black text-zinc-900 leading-none">R$ {customerCashback.toFixed(2)}</p>
                         </div>
                       </div>
                       <Button 
                         variant={useCashback ? "default" : "outline"} 
                         size="sm" 
                         onClick={() => setUseCashback(!useCashback)}
-                        className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px] transition-all", useCashback ? "bg-emerald-500 text-white border-none shadow-lg shadow-emerald-500/20" : "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10")}
+                        className={cn("rounded-xl font-medium transition-all duration-200 h-10 px-6", useCashback ? "bg-black text-white hover:bg-zinc-800" : "border-zinc-300 text-zinc-600 hover:bg-zinc-50")}
                       >
                         {useCashback ? "Aplicado" : "Usar"}
                       </Button>
@@ -2347,24 +2347,22 @@ function ShopPageComponent() {
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between p-5 bg-primary/10 border border-primary/20 rounded-[2rem] shadow-lg"
-                      style={{ backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}
+                      className="flex items-center justify-between p-5 bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 transition-all duration-300 hover:shadow-xl"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center" style={{ backgroundColor: `${primaryColor}30` }}>
-                          <CircleDollarSign size={24} className="text-primary" style={{ color: primaryColor }} />
+                        <div className="h-12 w-12 rounded-2xl bg-zinc-50 flex items-center justify-center">
+                          <CircleDollarSign size={24} className="text-zinc-900" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: primaryColor }}>Créditos Disponíveis</p>
-                          <p className="text-lg font-black text-white leading-none">R$ {customerCredits.toFixed(2)}</p>
+                          <p className="text-[10px] font-black text-zinc-900 uppercase tracking-widest mb-0.5">Créditos Disponíveis</p>
+                          <p className="text-lg font-black text-zinc-900 leading-none">R$ {customerCredits.toFixed(2)}</p>
                         </div>
                       </div>
                       <Button 
                         variant={useCredits ? "default" : "outline"} 
                         size="sm" 
                         onClick={() => setUseCredits(!useCredits)}
-                        className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px] transition-all", useCredits ? "text-white border-none shadow-lg shadow-primary/20" : "border-primary/30 text-primary hover:bg-primary/10")}
-                        style={useCredits ? { backgroundColor: primaryColor, boxShadow: `0 10px 15px -3px ${primaryColor}40` } : { color: primaryColor, borderColor: `${primaryColor}50` }}
+                        className={cn("rounded-xl font-medium transition-all duration-200 h-10 px-6", useCredits ? "bg-black text-white hover:bg-zinc-800" : "border-zinc-300 text-zinc-600 hover:bg-zinc-50")}
                       >
                         {useCredits ? "Aplicado" : "Usar Créditos"}
                       </Button>
