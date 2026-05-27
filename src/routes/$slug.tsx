@@ -2372,24 +2372,24 @@ function ShopPageComponent() {
                   )}
                 </div>
 
-                <div className="bg-zinc-900/50 backdrop-blur-md p-6 rounded-3xl border border-white/5 space-y-4">
+                <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 p-6 space-y-4 transition-all duration-300 hover:shadow-xl">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <TicketPercent size={20} className="text-primary" style={{ color: primaryColor }} />
+                    <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center">
+                      <TicketPercent size={20} className="text-zinc-600" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tem um cupom?</p>
-                      <p className="text-sm font-bold text-white">Aplicar desconto</p>
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Tem um cupom?</p>
+                      <p className="text-sm font-bold text-zinc-900">Aplicar desconto</p>
                     </div>
                   </div>
 
                   {appliedCoupon ? (
-                    <div className="flex items-center justify-between bg-primary/10 p-4 rounded-2xl border border-primary/20" style={{ backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}>
+                    <div className="flex items-center justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
                       <div className="flex items-center gap-3">
-                        <Tag size={18} className="text-primary" style={{ color: primaryColor }} />
+                        <Tag size={18} className="text-zinc-900" />
                         <div>
-                          <p className="text-sm font-bold text-white uppercase">{appliedCoupon.code}</p>
-                          <p className="text-[10px] font-black text-primary uppercase" style={{ color: primaryColor }}>
+                          <p className="text-sm font-bold text-zinc-900 uppercase">{appliedCoupon.code}</p>
+                          <p className="text-[10px] font-black text-emerald-600 uppercase">
                             Cupom Aplicado: -R$ {calculateDiscount().toFixed(2)}
                           </p>
                         </div>
@@ -2398,7 +2398,7 @@ function ShopPageComponent() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => setAppliedCoupon(null)}
-                        className="text-zinc-500 hover:text-red-400 hover:bg-red-400/10"
+                        className="text-zinc-400 hover:text-red-500 hover:bg-red-50"
                       >
                         <Trash2 size={16} />
                       </Button>
@@ -2407,15 +2407,14 @@ function ShopPageComponent() {
                     <div className="flex gap-2">
                       <Input 
                         placeholder="CÓDIGO DO CUPOM" 
-                        className="bg-black/40 border-white/10 text-white placeholder:text-zinc-600 font-bold uppercase tracking-wider h-12 rounded-xl"
+                        className="bg-white text-black border border-zinc-300 placeholder:text-zinc-500 rounded-xl font-bold uppercase tracking-wider h-12"
                         value={couponCode}
                         onChange={e => setCouponCode(e.target.value.toUpperCase())}
                       />
                       <Button 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
-                        className="h-12 px-6 rounded-xl font-bold uppercase tracking-tighter transition-all hover:scale-105 active:scale-95"
-                        style={{ backgroundColor: primaryColor }}
+                        className="bg-black text-white hover:bg-zinc-800 rounded-xl font-medium transition-all duration-200 h-12 px-6"
                       >
                         {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
                       </Button>
