@@ -21,7 +21,7 @@ function normalizePhone(phone: string): string {
   return digits;
 }
 
-async function logAutomationInteraction(supabase: any, conversation: any, message: string, stateChange: { from: string, to: string }, action?: string, error?: string) {
+async function logAutomationInteraction(supabase: any, conversation: any, message: string, stateChange: { from: string, to: string }, action?: string, payload?: any, response?: any, error?: string) {
   try {
     const { data: automation } = await supabase
       .from("automations")
@@ -38,8 +38,9 @@ async function logAutomationInteraction(supabase: any, conversation: any, messag
       phone: conversation.phone,
       message_type: "appointment_confirmation_interaction",
       status: error ? "error" : "success",
-      original_template: message, // Received message
+      original_template: message, // Received message or selection
       processed_template: `State: ${stateChange.from} -> ${stateChange.to} | Action: ${action || 'none'}`,
+      response: response,
       error_message: error,
       sent_at: new Date().toISOString()
     });
@@ -47,6 +48,7 @@ async function logAutomationInteraction(supabase: any, conversation: any, messag
     console.error("Error logging interaction:", e);
   }
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
