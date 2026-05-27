@@ -2661,31 +2661,31 @@ function ShopPageComponent() {
                       {(!paymentMethod && calculateTotal() > 0) ? (
                         <div className="grid grid-cols-1 gap-4">
                           <Button 
-                            className="flex items-center justify-between h-20 px-6 bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
+                            className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-zinc-700 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
                             onClick={() => setPaymentMethod('barbershop')}
                           >
                             <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                              <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center">
                                 <Scissors size={24} className="text-white" />
                               </div>
                               <div className="text-left">
                                 <p className="text-sm font-bold text-white">Pagar na Barbearia</p>
-                                <p className="text-[10px] text-blue-100 font-medium uppercase tracking-wider opacity-80">Pague após o serviço</p>
+                                <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider opacity-80">Pague após o serviço</p>
                               </div>
                             </div>
                             <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
                           </Button>
                           <Button 
-                            className="flex items-center justify-between h-20 px-6 bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
+                            className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-zinc-700 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
                             onClick={() => setPaymentMethod('pix')}
                           >
                             <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                              <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center">
                                 <QrCode size={24} className="text-white" />
                               </div>
                               <div className="text-left">
                                 <p className="text-sm font-bold text-white">Pagar Agora (PIX)</p>
-                                <p className="text-[10px] text-blue-100 font-medium uppercase tracking-wider opacity-80">Confirmação instantânea</p>
+                                <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider opacity-80">Confirmação instantânea</p>
                               </div>
                             </div>
                             <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
