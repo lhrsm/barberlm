@@ -210,7 +210,8 @@ serve(async (req) => {
         }
 
         case 'awaiting_scope_selection': {
-          if (['1', '1️⃣', 'todos', 'tudo'].some(s => messageText.includes(s))) {
+          if (['1', '1️⃣', 'todos', 'tudo', 'all'].some(s => messageText.includes(s))) {
+            console.log('[Webhook] Matched scope: ALL');
             nextContext.scope = 'all';
             const appointments = context.appointments || [];
             
