@@ -290,17 +290,25 @@ function CalendarComponent() {
                               setDetailsModalOpen(true);
                             }}
                             className={cn(
-                              "px-3 py-2 rounded-lg shadow-sm border cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-md flex flex-col gap-0.5 min-w-[150px] text-xs",
+                              "px-3 py-2 rounded-xl shadow-lg border-2 cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-xl flex flex-col gap-1 min-w-[180px]",
                               app.status === 'confirmed' ? "bg-emerald-500 border-emerald-400 text-white" :
                               app.status === 'scheduled' ? "bg-blue-500 border-blue-400 text-white" :
                               app.status === 'awaiting_payment' ? "bg-amber-500 border-amber-400 text-white" :
                               app.status === 'cancelled' ? "bg-red-500 border-red-400 text-white" :
-                              app.status === 'completed' ? "bg-zinc-500 border-zinc-400 text-white" :
-                              "bg-sky-500 border-sky-400 text-white"
+                              app.status === 'completed' ? "bg-sky-500 border-sky-400 text-white" :
+                              "bg-blue-600 border-blue-500 text-white"
                             )}
                           >
-                            <span className="font-bold truncate">{app.customers?.name || "Cliente"}</span>
-                            <span className="opacity-90">{app.services?.name || "Serviço"}</span>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-black tracking-tight text-[11px]">
+                                {format(parseISO(app.start_time), "HH:mm")}
+                              </span>
+                              <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[8px] font-black uppercase px-1.5 py-0">
+                                {app.status === 'confirmed' ? 'Confirmado' : app.status === 'scheduled' ? 'Agendado' : 'Pendente'}
+                              </Badge>
+                            </div>
+                            <span className="font-bold truncate text-[12px] leading-none mt-0.5">{app.customers?.name || "Cliente"}</span>
+                            <span className="opacity-90 text-[10px] truncate font-medium">{app.services?.name || "Serviço"}</span>
                           </div>
                         ))}
                       </div>
@@ -334,16 +342,17 @@ function CalendarComponent() {
                                   setDetailsModalOpen(true);
                                 }}
                                 className={cn(
-                                  "h-full p-1 rounded-md shadow-sm border text-[10px] truncate transition-all duration-200 hover:scale-[1.02] hover:shadow-md",
+                                  "h-full p-2 rounded-lg shadow-md border-2 text-[10px] flex flex-col justify-center gap-0.5 transition-all duration-300 hover:scale-[1.05] hover:z-10 hover:shadow-lg",
                                   app.status === 'confirmed' ? "bg-emerald-500 border-emerald-400 text-white" :
                                   app.status === 'scheduled' ? "bg-blue-500 border-blue-400 text-white" :
                                   app.status === 'awaiting_payment' ? "bg-amber-500 border-amber-400 text-white" :
                                   app.status === 'cancelled' ? "bg-red-500 border-red-400 text-white" :
-                                  app.status === 'completed' ? "bg-zinc-500 border-zinc-400 text-white" :
-                                  "bg-sky-500 border-sky-400 text-white"
+                                  app.status === 'completed' ? "bg-sky-500 border-sky-400 text-white" :
+                                  "bg-blue-600 border-blue-500 text-white"
                                 )}
                               >
-                                {app.customers?.name}
+                                <div className="font-black text-[8px] opacity-80">{format(parseISO(app.start_time), "HH:mm")}</div>
+                                <div className="font-bold truncate leading-none">{app.customers?.name}</div>
                               </div>
                              ))}
                           </div>
