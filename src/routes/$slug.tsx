@@ -2639,20 +2639,19 @@ function ShopPageComponent() {
                 {(!paymentMethod && calculateTotal() > 0) ? (
                   <div className="grid grid-cols-1 gap-3 mt-6">
                     <Button 
-                      variant="outline" 
-                      className="flex items-center justify-between h-20 px-6 bg-[#111] border-white/10 hover:border-primary/50 transition-all group rounded-2xl"
+                      className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg group"
                       onClick={() => setPaymentMethod('barbershop')}
                     >
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                          <Scissors size={24} className="text-slate-400 group-hover:text-primary" />
+                        <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                          <Scissors size={24} className="text-white" />
                         </div>
                         <div className="text-left">
                           <p className="text-sm font-black text-white">Pagar na Barbearia</p>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Pague após o serviço</p>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Pague após o serviço</p>
                         </div>
                       </div>
-                      <ChevronRight size={20} className="text-slate-600 group-hover:text-primary transition-colors" />
+                      <ChevronRight size={20} className="text-zinc-600 group-hover:text-white transition-colors" />
                     </Button>
                     <Button 
                       className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg group"
