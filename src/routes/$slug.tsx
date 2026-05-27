@@ -2247,14 +2247,14 @@ function ShopPageComponent() {
                 }}
               >
                 {/* Your Booking Cart Section */}
-                {bookingCart.length > 0 && (
+                {(bookingCart.length > 0 || selectedService) && (
                   <div className="bg-zinc-50 border border-zinc-100 rounded-3xl p-6 space-y-4">
                     <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                      <Calendar size={14} /> Seu Agendamento ({bookingCart.length})
+                      <Calendar size={14} /> Seu Agendamento ({bookingCart.length + (selectedService ? 1 : 0)})
                     </h5>
                     <div className="space-y-3">
                       {bookingCart.map(item => (
-                        <div key={item.id} className="flex items-center justify-between p-3 bg-white border border-zinc-100 rounded-2xl shadow-sm">
+                        <div key={item.id} className="flex items-center justify-between p-3 bg-white border border-zinc-100 rounded-2xl shadow-sm group relative">
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-black text-black uppercase truncate">{item.service_name}</p>
                             <p className="text-[10px] font-bold text-zinc-500">{item.barber_name} • {item.start_time}</p>
@@ -2272,10 +2272,42 @@ function ShopPageComponent() {
                           </div>
                         </div>
                       ))}
+                      
+                      {selectedService && (
+                        <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-2xl shadow-sm group relative">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-black text-black uppercase truncate">{selectedService.name}</p>
+                            <p className="text-[10px] font-bold text-zinc-500">{selectedBarber?.name} • {selectedTime}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-black text-black">R$ {selectedService.price.toFixed(2)}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-zinc-400 hover:text-red-500 transition-colors"
+                              onClick={() => {
+                                setSelectedService(null);
+                                setSelectedBarber(null);
+                                setSelectedTime("");
+                                if (bookingCart.length === 0) setBookingStep(2);
+                              }}
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
                       <Button 
                         variant="link" 
                         className="text-[10px] font-black uppercase tracking-widest text-zinc-500 h-auto p-0"
-                        onClick={() => setBookingStep(2)}
+                        onClick={() => {
+                          if (selectedService && selectedBarber && selectedDate && selectedTime) {
+                            addToBookingCart();
+                          } else {
+                            setBookingStep(2);
+                          }
+                        }}
                       >
                         + Adicionar outro serviço
                       </Button>
