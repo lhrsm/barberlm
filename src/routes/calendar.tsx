@@ -378,22 +378,34 @@ function CalendarComponent() {
           </Alert>
         )}
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-2">
           <div>
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <CalendarIcon className="text-primary" />
+            <h2 className="text-3xl font-black flex items-center gap-3 text-black">
+              <CalendarIcon className="text-black h-8 w-8" />
               Agenda
             </h2>
-            <p className="text-muted-foreground">Gerencie seus atendimentos diários.</p>
+            <p className="text-zinc-500 font-medium mt-1">Gerencie os agendamentos da barbearia</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week")} className="w-full md:w-auto">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="day">Dia</TabsTrigger>
-                <TabsTrigger value="week">Semana</TabsTrigger>
-              </TabsList>
-            </Tabs>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center bg-zinc-100 p-1 rounded-xl border border-zinc-200">
+              <Button 
+                variant={view === "day" ? "default" : "ghost"} 
+                size="sm" 
+                onClick={() => setView("day")}
+                className={cn("rounded-lg h-9 px-6", view === "day" ? "bg-black text-white shadow-md" : "text-zinc-600")}
+              >
+                Dia
+              </Button>
+              <Button 
+                variant={view === "week" ? "default" : "ghost"} 
+                size="sm" 
+                onClick={() => setView("week")}
+                className={cn("rounded-lg h-9 px-6", view === "week" ? "bg-black text-white shadow-md" : "text-zinc-600")}
+              >
+                Semana
+              </Button>
+            </div>
 
             <AppointmentModal
               open={isDialogOpen}
@@ -408,34 +420,53 @@ function CalendarComponent() {
               onSuccess={() => fetchData()}
               trigger={
                 <Button 
-                  className="gap-2 bg-black text-white hover:scale-110 transition-all duration-300" 
+                  className="gap-2 bg-black text-white hover:scale-[1.05] transition-all duration-300 rounded-xl h-11 px-6 shadow-lg shadow-black/10" 
                   variant={canAddAppointment ? "default" : "secondary"}
                   onClick={() => {
                     setModalInitialData({ editingId: undefined });
                     setIsDialogOpen(true);
                   }}
                 >
-                  <Plus size={18} /> <span className="hidden md:inline">Novo Agendamento</span>
+                  <Plus size={20} /> <span className="font-bold">Novo Agendamento</span>
                 </Button>
               }
             />
           </div>
         </div>
 
-        <Card className="flex-1 overflow-hidden flex flex-col bg-white border-2 border-slate-100 shadow-sm text-black">
-          <div className="p-4 border-b flex items-center justify-between bg-muted/30">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="icon" onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}>
-                <ChevronLeft size={18} />
-              </Button>
-              <h3 className="font-semibold text-lg min-w-[200px] text-center capitalize">
+        <Card className="flex-1 overflow-hidden flex flex-col bg-white border border-zinc-200 rounded-2xl shadow-xl shadow-black/5 text-black">
+          <div className="p-5 border-b flex items-center justify-between bg-zinc-50/50">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="rounded-full border-zinc-200 hover:bg-white hover:border-black transition-all"
+                  onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}
+                >
+                  <ChevronLeft size={18} />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="rounded-full border-zinc-200 hover:bg-white hover:border-black transition-all"
+                  onClick={() => setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))}
+                >
+                  <ChevronRight size={18} />
+                </Button>
+              </div>
+              <h3 className="font-bold text-xl min-w-[240px] text-center capitalize tracking-tight">
                 {format(currentDate, view === 'day' ? "EEEE, d 'de' MMMM" : "'Semana de' d 'de' MMMM", { locale: ptBR })}
               </h3>
-              <Button variant="outline" size="icon" onClick={() => setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))}>
-                <ChevronRight size={18} />
-              </Button>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setCurrentDate(new Date())}>Hoje</Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="font-bold text-zinc-500 hover:text-black"
+              onClick={() => setCurrentDate(new Date())}
+            >
+              Hoje
+            </Button>
           </div>
 
           <ScrollArea className="flex-1">
