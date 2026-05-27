@@ -480,8 +480,11 @@ serve(async (req) => {
         conversation, 
         messageText, 
         { from: state, to: nextState }, 
-        nextContext.action
+        nextContext.action,
+        null, // Payload can be added if needed
+        null  // Response from sendMessage can be passed here if we capture it
       );
+
 
       return new Response(JSON.stringify({ status: "success", state: nextState }), { headers: corsHeaders });
     }
