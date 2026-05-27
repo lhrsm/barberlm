@@ -2171,18 +2171,14 @@ function ShopPageComponent() {
                 <div className="grid grid-cols-2 gap-4">
                   <Button 
                     variant="outline"
-                    className="h-16 rounded-2xl text-xs font-black uppercase tracking-tighter border-2 border-zinc-200 hover:bg-zinc-50"
+                    className="h-14 bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
                     onClick={addToBookingCart}
                     disabled={!selectedTime}
                   >
                     + Adicionar outro
                   </Button>
                   <Button 
-                    className={cn(
-                      "h-16 rounded-2xl text-xs font-black uppercase tracking-tighter shadow-2xl transition-all duration-300",
-                      !selectedTime ? "bg-zinc-800 text-zinc-500 cursor-not-allowed" : "text-white hover:scale-[1.02]"
-                    )}
-                    style={selectedTime ? { backgroundColor: primaryColor, boxShadow: `0 10px 30px -10px ${primaryColor}60` } : {}}
+                    className="h-14 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
                       if (!selectedTime) {
                         toast.error("Por favor, selecione um horário.");
