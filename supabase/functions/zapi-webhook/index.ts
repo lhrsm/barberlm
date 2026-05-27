@@ -217,9 +217,21 @@ async function processZapiWebhook(body: any) {
                 buttonLabel: "Ver opções",
                 title: "Confirmação",
                 options: [
-                  { id: 'main_confirm', title: 'Confirmar Agendamento' },
-                  { id: 'main_reschedule', title: 'Reagendar' },
-                  { id: 'main_cancel', title: 'Cancelar' }
+                  { 
+                    id: 'main_confirm', 
+                    title: 'Confirmar Agendamento',
+                    description: isMultiple ? 'Confirmar todos ou escolher um atendimento' : 'Confirmar este atendimento'
+                  },
+                  { 
+                    id: 'main_reschedule', 
+                    title: 'Reagendar',
+                    description: isMultiple ? 'Reagendar todos ou escolher um atendimento' : 'Alterar data ou horário deste atendimento'
+                  },
+                  { 
+                    id: 'main_cancel', 
+                    title: 'Cancelar',
+                    description: isMultiple ? 'Cancelar todos ou escolher um atendimento' : 'Cancelar este atendimento'
+                  }
                 ]
               }
             };
@@ -234,14 +246,17 @@ async function processZapiWebhook(body: any) {
             nextContext.selected_appointment_id = targetApptId;
 
             if (action === 'confirm') {
+              console.log('SINGLE APPOINTMENT - CONFIRMING DIRECTLY', targetApptId);
               await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", targetApptId);
               await triggerNotification(targetApptId, 'appointment_confirmed');
               nextMessage = "✅ Seu agendamento foi confirmado com sucesso.";
               nextState = 'completed';
             } else if (action === 'reschedule') {
+              console.log('SINGLE APPOINTMENT - STARTING RESCHEDULE DIRECTLY');
               nextState = 'awaiting_reschedule_date';
               nextMessage = `Para qual data você deseja reagendar o serviço de *${appointments[0].services?.name}*? (Ex: 25/05)`;
             } else if (action === 'cancel') {
+              console.log('SINGLE APPOINTMENT - ASKING CANCEL CONFIRMATION DIRECTLY');
               nextState = 'awaiting_cancel_confirmation';
               nextMessage = `Tem certeza que deseja cancelar o agendamento de *${appointments[0].services?.name}*?`;
               nextOptions = {
@@ -252,16 +267,27 @@ async function processZapiWebhook(body: any) {
               };
             }
           } else {
+            console.log('MULTIPLE APPOINTMENTS - OPENING SCOPE MENU');
             nextState = action === 'confirm' ? 'awaiting_confirm_scope' : action === 'reschedule' ? 'awaiting_reschedule_scope' : 'awaiting_cancel_scope';
-            nextMessage = `Você deseja ${action === 'confirm' ? 'confirmar' : action === 'reschedule' ? 'reagendar' : 'cancelar'} seus agendamentos:`;
+            
+            const actionVerb = action === 'confirm' ? 'confirmar' : action === 'reschedule' ? 'reagendar' : 'cancelar';
+            nextMessage = `Você deseja ${actionVerb} seus agendamentos:`;
             
             nextOptions = {
               list: {
                 buttonLabel: "Ver opções",
                 title: "O que deseja fazer?",
                 options: [
-                  { id: action === 'confirm' ? 'confirm_all' : action === 'reschedule' ? 'reschedule_all' : 'cancel_all', title: action === 'confirm' ? 'Confirmar todos' : action === 'reschedule' ? 'Reagendar todos' : 'Cancelar todos' },
-                  { id: action === 'confirm' ? 'confirm_single' : action === 'reschedule' ? 'reschedule_single' : 'cancel_single', title: action === 'confirm' ? 'Confirmar um específico' : action === 'reschedule' ? 'Reagendar um específico' : 'Cancelar um específico' }
+                  { 
+                    id: action === 'confirm' ? 'confirm_all' : action === 'reschedule' ? 'reschedule_all' : 'cancel_all', 
+                    title: action === 'confirm' ? 'Confirmar todos' : action === 'reschedule' ? 'Reagendar todos' : 'Cancelar todos',
+                    description: `Desejo ${actionVerb} todos os atendimentos deste pedido`
+                  },
+                  { 
+                    id: action === 'confirm' ? 'confirm_single' : action === 'reschedule' ? 'reschedule_single' : 'cancel_single', 
+                    title: action === 'confirm' ? 'Confirmar um específico' : action === 'reschedule' ? 'Reagendar um específico' : 'Cancelar um específico',
+                    description: `Desejo escolher qual atendimento ${actionVerb}`
+                  }
                 ]
               }
             };
