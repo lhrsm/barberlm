@@ -2655,8 +2655,7 @@ function ShopPageComponent() {
                       <ChevronRight size={20} className="text-slate-600 group-hover:text-primary transition-colors" />
                     </Button>
                     <Button 
-                      className="flex items-center justify-between h-20 px-6 shadow-xl transition-all hover:scale-[1.01] rounded-2xl group"
-                      style={{ backgroundColor: primaryColor }}
+                      className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg group"
                       onClick={() => setPaymentMethod('pix')}
                     >
                       <div className="flex items-center gap-4">
