@@ -2648,9 +2648,9 @@ function ShopPageComponent() {
                 </div>
 
                 {(!paymentMethod && calculateTotal() > 0) ? (
-                  <div className="grid grid-cols-1 gap-3 mt-6">
+                  <div className="grid grid-cols-1 gap-4 mt-6">
                     <Button 
-                      className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg group"
+                      className="flex items-center justify-between h-20 px-6 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
                       onClick={() => setPaymentMethod('barbershop')}
                     >
                       <div className="flex items-center gap-4">
@@ -2658,14 +2658,14 @@ function ShopPageComponent() {
                           <Scissors size={24} className="text-white" />
                         </div>
                         <div className="text-left">
-                          <p className="text-sm font-black text-white">Pagar na Barbearia</p>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Pague após o serviço</p>
+                          <p className="text-sm font-bold text-white">Pagar na Barbearia</p>
+                          <p className="text-[10px] text-sky-100 font-medium uppercase tracking-wider opacity-80">Pague após o serviço</p>
                         </div>
                       </div>
-                      <ChevronRight size={20} className="text-zinc-600 group-hover:text-white transition-colors" />
+                      <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
                     </Button>
                     <Button 
-                      className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg group"
+                      className="flex items-center justify-between h-20 px-6 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
                       onClick={() => setPaymentMethod('pix')}
                     >
                       <div className="flex items-center gap-4">
@@ -2673,65 +2673,42 @@ function ShopPageComponent() {
                           <QrCode size={24} className="text-white" />
                         </div>
                         <div className="text-left">
-                          <p className="text-sm font-black text-white">Pagar Agora (PIX)</p>
-                          <p className="text-[10px] text-white/70 font-bold uppercase tracking-wider">Confirmação instantânea</p>
+                          <p className="text-sm font-bold text-white">Pagar Agora (PIX)</p>
+                          <p className="text-[10px] text-sky-100 font-medium uppercase tracking-wider opacity-80">Confirmação instantânea</p>
                         </div>
                       </div>
-                      <ChevronRight size={20} className="text-white/70 group-hover:text-white transition-colors" />
-                    </Button>
-                  </div>
-                ) : (calculateTotal() === 0 && !paymentMethod) ? (
-                  <div className="space-y-4 mt-4">
-                    <div className="p-6 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center space-y-3">
-                      <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle2 size={24} className="text-green-600" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-base font-bold text-green-700">Valor Total Coberto!</p>
-                        <p className="text-sm text-muted-foreground">O agendamento será pago com seus créditos/cashback.</p>
-                      </div>
-                    </div>
-                    
-                    <Button 
-                      className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleFinalizeBooking();
-                      }} 
-                      disabled={submitting}
-                    >
-                      {submitting ? "Finalizando..." : "Confirmar Agendamento com Créditos"}
+                      <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-4 mt-4">
+                  <div className="space-y-4 mt-6">
+                    {/* Payment Info Display */}
                     {paymentMethod === 'pix' && calculateTotal() > 0 && (
-                      <div className="p-6 border border-primary/30 bg-primary/5 rounded-3xl space-y-6 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+                      <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-6 text-center animate-in fade-in zoom-in-95 duration-300">
                         <div className="flex flex-col items-center gap-2">
-                          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-1">
-                            <QrCode size={32} className="text-primary" />
+                          <div className="h-14 w-14 rounded-2xl bg-sky-50 flex items-center justify-center mb-1">
+                            <QrCode size={32} className="text-sky-600" />
                           </div>
-                          <p className="text-lg font-black text-white uppercase tracking-tight">Pagamento Instantâneo</p>
-                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Escaneie ou copie o código</p>
+                          <p className="text-lg font-bold text-zinc-900 uppercase tracking-tight">Pagamento Instantâneo</p>
+                          <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">Escaneie ou copie o código</p>
                         </div>
                         
                         {shop.pix_qr_code_url && (
                           <div className="flex justify-center group">
-                            <div className="relative p-4 bg-white rounded-3xl shadow-xl transition-transform group-hover:scale-105 duration-300">
+                            <div className="relative p-4 bg-white border border-zinc-100 rounded-2xl shadow-sm transition-transform group-hover:scale-105 duration-300">
                               <img src={shop.pix_qr_code_url} className="h-44 w-44 object-contain" alt="PIX QR Code" />
-                              <div className="absolute inset-0 border-4 border-primary/10 rounded-3xl pointer-events-none"></div>
                             </div>
                           </div>
                         )}
                         
                         <div className="space-y-3">
-                          <div className="bg-[#090909] p-5 rounded-2xl border border-white/5 text-sm font-mono break-all flex flex-col items-center gap-4 shadow-inner">
-                            <span className="text-center text-slate-100 font-bold text-base leading-relaxed">{shop.pix_key || "Chave não cadastrada"}</span>
+                          <div className="bg-zinc-50 p-5 rounded-xl border border-zinc-200 text-sm font-mono break-all flex flex-col items-center gap-4 shadow-inner">
+                            <span className="text-center text-zinc-700 font-bold text-base leading-relaxed">{shop.pix_key || "Chave não cadastrada"}</span>
                             {shop.pix_key && (
                               <Button 
-                                variant="secondary" 
+                                variant="outline" 
                                 size="lg" 
-                                className="w-full h-12 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl font-black uppercase tracking-wider text-xs"
+                                className="w-full h-12 bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
                                 onClick={() => {
                                   navigator.clipboard.writeText(shop.pix_key);
                                   toast.success("Chave PIX copiada!");
@@ -2742,93 +2719,76 @@ function ShopPageComponent() {
                             )}
                           </div>
                         </div>
-                        <div className="pt-2">
-                          <p className="text-[11px] text-slate-500 font-bold leading-relaxed text-center uppercase tracking-wide">
-                            Após realizar o pagamento, clique no botão abaixo para finalizar seu agendamento.
-                          </p>
-                        </div>
                       </div>
                     )}
 
                     {paymentMethod === 'barbershop' && (
-                      <div className="p-6 border border-white/10 bg-white/5 rounded-3xl space-y-6 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-300">
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center mb-1">
-                            <Scissors size={32} className="text-slate-400" />
+                      <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col items-center gap-2 mb-2">
+                          <div className="h-12 w-12 rounded-2xl bg-sky-50 flex items-center justify-center">
+                            <Scissors size={24} className="text-sky-600" />
                           </div>
-                          <p className="text-lg font-black text-white uppercase tracking-tight">Pagar na Unidade</p>
-                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Agendamento Presencial</p>
+                          <p className="text-base font-bold text-zinc-900 uppercase">Pagar na Unidade</p>
                         </div>
 
-                        <div className="bg-[#090909] p-5 rounded-2xl border border-white/5 space-y-4 shadow-inner">
-                          <div className="flex items-center gap-4 text-left">
-                            <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                              <CheckCircle2 size={20} className="text-green-500" />
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-4 text-left p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                            <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                              <CheckCircle2 size={20} className="text-emerald-500" />
                             </div>
-                            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                            <p className="text-xs text-zinc-600 font-medium leading-relaxed">
                               Sua vaga será reservada imediatamente. O pagamento será feito diretamente na recepção.
                             </p>
                           </div>
-                          <div className="flex items-center gap-4 text-left">
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                              <Clock size={20} className="text-primary" />
+                          <div className="flex items-center gap-4 text-left p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                            <div className="h-10 w-10 rounded-full bg-sky-50 flex items-center justify-center shrink-0">
+                              <Clock size={20} className="text-sky-500" />
                             </div>
-                            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                            <p className="text-xs text-zinc-600 font-medium leading-relaxed">
                               Chegue com 5 minutos de antecedência para garantir seu horário.
                             </p>
                           </div>
                         </div>
-
-                        <div className="pt-2">
-                          <p className="text-[11px] text-slate-500 font-bold leading-relaxed text-center uppercase tracking-wide">
-                            Clique no botão abaixo para confirmar sua reserva na barbearia.
-                          </p>
-                        </div>
                       </div>
                     )}
 
-                    {paymentMethod === 'pix' && calculateTotal() === 0 && (
-                      <div className="p-6 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center space-y-3">
-                        <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
-                          <CheckCircle2 size={24} className="text-green-600" />
+                    {calculateTotal() === 0 && (
+                      <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 text-center space-y-3 animate-in fade-in zoom-in-95 duration-300">
+                        <div className="h-12 w-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
+                          <CheckCircle2 size={24} className="text-emerald-600" />
                         </div>
                         <div className="space-y-1">
-                          <p className="text-base font-bold text-green-700">Tudo pronto!</p>
-                          <p className="text-sm text-muted-foreground">O valor total será quitado com seus créditos disponíveis.</p>
-                        </div>
-                        <div className="pt-2">
-                          <p className="text-[11px] text-muted-foreground">
-                            Clique no botão abaixo para concluir seu agendamento agora mesmo.
-                          </p>
+                          <p className="text-base font-bold text-emerald-700">Valor Total Coberto!</p>
+                          <p className="text-sm text-zinc-500">O agendamento será quitado com seus créditos/descontos.</p>
                         </div>
                       </div>
                     )}
 
-                      <div className="pt-2">
+                    {/* Final Action Buttons */}
+                    <div className="pt-2 space-y-3">
+                      <Button 
+                        className="w-full h-14 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleFinalizeBooking();
+                        }}
+                        disabled={submitting}
+                      >
+                        {submitting ? "Finalizando..." : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento")}
+                      </Button>
+                      
+                      {paymentMethod && (
                         <Button 
-                          id="btn-confirm-booking"
-                          className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-bold uppercase tracking-wider shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const normalized = normalizePhone(customerPhone);
-                            console.log('DEBUG: Finalizing booking with normalized phone:', normalized);
-                            handleFinalizeBooking();
-                          }}
-                          disabled={submitting}
-                        >
-                          {submitting ? "Finalizando..." : "Confirmar Agendamento"}
-                        </Button>
-                        
-                        <Button 
-                          variant="secondary" 
-                          className="w-full mt-3 h-12 bg-white text-black hover:bg-zinc-100 border border-black rounded-xl font-bold uppercase tracking-wider shadow-sm transition-all duration-200" 
+                          variant="outline" 
+                          className="w-full h-12 bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200" 
                           onClick={() => setPaymentMethod(null)}
                         >
                           Alterar forma de pagamento
                         </Button>
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+                )}
               </motion.div>
             )}
           </div>
