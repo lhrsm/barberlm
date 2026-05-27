@@ -483,7 +483,7 @@ async function processZapiWebhook(body: any) {
       }).eq("id", conversation.id);
 
       // Log interaction
-      await logAutomationInteraction(supabase, conversation, messageText, { from: state, to: nextState }, nextContext.action, body, responseSent);
+      await logAutomationInteraction(supabase, conversation, messageText, { from: state, to: nextState }, nextContext.action, body, responseSent, undefined, nextContext);
 
     } catch (error) {
       console.error('ERROR IN STATE MACHINE', error);
