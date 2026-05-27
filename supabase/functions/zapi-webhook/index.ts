@@ -72,9 +72,34 @@ serve(async (req) => {
 
     if (type === "ReceivedMessage") {
       const normalizedPhone = normalizePhone(phone);
-      const messageText = text?.message?.trim()?.toLowerCase() || "";
+      
+      // Handle different response types from Z-API
+      let messageText = text?.message?.trim()?.toLowerCase() || "";
+      let responseActionId = "";
 
-      if (!messageText) return new Response("No text", { status: 200 });
+      // List Response
+      if (body.optionListReply) {
+        responseActionId = body.optionListReply.id;
+        messageText = body.optionListReply.title?.toLowerCase() || "";
+        console.log(`[Webhook] List Selection: ${responseActionId} (${messageText})`);
+      } 
+      // Button Response
+      else if (body.buttonReply) {
+        responseActionId = body.buttonReply.buttonId;
+        messageText = body.buttonReply.buttonText?.toLowerCase() || "";
+        console.log(`[Webhook] Button Click: ${responseActionId} (${messageText})`);
+      }
+      // Interactive List Response (Another variation)
+      else if (body.listResponse) {
+        responseActionId = body.listResponse.id;
+        messageText = body.listResponse.title?.toLowerCase() || "";
+        console.log(`[Webhook] Interactive List Selection: ${responseActionId} (${messageText})`);
+      }
+
+      if (!messageText && !responseActionId) {
+        console.log("No text or action ID in message");
+        return new Response("No content", { status: 200 });
+      }
 
       // Find active conversation
       const { data: conversation } = await supabase
@@ -99,7 +124,7 @@ serve(async (req) => {
       let nextState = state;
       let nextContext = { ...context };
 
-      console.log('INCOMING MESSAGE', messageText);
+      console.log('INCOMING MESSAGE', messageText, 'Action:', responseActionId);
       console.log('ACTIVE CONVERSATION', JSON.stringify(conversation));
       console.log('CURRENT STATE', state);
 
@@ -141,11 +166,17 @@ serve(async (req) => {
       // 2. STATE MACHINE
       switch (state) {
         case 'awaiting_main_action': {
-          console.log(`[Webhook] Processing action for ${normalizedPhone}. Text: "${messageText}"`);
+          console.log(`[Webhook] Processing action for ${normalizedPhone}. Text: "${messageText}" Action: "${responseActionId}"`);
           
-          const isConfirm = ['1', '1️⃣', 'confirmar', 'confirm', 'confirmar agendamento'].some(s => messageText.includes(s));
-          const isReschedule = ['2', '2️⃣', 'reagendar', 'reschedule'].some(s => messageText.includes(s));
-          const isCancel = ['3', '3️⃣', 'cancelar', 'cancel'].some(s => messageText.includes(s));
+          const isConfirm = ['confirm', 'confirmar', 'confirmar agendamento', '1'].some(s => 
+            responseActionId === s || messageText === s || messageText.includes('confirmar') || messageText === '1️⃣'
+          );
+          const isReschedule = ['reschedule', 'reagendar', '2'].some(s => 
+            responseActionId === s || messageText === s || messageText.includes('reagendar') || messageText === '2️⃣'
+          );
+          const isCancel = ['cancel', 'cancelar', '3'].some(s => 
+            responseActionId === s || messageText === s || messageText.includes('cancelar') || messageText === '3️⃣'
+          );
 
           if (isConfirm) {
             console.log('[Webhook] Matched: CONFIRM');
@@ -158,13 +189,18 @@ serve(async (req) => {
             nextContext.action = 'cancel';
           } else {
             console.log('[Webhook] No match for action. Sending invalid option message.');
-            const res = await sendMessage(connection, normalizedPhone, `Desculpe, não entendi.\n\nPor favor, escolha uma opção:\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar`, {
-              buttons: [
-                { id: 'confirm', label: 'Confirmar' },
-                { id: 'reschedule', label: 'Reagendar' },
-                { id: 'cancel', label: 'Cancelar' }
-              ]
+            const res = await sendMessage(connection, normalizedPhone, `Desculpe, não entendi.\n\nPor favor, escolha uma opção:`, {
+              list: {
+                buttonLabel: "Ver opções",
+                title: "Opções disponíveis",
+                options: [
+                  { id: 'confirm', title: 'Confirmar agendamento', description: 'Confirmar todos ou um atendimento específico' },
+                  { id: 'reschedule', title: 'Reagendar', description: 'Alterar data ou horário do atendimento' },
+                  { id: 'cancel', title: 'Cancelar', description: 'Cancelar todos ou um atendimento específico' }
+                ]
+              }
             });
+
             console.log('ZAPI SEND RESPONSE (Invalid Option)', JSON.stringify(res));
             return new Response("Invalid option", { status: 200 });
           }
