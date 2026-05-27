@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, useMemo } from "react";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/$slug/profissional")({
 
 function ProfessionalDashboard() {
   const { session, loading, logout } = useProfessionalAuth();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -77,9 +79,22 @@ function ProfessionalDashboard() {
           schema: 'public', 
           table: 'appointments', 
           filter: `barber_id=eq.${session.barber_id}` 
-        }, (payload) => {
-          console.log("Realtime: Appointment change detected", payload);
+        }, (payload: any) => {
+          console.log('REALTIME PAYLOAD', payload);
+          console.log('STATUS UPDATED', payload.new?.id, payload.new?.status);
+          
           fetchData();
+          
+          // Invalida todas as queries relacionadas
+          queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['calendar'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+          queryClient.invalidateQueries({ queryKey: ['customerAppointments'] });
+          queryClient.invalidateQueries({ queryKey: ['calendar-appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+          queryClient.invalidateQueries({ queryKey: ['professional-dashboard'] });
+          queryClient.invalidateQueries({ queryKey: ['professional-appointments'] });
         })
         .on('postgres_changes', { 
           event: '*', 
@@ -265,16 +280,16 @@ function ProfessionalDashboard() {
       fetchData();
 
       // Realtime Invalidation
-      const queryClient = (window as any).queryClient;
-      if (queryClient) {
-        queryClient.invalidateQueries({ queryKey: ["appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-      }
+      console.log('STATUS UPDATED', app.id, status);
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar"] });
+      queryClient.invalidateQueries({ queryKey: ["customerAppointments"] });
     } catch (e: any) {
       toast.error("Erro: " + e.message);
     }
