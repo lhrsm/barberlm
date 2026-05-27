@@ -214,9 +214,9 @@ async function processZapiWebhook(body: any) {
     try {
       switch (state) {
         case 'awaiting_main_action': {
-          const action = (option.cleanId === 'main_confirm' || option.cleanText.includes('confirmar')) ? 'confirm' :
-                         (option.cleanId === 'main_reschedule' || option.cleanText.includes('reagendar')) ? 'reschedule' :
-                         (option.cleanId === 'main_cancel' || option.cleanText.includes('cancelar')) ? 'cancel' : '';
+          const action = (option.cleanId === 'main_confirm' || option.cleanId === 'confirmar' || option.cleanText.includes('confirmar')) ? 'confirm' :
+                         (option.cleanId === 'main_reschedule' || option.cleanId === 'reagendar' || option.cleanText.includes('reagendar')) ? 'reschedule' :
+                         (option.cleanId === 'main_cancel' || option.cleanId === 'cancelar' || option.cleanText.includes('cancelar')) ? 'cancel' : '';
           
           console.log('CURRENT ACTION', action);
 
@@ -266,34 +266,45 @@ async function processZapiWebhook(body: any) {
           } else {
             nextState = 'awaiting_scope_selection';
             const actionVerb = action === 'confirm' ? 'confirmar' : action === 'reschedule' ? 'reagendar' : 'cancelar';
-            nextMessage = `O que você deseja ${actionVerb}?`;
+            nextMessage = `Você deseja ${actionVerb}:`;
+            
+            // Using action-specific scope IDs as requested for confirmation
+            const allId = action === 'confirm' ? 'confirm_all' : 'scope_all';
+            const singleId = action === 'confirm' ? 'confirm_single' : 'scope_single';
+
             nextOptions = {
               list: {
                 buttonLabel: "Escolher",
-                title: "Escolha o escopo",
+                title: "Escolha o que fazer",
                 options: [
-                  { id: 'scope_all', title: `Todos os agendamentos`, description: `Aplicar ${actionVerb} a todos` },
-                  { id: 'scope_single', title: `Apenas um específico`, description: "Escolher qual agendamento" }
+                  { id: allId, title: `Todos os agendamentos`, description: `Aplicar ${actionVerb} a todos` },
+                  { id: singleId, title: `Apenas um específico`, description: "Escolher qual agendamento" }
                 ]
               }
             };
           }
-          
-          console.log('NEXT STATE', nextState);
           break;
         }
 
         case 'awaiting_scope_selection': {
-          const scope = option.cleanId === 'scope_all' ? 'all' : option.cleanId === 'scope_single' ? 'single' : '';
+          const isAll = option.cleanId === 'scope_all' || option.cleanId === 'confirm_all';
+          const isSingle = option.cleanId === 'scope_single' || option.cleanId === 'confirm_single';
+          
+          const scope = isAll ? 'all' : isSingle ? 'single' : '';
+          
           if (!scope) {
             nextMessage = "Por favor, selecione se deseja aplicar a todos ou apenas a um específico.";
+            const actionVerb = nextContext.action === 'confirm' ? 'confirmar' : nextContext.action === 'reschedule' ? 'reagendar' : 'cancelar';
+            const allId = nextContext.action === 'confirm' ? 'confirm_all' : 'scope_all';
+            const singleId = nextContext.action === 'confirm' ? 'confirm_single' : 'scope_single';
+
             nextOptions = {
               list: {
                 buttonLabel: "Escolher",
                 title: "Escopo",
                 options: [
-                  { id: 'scope_all', title: "Todos", description: "Todos os agendamentos" },
-                  { id: 'scope_single', title: "Específico", description: "Um por um" }
+                  { id: allId, title: "Todos", description: `Todos os agendamentos (${actionVerb})` },
+                  { id: singleId, title: "Específico", description: `Um por um (${actionVerb})` }
                 ]
               }
             };
