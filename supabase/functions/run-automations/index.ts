@@ -360,10 +360,23 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
       message += `3️⃣ Cancelar\n\n`;
       message += `Ou clique no botão "Ver opções" abaixo.`;
 
+      const isMultiple = group.length > 1;
       const listOptions = [
-        { id: 'confirm', title: 'Confirmar agendamento', description: 'Confirmar todos ou um atendimento específico' },
-        { id: 'reschedule', title: 'Reagendar', description: 'Alterar data ou horário do atendimento' },
-        { id: 'cancel', title: 'Cancelar', description: 'Cancelar todos ou um atendimento específico' }
+        { 
+          id: 'confirm', 
+          title: 'Confirmar agendamento', 
+          description: isMultiple ? 'Confirmar todos ou escolher um atendimento' : 'Confirmar este atendimento' 
+        },
+        { 
+          id: 'reschedule', 
+          title: 'Reagendar', 
+          description: isMultiple ? 'Reagendar todos ou escolher um atendimento' : 'Alterar data ou horário deste atendimento' 
+        },
+        { 
+          id: 'cancel', 
+          title: 'Cancelar', 
+          description: isMultiple ? 'Cancelar todos ou escolher um atendimento' : 'Cancelar este atendimento' 
+        }
       ];
 
       const result = await sendMessage(connection, phone, message, {
