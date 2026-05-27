@@ -2087,17 +2087,17 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-8"
               >
-                <div className="flex items-center justify-between p-6 bg-gray-50 border border-gray-100 rounded-[2rem] shadow-inner">
+                <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-2xl bg-white border border-gray-200 overflow-hidden text-black">
-                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-xl">{selectedBarber?.name?.[0] || '?'}</div>}
+                    <div className="h-14 w-14 rounded-xl bg-zinc-100 border border-zinc-200 overflow-hidden text-zinc-400">
+                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-lg">{selectedBarber?.name?.[0] || '?'}</div>}
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">Profissional</p>
-                      <p className="text-xl font-black uppercase italic tracking-tighter text-black">{selectedBarber?.name}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Profissional</p>
+                      <p className="text-lg font-black uppercase tracking-tight text-zinc-900">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-[10px] h-8 font-black uppercase tracking-widest bg-white hover:bg-gray-100 rounded-full px-4 border border-gray-100 text-black">Alterar</Button>
+                  <Button variant="outline" size="sm" onClick={() => setBookingStep(3)} className="bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200 h-9 px-4">Alterar</Button>
                 </div>
 
                 <div className="space-y-6">
