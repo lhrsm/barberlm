@@ -1881,11 +1881,11 @@ function ShopPageComponent() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="grid gap-3 p-5 bg-zinc-50 rounded-2xl border border-zinc-100">
-                    <div className="flex justify-between items-center">
+                  <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300">
+                    <div className="flex justify-between items-center mb-3">
                       <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Seu WhatsApp</Label>
                       {(submitting || isSearchingCustomer) && (
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 animate-pulse">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-sky-600 animate-pulse">
                           Buscando...
                         </span>
                       )}
@@ -1897,9 +1897,9 @@ function ShopPageComponent() {
                         onChange={(phone) => setCustomerPhone(phone)}
                         placeholder="(00) 00000-0000"
                         className="relative z-10 w-full"
-                        inputClassName="!w-full !h-14 !bg-white !border-zinc-300 !text-xl !font-medium !text-black !placeholder:text-zinc-400 focus:!outline-none !pl-4 !rounded-xl"
+                        inputClassName="!w-full !h-14 !bg-white !border-zinc-200 !text-xl !font-medium !text-black !placeholder:text-zinc-400 focus:!outline-none !pl-4 !rounded-xl"
                         countrySelectorStyleProps={{
-                          buttonClassName: "!h-14 !bg-white !border-zinc-300 !px-4 !rounded-l-xl hover:!bg-zinc-50 transition-colors",
+                          buttonClassName: "!h-14 !bg-white !border-zinc-200 !px-4 !rounded-l-xl hover:!bg-zinc-50 transition-colors",
                         }}
                       />
                       <style>{`
@@ -1910,11 +1910,11 @@ function ShopPageComponent() {
                         }
                         .international-phone-portal .react-international-phone-input {
                           width: 100% !important;
-                          border: 1px solid #d4d4d8 !important;
+                          border: 1px solid #e4e4e7 !important;
                           border-radius: 0.75rem !important;
                         }
                         .international-phone-portal .react-international-phone-country-selector-button {
-                          border: 1px solid #d4d4d8 !important;
+                          border: 1px solid #e4e4e7 !important;
                           border-right: none !important;
                           border-radius: 0.75rem 0 0 0.75rem !important;
                         }
