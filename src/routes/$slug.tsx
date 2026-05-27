@@ -2650,10 +2650,13 @@ function ShopPageComponent() {
                 <div className="pt-4">
                   {bookingCart.length > 0 || selectedService ? (
                     <div className="space-y-4">
-                      {console.log('BOOKING CART', bookingCart)}
-                      {console.log('PAYMENT METHOD', paymentMethod)}
-                      {console.log('TOTAL FINAL', calculateTotal())}
-                      {console.log('SHOW CONFIRM BUTTON', bookingCart.length > 0 || !!selectedService)}
+                      {(() => {
+                        console.log('BOOKING CART', bookingCart);
+                        console.log('PAYMENT METHOD', paymentMethod);
+                        console.log('TOTAL FINAL', calculateTotal());
+                        console.log('SHOW CONFIRM BUTTON', bookingCart.length > 0 || !!selectedService);
+                        return null;
+                      })()}
                       
                       {(!paymentMethod && calculateTotal() > 0) ? (
                         <div className="grid grid-cols-1 gap-4">
