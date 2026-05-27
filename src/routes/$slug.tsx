@@ -2102,13 +2102,13 @@ function ShopPageComponent() {
 
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: primaryColor }} />
+                    <div className="h-2 w-2 rounded-full animate-pulse bg-sky-500" />
                     <h5 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Horários Disponíveis</h5>
                   </div>
                   
                   {fetchingTimes ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2" style={{ borderColor: primaryColor }} />
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sky-600" />
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Buscando horários...</p>
                     </div>
 
@@ -2123,16 +2123,11 @@ function ShopPageComponent() {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setSelectedTime(time)}
                             className={cn(
-                              "relative h-14 rounded-2xl text-lg font-black tracking-tight transition-all border flex items-center justify-center gap-2 overflow-hidden group",
+                              "relative h-12 rounded-xl text-lg font-black tracking-tight transition-all border flex items-center justify-center gap-2 overflow-hidden group",
                               isSelected 
-                                ? "text-white border-transparent" 
-                                : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-primary/50 hover:text-white hover:shadow-lg hover:shadow-primary/10"
+                                ? "bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-200" 
+                                : "bg-white border-zinc-200 text-zinc-500 hover:border-sky-300 hover:text-sky-600 hover:shadow-md hover:shadow-zinc-100"
                             )}
-                            style={{ 
-                              backgroundColor: isSelected ? primaryColor : undefined,
-                              boxShadow: isSelected ? `0 10px 25px -5px ${primaryColor}40, 0 8px 10px -6px ${primaryColor}40` : undefined,
-                              borderColor: isSelected ? primaryColor : undefined
-                            }}
                           >
                             {isSelected && (
                               <motion.div
