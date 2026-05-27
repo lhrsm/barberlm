@@ -2097,7 +2097,7 @@ function ShopPageComponent() {
                       <p className="text-lg font-black uppercase tracking-tight text-zinc-900">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setBookingStep(3)} className="bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200 h-9 px-4">Alterar</Button>
+                  <Button variant="outline" size="sm" onClick={() => setBookingStep(3)} className="bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200 h-9 px-4">Alterar</Button>
                 </div>
 
                 <div className="space-y-6">
@@ -2125,7 +2125,7 @@ function ShopPageComponent() {
                             className={cn(
                               "relative h-12 rounded-xl text-lg font-black tracking-tight transition-all border flex items-center justify-center gap-2 overflow-hidden group",
                               isSelected 
-                                ? "bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-200" 
+                                ? "bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-200" 
                                 : "bg-white border-zinc-200 text-zinc-500 hover:border-sky-300 hover:text-sky-600 hover:shadow-md hover:shadow-zinc-100"
                             )}
                           >
@@ -2171,14 +2171,14 @@ function ShopPageComponent() {
                 <div className="grid grid-cols-2 gap-4">
                   <Button 
                     variant="outline"
-                    className="h-14 bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
+                    className="h-14 bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200"
                     onClick={addToBookingCart}
                     disabled={!selectedTime}
                   >
                     + Adicionar outro
                   </Button>
                   <Button 
-                    className="h-14 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="h-14 bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
                       if (!selectedTime) {
                         toast.error("Por favor, selecione um horário.");
@@ -2303,8 +2303,8 @@ function ShopPageComponent() {
                           className={cn(
                             "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
                             useCashback 
-                              ? "bg-sky-600 text-white hover:bg-sky-700 border-sky-600" 
-                              : "bg-white text-sky-700 hover:bg-sky-50 border border-sky-300"
+                              ? "bg-blue-500 text-white hover:bg-blue-600 border-blue-500" 
+                              : "bg-white text-blue-600 hover:bg-blue-50 border border-blue-300"
                           )}
                         >
                           {useCashback ? "Aplicado" : "Usar"}
@@ -2336,8 +2336,8 @@ function ShopPageComponent() {
                           className={cn(
                             "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
                             useCredits 
-                              ? "bg-sky-600 text-white hover:bg-sky-700 border-sky-600" 
-                              : "bg-white text-sky-700 hover:bg-sky-50 border border-sky-300"
+                              ? "bg-blue-500 text-white hover:bg-blue-600 border-blue-500" 
+                              : "bg-white text-blue-600 hover:bg-blue-50 border border-blue-300"
                           )}
                         >
                           {useCredits ? "Aplicado" : "Usar Créditos"}
@@ -2389,7 +2389,7 @@ function ShopPageComponent() {
                       <Button 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
-                        className="bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 h-12 px-6"
+                        className="bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-xl font-semibold shadow-sm transition-all duration-200 h-12 px-6"
                       >
                         {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
                       </Button>
@@ -2647,148 +2647,168 @@ function ShopPageComponent() {
                   )}
                 </div>
 
-                {(!paymentMethod && calculateTotal() > 0) ? (
-                  <div className="grid grid-cols-1 gap-4 mt-6">
-                    <Button 
-                      className="flex items-center justify-between h-20 px-6 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
-                      onClick={() => setPaymentMethod('barbershop')}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
-                          <Scissors size={24} className="text-white" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-sm font-bold text-white">Pagar na Barbearia</p>
-                          <p className="text-[10px] text-sky-100 font-medium uppercase tracking-wider opacity-80">Pague após o serviço</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
-                    </Button>
-                    <Button 
-                      className="flex items-center justify-between h-20 px-6 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
-                      onClick={() => setPaymentMethod('pix')}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
-                          <QrCode size={24} className="text-white" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-sm font-bold text-white">Pagar Agora (PIX)</p>
-                          <p className="text-[10px] text-sky-100 font-medium uppercase tracking-wider opacity-80">Confirmação instantânea</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4 mt-6">
-                    {/* Payment Info Display */}
-                    {paymentMethod === 'pix' && calculateTotal() > 0 && (
-                      <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-6 text-center animate-in fade-in zoom-in-95 duration-300">
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="h-14 w-14 rounded-2xl bg-sky-50 flex items-center justify-center mb-1">
-                            <QrCode size={32} className="text-sky-600" />
-                          </div>
-                          <p className="text-lg font-bold text-zinc-900 uppercase tracking-tight">Pagamento Instantâneo</p>
-                          <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">Escaneie ou copie o código</p>
-                        </div>
-                        
-                        {shop.pix_qr_code_url && (
-                          <div className="flex justify-center group">
-                            <div className="relative p-4 bg-white border border-zinc-100 rounded-2xl shadow-sm transition-transform group-hover:scale-105 duration-300">
-                              <img src={shop.pix_qr_code_url} className="h-44 w-44 object-contain" alt="PIX QR Code" />
+                <div className="pt-4">
+                  {bookingCart.length > 0 || selectedService ? (
+                    <div className="space-y-4">
+                      {(() => {
+                        console.log('BOOKING CART', bookingCart);
+                        console.log('PAYMENT METHOD', paymentMethod);
+                        console.log('TOTAL FINAL', calculateTotal());
+                        console.log('SHOW CONFIRM BUTTON', bookingCart.length > 0 || !!selectedService);
+                        return null;
+                      })()}
+                      
+                      {(!paymentMethod && calculateTotal() > 0) ? (
+                        <div className="grid grid-cols-1 gap-4">
+                          <Button 
+                            className="flex items-center justify-between h-20 px-6 bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
+                            onClick={() => setPaymentMethod('barbershop')}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                <Scissors size={24} className="text-white" />
+                              </div>
+                              <div className="text-left">
+                                <p className="text-sm font-bold text-white">Pagar na Barbearia</p>
+                                <p className="text-[10px] text-blue-100 font-medium uppercase tracking-wider opacity-80">Pague após o serviço</p>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        
-                        <div className="space-y-3">
-                          <div className="bg-zinc-50 p-5 rounded-xl border border-zinc-200 text-sm font-mono break-all flex flex-col items-center gap-4 shadow-inner">
-                            <span className="text-center text-zinc-700 font-bold text-base leading-relaxed">{shop.pix_key || "Chave não cadastrada"}</span>
-                            {shop.pix_key && (
+                            <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
+                          </Button>
+                          <Button 
+                            className="flex items-center justify-between h-20 px-6 bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
+                            onClick={() => setPaymentMethod('pix')}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                <QrCode size={24} className="text-white" />
+                              </div>
+                              <div className="text-left">
+                                <p className="text-sm font-bold text-white">Pagar Agora (PIX)</p>
+                                <p className="text-[10px] text-blue-100 font-medium uppercase tracking-wider opacity-80">Confirmação instantânea</p>
+                              </div>
+                            </div>
+                            <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {paymentMethod === 'pix' && calculateTotal() > 0 && (
+                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-6 text-center animate-in fade-in zoom-in-95 duration-300">
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="h-14 w-14 rounded-2xl bg-blue-50 flex items-center justify-center mb-1">
+                                  <QrCode size={32} className="text-blue-500" />
+                                </div>
+                                <p className="text-lg font-bold text-zinc-900 uppercase tracking-tight">Pagamento Instantâneo</p>
+                                <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">Escaneie ou copie o código</p>
+                              </div>
+                              
+                              {shop.pix_qr_code_url && (
+                                <div className="flex justify-center group">
+                                  <div className="relative p-4 bg-white border border-zinc-100 rounded-2xl shadow-sm transition-transform group-hover:scale-105 duration-300">
+                                    <img src={shop.pix_qr_code_url} className="h-44 w-44 object-contain" alt="PIX QR Code" />
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="space-y-3">
+                                <div className="bg-zinc-50 p-5 rounded-xl border border-zinc-200 text-sm font-mono break-all flex flex-col items-center gap-4 shadow-inner">
+                                  <span className="text-center text-zinc-700 font-bold text-base leading-relaxed">{shop.pix_key || "Chave não cadastrada"}</span>
+                                  {shop.pix_key && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="lg" 
+                                      className="w-full h-12 bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(shop.pix_key);
+                                        toast.success("Chave PIX copiada!");
+                                      }}
+                                    >
+                                      <CheckCircle2 size={18} className="mr-2" /> Copiar Chave PIX
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {paymentMethod === 'barbershop' && (
+                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                              <div className="flex flex-col items-center gap-2 mb-2">
+                                <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                                  <Scissors size={24} className="text-blue-500" />
+                                </div>
+                                <p className="text-base font-bold text-zinc-900 uppercase">Pagar na Unidade</p>
+                              </div>
+
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-4 text-left p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                                  <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                                    <CheckCircle2 size={20} className="text-emerald-500" />
+                                  </div>
+                                  <p className="text-xs text-zinc-600 font-medium leading-relaxed">
+                                    Sua vaga será reservada imediatamente. O pagamento será feito diretamente na recepção.
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-4 text-left p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                                  <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                                    <Clock size={20} className="text-blue-500" />
+                                  </div>
+                                  <p className="text-xs text-zinc-600 font-medium leading-relaxed">
+                                    Chegue com 5 minutos de antecedência para garantir seu horário.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {calculateTotal() === 0 && (
+                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 text-center space-y-3 animate-in fade-in zoom-in-95 duration-300">
+                              <div className="h-12 w-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
+                                <CheckCircle2 size={24} className="text-emerald-600" />
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-base font-bold text-emerald-700">Valor Total Coberto!</p>
+                                <p className="text-sm text-zinc-500">O agendamento será quitado com seus créditos/descontos.</p>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="space-y-3">
+                            <Button
+                              disabled={(!paymentMethod && calculateTotal() > 0) || submitting}
+                              onClick={handleFinalizeBooking}
+                              className="w-full h-14 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold shadow-md transition-all"
+                            >
+                              {submitting ? "Confirmando..." : (!paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento"))}
+                            </Button>
+                            
+                            {paymentMethod && (
                               <Button 
                                 variant="outline" 
-                                size="lg" 
-                                className="w-full h-12 bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(shop.pix_key);
-                                  toast.success("Chave PIX copiada!");
-                                }}
+                                className="w-full h-12 bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200" 
+                                onClick={() => setPaymentMethod(null)}
                               >
-                                <CheckCircle2 size={18} className="mr-2" /> Copiar Chave PIX
+                                Alterar forma de pagamento
                               </Button>
                             )}
                           </div>
                         </div>
-                      </div>
-                    )}
-
-                    {paymentMethod === 'barbershop' && (
-                      <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 animate-in fade-in zoom-in-95 duration-300">
-                        <div className="flex flex-col items-center gap-2 mb-2">
-                          <div className="h-12 w-12 rounded-2xl bg-sky-50 flex items-center justify-center">
-                            <Scissors size={24} className="text-sky-600" />
-                          </div>
-                          <p className="text-base font-bold text-zinc-900 uppercase">Pagar na Unidade</p>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-4 text-left p-3 rounded-xl bg-zinc-50 border border-zinc-100">
-                            <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                              <CheckCircle2 size={20} className="text-emerald-500" />
-                            </div>
-                            <p className="text-xs text-zinc-600 font-medium leading-relaxed">
-                              Sua vaga será reservada imediatamente. O pagamento será feito diretamente na recepção.
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-4 text-left p-3 rounded-xl bg-zinc-50 border border-zinc-100">
-                            <div className="h-10 w-10 rounded-full bg-sky-50 flex items-center justify-center shrink-0">
-                              <Clock size={20} className="text-sky-500" />
-                            </div>
-                            <p className="text-xs text-zinc-600 font-medium leading-relaxed">
-                              Chegue com 5 minutos de antecedência para garantir seu horário.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {calculateTotal() === 0 && (
-                      <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 text-center space-y-3 animate-in fade-in zoom-in-95 duration-300">
-                        <div className="h-12 w-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
-                          <CheckCircle2 size={24} className="text-emerald-600" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-base font-bold text-emerald-700">Valor Total Coberto!</p>
-                          <p className="text-sm text-zinc-500">O agendamento será quitado com seus créditos/descontos.</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Final Action Buttons */}
-                    <div className="pt-2 space-y-3">
-                      <Button 
-                        className="w-full h-14 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleFinalizeBooking();
-                        }}
-                        disabled={submitting}
-                      >
-                        {submitting ? "Finalizando..." : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento")}
-                      </Button>
-                      
-                      {paymentMethod && (
-                        <Button 
-                          variant="outline" 
-                          className="w-full h-12 bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200" 
-                          onClick={() => setPaymentMethod(null)}
-                        >
-                          Alterar forma de pagamento
-                        </Button>
                       )}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Seu carrinho está vazio</p>
+                      <Button 
+                        variant="link" 
+                        className="text-blue-600 font-black mt-2"
+                        onClick={() => setBookingStep(2)}
+                      >
+                        Selecionar um serviço
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             )}
           </div>
@@ -2798,7 +2818,7 @@ function ShopPageComponent() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
+                className="bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200"
                 onClick={() => {
                   if (bookingStep === 5 && paymentMethod) {
                     setPaymentMethod(null);
