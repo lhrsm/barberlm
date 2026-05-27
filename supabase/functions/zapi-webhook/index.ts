@@ -141,22 +141,28 @@ serve(async (req) => {
       // 2. STATE MACHINE
       switch (state) {
         case 'awaiting_main_action': {
-          const isConfirm = ['1', '1️⃣', 'confirmar'].some(s => messageText.includes(s));
-          const isReschedule = ['2', '2️⃣', 'reagendar'].some(s => messageText.includes(s));
-          const isCancel = ['3', '3️⃣', 'cancelar'].some(s => messageText.includes(s));
+          console.log(`[Webhook] Processing action for ${normalizedPhone}. Text: "${messageText}"`);
+          
+          const isConfirm = ['1', '1️⃣', 'confirmar', 'confirm', 'confirmar agendamento'].some(s => messageText.includes(s));
+          const isReschedule = ['2', '2️⃣', 'reagendar', 'reschedule'].some(s => messageText.includes(s));
+          const isCancel = ['3', '3️⃣', 'cancelar', 'cancel'].some(s => messageText.includes(s));
 
           if (isConfirm) {
+            console.log('[Webhook] Matched: CONFIRM');
             nextContext.action = 'confirm';
           } else if (isReschedule) {
+            console.log('[Webhook] Matched: RESCHEDULE');
             nextContext.action = 'reschedule';
           } else if (isCancel) {
+            console.log('[Webhook] Matched: CANCEL');
             nextContext.action = 'cancel';
           } else {
-            const res = await sendMessage(connection, normalizedPhone, `Desculpe, não entendi.\n\nPor favor, escolha uma opção:`, {
+            console.log('[Webhook] No match for action. Sending invalid option message.');
+            const res = await sendMessage(connection, normalizedPhone, `Desculpe, não entendi.\n\nPor favor, escolha uma opção:\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar`, {
               buttons: [
-                { id: '1', label: 'Confirmar' },
-                { id: '2', label: 'Reagendar' },
-                { id: '3', label: 'Cancelar' }
+                { id: 'confirm', label: 'Confirmar' },
+                { id: 'reschedule', label: 'Reagendar' },
+                { id: 'cancel', label: 'Cancelar' }
               ]
             });
             console.log('ZAPI SEND RESPONSE (Invalid Option)', JSON.stringify(res));
@@ -204,7 +210,8 @@ serve(async (req) => {
         }
 
         case 'awaiting_scope_selection': {
-          if (['1', '1️⃣', 'todos', 'tudo'].some(s => messageText.includes(s))) {
+          if (['1', '1️⃣', 'todos', 'tudo', 'all'].some(s => messageText.includes(s))) {
+            console.log('[Webhook] Matched scope: ALL');
             nextContext.scope = 'all';
             const appointments = context.appointments || [];
             
@@ -234,7 +241,8 @@ serve(async (req) => {
               const res = await sendMessage(connection, normalizedPhone, `Vamos reagendar seus atendimentos um por um.\n\nPara o serviço de *${appt.service_name}*, qual a nova data desejada?`);
               console.log('ZAPI SEND RESPONSE (Reschedule Multiple Start)', JSON.stringify(res));
             }
-          } else if (['2', '2️⃣', 'apenas um', 'específico'].some(s => messageText.includes(s))) {
+          } else if (['2', '2️⃣', 'apenas um', 'específico', 'single'].some(s => messageText.includes(s))) {
+            console.log('[Webhook] Matched scope: SINGLE');
             nextContext.scope = 'single';
             nextState = 'awaiting_single_appointment_selection';
             const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
@@ -284,7 +292,7 @@ serve(async (req) => {
         }
 
         case 'awaiting_cancel_confirmation': {
-          if (['1', '1️⃣', 'sim', 'cancelar'].some(s => messageText.includes(s))) {
+          if (['1', '1️⃣', 'sim', 'cancelar', 'yes', 'cancel'].some(s => messageText.includes(s))) {
             if (context.scope === 'all') {
               for (const appt of context.appointments) {
                 await supabase.from("appointments").update({ status: 'cancelled' }).eq("id", appt.id);

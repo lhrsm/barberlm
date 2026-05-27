@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { processAutomationTemplate } from "../_shared/template-parser.ts";
 import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
+import { sendMessage } from "../_shared/whatsapp-settings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -352,15 +353,21 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
         message += `⏰ Horário: ${formatBrazilTime(firstAppt.start_time)}\n\n`;
       }
 
+      // Add numeric fallback ALWAYS
+      message += `Escolha uma opção:\n\n`;
+      message += `1️⃣ Confirmar agendamento\n`;
+      message += `2️⃣ Reagendar\n`;
+      message += `3️⃣ Cancelar`;
+
       const buttons = [
-        { id: '1', label: 'Confirmar' },
-        { id: '2', label: 'Reagendar' },
-        { id: '3', label: 'Cancelar' }
+        { id: 'confirm', label: 'Confirmar' },
+        { id: 'reschedule', label: 'Reagendar' },
+        { id: 'cancel', label: 'Cancelar' }
       ];
 
       const result = await sendMessage(connection, phone, message, {
         buttons,
-        title: "Confirmação de Agendamento",
+        title: "Confirmação",
         footer: businessName
       });
       
@@ -511,36 +518,3 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
   return { appointments, sentItems, ignored };
 }
 
-async function sendMessage(connection: any, phone: string, message: string) {
-  try {
-    const instanceId = connection.instance_id;
-    const token = connection.token;
-    const clientToken = connection.client_token;
-    const baseUrl = connection.server_url || "https://api.z-api.io";
-    
-    const targetPhone = normalizePhone(phone);
-    const headers: any = { "Content-Type": "application/json" };
-    
-    if (clientToken) {
-      headers["Client-Token"] = clientToken;
-    }
-
-    const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
-    
-    const response = await fetch(sendUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ phone: targetPhone, message: message })
-    });
-
-    const data = await response.json();
-    
-    return { 
-      success: response.ok, 
-      response: data, 
-      error: !response.ok ? (data.message || data.error || `HTTP ${response.status}`) : null 
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}

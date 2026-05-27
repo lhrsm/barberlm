@@ -17,51 +17,75 @@ export interface ZApiButton {
 }
 
 export async function sendMessage(connection: any, phone: string, message: string, options?: { buttons?: ZApiButton[], title?: string, footer?: string }) {
+  const instanceId = connection.instance_id;
+  const token = connection.token;
+  const clientToken = connection.client_token;
+  const baseUrl = connection.server_url || "https://api.z-api.io";
+  
+  // Normalize phone (remove non-digits, ensure 55 prefix)
+  let targetPhone = phone.replace(/\D/g, "");
+  if (targetPhone.length === 10 || targetPhone.length === 11) {
+    targetPhone = "55" + targetPhone;
+  }
+
+  const headers: any = { "Content-Type": "application/json" };
+  if (clientToken) {
+    headers["Client-Token"] = clientToken;
+  }
+
+  console.log('SENDING MESSAGE TO:', targetPhone);
+  console.log('MESSAGE CONTENT:', message);
+
+  // If buttons are provided, try to send them first
+  if (options?.buttons && options.buttons.length > 0) {
+    const buttonsPayload = {
+      phone: targetPhone,
+      message: message,
+      title: options.title || "",
+      footer: options.footer || "",
+      buttons: options.buttons.map(b => ({
+        id: b.id,
+        label: b.label
+      }))
+    };
+
+    console.log('BUTTONS PAYLOAD:', JSON.stringify(buttonsPayload));
+
+    try {
+      const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-button-list`;
+      const response = await fetch(sendUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(buttonsPayload)
+      });
+
+      const data = await response.json();
+      console.log('BUTTONS SEND RESULT:', JSON.stringify(data));
+
+      if (response.ok) {
+        return { success: true, response: data, error: null };
+      }
+      
+      console.log('BUTTONS SEND ERROR (API):', data.message || data.error);
+      // If API returned error, fall through to fallback text
+    } catch (error) {
+      console.log('BUTTONS SEND ERROR (Fetch):', error.message);
+      // If fetch failed, fall through to fallback text
+    }
+  }
+
+  // Fallback or standard text message
+  console.log('SENDING STANDARD TEXT MESSAGE (OR FALLBACK)');
   try {
-    const instanceId = connection.instance_id;
-    const token = connection.token;
-    const clientToken = connection.client_token;
-    const baseUrl = connection.server_url || "https://api.z-api.io";
-    
-    // Normalize phone (remove non-digits, ensure 55 prefix)
-    let targetPhone = phone.replace(/\D/g, "");
-    if (targetPhone.length === 10 || targetPhone.length === 11) {
-      targetPhone = "55" + targetPhone;
-    }
-
-    const headers: any = { "Content-Type": "application/json" };
-    if (clientToken) {
-      headers["Client-Token"] = clientToken;
-    }
-
-    let sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
-    let body: any = { phone: targetPhone, message };
-
-    // If buttons are provided, use the button-list endpoint
-    if (options?.buttons && options.buttons.length > 0) {
-      sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-button-list`;
-      body = {
-        phone: targetPhone,
-        message: message,
-        title: options.title || "",
-        footer: options.footer || "",
-        buttons: options.buttons.map(b => ({
-          id: b.id,
-          label: b.label
-        }))
-      };
-    }
-    
-    console.log(`[Z-API] Sending to ${targetPhone} via ${sendUrl}`);
-
+    const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
     const response = await fetch(sendUrl, {
       method: "POST",
       headers,
-      body: JSON.stringify(body)
+      body: JSON.stringify({ phone: targetPhone, message })
     });
 
     const data = await response.json();
-    console.log(`[Z-API] Response from ${targetPhone}:`, JSON.stringify(data));
+    console.log('TEXT SEND RESULT:', JSON.stringify(data));
     
     return { 
       success: response.ok, 
