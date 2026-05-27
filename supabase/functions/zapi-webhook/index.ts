@@ -120,7 +120,7 @@ async function logAutomationInteraction(supabase: any, conversation: any, messag
   }
 }
 
-async function processWebhook(body: any) {
+async function processZapiWebhook(body: any) {
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
