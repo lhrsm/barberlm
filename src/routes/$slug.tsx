@@ -957,7 +957,8 @@ function ShopPageComponent() {
       setBookingStep(1);
       
       setTimeout(() => {
-        window.location.href = `/${slug}/portal`;
+        // Redirecionamento usando navigate para manter o estado da aplicação e sessão do portal
+        navigate(`/${slug}/portal`, { replace: true });
       }, 2000);
 
     } catch (error: any) {
