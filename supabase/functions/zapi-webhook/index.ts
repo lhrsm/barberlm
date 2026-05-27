@@ -72,14 +72,17 @@ function extractSelectedOption(payload: any): string {
   const confirmPatterns = ['confirmar agendamento', 'confirmar', 'confirm', '1', 'confirm_appointment', 'confirmar_agendamento', '1️⃣'];
   const reschedulePatterns = ['reagendar', 'reschedule', '2', 'reschedule_appointment', '2️⃣'];
   const cancelPatterns = ['cancelar', 'cancel', '3', 'cancel_appointment', '3️⃣'];
-  const allPatterns = ['todos', 'all', '1', '1️⃣'];
-  const singlePatterns = ['apenas um específico', 'apenas um', 'especifico', 'single', '2', '2️⃣'];
+  const allPatterns = ['todos os agendamentos', 'confirmar todos', 'confirmar_todos', 'todos', 'all', '1', '1️⃣', 'confirm_all', 'reschedule_all', 'cancel_all'];
+  const singlePatterns = ['um agendamento especifico', 'um agendamento específico', 'apenas um especifico', 'apenas um específico', 'especifico', 'específico', 'single', '2', '2️⃣', 'confirm_single', 'reschedule_single', 'cancel_single'];
 
   if (confirmPatterns.includes(cleanId) || confirmPatterns.includes(cleanText)) return 'confirm';
   if (reschedulePatterns.includes(cleanId) || reschedulePatterns.includes(cleanText)) return 'reschedule';
   if (cancelPatterns.includes(cleanId) || cancelPatterns.includes(cleanText)) return 'cancel';
   if (allPatterns.includes(cleanId) || allPatterns.includes(cleanText)) return 'all';
   if (singlePatterns.includes(cleanId) || singlePatterns.includes(cleanText)) return 'single';
+
+  // Check for appt_ prefix in ID
+  if (cleanId.startsWith('appt_')) return cleanId;
 
   // Fallback fuzzy
   if (cleanText.includes('confirmar')) return 'confirm';
@@ -92,7 +95,17 @@ function extractSelectedOption(payload: any): string {
 }
 
 
-async function logAutomationInteraction(supabase: any, conversation: any, message: string, stateChange: { from: string, to: string }, action?: string, payload?: any, response?: any, error?: string) {
+async function logAutomationInteraction(
+  supabase: any, 
+  conversation: any, 
+  message: string, 
+  stateChange: { from: string, to: string }, 
+  action?: string, 
+  payload?: any, 
+  response?: any, 
+  error?: string,
+  extraContext?: any
+) {
   try {
     const { data: automation } = await supabase
       .from("automations")
@@ -101,16 +114,20 @@ async function logAutomationInteraction(supabase: any, conversation: any, messag
       .eq("type", "appointment_confirmation")
       .maybeSingle();
 
+    const scope = extraContext?.scope || conversation.context?.scope || 'none';
+    const groupId = conversation.appointment_group_id || 'none';
+    const apptId = extraContext?.selected_appointment_id || conversation.appointment_id || 'none';
+
     await supabase.from("automation_logs").insert({
       automation_id: automation?.id,
       tenant_id: conversation.barber_id,
       customer_id: conversation.customer_id,
-      appointment_id: conversation.appointment_id,
+      appointment_id: apptId !== 'none' ? apptId : null,
       phone: conversation.phone,
       message_type: "appointment_confirmation_interaction",
       status: error ? "error" : "success",
       original_template: JSON.stringify(payload), // Store raw payload for debugging
-      processed_template: `State: ${stateChange.from} -> ${stateChange.to} | Action: ${action || 'none'} | Msg: ${message}`,
+      processed_template: `State: ${stateChange.from} -> ${stateChange.to} | Action: ${action || 'none'} | Scope: ${scope} | Group: ${groupId} | Msg: ${message}`,
       response: response,
       error_message: error,
       sent_at: new Date().toISOString()
@@ -202,10 +219,20 @@ async function processZapiWebhook(body: any) {
 
     const listAppointments = (appointments: any[]) => {
       return appointments.map((a, i) => {
-        const date = format(new Date(a.start_time), "dd/MM");
         const time = format(new Date(a.start_time), "HH:mm");
         return `${i + 1}️⃣ ${time} - ${a.service_name} com ${a.barber_name}`;
       }).join('\n');
+    };
+
+    const listAppointmentsOptions = (appointments: any[]) => {
+      return appointments.map((a, i) => {
+        const time = format(new Date(a.start_time), "HH:mm");
+        return {
+          id: `appt_${a.id}`,
+          title: `${time} - ${a.service_name}`,
+          description: `com ${a.barber_name}`
+        };
+      });
     };
 
     // 2. STATE MACHINE
@@ -216,15 +243,18 @@ async function processZapiWebhook(body: any) {
             nextContext.action = option;
             nextState = 'awaiting_scope_selection';
             
-            const actionLabel = option === 'confirm' ? 'confirmar' : option === 'reschedule' ? 'reagendar' : 'cancelar';
-            const question = `Você deseja ${actionLabel}:\n\n1️⃣ Todos os agendamentos\n2️⃣ Apenas um específico`;
+            const actionLabel = option === 'confirm' ? 'Confirmar' : option === 'reschedule' ? 'Reagendar' : 'Cancelar';
+            const descriptionAction = option === 'confirm' ? 'confirmar' : option === 'reschedule' ? 'reagendar' : 'cancelar';
             
-            responseSent = await sendMessage(connection, normalizedPhone, question, {
-              buttons: [
-                { id: 'all', label: 'Todos' },
-                { id: 'single', label: 'Apenas um' }
-              ],
-              title: "Escolha o que deseja " + actionLabel
+            responseSent = await sendMessage(connection, normalizedPhone, `O que você deseja ${descriptionAction}?`, {
+              list: {
+                buttonLabel: "Ver opções",
+                title: actionLabel + " agendamento",
+                options: [
+                  { id: 'all', title: 'Todos os agendamentos', description: `Confirmar todos os atendimentos deste pedido` },
+                  { id: 'single', title: 'Um agendamento específico', description: `Escolher qual atendimento deseja ${descriptionAction}` }
+                ]
+              }
             });
           } else {
             console.log('INVALID OPTION IN awaiting_main_action', option);
@@ -275,34 +305,67 @@ async function processZapiWebhook(body: any) {
             nextContext.scope = 'single';
             nextState = 'awaiting_single_appointment_selection';
             const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
-            responseSent = await sendMessage(connection, normalizedPhone, `Qual agendamento você deseja ${actionLabel}?\n\n${listAppointments(context.appointments)}`);
+            const titleAction = context.action === 'confirm' ? 'Confirmar' : context.action === 'reschedule' ? 'Reagendar' : 'Cancelar';
+            
+            responseSent = await sendMessage(connection, normalizedPhone, `Qual agendamento você deseja ${actionLabel}?`, {
+              list: {
+                buttonLabel: "Escolher agendamento",
+                title: titleAction + " específico",
+                options: listAppointmentsOptions(context.appointments)
+              }
+            });
           } else {
             const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
+            const titleAction = context.action === 'confirm' ? 'Confirmar' : context.action === 'reschedule' ? 'Reagendar' : 'Cancelar';
             responseSent = await sendMessage(connection, normalizedPhone, `Por favor, escolha uma opção para ${actionLabel}:`, {
-              buttons: [
-                { id: 'all', label: 'Todos' },
-                { id: 'single', label: 'Apenas um' }
-              ]
+              list: {
+                buttonLabel: "Ver opções",
+                title: titleAction + " agendamento",
+                options: [
+                  { id: 'all', title: 'Todos os agendamentos', description: `Confirmar todos os atendimentos deste pedido` },
+                  { id: 'single', title: 'Um agendamento específico', description: `Escolher qual atendimento deseja ${actionLabel}` }
+                ]
+              }
             });
           }
           break;
         }
 
         case 'awaiting_single_appointment_selection': {
-          const index = parseInt(messageText.replace(/\D/g, '')) - 1;
           const appointments = context.appointments || [];
-          if (isNaN(index) || index < 0 || index >= appointments.length) {
-            responseSent = await sendMessage(connection, normalizedPhone, `Opção inválida. Escolha o número correspondente ao agendamento:\n\n${listAppointments(appointments)}`);
+          let selectedAppt = null;
+
+          if (option.startsWith('appt_')) {
+            const apptId = option.replace('appt_', '');
+            selectedAppt = appointments.find(a => a.id === apptId);
+          } else {
+            const index = parseInt(messageText.replace(/\D/g, '')) - 1;
+            if (!isNaN(index) && index >= 0 && index < appointments.length) {
+              selectedAppt = appointments[index];
+            }
+          }
+
+          if (!selectedAppt) {
+            const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
+            const titleAction = context.action === 'confirm' ? 'Confirmar' : context.action === 'reschedule' ? 'Reagendar' : 'Cancelar';
+            responseSent = await sendMessage(connection, normalizedPhone, `Opção inválida. Qual agendamento você deseja ${actionLabel}?`, {
+              list: {
+                buttonLabel: "Escolher agendamento",
+                title: titleAction + " específico",
+                options: listAppointmentsOptions(appointments)
+              }
+            });
             return;
           }
 
-          const selectedAppt = appointments[index];
           nextContext.selected_appointment_id = selectedAppt.id;
 
           if (context.action === 'confirm') {
             await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", selectedAppt.id);
             await triggerNotification(selectedAppt.id, 'appointment_confirmed');
-            responseSent = await finishConversation(`✅ O agendamento de *${selectedAppt.service_name}* foi confirmado com sucesso!`);
+            
+            const time = format(new Date(selectedAppt.start_time), "HH:mm");
+            responseSent = await finishConversation(`✅ O agendamento das ${time} (${selectedAppt.service_name}) foi confirmado com sucesso!`);
           } else if (context.action === 'cancel') {
             nextState = 'awaiting_cancel_confirmation';
             responseSent = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar o agendamento de *${selectedAppt.service_name}*?`, {
@@ -420,7 +483,7 @@ async function processZapiWebhook(body: any) {
       }).eq("id", conversation.id);
 
       // Log interaction
-      await logAutomationInteraction(supabase, conversation, messageText, { from: state, to: nextState }, nextContext.action, body, responseSent);
+      await logAutomationInteraction(supabase, conversation, messageText, { from: state, to: nextState }, nextContext.action, body, responseSent, undefined, nextContext);
 
     } catch (error) {
       console.error('ERROR IN STATE MACHINE', error);
