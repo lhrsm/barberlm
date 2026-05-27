@@ -2097,7 +2097,7 @@ function ShopPageComponent() {
                       <p className="text-lg font-black uppercase tracking-tight text-zinc-900">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setBookingStep(3)} className="bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200 h-9 px-4">Alterar</Button>
+                  <Button variant="outline" size="sm" onClick={() => setBookingStep(3)} className="bg-white text-zinc-900 hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200 h-9 px-4">Alterar</Button>
                 </div>
 
                 <div className="space-y-6">
