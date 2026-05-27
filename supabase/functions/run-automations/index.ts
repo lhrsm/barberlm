@@ -518,36 +518,3 @@ async function processAppointmentReminder(supabase: any, automation: any, connec
   return { appointments, sentItems, ignored };
 }
 
-async function sendMessage(connection: any, phone: string, message: string) {
-  try {
-    const instanceId = connection.instance_id;
-    const token = connection.token;
-    const clientToken = connection.client_token;
-    const baseUrl = connection.server_url || "https://api.z-api.io";
-    
-    const targetPhone = normalizePhone(phone);
-    const headers: any = { "Content-Type": "application/json" };
-    
-    if (clientToken) {
-      headers["Client-Token"] = clientToken;
-    }
-
-    const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
-    
-    const response = await fetch(sendUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ phone: targetPhone, message: message })
-    });
-
-    const data = await response.json();
-    
-    return { 
-      success: response.ok, 
-      response: data, 
-      error: !response.ok ? (data.message || data.error || `HTTP ${response.status}`) : null 
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
