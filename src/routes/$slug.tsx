@@ -2321,22 +2321,22 @@ function ShopPageComponent() {
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-[2rem] shadow-lg"
+                      className="flex items-center justify-between p-5 bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 transition-all duration-300 hover:shadow-xl"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
-                          <Gift size={24} className="text-emerald-400" />
+                        <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
+                          <Gift size={24} className="text-emerald-600" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">Cashback Disponível</p>
-                          <p className="text-lg font-black text-white leading-none">R$ {customerCashback.toFixed(2)}</p>
+                          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-0.5">Cashback Disponível</p>
+                          <p className="text-lg font-black text-zinc-900 leading-none">R$ {customerCashback.toFixed(2)}</p>
                         </div>
                       </div>
                       <Button 
                         variant={useCashback ? "default" : "outline"} 
                         size="sm" 
                         onClick={() => setUseCashback(!useCashback)}
-                        className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px] transition-all", useCashback ? "bg-emerald-500 text-white border-none shadow-lg shadow-emerald-500/20" : "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10")}
+                        className={cn("rounded-xl font-medium transition-all duration-200 h-10 px-6", useCashback ? "bg-black text-white hover:bg-zinc-800" : "border-zinc-300 text-zinc-600 hover:bg-zinc-50")}
                       >
                         {useCashback ? "Aplicado" : "Usar"}
                       </Button>
@@ -2347,24 +2347,22 @@ function ShopPageComponent() {
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between p-5 bg-primary/10 border border-primary/20 rounded-[2rem] shadow-lg"
-                      style={{ backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}
+                      className="flex items-center justify-between p-5 bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 transition-all duration-300 hover:shadow-xl"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center" style={{ backgroundColor: `${primaryColor}30` }}>
-                          <CircleDollarSign size={24} className="text-primary" style={{ color: primaryColor }} />
+                        <div className="h-12 w-12 rounded-2xl bg-zinc-50 flex items-center justify-center">
+                          <CircleDollarSign size={24} className="text-zinc-900" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: primaryColor }}>Créditos Disponíveis</p>
-                          <p className="text-lg font-black text-white leading-none">R$ {customerCredits.toFixed(2)}</p>
+                          <p className="text-[10px] font-black text-zinc-900 uppercase tracking-widest mb-0.5">Créditos Disponíveis</p>
+                          <p className="text-lg font-black text-zinc-900 leading-none">R$ {customerCredits.toFixed(2)}</p>
                         </div>
                       </div>
                       <Button 
                         variant={useCredits ? "default" : "outline"} 
                         size="sm" 
                         onClick={() => setUseCredits(!useCredits)}
-                        className={cn("font-black h-10 px-6 rounded-xl uppercase tracking-widest text-[10px] transition-all", useCredits ? "text-white border-none shadow-lg shadow-primary/20" : "border-primary/30 text-primary hover:bg-primary/10")}
-                        style={useCredits ? { backgroundColor: primaryColor, boxShadow: `0 10px 15px -3px ${primaryColor}40` } : { color: primaryColor, borderColor: `${primaryColor}50` }}
+                        className={cn("rounded-xl font-medium transition-all duration-200 h-10 px-6", useCredits ? "bg-black text-white hover:bg-zinc-800" : "border-zinc-300 text-zinc-600 hover:bg-zinc-50")}
                       >
                         {useCredits ? "Aplicado" : "Usar Créditos"}
                       </Button>
@@ -2372,24 +2370,24 @@ function ShopPageComponent() {
                   )}
                 </div>
 
-                <div className="bg-zinc-900/50 backdrop-blur-md p-6 rounded-3xl border border-white/5 space-y-4">
+                <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 p-6 space-y-4 transition-all duration-300 hover:shadow-xl">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <TicketPercent size={20} className="text-primary" style={{ color: primaryColor }} />
+                    <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center">
+                      <TicketPercent size={20} className="text-zinc-600" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tem um cupom?</p>
-                      <p className="text-sm font-bold text-white">Aplicar desconto</p>
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Tem um cupom?</p>
+                      <p className="text-sm font-bold text-zinc-900">Aplicar desconto</p>
                     </div>
                   </div>
 
                   {appliedCoupon ? (
-                    <div className="flex items-center justify-between bg-primary/10 p-4 rounded-2xl border border-primary/20" style={{ backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }}>
+                    <div className="flex items-center justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
                       <div className="flex items-center gap-3">
-                        <Tag size={18} className="text-primary" style={{ color: primaryColor }} />
+                        <Tag size={18} className="text-zinc-900" />
                         <div>
-                          <p className="text-sm font-bold text-white uppercase">{appliedCoupon.code}</p>
-                          <p className="text-[10px] font-black text-primary uppercase" style={{ color: primaryColor }}>
+                          <p className="text-sm font-bold text-zinc-900 uppercase">{appliedCoupon.code}</p>
+                          <p className="text-[10px] font-black text-emerald-600 uppercase">
                             Cupom Aplicado: -R$ {calculateDiscount().toFixed(2)}
                           </p>
                         </div>
@@ -2398,7 +2396,7 @@ function ShopPageComponent() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => setAppliedCoupon(null)}
-                        className="text-zinc-500 hover:text-red-400 hover:bg-red-400/10"
+                        className="text-zinc-400 hover:text-red-500 hover:bg-red-50"
                       >
                         <Trash2 size={16} />
                       </Button>
@@ -2407,15 +2405,14 @@ function ShopPageComponent() {
                     <div className="flex gap-2">
                       <Input 
                         placeholder="CÓDIGO DO CUPOM" 
-                        className="bg-black/40 border-white/10 text-white placeholder:text-zinc-600 font-bold uppercase tracking-wider h-12 rounded-xl"
+                        className="bg-white text-black border border-zinc-300 placeholder:text-zinc-500 rounded-xl font-bold uppercase tracking-wider h-12"
                         value={couponCode}
                         onChange={e => setCouponCode(e.target.value.toUpperCase())}
                       />
                       <Button 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
-                        className="h-12 px-6 rounded-xl font-bold uppercase tracking-tighter transition-all hover:scale-105 active:scale-95"
-                        style={{ backgroundColor: primaryColor }}
+                        className="bg-black text-white hover:bg-zinc-800 rounded-xl font-medium transition-all duration-200 h-12 px-6"
                       >
                         {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
                       </Button>
@@ -2439,15 +2436,14 @@ function ShopPageComponent() {
                           key={p.id}
                           whileHover={{ y: -4 }}
                           className={cn(
-                            "group relative flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden",
+                            "group relative flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden bg-white text-black shadow-lg shadow-black/5",
                             cartItem 
-                              ? "bg-zinc-900 border-primary shadow-xl shadow-primary/20 ring-1 ring-primary" 
-                              : "bg-zinc-900/70 backdrop-blur-md border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/90"
+                              ? "border-black ring-1 ring-black shadow-xl" 
+                              : "border-zinc-200 hover:border-zinc-300 hover:shadow-xl"
                           )}
-                          style={cartItem ? { borderColor: primaryColor, boxShadow: `0 20px 25px -5px ${primaryColor}33` } : {}}
                         >
                           {/* Image Container */}
-                          <div className="relative aspect-video w-full overflow-hidden bg-zinc-950">
+                          <div className="relative aspect-video w-full overflow-hidden bg-zinc-100">
                             {p.image_url ? (
                               <img 
                                 src={p.image_url} 
@@ -2455,7 +2451,7 @@ function ShopPageComponent() {
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-zinc-800">
+                              <div className="w-full h-full flex items-center justify-center text-zinc-300">
                                 <Package size={48} strokeWidth={1} />
                               </div>
                             )}
@@ -2466,14 +2462,13 @@ function ShopPageComponent() {
                                 <motion.div 
                                   initial={{ scale: 0.8, opacity: 0 }}
                                   animate={{ scale: 1, opacity: 1 }}
-                                  className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white flex items-center gap-1.5 shadow-lg backdrop-blur-md"
-                                  style={{ backgroundColor: primaryColor }}
+                                  className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white flex items-center gap-1.5 shadow-lg bg-black"
                                 >
                                   <CheckCircle2 size={12} /> Selecionado
                                 </motion.div>
                               )}
                               {p.badge && !cartItem && (
-                                <div className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-950/80 text-zinc-300 backdrop-blur-md border border-zinc-700">
+                                <div className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/90 text-zinc-600 backdrop-blur-md border border-zinc-200">
                                   {p.badge}
                                 </div>
                               )}
@@ -2481,7 +2476,7 @@ function ShopPageComponent() {
 
                             {/* Price Badge Overlay */}
                             <div className="absolute bottom-3 left-3">
-                              <div className="px-3 py-1.5 rounded-xl bg-zinc-950/90 border border-zinc-800 text-white font-bold text-sm backdrop-blur-md">
+                              <div className="px-3 py-1.5 rounded-xl bg-white/95 border border-zinc-100 text-black font-bold text-sm shadow-sm">
                                 R$ {p.price.toFixed(2)}
                               </div>
                             </div>
@@ -2490,12 +2485,11 @@ function ShopPageComponent() {
                           {/* Content */}
                           <div className="p-5 flex flex-col flex-1">
                             <div className="mb-3">
-                              <h4 className="text-white font-semibold text-lg leading-tight mb-1 line-clamp-2 group-hover:text-primary transition-colors"
-                                  style={cartItem ? { color: primaryColor } : {}}>
+                              <h4 className="text-zinc-900 font-bold text-lg leading-tight mb-1 line-clamp-2 group-hover:text-black transition-colors">
                                 {p.name}
                               </h4>
                               {(p.short_description || p.description) && (
-                                <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed break-words">
+                                <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed break-words">
                                   {p.short_description || p.description}
                                 </p>
                               )}
@@ -2503,17 +2497,17 @@ function ShopPageComponent() {
 
                             <div className="mt-auto space-y-3">
                               {cartItem ? (
-                                <div className="flex items-center justify-between bg-zinc-950/50 rounded-xl p-1.5 border border-zinc-800">
+                                <div className="flex items-center justify-between bg-zinc-50 rounded-xl p-1.5 border border-zinc-100">
                                   <button 
                                     onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
-                                    className="hover:bg-zinc-800 text-white rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
+                                    className="hover:bg-zinc-200 text-black rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
                                   >
                                     <Minus size={16} />
                                   </button>
-                                  <span className="text-sm font-bold text-white w-24 text-center">{cartItem.quantity} unidades</span>
+                                  <span className="text-sm font-bold text-zinc-900 w-24 text-center">{cartItem.quantity} unidades</span>
                                   <button 
                                     onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
-                                    className="hover:bg-zinc-800 text-white rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
+                                    className="hover:bg-zinc-200 text-black rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
                                     disabled={cartItem.quantity >= (p.stock_quantity || 99)}
                                   >
                                     <Plus size={16} />
@@ -2522,7 +2516,7 @@ function ShopPageComponent() {
                               ) : (
                                 <Button
                                   onClick={() => toggleProduct(p)}
-                                  className="h-11 w-full rounded-xl font-semibold text-sm px-3 truncate transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] bg-zinc-100 hover:bg-white text-black border-none"
+                                  className="bg-black text-white hover:bg-zinc-800 rounded-xl font-medium transition-all duration-200 h-11 w-full"
                                 >
                                   <Plus size={16} className="mr-1.5 shrink-0" /> Adicionar
                                 </Button>
@@ -2533,7 +2527,7 @@ function ShopPageComponent() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => toggleProduct(p)}
-                                  className="w-full h-9 text-[10px] uppercase font-bold tracking-widest text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                  className="w-full h-9 text-[10px] uppercase font-bold tracking-widest text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                 >
                                   Remover do Carrinho
                                 </Button>
@@ -2546,14 +2540,14 @@ function ShopPageComponent() {
                   </div>
                 </div>
 
-                <div className="bg-zinc-900/80 backdrop-blur-md p-6 rounded-[2rem] space-y-4 text-sm border border-white/5 shadow-2xl">
-                  <div className="flex items-center gap-3 pb-2 border-b border-white/5 mb-2">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Calendar size={20} className="text-primary" style={{ color: primaryColor }} />
+                <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 p-6 space-y-4 transition-all duration-300 hover:shadow-xl">
+                  <div className="flex items-center gap-3 pb-2 border-b border-zinc-100 mb-2">
+                    <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center">
+                      <Calendar size={20} className="text-zinc-600" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resumo do Agendamento</p>
-                      <p className="text-sm font-bold text-white">Confira os detalhes abaixo</p>
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Resumo do Agendamento</p>
+                      <p className="text-sm font-bold text-zinc-900">Confira os detalhes abaixo</p>
                     </div>
                   </div>
 
@@ -2561,19 +2555,19 @@ function ShopPageComponent() {
                     {/* Lista de Serviços */}
                     <div className="space-y-3">
                       {bookingCart.map((item) => (
-                        <div key={item.id} className="flex flex-col gap-1 pb-3 border-b border-white/5 last:border-b-0 relative group">
+                        <div key={item.id} className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
                           <button 
                             onClick={() => removeFromBookingCart(item.id)}
-                            className="absolute right-0 top-0 p-1 text-zinc-600 hover:text-red-500 transition-colors"
+                            className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
                             title="Remover serviço"
                           >
                             <Trash2 size={14} />
                           </button>
                           <div className="flex justify-between items-center pr-8">
-                            <span className="font-bold text-zinc-100">{item.service_name}</span>
-                            <span className="text-zinc-200 font-bold">R$ {(item.price || 0).toFixed(2)}</span>
+                            <span className="font-bold text-zinc-900">{item.service_name}</span>
+                            <span className="text-zinc-900 font-bold">R$ {(item.price || 0).toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                             <span className="flex items-center gap-1.5"><UserIcon size={10} /> {item.barber_name}</span>
                             <span>{format(parseISO(item.date), "dd/MM/yyyy")} às {item.start_time}</span>
                           </div>
@@ -2581,7 +2575,7 @@ function ShopPageComponent() {
                       ))}
 
                       {selectedService && (
-                        <div className="flex flex-col gap-1 pb-3 border-b border-white/5 last:border-b-0 relative group">
+                        <div className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
                           <button 
                             onClick={() => {
                               setSelectedService(null);
@@ -2589,16 +2583,16 @@ function ShopPageComponent() {
                               setSelectedTime("");
                               if (bookingCart.length === 0) setBookingStep(2);
                             }}
-                            className="absolute right-0 top-0 p-1 text-zinc-600 hover:text-red-500 transition-colors"
+                            className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
                             title="Remover serviço"
                           >
                             <Trash2 size={14} />
                           </button>
                           <div className="flex justify-between items-center pr-8">
-                            <span className="font-bold text-zinc-100">{selectedService.name}</span>
-                            <span className="text-zinc-200 font-bold">R$ {(selectedService.price || 0).toFixed(2)}</span>
+                            <span className="font-bold text-zinc-900">{selectedService.name}</span>
+                            <span className="text-zinc-900 font-bold">R$ {(selectedService.price || 0).toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                             <span className="flex items-center gap-1.5"><UserIcon size={10} /> {selectedBarber?.name}</span>
                             <span>{format(parseISO(selectedDate), "dd/MM/yyyy")} às {selectedTime}</span>
                           </div>
@@ -2607,20 +2601,20 @@ function ShopPageComponent() {
                     </div>
                     
                     {selectedProducts.length > 0 && (
-                      <div className="space-y-3 py-3 border-y border-white/5 my-2">
+                      <div className="space-y-3 py-3 border-y border-zinc-100 my-2">
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-black text-primary uppercase tracking-wider" style={{ color: primaryColor }}>Produtos Adicionados</p>
-                          <span className="text-[10px] font-bold text-zinc-500">{selectedProducts.length} itens</span>
+                          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Produtos Adicionados</p>
+                          <span className="text-[10px] font-bold text-zinc-400">{selectedProducts.length} itens</span>
                         </div>
                         {selectedProducts.map(p => (
                           <div key={p.id} className="flex justify-between items-center text-xs pl-3 relative group">
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-zinc-800" />
-                            <span className="text-zinc-400">{p.name} <span className="text-primary font-black ml-1" style={{ color: primaryColor }}>x{p.quantity || 1}</span></span>
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-zinc-200" />
+                            <span className="text-zinc-600">{p.name} <span className="text-zinc-900 font-black ml-1">x{p.quantity || 1}</span></span>
                             <div className="flex items-center gap-3">
-                              <span className="text-zinc-200 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
+                              <span className="text-zinc-900 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
                               <button 
                                 onClick={() => toggleProduct(p)}
-                                className="text-zinc-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                className="text-zinc-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                               >
                                 <Trash2 size={12} />
                               </button>
@@ -2632,15 +2626,15 @@ function ShopPageComponent() {
                   </div>
 
                   {(useCashback || useCredits) && (
-                    <div className="pt-2 border-t border-white/5 space-y-1">
+                    <div className="pt-2 border-t border-zinc-100 space-y-1">
                       {useCashback && (
-                        <div className="flex justify-between text-emerald-400 font-bold text-xs">
+                        <div className="flex justify-between text-emerald-600 font-bold text-xs">
                           <span>Desconto Cashback:</span> 
                           <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
                         </div>
                       )}
                       {useCredits && (
-                        <div className="flex justify-between font-bold text-xs" style={{ color: primaryColor }}>
+                        <div className="flex justify-between text-zinc-900 font-bold text-xs">
                           <span>Desconto Créditos:</span> 
                           <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
                         </div>
@@ -2648,30 +2642,30 @@ function ShopPageComponent() {
                     </div>
                   )}
 
-                  <div className="space-y-2 pt-2 border-t border-white/10 mt-3">
+                  <div className="space-y-2 pt-2 border-t border-zinc-100 mt-3">
                     <div className="flex justify-between items-center text-zinc-400 font-bold text-xs uppercase tracking-widest">
                       <span>Subtotal:</span> 
                       <span>R$ {calculateSubtotal().toFixed(2)}</span>
                     </div>
                     {appliedCoupon && (
-                      <div className="flex justify-between items-center text-primary font-black text-xs uppercase tracking-widest" style={{ color: primaryColor }}>
+                      <div className="flex justify-between items-center text-emerald-600 font-black text-xs uppercase tracking-widest">
                         <span className="flex items-center gap-1"><Tag size={12} /> Cupom ({appliedCoupon.code}):</span> 
                         <span>- R$ {calculateDiscount().toFixed(2)}</span>
                       </div>
                     )}
                     <div className="flex justify-between items-center pt-2">
-                      <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
-                      <span className="text-3xl font-black text-white" style={{ color: calculateTotal() === 0 ? '#10b981' : 'white' }}>R$ {calculateTotal().toFixed(2)}</span>
+                      <span className="text-zinc-900 font-black text-lg uppercase tracking-tighter">Total Final:</span> 
+                      <span className="text-3xl font-black text-zinc-900">R$ {calculateTotal().toFixed(2)}</span>
                     </div>
                   </div>
 
 
                   
                   {shop.cashback_enabled && (
-                    <div className="bg-primary/5 p-3 rounded-xl text-[11px] text-center mt-3 border border-primary/20 shadow-inner">
-                      <span className="text-slate-300 font-medium">Você receberá </span>
-                      <span className="text-primary font-black">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
-                      <span className="text-slate-300 font-medium"> de volta nesta reserva!</span>
+                    <div className="bg-emerald-50 p-3 rounded-xl text-[11px] text-center mt-3 border border-emerald-100">
+                      <span className="text-zinc-600 font-medium">Você receberá </span>
+                      <span className="text-emerald-700 font-black">R$ {(calculateTotal() * (shop.cashback_percentage / 100)).toFixed(2)}</span>
+                      <span className="text-zinc-600 font-medium"> de volta nesta reserva!</span>
                     </div>
                   )}
                 </div>
