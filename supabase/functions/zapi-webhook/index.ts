@@ -241,7 +241,8 @@ serve(async (req) => {
               const res = await sendMessage(connection, normalizedPhone, `Vamos reagendar seus atendimentos um por um.\n\nPara o serviço de *${appt.service_name}*, qual a nova data desejada?`);
               console.log('ZAPI SEND RESPONSE (Reschedule Multiple Start)', JSON.stringify(res));
             }
-          } else if (['2', '2️⃣', 'apenas um', 'específico'].some(s => messageText.includes(s))) {
+          } else if (['2', '2️⃣', 'apenas um', 'específico', 'single'].some(s => messageText.includes(s))) {
+            console.log('[Webhook] Matched scope: SINGLE');
             nextContext.scope = 'single';
             nextState = 'awaiting_single_appointment_selection';
             const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
