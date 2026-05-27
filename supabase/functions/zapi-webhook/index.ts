@@ -164,16 +164,31 @@ async function processZapiWebhook(body: any) {
     };
 
     const getAppointments = async () => {
-      const { data } = await supabase
+      if (!conversation.appointment_group_id && !conversation.appointment_id) return [];
+      
+      let query = supabase
         .from("appointments")
         .select("*, services(name, duration), barbers(name)")
-        .eq("appointment_group_id", conversation.appointment_group_id)
         .neq("status", "cancelled");
+        
+      if (conversation.appointment_group_id) {
+        query = query.eq("appointment_group_id", conversation.appointment_group_id);
+      } else {
+        query = query.eq("id", conversation.appointment_id);
+      }
+      
+      const { data } = await query;
       return data || [];
     };
 
     const appointments = await getAppointments();
-    const isSingle = appointments.length === 1;
+    const appointmentsCount = appointments.length;
+    const isMultiple = appointmentsCount > 1;
+    const isSingle = appointmentsCount === 1 || appointmentsCount === 0;
+
+    console.log('APPOINTMENTS COUNT', appointmentsCount);
+    console.log('IS MULTIPLE', isMultiple);
+
     nextContext.appointments = appointments.map(a => ({
       id: a.id,
       service_name: a.services?.name,
