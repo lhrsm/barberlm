@@ -58,6 +58,36 @@ export const Route = createFileRoute("/calendar")({
   component: CalendarComponent,
 });
 
+function getCalendarStatusConfig(status: string) {
+  const normalized = String(status || '').toLowerCase();
+
+  if (['completed', 'concluido', 'concluído', 'done'].includes(normalized)) {
+    return {
+      label: 'Concluído',
+      className: 'bg-emerald-500 text-white border-emerald-600'
+    };
+  }
+
+  if (['cancelled', 'canceled', 'cancelado'].includes(normalized)) {
+    return {
+      label: 'Cancelado',
+      className: 'bg-red-500 text-white border-red-600'
+    };
+  }
+
+  if (['confirmed', 'confirmado'].includes(normalized)) {
+    return {
+      label: 'Confirmado',
+      className: 'bg-sky-500 text-white border-sky-600'
+    };
+  }
+
+  return {
+    label: 'Pendente',
+    className: 'bg-orange-500 text-white border-orange-600'
+  };
+}
+
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8:00 to 20:00
 
 function CalendarComponent() {
