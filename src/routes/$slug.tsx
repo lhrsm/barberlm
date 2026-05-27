@@ -950,16 +950,30 @@ function ShopPageComponent() {
 
       toast.success("Agendamentos realizados com sucesso!");
       
+      // 6. Ensure session persistence before redirecting
+      const sessionData = {
+        phone: normalized,
+        customer_id: finalCustId,
+        name: customerName
+      };
+      
+      localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
+      console.log('DEBUG: Persisted session before portal redirect', sessionData);
+
       // Reset and redirect
       setIsBookingOpen(false);
       setBookingCart([]);
       setSelectedProducts([]);
       setBookingStep(1);
+      setAppliedCoupon(null);
+      setUseCashback(false);
+      setUseCredits(false);
+      setPaymentMethod(null);
       
       setTimeout(() => {
-        // Redirecionamento usando navigate do TanStack Router
-        navigate({ to: `/${slug}/portal` });
-      }, 2000);
+        // Redirecionamento usando navigate do TanStack Router com substituição de histórico
+        navigate({ to: `/${slug}/portal`, replace: true });
+      }, 1500);
 
     } catch (error: any) {
       toast.error("Erro ao realizar agendamento: " + error.message);
