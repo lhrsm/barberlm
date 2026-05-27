@@ -2023,14 +2023,14 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-8"
               >
-                <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
-                  <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Data Desejada</Label>
+                <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300">
+                  <Label className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2 block">Data Desejada</Label>
                   <Input 
                     type="date" 
                     value={selectedDate} 
                     onChange={(e) => setSelectedDate(e.target.value)} 
                     min={format(new Date(), "yyyy-MM-dd")} 
-                    className="bg-white border-gray-200 text-black h-14 text-xl font-black rounded-2xl focus-visible:ring-[#D4AF37]/50"
+                    className="bg-white border-zinc-200 text-black h-12 text-lg font-bold rounded-xl focus-visible:ring-sky-600/50"
                   />
                 </div>
 
