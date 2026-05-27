@@ -106,13 +106,14 @@ export function AppointmentDetailsModal({
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      awaiting_confirmation: "Aguardando Confirmação",
+      awaiting_confirmation: "Pendente",
       scheduled: "Agendado",
       confirmed: "Confirmado",
-      awaiting_payment: "Aguardando Pagamento",
+      awaiting_payment: "Pgto Pendente",
       completed: "Concluído",
       cancelled: "Cancelado",
-      in_progress: "Em Atendimento"
+      in_progress: "Em Atendimento",
+      pending: "Pendente"
     };
     return labels[status] || status;
   };
@@ -123,15 +124,16 @@ export function AppointmentDetailsModal({
       scheduled: { color: "bg-blue-500", icon: Calendar },
       awaiting_payment: { color: "bg-amber-500", icon: DollarSign },
       cancelled: { color: "bg-red-500", icon: XCircle },
-      completed: { color: "bg-zinc-800", icon: CheckCircle2 },
+      completed: { color: "bg-sky-500", icon: CheckCircle2 },
       awaiting_confirmation: { color: "bg-amber-400", icon: Clock },
+      pending: { color: "bg-amber-400", icon: Clock },
       in_progress: { color: "bg-indigo-500", icon: RefreshCcw },
     };
     const config = configs[status] || { color: "bg-zinc-400", icon: Clock };
     const Icon = config.icon;
 
     return (
-      <Badge className={cn("gap-1.5 font-bold uppercase tracking-wider text-[10px] px-3 py-1 text-white border-none", config.color)}>
+      <Badge className={cn("gap-1.5 font-bold uppercase tracking-wider text-[10px] px-3 py-1 text-white border-none rounded-full", config.color)}>
         <Icon size={12} />
         {getStatusLabel(status)}
       </Badge>
@@ -160,8 +162,10 @@ export function AppointmentDetailsModal({
 
   if (!appointment) return null;
 
-  const showConfirm = ["awaiting_confirmation", "scheduled", "awaiting_payment"].includes(appointment.status);
-  const showComplete = ["confirmed", "scheduled", "in_progress"].includes(appointment.status);
+  const showConfirm = ["awaiting_confirmation", "scheduled", "awaiting_payment", "pending"].includes(appointment.status);
+  const showComplete = ["confirmed", "scheduled"].includes(appointment.status);
+  const showCancel = ["scheduled", "pending", "awaiting_payment", "confirmed", "awaiting_confirmation"].includes(appointment.status);
+  const showReschedule = ["scheduled", "pending", "awaiting_payment", "confirmed", "awaiting_confirmation"].includes(appointment.status);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -299,19 +303,19 @@ export function AppointmentDetailsModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-8 pt-4 border-t border-zinc-100 flex flex-wrap gap-3 items-center justify-end">
+        <div className="p-8 pt-4 border-t border-zinc-100 flex flex-wrap gap-3 items-center justify-end bg-zinc-50/50">
           <Button 
-            variant="ghost" 
-            className="rounded-xl text-zinc-400 hover:text-black hover:bg-zinc-50 font-bold px-6 h-12"
+            variant="outline" 
+            className="rounded-xl bg-white text-zinc-900 border-zinc-300 hover:bg-zinc-100 font-bold px-6 h-12"
             onClick={() => onOpenChange(false)}
           >
             Fechar
           </Button>
 
-          {appointment.status !== 'cancelled' && (
+          {showCancel && (
             <Button 
-              variant="outline"
-              className="rounded-xl border-red-100 bg-red-50 text-red-600 hover:bg-red-100 font-bold px-6 h-12"
+              variant="default"
+              className="rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold px-6 h-12 transition-all active:scale-95"
               onClick={() => updateStatus('cancelled')}
               disabled={actionLoading}
             >
@@ -319,21 +323,23 @@ export function AppointmentDetailsModal({
             </Button>
           )}
 
-          <Button 
-            variant="outline"
-            className="rounded-xl border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 font-bold px-6 h-12"
-            onClick={() => {
-              onReschedule?.(appointment);
-              onOpenChange(false);
-            }}
-            disabled={actionLoading}
-          >
-            Reagendar
-          </Button>
+          {showReschedule && (
+            <Button 
+              variant="default"
+              className="rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 h-12 transition-all active:scale-95"
+              onClick={() => {
+                onReschedule?.(appointment);
+                onOpenChange(false);
+              }}
+              disabled={actionLoading}
+            >
+              Reagendar
+            </Button>
+          )}
 
           {showConfirm && (
             <Button 
-              className="rounded-xl bg-black hover:bg-zinc-800 text-white font-bold px-8 h-12 shadow-xl shadow-black/10 transition-all active:scale-95"
+              className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-8 h-12 shadow-lg shadow-emerald-200 transition-all active:scale-95"
               onClick={() => updateStatus('confirmed')}
               disabled={actionLoading}
             >
@@ -343,7 +349,7 @@ export function AppointmentDetailsModal({
 
           {showComplete && (
             <Button 
-              className="rounded-xl bg-black hover:bg-zinc-800 text-white font-bold px-8 h-12 shadow-xl shadow-black/10 transition-all active:scale-95"
+              className="rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold px-8 h-12 shadow-lg shadow-sky-200 transition-all active:scale-95"
               onClick={() => updateStatus('completed')}
               disabled={actionLoading}
             >
