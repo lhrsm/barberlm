@@ -164,16 +164,31 @@ async function processZapiWebhook(body: any) {
     };
 
     const getAppointments = async () => {
-      const { data } = await supabase
+      if (!conversation.appointment_group_id && !conversation.appointment_id) return [];
+      
+      let query = supabase
         .from("appointments")
         .select("*, services(name, duration), barbers(name)")
-        .eq("appointment_group_id", conversation.appointment_group_id)
         .neq("status", "cancelled");
+        
+      if (conversation.appointment_group_id) {
+        query = query.eq("appointment_group_id", conversation.appointment_group_id);
+      } else {
+        query = query.eq("id", conversation.appointment_id);
+      }
+      
+      const { data } = await query;
       return data || [];
     };
 
     const appointments = await getAppointments();
-    const isSingle = appointments.length === 1;
+    const appointmentsCount = appointments.length;
+    const isMultiple = appointmentsCount > 1;
+    const isSingle = appointmentsCount === 1 || appointmentsCount === 0;
+
+    console.log('APPOINTMENTS COUNT', appointmentsCount);
+    console.log('IS MULTIPLE', isMultiple);
+
     nextContext.appointments = appointments.map(a => ({
       id: a.id,
       service_name: a.services?.name,
@@ -192,6 +207,8 @@ async function processZapiWebhook(body: any) {
                          (option.cleanId === 'main_reschedule' || option.cleanText.includes('reagendar')) ? 'reschedule' :
                          (option.cleanId === 'main_cancel' || option.cleanText.includes('cancelar')) ? 'cancel' : '';
           
+          console.log('CURRENT ACTION', action);
+
           if (!action) {
             nextMessage = "Por favor, escolha uma opção:";
             nextOptions = {
@@ -209,20 +226,25 @@ async function processZapiWebhook(body: any) {
           }
 
           nextContext.action = action;
-          if (isSingle) {
+          
+          if (!isMultiple) {
             nextContext.scope = 'single';
-            nextContext.selected_appointment_id = appointments[0].id;
+            const targetApptId = appointments[0]?.id || conversation.appointment_id;
+            const targetApptName = appointments[0]?.services?.name || "seu agendamento";
+            
+            nextContext.selected_appointment_id = targetApptId;
+
             if (action === 'confirm') {
-              await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", appointments[0].id);
-              await triggerNotification(appointments[0].id, 'appointment_confirmed');
+              await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", targetApptId);
+              await triggerNotification(targetApptId, 'appointment_confirmed');
               nextMessage = "✅ Seu agendamento foi confirmado com sucesso.";
               nextState = 'completed';
             } else if (action === 'reschedule') {
               nextState = 'awaiting_reschedule_date';
-              nextMessage = `Para qual data você deseja reagendar o serviço de *${appointments[0].services?.name}*? (Ex: 25/05)`;
+              nextMessage = `Para qual data você deseja reagendar o serviço de *${targetApptName}*? (Ex: 25/05)`;
             } else if (action === 'cancel') {
               nextState = 'awaiting_cancel_confirmation';
-              nextMessage = `Tem certeza que deseja cancelar o agendamento de *${appointments[0].services?.name}*?`;
+              nextMessage = `Tem certeza que deseja cancelar o agendamento de *${targetApptName}*?`;
               nextOptions = {
                 buttons: [
                   { id: 'cancel_yes', label: 'Sim, cancelar' },
@@ -239,12 +261,14 @@ async function processZapiWebhook(body: any) {
                 buttonLabel: "Escolher",
                 title: "Escolha o escopo",
                 options: [
-                  { id: 'scope_all', title: `Confirmar todos`, description: "Aplicar a todos os agendamentos" },
+                  { id: 'scope_all', title: `Todos os agendamentos`, description: `Aplicar ${actionVerb} a todos` },
                   { id: 'scope_single', title: `Apenas um específico`, description: "Escolher qual agendamento" }
                 ]
               }
             };
           }
+          
+          console.log('NEXT STATE', nextState);
           break;
         }
 
