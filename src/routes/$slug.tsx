@@ -373,6 +373,9 @@ function ShopPageComponent() {
       
       const [y, m, d] = date.split('-').map(Number);
 
+      console.log('WORKING HOURS', { start: workingHours.start, end: workingHours.end });
+      console.log('EXISTING APPOINTMENTS', dayAppointments.filter(app => app.barber_id === barberId));
+
       for (let hour = startHour; hour <= endHour; hour++) {
         for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
           if (hour === endHour && min >= endMin) break;
@@ -392,6 +395,7 @@ function ShopPageComponent() {
             if (app.barber_id !== barberId) return false;
             const appStart = new Date(app.start_time).getTime();
             const appEnd = new Date(app.end_time).getTime();
+            // Conflict rule: slotStart < appointmentEnd && slotEnd > appointmentStart
             return checkTimeMs < appEnd && serviceEndMs > appStart;
           });
 
@@ -421,6 +425,8 @@ function ShopPageComponent() {
           times.push(timeStr);
         }
       }
+      
+      console.log('AVAILABLE SLOTS', times);
       setAvailableTimes(times);
     } catch (error) {
       console.error("Error fetching times:", error);
@@ -433,8 +439,6 @@ function ShopPageComponent() {
     if (!shop?.id) return;
     setLoadingDayData(true);
     try {
-      // Use a range that covers the whole day in UTC, but filtering more precisely in memory
-      // to avoid timezone shifts. 
       const startOfDay = `${date}T00:00:00Z`;
       const endOfDay = `${date}T23:59:59Z`;
       
@@ -442,7 +446,7 @@ function ShopPageComponent() {
         .from("appointments")
         .select("id, barber_id, start_time, end_time, status")
         .eq("user_id", shop.id)
-        .in("status", ["scheduled", "confirmed", "in_progress"])
+        .in("status", ["scheduled", "confirmed", "in_progress", "awaiting_payment"])
         .gte("start_time", startOfDay)
         .lte("start_time", endOfDay);
         
