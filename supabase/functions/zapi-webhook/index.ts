@@ -99,7 +99,9 @@ serve(async (req) => {
       let nextState = state;
       let nextContext = { ...context };
 
-      console.log(`Processing message: "${messageText}" in state: "${state}"`);
+      console.log('INCOMING MESSAGE', messageText);
+      console.log('ACTIVE CONVERSATION', JSON.stringify(conversation));
+      console.log('CURRENT STATE', state);
 
       // 1. HELPERS
       const triggerNotification = async (appointmentId: string, type: string) => {
