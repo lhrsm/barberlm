@@ -2684,8 +2684,7 @@ function ShopPageComponent() {
                     </div>
                     
                     <Button 
-                      className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
-                      style={{ backgroundColor: primaryColor }}
+                      className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
                       onClick={(e) => {
                         e.preventDefault();
                         handleFinalizeBooking();
