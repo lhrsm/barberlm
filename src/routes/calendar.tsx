@@ -382,28 +382,32 @@ function CalendarComponent() {
                               setIsDialogOpen(true);
                             }}
                           >
-                             {getAppointmentsForTime(day, hour).map(app => (
-                              <div 
-                                key={app.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedAppointmentId(app.id);
-                                  setDetailsModalOpen(true);
-                                }}
-                                className={cn(
-                                  "h-full p-2 rounded-lg shadow-md border-2 text-[10px] flex flex-col justify-center gap-0.5 transition-all duration-300 hover:scale-[1.05] hover:z-10 hover:shadow-lg",
-                                  app.status === 'confirmed' ? "bg-emerald-500 border-emerald-400 text-white" :
-                                  app.status === 'scheduled' ? "bg-blue-500 border-blue-400 text-white" :
-                                  app.status === 'awaiting_payment' ? "bg-amber-500 border-amber-400 text-white" :
-                                  app.status === 'cancelled' ? "bg-red-500 border-red-400 text-white" :
-                                  app.status === 'completed' ? "bg-sky-500 border-sky-400 text-white" :
-                                  "bg-blue-600 border-blue-500 text-white"
-                                )}
-                              >
-                                <div className="font-black text-[8px] opacity-80">{format(parseISO(app.start_time), "HH:mm")}</div>
-                                <div className="font-bold truncate leading-none">{app.customers?.name}</div>
-                              </div>
-                             ))}
+                             {getAppointmentsForTime(day, hour).map(app => {
+                              const statusConfig = getCalendarStatusConfig(app.status);
+                              console.log('CALENDAR CARD STATUS', app.id, app.status);
+
+                              return (
+                                <div 
+                                  key={app.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedAppointmentId(app.id);
+                                    setDetailsModalOpen(true);
+                                  }}
+                                  className={cn(
+                                    "h-full p-2 rounded-lg shadow-md border-2 text-[10px] flex flex-col justify-center gap-0.5 transition-all duration-300 hover:scale-[1.05] hover:z-10 hover:shadow-lg",
+                                    statusConfig.className
+                                  )}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="font-black text-[8px] opacity-80">{format(parseISO(app.start_time), "HH:mm")}</div>
+                                    <div className="font-black text-[7px] bg-white/20 px-1 rounded uppercase">{statusConfig.label}</div>
+                                  </div>
+                                  <div className="font-bold truncate leading-none">{app.customers?.name}</div>
+                                  <div className="opacity-80 text-[7px] truncate">{app.services?.name}</div>
+                                </div>
+                              );
+                             })}
                           </div>
                         ))}
                       </div>
