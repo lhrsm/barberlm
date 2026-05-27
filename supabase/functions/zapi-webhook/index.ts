@@ -163,8 +163,12 @@ async function processZapiWebhook(body: any) {
       }
     };
 
-    const getAppointments = async () => {
-      if (!conversation.appointment_group_id && !conversation.appointment_id) return [];
+    const getAppointmentsFromConversation = async () => {
+      console.log('GETTING APPOINTMENTS FOR CONVERSATION', conversation.id);
+      if (!conversation.appointment_group_id && !conversation.appointment_id) {
+        console.log('NO APPOINTMENT IDs IN CONVERSATION');
+        return [];
+      }
       
       let query = supabase
         .from("appointments")
@@ -172,22 +176,30 @@ async function processZapiWebhook(body: any) {
         .neq("status", "cancelled");
         
       if (conversation.appointment_group_id) {
+        console.log('QUERYING BY GROUP ID:', conversation.appointment_group_id);
         query = query.eq("appointment_group_id", conversation.appointment_group_id);
       } else {
+        console.log('QUERYING BY APPOINTMENT ID:', conversation.appointment_id);
         query = query.eq("id", conversation.appointment_id);
       }
       
-      const { data } = await query;
+      const { data, error } = await query;
+      if (error) {
+        console.error('ERROR FETCHING APPOINTMENTS:', error);
+        return [];
+      }
       return data || [];
     };
 
-    const appointments = await getAppointments();
-    const appointmentsCount = appointments.length;
-    const isMultiple = appointmentsCount > 1;
-    const isSingle = appointmentsCount === 1 || appointmentsCount === 0;
+    const appointments = await getAppointmentsFromConversation();
+    const isMultiple = appointments.length > 1;
+    const isSingle = appointments.length === 1;
 
-    console.log('APPOINTMENTS COUNT', appointmentsCount);
+    console.log('CONVERSATION', conversation);
+    console.log('APPOINTMENTS FOUND', appointments);
+    console.log('APPOINTMENTS COUNT', appointments.length);
     console.log('IS MULTIPLE', isMultiple);
+    console.log('SELECTED OPTION', option);
 
     nextContext.appointments = appointments.map(a => ({
       id: a.id,
@@ -203,9 +215,9 @@ async function processZapiWebhook(body: any) {
     try {
       switch (state) {
         case 'awaiting_main_action': {
-          const action = (option.cleanId === 'main_confirm' || option.cleanText.includes('confirmar')) ? 'confirm' :
-                         (option.cleanId === 'main_reschedule' || option.cleanText.includes('reagendar')) ? 'reschedule' :
-                         (option.cleanId === 'main_cancel' || option.cleanText.includes('cancelar')) ? 'cancel' : '';
+          const action = (option.cleanId === 'main_confirm' || option.cleanId === 'confirmar' || option.cleanText.includes('confirmar')) ? 'confirm' :
+                         (option.cleanId === 'main_reschedule' || option.cleanId === 'reagendar' || option.cleanText.includes('reagendar')) ? 'reschedule' :
+                         (option.cleanId === 'main_cancel' || option.cleanId === 'cancelar' || option.cleanText.includes('cancelar')) ? 'cancel' : '';
           
           console.log('CURRENT ACTION', action);
 
@@ -255,34 +267,45 @@ async function processZapiWebhook(body: any) {
           } else {
             nextState = 'awaiting_scope_selection';
             const actionVerb = action === 'confirm' ? 'confirmar' : action === 'reschedule' ? 'reagendar' : 'cancelar';
-            nextMessage = `O que você deseja ${actionVerb}?`;
+            nextMessage = `Você deseja ${actionVerb}:`;
+            
+            // Using action-specific scope IDs as requested for confirmation
+            const allId = action === 'confirm' ? 'confirm_all' : 'scope_all';
+            const singleId = action === 'confirm' ? 'confirm_single' : 'scope_single';
+
             nextOptions = {
               list: {
                 buttonLabel: "Escolher",
-                title: "Escolha o escopo",
+                title: "Escolha o que fazer",
                 options: [
-                  { id: 'scope_all', title: `Todos os agendamentos`, description: `Aplicar ${actionVerb} a todos` },
-                  { id: 'scope_single', title: `Apenas um específico`, description: "Escolher qual agendamento" }
+                  { id: allId, title: `Todos os agendamentos`, description: `Aplicar ${actionVerb} a todos` },
+                  { id: singleId, title: `Apenas um específico`, description: "Escolher qual agendamento" }
                 ]
               }
             };
           }
-          
-          console.log('NEXT STATE', nextState);
           break;
         }
 
         case 'awaiting_scope_selection': {
-          const scope = option.cleanId === 'scope_all' ? 'all' : option.cleanId === 'scope_single' ? 'single' : '';
+          const isAll = option.cleanId === 'scope_all' || option.cleanId === 'confirm_all';
+          const isScopeSingle = option.cleanId === 'scope_single' || option.cleanId === 'confirm_single';
+          
+          const scope = isAll ? 'all' : isScopeSingle ? 'single' : '';
+          
           if (!scope) {
             nextMessage = "Por favor, selecione se deseja aplicar a todos ou apenas a um específico.";
+            const actionVerb = nextContext.action === 'confirm' ? 'confirmar' : nextContext.action === 'reschedule' ? 'reagendar' : 'cancelar';
+            const allId = nextContext.action === 'confirm' ? 'confirm_all' : 'scope_all';
+            const singleId = nextContext.action === 'confirm' ? 'confirm_single' : 'scope_single';
+
             nextOptions = {
               list: {
                 buttonLabel: "Escolher",
                 title: "Escopo",
                 options: [
-                  { id: 'scope_all', title: "Todos", description: "Todos os agendamentos" },
-                  { id: 'scope_single', title: "Específico", description: "Um por um" }
+                  { id: allId, title: "Todos", description: `Todos os agendamentos (${actionVerb})` },
+                  { id: singleId, title: "Específico", description: `Um por um (${actionVerb})` }
                 ]
               }
             };
@@ -598,6 +621,7 @@ async function processZapiWebhook(body: any) {
           break;
         }
       }
+      console.log('NEXT STATE', nextState);
     } catch (e) {
       console.error("STATE MACHINE ERROR:", e);
       nextMessage = "Desculpe, ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde.";
