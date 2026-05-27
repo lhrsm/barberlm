@@ -2798,14 +2798,11 @@ function ShopPageComponent() {
                       <div className="pt-2">
                         <Button 
                           id="btn-confirm-booking"
-                          className="w-full h-12 text-base font-bold shadow-lg hover:shadow-primary/20 transition-all" 
-                          style={{ backgroundColor: primaryColor }}
+                          className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
                           onClick={(e) => {
                             e.preventDefault();
                             const normalized = normalizePhone(customerPhone);
                             console.log('DEBUG: Finalizing booking with normalized phone:', normalized);
-                            // Não atualizamos o estado visual com o valor normalizado para evitar DDI duplicado
-                            // setCustomerPhone(normalized); 
                             handleFinalizeBooking();
                           }} 
                           disabled={submitting}
@@ -2815,7 +2812,7 @@ function ShopPageComponent() {
                         
                         <Button 
                           variant="secondary" 
-                          className="w-full mt-3 h-12 text-sm font-bold border border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 rounded-xl" 
+                          className="w-full mt-3 h-12 bg-white text-black hover:bg-zinc-100 border border-black rounded-xl font-medium shadow-sm transition-all duration-200" 
                           onClick={() => setPaymentMethod(null)}
                         >
                           Alterar forma de pagamento
