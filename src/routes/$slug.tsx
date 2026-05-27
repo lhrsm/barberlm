@@ -2542,14 +2542,14 @@ function ShopPageComponent() {
                   </div>
                 </div>
 
-                <div className="bg-zinc-900/80 backdrop-blur-md p-6 rounded-[2rem] space-y-4 text-sm border border-white/5 shadow-2xl">
-                  <div className="flex items-center gap-3 pb-2 border-b border-white/5 mb-2">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Calendar size={20} className="text-primary" style={{ color: primaryColor }} />
+                <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 p-6 space-y-4 transition-all duration-300 hover:shadow-xl">
+                  <div className="flex items-center gap-3 pb-2 border-b border-zinc-100 mb-2">
+                    <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center">
+                      <Calendar size={20} className="text-zinc-600" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resumo do Agendamento</p>
-                      <p className="text-sm font-bold text-white">Confira os detalhes abaixo</p>
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Resumo do Agendamento</p>
+                      <p className="text-sm font-bold text-zinc-900">Confira os detalhes abaixo</p>
                     </div>
                   </div>
 
@@ -2557,19 +2557,19 @@ function ShopPageComponent() {
                     {/* Lista de Serviços */}
                     <div className="space-y-3">
                       {bookingCart.map((item) => (
-                        <div key={item.id} className="flex flex-col gap-1 pb-3 border-b border-white/5 last:border-b-0 relative group">
+                        <div key={item.id} className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
                           <button 
                             onClick={() => removeFromBookingCart(item.id)}
-                            className="absolute right-0 top-0 p-1 text-zinc-600 hover:text-red-500 transition-colors"
+                            className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
                             title="Remover serviço"
                           >
                             <Trash2 size={14} />
                           </button>
                           <div className="flex justify-between items-center pr-8">
-                            <span className="font-bold text-zinc-100">{item.service_name}</span>
-                            <span className="text-zinc-200 font-bold">R$ {(item.price || 0).toFixed(2)}</span>
+                            <span className="font-bold text-zinc-900">{item.service_name}</span>
+                            <span className="text-zinc-900 font-bold">R$ {(item.price || 0).toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                             <span className="flex items-center gap-1.5"><UserIcon size={10} /> {item.barber_name}</span>
                             <span>{format(parseISO(item.date), "dd/MM/yyyy")} às {item.start_time}</span>
                           </div>
@@ -2577,7 +2577,7 @@ function ShopPageComponent() {
                       ))}
 
                       {selectedService && (
-                        <div className="flex flex-col gap-1 pb-3 border-b border-white/5 last:border-b-0 relative group">
+                        <div className="flex flex-col gap-1 pb-3 border-b border-zinc-100 last:border-b-0 relative group">
                           <button 
                             onClick={() => {
                               setSelectedService(null);
@@ -2585,16 +2585,16 @@ function ShopPageComponent() {
                               setSelectedTime("");
                               if (bookingCart.length === 0) setBookingStep(2);
                             }}
-                            className="absolute right-0 top-0 p-1 text-zinc-600 hover:text-red-500 transition-colors"
+                            className="absolute right-0 top-0 p-1 text-zinc-400 hover:text-red-500 transition-colors"
                             title="Remover serviço"
                           >
                             <Trash2 size={14} />
                           </button>
                           <div className="flex justify-between items-center pr-8">
-                            <span className="font-bold text-zinc-100">{selectedService.name}</span>
-                            <span className="text-zinc-200 font-bold">R$ {(selectedService.price || 0).toFixed(2)}</span>
+                            <span className="font-bold text-zinc-900">{selectedService.name}</span>
+                            <span className="text-zinc-900 font-bold">R$ {(selectedService.price || 0).toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                             <span className="flex items-center gap-1.5"><UserIcon size={10} /> {selectedBarber?.name}</span>
                             <span>{format(parseISO(selectedDate), "dd/MM/yyyy")} às {selectedTime}</span>
                           </div>
@@ -2603,20 +2603,20 @@ function ShopPageComponent() {
                     </div>
                     
                     {selectedProducts.length > 0 && (
-                      <div className="space-y-3 py-3 border-y border-white/5 my-2">
+                      <div className="space-y-3 py-3 border-y border-zinc-100 my-2">
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-black text-primary uppercase tracking-wider" style={{ color: primaryColor }}>Produtos Adicionados</p>
-                          <span className="text-[10px] font-bold text-zinc-500">{selectedProducts.length} itens</span>
+                          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Produtos Adicionados</p>
+                          <span className="text-[10px] font-bold text-zinc-400">{selectedProducts.length} itens</span>
                         </div>
                         {selectedProducts.map(p => (
                           <div key={p.id} className="flex justify-between items-center text-xs pl-3 relative group">
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-zinc-800" />
-                            <span className="text-zinc-400">{p.name} <span className="text-primary font-black ml-1" style={{ color: primaryColor }}>x{p.quantity || 1}</span></span>
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-zinc-200" />
+                            <span className="text-zinc-600">{p.name} <span className="text-zinc-900 font-black ml-1">x{p.quantity || 1}</span></span>
                             <div className="flex items-center gap-3">
-                              <span className="text-zinc-200 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
+                              <span className="text-zinc-900 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
                               <button 
                                 onClick={() => toggleProduct(p)}
-                                className="text-zinc-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                className="text-zinc-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                               >
                                 <Trash2 size={12} />
                               </button>
@@ -2628,15 +2628,15 @@ function ShopPageComponent() {
                   </div>
 
                   {(useCashback || useCredits) && (
-                    <div className="pt-2 border-t border-white/5 space-y-1">
+                    <div className="pt-2 border-t border-zinc-100 space-y-1">
                       {useCashback && (
-                        <div className="flex justify-between text-emerald-400 font-bold text-xs">
+                        <div className="flex justify-between text-emerald-600 font-bold text-xs">
                           <span>Desconto Cashback:</span> 
                           <span>- R$ {Math.min(customerCashback, calculateTotalBeforeCashback()).toFixed(2)}</span>
                         </div>
                       )}
                       {useCredits && (
-                        <div className="flex justify-between font-bold text-xs" style={{ color: primaryColor }}>
+                        <div className="flex justify-between text-zinc-900 font-bold text-xs">
                           <span>Desconto Créditos:</span> 
                           <span>- R$ {Math.min(customerCredits, calculateTotalBeforeCredits()).toFixed(2)}</span>
                         </div>
@@ -2644,20 +2644,20 @@ function ShopPageComponent() {
                     </div>
                   )}
 
-                  <div className="space-y-2 pt-2 border-t border-white/10 mt-3">
+                  <div className="space-y-2 pt-2 border-t border-zinc-100 mt-3">
                     <div className="flex justify-between items-center text-zinc-400 font-bold text-xs uppercase tracking-widest">
                       <span>Subtotal:</span> 
                       <span>R$ {calculateSubtotal().toFixed(2)}</span>
                     </div>
                     {appliedCoupon && (
-                      <div className="flex justify-between items-center text-primary font-black text-xs uppercase tracking-widest" style={{ color: primaryColor }}>
+                      <div className="flex justify-between items-center text-emerald-600 font-black text-xs uppercase tracking-widest">
                         <span className="flex items-center gap-1"><Tag size={12} /> Cupom ({appliedCoupon.code}):</span> 
                         <span>- R$ {calculateDiscount().toFixed(2)}</span>
                       </div>
                     )}
                     <div className="flex justify-between items-center pt-2">
-                      <span className="text-white font-black text-lg uppercase tracking-tighter">Total Final:</span> 
-                      <span className="text-3xl font-black text-white" style={{ color: calculateTotal() === 0 ? '#10b981' : 'white' }}>R$ {calculateTotal().toFixed(2)}</span>
+                      <span className="text-zinc-900 font-black text-lg uppercase tracking-tighter">Total Final:</span> 
+                      <span className="text-3xl font-black text-zinc-900">R$ {calculateTotal().toFixed(2)}</span>
                     </div>
                   </div>
 
