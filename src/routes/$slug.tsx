@@ -950,16 +950,30 @@ function ShopPageComponent() {
 
       toast.success("Agendamentos realizados com sucesso!");
       
+      // 6. Ensure session persistence before redirecting
+      const sessionData = {
+        phone: normalized,
+        customer_id: finalCustId,
+        name: customerName
+      };
+      
+      localStorage.setItem(`client_portal_session_${slug}`, JSON.stringify(sessionData));
+      console.log('DEBUG: Persisted session before portal redirect', sessionData);
+
       // Reset and redirect
       setIsBookingOpen(false);
       setBookingCart([]);
       setSelectedProducts([]);
       setBookingStep(1);
+      setAppliedCoupon(null);
+      setUseCashback(false);
+      setUseCredits(false);
+      setPaymentMethod(null);
       
       setTimeout(() => {
-        // Redirecionamento usando navigate do TanStack Router
-        navigate({ to: `/${slug}/portal` });
-      }, 2000);
+        // Redirecionamento usando navigate do TanStack Router com substituição de histórico
+        navigate({ to: `/${slug}/portal`, replace: true });
+      }, 1500);
 
     } catch (error: any) {
       toast.error("Erro ao realizar agendamento: " + error.message);
@@ -2796,13 +2810,13 @@ function ShopPageComponent() {
                       <div className="pt-2">
                         <Button 
                           id="btn-confirm-booking"
-                          className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                          className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-bold uppercase tracking-wider shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
                           onClick={(e) => {
                             e.preventDefault();
                             const normalized = normalizePhone(customerPhone);
                             console.log('DEBUG: Finalizing booking with normalized phone:', normalized);
                             handleFinalizeBooking();
-                          }} 
+                          }}
                           disabled={submitting}
                         >
                           {submitting ? "Finalizando..." : "Confirmar Agendamento"}
@@ -2810,7 +2824,7 @@ function ShopPageComponent() {
                         
                         <Button 
                           variant="secondary" 
-                          className="w-full mt-3 h-12 bg-white text-black hover:bg-zinc-100 border border-black rounded-xl font-medium shadow-sm transition-all duration-200" 
+                          className="w-full mt-3 h-12 bg-white text-black hover:bg-zinc-100 border border-black rounded-xl font-bold uppercase tracking-wider shadow-sm transition-all duration-200" 
                           onClick={() => setPaymentMethod(null)}
                         >
                           Alterar forma de pagamento
