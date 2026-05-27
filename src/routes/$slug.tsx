@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Outlet, useLocation } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/$slug")({
 function ShopPageComponent() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const location = useLocation();
   const searchParams = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
   const isEmbedded = searchParams.get('embed') === 'true';
@@ -911,11 +913,13 @@ function ShopPageComponent() {
       }
 
       // Invalidate cache
-      const queryClient = (window as any).queryClient;
-      if (queryClient) {
-        queryClient.invalidateQueries({ queryKey: ["appointments"] });
-        queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
-      }
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["customerAppointments"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
 
       // 5. Notifications
       for (const appt of createdAppointments) {
