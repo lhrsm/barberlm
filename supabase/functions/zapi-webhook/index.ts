@@ -369,6 +369,15 @@ serve(async (req) => {
         updated_at: new Date().toISOString()
       }).eq("id", conversation.id);
 
+      // Log the interaction
+      await logAutomationInteraction(
+        supabase, 
+        conversation, 
+        messageText, 
+        { from: state, to: nextState }, 
+        nextContext.action
+      );
+
       return new Response(JSON.stringify({ status: "success", state: nextState }), { headers: corsHeaders });
     }
 
