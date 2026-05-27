@@ -193,6 +193,7 @@ async function processZapiWebhook(body: any) {
 
     const appointments = await getAppointmentsFromConversation();
     const isMultiple = appointments.length > 1;
+    const isSingle = appointments.length === 1;
 
     console.log('CONVERSATION', conversation);
     console.log('APPOINTMENTS FOUND', appointments);
