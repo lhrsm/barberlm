@@ -32,6 +32,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -63,6 +64,7 @@ function CalendarComponent() {
   const { user: authUser, loading: authLoading, role: authRole } = useAuth();
   const { session, loading: profLoading } = useProfessionalAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const user = authUser || (session ? { id: session.barber_id, email: session.phone } : null);
   const role = authRole || (session ? 'barber' : null);
@@ -99,21 +101,35 @@ function CalendarComponent() {
     if (user && role !== 'super_admin') {
       fetchData();
 
-      let channel: any;
-      if (user) {
-        channel = supabase
-          .channel('calendar-realtime')
-          .on('postgres_changes', { 
-            event: '*', 
-            schema: 'public', 
-            table: 'appointments',
-            filter: role === 'barber' ? `barber_id=eq.${user.id}` : undefined
-          }, () => {
+      const tenantId = user.id;
+      
+      const channel = supabase
+        .channel('appointments-calendar-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'appointments'
+          },
+          (payload) => {
+            console.log('REALTIME PAYLOAD', payload);
+            console.log('STATUS UPDATED', payload.new?.id, payload.new?.status);
+            
             fetchData();
             refreshLimits();
-          })
-          .subscribe();
-      }
+            
+            // Invalida todas as queries relacionadas
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+            queryClient.invalidateQueries({ queryKey: ['customerAppointments'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar-appointments'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard-appointments'] });
+          }
+        )
+        .subscribe();
+
       return () => {
         supabase.removeChannel(channel);
       };
@@ -147,7 +163,10 @@ function CalendarComponent() {
       supabase.from("services").select("*").eq("user_id", user.id).eq("active", true).order("name"),
     ]);
 
-    if (appRes.data) setAppointments(appRes.data);
+    if (appRes.data) {
+      console.log('CALENDAR APPOINTMENTS', appRes.data);
+      setAppointments(appRes.data);
+    }
     if (barbRes.data) setBarbers(barbRes.data);
     if (custRes.data) setCustomers(custRes.data);
     if (servRes.data) setServices(servRes.data);
