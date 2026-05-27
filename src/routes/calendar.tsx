@@ -330,36 +330,36 @@ function CalendarComponent() {
                           setIsDialogOpen(true);
                         }}
                       >
-                        {getAppointmentsForTime(currentDate, hour).map(app => (
-                          <div 
-                            key={app.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedAppointmentId(app.id);
-                              setDetailsModalOpen(true);
-                            }}
-                            className={cn(
-                              "px-3 py-2 rounded-xl shadow-lg border-2 cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-xl flex flex-col gap-1 min-w-[180px]",
-                              app.status === 'confirmed' ? "bg-emerald-500 border-emerald-400 text-white" :
-                              app.status === 'scheduled' ? "bg-blue-500 border-blue-400 text-white" :
-                              app.status === 'awaiting_payment' ? "bg-amber-500 border-amber-400 text-white" :
-                              app.status === 'cancelled' ? "bg-red-500 border-red-400 text-white" :
-                              app.status === 'completed' ? "bg-sky-500 border-sky-400 text-white" :
-                              "bg-blue-600 border-blue-500 text-white"
-                            )}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-black tracking-tight text-[11px]">
-                                {format(parseISO(app.start_time), "HH:mm")}
-                              </span>
-                              <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[8px] font-black uppercase px-1.5 py-0">
-                                {app.status === 'confirmed' ? 'Confirmado' : app.status === 'scheduled' ? 'Agendado' : 'Pendente'}
-                              </Badge>
+                        {getAppointmentsForTime(currentDate, hour).map(app => {
+                          const statusConfig = getCalendarStatusConfig(app.status);
+                          console.log('CALENDAR CARD STATUS', app.id, app.status);
+                          
+                          return (
+                            <div 
+                              key={app.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedAppointmentId(app.id);
+                                setDetailsModalOpen(true);
+                              }}
+                              className={cn(
+                                "px-3 py-2 rounded-xl shadow-lg border-2 cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-xl flex flex-col gap-1 min-w-[180px]",
+                                statusConfig.className
+                              )}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-black tracking-tight text-[11px]">
+                                  {format(parseISO(app.start_time), "HH:mm")}
+                                </span>
+                                <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[8px] font-black uppercase px-1.5 py-0">
+                                  {statusConfig.label}
+                                </Badge>
+                              </div>
+                              <span className="font-bold truncate text-[12px] leading-none mt-0.5">{app.customers?.name || "Cliente"}</span>
+                              <span className="opacity-90 text-[10px] truncate font-medium">{app.services?.name || "Serviço"}</span>
                             </div>
-                            <span className="font-bold truncate text-[12px] leading-none mt-0.5">{app.customers?.name || "Cliente"}</span>
-                            <span className="opacity-90 text-[10px] truncate font-medium">{app.services?.name || "Serviço"}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
