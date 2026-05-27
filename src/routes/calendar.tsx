@@ -112,7 +112,7 @@ function CalendarComponent() {
             schema: 'public',
             table: 'appointments'
           },
-          (payload) => {
+          (payload: any) => {
             console.log('REALTIME PAYLOAD', payload);
             console.log('STATUS UPDATED', payload.new?.id, payload.new?.status);
             

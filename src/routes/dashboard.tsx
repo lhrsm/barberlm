@@ -139,7 +139,7 @@ function DashboardComponent() {
           schema: 'public', 
           table: 'appointments', 
           filter: `tenant_id=eq.${tenantId}` 
-        }, (payload) => {
+        }, (payload: any) => {
           console.log('REALTIME PAYLOAD', payload);
           console.log('STATUS UPDATED', payload.new?.id, payload.new?.status);
           
