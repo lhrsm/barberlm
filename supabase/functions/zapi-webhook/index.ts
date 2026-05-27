@@ -95,7 +95,17 @@ function extractSelectedOption(payload: any): string {
 }
 
 
-async function logAutomationInteraction(supabase: any, conversation: any, message: string, stateChange: { from: string, to: string }, action?: string, payload?: any, response?: any, error?: string) {
+async function logAutomationInteraction(
+  supabase: any, 
+  conversation: any, 
+  message: string, 
+  stateChange: { from: string, to: string }, 
+  action?: string, 
+  payload?: any, 
+  response?: any, 
+  error?: string,
+  extraContext?: any
+) {
   try {
     const { data: automation } = await supabase
       .from("automations")
@@ -104,16 +114,20 @@ async function logAutomationInteraction(supabase: any, conversation: any, messag
       .eq("type", "appointment_confirmation")
       .maybeSingle();
 
+    const scope = extraContext?.scope || conversation.context?.scope || 'none';
+    const groupId = conversation.appointment_group_id || 'none';
+    const apptId = extraContext?.selected_appointment_id || conversation.appointment_id || 'none';
+
     await supabase.from("automation_logs").insert({
       automation_id: automation?.id,
       tenant_id: conversation.barber_id,
       customer_id: conversation.customer_id,
-      appointment_id: conversation.appointment_id,
+      appointment_id: apptId !== 'none' ? apptId : null,
       phone: conversation.phone,
       message_type: "appointment_confirmation_interaction",
       status: error ? "error" : "success",
       original_template: JSON.stringify(payload), // Store raw payload for debugging
-      processed_template: `State: ${stateChange.from} -> ${stateChange.to} | Action: ${action || 'none'} | Msg: ${message}`,
+      processed_template: `State: ${stateChange.from} -> ${stateChange.to} | Action: ${action || 'none'} | Scope: ${scope} | Group: ${groupId} | Msg: ${message}`,
       response: response,
       error_message: error,
       sent_at: new Date().toISOString()
