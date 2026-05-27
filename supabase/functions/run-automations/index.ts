@@ -353,23 +353,29 @@ async function processAppointmentConfirmation(supabase: any, automation: any, co
         message += `⏰ Horário: ${formatBrazilTime(firstAppt.start_time)}\n\n`;
       }
 
-      // Add numeric fallback ALWAYS
-      message += `Escolha uma opção:\n\n`;
-      message += `1️⃣ Confirmar agendamento\n`;
-      message += `2️⃣ Reagendar\n`;
-      message += `3️⃣ Cancelar`;
+      // Final part of message
+      message += `Como podemos te ajudar hoje? Clique em "Ver opções" abaixo para gerenciar seu agendamento.`;
 
-      const buttons = [
-        { id: 'confirm', label: 'Confirmar' },
-        { id: 'reschedule', label: 'Reagendar' },
-        { id: 'cancel', label: 'Cancelar' }
+      const listOptions = [
+        { id: 'confirm', title: 'Confirmar agendamento', description: 'Confirmar todos ou um atendimento específico' },
+        { id: 'reschedule', title: 'Reagendar', description: 'Alterar data ou horário do atendimento' },
+        { id: 'cancel', title: 'Cancelar', description: 'Cancelar todos ou um atendimento específico' }
       ];
 
       const result = await sendMessage(connection, phone, message, {
-        buttons,
-        title: "Confirmação",
-        footer: businessName
+        list: {
+          buttonLabel: "Ver opções",
+          title: "Opções de Agendamento",
+          options: listOptions
+        },
+        // Fallback buttons for older versions/compatibility
+        buttons: [
+          { id: 'confirm', label: 'Confirmar' },
+          { id: 'reschedule', label: 'Reagendar' },
+          { id: 'cancel', label: 'Cancelar' }
+        ]
       });
+
       
       const status = result.success ? "success" : "error";
       
