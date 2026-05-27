@@ -452,13 +452,15 @@ async function processZapiWebhook(body: any) {
           break;
         }
 
+        // --- COMMON FLOWS (DATE, TIME, CANCEL CONFIRM, REFUND) ---
         case 'awaiting_cancel_confirmation': {
           const isYes = option.cleanId === 'cancel_yes' || option.cleanText.includes('sim');
           if (isYes) {
             const scope = nextContext.scope || 'single';
-            const toCancel = scope === 'all' ? appointments : appointments.filter(a => a.id === nextContext.selected_appointment_id);
+            const toCancel = scope === 'all' ? appointments : 
+                             scope === 'remaining' ? appointments.filter(a => a.id !== nextContext.selected_appointment_id) :
+                             appointments.filter(a => a.id === nextContext.selected_appointment_id);
             
-            // Check if any are paid
             const hasPaid = toCancel.some(a => a.payment_status === 'paid' || a.payment_status === 'completed');
             if (hasPaid) {
               nextState = 'awaiting_refund_preference';
@@ -466,7 +468,7 @@ async function processZapiWebhook(body: any) {
               nextOptions = {
                 list: {
                   buttonLabel: "Escolher",
-                  title: "Estorno",
+                  title: "Estorno/Crédito",
                   options: [
                     { id: 'refund_money', title: 'Estorno', description: 'Receber o valor de volta' },
                     { id: 'refund_credit', title: 'Créditos', description: 'Converter em créditos na barbearia' }
@@ -478,18 +480,19 @@ async function processZapiWebhook(body: any) {
                 await supabase.from("appointments").update({ status: 'cancelled' }).eq("id", a.id);
                 await triggerNotification(a.id, 'appointment_cancelled');
               }
-              nextMessage = `❌ Cancelamento realizado com sucesso.`;
-              if (scope === 'single' && !isSingle) {
-                nextState = 'awaiting_remaining_action';
+              nextMessage = "❌ Cancelamento realizado com sucesso.";
+              
+              if (scope === 'single' && isMultiple) {
+                nextState = 'awaiting_remaining_after_cancel';
                 nextMessage += "\n\nO que deseja fazer com os outros agendamentos?";
                 nextOptions = {
                   list: {
                     buttonLabel: "Ver opções",
                     title: "Outros agendamentos",
                     options: [
-                      { id: 'rem_confirm', title: 'Confirmar', description: 'Confirmar os restantes' },
-                      { id: 'rem_reschedule', title: 'Reagendar', description: 'Reagendar os restantes' },
-                      { id: 'rem_keep', title: 'Manter como estão', description: 'Não alterar os demais' }
+                      { id: 'remaining_confirm', title: 'Confirmar', description: 'Confirmar os restantes' },
+                      { id: 'remaining_reschedule', title: 'Reagendar', description: 'Reagendar os restantes' },
+                      { id: 'remaining_keep_pending', title: 'Manter pendente', description: 'Não alterar os demais' }
                     ]
                   }
                 };
@@ -505,21 +508,22 @@ async function processZapiWebhook(body: any) {
         }
 
         case 'awaiting_refund_preference': {
-          const preference = option.cleanId === 'refund_money' ? 'refund' : option.cleanId === 'refund_credit' ? 'credit' : '';
+          const preference = option.id === 'refund_money' ? 'refund' : option.id === 'refund_credit' ? 'credit' : '';
           if (!preference) {
              nextMessage = "Por favor, escolha como deseja receber o valor (Estorno ou Créditos).";
              break;
           }
           
           const scope = nextContext.scope || 'single';
-          const toCancel = scope === 'all' ? appointments : appointments.filter(a => a.id === nextContext.selected_appointment_id);
+          const toCancel = scope === 'all' ? appointments : 
+                           scope === 'remaining' ? appointments.filter(a => a.id !== nextContext.selected_appointment_id) :
+                           appointments.filter(a => a.id === nextContext.selected_appointment_id);
 
           for (const a of toCancel) {
             await supabase.from("appointments").update({ status: 'cancelled', refund_status: 'requested', refund_type: preference }).eq("id", a.id);
             await triggerNotification(a.id, 'appointment_cancelled');
             
             if (preference === 'credit') {
-              // Logic for credits
               const { data: wallet } = await supabase.from("wallet").select("*").eq("customer_id", conversation.customer_id).maybeSingle();
               const amount = Number(a.total_price || 0);
               if (wallet) {
@@ -532,22 +536,53 @@ async function processZapiWebhook(body: any) {
 
           nextMessage = preference === 'refund' ? "✅ Cancelamento solicitado. A barbearia irá processar seu estorno." : "✅ Seu agendamento foi cancelado e o valor foi convertido em créditos.";
           
-          if (scope === 'single' && !isSingle) {
-             nextState = 'awaiting_remaining_action';
-             nextMessage += "\n\nO que deseja fazer com os outros agendamentos?";
-             nextOptions = {
-               list: {
-                 buttonLabel: "Ver opções",
-                 title: "Outros agendamentos",
-                 options: [
-                    { id: 'rem_confirm', title: 'Confirmar', description: 'Confirmar os restantes' },
-                    { id: 'rem_reschedule', title: 'Reagendar', description: 'Reagendar os restantes' },
-                    { id: 'rem_keep', title: 'Manter como estão', description: 'Não alterar os demais' }
-                 ]
-               }
-             };
+          if (scope === 'single' && isMultiple) {
+            nextState = 'awaiting_remaining_after_cancel';
+            nextMessage += "\n\nO que deseja fazer com os outros agendamentos?";
+            nextOptions = {
+              list: {
+                buttonLabel: "Ver opções",
+                title: "Outros agendamentos",
+                options: [
+                  { id: 'remaining_confirm', title: 'Confirmar', description: 'Confirmar os restantes' },
+                  { id: 'remaining_reschedule', title: 'Reagendar', description: 'Reagendar os restantes' },
+                  { id: 'remaining_keep_pending', title: 'Manter pendente', description: 'Não alterar os demais' }
+                ]
+              }
+            };
           } else {
-             nextState = 'completed';
+            nextState = 'completed';
+          }
+          break;
+        }
+
+        case 'awaiting_remaining_after_cancel': {
+          const action = option.id === 'remaining_confirm' ? 'confirm' :
+                         option.id === 'remaining_reschedule' ? 'reschedule' :
+                         option.id === 'remaining_keep_pending' ? 'keep' : '';
+          
+          if (!action) {
+            nextMessage = "Por favor, escolha o que fazer com os demais agendamentos.";
+            break;
+          }
+
+          const remaining = appointments.filter(a => a.id !== nextContext.selected_appointment_id);
+          if (action === 'confirm') {
+            for (const a of remaining) {
+              await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", a.id);
+              await triggerNotification(a.id, 'appointment_confirmed');
+            }
+            nextMessage = "✅ Todos os agendamentos foram confirmados.";
+            nextState = 'completed';
+          } else if (action === 'reschedule') {
+            nextContext.reschedule_queue = remaining.map(a => a.id);
+            nextContext.current_reschedule_index = 0;
+            const appt = appointments.find(a => a.id === nextContext.reschedule_queue[0]);
+            nextState = 'awaiting_reschedule_date';
+            nextMessage = `Certo. Vamos reagendar os demais. Para *${appt?.services?.name}*, qual a nova data?`;
+          } else {
+            nextMessage = "✅ Certo. Os demais agendamentos permanecerão pendentes.";
+            nextState = 'completed';
           }
           break;
         }
