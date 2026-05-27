@@ -475,10 +475,12 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    
-    // Process asynchronously to avoid Z-API timeout
-    processWebhook(body).catch(err => {
-      console.error("Critical error processing webhook asynchronously:", err);
+    console.log('WEBHOOK RECEIVED');
+    console.log('RAW PAYLOAD', JSON.stringify(body));
+
+    // Process asynchronously to avoid Z-API timeout and "loading" state
+    processZapiWebhook(body).catch(err => {
+      console.error("Webhook async error:", err);
     });
 
     // Return 200 OK immediately
