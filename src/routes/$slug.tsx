@@ -2125,7 +2125,7 @@ function ShopPageComponent() {
                             className={cn(
                               "relative h-12 rounded-xl text-lg font-black tracking-tight transition-all border flex items-center justify-center gap-2 overflow-hidden group",
                               isSelected 
-                                ? "bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-200" 
+                                ? "bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-200" 
                                 : "bg-white border-zinc-200 text-zinc-500 hover:border-sky-300 hover:text-sky-600 hover:shadow-md hover:shadow-zinc-100"
                             )}
                           >
