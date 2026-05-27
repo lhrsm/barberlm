@@ -225,10 +225,8 @@ function ShopPageComponent() {
           setCustomerLoyaltyPoints(data.loyalty_points || 0);
           setCustomerCredits(data.credits || 0);
           
-          if (data.name && bookingStep === 1) {
-            // Restore auto-advancing behavior if found
-            setBookingStep(2);
-          }
+          // Removed auto-advancing behavior - user must click Continue
+          console.log('Customer identified, waiting for user to click Continue');
         } else {
           console.log('CUSTOMER NOT FOUND for phone:', normalizedPhone);
           setCustomerId(null);
@@ -284,8 +282,8 @@ function ShopPageComponent() {
       else if (customer?.name) setCustomerName(customer.name);
       
       setIsBookingOpen(true);
-      // Restaurando para ir para o step 2 (seleção de serviço) automaticamente
-      setBookingStep(2);
+      // Removed auto-advancing behavior - user must click Continue
+      console.log('Auto-check complete, waiting for user to click Continue');
     } catch (error: any) {
       console.error("Error checking phone:", error);
       toast.error(error.message || "Erro ao verificar identificação");

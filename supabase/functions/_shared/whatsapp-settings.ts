@@ -11,7 +11,12 @@ export async function getWhatsAppSettings(supabase: any, tenantId: string) {
   return connection;
 }
 
-export async function sendMessage(connection: any, phone: string, message: string) {
+export interface ZApiButton {
+  id: string;
+  label: string;
+}
+
+export async function sendMessage(connection: any, phone: string, message: string, options?: { buttons?: ZApiButton[], title?: string, footer?: string }) {
   try {
     const instanceId = connection.instance_id;
     const token = connection.token;
@@ -29,15 +34,34 @@ export async function sendMessage(connection: any, phone: string, message: strin
       headers["Client-Token"] = clientToken;
     }
 
-    const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
+    let sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
+    let body: any = { phone: targetPhone, message };
+
+    // If buttons are provided, use the button-list endpoint
+    if (options?.buttons && options.buttons.length > 0) {
+      sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-button-list`;
+      body = {
+        phone: targetPhone,
+        message: message,
+        title: options.title || "",
+        footer: options.footer || "",
+        buttons: options.buttons.map(b => ({
+          id: b.id,
+          label: b.label
+        }))
+      };
+    }
     
+    console.log(`[Z-API] Sending to ${targetPhone} via ${sendUrl}`);
+
     const response = await fetch(sendUrl, {
       method: "POST",
       headers,
-      body: JSON.stringify({ phone: targetPhone, message: message })
+      body: JSON.stringify(body)
     });
 
     const data = await response.json();
+    console.log(`[Z-API] Response from ${targetPhone}:`, JSON.stringify(data));
     
     return { 
       success: response.ok, 
@@ -45,6 +69,7 @@ export async function sendMessage(connection: any, phone: string, message: strin
       error: !response.ok ? (data.message || data.error || `HTTP ${response.status}`) : null 
     };
   } catch (error) {
+    console.error(`[Z-API] Fatal error sending to ${phone}:`, error);
     return { success: false, error: error.message };
   }
 }
