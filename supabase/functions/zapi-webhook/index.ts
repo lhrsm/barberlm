@@ -289,9 +289,9 @@ async function processZapiWebhook(body: any) {
 
         case 'awaiting_scope_selection': {
           const isAll = option.cleanId === 'scope_all' || option.cleanId === 'confirm_all';
-          const isSingle = option.cleanId === 'scope_single' || option.cleanId === 'confirm_single';
+          const isScopeSingle = option.cleanId === 'scope_single' || option.cleanId === 'confirm_single';
           
-          const scope = isAll ? 'all' : isSingle ? 'single' : '';
+          const scope = isAll ? 'all' : isScopeSingle ? 'single' : '';
           
           if (!scope) {
             nextMessage = "Por favor, selecione se deseja aplicar a todos ou apenas a um específico.";
