@@ -2778,7 +2778,7 @@ function ShopPageComponent() {
                             <Button
                               disabled={(!paymentMethod && calculateTotal() > 0) || submitting}
                               onClick={handleFinalizeBooking}
-                              className="w-full h-14 rounded-xl bg-primary hover:opacity-90 text-white font-semibold shadow-md transition-all"
+                              className="w-full h-14 rounded-xl bg-black hover:bg-zinc-800 text-white font-semibold shadow-md transition-all"
                             >
                               {submitting ? "Confirmando..." : (!paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento"))}
                             </Button>
