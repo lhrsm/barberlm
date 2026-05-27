@@ -1959,7 +1959,7 @@ function ShopPageComponent() {
                   </div>
 
                   <Button 
-                    className="w-full h-14 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
+                    className="w-full h-14 bg-black text-white hover:bg-zinc-800 rounded-xl font-semibold shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
                     onClick={handlePhoneCheck}
                     disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
                   >
