@@ -686,7 +686,6 @@ function ShopPageComponent() {
         const name = customerName || currentCustomer?.name;
         if (name) {
           setCustomerName(name);
-          toast.success(`Bem-vindo de volta, ${name}!`);
         }
         if (currentCustomer?.id) setCustomerId(currentCustomer.id);
         setBookingStep(2);
