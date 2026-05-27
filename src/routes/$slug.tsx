@@ -2347,7 +2347,7 @@ function ShopPageComponent() {
                   )}
                 </div>
 
-                <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 p-6 space-y-4 transition-all duration-300 hover:shadow-xl">
+                <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 transition-all duration-300 hover:shadow-lg">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center">
                       <TicketPercent size={20} className="text-zinc-600" />
@@ -2389,7 +2389,7 @@ function ShopPageComponent() {
                       <Button 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
-                        className="bg-black text-white hover:bg-zinc-800 rounded-xl font-medium transition-all duration-200 h-12 px-6"
+                        className="bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 h-12 px-6"
                       >
                         {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
                       </Button>
