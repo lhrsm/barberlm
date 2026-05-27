@@ -2438,15 +2438,14 @@ function ShopPageComponent() {
                           key={p.id}
                           whileHover={{ y: -4 }}
                           className={cn(
-                            "group relative flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden",
+                            "group relative flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden bg-white text-black shadow-lg shadow-black/5",
                             cartItem 
-                              ? "bg-zinc-900 border-primary shadow-xl shadow-primary/20 ring-1 ring-primary" 
-                              : "bg-zinc-900/70 backdrop-blur-md border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/90"
+                              ? "border-black ring-1 ring-black shadow-xl" 
+                              : "border-zinc-200 hover:border-zinc-300 hover:shadow-xl"
                           )}
-                          style={cartItem ? { borderColor: primaryColor, boxShadow: `0 20px 25px -5px ${primaryColor}33` } : {}}
                         >
                           {/* Image Container */}
-                          <div className="relative aspect-video w-full overflow-hidden bg-zinc-950">
+                          <div className="relative aspect-video w-full overflow-hidden bg-zinc-100">
                             {p.image_url ? (
                               <img 
                                 src={p.image_url} 
@@ -2454,7 +2453,7 @@ function ShopPageComponent() {
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-zinc-800">
+                              <div className="w-full h-full flex items-center justify-center text-zinc-300">
                                 <Package size={48} strokeWidth={1} />
                               </div>
                             )}
@@ -2465,14 +2464,13 @@ function ShopPageComponent() {
                                 <motion.div 
                                   initial={{ scale: 0.8, opacity: 0 }}
                                   animate={{ scale: 1, opacity: 1 }}
-                                  className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white flex items-center gap-1.5 shadow-lg backdrop-blur-md"
-                                  style={{ backgroundColor: primaryColor }}
+                                  className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white flex items-center gap-1.5 shadow-lg bg-black"
                                 >
                                   <CheckCircle2 size={12} /> Selecionado
                                 </motion.div>
                               )}
                               {p.badge && !cartItem && (
-                                <div className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-950/80 text-zinc-300 backdrop-blur-md border border-zinc-700">
+                                <div className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/90 text-zinc-600 backdrop-blur-md border border-zinc-200">
                                   {p.badge}
                                 </div>
                               )}
@@ -2480,7 +2478,7 @@ function ShopPageComponent() {
 
                             {/* Price Badge Overlay */}
                             <div className="absolute bottom-3 left-3">
-                              <div className="px-3 py-1.5 rounded-xl bg-zinc-950/90 border border-zinc-800 text-white font-bold text-sm backdrop-blur-md">
+                              <div className="px-3 py-1.5 rounded-xl bg-white/95 border border-zinc-100 text-black font-bold text-sm shadow-sm">
                                 R$ {p.price.toFixed(2)}
                               </div>
                             </div>
@@ -2489,12 +2487,11 @@ function ShopPageComponent() {
                           {/* Content */}
                           <div className="p-5 flex flex-col flex-1">
                             <div className="mb-3">
-                              <h4 className="text-white font-semibold text-lg leading-tight mb-1 line-clamp-2 group-hover:text-primary transition-colors"
-                                  style={cartItem ? { color: primaryColor } : {}}>
+                              <h4 className="text-zinc-900 font-bold text-lg leading-tight mb-1 line-clamp-2 group-hover:text-black transition-colors">
                                 {p.name}
                               </h4>
                               {(p.short_description || p.description) && (
-                                <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed break-words">
+                                <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed break-words">
                                   {p.short_description || p.description}
                                 </p>
                               )}
@@ -2502,17 +2499,17 @@ function ShopPageComponent() {
 
                             <div className="mt-auto space-y-3">
                               {cartItem ? (
-                                <div className="flex items-center justify-between bg-zinc-950/50 rounded-xl p-1.5 border border-zinc-800">
+                                <div className="flex items-center justify-between bg-zinc-50 rounded-xl p-1.5 border border-zinc-100">
                                   <button 
                                     onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, -1); }} 
-                                    className="hover:bg-zinc-800 text-white rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
+                                    className="hover:bg-zinc-200 text-black rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
                                   >
                                     <Minus size={16} />
                                   </button>
-                                  <span className="text-sm font-bold text-white w-24 text-center">{cartItem.quantity} unidades</span>
+                                  <span className="text-sm font-bold text-zinc-900 w-24 text-center">{cartItem.quantity} unidades</span>
                                   <button 
                                     onClick={(e) => { e.stopPropagation(); updateQuantity(p.id, 1); }} 
-                                    className="hover:bg-zinc-800 text-white rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
+                                    className="hover:bg-zinc-200 text-black rounded-lg h-9 w-9 flex items-center justify-center transition-colors"
                                     disabled={cartItem.quantity >= (p.stock_quantity || 99)}
                                   >
                                     <Plus size={16} />
@@ -2521,7 +2518,7 @@ function ShopPageComponent() {
                               ) : (
                                 <Button
                                   onClick={() => toggleProduct(p)}
-                                  className="h-11 w-full rounded-xl font-semibold text-sm px-3 truncate transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] bg-zinc-100 hover:bg-white text-black border-none"
+                                  className="bg-black text-white hover:bg-zinc-800 rounded-xl font-medium transition-all duration-200 h-11 w-full"
                                 >
                                   <Plus size={16} className="mr-1.5 shrink-0" /> Adicionar
                                 </Button>
@@ -2532,7 +2529,7 @@ function ShopPageComponent() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => toggleProduct(p)}
-                                  className="w-full h-9 text-[10px] uppercase font-bold tracking-widest text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                  className="w-full h-9 text-[10px] uppercase font-bold tracking-widest text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                 >
                                   Remover do Carrinho
                                 </Button>
