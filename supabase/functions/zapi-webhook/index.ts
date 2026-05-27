@@ -21,6 +21,33 @@ function normalizePhone(phone: string): string {
   return digits;
 }
 
+async function logAutomationInteraction(supabase: any, conversation: any, message: string, stateChange: { from: string, to: string }, action?: string, error?: string) {
+  try {
+    const { data: automation } = await supabase
+      .from("automations")
+      .select("id")
+      .eq("tenant_id", conversation.barber_id)
+      .eq("type", "appointment_confirmation")
+      .maybeSingle();
+
+    await supabase.from("automation_logs").insert({
+      automation_id: automation?.id,
+      tenant_id: conversation.barber_id,
+      customer_id: conversation.customer_id,
+      appointment_id: conversation.appointment_id,
+      phone: conversation.phone,
+      message_type: "appointment_confirmation_interaction",
+      status: error ? "error" : "success",
+      original_template: message, // Received message
+      processed_template: `State: ${stateChange.from} -> ${stateChange.to} | Action: ${action || 'none'}`,
+      error_message: error,
+      sent_at: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error("Error logging interaction:", e);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
