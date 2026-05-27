@@ -1931,25 +1931,25 @@ function ShopPageComponent() {
                           className="mt-2"
                         >
                           {customerId ? (
-                            <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/10 p-5 transition-all duration-300 flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-full bg-zinc-100 flex items-center justify-center shrink-0">
-                                <CheckCircle2 className="text-black" size={24} />
+                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 flex items-center gap-4 animate-in fade-in slide-in-from-top-1">
+                              <div className="h-12 w-12 rounded-full bg-sky-50 flex items-center justify-center shrink-0">
+                                <CheckCircle2 className="text-sky-600" size={24} />
                               </div>
                               <div className="flex-1">
-                                <h3 className="text-lg font-bold text-black tracking-tight leading-tight">
+                                <h3 className="text-lg font-bold text-zinc-900 tracking-tight leading-tight">
                                   Olá, {customerName.split(' ')[0]}! 👋
                                 </h3>
                                 <p className="text-xs text-zinc-500 font-medium">Que bom ter você de volta!</p>
                               </div>
                             </div>
                           ) : (
-                            <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/10 p-5 transition-all duration-300 space-y-3">
+                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 space-y-3 animate-in fade-in slide-in-from-top-1">
                               <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
                               <Input 
                                 placeholder="Digite seu nome completo" 
                                 value={customerName} 
                                 onChange={(e) => setCustomerName(e.target.value)}
-                                className="bg-white text-black border border-zinc-300 placeholder:text-zinc-500 rounded-xl h-12 text-base font-medium focus-visible:ring-zinc-400"
+                                className="bg-white text-black border border-zinc-200 placeholder:text-zinc-500 rounded-xl h-12 text-base font-medium focus-visible:ring-sky-600/50"
                               />
                             </div>
                           )}
