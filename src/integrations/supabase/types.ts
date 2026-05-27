@@ -2024,34 +2024,43 @@ export type Database = {
       }
       whatsapp_conversations: {
         Row: {
+          active: boolean | null
+          appointment_group_id: string | null
           appointment_id: string | null
           barber_id: string | null
           context: Json | null
           created_at: string | null
           customer_id: string | null
           id: string
+          last_action: string | null
           phone: string
           state: string
           updated_at: string | null
         }
         Insert: {
+          active?: boolean | null
+          appointment_group_id?: string | null
           appointment_id?: string | null
           barber_id?: string | null
           context?: Json | null
           created_at?: string | null
           customer_id?: string | null
           id?: string
+          last_action?: string | null
           phone: string
           state: string
           updated_at?: string | null
         }
         Update: {
+          active?: boolean | null
+          appointment_group_id?: string | null
           appointment_id?: string | null
           barber_id?: string | null
           context?: Json | null
           created_at?: string | null
           customer_id?: string | null
           id?: string
+          last_action?: string | null
           phone?: string
           state?: string
           updated_at?: string | null
