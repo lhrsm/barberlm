@@ -3248,16 +3248,16 @@ function ShopPageComponent() {
             </Button>
             <Button 
               variant="outline" 
-              className="w-full"
+              className="w-full h-12 rounded-xl border-zinc-200 text-zinc-600 font-semibold"
               onClick={() => {
                 setIsPixVisible(false);
                 setIsBookingOpen(true);
-                setBookingStep(1);
+                setBookingStep(2); // Retornando para step 2
               }}
             >
               Agendar Serviço
             </Button>
-            <Button variant="ghost" className="w-full" onClick={() => setIsPixVisible(false)}>
+            <Button variant="ghost" className="w-full h-12 text-zinc-400 font-medium" onClick={() => setIsPixVisible(false)}>
               Voltar ao Carrinho
             </Button>
           </DialogFooter>
