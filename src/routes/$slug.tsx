@@ -1881,11 +1881,11 @@ function ShopPageComponent() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="grid gap-3 p-5 bg-zinc-50 rounded-2xl border border-zinc-100">
-                    <div className="flex justify-between items-center">
+                  <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300">
+                    <div className="flex justify-between items-center mb-3">
                       <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Seu WhatsApp</Label>
                       {(submitting || isSearchingCustomer) && (
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 animate-pulse">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-sky-600 animate-pulse">
                           Buscando...
                         </span>
                       )}
@@ -1897,9 +1897,9 @@ function ShopPageComponent() {
                         onChange={(phone) => setCustomerPhone(phone)}
                         placeholder="(00) 00000-0000"
                         className="relative z-10 w-full"
-                        inputClassName="!w-full !h-14 !bg-white !border-zinc-300 !text-xl !font-medium !text-black !placeholder:text-zinc-400 focus:!outline-none !pl-4 !rounded-xl"
+                        inputClassName="!w-full !h-14 !bg-white !border-zinc-200 !text-xl !font-medium !text-black !placeholder:text-zinc-400 focus:!outline-none !pl-4 !rounded-xl"
                         countrySelectorStyleProps={{
-                          buttonClassName: "!h-14 !bg-white !border-zinc-300 !px-4 !rounded-l-xl hover:!bg-zinc-50 transition-colors",
+                          buttonClassName: "!h-14 !bg-white !border-zinc-200 !px-4 !rounded-l-xl hover:!bg-zinc-50 transition-colors",
                         }}
                       />
                       <style>{`
@@ -1910,11 +1910,11 @@ function ShopPageComponent() {
                         }
                         .international-phone-portal .react-international-phone-input {
                           width: 100% !important;
-                          border: 1px solid #d4d4d8 !important;
+                          border: 1px solid #e4e4e7 !important;
                           border-radius: 0.75rem !important;
                         }
                         .international-phone-portal .react-international-phone-country-selector-button {
-                          border: 1px solid #d4d4d8 !important;
+                          border: 1px solid #e4e4e7 !important;
                           border-right: none !important;
                           border-radius: 0.75rem 0 0 0.75rem !important;
                         }
@@ -1931,25 +1931,25 @@ function ShopPageComponent() {
                           className="mt-2"
                         >
                           {customerId ? (
-                            <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/10 p-5 transition-all duration-300 flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-full bg-zinc-100 flex items-center justify-center shrink-0">
-                                <CheckCircle2 className="text-black" size={24} />
+                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 flex items-center gap-4 animate-in fade-in slide-in-from-top-1">
+                              <div className="h-12 w-12 rounded-full bg-sky-50 flex items-center justify-center shrink-0">
+                                <CheckCircle2 className="text-sky-600" size={24} />
                               </div>
                               <div className="flex-1">
-                                <h3 className="text-lg font-bold text-black tracking-tight leading-tight">
+                                <h3 className="text-lg font-bold text-zinc-900 tracking-tight leading-tight">
                                   Olá, {customerName.split(' ')[0]}! 👋
                                 </h3>
                                 <p className="text-xs text-zinc-500 font-medium">Que bom ter você de volta!</p>
                               </div>
                             </div>
                           ) : (
-                            <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/10 p-5 transition-all duration-300 space-y-3">
+                            <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 space-y-3 animate-in fade-in slide-in-from-top-1">
                               <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block ml-1">Primeira vez por aqui? Qual o seu nome?</Label>
                               <Input 
                                 placeholder="Digite seu nome completo" 
                                 value={customerName} 
                                 onChange={(e) => setCustomerName(e.target.value)}
-                                className="bg-white text-black border border-zinc-300 placeholder:text-zinc-500 rounded-xl h-12 text-base font-medium focus-visible:ring-zinc-400"
+                                className="bg-white text-black border border-zinc-200 placeholder:text-zinc-500 rounded-xl h-12 text-base font-medium focus-visible:ring-sky-600/50"
                               />
                             </div>
                           )}
@@ -1959,7 +1959,7 @@ function ShopPageComponent() {
                   </div>
 
                   <Button 
-                    className="w-full h-14 bg-black text-white hover:bg-zinc-800 rounded-xl font-medium transition-all duration-200 shadow-lg shadow-black/5" 
+                    className="w-full h-14 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
                     onClick={handlePhoneCheck}
                     disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
                   >
@@ -1990,10 +1990,9 @@ function ShopPageComponent() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className={cn(
-                          "p-5 rounded-[2rem] cursor-pointer transition-all flex justify-between items-center group relative overflow-hidden",
-                          selectedService?.id === s.id ? "bg-black text-white" : "bg-gray-50 border border-gray-100 hover:bg-gray-100"
+                          "bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-4 transition-all duration-300 hover:shadow-lg hover:border-zinc-300 cursor-pointer flex justify-between items-center group relative overflow-hidden",
+                          selectedService?.id === s.id ? "border-sky-600 ring-2 ring-sky-600/20" : ""
                         )}
-                        style={selectedService?.id === s.id ? { backgroundColor: "black" } : {}}
                         onClick={() => {
                           if (!isEmbedded && (!customerName || customerName.length < 3)) {
                             toast.error("Por favor, informe seu nome primeiro.");
@@ -2004,16 +2003,13 @@ function ShopPageComponent() {
                         }}
                       >
                         <div className="relative z-10">
-                          <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-white" : "text-black")}>{s.name}</p>
+                          <p className={cn("font-black uppercase tracking-tight text-lg", selectedService?.id === s.id ? "text-sky-700" : "text-black")}>{s.name}</p>
                           <div className="flex items-center gap-2 mt-1">
-                             <Clock size={12} className={selectedService?.id === s.id ? "text-white/70" : "text-gray-400"} />
-                             <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-white/70" : "text-gray-400")}>{s.duration_minutes} min</p>
+                             <Clock size={12} className={selectedService?.id === s.id ? "text-sky-600" : "text-gray-400"} />
+                             <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedService?.id === s.id ? "text-sky-600" : "text-gray-400")}>{s.duration_minutes} min</p>
                           </div>
                         </div>
-                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-[#D4AF37]" : "text-black")}>R$ {s.price.toFixed(2)}</p>
-                        {selectedService?.id === s.id && (
-                          <motion.div layoutId="service-bg" className="absolute inset-0 bg-white/10 pointer-events-none" />
-                        )}
+                        <p className={cn("font-black text-xl relative z-10", selectedService?.id === s.id ? "text-sky-600" : "text-black")}>R$ {s.price.toFixed(2)}</p>
                       </motion.div>
                     ))}
                   </div>
@@ -2027,64 +2023,56 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-8"
               >
-                <div className="grid gap-3 p-5 bg-gray-50 rounded-3xl border border-gray-100">
-                  <Label className="text-xs font-black uppercase tracking-widest text-gray-500">Data Desejada</Label>
+                <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300">
+                  <Label className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-2 block">Data Desejada</Label>
                   <Input 
                     type="date" 
                     value={selectedDate} 
                     onChange={(e) => setSelectedDate(e.target.value)} 
                     min={format(new Date(), "yyyy-MM-dd")} 
-                    className="bg-white border-gray-200 text-black h-14 text-xl font-black rounded-2xl focus-visible:ring-[#D4AF37]/50"
+                    className="bg-white border-zinc-200 text-black h-12 text-lg font-bold rounded-xl focus-visible:ring-sky-600/50"
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-[#D4AF37]">Quem irá te atender?</h5>
+                  <h5 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Quem irá te atender?</h5>
                   
                   {loadingDayData ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#D4AF37]" />
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sky-600" />
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Buscando disponibilidades...</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       {barbers
-                        .filter(b => {
-                          const isAvailable = isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments);
-                          console.log(`FILTERING BARBER ${b.name}: ${isAvailable}`);
-                          return isAvailable;
-                        })
+                        .filter(b => isBarberAvailableOnDate(b, selectedDate, selectedService, dayAppointments))
                         .map(b => (
                         <motion.div 
                           key={b.id} 
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                           className={cn(
-                            "p-6 rounded-[2.5rem] cursor-pointer text-center space-y-4 transition-all relative overflow-hidden group border",
-                            selectedBarber?.id === b.id ? "border-[#D4AF37] bg-gray-50 shadow-2xl" : "bg-white border-gray-100 hover:bg-gray-50"
+                            "bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 hover:shadow-lg hover:border-zinc-300 cursor-pointer text-center space-y-3 relative overflow-hidden group",
+                            selectedBarber?.id === b.id ? "border-sky-600 ring-2 ring-sky-600/20 shadow-sky-100" : ""
                           )}
-                          style={selectedBarber?.id === b.id ? { borderColor: "#D4AF37" } : {}}
                           onClick={() => {
                             setSelectedBarber(b);
                             setBookingStep(4);
                           }}
                         >
                           <div className="relative z-10">
-                            <div className="h-20 w-20 rounded-[1.5rem] bg-black/40 mx-auto overflow-hidden border-2 border-white/5 group-hover:border-primary/50 transition-colors">
+                            <div className="h-16 w-16 rounded-2xl bg-zinc-100 mx-auto overflow-hidden border border-zinc-200 group-hover:border-sky-400 transition-colors">
                               {b.avatar_url ? (
                                 <img src={b.avatar_url} className="h-full w-full object-cover" alt={b.name} />
                               ) : (
-                                <div className="h-full w-full flex items-center justify-center font-black text-2xl text-black">{b.name?.[0] || '?'}</div>
+                                <div className="h-full w-full flex items-center justify-center font-black text-xl text-zinc-400">{b.name?.[0] || '?'}</div>
                               )}
                             </div>
-                            <div className="mt-4">
-                              <p className="font-black uppercase tracking-tight text-sm text-black leading-none">{b.name}</p>
-                              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-2">{b.specialty || 'Especialista'}</p>
+                            <div className="mt-3">
+                              <p className={cn("font-bold uppercase tracking-tight text-sm leading-none", selectedBarber?.id === b.id ? "text-sky-700" : "text-black")}>{b.name}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-1">{b.specialty || 'Especialista'}</p>
                             </div>
                           </div>
-                          {selectedBarber?.id === b.id && (
-                             <motion.div layoutId="barber-glow" className="absolute inset-0 bg-[#D4AF37]/10 blur-xl pointer-events-none" />
-                          )}
                         </motion.div>
                       ))}
                     </div>
@@ -2099,28 +2087,28 @@ function ShopPageComponent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-8"
               >
-                <div className="flex items-center justify-between p-6 bg-gray-50 border border-gray-100 rounded-[2rem] shadow-inner">
+                <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-2xl bg-white border border-gray-200 overflow-hidden text-black">
-                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-xl">{selectedBarber?.name?.[0] || '?'}</div>}
+                    <div className="h-14 w-14 rounded-xl bg-zinc-100 border border-zinc-200 overflow-hidden text-zinc-400">
+                      {selectedBarber?.avatar_url ? <img src={selectedBarber.avatar_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-black text-lg">{selectedBarber?.name?.[0] || '?'}</div>}
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">Profissional</p>
-                      <p className="text-xl font-black uppercase italic tracking-tighter text-black">{selectedBarber?.name}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Profissional</p>
+                      <p className="text-lg font-black uppercase tracking-tight text-zinc-900">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setBookingStep(3)} className="text-[10px] h-8 font-black uppercase tracking-widest bg-white hover:bg-gray-100 rounded-full px-4 border border-gray-100 text-black">Alterar</Button>
+                  <Button variant="outline" size="sm" onClick={() => setBookingStep(3)} className="bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200 h-9 px-4">Alterar</Button>
                 </div>
 
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: primaryColor }} />
+                    <div className="h-2 w-2 rounded-full animate-pulse bg-sky-500" />
                     <h5 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Horários Disponíveis</h5>
                   </div>
                   
                   {fetchingTimes ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2" style={{ borderColor: primaryColor }} />
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sky-600" />
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Buscando horários...</p>
                     </div>
 
@@ -2135,16 +2123,11 @@ function ShopPageComponent() {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setSelectedTime(time)}
                             className={cn(
-                              "relative h-14 rounded-2xl text-lg font-black tracking-tight transition-all border flex items-center justify-center gap-2 overflow-hidden group",
+                              "relative h-12 rounded-xl text-lg font-black tracking-tight transition-all border flex items-center justify-center gap-2 overflow-hidden group",
                               isSelected 
-                                ? "text-white border-transparent" 
-                                : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-primary/50 hover:text-white hover:shadow-lg hover:shadow-primary/10"
+                                ? "bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-200" 
+                                : "bg-white border-zinc-200 text-zinc-500 hover:border-sky-300 hover:text-sky-600 hover:shadow-md hover:shadow-zinc-100"
                             )}
-                            style={{ 
-                              backgroundColor: isSelected ? primaryColor : undefined,
-                              boxShadow: isSelected ? `0 10px 25px -5px ${primaryColor}40, 0 8px 10px -6px ${primaryColor}40` : undefined,
-                              borderColor: isSelected ? primaryColor : undefined
-                            }}
                           >
                             {isSelected && (
                               <motion.div
@@ -2188,18 +2171,14 @@ function ShopPageComponent() {
                 <div className="grid grid-cols-2 gap-4">
                   <Button 
                     variant="outline"
-                    className="h-16 rounded-2xl text-xs font-black uppercase tracking-tighter border-2 border-zinc-200 hover:bg-zinc-50"
+                    className="h-14 bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
                     onClick={addToBookingCart}
                     disabled={!selectedTime}
                   >
                     + Adicionar outro
                   </Button>
                   <Button 
-                    className={cn(
-                      "h-16 rounded-2xl text-xs font-black uppercase tracking-tighter shadow-2xl transition-all duration-300",
-                      !selectedTime ? "bg-zinc-800 text-zinc-500 cursor-not-allowed" : "text-white hover:scale-[1.02]"
-                    )}
-                    style={selectedTime ? { backgroundColor: primaryColor, boxShadow: `0 10px 30px -10px ${primaryColor}60` } : {}}
+                    className="h-14 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
                       if (!selectedTime) {
                         toast.error("Por favor, selecione um horário.");
@@ -2232,7 +2211,7 @@ function ShopPageComponent() {
               >
                 {/* Your Booking Cart Section */}
                 {(bookingCart.length > 0 || selectedService) && (
-                  <div className="bg-zinc-50 border border-zinc-100 rounded-3xl p-6 space-y-4">
+                  <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 transition-all duration-300">
                     <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                       <Calendar size={14} /> Seu Agendamento ({bookingCart.length + (selectedService ? 1 : 0)})
                     </h5>
@@ -2305,25 +2284,32 @@ function ShopPageComponent() {
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between p-5 bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 transition-all duration-300 hover:shadow-xl"
+                      className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 hover:shadow-lg"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                          <Gift size={24} className="text-emerald-600" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
+                            <Gift size={24} className="text-emerald-600" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-0.5">Cashback Disponível</p>
+                            <p className="text-lg font-black text-zinc-900 leading-none">R$ {customerCashback.toFixed(2)}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-0.5">Cashback Disponível</p>
-                          <p className="text-lg font-black text-zinc-900 leading-none">R$ {customerCashback.toFixed(2)}</p>
-                        </div>
+                        <Button 
+                          variant={useCashback ? "default" : "outline"} 
+                          size="sm" 
+                          onClick={() => setUseCashback(!useCashback)}
+                          className={cn(
+                            "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
+                            useCashback 
+                              ? "bg-sky-600 text-white hover:bg-sky-700 border-sky-600" 
+                              : "bg-white text-sky-700 hover:bg-sky-50 border border-sky-300"
+                          )}
+                        >
+                          {useCashback ? "Aplicado" : "Usar"}
+                        </Button>
                       </div>
-                      <Button 
-                        variant={useCashback ? "default" : "outline"} 
-                        size="sm" 
-                        onClick={() => setUseCashback(!useCashback)}
-                        className={cn("rounded-xl font-medium transition-all duration-200 h-10 px-6", useCashback ? "bg-black text-white hover:bg-zinc-800" : "border-zinc-300 text-zinc-600 hover:bg-zinc-50")}
-                      >
-                        {useCashback ? "Aplicado" : "Usar"}
-                      </Button>
                     </motion.div>
                   )}
 
@@ -2331,30 +2317,37 @@ function ShopPageComponent() {
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between p-5 bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 transition-all duration-300 hover:shadow-xl"
+                      className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-5 transition-all duration-300 hover:shadow-lg"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-zinc-50 flex items-center justify-center">
-                          <CircleDollarSign size={24} className="text-zinc-900" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-900">
+                            <CircleDollarSign size={24} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-zinc-900 uppercase tracking-widest mb-0.5">Créditos Disponíveis</p>
+                            <p className="text-lg font-black text-zinc-900 leading-none">R$ {customerCredits.toFixed(2)}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[10px] font-black text-zinc-900 uppercase tracking-widest mb-0.5">Créditos Disponíveis</p>
-                          <p className="text-lg font-black text-zinc-900 leading-none">R$ {customerCredits.toFixed(2)}</p>
-                        </div>
+                        <Button 
+                          variant={useCredits ? "default" : "outline"} 
+                          size="sm" 
+                          onClick={() => setUseCredits(!useCredits)}
+                          className={cn(
+                            "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
+                            useCredits 
+                              ? "bg-sky-600 text-white hover:bg-sky-700 border-sky-600" 
+                              : "bg-white text-sky-700 hover:bg-sky-50 border border-sky-300"
+                          )}
+                        >
+                          {useCredits ? "Aplicado" : "Usar Créditos"}
+                        </Button>
                       </div>
-                      <Button 
-                        variant={useCredits ? "default" : "outline"} 
-                        size="sm" 
-                        onClick={() => setUseCredits(!useCredits)}
-                        className={cn("rounded-xl font-medium transition-all duration-200 h-10 px-6", useCredits ? "bg-black text-white hover:bg-zinc-800" : "border-zinc-300 text-zinc-600 hover:bg-zinc-50")}
-                      >
-                        {useCredits ? "Aplicado" : "Usar Créditos"}
-                      </Button>
                     </motion.div>
                   )}
                 </div>
 
-                <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 p-6 space-y-4 transition-all duration-300 hover:shadow-xl">
+                <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 transition-all duration-300 hover:shadow-lg">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center">
                       <TicketPercent size={20} className="text-zinc-600" />
@@ -2396,7 +2389,7 @@ function ShopPageComponent() {
                       <Button 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
-                        className="bg-black text-white hover:bg-zinc-800 rounded-xl font-medium transition-all duration-200 h-12 px-6"
+                        className="bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 h-12 px-6"
                       >
                         {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
                       </Button>
@@ -2524,7 +2517,7 @@ function ShopPageComponent() {
                   </div>
                 </div>
 
-                <div className="bg-white text-black border border-zinc-200 rounded-2xl shadow-lg shadow-black/5 p-6 space-y-4 transition-all duration-300 hover:shadow-xl">
+                <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 transition-all duration-300 hover:shadow-xl">
                   <div className="flex items-center gap-3 pb-2 border-b border-zinc-100 mb-2">
                     <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center">
                       <Calendar size={20} className="text-zinc-600" />
@@ -2593,14 +2586,14 @@ function ShopPageComponent() {
                         {selectedProducts.map(p => (
                           <div key={p.id} className="flex justify-between items-center text-xs pl-3 relative group">
                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-zinc-200" />
-                            <span className="text-zinc-600">{p.name} <span className="text-zinc-900 font-black ml-1">x{p.quantity || 1}</span></span>
+                            <span className="text-zinc-600">{p.name} <span className="text-zinc-900 font-bold ml-1">x{p.quantity || 1}</span></span>
                             <div className="flex items-center gap-3">
                               <span className="text-zinc-900 font-bold">R$ {((p.price || 0) * (p.quantity || 1)).toFixed(2)}</span>
                               <button 
                                 onClick={() => toggleProduct(p)}
-                                className="text-zinc-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                className="text-zinc-400 hover:text-red-500 transition-colors opacity-100"
                               >
-                                <Trash2 size={12} />
+                                <Trash2 size={14} />
                               </button>
                             </div>
                           </div>
@@ -2655,9 +2648,9 @@ function ShopPageComponent() {
                 </div>
 
                 {(!paymentMethod && calculateTotal() > 0) ? (
-                  <div className="grid grid-cols-1 gap-3 mt-6">
+                  <div className="grid grid-cols-1 gap-4 mt-6">
                     <Button 
-                      className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg group"
+                      className="flex items-center justify-between h-20 px-6 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
                       onClick={() => setPaymentMethod('barbershop')}
                     >
                       <div className="flex items-center gap-4">
@@ -2665,14 +2658,14 @@ function ShopPageComponent() {
                           <Scissors size={24} className="text-white" />
                         </div>
                         <div className="text-left">
-                          <p className="text-sm font-black text-white">Pagar na Barbearia</p>
-                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Pague após o serviço</p>
+                          <p className="text-sm font-bold text-white">Pagar na Barbearia</p>
+                          <p className="text-[10px] text-sky-100 font-medium uppercase tracking-wider opacity-80">Pague após o serviço</p>
                         </div>
                       </div>
-                      <ChevronRight size={20} className="text-zinc-600 group-hover:text-white transition-colors" />
+                      <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
                     </Button>
                     <Button 
-                      className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg group"
+                      className="flex items-center justify-between h-20 px-6 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
                       onClick={() => setPaymentMethod('pix')}
                     >
                       <div className="flex items-center gap-4">
@@ -2680,65 +2673,42 @@ function ShopPageComponent() {
                           <QrCode size={24} className="text-white" />
                         </div>
                         <div className="text-left">
-                          <p className="text-sm font-black text-white">Pagar Agora (PIX)</p>
-                          <p className="text-[10px] text-white/70 font-bold uppercase tracking-wider">Confirmação instantânea</p>
+                          <p className="text-sm font-bold text-white">Pagar Agora (PIX)</p>
+                          <p className="text-[10px] text-sky-100 font-medium uppercase tracking-wider opacity-80">Confirmação instantânea</p>
                         </div>
                       </div>
-                      <ChevronRight size={20} className="text-white/70 group-hover:text-white transition-colors" />
-                    </Button>
-                  </div>
-                ) : (calculateTotal() === 0 && !paymentMethod) ? (
-                  <div className="space-y-4 mt-4">
-                    <div className="p-6 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center space-y-3">
-                      <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle2 size={24} className="text-green-600" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-base font-bold text-green-700">Valor Total Coberto!</p>
-                        <p className="text-sm text-muted-foreground">O agendamento será pago com seus créditos/cashback.</p>
-                      </div>
-                    </div>
-                    
-                    <Button 
-                      className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleFinalizeBooking();
-                      }} 
-                      disabled={submitting}
-                    >
-                      {submitting ? "Finalizando..." : "Confirmar Agendamento com Créditos"}
+                      <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-4 mt-4">
+                  <div className="space-y-4 mt-6">
+                    {/* Payment Info Display */}
                     {paymentMethod === 'pix' && calculateTotal() > 0 && (
-                      <div className="p-6 border border-primary/30 bg-primary/5 rounded-3xl space-y-6 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+                      <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-6 text-center animate-in fade-in zoom-in-95 duration-300">
                         <div className="flex flex-col items-center gap-2">
-                          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-1">
-                            <QrCode size={32} className="text-primary" />
+                          <div className="h-14 w-14 rounded-2xl bg-sky-50 flex items-center justify-center mb-1">
+                            <QrCode size={32} className="text-sky-600" />
                           </div>
-                          <p className="text-lg font-black text-white uppercase tracking-tight">Pagamento Instantâneo</p>
-                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Escaneie ou copie o código</p>
+                          <p className="text-lg font-bold text-zinc-900 uppercase tracking-tight">Pagamento Instantâneo</p>
+                          <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">Escaneie ou copie o código</p>
                         </div>
                         
                         {shop.pix_qr_code_url && (
                           <div className="flex justify-center group">
-                            <div className="relative p-4 bg-white rounded-3xl shadow-xl transition-transform group-hover:scale-105 duration-300">
+                            <div className="relative p-4 bg-white border border-zinc-100 rounded-2xl shadow-sm transition-transform group-hover:scale-105 duration-300">
                               <img src={shop.pix_qr_code_url} className="h-44 w-44 object-contain" alt="PIX QR Code" />
-                              <div className="absolute inset-0 border-4 border-primary/10 rounded-3xl pointer-events-none"></div>
                             </div>
                           </div>
                         )}
                         
                         <div className="space-y-3">
-                          <div className="bg-[#090909] p-5 rounded-2xl border border-white/5 text-sm font-mono break-all flex flex-col items-center gap-4 shadow-inner">
-                            <span className="text-center text-slate-100 font-bold text-base leading-relaxed">{shop.pix_key || "Chave não cadastrada"}</span>
+                          <div className="bg-zinc-50 p-5 rounded-xl border border-zinc-200 text-sm font-mono break-all flex flex-col items-center gap-4 shadow-inner">
+                            <span className="text-center text-zinc-700 font-bold text-base leading-relaxed">{shop.pix_key || "Chave não cadastrada"}</span>
                             {shop.pix_key && (
                               <Button 
-                                variant="secondary" 
+                                variant="outline" 
                                 size="lg" 
-                                className="w-full h-12 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl font-black uppercase tracking-wider text-xs"
+                                className="w-full h-12 bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
                                 onClick={() => {
                                   navigator.clipboard.writeText(shop.pix_key);
                                   toast.success("Chave PIX copiada!");
@@ -2749,103 +2719,86 @@ function ShopPageComponent() {
                             )}
                           </div>
                         </div>
-                        <div className="pt-2">
-                          <p className="text-[11px] text-slate-500 font-bold leading-relaxed text-center uppercase tracking-wide">
-                            Após realizar o pagamento, clique no botão abaixo para finalizar seu agendamento.
-                          </p>
-                        </div>
                       </div>
                     )}
 
                     {paymentMethod === 'barbershop' && (
-                      <div className="p-6 border border-white/10 bg-white/5 rounded-3xl space-y-6 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-300">
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center mb-1">
-                            <Scissors size={32} className="text-slate-400" />
+                      <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex flex-col items-center gap-2 mb-2">
+                          <div className="h-12 w-12 rounded-2xl bg-sky-50 flex items-center justify-center">
+                            <Scissors size={24} className="text-sky-600" />
                           </div>
-                          <p className="text-lg font-black text-white uppercase tracking-tight">Pagar na Unidade</p>
-                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Agendamento Presencial</p>
+                          <p className="text-base font-bold text-zinc-900 uppercase">Pagar na Unidade</p>
                         </div>
 
-                        <div className="bg-[#090909] p-5 rounded-2xl border border-white/5 space-y-4 shadow-inner">
-                          <div className="flex items-center gap-4 text-left">
-                            <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                              <CheckCircle2 size={20} className="text-green-500" />
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-4 text-left p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                            <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                              <CheckCircle2 size={20} className="text-emerald-500" />
                             </div>
-                            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                            <p className="text-xs text-zinc-600 font-medium leading-relaxed">
                               Sua vaga será reservada imediatamente. O pagamento será feito diretamente na recepção.
                             </p>
                           </div>
-                          <div className="flex items-center gap-4 text-left">
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                              <Clock size={20} className="text-primary" />
+                          <div className="flex items-center gap-4 text-left p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                            <div className="h-10 w-10 rounded-full bg-sky-50 flex items-center justify-center shrink-0">
+                              <Clock size={20} className="text-sky-500" />
                             </div>
-                            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                            <p className="text-xs text-zinc-600 font-medium leading-relaxed">
                               Chegue com 5 minutos de antecedência para garantir seu horário.
                             </p>
                           </div>
                         </div>
-
-                        <div className="pt-2">
-                          <p className="text-[11px] text-slate-500 font-bold leading-relaxed text-center uppercase tracking-wide">
-                            Clique no botão abaixo para confirmar sua reserva na barbearia.
-                          </p>
-                        </div>
                       </div>
                     )}
 
-                    {paymentMethod === 'pix' && calculateTotal() === 0 && (
-                      <div className="p-6 border-2 border-green-500/20 bg-green-500/5 rounded-xl text-center space-y-3">
-                        <div className="h-12 w-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
-                          <CheckCircle2 size={24} className="text-green-600" />
+                    {calculateTotal() === 0 && (
+                      <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 text-center space-y-3 animate-in fade-in zoom-in-95 duration-300">
+                        <div className="h-12 w-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
+                          <CheckCircle2 size={24} className="text-emerald-600" />
                         </div>
                         <div className="space-y-1">
-                          <p className="text-base font-bold text-green-700">Tudo pronto!</p>
-                          <p className="text-sm text-muted-foreground">O valor total será quitado com seus créditos disponíveis.</p>
-                        </div>
-                        <div className="pt-2">
-                          <p className="text-[11px] text-muted-foreground">
-                            Clique no botão abaixo para concluir seu agendamento agora mesmo.
-                          </p>
+                          <p className="text-base font-bold text-emerald-700">Valor Total Coberto!</p>
+                          <p className="text-sm text-zinc-500">O agendamento será quitado com seus créditos/descontos.</p>
                         </div>
                       </div>
                     )}
 
-                      <div className="pt-2">
+                    {/* Final Action Buttons */}
+                    <div className="pt-2 space-y-3">
+                      <Button 
+                        className="w-full h-14 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleFinalizeBooking();
+                        }}
+                        disabled={submitting}
+                      >
+                        {submitting ? "Finalizando..." : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento")}
+                      </Button>
+                      
+                      {paymentMethod && (
                         <Button 
-                          id="btn-confirm-booking"
-                          className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-bold uppercase tracking-wider shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const normalized = normalizePhone(customerPhone);
-                            console.log('DEBUG: Finalizing booking with normalized phone:', normalized);
-                            handleFinalizeBooking();
-                          }}
-                          disabled={submitting}
-                        >
-                          {submitting ? "Finalizando..." : "Confirmar Agendamento"}
-                        </Button>
-                        
-                        <Button 
-                          variant="secondary" 
-                          className="w-full mt-3 h-12 bg-white text-black hover:bg-zinc-100 border border-black rounded-xl font-bold uppercase tracking-wider shadow-sm transition-all duration-200" 
+                          variant="outline" 
+                          className="w-full h-12 bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200" 
                           onClick={() => setPaymentMethod(null)}
                         >
                           Alterar forma de pagamento
                         </Button>
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+                )}
               </motion.div>
             )}
           </div>
 
           {bookingStep > 1 && (
-            <DialogFooter className="flex justify-between items-center sm:justify-between px-0 pt-6 mt-6 border-t border-white/5 shrink-0">
+            <DialogFooter className="flex justify-between items-center sm:justify-between px-0 pt-6 mt-6 border-t border-zinc-100 shrink-0">
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm" 
-                className="text-slate-400 hover:text-white"
+                className="bg-white text-sky-700 hover:bg-sky-50 border border-sky-300 rounded-xl font-medium transition-all duration-200"
                 onClick={() => {
                   if (bookingStep === 5 && paymentMethod) {
                     setPaymentMethod(null);
