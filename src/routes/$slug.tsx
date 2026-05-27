@@ -2818,7 +2818,7 @@ function ShopPageComponent() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white text-primary hover:bg-primary/5 border border-primary/30 rounded-xl font-medium transition-all duration-200"
+                className="bg-white text-black hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200"
                 onClick={() => {
                   if (bookingStep === 5 && paymentMethod) {
                     setPaymentMethod(null);
