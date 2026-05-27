@@ -2211,7 +2211,7 @@ function ShopPageComponent() {
               >
                 {/* Your Booking Cart Section */}
                 {(bookingCart.length > 0 || selectedService) && (
-                  <div className="bg-zinc-50 border border-zinc-100 rounded-3xl p-6 space-y-4">
+                  <div className="bg-white text-zinc-900 border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 p-6 space-y-4 transition-all duration-300">
                     <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                       <Calendar size={14} /> Seu Agendamento ({bookingCart.length + (selectedService ? 1 : 0)})
                     </h5>
