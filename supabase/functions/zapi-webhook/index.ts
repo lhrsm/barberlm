@@ -621,6 +621,7 @@ async function processZapiWebhook(body: any) {
           break;
         }
       }
+      console.log('NEXT STATE', nextState);
     } catch (e) {
       console.error("STATE MACHINE ERROR:", e);
       nextMessage = "Desculpe, ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde.";
