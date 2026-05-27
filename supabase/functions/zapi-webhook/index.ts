@@ -163,8 +163,12 @@ async function processZapiWebhook(body: any) {
       }
     };
 
-    const getAppointments = async () => {
-      if (!conversation.appointment_group_id && !conversation.appointment_id) return [];
+    const getAppointmentsFromConversation = async () => {
+      console.log('GETTING APPOINTMENTS FOR CONVERSATION', conversation.id);
+      if (!conversation.appointment_group_id && !conversation.appointment_id) {
+        console.log('NO APPOINTMENT IDs IN CONVERSATION');
+        return [];
+      }
       
       let query = supabase
         .from("appointments")
@@ -172,22 +176,29 @@ async function processZapiWebhook(body: any) {
         .neq("status", "cancelled");
         
       if (conversation.appointment_group_id) {
+        console.log('QUERYING BY GROUP ID:', conversation.appointment_group_id);
         query = query.eq("appointment_group_id", conversation.appointment_group_id);
       } else {
+        console.log('QUERYING BY APPOINTMENT ID:', conversation.appointment_id);
         query = query.eq("id", conversation.appointment_id);
       }
       
-      const { data } = await query;
+      const { data, error } = await query;
+      if (error) {
+        console.error('ERROR FETCHING APPOINTMENTS:', error);
+        return [];
+      }
       return data || [];
     };
 
-    const appointments = await getAppointments();
-    const appointmentsCount = appointments.length;
-    const isMultiple = appointmentsCount > 1;
-    const isSingle = appointmentsCount === 1 || appointmentsCount === 0;
+    const appointments = await getAppointmentsFromConversation();
+    const isMultiple = appointments.length > 1;
 
-    console.log('APPOINTMENTS COUNT', appointmentsCount);
+    console.log('CONVERSATION', conversation);
+    console.log('APPOINTMENTS FOUND', appointments);
+    console.log('APPOINTMENTS COUNT', appointments.length);
     console.log('IS MULTIPLE', isMultiple);
+    console.log('SELECTED OPTION', option);
 
     nextContext.appointments = appointments.map(a => ({
       id: a.id,
