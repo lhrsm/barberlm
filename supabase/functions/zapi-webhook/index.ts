@@ -205,10 +205,20 @@ async function processZapiWebhook(body: any) {
 
     const listAppointments = (appointments: any[]) => {
       return appointments.map((a, i) => {
-        const date = format(new Date(a.start_time), "dd/MM");
         const time = format(new Date(a.start_time), "HH:mm");
         return `${i + 1}️⃣ ${time} - ${a.service_name} com ${a.barber_name}`;
       }).join('\n');
+    };
+
+    const listAppointmentsOptions = (appointments: any[]) => {
+      return appointments.map((a, i) => {
+        const time = format(new Date(a.start_time), "HH:mm");
+        return {
+          id: `appt_${a.id}`,
+          title: `${time} - ${a.service_name}`,
+          description: `com ${a.barber_name}`
+        };
+      });
     };
 
     // 2. STATE MACHINE
