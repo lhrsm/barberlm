@@ -210,15 +210,17 @@ serve(async (req) => {
             nextState = 'awaiting_scope_selection';
             const actionLabel = nextContext.action === 'confirm' ? 'confirmar' : nextContext.action === 'reschedule' ? 'reagendar' : 'cancelar';
             
-            const res = await sendMessage(connection, normalizedPhone, `Você deseja ${actionLabel}:`, {
+            const res = await sendMessage(connection, normalizedPhone, `Você deseja ${actionLabel}:\n\n1️⃣ Todos os agendamentos\n2️⃣ Apenas um específico`, {
               buttons: [
-                { id: '1', label: 'Todos' },
-                { id: '2', label: 'Apenas um' }
+                { id: 'all', label: 'Todos' },
+                { id: 'single', label: 'Apenas um' }
               ],
               title: "Escolha o que deseja " + actionLabel
             });
             console.log('ZAPI SEND RESPONSE (Scope Selection)', JSON.stringify(res));
           } else {
+            // ... keep existing code
+
             // Single appointment flow
             const apptId = context.appointments?.[0]?.id || conversation.appointment_id;
             nextContext.selected_appointment_id = apptId;
