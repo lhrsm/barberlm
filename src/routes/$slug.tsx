@@ -1959,7 +1959,7 @@ function ShopPageComponent() {
                   </div>
 
                   <Button 
-                    className="w-full h-14 bg-sky-600 text-white hover:bg-sky-700 border border-sky-600 rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
+                    className="w-full h-14 bg-black text-white hover:bg-zinc-800 rounded-xl font-semibold shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
                     onClick={handlePhoneCheck}
                     disabled={!customerPhone || submitting || isSearchingCustomer || (normalizePhone(customerPhone).length >= 10 && !customerId && (!customerName || customerName.trim().length < 3))}
                   >
@@ -2097,7 +2097,7 @@ function ShopPageComponent() {
                       <p className="text-lg font-black uppercase tracking-tight text-zinc-900">{selectedBarber?.name}</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setBookingStep(3)} className="bg-white text-blue-600 hover:bg-blue-50 border border-blue-300 rounded-xl font-medium transition-all duration-200 h-9 px-4">Alterar</Button>
+                  <Button variant="outline" size="sm" onClick={() => setBookingStep(3)} className="bg-white text-zinc-900 hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200 h-9 px-4">Alterar</Button>
                 </div>
 
                 <div className="space-y-6">
@@ -2171,14 +2171,14 @@ function ShopPageComponent() {
                 <div className="grid grid-cols-2 gap-4">
                   <Button 
                     variant="outline"
-                    className="h-14 bg-white text-primary hover:bg-primary/5 border border-primary/30 rounded-xl font-medium transition-all duration-200"
+                    className="h-14 bg-white text-black hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200"
                     onClick={addToBookingCart}
                     disabled={!selectedTime}
                   >
                     + Adicionar outro
                   </Button>
                   <Button 
-                    className="h-14 bg-primary text-white hover:opacity-90 border border-primary rounded-xl font-semibold shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="h-14 bg-black text-white hover:bg-zinc-800 rounded-xl font-semibold shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
                       if (!selectedTime) {
                         toast.error("Por favor, selecione um horário.");
@@ -2303,8 +2303,8 @@ function ShopPageComponent() {
                           className={cn(
                             "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
                             useCashback 
-                              ? "bg-primary text-white hover:opacity-90 border-primary" 
-                              : "bg-white text-primary hover:bg-primary/5 border border-primary/30"
+                              ? "bg-black text-white hover:bg-zinc-800" 
+                              : "bg-white text-black hover:bg-zinc-50 border border-zinc-200"
                           )}
                         >
                           {useCashback ? "Aplicado" : "Usar"}
@@ -2336,8 +2336,8 @@ function ShopPageComponent() {
                           className={cn(
                             "rounded-xl font-medium transition-all duration-200 h-10 px-6", 
                             useCredits 
-                              ? "bg-primary text-white hover:opacity-90 border-primary" 
-                              : "bg-white text-primary hover:bg-primary/5 border border-primary/30"
+                              ? "bg-black text-white hover:bg-zinc-800" 
+                              : "bg-white text-black hover:bg-zinc-50 border border-zinc-200"
                           )}
                         >
                           {useCredits ? "Aplicado" : "Usar Créditos"}
@@ -2389,7 +2389,7 @@ function ShopPageComponent() {
                       <Button 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
-                        className="bg-primary text-white hover:opacity-90 border border-primary rounded-xl font-semibold shadow-sm transition-all duration-200 h-12 px-6"
+                        className="bg-black text-white hover:bg-zinc-800 rounded-xl font-semibold shadow-md transition-all duration-200 h-12 px-6"
                       >
                         {isApplyingCoupon ? <RefreshCcw size={18} className="animate-spin" /> : "Aplicar"}
                       </Button>
@@ -2661,31 +2661,31 @@ function ShopPageComponent() {
                       {(!paymentMethod && calculateTotal() > 0) ? (
                         <div className="grid grid-cols-1 gap-4">
                           <Button 
-                            className="flex items-center justify-between h-20 px-6 bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
+                            className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-zinc-700 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
                             onClick={() => setPaymentMethod('barbershop')}
                           >
                             <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                              <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center">
                                 <Scissors size={24} className="text-white" />
                               </div>
                               <div className="text-left">
                                 <p className="text-sm font-bold text-white">Pagar na Barbearia</p>
-                                <p className="text-[10px] text-blue-100 font-medium uppercase tracking-wider opacity-80">Pague após o serviço</p>
+                                <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider opacity-80">Pague após o serviço</p>
                               </div>
                             </div>
                             <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
                           </Button>
                           <Button 
-                            className="flex items-center justify-between h-20 px-6 bg-blue-500 text-white hover:bg-blue-600 border border-blue-500 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
+                            className="flex items-center justify-between h-20 px-6 bg-black text-white hover:bg-zinc-800 border border-zinc-700 rounded-2xl font-semibold shadow-md transition-all duration-200 hover:shadow-lg group"
                             onClick={() => setPaymentMethod('pix')}
                           >
                             <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                              <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center">
                                 <QrCode size={24} className="text-white" />
                               </div>
                               <div className="text-left">
                                 <p className="text-sm font-bold text-white">Pagar Agora (PIX)</p>
-                                <p className="text-[10px] text-blue-100 font-medium uppercase tracking-wider opacity-80">Confirmação instantânea</p>
+                                <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider opacity-80">Confirmação instantânea</p>
                               </div>
                             </div>
                             <ChevronRight size={20} className="text-white/60 group-hover:text-white transition-colors" />
@@ -2718,7 +2718,7 @@ function ShopPageComponent() {
                                     <Button 
                                       variant="outline" 
                                       size="lg" 
-                                      className="w-full h-12 bg-white text-primary hover:bg-primary/5 border border-primary/30 rounded-xl font-medium transition-all duration-200"
+                                      className="w-full h-12 bg-white text-black hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200"
                                       onClick={() => {
                                         navigator.clipboard.writeText(shop.pix_key);
                                         toast.success("Chave PIX copiada!");
@@ -2778,7 +2778,7 @@ function ShopPageComponent() {
                             <Button
                               disabled={(!paymentMethod && calculateTotal() > 0) || submitting}
                               onClick={handleFinalizeBooking}
-                              className="w-full h-14 rounded-xl bg-primary hover:opacity-90 text-white font-semibold shadow-md transition-all"
+                              className="w-full h-14 rounded-xl bg-black hover:bg-zinc-800 text-white font-semibold shadow-md transition-all"
                             >
                               {submitting ? "Confirmando..." : (!paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento"))}
                             </Button>
@@ -2786,7 +2786,7 @@ function ShopPageComponent() {
                             {paymentMethod && (
                               <Button 
                                 variant="outline" 
-                                className="w-full h-12 bg-white text-primary hover:bg-primary/5 border border-primary/30 rounded-xl font-medium transition-all duration-200" 
+                                className="w-full h-12 bg-white text-black hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200" 
                                 onClick={() => setPaymentMethod(null)}
                               >
                                 Alterar forma de pagamento
@@ -2818,7 +2818,7 @@ function ShopPageComponent() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white text-primary hover:bg-primary/5 border border-primary/30 rounded-xl font-medium transition-all duration-200"
+                className="bg-white text-black hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200"
                 onClick={() => {
                   if (bookingStep === 5 && paymentMethod) {
                     setPaymentMethod(null);
