@@ -248,7 +248,10 @@ serve(async (req) => {
         }
 
         case 'awaiting_scope_selection': {
-          if (['1', '1️⃣', 'todos', 'tudo', 'all'].some(s => messageText.includes(s))) {
+          const isAll = ['1', '1️⃣', 'todos', 'tudo', 'all'].some(s => responseActionId === s || messageText.includes(s));
+          const isSingle = ['2', '2️⃣', 'apenas um', 'específico', 'single'].some(s => responseActionId === s || messageText.includes(s));
+
+          if (isAll) {
             console.log('[Webhook] Matched scope: ALL');
             nextContext.scope = 'all';
             const appointments = context.appointments || [];
@@ -263,8 +266,8 @@ serve(async (req) => {
               nextState = 'awaiting_cancel_confirmation';
               const res = await sendMessage(connection, normalizedPhone, `Tem certeza que deseja cancelar TODOS os seus agendamentos?`, {
                 buttons: [
-                  { id: '1', label: 'Sim, cancelar tudo' },
-                  { id: '2', label: 'Não, manter todos' }
+                  { id: 'all', label: 'Sim, cancelar tudo' },
+                  { id: 'keep', label: 'Não, manter todos' }
                 ]
               });
               console.log('ZAPI SEND RESPONSE (Cancel Scope Confirm)', JSON.stringify(res));
@@ -279,7 +282,7 @@ serve(async (req) => {
               const res = await sendMessage(connection, normalizedPhone, `Vamos reagendar seus atendimentos um por um.\n\nPara o serviço de *${appt.service_name}*, qual a nova data desejada?`);
               console.log('ZAPI SEND RESPONSE (Reschedule Multiple Start)', JSON.stringify(res));
             }
-          } else if (['2', '2️⃣', 'apenas um', 'específico', 'single'].some(s => messageText.includes(s))) {
+          } else if (isSingle) {
             console.log('[Webhook] Matched scope: SINGLE');
             nextContext.scope = 'single';
             nextState = 'awaiting_single_appointment_selection';
@@ -287,13 +290,15 @@ serve(async (req) => {
             const res = await sendMessage(connection, normalizedPhone, `Qual agendamento você deseja ${actionLabel}?\n\n${listAppointments(context.appointments)}`);
             console.log('ZAPI SEND RESPONSE (Single Selection List)', JSON.stringify(res));
           } else {
-            await sendMessage(connection, normalizedPhone, `Por favor, escolha uma opção:`, {
+            const actionLabel = context.action === 'confirm' ? 'confirmar' : context.action === 'reschedule' ? 'reagendar' : 'cancelar';
+            await sendMessage(connection, normalizedPhone, `Por favor, escolha uma opção para ${actionLabel}:`, {
               buttons: [
-                { id: '1', label: 'Todos' },
-                { id: '2', label: 'Apenas um' }
+                { id: 'all', label: 'Todos' },
+                { id: 'single', label: 'Apenas um' }
               ]
             });
           }
+
           break;
         }
 
