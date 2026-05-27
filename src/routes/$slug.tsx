@@ -2810,13 +2810,13 @@ function ShopPageComponent() {
                       <div className="pt-2">
                         <Button 
                           id="btn-confirm-booking"
-                          className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-medium shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                          className="w-full h-12 bg-black text-white hover:bg-zinc-800 border border-black rounded-xl font-bold uppercase tracking-wider shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" 
                           onClick={(e) => {
                             e.preventDefault();
                             const normalized = normalizePhone(customerPhone);
                             console.log('DEBUG: Finalizing booking with normalized phone:', normalized);
                             handleFinalizeBooking();
-                          }} 
+                          }}
                           disabled={submitting}
                         >
                           {submitting ? "Finalizando..." : "Confirmar Agendamento"}
