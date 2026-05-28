@@ -1184,9 +1184,20 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                           setTempWebhookUrl(`${supabaseUrl}/functions/v1/zapi-catch-all`);
                         }}
                       >
-                        URL Catch-All (SaaS)
+                        URL Catch-All
+                      </Button>
+                      <Button 
+                        variant="link" 
+                        className="h-auto p-0 text-[10px] text-emerald-400 hover:text-emerald-300"
+                        onClick={() => {
+                          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+                          setTempWebhookUrl(`${supabaseUrl}/functions/v1/zapi-receive-json`);
+                        }}
+                      >
+                        URL JSON (Pública)
                       </Button>
                     </div>
+
                   </div>
                   <Input 
                     value={tempWebhookUrl}
