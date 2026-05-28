@@ -146,7 +146,7 @@ async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: 
       const { data: conversation } = await supabase
         .from("automation_conversations")
         .select("*")
-        .eq("phone", normalizedPhone)
+        .eq("phone_normalized", normalizedPhone)
         .eq("tenant_id", tenantId)
         .eq("status", "active")
         .order("created_at", { ascending: false })
