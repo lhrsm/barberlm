@@ -162,17 +162,17 @@ export function usePlanLimits() {
 
   // Logic for detailed subscription status as requested by user
   const subStatus = (subscription?.status || "").toLowerCase();
-  const profileStatus = (plan === 'free' ? 'trial' : 'active').toLowerCase(); // fallback
 
-  // Rule: exists active subscription if status is 'active', 'paid' or 'trialing'
-  // or if explicitly marked as active in profile (using common field names)
+  // Rule: exists active subscription if status is 'active', 'paid', 'trialing' or 'past_due'
+  // OR if explicitly marked as active in profile (using common field names or plan)
   const hasActiveSubscription = 
     ['active', 'paid', 'trialing', 'past_due'].includes(subStatus) || 
-    (plan !== 'free' && plan !== null);
+    (plan && plan !== 'free');
 
   const isTrialValid = trialEndsAt ? new Date(trialEndsAt) > new Date() : false;
 
   // Final access rule: can access if trial is valid OR has active subscription
+  // O SaaS não possui plano free. Bloqueio somente se trial expirou E não há assinatura.
   const canAccess = hasActiveSubscription || isTrialValid;
   
   // Bloqueio APENAS se canAccess for falso

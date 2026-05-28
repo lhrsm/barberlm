@@ -61,9 +61,9 @@ function ShopPageComponent() {
   }, [slug, location.pathname, loading, shop?.id]);
   const [scrolled, setScrolled] = useState(false);
   
-  const isPortalRoute = location.pathname.endsWith('/portal');
-  const isProfissionalRoute = location.pathname.endsWith('/profissional');
-  const isProfessionalsRoute = location.pathname.endsWith('/professionals');
+  const isPortalRoute = location.pathname.includes('/portal');
+  const isProfissionalRoute = location.pathname.includes('/profissional');
+  const isProfessionalsRoute = location.pathname.includes('/professionals');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -599,17 +599,18 @@ function ShopPageComponent() {
       const trial_end = currentShop.trial_end;
       
       // LOGICA DEFINITIVA: Acesso se TRIAL VÁLIDO OU ASSINATURA ATIVA
+      // O SaaS não possui plano free. Bloqueio somente se trial expirou E não há assinatura.
       const hasActiveSubscription = 
         ['active', 'paid', 'trialing', 'past_due'].includes(subscription_status.toLowerCase()) || 
-        (plan_id && plan_id !== 'free') ||
-        (effective_plan && effective_plan !== 'free');
+        (plan_id && plan_id !== 'free' && plan_id !== '') ||
+        (effective_plan && effective_plan !== 'free' && effective_plan !== '');
       
       const isTrialValid = trial_end ? new Date(trial_end) > new Date() : false;
       const canAccess = hasActiveSubscription || isTrialValid;
       const block_reason = !canAccess ? "Bloqueado: Trial expirado e sem assinatura ativa detectada" : "Liberado: Acesso concedido";
 
       // Temporary logs for debugging access as requested by user
-      console.log("[professionals-access-debug]", {
+      console.log("[profissional-access-debug]", {
         slug: normalizedSlug,
         tenant_id: currentShop.id,
         subscription_status,
@@ -621,6 +622,7 @@ function ShopPageComponent() {
         has_active_subscription: hasActiveSubscription,
         can_access: canAccess,
         block_reason,
+        source: "Supabase Public Profile + Subscriptions",
         now: new Date().toISOString()
       });
 
