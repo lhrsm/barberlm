@@ -656,6 +656,15 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                     Reconfigurar Webhook
                   </Button>
                   <Button 
+                    onClick={runExpandedWebhookTest} 
+                    disabled={isConfiguring || !instance}
+                    size="sm"
+                    className="bg-amber-600 hover:bg-amber-700 text-[10px] h-8"
+                  >
+                    {isConfiguring ? <Loader2 className="animate-spin mr-1" size={12} /> : <Zap className="mr-1" size={12} />}
+                    Teste Ampliado Webhooks
+                  </Button>
+                  <Button 
                     onClick={sendTestMessage} 
                     disabled={isSendingTest || !instance}
                     size="sm"
@@ -665,6 +674,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                     {isSendingTest ? <Loader2 className="animate-spin mr-1" size={12} /> : <Send className="mr-1" size={12} />}
                     Enviar Mensagem Teste
                   </Button>
+
                 </div>
               </div>
 
