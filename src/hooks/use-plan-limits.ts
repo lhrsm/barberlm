@@ -167,7 +167,7 @@ export function usePlanLimits() {
   // OR if explicitly marked as active in profile (using common field names or plan)
   const hasActiveSubscription = 
     ['active', 'paid', 'trialing', 'past_due'].includes(subStatus) || 
-    (plan !== 'free' && plan !== null && plan !== undefined && plan !== '');
+    (plan && plan !== 'free');
 
   const isTrialValid = trialEndsAt ? new Date(trialEndsAt) > new Date() : false;
 
