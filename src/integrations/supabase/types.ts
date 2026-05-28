@@ -2421,33 +2421,48 @@ export type Database = {
       zapi_integration_logs: {
         Row: {
           action: string
+          client_token_masked: string | null
           created_at: string
+          endpoint: string | null
+          error_message: string | null
           id: string
           instance_id: string | null
+          phone_number: string | null
           request_payload: Json | null
           response_payload: Json | null
           status_code: number | null
           tenant_id: string | null
+          token_masked: string | null
         }
         Insert: {
           action: string
+          client_token_masked?: string | null
           created_at?: string
+          endpoint?: string | null
+          error_message?: string | null
           id?: string
           instance_id?: string | null
+          phone_number?: string | null
           request_payload?: Json | null
           response_payload?: Json | null
           status_code?: number | null
           tenant_id?: string | null
+          token_masked?: string | null
         }
         Update: {
           action?: string
+          client_token_masked?: string | null
           created_at?: string
+          endpoint?: string | null
+          error_message?: string | null
           id?: string
           instance_id?: string | null
+          phone_number?: string | null
           request_payload?: Json | null
           response_payload?: Json | null
           status_code?: number | null
           tenant_id?: string | null
+          token_masked?: string | null
         }
         Relationships: [
           {
