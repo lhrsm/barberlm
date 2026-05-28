@@ -241,15 +241,12 @@ function ProfessionalDashboard() {
         clearInterval(pollInterval);
       };
     }
-  }, [session?.barber_id]);
-
   async function fetchData() {
     if (!session?.barber_id) return;
 
     const bId = session.barber_id;
     const now = new Date();
     
-    // Use local day bounds to avoid timezone issues
     const tStart = startOfDay(now).toISOString();
     const tEnd = endOfDay(now).toISOString();
     const wStart = startOfWeek(now, { weekStartsOn: 0 }).toISOString();
@@ -265,44 +262,46 @@ function ProfessionalDashboard() {
       .single();
     setBarber(bData);
 
-    // Fetch Appointments for counts
+    // Fetch Appointments for stats
     const { data: allApps } = await supabase
       .from("appointments")
-      .select("id, start_time, status, total_price, final_amount, payment_status")
-      .eq("barber_id", bId)
-      .neq("status", "cancelled");
+      .select("id, start_time, status, total_price, payment_status, customer_id")
+      .eq("barber_id", bId);
 
     if (allApps) {
-      const todayCount = allApps.filter(a => a.start_time >= tStart && a.start_time <= tEnd).length;
-      const weekCount = allApps.filter(a => a.start_time >= wStart && a.start_time <= wEnd).length;
-      const monthCount = allApps.filter(a => a.start_time >= mStart && a.start_time <= mEnd).length;
+      const todayApps = allApps.filter(a => a.start_time >= tStart && a.start_time <= tEnd && a.status !== 'cancelled');
+      const weekApps = allApps.filter(a => a.start_time >= wStart && a.start_time <= wEnd && a.status !== 'cancelled');
+      const monthApps = allApps.filter(a => a.start_time >= mStart && a.start_time <= mEnd && a.status !== 'cancelled');
       
-      const completedApps = allApps.filter(a => a.status === 'completed');
+      const monthCompletedApps = allApps.filter(a => 
+        a.start_time >= mStart && 
+        a.start_time <= mEnd && 
+        a.status === 'completed'
+      );
       
-      // Calculate revenue based on commission
+      const totalRevenueMonth = monthCompletedApps.reduce((acc, a) => acc + Number(a.total_price || 0), 0);
       const commissionRate = bData?.commission_rate || 0;
-      const totalRevenue = completedApps.reduce((acc, a) => {
-        const amount = Number(a.total_price || 0);
-        return acc + (amount * (commissionRate / 100));
-      }, 0);
+      const commissionMonth = totalRevenueMonth * (commissionRate / 100);
+      
+      const distinctCustomers = new Set(allApps.filter(a => a.status === 'completed').map(a => a.customer_id)).size;
+      const avgTicket = monthCompletedApps.length > 0 ? totalRevenueMonth / monthCompletedApps.length : 0;
 
-      const received = completedApps.filter(a => a.payment_status === 'paid').reduce((acc, a) => {
-        const amount = Number(a.total_price || 0);
-        return acc + (amount * (commissionRate / 100));
-      }, 0);
-
-      const pending = completedApps.filter(a => a.payment_status === 'pending').reduce((acc, a) => {
-        const amount = Number(a.total_price || 0);
-        return acc + (amount * (commissionRate / 100));
-      }, 0);
+      // Find next appointment
+      const nextApp = allApps
+        .filter(a => new Date(a.start_time) > now && a.status === 'scheduled')
+        .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
 
       setStats({
-        today: todayCount,
-        week: weekCount,
-        month: monthCount,
-        revenue: totalRevenue,
-        received,
-        pending
+        today: todayApps.length,
+        week: weekApps.length,
+        month: monthApps.length,
+        revenueMonth: totalRevenueMonth,
+        commissionMonth: commissionMonth,
+        avgTicket: avgTicket,
+        customerCount: distinctCustomers,
+        nextAppointment: nextApp
+      });
+    }
       });
     }
 
