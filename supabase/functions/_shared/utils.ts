@@ -45,3 +45,13 @@ export function formatBrazilDayMonth(date: Date | string | number): string {
 export function getNowBrazil(): Date {
   return toDate(new Date(), { timeZone: BRAZIL_TZ });
 }
+
+export function normalizePhone(phone: string): string {
+  if (!phone) return "";
+  let digits = phone.replace(/\D/g, "");
+  // Se tiver 10 ou 11 dígitos, assume que falta o DDI 55
+  if (digits.length === 10 || digits.length === 11) {
+    digits = "55" + digits;
+  }
+  return digits;
+}
