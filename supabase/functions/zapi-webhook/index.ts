@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { getWhatsAppSettings, sendMessage } from "../_shared/whatsapp-settings.ts";
-import { handleAutomationWhatsappResponse, AUTOMATION_STATES } from "../_shared/automation-engine.ts";
+import { handleAutomationWhatsappResponse } from "../_shared/automation-engine.ts";
 import { normalizePhone } from "../_shared/utils.ts";
 
 const corsHeaders = {
@@ -52,11 +52,11 @@ function extractSelectedOption(payload: any) {
   };
 }
 
-async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: any, source: string, tenantIdFromUrl?: string) {
+async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: any, source: string, integrationIdFromUrl?: string) {
   const { type, phone, instanceId } = body;
   const messageText = String(body.text?.message || body.message?.text || body.text || body.body || "").trim();
   
-  // 1. PRIMEIRA LINHA: Salvar no debug
+  // 1. PRIMEIRA LINHA: Salvar no debug (obrigatório)
   const { data: debugLog, error: debugError } = await supabase
     .from("zapi_webhook_debug")
     .insert({
@@ -66,7 +66,8 @@ async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: 
       phone_raw: phone,
       message_text: messageText,
       received_at: new Date().toISOString(),
-      processed: false
+      processed: false,
+      integration_id: integrationIdFromUrl
     })
     .select()
     .single();
@@ -105,20 +106,10 @@ async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: 
         identifiedOptionId = messageText;
       }
 
-      // Update debug log with extracted info
-      if (debugLog) {
-        await supabase.from("zapi_webhook_debug")
-          .update({
-            phone_normalized: normalizedPhone,
-            option_id: identifiedOptionId
-          })
-          .eq("id", debugLog.id);
-      }
-
-      console.log(`[Z-API Webhook][${source}] Received from ${phone} (${normalizedPhone}). Message: "${messageText}", Identified Option: ${identifiedOptionId}`);
-
       // Find the tenant_id
       let tenantId = "";
+      
+      // Tentar encontrar por instanceId primeiro
       const { data: instance } = await supabase
         .from("whatsapp_instances")
         .select("tenant_id")
@@ -129,18 +120,40 @@ async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: 
         tenantId = instance.tenant_id;
       } else if (body.tenantId) {
         tenantId = body.tenantId;
-      } else if (tenantIdFromUrl && tenantIdFromUrl.length > 20) {
-        tenantId = tenantIdFromUrl;
+      } else if (integrationIdFromUrl && integrationIdFromUrl.length > 20) {
+        // Se o integrationIdFromUrl parecer um UUID, pode ser o tenant_id ou id de instancia
+        const { data: instByTenant } = await supabase
+          .from("whatsapp_instances")
+          .select("tenant_id")
+          .or(`tenant_id.eq.${integrationIdFromUrl},id.eq.${integrationIdFromUrl}`)
+          .maybeSingle();
+          
+        if (instByTenant) {
+          tenantId = instByTenant.tenant_id;
+        } else {
+          // Fallback: assumir que é o tenant_id se não encontrar instancia
+          tenantId = integrationIdFromUrl;
+        }
       }
 
-      if (debugLog && tenantId) {
-        await supabase.from("zapi_webhook_debug").update({ tenant_id: tenantId }).eq("id", debugLog.id);
+      // Update debug log with extracted info
+      if (debugLog) {
+        await supabase.from("zapi_webhook_debug")
+          .update({
+            phone_normalized: normalizedPhone,
+            option_id: identifiedOptionId,
+            tenant_id: tenantId || null
+          })
+          .eq("id", debugLog.id);
       }
 
       if (!tenantId) {
+        console.error(`[Z-API Webhook][${source}] Tenant not identified for integrationId: ${integrationIdFromUrl}`);
         if (debugLog) await supabase.from("zapi_webhook_debug").update({ processing_error: "Tenant not identified" }).eq("id", debugLog.id);
         return { success: false, error: "Tenant not identified" };
       }
+
+      console.log(`[Z-API Webhook][${source}] Received from ${phone} (${normalizedPhone}). Message: "${messageText}", Identified Option: ${identifiedOptionId}, Tenant: ${tenantId}`);
 
       // Find active conversation
       const { data: conversation } = await supabase
@@ -216,7 +229,7 @@ async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: 
       } else {
         console.log(`[Z-API Webhook][${source}] No active conversation for ${normalizedPhone}`);
         await supabase.from("automation_logs").insert({
-          tenant_id: tenant_id || tenantId,
+          tenant_id: tenantId,
           phone: normalizedPhone,
           direction: 'incoming',
           processed_template: messageText,
@@ -245,13 +258,21 @@ async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: 
 }
 
 serve(async (req) => {
+  const url = new URL(req.url);
+  const pathParts = url.pathname.split("/");
+  const integrationIdFromUrl = pathParts[pathParts.length - 1];
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Health check for GET
+  // Resposta para GET (requisito 6)
   if (req.method === "GET") {
-    return new Response(JSON.stringify({ ok: true, message: "Z-API webhook endpoint is active" }), {
+    return new Response(JSON.stringify({ 
+      ok: true, 
+      message: "Z-API webhook active", 
+      integration_id: integrationIdFromUrl 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
@@ -265,12 +286,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const headers = Object.fromEntries(req.headers.entries());
-    const url = new URL(req.url);
-    const pathParts = url.pathname.split("/");
     
-    // The tenantId could be at the end of the URL: /zapi-webhook/TENANT_ID
-    const tenantIdFromUrl = pathParts[pathParts.length - 1];
-
     // Identify source
     let source = "zapi_real";
     if (body.source === "manual_simulation") {
@@ -278,7 +294,7 @@ serve(async (req) => {
       delete body.source;
     }
 
-    const result = await handleIncomingWhatsappWebhook(supabase, body, headers, source, tenantIdFromUrl);
+    const result = await handleIncomingWhatsappWebhook(supabase, body, headers, source, integrationIdFromUrl);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -287,7 +303,6 @@ serve(async (req) => {
   } catch (error) {
     console.error("[Z-API Webhook] Global Error:", error);
     
-    // Return 200 even on error to prevent Z-API from retrying too much if it's a code bug
     return new Response(JSON.stringify({ success: false, error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200, 
