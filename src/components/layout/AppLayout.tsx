@@ -151,21 +151,29 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { isExpired, isTrial, subscription, plan, trialEndsAt, loading: planLoading } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
   
-  // A rota só deve ser bloqueada se:
-  // 1. Não houver assinatura ativa (isSubscribed é falso)
-  // 2. E o trial expirou (isExpired é verdadeiro)
-  // 3. E não for a página de assinatura
+  // A rota só deve ser bloqueada se o trial expirou E não houver assinatura ativa
+  // A lógica de isExpired no hook já considera se há assinatura ativa.
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
+  const hasActiveSubscription = isSubscribed || (plan !== 'free' && plan !== null);
   
-  // Regra clara: Se subscription_status = active, liberar sempre.
-  const hasActiveSubscription = isSubscribed || subscription?.status === 'active';
-  
-  // O bloqueio só deve ocorrer se:
-  // - Não houver assinatura ativa (hasActiveSubscription)
-  // - E o trial expirou (isExpired)
-  // - E não for super_admin
-  // - E não for a página de assinatura
-  const shouldBlock = !hasActiveSubscription && isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
+  const shouldBlock = isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
+
+  useEffect(() => {
+    if (!loading && !planLoading) {
+      console.log("ROUTE ACCESS DEBUG:", {
+        slug,
+        tenantId,
+        pathname,
+        subscription_status: subscription?.status,
+        has_active_subscription: hasActiveSubscription,
+        plan_id: plan,
+        trial_end: trialEndsAt,
+        trial_expired: isExpired,
+        should_block_access: shouldBlock,
+        motivo_bloqueio: shouldBlock ? "Trial expirado e sem assinatura ativa detectada" : "Acesso liberado"
+      });
+    }
+  }, [slug, tenantId, pathname, subscription?.status, hasActiveSubscription, plan, trialEndsAt, isExpired, shouldBlock, loading, planLoading]);
 
   useEffect(() => {
     if (!loading && !planLoading) {
