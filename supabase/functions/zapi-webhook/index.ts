@@ -9,13 +9,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-
 function extractSelectedOption(payload: any) {
   let text = "";
   let id = "";
-
-  // Log full payload for debugging if needed
-  // console.log("[Z-API Webhook] Extracting option from:", JSON.stringify(payload));
 
   const possiblePaths = [
     payload.message?.listResponseMessage?.title,
@@ -56,41 +52,30 @@ function extractSelectedOption(payload: any) {
   };
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: any, source: string, tenantIdFromUrl?: string) {
+  const { type, phone, instanceId } = body;
+  const messageText = String(body.text?.message || body.message?.text || body.text || body.body || "").trim();
+  
+  // 1. PRIMEIRA LINHA: Salvar no debug
+  const { data: debugLog, error: debugError } = await supabase
+    .from("zapi_webhook_debug")
+    .insert({
+      payload_raw: body,
+      headers_raw: headers,
+      source: source,
+      phone_raw: phone,
+      message_text: messageText,
+      received_at: new Date().toISOString(),
+      processed: false
+    })
+    .select()
+    .single();
+
+  if (debugError) {
+    console.error("[Z-API Webhook] Error creating initial debug log:", debugError);
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
-    const url = new URL(req.url);
-    const pathParts = url.pathname.split("/");
-    const tenantIdFromUrl = pathParts[pathParts.length - 1]; // Fallback tenant ID from URL path
-
-    const body = await req.json();
-    const headers = Object.fromEntries(req.headers.entries());
-    
-    // 0. INITIAL LOG (Save everything immediately)
-    const { data: debugLog, error: debugError } = await supabase
-      .from("zapi_webhook_debug")
-      .insert({
-        payload_raw: body,
-        headers_raw: headers,
-        received_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (debugError) {
-      console.error("[Z-API Webhook] Error creating initial debug log:", debugError);
-    }
-
-    const { type, phone, instanceId } = body;
-
     // Handle Instance Connection Status
     if (type === "Connected" || type === "Disconnected") {
       await supabase.from("whatsapp_instances")
@@ -107,13 +92,12 @@ serve(async (req) => {
           .eq("id", debugLog.id);
       }
 
-      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return { success: true, action: "instance_status_update" };
     }
 
     if (type === "ReceivedMessage") {
       const normalizedPhone = normalizePhone(phone);
       const option = extractSelectedOption(body);
-      const messageText = String(body.text?.message || body.message?.text || body.text || body.body || "").trim();
       
       // If the message is just a number, prioritize it as the option.id
       let identifiedOptionId = option.id;
@@ -125,20 +109,15 @@ serve(async (req) => {
       if (debugLog) {
         await supabase.from("zapi_webhook_debug")
           .update({
-            phone_raw: phone,
             phone_normalized: normalizedPhone,
-            message_text: messageText,
             option_id: identifiedOptionId
           })
           .eq("id", debugLog.id);
       }
 
-      console.log(`[Z-API Webhook] Payload Recebido:`, JSON.stringify(body));
-      console.log(`[Z-API Webhook] Phone: ${normalizedPhone}`);
-      console.log(`[Z-API Webhook] Message Text: ${messageText}`);
-      console.log(`[Z-API Webhook] Option ID: ${identifiedOptionId}`);
+      console.log(`[Z-API Webhook][${source}] Phone: ${normalizedPhone}, Message: ${messageText}, Option: ${identifiedOptionId}`);
 
-      // 1. Find the tenant_id by instanceId
+      // Find the tenant_id
       let tenantId = "";
       const { data: instance } = await supabase
         .from("whatsapp_instances")
@@ -153,21 +132,15 @@ serve(async (req) => {
       }
 
       if (debugLog && tenantId) {
-        await supabase.from("zapi_webhook_debug")
-          .update({ tenant_id: tenantId })
-          .eq("id", debugLog.id);
+        await supabase.from("zapi_webhook_debug").update({ tenant_id: tenantId }).eq("id", debugLog.id);
       }
 
       if (!tenantId) {
-        if (debugLog) {
-          await supabase.from("zapi_webhook_debug")
-            .update({ processing_error: "Tenant not identified" })
-            .eq("id", debugLog.id);
-        }
-        return new Response(JSON.stringify({ success: false, error: "Instance not identified" }), { status: 200, headers: corsHeaders });
+        if (debugLog) await supabase.from("zapi_webhook_debug").update({ processing_error: "Tenant not identified" }).eq("id", debugLog.id);
+        return { success: false, error: "Tenant not identified" };
       }
 
-      // 2. Find active conversation
+      // Find active conversation
       const { data: conversation } = await supabase
         .from("automation_conversations")
         .select("*")
@@ -179,18 +152,12 @@ serve(async (req) => {
         .maybeSingle();
 
       if (debugLog && conversation) {
-        await supabase.from("zapi_webhook_debug")
-          .update({ matched_conversation_id: conversation.id })
-          .eq("id", debugLog.id);
+        await supabase.from("zapi_webhook_debug").update({ matched_conversation_id: conversation.id }).eq("id", debugLog.id);
       }
 
-      let actionExecuted = "none";
-      let nextState = "none";
-
       if (conversation) {
-        console.log(`[Z-API Webhook] Conversa Encontrada: ${conversation.id}, State: ${conversation.current_state}`);
+        console.log(`[Z-API Webhook][${source}] Found conversation: ${conversation.id}, State: ${conversation.current_state}`);
 
-        // 3. Process via Automation Engine
         const result = await handleAutomationWhatsappResponse(supabase, {
           tenant_id: tenantId,
           phone: normalizedPhone,
@@ -202,13 +169,10 @@ serve(async (req) => {
         });
 
         if (result) {
-          actionExecuted = result.action_executed;
-          nextState = result.next_state;
           const connection = await getWhatsAppSettings(supabase, tenantId);
           if (connection && result.message_to_send) {
             const sendResult = await sendMessage(connection, normalizedPhone, result.message_to_send);
             
-            // Log outgoing message
             await supabase.from("automation_logs").insert({
               tenant_id: tenantId,
               automation_id: conversation.automation_id,
@@ -224,7 +188,7 @@ serve(async (req) => {
           }
         }
 
-        // Log incoming response with detailed debug info
+        // Log incoming response
         await supabase.from("automation_logs").insert({
           tenant_id: tenantId,
           conversation_id: conversation.id,
@@ -236,20 +200,21 @@ serve(async (req) => {
           payload: body,
           status: 'success',
           metadata: {
+            source,
             normalized_phone: normalizedPhone,
-            identified_option: identifiedOptionId,
             current_state: conversation.current_state,
-            next_state: nextState,
-            action_executed: actionExecuted,
-            raw_payload: body
+            action_executed: result?.action_executed,
+            next_state: result?.next_state
           },
           received_at: new Date().toISOString()
         });
+
+        if (debugLog) await supabase.from("zapi_webhook_debug").update({ processed: true }).eq("id", debugLog.id);
+        return { success: true, action: "processed_conversation" };
       } else {
-        console.log(`[Z-API Webhook] Nenhuma Conversa Ativa para ${normalizedPhone}`);
-        // Log unknown message
+        console.log(`[Z-API Webhook][${source}] No active conversation for ${normalizedPhone}`);
         await supabase.from("automation_logs").insert({
-          tenant_id: tenantId,
+          tenant_id: tenant_id || tenantId,
           phone: normalizedPhone,
           direction: 'incoming',
           processed_template: messageText,
@@ -258,10 +223,52 @@ serve(async (req) => {
           error_message: 'No active conversation found',
           received_at: new Date().toISOString()
         });
+        if (debugLog) await supabase.from("zapi_webhook_debug").update({ processed: true }).eq("id", debugLog.id);
+        return { success: true, action: "ignored_no_conversation" };
       }
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    if (debugLog) await supabase.from("zapi_webhook_debug").update({ processed: true }).eq("id", debugLog.id);
+    return { success: true, action: "unhandled_type" };
+
+  } catch (error) {
+    console.error(`[Z-API Webhook][${source}] Error:`, error);
+    if (debugLog) {
+      await supabase.from("zapi_webhook_debug")
+        .update({ processing_error: error.message, processed: false })
+        .eq("id", debugLog.id);
+    }
+    return { success: false, error: error.message };
+  }
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    const body = await req.json();
+    const headers = Object.fromEntries(req.headers.entries());
+    const url = new URL(req.url);
+    const pathParts = url.pathname.split("/");
+    const tenantIdFromUrl = pathParts[pathParts.length - 1];
+
+    // Identify source
+    let source = "real";
+    if (body.source === "manual_simulation") {
+      source = "manual_simulation";
+      delete body.source;
+    }
+
+    const result = await handleIncomingWhatsappWebhook(supabase, body, headers, source, tenantIdFromUrl);
+
+    return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
