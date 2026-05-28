@@ -169,12 +169,11 @@ export function usePlanLimits() {
   
   // Bloqueio APENAS se não houver assinatura ativa E o plano for free E o trial acabou
   // isExpired no hook define se a UI deve mostrar o bloqueio.
-  // IMPORTANTE: isExpired = false libera a tela logada.
   const isExpired = !hasActiveSubscription && plan === 'free' && trialDaysRemaining <= 0;
 
   useEffect(() => {
-    if (!loading) {
-      console.log("[usePlanLimits] Access Logic Debug (v5):", {
+    if (!loading && tenantId) {
+      console.log("%c[usePlanLimits] ACCESS LOGIC DEBUG (v6)", "background: #222; color: #bada55; font-size: 14px; padding: 4px;", {
         tenantId,
         plan,
         subscriptionStatus: subscription?.status,
