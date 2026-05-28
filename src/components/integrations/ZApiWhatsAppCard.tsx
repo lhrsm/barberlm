@@ -14,7 +14,10 @@ import {
   MessageSquare,
   History,
   FileText,
-  Phone
+  Phone,
+  Activity,
+  Terminal,
+  Send
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
