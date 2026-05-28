@@ -576,6 +576,16 @@ function ShopPageComponent() {
 
       setShop(currentShop);
 
+      // Temporary logs for debugging access as requested by user
+      console.log('PUBLIC SHOP ACCESS DEBUG:', {
+        slug: normalizedSlug,
+        tenant_id: currentShop.id,
+        status: currentShop.status,
+        trial_end: currentShop.trial_end,
+        // For public page, we don't have the full subscription object here yet,
+        // but we can log what we have.
+      });
+
       // Fetch services, barbers and products for this shop (all public now)
       const [servicesRes, barbersRes, productsRes] = await Promise.all([
         supabase
