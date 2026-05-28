@@ -435,8 +435,9 @@ function ProfessionalDashboard() {
       </AppLayout>
     );
   }
-
-        {/* Header section */}
+  return (
+    <AppLayout>
+      <div className="space-y-8 pb-12">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card p-6 rounded-2xl border shadow-sm">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-2 border-primary/10">
