@@ -79,7 +79,10 @@ export async function handleAutomationWhatsappResponse(
   // State Machine Logic
   switch (current_state) {
     case AUTOMATION_STATES.AWAITING_MAIN_ACTION:
-      if (option_id === 'confirm_appointment') {
+      // Map numeric responses to internal actions
+      const mainOption = String(option_id).trim();
+      
+      if (mainOption === '1') { // Confirmar
         if (!isMultiple) {
           // Confirm direct
           const apptId = appointmentIds[0];
@@ -89,118 +92,79 @@ export async function handleAutomationWhatsappResponse(
           actionExecuted = "confirm_direct";
         } else {
           // Multiple: Ask scope
-          messageToSend = "Como você deseja confirmar seus agendamentos?";
-          menuToSend = {
-            list: {
-              buttonLabel: "Ver opções",
-              title: "Confirmar",
-              options: [
-                { id: 'confirm_all', title: 'Confirmar todos', description: 'Confirmar todos os atendimentos deste pedido' },
-                { id: 'confirm_specific', title: 'Escolher um atendimento', description: 'Escolher qual atendimento deseja confirmar' }
-              ]
-            }
-          };
+          messageToSend = "Como você deseja confirmar seus agendamentos?\n\nDigite:\n1 - Confirmar todos\n2 - Escolher um específico";
           nextState = AUTOMATION_STATES.AWAITING_CONFIRMATION_SCOPE;
           actionExecuted = "ask_confirmation_scope";
         }
-      } else if (option_id === 'reschedule_appointment') {
+      } else if (mainOption === '2') { // Reagendar
         if (!isMultiple) {
-          messageToSend = "Para reagendar seu atendimento, por favor entre em contato conosco ou acesse nosso portal de agendamentos.";
+          messageToSend = "Para reagendar seu atendimento, por favor entre em contato conosco ou acesse nosso portal de agendamentos: https://agendamento.barber.com.br";
           nextState = AUTOMATION_STATES.COMPLETED;
           actionExecuted = "reschedule_direct";
         } else {
-          messageToSend = "Como você deseja reagendar seus agendamentos?";
-          menuToSend = {
-            list: {
-              buttonLabel: "Ver opções",
-              title: "Reagendar",
-              options: [
-                { id: 'reschedule_all', title: 'Reagendar todos', description: 'Reagendar todos os atendimentos deste pedido' },
-                { id: 'reschedule_specific', title: 'Escolher um atendimento', description: 'Escolher qual atendimento deseja reagendar' }
-              ]
-            }
-          };
+          messageToSend = "Como você deseja reagendar seus agendamentos?\n\nDigite:\n1 - Reagendar todos\n2 - Escolher um específico";
           nextState = AUTOMATION_STATES.AWAITING_RESCHEDULE_SCOPE;
           actionExecuted = "ask_reschedule_scope";
         }
-      } else if (option_id === 'cancel_appointment') {
+      } else if (mainOption === '3') { // Cancelar
         if (!isMultiple) {
-          messageToSend = "Você realmente deseja cancelar seu agendamento?";
-          menuToSend = {
-            list: {
-              buttonLabel: "Confirmar",
-              title: "Cancelar",
-              options: [
-                { id: 'cancel_confirm_yes', title: 'Sim, cancelar', description: 'Confirmar o cancelamento do agendamento' },
-                { id: 'cancel_confirm_no', title: 'Não, manter', description: 'Manter meu agendamento' }
-              ]
-            }
-          };
+          messageToSend = "Você realmente deseja cancelar seu agendamento?\n\nDigite:\n1 - Sim, cancelar\n2 - Não, manter";
           nextState = AUTOMATION_STATES.AWAITING_CANCEL_SCOPE;
           actionExecuted = "ask_cancel_confirmation";
         } else {
-          messageToSend = "Como você deseja cancelar seus agendamentos?";
-          menuToSend = {
-            list: {
-              buttonLabel: "Ver opções",
-              title: "Cancelar",
-              options: [
-                { id: 'cancel_all', title: 'Cancelar todos', description: 'Cancelar todos os atendimentos deste pedido' },
-                { id: 'cancel_specific', title: 'Escolher um atendimento', description: 'Escolher qual atendimento deseja cancelar' }
-              ]
-            }
-          };
+          messageToSend = "Como você deseja cancelar seus agendamentos?\n\nDigite:\n1 - Cancelar todos\n2 - Escolher um específico";
           nextState = AUTOMATION_STATES.AWAITING_CANCEL_SCOPE;
           actionExecuted = "ask_cancel_scope";
         }
+      } else {
+        // Resposta inválida
+        messageToSend = "Não consegui entender sua resposta. 🤔\n\nPor favor, digite apenas o número da opção desejada:\n\n1 - Confirmar agendamento\n2 - Reagendar\n3 - Cancelar";
+        actionExecuted = "invalid_option_main";
       }
       break;
 
     case AUTOMATION_STATES.AWAITING_CONFIRMATION_SCOPE:
-      if (option_id === 'confirm_all') {
+      if (option_id === '1') { // Confirmar todos
         await supabase.from("appointments").update({ status: 'confirmed' }).in("id", appointmentIds);
         messageToSend = "✅ Todos os seus agendamentos foram confirmados com sucesso!";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "confirm_all";
-      } else if (option_id === 'confirm_specific') {
+      } else if (option_id === '2') { // Escolher um
         const { data: appts } = await supabase.from("appointments").select("id, start_time, services(name)").in("id", appointmentIds);
-        messageToSend = "Qual atendimento você deseja confirmar?";
-        menuToSend = {
-          list: {
-            buttonLabel: "Ver atendimentos",
-            title: "Selecione",
-            options: appts.map((a: any) => ({
-              id: `appointment_confirm_${a.id}`,
-              title: `${formatBrazilTime(a.start_time)} - ${a.services?.name}`,
-              description: `Confirmar apenas este atendimento`
-            }))
-          }
-        };
+        messageToSend = "Qual atendimento você deseja confirmar?\n\nDigite o número correspondente:\n\n";
+        appts.forEach((a: any, i: number) => {
+          messageToSend += `${i + 1} - ${formatBrazilTime(a.start_time)}: ${a.services?.name}\n`;
+        });
+        
+        // Store the order of appointments to map the numeric selection back to ID
+        await supabase.from("automation_conversations")
+          .update({ 
+            metadata: { appt_mapping: appts.map((a: any) => a.id) }
+          })
+          .eq("id", conversation.id);
+          
         nextState = AUTOMATION_STATES.AWAITING_SPECIFIC_APPOINTMENT_SELECTION;
         actionExecuted = "ask_specific_appointment_confirm";
+      } else {
+        messageToSend = "Opção inválida. Digite 1 para confirmar todos ou 2 para escolher um específico.";
       }
       break;
 
     case AUTOMATION_STATES.AWAITING_SPECIFIC_APPOINTMENT_SELECTION:
-      if (option_id.startsWith('appointment_confirm_')) {
-        const selectedId = option_id.replace('appointment_confirm_', '');
-        await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", selectedId);
+      const mapping = conversation.metadata?.appt_mapping || [];
+      const index = parseInt(option_id) - 1;
+      const isCancelMode = conversation.metadata?.cancel_mode === true;
+      
+      if (!isNaN(index) && index >= 0 && index < mapping.length) {
+        const selectedId = mapping[index];
+        const newStatus = isCancelMode ? 'cancelled' : 'confirmed';
+        await supabase.from("appointments").update({ status: newStatus }).eq("id", selectedId);
         
         const remainingIds = appointmentIds.filter((id: string) => id !== selectedId);
         
         if (remainingIds.length > 0) {
-          messageToSend = "✅ Agendamento confirmado! O que deseja fazer com os demais agendamentos?";
-          menuToSend = {
-            list: {
-              buttonLabel: "Ver opções",
-              title: "Restantes",
-              options: [
-                { id: 'confirm_remaining', title: 'Confirmar demais', description: 'Confirmar os demais agendamentos' },
-                { id: 'reschedule_remaining', title: 'Reagendar demais', description: 'Reagendar os demais agendamentos' },
-                { id: 'cancel_remaining', title: 'Cancelar demais', description: 'Cancelar os demais agendamentos' }
-              ]
-            }
-          };
+          const actionText = isCancelMode ? "cancelado" : "confirmado";
+          messageToSend = `✅ Agendamento ${actionText}! O que deseja fazer com os demais agendamentos?\n\nDigite:\n1 - Confirmar demais\n2 - Reagendar demais\n3 - Cancelar demais`;
           nextState = AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION;
           
           await supabase.from("automation_conversations")
@@ -211,42 +175,67 @@ export async function handleAutomationWhatsappResponse(
             })
             .eq("id", conversation.id);
         } else {
-          messageToSend = "✅ Agendamento confirmado com sucesso!";
+          const successText = isCancelMode ? "cancelado" : "confirmado";
+          messageToSend = `✅ Agendamento ${successText} com sucesso!`;
           nextState = AUTOMATION_STATES.COMPLETED;
         }
-        actionExecuted = `confirm_specific_${selectedId}`;
+        actionExecuted = `${isCancelMode ? 'cancel' : 'confirm'}_specific_${selectedId}`;
+      } else {
+        messageToSend = "Opção inválida. Por favor, digite o número correspondente ao atendimento desejado.";
       }
       break;
 
     case AUTOMATION_STATES.AWAITING_CANCEL_SCOPE:
-      if (option_id === 'cancel_confirm_yes' || option_id === 'cancel_all') {
+      if (option_id === '1') { // Sim, cancelar ou Cancelar todos
         await supabase.from("appointments").update({ status: 'cancelled' }).in("id", appointmentIds);
         messageToSend = "❌ Agendamento(s) cancelado(s) com sucesso.";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "cancel_executed";
-      } else if (option_id === 'cancel_confirm_no') {
-        messageToSend = "Perfeito! Seu agendamento continua mantido. Te esperamos!";
-        nextState = AUTOMATION_STATES.COMPLETED;
-        actionExecuted = "cancel_aborted";
+      } else if (option_id === '2') { // Não, manter ou Escolher específico
+        if (isMultiple) {
+          // Similar to confirm specific
+          const { data: appts } = await supabase.from("appointments").select("id, start_time, services(name)").in("id", appointmentIds);
+          messageToSend = "Qual atendimento você deseja cancelar?\n\nDigite o número correspondente:\n\n";
+          appts.forEach((a: any, i: number) => {
+            messageToSend += `${i + 1} - ${formatBrazilTime(a.start_time)}: ${a.services?.name}\n`;
+          });
+          
+          await supabase.from("automation_conversations")
+            .update({ 
+              metadata: { appt_mapping: appts.map((a: any) => a.id), cancel_mode: true }
+            })
+            .eq("id", conversation.id);
+            
+          nextState = AUTOMATION_STATES.AWAITING_SPECIFIC_APPOINTMENT_SELECTION; // Reuse this state but check cancel_mode
+          actionExecuted = "ask_specific_appointment_cancel";
+        } else {
+          messageToSend = "Perfeito! Seu agendamento continua mantido. Te esperamos!";
+          nextState = AUTOMATION_STATES.COMPLETED;
+          actionExecuted = "cancel_aborted";
+        }
+      } else {
+        messageToSend = "Opção inválida. Digite 1 ou 2.";
       }
       break;
       
     case AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION:
-      const remainingIds = conversation.remaining_appointment_ids || [];
-      if (option_id === 'confirm_remaining') {
-        await supabase.from("appointments").update({ status: 'confirmed' }).in("id", remainingIds);
+      const remainingIdsAction = conversation.remaining_appointment_ids || [];
+      if (option_id === '1') { // Confirmar demais
+        await supabase.from("appointments").update({ status: 'confirmed' }).in("id", remainingIdsAction);
         messageToSend = "✅ Todos os agendamentos restantes foram confirmados.";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "confirm_remaining_executed";
-      } else if (option_id === 'cancel_remaining') {
-        await supabase.from("appointments").update({ status: 'cancelled' }).in("id", remainingIds);
-        messageToSend = "❌ Agendamentos restantes foram cancelados.";
-        nextState = AUTOMATION_STATES.COMPLETED;
-        actionExecuted = "cancel_remaining_executed";
-      } else if (option_id === 'reschedule_remaining') {
+      } else if (option_id === '2') { // Reagendar demais
         messageToSend = "Para reagendar os demais atendimentos, por favor entre em contato conosco.";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "reschedule_remaining_executed";
+      } else if (option_id === '3') { // Cancelar demais
+        await supabase.from("appointments").update({ status: 'cancelled' }).in("id", remainingIdsAction);
+        messageToSend = "❌ Agendamentos restantes foram cancelados.";
+        nextState = AUTOMATION_STATES.COMPLETED;
+        actionExecuted = "cancel_remaining_executed";
+      } else {
+        messageToSend = "Opção inválida. Digite 1, 2 ou 3.";
       }
       break;
   }
@@ -414,25 +403,12 @@ async function processConfirmationDispatch(
       message += `⏰ Horário: ${formatBrazilTime(firstAppt.start_time)}\n\n`;
     }
 
-    message += `O que deseja fazer?`;
+    message += `Digite uma das opções abaixo:\n\n`;
+    message += `1 - Confirmar agendamento\n`;
+    message += `2 - Reagendar\n`;
+    message += `3 - Cancelar`;
 
-    const menu = {
-      list: {
-        buttonLabel: "Ver opções",
-        title: "Opções",
-        options: [
-          { 
-            id: 'confirm_appointment', 
-            title: 'Confirmar Agendamento', 
-            description: isMultiple ? 'Confirmar todos ou escolher um' : 'Confirmar este atendimento' 
-          },
-          { id: 'reschedule_appointment', title: 'Reagendar', description: isMultiple ? 'Reagendar todos ou escolher um' : 'Alterar data ou horário' },
-          { id: 'cancel_appointment', title: 'Cancelar', description: isMultiple ? 'Cancelar todos ou escolher um' : 'Cancelar atendimento' }
-        ]
-      }
-    };
-
-    const sendResult = await sendMessage(connection, customer.phone, message, menu);
+    const sendResult = await sendMessage(connection, customer.phone, message);
 
     await supabase.from("automation_dispatches").insert({
       tenant_id: tenant.id,
@@ -443,6 +419,9 @@ async function processConfirmationDispatch(
       sent_at: new Date().toISOString()
     });
 
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
     await supabase.from("automation_logs").insert({
       tenant_id: tenant.id,
       automation_id: automation.id,
@@ -452,7 +431,6 @@ async function processConfirmationDispatch(
       direction: 'outgoing',
       message_type: AUTOMATION_TYPES.CONFIRMATION,
       processed_template: message,
-      payload: menu,
       status: sendResult.success ? 'success' : 'error',
       error_message: sendResult.success ? null : sendResult.error,
       response: sendResult.response,
@@ -461,6 +439,13 @@ async function processConfirmationDispatch(
 
     if (sendResult.success) {
       sentCount++;
+      // First, ensure any old active conversations for this phone/tenant are closed
+      await supabase.from("automation_conversations")
+        .update({ status: 'expired' })
+        .eq("phone", customer.phone)
+        .eq("tenant_id", tenant.id)
+        .eq("status", "active");
+
       await supabase.from("automation_conversations").insert({
         tenant_id: tenant.id,
         customer_id: customer.id,
@@ -469,7 +454,8 @@ async function processConfirmationDispatch(
         automation_id: automation.id,
         appointment_ids: group.map(a => a.id),
         current_state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
-        status: 'active'
+        status: 'active',
+        expires_at: expiresAt.toISOString()
       });
 
       await supabase.from("appointments").update({ confirmation_sent: true }).in("id", group.map(a => a.id));

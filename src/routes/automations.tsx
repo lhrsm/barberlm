@@ -90,6 +90,8 @@ function AutomationsComponent() {
   const [executionSummary, setExecutionSummary] = useState<any>(null);
   const [isSummaryDialogOpen] = useState(false);
   const [isManualSummaryOpen, setIsManualSummaryOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [isDebugDialogOpen, setIsDebugDialogOpen] = useState(false);
 
 
   const fetchServerInfo = async () => {
@@ -818,8 +820,23 @@ function AutomationsComponent() {
                               </Badge>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="max-w-[150px] truncate text-[11px] text-muted-foreground" title={log.processed_template}>
-                                {log.processed_template || '-'}
+                              <div className="flex items-center gap-2">
+                                <div className="max-w-[150px] truncate text-[11px] text-muted-foreground" title={log.processed_template}>
+                                  {log.processed_template || '-'}
+                                </div>
+                                {log.metadata && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-6 w-6 text-primary hover:bg-primary/10"
+                                    onClick={() => {
+                                      setSelectedLog(log);
+                                      setIsDebugDialogOpen(true);
+                                    }}
+                                  >
+                                    <Sparkles size={12} />
+                                  </Button>
+                                )}
                               </div>
                             </td>
                             <td className="px-6 py-4 text-right">
@@ -1066,8 +1083,77 @@ function AutomationsComponent() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
 
+        <Dialog open={isDebugDialogOpen} onOpenChange={setIsDebugDialogOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles size={20} className="text-primary" />
+                Diagnóstico de Automação
+              </DialogTitle>
+              <DialogDescription>
+                Detalhes técnicos da interação recebida via WhatsApp.
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedLog && (
+              <div className="space-y-6 py-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="p-3 bg-muted/50 rounded-xl border border-white/5">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Telefone Recebido</span>
+                    <p className="font-mono text-sm">{selectedLog.phone}</p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-xl border border-white/5">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Telefone Normalizado</span>
+                    <p className="font-mono text-sm">{selectedLog.metadata?.normalized_phone || '-'}</p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-xl border border-white/5">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Conversa Encontrada</span>
+                    <Badge variant={selectedLog.conversation_id ? "default" : "destructive"} className="uppercase text-[9px] h-auto py-0.5">
+                      {selectedLog.conversation_id ? 'Sim' : 'Não'}
+                    </Badge>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-xl border border-white/5">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Estado Atual</span>
+                    <Badge variant="outline" className="uppercase text-[9px] border-primary/20 text-primary h-auto py-0.5">
+                      {selectedLog.metadata?.current_state || '-'}
+                    </Badge>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-xl border border-white/5">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Resposta do Cliente</span>
+                    <p className="font-bold text-sm">"{selectedLog.processed_template || '-'}"</p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-xl border border-white/5">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Opção Identificada</span>
+                    <Badge className="bg-emerald-500 uppercase text-[9px] h-auto py-0.5">
+                      {selectedLog.option_id || '-'}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-xl border border-white/5">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-2">Ação Executada</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <p className="font-semibold text-emerald-600">{selectedLog.metadata?.action_executed || 'Nenhuma'}</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Próximo estado: <span className="font-mono">{selectedLog.metadata?.next_state || '-'}</span></p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Payload Bruto (Z-API)</Label>
+                  <pre className="p-4 bg-black/90 text-emerald-400 rounded-xl overflow-x-auto text-[10px] font-mono border border-white/10 max-h-[200px]">
+                    {JSON.stringify(selectedLog.metadata?.raw_payload || selectedLog.payload, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setIsDebugDialogOpen(false)}>Fechar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </AppLayout>
   );
 }
