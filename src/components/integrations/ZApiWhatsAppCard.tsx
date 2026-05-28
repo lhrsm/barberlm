@@ -176,6 +176,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     } finally {
       setIsTesting(false);
     }
+  }
+
   async function reconfigureWebhook() {
     if (!instance?.id) {
       toast.error("Salve as configurações primeiro");
@@ -243,8 +245,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (token.length <= 8) return "********";
     return `${token.substring(0, 4)}...${token.substring(token.length - 4)}`;
   };
-  }
-
 
   if (loading) return <div className="p-8 text-center">Carregando...</div>;
 
