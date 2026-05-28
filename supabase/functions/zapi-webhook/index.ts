@@ -249,6 +249,14 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Health check for GET
+  if (req.method === "GET") {
+    return new Response(JSON.stringify({ ok: true, message: "Z-API webhook endpoint is active" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+  }
+
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -259,10 +267,12 @@ serve(async (req) => {
     const headers = Object.fromEntries(req.headers.entries());
     const url = new URL(req.url);
     const pathParts = url.pathname.split("/");
+    
+    // The tenantId could be at the end of the URL: /zapi-webhook/TENANT_ID
     const tenantIdFromUrl = pathParts[pathParts.length - 1];
 
     // Identify source
-    let source = "real";
+    let source = "zapi_real";
     if (body.source === "manual_simulation") {
       source = "manual_simulation";
       delete body.source;
@@ -276,6 +286,8 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("[Z-API Webhook] Global Error:", error);
+    
+    // Return 200 even on error to prevent Z-API from retrying too much if it's a code bug
     return new Response(JSON.stringify({ success: false, error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200, 
