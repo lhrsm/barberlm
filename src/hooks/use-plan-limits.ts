@@ -159,8 +159,29 @@ export function usePlanLimits() {
   // 1. If active/trialing/past_due subscription exists, it's NOT expired
   // 2. Otherwise check trial days
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
+  
+  // A barbearia tem assinatura ativa se o status for active ou se houver trial vigente
+  const hasActiveSubscription = isSubscribed || (plan !== 'free' && subscription?.status === 'active');
   const isTrial = isSubscribed || (plan === 'free' && trialDaysRemaining > 0);
-  const isExpired = !isSubscribed && plan === 'free' && trialDaysRemaining <= 0;
+  
+  // Bloqueio apenas se: não estiver inscrito E não estiver em trial
+  const isExpired = !isSubscribed && trialDaysRemaining <= 0 && plan === 'free';
+
+  useEffect(() => {
+    if (!loading) {
+      console.log("[usePlanLimits] Access Logic Debug:", {
+        tenantId,
+        plan,
+        subscriptionStatus: subscription?.status,
+        isSubscribed,
+        hasActiveSubscription,
+        trialDaysRemaining,
+        isTrial,
+        isExpired,
+        trialEndsAt
+      });
+    }
+  }, [loading, tenantId, plan, subscription?.status, isSubscribed, hasActiveSubscription, trialDaysRemaining, isTrial, isExpired, trialEndsAt]);
 
   const checkLimit = (type: keyof typeof usage) => {
     if (!limits) return false;
