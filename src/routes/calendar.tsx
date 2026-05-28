@@ -134,17 +134,17 @@ function CalendarComponent() {
       const tenantId = user.id;
       
       const channel = supabase
-        .channel('appointments-calendar-realtime')
+        .channel(`appointments-calendar-${tenantId}`)
         .on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
-            table: 'appointments'
+            table: 'appointments',
+            filter: `tenant_id=eq.${tenantId}`
           },
           (payload: any) => {
-            console.log('REALTIME PAYLOAD', payload);
-            console.log('STATUS UPDATED', payload.new?.id, payload.new?.status);
+            console.log('REALTIME APPOINTMENT CHANGE', payload);
             
             fetchData();
             refreshLimits();
@@ -156,6 +156,7 @@ function CalendarComponent() {
             queryClient.invalidateQueries({ queryKey: ['customerAppointments'] });
             queryClient.invalidateQueries({ queryKey: ['calendar-appointments'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard-appointments'] });
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
           }
         )
         .subscribe();

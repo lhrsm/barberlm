@@ -1,6 +1,7 @@
 import { useState, useEffect, useId } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/hooks/use-tenant";
 import { 
   Bell, 
   Check, 
@@ -31,23 +32,26 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export function NotificationsCenter() {
+  const { tenantId } = useTenant();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const instanceId = useId().replace(/:/g, ""); // Remove colons for channel name compatibility
   
-  
   const { data: notifications, isLoading } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notifications", tenantId],
     queryFn: async () => {
+      if (!tenantId) return [];
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
+        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(30);
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!tenantId
   });
 
   const unreadCount = notifications?.filter(n => !n.read).length || 0;
@@ -79,16 +83,19 @@ export function NotificationsCenter() {
   });
 
   useEffect(() => {
-    const channelName = `notifications-realtime-${instanceId}`;
+    if (!tenantId) return;
+
+    const channelName = `notifications-realtime-${tenantId}-${instanceId}`;
     const channel = supabase
       .channel(channelName)
       .on('postgres_changes', { 
         event: 'INSERT', 
         table: 'notifications',
-        schema: 'public'
+        schema: 'public',
+        filter: `tenant_id=eq.${tenantId}`
       }, (payload) => {
         console.log('REALTIME NOTIFICATION RECEIVED', payload);
-        queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        queryClient.invalidateQueries({ queryKey: ["notifications", tenantId] });
         
         // Show realtime toast
         toast("🔔 " + (payload.new.title || "Notificação"), {
@@ -102,16 +109,17 @@ export function NotificationsCenter() {
       .on('postgres_changes', {
         event: '*',
         table: 'notifications',
-        schema: 'public'
+        schema: 'public',
+        filter: `tenant_id=eq.${tenantId}`
       }, () => {
-        queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        queryClient.invalidateQueries({ queryKey: ["notifications", tenantId] });
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, navigate, instanceId]);
+  }, [queryClient, navigate, instanceId, tenantId]);
 
   const getIcon = (type: string | null) => {
     switch (type) {
