@@ -84,21 +84,17 @@ function ProfessionalDashboard() {
 
   useEffect(() => {
     async function validateAccess() {
-      if (!slug) return;
       setIsDataLoading(true);
-      console.log("[profissional-access-debug] Starting validation for slug:", slug);
 
       try {
-        // 1. Buscar tenant pelo slug na tabela profiles
-        const { data: profileData, error: profileError } = await supabase
+        const { data: profileData } = await supabase
           .from("profiles")
           .select("id, plan, effective_plan, trial_end")
           .eq("slug", slug.toLowerCase())
           .maybeSingle();
 
-        if (profileError || !profileData) {
-          console.error("Tenant not found for slug:", slug);
-          setAccessReason("Erro: Barbearia não encontrada para este endereço");
+        if (!profileData) {
+          setAccessReason("Barbearia não encontrada.");
           setRealCanAccess(false);
           setIsDataLoading(false);
           return;
@@ -107,8 +103,7 @@ function ProfessionalDashboard() {
         const tId = profileData.id;
         setFoundTenantId(tId);
 
-        // 2. Buscar assinatura ativa na tabela subscriptions
-        const { data: subData, error: subError } = await supabase
+        const { data: subData } = await supabase
           .from("subscriptions")
           .select("*")
           .eq("user_id", tId)
@@ -118,63 +113,32 @@ function ProfessionalDashboard() {
 
         setRealSubscription(subData);
 
-        // 3. Determinar o plano real
         const planId = (profileData.plan || profileData.effective_plan || "none").toLowerCase();
         setRealPlan(planId);
 
-        // 4. Lógica de liberação
         const subStatus = (subData?.status || "none").toLowerCase();
         const now = new Date();
         const trialEnd = profileData.trial_end ? new Date(profileData.trial_end) : null;
         const isTrialValid = trialEnd ? trialEnd > now : false;
 
-        // Regras do SaaS solicitadas pelo usuário:
-        // 1. Assinatura explicitamente ativa na tabela subscriptions
         const isActiveSub = ['active', 'paid', 'trialing'].includes(subStatus);
-        
-        // 2. Plano pago (Elite, Pro, Starter) sem bloqueio explícito
         const isPaidPlan = ['starter', 'pro', 'elite'].includes(planId);
         const subNotBlocked = !['canceled', 'inactive', 'past_due'].includes(subStatus);
         const hasPaidPlanAccess = isPaidPlan && subNotBlocked;
 
-        // Regra final: Libera se tiver assinatura ativa OU trial válido OU plano pago sem bloqueio
         const canAccess = isActiveSub || isTrialValid || hasPaidPlanAccess;
-        
         setRealCanAccess(canAccess);
         
-        if (canAccess) {
-          if (isActiveSub) {
-            setAccessReason("Liberado: Assinatura Ativa (Tabela Subscriptions)");
-          } else if (isTrialValid) {
-            setAccessReason("Liberado: Período de Teste Válido");
-          } else if (hasPaidPlanAccess) {
-            setAccessReason(`Liberado: Plano Pago (${planId}) detectado sem bloqueio`);
-          } else {
-            setAccessReason("Liberado: Acesso concedido");
-          }
-        } else {
-          setAccessReason("Bloqueado: Período de teste expirado e sem plano pago ativo");
+        if (!canAccess) {
+          setAccessReason("Período de teste expirado e sem assinatura ativa.");
         }
-
-        console.log("[profissional-access-debug] Validation result:", {
-          tenant_id: tId,
-          subStatus,
-          isActiveSub,
-          isTrialValid,
-          isPaidPlan,
-          hasPaidPlanAccess,
-          canAccess,
-          planId
-        });
-
       } catch (err) {
         console.error("Error validating access:", err);
-        setAccessReason("Erro técnico na validação do acesso");
       } finally {
         setIsDataLoading(false);
       }
     }
-
+    validateAccess();
     validateAccess();
   }, [slug]);
 
