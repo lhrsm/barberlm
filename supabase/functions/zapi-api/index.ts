@@ -43,9 +43,27 @@ serve(async (req) => {
       headers["Client-Token"] = clientToken;
     }
 
+    async function logToDb(action: string, request: any, response: any, status: number) {
+      try {
+        await supabase
+          .from("zapi_integration_logs")
+          .insert([{
+            tenant_id: instance.tenant_id,
+            instance_id: instanceId,
+            action: action,
+            request_payload: request,
+            response_payload: response,
+            status_code: status
+          }]);
+      } catch (e) {
+        console.error("[Z-API] Error logging to DB:", e.message);
+      }
+    }
+
     if (action === "check-status") {
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/status`;
       const res = await fetch(url, { method: "GET", headers });
+      const status_code = res.status;
       const result = await res.json();
 
       const isConnected = result?.connected === true;
@@ -59,6 +77,8 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         })
         .eq("id", tableId);
+
+      await logToDb("check-status", { url }, result, status_code);
 
       return new Response(JSON.stringify({ 
         success: true, 
@@ -83,7 +103,11 @@ serve(async (req) => {
         body: JSON.stringify({ value: webhookUrl })
       });
       
+      const status_code = res.status;
       const result = await res.json();
+
+      await logToDb("update-webhook-received", { url, webhookUrl }, result, status_code);
+
       return new Response(JSON.stringify({ success: true, result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -93,7 +117,34 @@ serve(async (req) => {
     if (action === "get-webhooks") {
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/webhooks`;
       const res = await fetch(url, { method: "GET", headers });
+      const status_code = res.status;
       const result = await res.json();
+
+      await logToDb("get-webhooks", { url }, result, status_code);
+
+      return new Response(JSON.stringify({ success: true, result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    if (action === "send-test-message") {
+      const phone = data.phone;
+      const message = data.message || "Teste de integração Z-API";
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
+      
+      console.log(`[Z-API] Sending test message to: ${phone}`);
+      
+      const res = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ phone, message })
+      });
+      
+      const status_code = res.status;
+      const result = await res.json();
+
+      await logToDb("send-test-message", { url, phone, message }, result, status_code);
 
       return new Response(JSON.stringify({ success: true, result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -111,13 +162,16 @@ serve(async (req) => {
       ];
       
       const results = await Promise.all(types.map(async (webhookType) => {
-        // We use PUT here as per recent Z-API requirements for webhook updates
-        const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`, {
+        const url = `${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`;
+        const res = await fetch(url, {
           method: "PUT",
           headers,
           body: JSON.stringify({ value: webhookUrl })
         });
-        return res.json();
+        const status_code = res.status;
+        const result = await res.json();
+        await logToDb(`set-webhook:${webhookType}`, { url, webhookUrl }, result, status_code);
+        return result;
       }));
 
       return new Response(JSON.stringify({ success: true, results }), {
@@ -127,12 +181,16 @@ serve(async (req) => {
     }
 
     if (action === "disconnect") {
-      const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/disconnect`, {
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/disconnect`;
+      const res = await fetch(url, {
         method: "GET",
         headers
       });
+      const status_code = res.status;
       const result = await res.json();
       
+      await logToDb("disconnect", { url }, result, status_code);
+
       await supabase
         .from("whatsapp_instances")
         .update({ 
