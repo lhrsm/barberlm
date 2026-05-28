@@ -57,6 +57,10 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<string | null>(null);
   const [lastWebhookCall, setLastWebhookCall] = useState<any>(null);
+  const [lastReceivedConfig, setLastReceivedConfig] = useState<any>(null);
+  const [lastExpandedConfig, setLastExpandedConfig] = useState<any>(null);
+  const [lastSentMessageInfo, setLastSentMessageInfo] = useState<{id: string, time: string} | null>(null);
+
   
   const [formData, setFormData] = useState({
     instance_id: "",
@@ -91,6 +95,16 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         if (data.length > 0) {
           setLastCheckTime(data[0].created_at);
         }
+
+        const lastSent = data.find(l => l.action === 'send-test-message' && l.status_code === 200);
+        if (lastSent && (lastSent.response_payload as any)?.messageId) {
+          setLastSentMessageInfo({
+            id: (lastSent.response_payload as any).messageId,
+            time: lastSent.created_at
+          });
+        }
+
+
       }
     } catch (error) {
       console.error("Error fetching integration logs:", error);
@@ -152,6 +166,14 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (data.success) {
         toast.success("Mensagem de teste enviada!");
         setZapiResponse(data.result);
+        
+        if (data.result?.messageId) {
+          setLastSentMessageInfo({
+            id: data.result.messageId,
+            time: new Date().toISOString()
+          });
+        }
+
         
         setTimeout(() => {
           checkWebhookDebug();
@@ -253,7 +275,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (res2.error) throw new Error("Erro em update-every-webhooks: " + res2.error.message);
       
       setLastWebhookCall(res2.data);
+      setLastExpandedConfig(res2.data);
       setZapiResponse(res2.data.result);
+
       
       if (res2.data.success && res2.data.result?.value === true) {
         toast.success("Webhooks ampliados configurados! Enviando mensagem teste...");
@@ -410,7 +434,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (error) throw error;
       
       setLastWebhookCall(data);
+      setLastReceivedConfig(data);
       setZapiResponse(data.result);
+
       
       if (data.success && data.result?.value === true) {
         toast.success("Webhook Ao Receber configurado com sucesso.");
@@ -878,7 +904,83 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 )}
               </div>
             </div>
+            <div className="bg-slate-900 border border-amber-500/20 rounded-xl p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold flex items-center gap-2 text-amber-400">
+                  <FileText size={16} />
+                  Relatório para Suporte Z-API
+                </h3>
+                <Button 
+                  size="sm" 
+                  className="bg-amber-600 hover:bg-amber-700 text-xs h-8"
+                  onClick={() => {
+                    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+                    const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook/${tenantId}`;
+                    
+                    const report = `### RELATÓRIO PARA SUPORTE Z-API ###
+Instance ID: ${instance?.instance_id || "---"}
+Token (Mascarado): ${maskToken(instance?.token || "")}
+Client Token (Mascarado): ${maskToken(instance?.client_token || "")}
+Webhook URL Configurada: ${webhookUrl}
+
+[CONFIGURAÇÃO WEBHOOK AO RECEBER]
+Resposta Z-API: ${JSON.stringify(lastReceivedConfig?.result || "N/A", null, 2)}
+
+[CONFIGURAÇÃO TESTE AMPLIADO (EVERY-WEBHOOKS)]
+Resposta Z-API: ${JSON.stringify(lastExpandedConfig?.result || "N/A", null, 2)}
+
+[TESTE DE ENVIO REAL]
+Último Message ID: ${lastSentMessageInfo?.id || "N/A"}
+Horário do Envio (UTC): ${lastSentMessageInfo?.time ? new Date(lastSentMessageInfo.time).toISOString() : "N/A"}
+Horário da Resposta no WhatsApp: [PREENCHER AQUI SE SOUBER]
+
+[DIAGNÓSTICO]
+O servidor da aplicação não recebeu nenhum callback/payload para o messageId acima, apesar das configurações retornarem 'value: true' da Z-API.
+A Edge Function está operacional (testada via GET/POST manual).`;
+                    
+                    navigator.clipboard.writeText(report);
+                    toast.success("Relatório copiado para a área de transferência!");
+                  }}
+                >
+                  <Copy className="mr-2" size={14} />
+                  Copiar relatório para suporte
+                </Button>
+              </div>
+
+              <div className="bg-black/40 p-3 rounded-lg border border-white/5 space-y-3 font-mono text-[10px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                  <div className="flex justify-between border-b border-white/5 pb-1">
+                    <span className="text-slate-500">Instance ID:</span>
+                    <span className="text-slate-300">{instance?.instance_id || "---"}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-1">
+                    <span className="text-slate-500">Last Message ID:</span>
+                    <span className="text-blue-400">{lastSentMessageInfo?.id || "N/A"}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-1">
+                    <span className="text-slate-500">Config Received:</span>
+                    <span className={lastReceivedConfig?.success ? "text-emerald-400" : "text-red-400"}>
+                      {lastReceivedConfig?.success ? "Sucesso" : "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-1">
+                    <span className="text-slate-500">Config Expanded:</span>
+                    <span className={lastExpandedConfig?.success ? "text-emerald-400" : "text-red-400"}>
+                      {lastExpandedConfig?.success ? "Sucesso" : "N/A"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1 pt-2">
+                  <p className="text-slate-500 uppercase text-[9px] font-bold">Resumo do Problema:</p>
+                  <p className="text-slate-300 bg-red-500/5 p-2 rounded border border-red-500/10 italic">
+                    "A instância envia mensagens e as configurações de webhook retornam sucesso (value: true), mas nenhum callback de recebimento ou status chega na URL configurada. Testes server-side confirmam que a URL está acessível e funcional."
+                  </p>
+                </div>
+              </div>
+            </div>
           </TabsContent>
+
         </Tabs>
       </CardContent>
     </Card>
