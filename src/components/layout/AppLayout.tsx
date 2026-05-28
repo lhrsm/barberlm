@@ -151,26 +151,35 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { isExpired, isTrial, subscription, plan, trialEndsAt, loading: planLoading } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
   
-  // A rota só deve ser bloqueada se o trial expirou E não houver assinatura ativa
-  // A lógica de isExpired no hook já considera se há assinatura ativa.
-  // IMPORTANTE: isExpired no hook usePlanLimits agora só é true se (plan === 'free' && trial acabou && no subscription)
-  const shouldBlock = isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
+  // Liberar acesso se:
+  // 1. For super_admin
+  // 2. Tiver assinatura ativa (status 'active', 'trialing', 'past_due')
+  // 3. Estiver em um plano pago (plan !== 'free')
+  // 4. O trial de 15 dias ainda não expirou (isExpired === false)
+  const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
+  const hasPaidPlan = plan !== 'free' && plan !== null;
+  const isTrialActive = !isExpired;
+
+  // Só bloqueamos se não for super_admin, não for página de assinatura e (não tem assinatura E não tem plano pago E o trial acabou)
+  const shouldBlock = !isSubscriptionPage && role !== 'super_admin' && !isSubscribed && !hasPaidPlan && isExpired && !planLoading && !loading;
 
   useEffect(() => {
     if (!loading && !planLoading) {
-      console.log("ROUTE ACCESS DEBUG (v3):", {
+      console.log("ROUTE ACCESS DEBUG (v4):", {
         slug,
         tenantId,
         pathname,
+        role,
         subscription_status: subscription?.status,
         plan_id: plan,
-        trial_end: trialEndsAt,
+        is_subscribed: isSubscribed,
+        has_paid_plan: hasPaidPlan,
         is_expired_from_hook: isExpired,
         should_block_ui: shouldBlock,
-        motivo_bloqueio: shouldBlock ? "Trial expirado e sem assinatura ativa detectada" : "Acesso liberado"
+        reason: shouldBlock ? "Trial expirado e sem plano ativo" : "Acesso liberado"
       });
     }
-  }, [slug, tenantId, pathname, subscription?.status, plan, trialEndsAt, isExpired, shouldBlock, loading, planLoading]);
+  }, [slug, tenantId, pathname, role, subscription?.status, plan, isSubscribed, hasPaidPlan, isExpired, shouldBlock, loading, planLoading]);
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
