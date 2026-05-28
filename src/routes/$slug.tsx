@@ -1340,7 +1340,7 @@ function ShopPageComponent() {
       </AnimatePresence>
 
       {/* Main Content */}
-      {(!isPortalRoute && !isProfissionalRoute) ? (
+      {(!isPortalRoute && !isProfissionalRoute && !isProfessionalsRoute) ? (
         <>
           {/* Header */}
           {!isEmbedded && (
