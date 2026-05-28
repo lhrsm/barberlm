@@ -254,122 +254,109 @@ function ProfessionalDashboard() {
     const mStart = startOfMonth(now).toISOString();
     const mEnd = endOfMonth(now).toISOString();
 
-    // Fetch Barber Info
-    const { data: bData } = await supabase
-      .from("barbers")
-      .select("*")
-      .eq("id", bId)
-      .single();
-    setBarber(bData);
+    try {
+      // Fetch Barber Info
+      const { data: bData } = await supabase
+        .from("barbers")
+        .select("*")
+        .eq("id", bId)
+        .single();
+      setBarber(bData);
 
-    // Fetch Appointments for stats
-    const { data: allApps } = await supabase
-      .from("appointments")
-      .select("id, start_time, status, total_price, payment_status, customer_id")
-      .eq("barber_id", bId);
+      // Fetch Appointments for stats
+      const { data: allApps } = await supabase
+        .from("appointments")
+        .select("id, start_time, status, total_price, payment_status, customer_id")
+        .eq("barber_id", bId);
 
-    if (allApps) {
-      const todayApps = allApps.filter(a => a.start_time >= tStart && a.start_time <= tEnd && a.status !== 'cancelled');
-      const weekApps = allApps.filter(a => a.start_time >= wStart && a.start_time <= wEnd && a.status !== 'cancelled');
-      const monthApps = allApps.filter(a => a.start_time >= mStart && a.start_time <= mEnd && a.status !== 'cancelled');
-      
-      const monthCompletedApps = allApps.filter(a => 
-        a.start_time >= mStart && 
-        a.start_time <= mEnd && 
-        a.status === 'completed'
-      );
-      
-      const totalRevenueMonth = monthCompletedApps.reduce((acc, a) => acc + Number(a.total_price || 0), 0);
-      const commissionRate = bData?.commission_rate || 0;
-      const commissionMonth = totalRevenueMonth * (commissionRate / 100);
-      
-      const distinctCustomers = new Set(allApps.filter(a => a.status === 'completed').map(a => a.customer_id)).size;
-      const avgTicket = monthCompletedApps.length > 0 ? totalRevenueMonth / monthCompletedApps.length : 0;
+      if (allApps) {
+        const todayApps = allApps.filter(a => a.start_time >= tStart && a.start_time <= tEnd && a.status !== 'cancelled');
+        const weekApps = allApps.filter(a => a.start_time >= wStart && a.start_time <= wEnd && a.status !== 'cancelled');
+        const monthApps = allApps.filter(a => a.start_time >= mStart && a.start_time <= mEnd && a.status !== 'cancelled');
+        
+        const monthCompletedApps = allApps.filter(a => 
+          a.start_time >= mStart && 
+          a.start_time <= mEnd && 
+          (a.status === 'completed' || a.payment_status === 'paid')
+        );
+        
+        const totalRevenueMonth = monthCompletedApps.reduce((acc, a) => acc + Number(a.total_price || 0), 0);
+        const commissionRate = bData?.commission_rate || 0;
+        const commissionMonth = totalRevenueMonth * (commissionRate / 100);
+        
+        const distinctCustomers = new Set(allApps.filter(a => a.status === 'completed').map(a => a.customer_id)).size;
+        const avgTicket = monthCompletedApps.length > 0 ? totalRevenueMonth / monthCompletedApps.length : 0;
 
-      // Find next appointment
-      const nextApp = allApps
-        .filter(a => new Date(a.start_time) > now && a.status === 'scheduled')
-        .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
+        // Find next appointment
+        const nextApp = allApps
+          .filter(a => new Date(a.start_time) > now && a.status === 'scheduled')
+          .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
 
-      setStats({
-        today: todayApps.length,
-        week: weekApps.length,
-        month: monthApps.length,
-        revenueMonth: totalRevenueMonth,
-        commissionMonth: commissionMonth,
-        avgTicket: avgTicket,
-        customerCount: distinctCustomers,
-        nextAppointment: nextApp
-      });
-    }
-    }
-  }
+        setStats({
+          today: todayApps.length,
+          week: weekApps.length,
+          month: monthApps.length,
+          revenueMonth: totalRevenueMonth,
+          commissionMonth: commissionMonth,
+          avgTicket: avgTicket,
+          customerCount: distinctCustomers,
+          nextAppointment: nextApp
+        });
+      }
 
-    // Recent Appointments - Fetch ALL
-    const { data: recentApps, error: appError } = await supabase
-      .from("appointments")
-      .select("*, customers(name, phone, avatar_url), services(name)")
-      .eq("barber_id", bId)
-      .order("start_time", { ascending: false });
+      // Recent Appointments - Fetch ALL for History
+      const { data: recentApps } = await supabase
+        .from("appointments")
+        .select("*, customers(name, phone, avatar_url), services(name)")
+        .eq("barber_id", bId)
+        .order("start_time", { ascending: false });
 
-    if (appError) {
-      console.error("Error fetching appointments:", appError);
-      toast.error("Erro ao carregar agendamentos.");
-    } else {
-      console.log("Professional Dashboard: Fetched", recentApps?.length, "appointments");
       setAppointments(recentApps || []);
-    }
 
-    // Recent Transactions
-    const { data: recentTrans } = await supabase
-      .from("transactions")
-      .select("*, appointment:appointments(customers(name), services(name))")
-      .eq("barber_id", bId)
-      .order("created_at", { ascending: false })
-      .limit(10);
-    setTransactions(recentTrans || []);
+      // Recent Transactions
+      const { data: recentTrans } = await supabase
+        .from("transactions")
+        .select("*, appointment:appointments(customers(name), services(name))")
+        .eq("barber_id", bId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      setTransactions(recentTrans || []);
+
+    } catch (err) {
+      console.error("Error in fetchData:", err);
+    }
   }
 
   async function fetchNotifications() {
     if (!session?.barber_id) return;
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("notifications")
         .select("*")
         .eq("barber_id", session.barber_id)
         .order("created_at", { ascending: false })
         .limit(20);
       
-      if (error) {
-        console.error("Error fetching notifications:", error);
-      } else if (data) {
-        setNotifications(data);
-      }
+      if (data) setNotifications(data);
     } catch (e) {
-      console.error("Exception in fetchNotifications:", e);
+      console.error("Error fetching notifications:", e);
     }
   }
 
   async function markAsRead(id: string) {
     if (!id) return;
-    
     try {
       const { error } = await supabase
         .from("notifications")
         .update({ is_read: true, read_at: new Date().toISOString() })
         .eq("id", id);
       
-      if (error) {
-        console.error("Error marking as read:", error);
-        toast.error("Erro ao marcar como lida");
-      } else {
-        // Update local state immediately for better UX
+      if (!error) {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-        toast.success("Notificação lida");
         fetchNotifications();
       }
     } catch (e) {
-      toast.error("Erro ao processar");
+      console.error("Error markAsRead:", e);
     }
   }
 
@@ -382,25 +369,12 @@ function ProfessionalDashboard() {
       
       if (error) throw error;
       
-      if (status === 'completed') {
-        toast.success("Atendimento concluído!");
-      } else if (status === 'cancelled') {
-        toast.success("Atendimento cancelado");
-      }
-      
+      toast.success(status === 'completed' ? "Atendimento concluído!" : "Atendimento atualizado");
       fetchData();
 
-      // Realtime Invalidation
-      console.log('STATUS UPDATED', app.id, status);
+      // Invalidate cache
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-      queryClient.invalidateQueries({ queryKey: ["calendar"] });
-      queryClient.invalidateQueries({ queryKey: ["customerAppointments"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     } catch (e: any) {
       toast.error("Erro: " + e.message);
     }
