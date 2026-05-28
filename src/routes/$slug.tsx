@@ -1387,7 +1387,15 @@ function ShopPageComponent() {
         )}
       </AnimatePresence>
 
-      {!canAccess && <TrialExpiredBlock />}
+      {/* DEBUG PANEL - Public Route */}
+      <div className="fixed bottom-4 right-4 z-[200] bg-black/90 text-[10px] p-3 rounded-lg border border-[#D4AF37]/30 text-white font-mono shadow-2xl pointer-events-none opacity-50 hover:opacity-100 transition-opacity">
+        <p>slug: {slug}</p>
+        <p>can_access: <span className={canAccess ? "text-green-400" : "text-red-400"}>{String(canAccess)}</span></p>
+        <p>is_prof_route: {String(isProfissionalRoute)}</p>
+        <p>reason: {blockReason}</p>
+      </div>
+
+      {!canAccess && !isProfissionalRoute && <TrialExpiredBlock />}
 
       {/* Main Content */}
       {(!isPortalRoute && !isProfissionalRoute && !isProfessionalsRoute) ? (
