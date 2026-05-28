@@ -92,6 +92,9 @@ function AutomationsComponent() {
   const [isManualSummaryOpen, setIsManualSummaryOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [isDebugDialogOpen, setIsDebugDialogOpen] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<any[]>([]);
+  const [activeConversations, setActiveConversations] = useState<any[]>([]);
+  const [isTestWebhookLoading, setIsTestWebhookLoading] = useState(false);
 
 
   const fetchServerInfo = async () => {
