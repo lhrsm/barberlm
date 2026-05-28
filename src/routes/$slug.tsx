@@ -61,9 +61,9 @@ function ShopPageComponent() {
   }, [slug, location.pathname, loading, shop?.id]);
   const [scrolled, setScrolled] = useState(false);
   
-  const isPortalRoute = location.pathname.endsWith('/portal');
-  const isProfissionalRoute = location.pathname.endsWith('/profissional');
-  const isProfessionalsRoute = location.pathname.endsWith('/professionals');
+  const isPortalRoute = location.pathname.includes('/portal');
+  const isProfissionalRoute = location.pathname.includes('/profissional');
+  const isProfessionalsRoute = location.pathname.includes('/professionals');
 
   useEffect(() => {
     const handleScroll = () => {
