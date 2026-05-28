@@ -167,8 +167,8 @@ export function usePlanLimits() {
   
   const isTrial = isSubscribed || (plan === 'free' && trialDaysRemaining > 0);
   
-  // Bloqueio apenas se: não houver assinatura ativa E não estiver em trial
-  const isExpired = !hasActiveSubscription && trialDaysRemaining <= 0;
+  // Bloqueio apenas se: não houver assinatura ativa E o plano for free E o trial acabou
+  const isExpired = !hasActiveSubscription && plan === 'free' && trialDaysRemaining <= 0;
 
   useEffect(() => {
     if (!loading) {
