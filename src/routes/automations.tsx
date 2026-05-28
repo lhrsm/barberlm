@@ -732,6 +732,7 @@ function AutomationsComponent() {
           <TabsContent value="logs">
             <Card className="border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden">
               <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10 text-primary">
                     <History size={20} />
                   </div>
