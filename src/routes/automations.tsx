@@ -376,7 +376,8 @@ function AutomationsComponent() {
         instanceId: instance.instance_id,
         phone: phone,
         text: { message: text },
-        message: { text: text }
+        message: { text: text },
+        source: "manual_simulation"
       };
 
       const { data, error } = await supabase.functions.invoke('zapi-webhook', {
