@@ -60,6 +60,7 @@ function ShopPageComponent() {
   
   const isPortalRoute = location.pathname.endsWith('/portal');
   const isProfissionalRoute = location.pathname.endsWith('/profissional');
+  const isProfessionalsRoute = location.pathname.endsWith('/professionals');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1339,7 +1340,7 @@ function ShopPageComponent() {
       </AnimatePresence>
 
       {/* Main Content */}
-      {(!isPortalRoute && !isProfissionalRoute) ? (
+      {(!isPortalRoute && !isProfissionalRoute && !isProfessionalsRoute) ? (
         <>
           {/* Header */}
           {!isEmbedded && (
@@ -1817,6 +1818,66 @@ function ShopPageComponent() {
         </div>
       </main>
     </>
+  ) : isProfessionalsRoute ? (
+    <section id="profissionais-pagina" className="py-24 bg-black min-h-screen">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex items-center gap-4 mb-12">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full text-white hover:bg-white/10" 
+            onClick={() => navigate({ to: `/${slug}` })}
+          >
+            <ArrowLeft size={24} />
+          </Button>
+          <div className="space-y-1">
+            <span className="text-[#D4AF37] font-black uppercase tracking-[0.2em] text-xs">Nossa Equipe</span>
+            <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">Profissionais</h3>
+          </div>
+        </div>
+
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
+          {barbers.map((barber, idx) => (
+            <motion.div
+              key={barber.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className="group cursor-pointer"
+              onClick={() => {
+                setModalBarber(barber);
+                setIsServicesModalOpen(true);
+              }}
+            >
+              <div className="relative aspect-[4/5] rounded-[3rem] overflow-hidden mb-6 shadow-2xl border border-white/5">
+                {barber.avatar_url ? (
+                  <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center bg-[#1a1a1a]">
+                    <UserIcon className="h-20 w-20 text-white/10" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
+                
+                <div className="absolute bottom-8 left-8 right-8 space-y-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-[#D4AF37] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                      {idx === 0 ? "Top Avaliado" : "Especialista"}
+                    </span>
+                  </div>
+                  <h4 className="text-3xl font-black uppercase italic tracking-tighter text-white">{barber.name}</h4>
+                  <div className="flex items-center gap-1.5">
+                    <Star size={14} className="text-yellow-500" fill="currentColor" />
+                    <span className="text-sm font-bold text-white">{barber.average_rating || "5.0"}</span>
+                    <span className="text-[10px] text-white/60 font-medium uppercase tracking-widest ml-1">({barber.total_ratings || 0} reviews)</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
   ) : (
     <Outlet />
   )}
