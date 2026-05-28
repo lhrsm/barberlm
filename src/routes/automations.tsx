@@ -97,6 +97,9 @@ function AutomationsComponent() {
   const [debugLogs, setDebugLogs] = useState<any[]>([]);
   const [activeConversations, setActiveConversations] = useState<any[]>([]);
   const [isTestWebhookLoading, setIsTestWebhookLoading] = useState(false);
+  const [directPostResult, setDirectPostResult] = useState<any>(null);
+  const [isDirectPosting, setIsDirectPosting] = useState(false);
+
 
 
   const fetchServerInfo = async () => {
