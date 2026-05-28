@@ -51,6 +51,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [zapiResponse, setZapiResponse] = useState<any>(null);
   const [webhookConfig, setWebhookConfig] = useState<any>(null);
+  const [integrationLogs, setIntegrationLogs] = useState<any[]>([]);
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [lastCheckTime, setLastCheckTime] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     instance_id: "",
