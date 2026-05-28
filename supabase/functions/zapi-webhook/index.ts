@@ -80,7 +80,22 @@ serve(async (req) => {
     const tenantIdFromUrl = pathParts[pathParts.length - 1]; // Fallback tenant ID from URL path
 
     const body = await req.json();
-    console.log("[Z-API Webhook] Payload:", JSON.stringify(body));
+    const headers = Object.fromEntries(req.headers.entries());
+    
+    // 0. INITIAL LOG (Save everything immediately)
+    const { data: debugLog, error: debugError } = await supabase
+      .from("zapi_webhook_debug")
+      .insert({
+        payload_raw: body,
+        headers_raw: headers,
+        received_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (debugError) {
+      console.error("[Z-API Webhook] Error creating initial debug log:", debugError);
+    }
 
     const { type, phone, instanceId } = body;
 
@@ -93,6 +108,13 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         })
         .eq("instance_id", instanceId);
+      
+      if (debugLog) {
+        await supabase.from("zapi_webhook_debug")
+          .update({ processed: true })
+          .eq("id", debugLog.id);
+      }
+
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -105,6 +127,18 @@ serve(async (req) => {
       let identifiedOptionId = option.id;
       if (!identifiedOptionId && /^\d+$/.test(messageText)) {
         identifiedOptionId = messageText;
+      }
+
+      // Update debug log with extracted info
+      if (debugLog) {
+        await supabase.from("zapi_webhook_debug")
+          .update({
+            phone_raw: phone,
+            phone_normalized: normalizedPhone,
+            message_text: messageText,
+            option_id: identifiedOptionId
+          })
+          .eq("id", debugLog.id);
       }
 
       console.log(`[Z-API Webhook] Payload Recebido:`, JSON.stringify(body));
