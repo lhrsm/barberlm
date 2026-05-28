@@ -1029,6 +1029,7 @@ function AutomationsComponent() {
                     <thead className="bg-muted">
                       <tr>
                         <th className="px-3 py-2 text-left">Data</th>
+                        <th className="px-3 py-2 text-left">Origem</th>
                         <th className="px-3 py-2 text-left">Telefone</th>
                         <th className="px-3 py-2 text-left">Mensagem</th>
                         <th className="px-3 py-2 text-left">Tenant</th>
