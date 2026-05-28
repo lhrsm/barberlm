@@ -153,15 +153,18 @@ export async function handleAutomationWhatsappResponse(
     case AUTOMATION_STATES.AWAITING_SPECIFIC_APPOINTMENT_SELECTION:
       const mapping = conversation.metadata?.appt_mapping || [];
       const index = parseInt(option_id) - 1;
+      const isCancelMode = conversation.metadata?.cancel_mode === true;
       
       if (!isNaN(index) && index >= 0 && index < mapping.length) {
         const selectedId = mapping[index];
-        await supabase.from("appointments").update({ status: 'confirmed' }).eq("id", selectedId);
+        const newStatus = isCancelMode ? 'cancelled' : 'confirmed';
+        await supabase.from("appointments").update({ status: newStatus }).eq("id", selectedId);
         
         const remainingIds = appointmentIds.filter((id: string) => id !== selectedId);
         
         if (remainingIds.length > 0) {
-          messageToSend = "✅ Agendamento confirmado! O que deseja fazer com os demais agendamentos?\n\nDigite:\n1 - Confirmar demais\n2 - Reagendar demais\n3 - Cancelar demais";
+          const actionText = isCancelMode ? "cancelado" : "confirmado";
+          messageToSend = `✅ Agendamento ${actionText}! O que deseja fazer com os demais agendamentos?\n\nDigite:\n1 - Confirmar demais\n2 - Reagendar demais\n3 - Cancelar demais`;
           nextState = AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION;
           
           await supabase.from("automation_conversations")
@@ -172,10 +175,11 @@ export async function handleAutomationWhatsappResponse(
             })
             .eq("id", conversation.id);
         } else {
-          messageToSend = "✅ Agendamento confirmado com sucesso!";
+          const successText = isCancelMode ? "cancelado" : "confirmado";
+          messageToSend = `✅ Agendamento ${successText} com sucesso!`;
           nextState = AUTOMATION_STATES.COMPLETED;
         }
-        actionExecuted = `confirm_specific_${selectedId}`;
+        actionExecuted = `${isCancelMode ? 'cancel' : 'confirm'}_specific_${selectedId}`;
       } else {
         messageToSend = "Opção inválida. Por favor, digite o número correspondente ao atendimento desejado.";
       }
