@@ -60,6 +60,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [lastReceivedConfig, setLastReceivedConfig] = useState<any>(null);
   const [lastExpandedConfig, setLastExpandedConfig] = useState<any>(null);
   const [lastSentMessageInfo, setLastSentMessageInfo] = useState<{id: string, time: string} | null>(null);
+  const [tempWebhookUrl, setTempWebhookUrl] = useState("https://ancient-meadow-00.webhook.cool");
+  const [isConfiguringTemp, setIsConfiguringTemp] = useState(false);
+  const [lastTempWebhookResult, setLastTempWebhookResult] = useState<any>(null);
 
   
   const [formData, setFormData] = useState({
@@ -452,6 +455,117 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       toast.error("Erro ao configurar: " + err.message);
     } finally {
       setIsConfiguring(false);
+    }
+  }
+
+  async function applyTempWebhook(action: 'update-webhook-received' | 'update-every-webhooks') {
+    if (!instance?.id) {
+      toast.error("Salve as configurações primeiro");
+      return;
+    }
+    
+    if (!tempWebhookUrl.startsWith("http")) {
+      toast.error("URL temporária inválida");
+      return;
+    }
+
+    setIsConfiguringTemp(true);
+    setLastTempWebhookResult(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action, 
+          instanceId: instance.id,
+          data: { 
+            webhookUrl: tempWebhookUrl,
+            notifySentByMe: true // Usado para update-every-webhooks
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      setLastTempWebhookResult({
+        ...data,
+        timestamp: new Date().toISOString(),
+        webhookApplied: tempWebhookUrl
+      });
+      
+      if (data.success && data.result?.value === true) {
+        toast.success(`Webhook temporário aplicado via ${action}`);
+      } else {
+        toast.error("Z-API recusou a configuração temporária");
+      }
+      
+      await fetchIntegrationLogs();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao configurar: " + err.message);
+    } finally {
+      setIsConfiguringTemp(false);
+    }
+  }
+
+  async function restoreSaasWebhook() {
+    if (!instance?.id) {
+      toast.error("Salve as configurações primeiro");
+      return;
+    }
+    
+    setIsConfiguringTemp(true);
+    setLastTempWebhookResult(null);
+    
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+      const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook/${tenantId}`;
+      
+      toast.info("Restaurando webhooks do SaaS...");
+
+      // 1. update-webhook-received
+      const res1 = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'update-webhook-received', 
+          instanceId: instance.id,
+          data: { webhookUrl }
+        }
+      });
+      
+      if (res1.error) throw new Error("Erro ao restaurar Ao Receber: " + res1.error.message);
+
+      // 2. update-every-webhooks
+      const res2 = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'update-every-webhooks', 
+          instanceId: instance.id,
+          data: { 
+            webhookUrl,
+            notifySentByMe: true 
+          }
+        }
+      });
+      
+      if (res2.error) throw new Error("Erro ao restaurar Todos os Webhooks: " + res2.error.message);
+
+      setLastTempWebhookResult({
+        ...res2.data,
+        timestamp: new Date().toISOString(),
+        webhookApplied: webhookUrl
+      });
+      
+      if (res2.data.success && res2.data.result?.value === true) {
+        toast.success("Webhooks do SaaS restaurados com sucesso!");
+      } else {
+        toast.error("Falha ao restaurar webhooks do SaaS");
+      }
+      
+      await fetchIntegrationLogs();
+      await fetchInstance();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao restaurar: " + err.message);
+    } finally {
+      setIsConfiguringTemp(false);
     }
   }
 
@@ -904,6 +1018,92 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 )}
               </div>
             </div>
+            <div className="bg-slate-900/50 p-4 rounded-xl border border-white/10 space-y-4">
+              <h3 className="text-sm font-bold flex items-center gap-2">
+                <Terminal size={16} className="text-blue-400" />
+                Teste de Webhook Externo
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-xs text-slate-400">URL temporária do webhook</Label>
+                  <Input 
+                    value={tempWebhookUrl}
+                    onChange={e => setTempWebhookUrl(e.target.value)}
+                    className="bg-white/5 border-white/10 text-xs"
+                    placeholder="https://sua-url-de-teste.com"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <Button 
+                    onClick={() => applyTempWebhook('update-webhook-received')}
+                    disabled={isConfiguringTemp || !instance}
+                    size="sm"
+                    className="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-600/30 text-[10px] h-8"
+                  >
+                    {isConfiguringTemp ? <Loader2 className="animate-spin mr-1" size={12} /> : null}
+                    Aplicar em "Ao Receber"
+                  </Button>
+                  <Button 
+                    onClick={() => applyTempWebhook('update-every-webhooks')}
+                    disabled={isConfiguringTemp || !instance}
+                    size="sm"
+                    className="bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-600/30 text-[10px] h-8"
+                  >
+                    {isConfiguringTemp ? <Loader2 className="animate-spin mr-1" size={12} /> : null}
+                    Aplicar em "Todos"
+                  </Button>
+                  <Button 
+                    onClick={restoreSaasWebhook}
+                    disabled={isConfiguringTemp || !instance}
+                    size="sm"
+                    variant="outline"
+                    className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 text-[10px] h-8"
+                  >
+                    {isConfiguringTemp ? <Loader2 className="animate-spin mr-1" size={12} /> : null}
+                    Restaurar Webhook SaaS
+                  </Button>
+                </div>
+
+                {lastTempWebhookResult && (
+                  <div className="mt-4 bg-black/40 p-3 rounded-lg border border-white/5 space-y-2">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2 mb-2">
+                      <span className="text-[10px] font-bold text-blue-400 uppercase">Resultado do Teste Externo</span>
+                      <span className="text-[9px] text-slate-500">{new Date(lastTempWebhookResult.timestamp).toLocaleString()}</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[10px]">
+                      <div className="space-y-1">
+                        <p className="text-slate-500 uppercase font-bold text-[8px]">URL Aplicada</p>
+                        <p className="font-mono truncate text-blue-300">{lastTempWebhookResult.webhookApplied}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-slate-500 uppercase font-bold text-[8px]">Status HTTP</p>
+                        <p className={cn("font-bold", lastTempWebhookResult.status === 200 ? "text-emerald-400" : "text-red-400")}>
+                          {lastTempWebhookResult.status}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-slate-500 uppercase font-bold text-[8px]">Endpoint Chamado</p>
+                      <p className="font-mono text-[9px] break-all bg-black/20 p-1 rounded text-slate-400">
+                        {lastTempWebhookResult.endpoint}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-slate-500 uppercase font-bold text-[8px]">Resposta Z-API</p>
+                      <pre className="text-[9px] bg-black/20 p-2 rounded overflow-auto max-h-24 text-slate-300 font-mono">
+                        {JSON.stringify(lastTempWebhookResult.result, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="bg-slate-900 border border-amber-500/20 rounded-xl p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-amber-400">
