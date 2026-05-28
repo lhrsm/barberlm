@@ -95,6 +95,15 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         if (data.length > 0) {
           setLastCheckTime(data[0].created_at);
         }
+
+        const lastSent = data.find(l => l.action === 'send-test-message' && l.status_code === 200);
+        if (lastSent && lastSent.response_payload?.messageId) {
+          setLastSentMessageInfo({
+            id: lastSent.response_payload.messageId,
+            time: lastSent.created_at
+          });
+        }
+
       }
     } catch (error) {
       console.error("Error fetching integration logs:", error);
