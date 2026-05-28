@@ -526,6 +526,137 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               {logs.length === 0 && <p className="text-center text-slate-500 py-4">Nenhum log encontrado</p>}
             </div>
           </TabsContent>
+
+          <TabsContent value="diagnostico" className="pt-4 space-y-4">
+            <div className="bg-slate-900/50 p-4 rounded-xl border border-white/10 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                  <Activity size={16} className="text-blue-400" />
+                  Estado da Integração
+                </h3>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={reconfigureWebhook} 
+                    disabled={isConfiguring || !instance}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-[10px] h-8"
+                  >
+                    {isConfiguring ? <Loader2 className="animate-spin mr-1" size={12} /> : <RefreshCw className="mr-1" size={12} />}
+                    Reconfigurar Webhook
+                  </Button>
+                  <Button 
+                    onClick={sendTestMessage} 
+                    disabled={isSendingTest || !instance}
+                    size="sm"
+                    variant="outline"
+                    className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 text-[10px] h-8"
+                  >
+                    {isSendingTest ? <Loader2 className="animate-spin mr-1" size={12} /> : <Send className="mr-1" size={12} />}
+                    Enviar Mensagem Teste
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="space-y-1 bg-black/20 p-2 rounded border border-white/5">
+                  <p className="text-slate-500 uppercase text-[9px] font-bold">Instance ID</p>
+                  <p className="font-mono truncate">{instance?.instance_id || "---"}</p>
+                </div>
+                <div className="space-y-1 bg-black/20 p-2 rounded border border-white/5">
+                  <p className="text-slate-500 uppercase text-[9px] font-bold">Provider</p>
+                  <p className="">Z-API (WhatsApp)</p>
+                </div>
+                <div className="space-y-1 bg-black/20 p-2 rounded border border-white/5">
+                  <p className="text-slate-500 uppercase text-[9px] font-bold">Status</p>
+                  <Badge variant="outline" className={cn("text-[9px] py-0 h-4", isConnected ? "text-emerald-400 border-emerald-400/20" : "text-red-400 border-red-400/20")}>
+                    {isConnected ? "Ativa" : "Inativa"}
+                  </Badge>
+                </div>
+                <div className="space-y-1 bg-black/20 p-2 rounded border border-white/5">
+                  <p className="text-slate-500 uppercase text-[9px] font-bold">Número Conectado</p>
+                  <p className="font-mono">{instance?.phone || "---"}</p>
+                </div>
+                <div className="space-y-1 bg-black/20 p-2 rounded border border-white/5">
+                  <p className="text-slate-500 uppercase text-[9px] font-bold">Token</p>
+                  <p className="font-mono">{maskToken(instance?.token || "")}</p>
+                </div>
+                <div className="space-y-1 bg-black/20 p-2 rounded border border-white/5">
+                  <p className="text-slate-500 uppercase text-[9px] font-bold">Client Token</p>
+                  <p className="font-mono">{maskToken(instance?.client_token || "")}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] text-slate-500 uppercase font-bold">URL Webhook "Ao Receber"</Label>
+                <div className="bg-black/40 p-2 rounded font-mono text-[10px] break-all border border-white/10 flex justify-between items-center group">
+                  <span className="text-blue-300">
+                    {webhookConfig?.webhookReceived || "Não detectado"}
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => {
+                      if (webhookConfig?.webhookReceived) {
+                        navigator.clipboard.writeText(webhookConfig.webhookReceived);
+                        toast.success("URL copiada!");
+                      }
+                    }}
+                  >
+                    <Copy size={12} />
+                  </Button>
+                </div>
+              </div>
+
+              {lastCheckTime && (
+                <div className="text-[10px] text-slate-500 italic">
+                  Última configuração: {new Date(lastCheckTime).toLocaleString()}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold flex items-center gap-2">
+                <Terminal size={16} className="text-amber-400" />
+                Logs de Integração (zapi_integration_logs)
+              </h3>
+              <div className="space-y-2 max-h-[300px] overflow-auto pr-2 custom-scrollbar">
+                {integrationLogs.map((log, i) => (
+                  <div key={log.id} className="bg-black/30 border border-white/5 rounded-lg p-3 space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[9px] uppercase font-bold">
+                          {log.action}
+                        </Badge>
+                        <span className={cn(
+                          "text-[10px] font-bold",
+                          log.status_code >= 200 && log.status_code < 300 ? "text-emerald-400" : "text-red-400"
+                        )}>
+                          HTTP {log.status_code}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-500">
+                        {new Date(log.created_at).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      <div className="space-y-1">
+                        <p className="text-[9px] text-slate-500 uppercase">Resposta da API</p>
+                        <pre className="text-[9px] bg-black/20 p-2 rounded overflow-auto max-h-24 text-slate-300 font-mono">
+                          {JSON.stringify(log.response_payload, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {integrationLogs.length === 0 && (
+                  <div className="text-center py-8 border border-dashed border-white/10 rounded-lg text-slate-500 text-xs">
+                    Nenhum log de integração encontrado.
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
