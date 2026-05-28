@@ -249,6 +249,55 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 </Button>
               </div>
             </form>
+
+            <div className="pt-6 space-y-4 border-t border-white/10">
+              <div>
+                <Label className="text-blue-400 font-bold flex items-center gap-2">
+                  <ShieldCheck size={16} /> URL do Webhook
+                </Label>
+                <p className="text-xs text-slate-400 mt-1 mb-2">
+                  Copie a URL abaixo e cadastre no painel da Z-API (Webhook de Mensagens Recebidas).
+                </p>
+                <div className="flex gap-2">
+                  <Input 
+                    readOnly 
+                    value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`}
+                    className="bg-black/40 border-white/10 text-[10px] font-mono"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => {
+                      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`;
+                      navigator.clipboard.writeText(url);
+                      toast.success("URL copiada!");
+                    }}
+                  >
+                    <Copy size={16} />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-blue-500/10 p-4 rounded-xl border border-blue-500/20 space-y-3">
+                <div className="flex items-center gap-2 text-blue-400">
+                  <AlertCircle size={18} />
+                  <span className="text-sm font-bold">Como testar?</span>
+                </div>
+                <ul className="text-xs text-slate-300 space-y-2 list-disc pl-4">
+                  <li>Cadastre a URL acima no painel da Z-API.</li>
+                  <li>Certifique-se que o evento "Mensagens Recebidas" está marcado.</li>
+                  <li>Envie uma mensagem real ("Oi" ou "1") para o número conectado.</li>
+                  <li>Verifique o resultado na aba <strong>Debug Webhook</strong> em Automações.</li>
+                </ul>
+                <Button 
+                  variant="outline" 
+                  className="w-full text-xs h-8 border-blue-500/30 hover:bg-blue-500/20"
+                  asChild
+                >
+                  <a href="/automations">Ver Debug de Webhook</a>
+                </Button>
+              </div>
+            </div>
           </TabsContent>
           
           <TabsContent value="logs" className="pt-4">
