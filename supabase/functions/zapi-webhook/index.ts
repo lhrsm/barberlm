@@ -101,7 +101,10 @@ serve(async (req) => {
       const option = extractSelectedOption(body);
       const messageText = body.text?.message || body.message?.text || body.text || body.body || "";
 
-      console.log(`[Z-API Webhook] Received message from ${normalizedPhone}. Option ID: ${option.id}, Text: ${option.text}`);
+      console.log(`[Z-API Webhook] Payload Recebido da Z-API:`, JSON.stringify(body));
+      console.log(`[Z-API Webhook] Phone: ${normalizedPhone}`);
+      console.log(`[Z-API Webhook] Option ID Identificado: ${option.id}`);
+      console.log(`[Z-API Webhook] Option Text: ${option.text}`);
 
       // 1. Find the tenant_id by instanceId or fallback to URL
       let tenantId = "";
