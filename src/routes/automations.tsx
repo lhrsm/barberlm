@@ -53,76 +53,18 @@ export const Route = createFileRoute("/automations")({
 });
 
 const AUTOMATION_TYPES = [
-  {
-    id: "appointment_confirmation",
-    title: "Confirmação de Agendamento",
-    description: "Enviado assim que o cliente realiza um novo agendamento.",
-    icon: CalendarCheck,
-    color: "text-blue-500",
-    bg: "bg-blue-50",
-    trigger: "Novo Agendamento",
-    plan: "starter"
-  },
-  {
-    id: "appointment_reminder",
-    title: "Lembrete de Agendamento",
-    description: "Lembre o cliente do seu horário (24h ou 2h antes).",
-    icon: BellRing,
-    color: "text-amber-500",
-    bg: "bg-amber-50",
-    trigger: "Horário Próximo",
-    plan: "starter"
-  },
-  {
-    id: "rescheduling",
-    title: "Reagendamento",
-    description: "Notifica sobre mudanças de horário ou profissional.",
-    icon: Clock,
-    color: "text-purple-500",
-    bg: "bg-purple-50",
-    trigger: "Alteração de Horário",
-    plan: "pro"
-  },
-  {
-    id: "cancellation",
-    title: "Cancelamento",
-    description: "Enviado quando um agendamento é cancelado.",
-    icon: Ban,
-    color: "text-red-500",
-    bg: "bg-red-50",
-    trigger: "Agendamento Cancelado",
-    plan: "pro"
-  },
-  {
-    id: "birthday",
-    title: "Mensagem de Aniversário",
-    description: "Parabenize e ofereça mimos aos seus clientes no dia especial.",
-    icon: Gift,
-    color: "text-pink-500",
-    bg: "bg-pink-50",
-    trigger: "Data de Nascimento",
-    plan: "pro"
-  },
-  {
-    id: "inactive_customer",
-    title: "Cliente Inativo",
-    description: "Recupere clientes que não aparecem há mais de 30 dias.",
-    icon: UserMinus,
-    color: "text-orange-500",
-    bg: "bg-orange-50",
-    trigger: "Inatividade (30 dias)",
-    plan: "pro"
-  },
-  {
-    id: "post_service",
-    title: "Pós-Atendimento",
-    description: "Solicite avaliações 1h após a conclusão do serviço.",
-    icon: Star,
-    color: "text-green-500",
-    bg: "bg-green-50",
-    trigger: "Serviço Concluído",
-    plan: "pro"
-  }
+  { id: "appointment_confirmation", title: "Confirmação de Agendamento", description: "Enviado assim que o cliente realiza um novo agendamento.", icon: CalendarCheck, color: "text-blue-500", bg: "bg-blue-50", trigger: "Novo Agendamento", plan: "starter" },
+  { id: "appointment_reminder", title: "Lembrete de Agendamento", description: "Lembre o cliente do seu horário.", icon: BellRing, color: "text-amber-500", bg: "bg-amber-50", trigger: "Horário Próximo", plan: "starter" },
+  { id: "rescheduling", title: "Reagendamento", description: "Notifica sobre mudanças de horário ou profissional.", icon: Clock, color: "text-purple-500", bg: "bg-purple-50", trigger: "Alteração de Horário", plan: "pro" },
+  { id: "cancellation", title: "Cancelamento", description: "Enviado quando um agendamento é cancelado.", icon: Ban, color: "text-red-500", bg: "bg-red-50", trigger: "Agendamento Cancelado", plan: "pro" },
+  { id: "birthday", title: "Mensagem de Aniversário", description: "Parabenize seus clientes no dia especial.", icon: Gift, color: "text-pink-500", bg: "bg-pink-50", trigger: "Data de Nascimento", plan: "pro" },
+  { id: "inactive_customer", title: "Cliente Inativo", description: "Recupere clientes inativos há 30 dias.", icon: UserMinus, color: "text-orange-500", bg: "bg-orange-50", trigger: "Inatividade", plan: "pro" },
+  { id: "post_service", title: "Pós-Atendimento", description: "Solicite avaliações após o serviço.", icon: Star, color: "text-green-500", bg: "bg-green-50", trigger: "Serviço Concluído", plan: "pro" },
+  { id: "professional_confirmation", title: "Confirmação p/ Profissional", description: "Notifique o barbeiro sobre novos atendimentos.", icon: CalendarCheck, color: "text-cyan-500", bg: "bg-cyan-50", trigger: "Agendamento Confirmado", plan: "pro" },
+  { id: "service_rating", title: "Avaliação de Atendimento", description: "Solicite feedback detalhado.", icon: Star, color: "text-yellow-500", bg: "bg-yellow-50", trigger: "Após serviço", plan: "elite" },
+  { id: "manual_promotion", title: "Promoções Manuais", description: "Envie ofertas exclusivas.", icon: Zap, color: "text-indigo-500", bg: "bg-indigo-50", trigger: "Manual", plan: "elite" },
+  { id: "cancellation_recovery", title: "Recuperação de Cancelamento", description: "Tente recuperar clientes que cancelaram.", icon: RefreshCw, color: "text-rose-500", bg: "bg-rose-50", trigger: "Cancelamento", plan: "elite" },
+  { id: "day_reminder", title: "Lembrete do Dia", description: "Aviso matinal com agenda do dia.", icon: BellRing, color: "text-teal-500", bg: "bg-teal-50", trigger: "Início do dia", plan: "elite" }
 ];
 
 function AutomationsComponent() {
