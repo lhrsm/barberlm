@@ -167,8 +167,26 @@ export function usePlanLimits() {
   
   const isTrial = isSubscribed || (plan === 'free' && trialDaysRemaining > 0);
   
-  // Bloqueio apenas se: não houver assinatura ativa E o plano for free E o trial acabou
+  // Bloqueio APENAS se não houver assinatura ativa E o plano for free E o trial acabou
+  // IMPORTANTE: isExpired = false libera a tela logada.
   const isExpired = !hasActiveSubscription && plan === 'free' && trialDaysRemaining <= 0;
+
+  useEffect(() => {
+    if (!loading) {
+      console.log("[usePlanLimits] Access Logic Debug (v3):", {
+        tenantId,
+        plan,
+        subscriptionStatus: subscription?.status,
+        isSubscribed,
+        hasActiveSubscription,
+        trialDaysRemaining,
+        isTrial,
+        isExpired,
+        trialEndsAt,
+        shouldBeBlocked: isExpired
+      });
+    }
+  }, [loading, tenantId, plan, subscription?.status, isSubscribed, hasActiveSubscription, trialDaysRemaining, isTrial, isExpired, trialEndsAt]);
 
   useEffect(() => {
     if (!loading) {
