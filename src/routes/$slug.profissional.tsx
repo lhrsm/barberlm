@@ -47,10 +47,20 @@ export const Route = createFileRoute("/$slug/profissional")({
 
 function ProfessionalDashboard() {
   const { session, loading, logout } = useProfessionalAuth();
-  const { plan, subscription, isTrial, isExpired, trialEndsAt, loading: planLoading } = usePlanLimits();
+  // Plan limits via hook (will be updated by our manual fetch if needed)
+  const planLimits = usePlanLimits();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { slug } = Route.useParams();
+  
+  // State for real subscription data
+  const [realSubscription, setRealSubscription] = useState<any>(null);
+  const [realPlan, setRealPlan] = useState<string>("none");
+  const [realCanAccess, setRealCanAccess] = useState<boolean>(true);
+  const [accessReason, setAccessReason] = useState<string>("Verificando...");
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [foundTenantId, setFoundTenantId] = useState<string | null>(null);
+
   const [appointments, setAppointments] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [barber, setBarber] = useState<any>(null);
@@ -69,6 +79,85 @@ function ProfessionalDashboard() {
       navigate({ to: "/auth" });
     }
   }, [session, loading, navigate]);
+
+  useEffect(() => {
+    async function validateAccess() {
+      if (!slug) return;
+      setIsDataLoading(true);
+      console.log("[profissional-access-debug] Starting validation for slug:", slug);
+
+      try {
+        // 1. Buscar tenant pelo slug na tabela profiles
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, plan, effective_plan, trial_end")
+          .eq("slug", slug.toLowerCase())
+          .maybeSingle();
+
+        if (profileError || !profileData) {
+          console.error("Tenant not found for slug:", slug);
+          setAccessReason("Erro: Barbearia não encontrada para este endereço");
+          setRealCanAccess(false);
+          setIsDataLoading(false);
+          return;
+        }
+
+        const tId = profileData.id;
+        setFoundTenantId(tId);
+
+        // 2. Buscar assinatura ativa na tabela subscriptions
+        const { data: subData, error: subError } = await supabase
+          .from("subscriptions")
+          .select("*")
+          .eq("user_id", tId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        setRealSubscription(subData);
+
+        // 3. Determinar o plano real
+        const planId = profileData.plan || profileData.effective_plan || "none";
+        setRealPlan(planId);
+
+        // 4. Lógica de liberação
+        const subStatus = (subData?.status || "").toLowerCase();
+        const isActiveSub = ['active', 'paid', 'trialing', 'past_due'].includes(subStatus);
+        
+        const now = new Date();
+        const trialEnd = profileData.trial_end ? new Date(profileData.trial_end) : null;
+        const isTrialValid = trialEnd ? trialEnd > now : false;
+
+        // Regra do SaaS: Libera se tiver assinatura ativa OU se o trial for válido
+        // Não existe plano free que libere acesso após o trial
+        const canAccess = isActiveSub || isTrialValid;
+        
+        setRealCanAccess(canAccess);
+        
+        if (canAccess) {
+          setAccessReason(isActiveSub ? "Liberado: Assinatura Ativa" : "Liberado: Período de Teste Válido");
+        } else {
+          setAccessReason("Bloqueado: Período de teste expirado e sem assinatura ativa");
+        }
+
+        console.log("[profissional-access-debug] Validation result:", {
+          tenant_id: tId,
+          isActiveSub,
+          isTrialValid,
+          canAccess,
+          planId
+        });
+
+      } catch (err) {
+        console.error("Error validating access:", err);
+        setAccessReason("Erro técnico na validação do acesso");
+      } finally {
+        setIsDataLoading(false);
+      }
+    }
+
+    validateAccess();
+  }, [slug]);
 
   useEffect(() => {
     if (session?.barber_id) {
@@ -299,7 +388,7 @@ function ProfessionalDashboard() {
     }
   };
 
-  if (loading) {
+  if (loading || isDataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -309,23 +398,21 @@ function ProfessionalDashboard() {
   
   if (!session) return null;
 
-  // Se estiver bloqueado pelo trial, o AppLayout já deve lidar, 
-  // mas garantimos que o conteúdo só carrega se houver acesso.
-  if (isExpired && !planLoading) {
+  // Bloqueio definitivo se can_access for false (vindo da query manual)
+  if (!realCanAccess) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="bg-slate-900/90 text-[10px] p-6 rounded-xl border border-primary/20 text-white font-mono space-y-3 shadow-2xl max-w-md w-full">
             <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
-              <span className="font-bold text-primary uppercase tracking-widest text-[11px]">Acesso Negado (Debug)</span>
+              <span className="font-bold text-primary uppercase tracking-widest text-[11px]">Acesso Negado (v11)</span>
             </div>
             <div className="grid grid-cols-1 gap-y-2">
               <p><span className="text-white/50">slug:</span> {slug}</p>
-              <p><span className="text-white/50">subscription:</span> {subscription?.status || "none"}</p>
-              <p><span className="text-white/50">plan:</span> {plan}</p>
-              <p><span className="text-white/50">isTrial:</span> {String(isTrial)}</p>
-              <p><span className="text-white/50">trial_end:</span> {trialEndsAt}</p>
-              <p className="text-red-400 font-bold uppercase mt-2">O acesso foi bloqueado porque o trial expirou e não há assinatura ativa.</p>
+              <p><span className="text-white/50">tenant_id:</span> {foundTenantId || "N/A"}</p>
+              <p><span className="text-white/50">subscription:</span> {realSubscription?.status || "none"}</p>
+              <p><span className="text-white/50">plan:</span> {realPlan}</p>
+              <p className="text-red-400 font-bold uppercase mt-2">{accessReason}</p>
             </div>
             <Button variant="outline" className="w-full mt-4 border-primary/20 hover:bg-primary/10" asChild>
               <Link to="/subscription">Ver Planos de Assinatura</Link>
@@ -339,24 +426,23 @@ function ProfessionalDashboard() {
   return (
     <AppLayout>
       <div className="space-y-8 pb-12">
-        {/* Debug Panel - Temporário conforme solicitado pelo usuário */}
+        {/* Debug Panel - Temporário v11 */}
         <div className="bg-slate-900/90 text-[10px] p-4 rounded-xl border border-primary/20 text-white font-mono space-y-1 shadow-2xl">
           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
-            <span className="font-bold text-primary uppercase tracking-widest text-[9px]">Acesso Debug</span>
+            <span className="font-bold text-primary uppercase tracking-widest text-[9px]">Acesso Debug (v11)</span>
             <span className="bg-primary/20 text-primary px-2 py-0.5 rounded text-[8px] uppercase font-bold">Definitivo</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1">
             <p><span className="text-white/50">slug:</span> {slug}</p>
-            <p><span className="text-white/50">tenant_id:</span> {session?.tenant_id || "N/A"}</p>
-            <p><span className="text-white/50">subscription_status:</span> <span className={cn(subscription?.status === 'active' ? "text-green-400" : "text-amber-400")}>{subscription?.status || "none"}</span></p>
-            <p><span className="text-white/50">plan_id:</span> {plan}</p>
-            <p><span className="text-white/50">trial_end:</span> {trialEndsAt ? format(new Date(trialEndsAt), "dd/MM/yyyy HH:mm") : "N/A"}</p>
-            <p><span className="text-white/50">trial_expired:</span> <span className={cn(!isTrial ? "text-red-400" : "text-green-400")}>{String(!isTrial)}</span></p>
-            <p><span className="text-white/50">has_active_subscription:</span> <span className={cn(!isExpired || subscription?.status === 'active' ? "text-green-400" : "text-red-400")}>{String(!isExpired)}</span></p>
-            <p><span className="text-white/50">can_access:</span> <span className={cn(!isExpired ? "text-green-400" : "text-red-400")}>{String(!isExpired)}</span></p>
+            <p><span className="text-white/50">tenant_id:</span> {foundTenantId || "N/A"}</p>
+            <p><span className="text-white/50">sub_status:</span> <span className={cn(realSubscription?.status === 'active' ? "text-green-400" : "text-amber-400")}>{realSubscription?.status || "none"}</span></p>
+            <p><span className="text-white/50">sub_id:</span> {realSubscription?.id || "N/A"}</p>
+            <p><span className="text-white/50">plan_id:</span> {realPlan}</p>
+            <p><span className="text-white/50">can_access:</span> <span className={cn(realCanAccess ? "text-green-400" : "text-red-400")}>{String(realCanAccess)}</span></p>
+            <p><span className="text-white/50">tabela:</span> profiles + subscriptions</p>
           </div>
-          <p className="pt-2 border-t border-white/10 mt-2"><span className="text-white/50">block_reason:</span> {isExpired ? "Bloqueado: Trial expirado e sem assinatura ativa" : "Liberado: Acesso concedido"}</p>
-          <p><span className="text-white/50">fonte dos dados:</span> usePlanLimits Hook + Professional Session</p>
+          <p className="pt-2 border-t border-white/10 mt-2"><span className="text-white/50">block_reason:</span> {accessReason}</p>
+          <p><span className="text-white/50">fonte dos dados:</span> Query Direta Supabase (Tenant by Slug)</p>
         </div>
 
         {/* Header section */}
