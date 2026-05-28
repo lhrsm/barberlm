@@ -83,16 +83,19 @@ export function NotificationsCenter() {
   });
 
   useEffect(() => {
-    const channelName = `notifications-realtime-${instanceId}`;
+    if (!tenantId) return;
+
+    const channelName = `notifications-realtime-${tenantId}-${instanceId}`;
     const channel = supabase
       .channel(channelName)
       .on('postgres_changes', { 
         event: 'INSERT', 
         table: 'notifications',
-        schema: 'public'
+        schema: 'public',
+        filter: `tenant_id=eq.${tenantId}`
       }, (payload) => {
         console.log('REALTIME NOTIFICATION RECEIVED', payload);
-        queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        queryClient.invalidateQueries({ queryKey: ["notifications", tenantId] });
         
         // Show realtime toast
         toast("🔔 " + (payload.new.title || "Notificação"), {
@@ -106,16 +109,17 @@ export function NotificationsCenter() {
       .on('postgres_changes', {
         event: '*',
         table: 'notifications',
-        schema: 'public'
+        schema: 'public',
+        filter: `tenant_id=eq.${tenantId}`
       }, () => {
-        queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        queryClient.invalidateQueries({ queryKey: ["notifications", tenantId] });
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, navigate, instanceId]);
+  }, [queryClient, navigate, instanceId, tenantId]);
 
   const getIcon = (type: string | null) => {
     switch (type) {
