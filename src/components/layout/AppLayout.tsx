@@ -154,10 +154,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Condição mestre de bloqueio visual:
   // Só exibimos a tela de bloqueio se o trial acabou e não há plano/assinatura detectada.
   // IMPORTANTE: isExpired já vem com essa lógica do hook usePlanLimits.
-  const shouldBlock = isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
+  const isProfissionalRoute = pathname.includes('/profissional');
+  const shouldBlock = isExpired && !isSubscriptionPage && !isProfissionalRoute && role !== 'super_admin' && !planLoading && !loading;
 
   // Forçar visibilidade para depuração: se shouldBlock for true, a UI será substituída pelo TrialExpiredBlock
-  console.log("%c[AppLayout] MASTER BLOCK CHECK", shouldBlock ? "color: red" : "color: green", { shouldBlock, isExpired, isSubscriptionPage, role });
+  console.log("%c[AppLayout] MASTER BLOCK CHECK", shouldBlock ? "color: red" : "color: green", { shouldBlock, isExpired, isSubscriptionPage, isProfissionalRoute, role });
 
   useEffect(() => {
     if (!loading && !planLoading) {
