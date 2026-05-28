@@ -175,20 +175,19 @@ export function usePlanLimits() {
 
   useEffect(() => {
     if (!loading && tenantId) {
-      console.log("%c[usePlanLimits] ACCESS LOGIC DEBUG (v6)", "background: #222; color: #bada55; font-size: 14px; padding: 4px;", {
+      console.log("%c[usePlanLimits] ACCESS LOGIC DEBUG (v8)", "background: #222; color: #bada55; font-size: 14px; padding: 4px;", {
         tenantId,
         plan,
-        subscriptionStatus: subscription?.status,
-        isSubscribed,
+        subscriptionStatus: subStatus,
         hasActiveSubscription,
-        trialDaysRemaining,
-        isTrial,
+        isTrialValid,
+        canAccess,
         isExpired,
         trialEndsAt,
         shouldBeBlocked: isExpired
       });
     }
-  }, [loading, tenantId, plan, subscription?.status, isSubscribed, hasActiveSubscription, trialDaysRemaining, isTrial, isExpired, trialEndsAt]);
+  }, [loading, tenantId, plan, subStatus, hasActiveSubscription, isTrialValid, canAccess, isExpired, trialEndsAt]);
 
   const checkLimit = (type: keyof typeof usage) => {
     if (!limits) return false;
