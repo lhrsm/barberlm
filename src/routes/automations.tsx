@@ -1049,6 +1049,11 @@ function AutomationsComponent() {
                               {new Date(log.received_at).toLocaleTimeString('pt-BR')}
                             </td>
                             <td className="px-3 py-2">
+                              <Badge variant="outline" className={cn("text-[9px] uppercase", log.source === 'manual_simulation' ? "border-amber-500 text-amber-500" : "border-blue-500 text-blue-500")}>
+                                {log.source === 'manual_simulation' ? 'Simulação' : 'Real'}
+                              </Badge>
+                            </td>
+                            <td className="px-3 py-2">
                               {log.phone_raw || '-'}
                             </td>
                             <td className="px-3 py-2 max-w-[150px] truncate">
