@@ -6,7 +6,7 @@ import { normalizePhone } from "../_shared/utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, client-token",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
@@ -26,13 +26,12 @@ function extractSelectedOption(payload: any) {
     payload.buttonsResponseMessage?.selectedButtonId,
     payload.buttonsResponseMessage?.selectedDisplayText,
     payload.message?.text,
-    payload.text?.message, // Added this
+    payload.text?.message,
     payload.text,
     payload.body,
     payload.optionListReply?.title,
     payload.optionListReply?.id
   ];
-
 
   for (const val of possiblePaths) {
     if (val && typeof val === 'string') {
@@ -55,33 +54,26 @@ function extractSelectedOption(payload: any) {
   };
 }
 
-async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: any, source: string, integrationIdFromUrl?: string) {
-  const phone = body.phone;
-  const type = body.type;
-  const instanceId = body.instanceId;
-  const messageText = String(body.text?.message || body.message?.text || body.text || body.body || "").trim();
-  
-  // 1. PRIMEIRA LINHA: Salvar no debug (obrigatório) - já foi salvo na função principal serve(), aqui apenas atualizamos se necessário ou usamos o ID
-  // Mas para garantir que salve o máximo de info possível o mais cedo, o serve() faz o insert inicial.
-  // Vamos buscar o log recém criado pelo serve() se possível, ou criar um novo aqui se não vier ID.
-}
-
 serve(async (req) => {
-  // CORS handling
+  // 1. Handle CORS OPTIONS
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    });
   }
 
   const url = new URL(req.url);
   const pathParts = url.pathname.split("/");
   const integrationIdFromUrl = pathParts[pathParts.length - 1];
 
-  // Health check for GET
+  // 2. Handle GET (Health Check)
   if (req.method === "GET") {
     return new Response(JSON.stringify({ 
       ok: true, 
       message: "Z-API webhook active", 
-      integration_id: integrationIdFromUrl 
+      integration_id: integrationIdFromUrl,
+      received_method: "GET"
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
@@ -96,15 +88,15 @@ serve(async (req) => {
   let body: any = {};
   let headers: any = {};
   let debugLogId: string | null = null;
+  let saved_debug = false;
 
   try {
-    // 2. Tentar ler o body e headers
+    // 3. Try to parse body and headers
     try {
       body = await req.json();
       headers = Object.fromEntries(req.headers.entries());
     } catch (e) {
       console.error("[Z-API Webhook] Error parsing JSON body:", e);
-      // Mesmo com erro de parsing, tentamos salvar o que temos
     }
 
     // Identify source
@@ -112,12 +104,12 @@ serve(async (req) => {
     if (body.source === "manual_simulation") {
       source = "manual_simulation";
       delete body.source;
-    } else if (headers["x-test-post"] === "true" || body.source === "direct_post_test") {
-      source = "direct_post_test";
+    } else if (headers["x-test-post"] === "true" || body.source === "direct_post_test" || body.source === "server_test") {
+      source = body.source || "direct_post_test";
       delete body.source;
     }
 
-    // 3. SALVAR IMEDIATAMENTE (Requisito obrigatório)
+    // 4. SAVE RAW PAYLOAD IMMEDIATELY (Mandatory Requirement)
     const { data: debugLog, error: debugError } = await supabase
       .from("zapi_webhook_debug")
       .insert({
@@ -135,11 +127,37 @@ serve(async (req) => {
 
     if (debugError) {
       console.error("[Z-API Webhook] Critical Error saving debug log:", debugError);
+      // Even if saving failed, we should try to proceed or return the error as requested
+      if (source === "direct_post_test" || source === "server_test") {
+        return new Response(JSON.stringify({
+          ok: false,
+          saved_debug: false,
+          error: debugError.message,
+          received_method: req.method
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
     } else {
       debugLogId = debugLog.id;
+      saved_debug = true;
     }
 
-    // Agora processamos o restante
+    // If it's just a direct test from UI and they want the status back immediately
+    if (source === "direct_post_test" || source === "server_test") {
+      return new Response(JSON.stringify({
+        ok: true,
+        saved_debug: saved_debug,
+        received_method: req.method,
+        debug_id: debugLogId
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // 5. CONTINUE PROCESSING FOR REAL WEBHOOKS
     const { type, phone, instanceId } = body;
     const messageText = String(body.text?.message || body.message?.text || body.text || body.body || "").trim();
 
@@ -177,7 +195,6 @@ serve(async (req) => {
       // Find the tenant_id
       let tenantId = "";
       
-      // Tentar encontrar por instanceId primeiro
       if (instanceId) {
         const { data: instance } = await supabase
           .from("whatsapp_instances")
@@ -192,7 +209,6 @@ serve(async (req) => {
       } 
       
       if (!tenantId && integrationIdFromUrl && integrationIdFromUrl.length > 20) {
-        // Se o integrationIdFromUrl parecer um UUID, pode ser o tenant_id ou id de instancia
         const { data: instByTenant } = await supabase
           .from("whatsapp_instances")
           .select("tenant_id")
@@ -202,12 +218,10 @@ serve(async (req) => {
         if (instByTenant) {
           tenantId = instByTenant.tenant_id;
         } else {
-          // Fallback: assumir que é o tenant_id
           tenantId = integrationIdFromUrl;
         }
       }
 
-      // Update debug log with extracted info
       if (debugLogId) {
         await supabase.from("zapi_webhook_debug")
           .update({
@@ -274,7 +288,6 @@ serve(async (req) => {
           }
         }
 
-        // Log incoming response
         await supabase.from("automation_logs").insert({
           tenant_id: tenantId,
           conversation_id: conversation.id,
@@ -302,7 +315,6 @@ serve(async (req) => {
           status: 200,
         });
       } else {
-        // Log incoming ignored
         await supabase.from("automation_logs").insert({
           tenant_id: tenantId,
           phone: normalizedPhone,
@@ -338,9 +350,14 @@ serve(async (req) => {
         .eq("id", debugLogId);
     }
     
-    return new Response(JSON.stringify({ success: false, error: error.message }), {
+    return new Response(JSON.stringify({ 
+      ok: false,
+      success: false, 
+      error: error.message,
+      saved_debug: saved_debug 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200, // Retornamos 200 para evitar que a Z-API tente reenviar infinitamente se o erro for lógico
+      status: 200,
     });
   }
 });

@@ -409,13 +409,12 @@ function AutomationsComponent() {
     }
   };
 
-  const handleDirectPostTest = async () => {
+  const handleDirectPostTest = async (mode: 'browser' | 'server' = 'browser') => {
     if (!tenantId) return;
     setIsDirectPosting(true);
     setDirectPostResult(null);
     
     try {
-      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`;
       const payload = {
         phone: "5571999999999",
         fromMe: false,
@@ -423,41 +422,67 @@ function AutomationsComponent() {
           message: "1"
         },
         type: "ReceivedCallback",
-        source: "direct_post_test"
+        source: mode === 'browser' ? "direct_post_test" : "server_test"
       };
 
-      console.log("Testing POST to:", functionUrl);
-      
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-test-post': 'true'
-        },
-        body: JSON.stringify(payload)
-      });
+      if (mode === 'browser') {
+        const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`;
+        console.log("Testing Browser POST to:", functionUrl);
+        
+        const response = await fetch(functionUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-test-post': 'true'
+          },
+          body: JSON.stringify(payload)
+        });
 
-      const data = await response.json();
-      
-      setDirectPostResult({
-        status: response.status,
-        statusText: response.statusText,
-        data: data
-      });
+        const data = await response.json();
+        
+        setDirectPostResult({
+          mode: 'browser (CORS)',
+          status: response.status,
+          statusText: response.statusText,
+          data: data
+        });
 
-      if (response.ok) {
-        toast.success("POST direto realizado com sucesso!");
-        fetchDebugData();
+        if (response.ok && data.ok) {
+          toast.success("POST direto via Browser realizado com sucesso!");
+          fetchDebugData();
+        } else {
+          toast.error(`Erro no POST Browser: ${data.error || response.statusText}`);
+        }
       } else {
-        toast.error(`Erro no POST: ${response.status} ${response.statusText}`);
+        // Server-side test using invoke
+        console.log("Testing Server-side POST via invoke");
+        const { data, error } = await supabase.functions.invoke('zapi-webhook', {
+          body: { ...payload, source: "server_test" }
+        });
+
+        if (error) throw error;
+
+        setDirectPostResult({
+          mode: 'server (invoke)',
+          status: 200,
+          data: data
+        });
+
+        if (data.ok) {
+          toast.success("POST via Servidor realizado com sucesso!");
+          fetchDebugData();
+        } else {
+          toast.error(`Erro no POST Servidor: ${data.error || "Erro desconhecido"}`);
+        }
       }
     } catch (err: any) {
-      console.error("Direct POST Error:", err);
+      console.error(`Direct POST (${mode}) Error:`, err);
       setDirectPostResult({
+        mode: mode,
         error: err.message || "Erro de conexão",
         stack: err.stack
       });
-      toast.error("Falha na conexão com a Edge Function");
+      toast.error(`Falha na conexão: ${err.message}`);
     } finally {
       setIsDirectPosting(false);
     }
