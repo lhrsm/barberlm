@@ -176,7 +176,75 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     } finally {
       setIsTesting(false);
     }
+  async function reconfigureWebhook() {
+    if (!instance?.id) {
+      toast.error("Salve as configurações primeiro");
+      return;
+    }
+    
+    setIsConfiguring(true);
+    setZapiResponse(null);
+    
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+      const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook/${tenantId}`;
+      
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'update-webhook-received', 
+          instanceId: instance.id,
+          data: { webhookUrl }
+        }
+      });
+      
+      if (error) throw error;
+      
+      setZapiResponse(data.result);
+      toast.success("Webhook reconfigurado com sucesso!");
+      
+      // Fetch current config after update
+      await fetchWebhookConfig();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao configurar: " + err.message);
+    } finally {
+      setIsConfiguring(false);
+    }
   }
+
+  async function fetchWebhookConfig() {
+    if (!instance?.id) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'get-webhooks', 
+          instanceId: instance.id
+        }
+      });
+      
+      if (error) throw error;
+      if (data.success) {
+        setWebhookConfig(data.result);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar config de webhook:", err);
+    }
+  }
+
+  useEffect(() => {
+    if (instance?.id) {
+      fetchWebhookConfig();
+    }
+  }, [instance?.id]);
+
+  const maskToken = (token: string) => {
+    if (!token) return "Não configurado";
+    if (token.length <= 8) return "********";
+    return `${token.substring(0, 4)}...${token.substring(token.length - 4)}`;
+  };
+  }
+
 
   if (loading) return <div className="p-8 text-center">Carregando...</div>;
 
