@@ -936,17 +936,17 @@ function DashboardComponent() {
                         Status da Assinatura SaaS
                       </span>
                     </div>
-                    {isTrial ? (
+                    {isSubscribed ? (
+                      <Badge className="bg-green-100 text-green-700 border-green-200 font-black italic text-[10px] tracking-widest uppercase">
+                        Assinatura Ativa
+                      </Badge>
+                    ) : isTrial ? (
                       <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-black italic text-[10px] tracking-widest uppercase">
                         Trial Ativo
                       </Badge>
-                    ) : isExpired ? (
+                    ) : (
                       <Badge className="bg-red-500/10 text-red-700 border-red-500/20 font-black italic text-[10px] tracking-widest uppercase">
                         Expirado
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-100 text-green-700 border-green-200 font-black italic text-[10px] tracking-widest uppercase">
-                        Assinatura Ativa
                       </Badge>
                     )}
                   </div>
