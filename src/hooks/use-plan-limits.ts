@@ -158,7 +158,7 @@ export function usePlanLimits() {
   // Plan logic:
   // 1. If active/trialing/past_due subscription exists, it's NOT expired
   // 2. Otherwise check trial days
-  const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status || '');
+  const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
   const isTrial = isSubscribed || (plan === 'free' && trialDaysRemaining > 0);
   const isExpired = !isSubscribed && plan === 'free' && trialDaysRemaining <= 0;
 

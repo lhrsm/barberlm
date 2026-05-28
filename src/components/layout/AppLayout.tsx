@@ -148,9 +148,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     navigate({ to: "/auth" });
   };
 
-  const { isExpired, loading: planLoading } = usePlanLimits();
+  const { isExpired, isTrial, subscription, loading: planLoading } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
-  const shouldBlock = isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
+  
+  // A rota só deve ser bloqueada se:
+  // 1. Não houver assinatura ativa (isSubscribed é falso)
+  // 2. E o trial expirou (isExpired é verdadeiro)
+  // 3. E não for a página de assinatura
+  const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
+  
+  // Se estiver inscrito, isExpired deve ser falso, mas garantimos aqui
+  const shouldBlock = !isSubscribed && isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
