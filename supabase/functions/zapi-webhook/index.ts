@@ -193,7 +193,7 @@ serve(async (req) => {
           received_at: new Date().toISOString()
         });
       } else {
-        console.log(`[Z-API Webhook] No active conversation found for ${normalizedPhone} in tenant ${tenantId}`);
+        console.log(`[Z-API Webhook] Nenhuma Conversa Ativa Encontrada para ${normalizedPhone} no tenant ${tenantId}`);
       }
     }
 
