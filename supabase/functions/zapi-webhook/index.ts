@@ -9,15 +9,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function normalizePhone(phone: string): string {
-  if (!phone) return "";
-  let digits = phone.replace(/\D/g, "");
-  // Remove "55" if it's there twice or something weird, but standard is CC+DDD+Number
-  if (digits.length === 10 || digits.length === 11) {
-    digits = "55" + digits;
-  }
-  return digits;
-}
 
 function extractSelectedOption(payload: any) {
   let text = "";
