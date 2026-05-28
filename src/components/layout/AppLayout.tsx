@@ -153,9 +153,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   
   // A rota só deve ser bloqueada se o trial expirou E não houver assinatura ativa
   // A lógica de isExpired no hook já considera se há assinatura ativa.
-  const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
-  const hasActiveSubscription = isSubscribed || (plan !== 'free' && plan !== null);
-  
+  // IMPORTANTE: isExpired no hook usePlanLimits agora só é true se (plan === 'free' && trial acabou && no subscription)
   const shouldBlock = isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
 
   useEffect(() => {
