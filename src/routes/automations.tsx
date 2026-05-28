@@ -90,6 +90,8 @@ function AutomationsComponent() {
   const [executionSummary, setExecutionSummary] = useState<any>(null);
   const [isSummaryDialogOpen] = useState(false);
   const [isManualSummaryOpen, setIsManualSummaryOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [isDebugDialogOpen, setIsDebugDialogOpen] = useState(false);
 
 
   const fetchServerInfo = async () => {
