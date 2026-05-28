@@ -61,6 +61,7 @@ export async function handleAutomationWhatsappResponse(
   }
 
   const appointmentIds = conversation.appointment_ids || [];
+  const { data: appointments } = await supabase.from("appointments").select("*, services(name)").in("id", appointmentIds);
   const isMultiple = appointmentIds.length > 1;
   const option = { id: option_id };
 
@@ -70,7 +71,8 @@ export async function handleAutomationWhatsappResponse(
   let actionExecuted = "";
 
   console.log('CONVERSATION', conversation);
-  console.log('APPOINTMENTS COUNT', appointmentIds.length);
+  console.log('APPOINTMENTS FOUND', appointments);
+  console.log('APPOINTMENTS COUNT', appointments?.length || 0);
   console.log('IS MULTIPLE', isMultiple);
   console.log('SELECTED OPTION', option);
 
