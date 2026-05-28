@@ -565,9 +565,173 @@ function AutomationsComponent() {
 
           <TabsContent value="automations" className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {/* Automation Cards... I will put the map here in next call or just keep it if lines matched */}
+              {AUTOMATION_TYPES.map((item, index) => {
+                const data = automations.find(a => a.type === item.id);
+                const enabled = data?.enabled || false;
+                const locked = isFeatureLocked(item.plan);
+                const channel = data?.channel || 'whatsapp';
+                const delay = data?.trigger_delay || 0;
 
-                <CardTitle className="text-2xl font-bold flex items-center gap-3">
+                return (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className={cn(
+                      "relative overflow-hidden transition-all duration-500 hover:shadow-xl group border-2",
+                      locked ? "opacity-80 bg-muted/30 grayscale-[0.5] border-transparent" : 
+                      enabled 
+                        ? "bg-card border-emerald-500/20 shadow-emerald-500/5 hover:border-emerald-500/40" 
+                        : "bg-card border-red-500/20 shadow-red-500/5 hover:border-red-500/40"
+                    )}>
+                      {locked && (
+                        <div className="absolute top-2 right-2 z-10">
+                          <Badge variant="secondary" className="gap-1 bg-amber-500/20 text-amber-500 border-amber-500/20 backdrop-blur-sm">
+                            <Lock size={10} /> {item.plan.toUpperCase()}
+                          </Badge>
+                        </div>
+                      )}
+                      
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start">
+                          <div className={cn(
+                            "p-3 rounded-xl transition-all duration-300 group-hover:scale-110",
+                            item.bg,
+                            enabled ? "text-emerald-600 shadow-lg shadow-emerald-500/10" : "text-red-600 shadow-lg shadow-red-500/10",
+                            locked && "grayscale"
+                          )}>
+                            <item.icon size={26} />
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <div className="flex items-center gap-3">
+                              <AnimatePresence mode="wait">
+                                <motion.div
+                                  key={enabled ? "active" : "inactive"}
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  className="flex items-center"
+                                >
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                      "px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider gap-1.5 transition-colors duration-300",
+                                      enabled 
+                                        ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
+                                        : "bg-red-500/10 text-red-500 border-red-500/20"
+                                    )}
+                                  >
+                                    <div className={cn(
+                                      "w-1.5 h-1.5 rounded-full animate-pulse",
+                                      enabled ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"
+                                    )} />
+                                    {enabled ? "Ativo" : "Inativo"}
+                                  </Badge>
+                                </motion.div>
+                              </AnimatePresence>
+                              
+                              <Switch 
+                                id={`switch-${item.id}`}
+                                checked={enabled} 
+                                disabled={locked}
+                                onCheckedChange={() => handleToggleAutomation(item.id, enabled)} 
+                                className={cn(
+                                  "transition-all duration-500",
+                                  enabled ? "data-[state=checked]:bg-emerald-500" : "data-[state=unchecked]:bg-red-500/20",
+                                  locked && "cursor-not-allowed opacity-20"
+                                )}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <CardTitle className="text-xl mt-5 font-bold tracking-tight group-hover:text-primary transition-colors">
+                          {item.title}
+                        </CardTitle>
+                        <CardDescription className="line-clamp-2 text-sm leading-relaxed min-h-[40px]">
+                          {item.description}
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardContent className="py-4 border-y border-white/5 space-y-4 bg-muted/20">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            <div className="p-1.5 rounded-md bg-background/50 border border-white/5">
+                              {channel === 'whatsapp' ? <MessageSquare size={12} className="text-emerald-500" /> : <Mail size={12} className="text-blue-500" />}
+                            </div>
+                            <span>{channel}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            <div className="p-1.5 rounded-md bg-background/50 border border-white/5">
+                              <Clock size={12} className="text-amber-500" />
+                            </div>
+                            <span>{delay === 0 ? "Imediato" : `${delay}h antes`}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                            <span className="text-muted-foreground/60">Gatilho:</span>
+                            <span className="text-foreground">{item.trigger}</span>
+                          </div>
+                          <div className={cn(
+                            "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest",
+                            item.plan === 'starter' ? "bg-blue-500/10 text-blue-500" :
+                            item.plan === 'pro' ? "bg-purple-500/10 text-purple-500" :
+                            "bg-amber-500/10 text-amber-500"
+                          )}>
+                            <Sparkles size={8} /> {item.plan}
+                          </div>
+                        </div>
+                      </CardContent>
+
+                      <CardFooter className="p-4 pt-4 flex gap-2">
+                        {locked ? (
+                          <Button variant="ghost" className="w-full h-11 gap-2 text-primary font-bold bg-primary/5 hover:bg-primary/10 border border-primary/10 rounded-xl group/btn" asChild>
+                            <a href="/subscription">
+                              <Zap size={16} className="text-amber-500 animate-pulse group-hover:scale-110 transition-transform" />
+                              Upgrade para {item.plan.toUpperCase()}
+                              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                            </a>
+                          </Button>
+                        ) : (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => openEditModal(item.id)} 
+                              className="flex-1 h-10 border-slate-200 hover:bg-black hover:text-white hover:scale-105 transition-all font-bold rounded-xl gap-2"
+                            >
+                              <Settings2 size={14} /> Configurar
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              onClick={() => handleTestAutomation(data || { type: item.id })}
+                              disabled={isTesting === (data?.id || item.id)}
+                              className="px-3 h-10 font-bold bg-slate-900 text-white hover:scale-105 transition-all rounded-xl gap-2"
+                            >
+                              {isTesting === (data?.id || item.id) ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Play size={14} />
+                              )}
+                              Testar
+                            </Button>
+                          </>
+                        )}
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="logs">
+            <Card className="border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+              <CardHeader className="pb-4">
                   <div className="p-2 rounded-lg bg-primary/10 text-primary">
                     <History size={20} />
                   </div>
