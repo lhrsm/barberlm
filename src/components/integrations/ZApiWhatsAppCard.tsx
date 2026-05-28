@@ -95,8 +95,34 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   }
 
   async function sendTestMessage() {
-    if (!instance?.id || !formData.phone) {
-      toast.error("Configure a instância e o telefone primeiro");
+    if (!instance?.id) {
+      toast.error("Salve as configurações primeiro");
+      return;
+    }
+
+    if (!formData.phone) {
+      toast.error("Telefone de destino ausente");
+      return;
+    }
+
+    const phone = formData.phone.replace(/\D/g, "");
+    if (!phone.startsWith("55") || phone.length < 12) {
+      toast.error("Telefone deve estar no formato 55DDDNUMERO (ex: 5571999999999)");
+      return;
+    }
+
+    if (!formData.instance_id) {
+      toast.error("ID da instância ausente");
+      return;
+    }
+
+    if (!formData.instance_token) {
+      toast.error("Token ausente");
+      return;
+    }
+
+    if (!formData.client_token) {
+      toast.error("Client Token ausente");
       return;
     }
 
@@ -107,26 +133,48 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           action: 'send-test-message', 
           instanceId: instance.id,
           data: { 
-            phone: formData.phone.replace(/\D/g, ""),
+            phone: phone,
             message: "Teste de diagnóstico Z-API. Por favor, responda '1' para testar o webhook." 
           }
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Function error:", error);
+        toast.error(`Erro na Edge Function: ${error.message || "Erro desconhecido"}`);
+        await fetchIntegrationLogs();
+        return;
+      }
       
-      if (data.result?.sent) {
+      if (data.success) {
         toast.success("Mensagem de teste enviada!");
         setZapiResponse(data.result);
         
-        // Check if debug log appears after a delay
         setTimeout(() => {
           checkWebhookDebug();
         }, 5000);
       } else {
-        toast.error("Erro ao enviar: " + (data.result?.message || "Erro desconhecido"));
+        // Report detailed error from Z-API
+        const errorMsg = data.error || data.result?.message || "Erro desconhecido";
+        const status = data.status || "N/A";
+        const endpoint = data.endpoint || "N/A";
+        
+        setZapiResponse(data.result || { error: errorMsg, status, endpoint });
+        
+        toast.error(
+          <div className="flex flex-col gap-1">
+            <span className="font-bold">Falha no envio (Z-API)</span>
+            <span className="text-[10px] opacity-80">Status: {status}</span>
+            <span className="text-[10px] opacity-80">Erro: {errorMsg}</span>
+            <span className="text-[10px] opacity-80 truncate">URL: {endpoint}</span>
+          </div>,
+          { duration: 8000 }
+        );
       }
+      
+      await fetchIntegrationLogs();
     } catch (err: any) {
+      console.error("Catch error:", err);
       toast.error("Erro no teste: " + err.message);
     } finally {
       setIsSendingTest(false);
@@ -621,32 +669,67 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 <Terminal size={16} className="text-amber-400" />
                 Logs de Integração (zapi_integration_logs)
               </h3>
-              <div className="space-y-2 max-h-[300px] overflow-auto pr-2 custom-scrollbar">
-                {integrationLogs.map((log, i) => (
+              <div className="space-y-2 max-h-[400px] overflow-auto pr-2 custom-scrollbar">
+                {integrationLogs.map((log) => (
                   <div key={log.id} className="bg-black/30 border border-white/5 rounded-lg p-3 space-y-2">
                     <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[9px] uppercase font-bold">
-                          {log.action}
-                        </Badge>
-                        <span className={cn(
-                          "text-[10px] font-bold",
-                          log.status_code >= 200 && log.status_code < 300 ? "text-emerald-400" : "text-red-400"
-                        )}>
-                          HTTP {log.status_code}
-                        </span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[9px] uppercase font-bold bg-blue-500/10">
+                            {log.action}
+                          </Badge>
+                          <span className={cn(
+                            "text-[10px] font-bold",
+                            log.status_code >= 200 && log.status_code < 300 ? "text-emerald-400" : "text-red-400"
+                          )}>
+                            HTTP {log.status_code}
+                          </span>
+                        </div>
+                        {log.phone_number && (
+                          <span className="text-[10px] text-blue-300 flex items-center gap-1">
+                            <Phone size={10} /> {log.phone_number}
+                          </span>
+                        )}
                       </div>
                       <span className="text-[10px] text-slate-500">
-                        {new Date(log.created_at).toLocaleTimeString()}
+                        {new Date(log.created_at).toLocaleString()}
                       </span>
                     </div>
-                    <div className="grid grid-cols-1 gap-2">
+
+                    {log.endpoint && (
                       <div className="space-y-1">
-                        <p className="text-[9px] text-slate-500 uppercase">Resposta da API</p>
-                        <pre className="text-[9px] bg-black/20 p-2 rounded overflow-auto max-h-24 text-slate-300 font-mono">
-                          {JSON.stringify(log.response_payload, null, 2)}
-                        </pre>
+                        <p className="text-[9px] text-slate-500 uppercase flex items-center gap-1">
+                          <ExternalLink size={10} /> Endpoint
+                        </p>
+                        <p className="text-[9px] font-mono break-all text-slate-400 bg-black/20 p-1 rounded">
+                          {log.endpoint}
+                        </p>
                       </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <p className="text-[9px] text-slate-500 uppercase">Tokens (Mascarados)</p>
+                        <div className="text-[9px] bg-black/20 p-2 rounded text-slate-400 space-y-1">
+                          <p>Token: {log.token_masked || "---"}</p>
+                          <p>Client: {log.client_token_masked || "---"}</p>
+                        </div>
+                      </div>
+                      {log.error_message && (
+                        <div className="space-y-1">
+                          <p className="text-[9px] text-red-500 uppercase font-bold">Erro</p>
+                          <p className="text-[9px] bg-red-500/10 p-2 rounded text-red-300 border border-red-500/20">
+                            {log.error_message}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[9px] text-slate-500 uppercase">Resposta Completa</p>
+                      <pre className="text-[9px] bg-black/20 p-2 rounded overflow-auto max-h-32 text-slate-300 font-mono">
+                        {JSON.stringify(log.response_payload, null, 2)}
+                      </pre>
                     </div>
                   </div>
                 ))}

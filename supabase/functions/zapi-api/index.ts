@@ -1,10 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { sendMessage } from "../_shared/whatsapp-settings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, client-token",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
 };
+
+function maskToken(token: string | null | undefined) {
+  if (!token) return "Não configurado";
+  if (token.length <= 8) return "********";
+  return `${token.substring(0, 4)}...${token.substring(token.length - 4)}`;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -43,17 +51,30 @@ serve(async (req) => {
       headers["Client-Token"] = clientToken;
     }
 
-    async function logToDb(action: string, request: any, response: any, status: number) {
+    async function logToDb(params: {
+      action: string, 
+      request: any, 
+      response: any, 
+      status: number,
+      endpoint?: string,
+      phone?: string,
+      errorMessage?: string
+    }) {
       try {
         await supabase
           .from("zapi_integration_logs")
           .insert([{
             tenant_id: instance.tenant_id,
             instance_id: instanceId,
-            action: action,
-            request_payload: request,
-            response_payload: response,
-            status_code: status
+            action: params.action,
+            request_payload: params.request,
+            response_payload: params.response,
+            status_code: params.status,
+            endpoint: params.endpoint,
+            phone_number: params.phone,
+            error_message: params.errorMessage,
+            token_masked: maskToken(token),
+            client_token_masked: maskToken(clientToken)
           }]);
       } catch (e) {
         console.error("[Z-API] Error logging to DB:", e.message);
@@ -78,7 +99,7 @@ serve(async (req) => {
         })
         .eq("id", tableId);
 
-      await logToDb("check-status", { url }, result, status_code);
+      await logToDb({ action: "check-status", request: { url }, response: result, status: status_code, endpoint: url });
 
       return new Response(JSON.stringify({ 
         success: true, 
@@ -95,8 +116,6 @@ serve(async (req) => {
       const webhookUrl = data.webhookUrl;
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/update-webhook-received`;
       
-      console.log(`[Z-API] Updating received webhook to: ${webhookUrl}`);
-      
       const res = await fetch(url, {
         method: "PUT",
         headers,
@@ -106,7 +125,13 @@ serve(async (req) => {
       const status_code = res.status;
       const result = await res.json();
 
-      await logToDb("update-webhook-received", { url, webhookUrl }, result, status_code);
+      await logToDb({ 
+        action: "update-webhook-received", 
+        request: { url, webhookUrl }, 
+        response: result, 
+        status: status_code, 
+        endpoint: url 
+      });
 
       return new Response(JSON.stringify({ success: true, result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -120,7 +145,7 @@ serve(async (req) => {
       const status_code = res.status;
       const result = await res.json();
 
-      await logToDb("get-webhooks", { url }, result, status_code);
+      await logToDb({ action: "get-webhooks", request: { url }, response: result, status: status_code, endpoint: url });
 
       return new Response(JSON.stringify({ success: true, result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -131,22 +156,38 @@ serve(async (req) => {
     if (action === "send-test-message") {
       const phone = data.phone;
       const message = data.message || "Teste de integração Z-API";
+      
+      // 1. Validations
+      if (!instanceId) throw new Error("instance_id ausente");
+      if (!token) throw new Error("token ausente");
+      if (!clientToken) throw new Error("client_token ausente");
+      if (!phone) throw new Error("telefone de destino ausente");
+      if (!phone.startsWith("55") || phone.length < 12) throw new Error("telefone deve estar no formato 55DDDNUMERO");
+      if (instance.provider !== 'z-api' && instance.provider !== 'zapi') throw new Error(`provider inválido: ${instance.provider}`);
+      
+      // Use the same function as the automation
+      const result = await sendMessage(instance, phone, message);
+      
+      const status_code = result.success ? 200 : (result.response?.status || 400);
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
-      
-      console.log(`[Z-API] Sending test message to: ${phone}`);
-      
-      const res = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ phone, message })
+
+      await logToDb({ 
+        action: "send-test-message", 
+        request: { phone, message }, 
+        response: result.response, 
+        status: status_code, 
+        endpoint: url,
+        phone: phone,
+        errorMessage: result.error
       });
-      
-      const status_code = res.status;
-      const result = await res.json();
 
-      await logToDb("send-test-message", { url, phone, message }, result, status_code);
-
-      return new Response(JSON.stringify({ success: true, result }), {
+      return new Response(JSON.stringify({ 
+        success: result.success, 
+        result: result.response,
+        error: result.error,
+        endpoint: url,
+        status: status_code
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -170,7 +211,7 @@ serve(async (req) => {
         });
         const status_code = res.status;
         const result = await res.json();
-        await logToDb(`set-webhook:${webhookType}`, { url, webhookUrl }, result, status_code);
+        await logToDb({ action: `set-webhook:${webhookType}`, request: { url, webhookUrl }, response: result, status: status_code, endpoint: url });
         return result;
       }));
 
@@ -189,7 +230,7 @@ serve(async (req) => {
       const status_code = res.status;
       const result = await res.json();
       
-      await logToDb("disconnect", { url }, result, status_code);
+      await logToDb({ action: "disconnect", request: { url }, response: result, status: status_code, endpoint: url });
 
       await supabase
         .from("whatsapp_instances")
@@ -210,7 +251,11 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("[Z-API Edge Function] Error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      ok: false,
+      success: false 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
     });
