@@ -126,7 +126,83 @@ serve(async (req) => {
       });
     }
 
-    if (action === "update-webhook-received") {
+    if (action === "update-notify-sent-by-me") {
+      const { notifySentByMe } = data;
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/update-notify-sent-by-me`;
+      
+      const res = await fetch(url, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ notifySentByMe })
+      });
+      
+      const status_code = res.status;
+      const result = await res.json();
+
+      await logToDb({ 
+        action: "update-notify-sent-by-me", 
+        method: "PUT",
+        request: { notifySentByMe }, 
+        response: result, 
+        status: status_code, 
+        endpoint: url 
+      });
+
+      return new Response(JSON.stringify({ 
+        success: status_code === 200, 
+        result,
+        status: status_code,
+        endpoint: url,
+        requestBody: { notifySentByMe },
+        headers: {
+          "Content-Type": "application/json",
+          "Client-Token": maskToken(clientToken)
+        }
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    if (action === "update-every-webhooks") {
+      const { webhookUrl, notifySentByMe } = data;
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/update-every-webhooks`;
+      
+      const res = await fetch(url, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ value: webhookUrl, notifySentByMe })
+      });
+      
+      const status_code = res.status;
+      const result = await res.json();
+
+      await logToDb({ 
+        action: "update-every-webhooks", 
+        method: "PUT",
+        request: { value: webhookUrl, notifySentByMe }, 
+        webhook_url: webhookUrl,
+        response: result, 
+        status: status_code, 
+        endpoint: url 
+      });
+
+      return new Response(JSON.stringify({ 
+        success: status_code === 200, 
+        result,
+        status: status_code,
+        endpoint: url,
+        requestBody: { value: webhookUrl, notifySentByMe },
+        headers: {
+          "Content-Type": "application/json",
+          "Client-Token": maskToken(clientToken)
+        }
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
       const webhookUrl = data.webhookUrl;
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/update-webhook-received`;
       
