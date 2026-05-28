@@ -41,6 +41,9 @@ interface WhatsAppInstance {
   phone?: string;
   updated_at?: string;
   connected?: boolean;
+  webhook_received_url?: string;
+  webhook_received_configured_at?: string;
+  webhook_received_last_response?: any;
 }
 
 export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
@@ -336,12 +339,17 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       
       if (error) throw error;
       
-      setZapiResponse(data.result);
-      toast.success("Webhook reconfigurado com sucesso!");
+      if (data.success) {
+        toast.success("Webhook Ao Receber configurado com sucesso.");
+      } else {
+        toast.error("Erro ao configurar webhook: " + (data.result?.message || "Verifique os logs"));
+      }
       
-      // Fetch integration logs and current config after update
+      setZapiResponse(data.result);
+      
+      // Fetch integration logs and refresh instance
       await fetchIntegrationLogs();
-      await fetchWebhookConfig();
+      await fetchInstance();
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao configurar: " + err.message);
@@ -350,30 +358,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
   }
 
-  async function fetchWebhookConfig() {
-    if (!instance?.id) return;
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('zapi-api', {
-        body: { 
-          action: 'get-webhooks', 
-          instanceId: instance.id
-        }
-      });
-      
-      if (error) throw error;
-      if (data.success) {
-        setWebhookConfig(data.result);
-      }
-    } catch (err) {
-      console.error("Erro ao buscar config de webhook:", err);
-    }
-  }
-
   useEffect(() => {
-    if (instance?.id) {
-      fetchWebhookConfig();
-    }
+    // Initial fetch logs and integration logs already called in another useEffect
   }, [instance?.id]);
 
   const maskToken = (token: string) => {
