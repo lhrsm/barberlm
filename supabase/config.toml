@@ -2,3 +2,6 @@ project_id = "wdxhjwodyctgzqtogkgv"
 
 [functions.zapi-webhook]
 verify_jwt = false
+
+[functions.zapi-catch-all]
+verify_jwt = false
