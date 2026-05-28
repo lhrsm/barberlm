@@ -202,7 +202,7 @@ export function usePlanLimits() {
     loading,
     trialDaysRemaining,
     trialEndsAt,
-    isTrial,
+    isTrial: isTrialValid,
     isExpired,
     subscription,
     checkLimit,
