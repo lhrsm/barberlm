@@ -188,6 +188,171 @@ export async function handleAutomationWhatsappResponse(
   };
 }
 
-export async function processAutomationDispatches(supabase: any, tenantId?: string) {
-  // logic to process dispatches
+export async function processAutomationDispatches(supabase: any, { tenantId, forceMode }: { tenantId?: string, forceMode?: boolean }) {
+  console.log(`[AutomationEngine] Starting dispatch process. Tenant: ${tenantId || 'All'}`);
+
+  // 1. Get Tenants
+  let tenantQuery = supabase.from("barbershops").select("id, name");
+  if (tenantId) {
+    tenantQuery = tenantQuery.eq("id", tenantId);
+  }
+  const { data: tenants } = await tenantQuery;
+
+  const results = {
+    processed_tenants: tenants?.length || 0,
+    dispatches_sent: 0,
+    errors: [] as string[]
+  };
+
+  for (const tenant of tenants || []) {
+    try {
+      // 2. Get active automations for tenant
+      const { data: automations } = await supabase
+        .from("automations")
+        .select("*")
+        .eq("tenant_id", tenant.id)
+        .eq("enabled", true);
+
+      if (!automations || automations.length === 0) continue;
+
+      // 3. Get Z-API connection
+      const connection = await getWhatsAppSettings(supabase, tenant.id);
+      if (!connection || !connection.connected) continue;
+
+      for (const automation of automations) {
+        // Handle each type
+        if (automation.type === AUTOMATION_TYPES.CONFIRMATION) {
+          await processConfirmationDispatch(supabase, tenant, automation, connection, forceMode);
+        } else if (automation.type === AUTOMATION_TYPES.REMINDER) {
+          await processReminderDispatch(supabase, tenant, automation, connection, forceMode);
+        }
+        // ... Add more types
+      }
+    } catch (err: any) {
+      results.errors.push(`Tenant ${tenant.name}: ${err.message}`);
+    }
+  }
+
+  return results;
 }
+
+async function processConfirmationDispatch(supabase: any, tenant: any, automation: any, connection: any, forceMode: boolean) {
+  // Find new appointments created in last 15 mins
+  const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  
+  const { data: appointments } = await supabase
+    .from("appointments")
+    .select("*, customers(*), services(name), barbers(name)")
+    .eq("tenant_id", tenant.id)
+    .eq("status", "scheduled")
+    .eq("confirmation_sent", false)
+    .gte("created_at", fifteenMinsAgo);
+
+  if (!appointments || appointments.length === 0) return;
+
+  // Group by customer and group_id
+  const groups: Record<string, any[]> = {};
+  for (const appt of appointments) {
+    const key = appt.appointment_group_id || `single_${appt.id}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(appt);
+  }
+
+  for (const groupKey in groups) {
+    const group = groups[groupKey];
+    const firstAppt = group[0];
+    const customer = firstAppt.customers;
+    if (!customer?.phone) continue;
+
+    const uniqueKey = `conf:${tenant.id}:${groupKey}`;
+    
+    // Check dispatch
+    if (!forceMode) {
+      const { data: existing } = await supabase
+        .from("automation_dispatches")
+        .select("id")
+        .eq("unique_key", uniqueKey)
+        .maybeSingle();
+      if (existing) continue;
+    }
+
+    // Prepare message
+    const isMultiple = group.length > 1;
+    let message = `Olá ${customer.name}! 👋\n\n`;
+    message += `Seu agendamento na *${tenant.name}* foi realizado com sucesso!\n\n`;
+    
+    if (isMultiple) {
+      message += `Você possui ${group.length} atendimentos:\n\n`;
+      group.forEach((a, i) => {
+        message += `${i+1}️⃣ ${a.services?.name} com ${a.barbers?.name} às ${formatBrazilTime(a.start_time)}\n`;
+      });
+      message += `\n📅 Data: ${formatBrazilDate(firstAppt.start_time)}\n\n`;
+    } else {
+      message += `✅ *${firstAppt.services?.name}*\n`;
+      message += `💈 Profissional: ${firstAppt.barbers?.name}\n`;
+      message += `📅 Data: ${formatBrazilDate(firstAppt.start_time)}\n`;
+      message += `⏰ Horário: ${formatBrazilTime(firstAppt.start_time)}\n\n`;
+    }
+
+    message += `O que deseja fazer?`;
+
+    const menu = {
+      list: {
+        buttonLabel: "Ver opções",
+        title: "Opções",
+        options: [
+          { id: 'confirm_appointment', title: 'Confirmar Agendamento', description: isMultiple ? 'Confirmar todos ou um específico' : 'Confirmar este atendimento' },
+          { id: 'reschedule_appointment', title: 'Reagendar', description: 'Alterar data ou horário' },
+          { id: 'cancel_appointment', title: 'Cancelar', description: 'Cancelar atendimento' }
+        ]
+      }
+    };
+
+    const sendResult = await sendMessage(connection, customer.phone, message, menu);
+
+    // Create Dispatch record
+    await supabase.from("automation_dispatches").insert({
+      tenant_id: tenant.id,
+      automation_type: AUTOMATION_TYPES.CONFIRMATION,
+      customer_id: customer.id,
+      unique_key: uniqueKey,
+      status: sendResult.success ? 'sent' : 'failed',
+      sent_at: new Date().toISOString()
+    });
+
+    if (sendResult.success) {
+      // Create Conversation
+      const { data: conv } = await supabase.from("automation_conversations").insert({
+        tenant_id: tenant.id,
+        customer_id: customer.id,
+        phone: customer.phone,
+        automation_type: AUTOMATION_TYPES.CONFIRMATION,
+        appointment_ids: group.map(a => a.id),
+        current_state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+        status: 'active'
+      }).select().single();
+
+      // Log
+      await supabase.from("automation_logs").insert({
+        tenant_id: tenant.id,
+        automation_id: automation.id,
+        conversation_id: conv.id,
+        customer_id: customer.id,
+        phone: customer.phone,
+        direction: 'outgoing',
+        message: message,
+        payload: menu,
+        status: 'success',
+        sent_at: new Date().toISOString()
+      });
+
+      // Update appointments
+      await supabase.from("appointments").update({ confirmation_sent: true }).in("id", group.map(a => a.id));
+    }
+  }
+}
+
+async function processReminderDispatch(supabase: any, tenant: any, automation: any, connection: any, forceMode: boolean) {
+  // Similar logic for reminders...
+}
+
