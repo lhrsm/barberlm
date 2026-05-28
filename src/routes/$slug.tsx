@@ -943,7 +943,6 @@ function ShopPageComponent() {
           }
         }).catch(err => console.error("Error triggering automation:", err));
       }
-      }
 
       toast.success("Agendamentos realizados com sucesso!");
       
