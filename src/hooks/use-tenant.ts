@@ -1,9 +1,11 @@
 import { useAuth } from "./use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
 
 export function useTenant() {
   const { user, profile, loading: authLoading } = useAuth();
+  const { session } = useProfessionalAuth();
   
   // Check for impersonation in sessionStorage
   const impersonatedId = typeof window !== 'undefined' ? sessionStorage.getItem("impersonated_tenant_id") : null;
@@ -11,9 +13,9 @@ export function useTenant() {
   // The actual tenant ID being viewed/managed
   const tenantId = authLoading 
     ? null 
-    : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || (profile?.role === 'tenant_admin' ? profile?.id || user?.id : null))));
+    : (impersonatedId || (profile?.role === 'super_admin' ? null : (profile?.tenant_id || (profile?.role === 'tenant_admin' ? profile?.id || user?.id : (session?.tenant_id || null)))));
 
-  console.log("[useTenant] Debug:", { tenantId, role: profile?.role, impersonatedId, profileId: profile?.id });
+  console.log("[useTenant] Debug:", { tenantId, role: profile?.role, impersonatedId, profileId: profile?.id, professionalTenantId: session?.tenant_id });
 
 
   const { data: tenantProfile, isLoading: queryLoading } = useQuery({
