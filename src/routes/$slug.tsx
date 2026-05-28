@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Outlet, useLocation } from "@tanstack/react-router";
+import { TrialExpiredBlock } from "@/components/subscription/TrialExpiredBlock";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useMemo } from "react";
@@ -51,6 +52,8 @@ function ShopPageComponent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canAccess, setCanAccess] = useState(true);
+  const [blockReason, setBlockReason] = useState("");
   
   // Debug logs to trace route issues
   useEffect(() => {
@@ -564,7 +567,8 @@ function ShopPageComponent() {
           pix_key, 
           pix_qr_code_url, 
           status,
-          trial_end
+          trial_end,
+          plan
         `)
         .eq("slug", normalizedSlug)
         .maybeSingle();
@@ -575,17 +579,52 @@ function ShopPageComponent() {
         return;
       }
 
+      // Fetch subscription status for this shop
+      const { data: subData } = await supabase
+        .from("subscriptions")
+        .select("status, price_id")
+        .eq("user_id", currentShop.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
       setShop(currentShop);
 
+      // Access logic for public route
+      const subscription_status = subData?.status || "";
+      const plan_id = currentShop.plan || "";
+      const trial_end = currentShop.trial_end;
+      
+      const hasActiveSubscription = 
+        ['active', 'paid', 'trialing', 'past_due'].includes(subscription_status.toLowerCase()) || 
+        (plan_id !== 'free' && plan_id !== null && plan_id !== '');
+      
+      const isTrialValid = trial_end ? new Date(trial_end) > new Date() : false;
+      const canAccess = hasActiveSubscription || isTrialValid;
+      const block_reason = !canAccess ? "Bloqueado: Trial expirado e sem assinatura ativa" : "Liberado: Acesso concedido";
+
       // Temporary logs for debugging access as requested by user
-      console.log('PUBLIC SHOP ACCESS DEBUG:', {
+      console.log("[professionals-access-debug]", {
         slug: normalizedSlug,
         tenant_id: currentShop.id,
-        status: currentShop.status,
-        trial_end: currentShop.trial_end,
-        // For public page, we don't have the full subscription object here yet,
-        // but we can log what we have.
+        subscription_status,
+        is_subscription_active: hasActiveSubscription, // simplified
+        active_subscription: hasActiveSubscription, // simplified
+        plan_id,
+        trial_end,
+        trial_valid: isTrialValid,
+        has_active_subscription: hasActiveSubscription,
+        can_access: canAccess,
+        block_reason
       });
+
+      // If blocked, we could potentially show the block UI here.
+      // But user only asked to fix the logic and add logs.
+      // We will ensure that the professionals route only renders if canAccess is true.
+
+
+      setCanAccess(canAccess);
+      setBlockReason(block_reason);
 
       // Fetch services, barbers and products for this shop (all public now)
       const [servicesRes, barbersRes, productsRes] = await Promise.all([
@@ -599,6 +638,7 @@ function ShopPageComponent() {
           .select("*, barber_services(service_id)")
           .eq("user_id", currentShop.id)
           .eq("active", true),
+
         supabase
           .from("products")
           .select("*")
@@ -1338,6 +1378,8 @@ function ShopPageComponent() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {!canAccess && <TrialExpiredBlock />}
 
       {/* Main Content */}
       {(!isPortalRoute && !isProfissionalRoute && !isProfessionalsRoute) ? (

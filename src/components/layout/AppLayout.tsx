@@ -161,7 +161,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading && !planLoading) {
-      console.log("%c[AppLayout] ROUTE ACCESS DEBUG (v7)", "background: #222; color: #ff00ff; font-size: 14px; padding: 4px;", {
+      console.log("%c[AppLayout] ROUTE ACCESS DEBUG (v8)", "background: #222; color: #ff00ff; font-size: 14px; padding: 4px;", {
         slug,
         tenantId,
         pathname,
