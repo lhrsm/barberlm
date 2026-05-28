@@ -302,8 +302,8 @@ function ProfessionalDashboard() {
         nextAppointment: nextApp
       });
     }
-      });
     }
+  }
 
     // Recent Appointments - Fetch ALL
     const { data: recentApps, error: appError } = await supabase
