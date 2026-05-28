@@ -34,7 +34,8 @@ import {
   Check,
   CheckCircle2,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Copy
 } from "lucide-react";
 import {
   Dialog,
