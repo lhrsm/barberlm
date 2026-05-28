@@ -229,6 +229,7 @@ function AutomationsComponent() {
       fetchAutomations();
       fetchLogs();
       fetchCronStatus();
+      fetchDebugData();
       
       // Real-time updates for automation status
       const statusChannel = supabase
@@ -256,9 +257,16 @@ function AutomationsComponent() {
         })
         .subscribe();
         
+      const debugChannel = supabase
+        .channel('debug_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'zapi_webhook_debug' }, () => fetchDebugData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_conversations' }, () => fetchDebugData())
+        .subscribe();
+        
       return () => {
         supabase.removeChannel(statusChannel);
         supabase.removeChannel(logsChannel);
+        supabase.removeChannel(debugChannel);
       };
     }
   }, [tenantId]);
