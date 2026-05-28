@@ -56,6 +56,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [integrationLogs, setIntegrationLogs] = useState<any[]>([]);
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<string | null>(null);
+  const [lastWebhookCall, setLastWebhookCall] = useState<any>(null);
   
   const [formData, setFormData] = useState({
     instance_id: "",
@@ -323,6 +324,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     
     setIsConfiguring(true);
     setZapiResponse(null);
+    setLastWebhookCall(null);
     
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
@@ -338,15 +340,16 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       
       if (error) throw error;
       
-      if (data.success) {
-        toast.success("Webhook Ao Receber configurado com sucesso.");
-      } else {
-        toast.error("Erro ao configurar webhook: " + (data.result?.message || "Verifique os logs"));
-      }
-      
+      setLastWebhookCall(data);
       setZapiResponse(data.result);
       
-      // Fetch integration logs and refresh instance
+      if (data.success && data.result?.value === true) {
+        toast.success("Webhook Ao Receber configurado com sucesso.");
+      } else {
+        const errorMsg = data.result?.message || (data.result?.value !== true ? "Z-API não retornou value: true" : "Verifique os logs");
+        toast.error("Falha na configuração: " + errorMsg);
+      }
+      
       await fetchIntegrationLogs();
       await fetchInstance();
     } catch (err: any) {
@@ -653,6 +656,72 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 </div>
               )}
             </div>
+
+            {lastWebhookCall && (
+              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold flex items-center gap-2 text-amber-400">
+                    <Activity size={16} />
+                    Resultado da Última Configuração de Webhook
+                  </h3>
+                  <Badge className={lastWebhookCall.success && lastWebhookCall.result?.value === true ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
+                    {lastWebhookCall.success && lastWebhookCall.result?.value === true ? "Sucesso" : "Falha"}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[9px] text-slate-500 uppercase font-bold">Endpoint Chamado</p>
+                    <p className="text-[10px] font-mono break-all bg-black/40 p-2 rounded border border-white/5">
+                      {lastWebhookCall.endpoint}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] text-slate-500 uppercase font-bold">Status HTTP</p>
+                    <p className={cn(
+                      "text-[10px] font-bold p-2 bg-black/40 rounded border border-white/5",
+                      lastWebhookCall.status >= 200 && lastWebhookCall.status < 300 ? "text-emerald-400" : "text-red-400"
+                    )}>
+                      {lastWebhookCall.status}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[9px] text-slate-500 uppercase font-bold">Headers (Mascarados)</p>
+                    <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono">
+                      {JSON.stringify(lastWebhookCall.headers, null, 2)}
+                    </pre>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] text-slate-500 uppercase font-bold">Body Enviado</p>
+                    <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono">
+                      {JSON.stringify(lastWebhookCall.requestBody, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[9px] text-slate-500 uppercase font-bold">Resposta Completa da Z-API</p>
+                  <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-40">
+                    {JSON.stringify(lastWebhookCall.result, null, 2)}
+                  </pre>
+                </div>
+
+                {!lastWebhookCall.success || lastWebhookCall.result?.value !== true ? (
+                  <div className="p-2 bg-red-500/10 border border-red-500/20 rounded text-[10px] text-red-400 flex items-center gap-2">
+                    <AlertCircle size={14} />
+                    <span>A Z-API não confirmou a configuração (value: true). Verifique se o Client-Token e Instance ID estão corretos.</span>
+                  </div>
+                ) : (
+                  <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 flex items-center gap-2">
+                    <CheckCircle2 size={14} />
+                    <span>Configuração confirmada pela Z-API. O webhook agora deve estar ativo.</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-3">
               <h3 className="text-sm font-bold flex items-center gap-2">
