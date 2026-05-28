@@ -65,6 +65,7 @@ function DashboardComponent() {
   const navigate = useNavigate();
   const { plan, usage, limits, trialDaysRemaining, isTrial, isExpired, subscription, refresh: refreshLimits } = usePlanLimits();
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status || '');
+  const hasActiveSubscription = isSubscribed || subscription?.status === 'active';
   const loading = authLoading || tenantLoading;
   const [notifications, setNotifications] = useState<any[]>([]);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
