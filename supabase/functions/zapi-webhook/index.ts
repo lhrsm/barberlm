@@ -99,14 +99,20 @@ serve(async (req) => {
     if (type === "ReceivedMessage") {
       const normalizedPhone = normalizePhone(phone);
       const option = extractSelectedOption(body);
-      const messageText = body.text?.message || body.message?.text || body.text || body.body || "";
+      const messageText = String(body.text?.message || body.message?.text || body.text || body.body || "").trim();
+      
+      // If the message is just a number, prioritize it as the option.id
+      let identifiedOptionId = option.id;
+      if (!identifiedOptionId && /^\d+$/.test(messageText)) {
+        identifiedOptionId = messageText;
+      }
 
-      console.log(`[Z-API Webhook] Payload Recebido da Z-API:`, JSON.stringify(body));
+      console.log(`[Z-API Webhook] Payload Recebido:`, JSON.stringify(body));
       console.log(`[Z-API Webhook] Phone: ${normalizedPhone}`);
-      console.log(`[Z-API Webhook] Option ID Identificado: ${option.id}`);
-      console.log(`[Z-API Webhook] Option Text: ${option.text}`);
+      console.log(`[Z-API Webhook] Message Text: ${messageText}`);
+      console.log(`[Z-API Webhook] Option ID: ${identifiedOptionId}`);
 
-      // 1. Find the tenant_id by instanceId or fallback to URL
+      // 1. Find the tenant_id by instanceId
       let tenantId = "";
       const { data: instance } = await supabase
         .from("whatsapp_instances")
@@ -118,14 +124,11 @@ serve(async (req) => {
         tenantId = instance.tenant_id;
       } else if (tenantIdFromUrl && tenantIdFromUrl.length > 20) {
         tenantId = tenantIdFromUrl;
-        console.log(`[Z-API Webhook] Instance not found for ${instanceId}, using Tenant ID from URL: ${tenantId}`);
       }
 
       if (!tenantId) {
-        console.error(`[Z-API Webhook] No tenant/instance identified for instanceId: ${instanceId} or URL path: ${tenantIdFromUrl}`);
         return new Response(JSON.stringify({ success: false, error: "Instance not identified" }), { status: 200, headers: corsHeaders });
       }
-      console.log(`[Z-API Webhook] Tenant ID Identificado: ${tenantId}`);
 
       // 2. Find active conversation
       const { data: conversation } = await supabase
@@ -138,10 +141,11 @@ serve(async (req) => {
         .limit(1)
         .maybeSingle();
 
+      let actionExecuted = "none";
+      let nextState = "none";
+
       if (conversation) {
-        console.log(`[Z-API Webhook] Conversa Encontrada:`, JSON.stringify(conversation));
-        console.log(`[Z-API Webhook] Current State Atual: ${conversation.current_state}`);
-        console.log('SELECTED OPTION', option);
+        console.log(`[Z-API Webhook] Conversa Encontrada: ${conversation.id}, State: ${conversation.current_state}`);
 
         // 3. Process via Automation Engine
         const result = await handleAutomationWhatsappResponse(supabase, {
@@ -150,16 +154,16 @@ serve(async (req) => {
           customer_id: conversation.customer_id,
           automation_type: conversation.automation_type,
           current_state: conversation.current_state,
-          option_id: option.id || option.text,
+          option_id: identifiedOptionId,
           payload: body
         });
 
         if (result) {
-          console.log(`[Z-API Webhook] Próxima Ação Executada: ${result.action_executed}`);
-          console.log(`[Z-API Webhook] Próximo State: ${result.next_state}`);
+          actionExecuted = result.action_executed;
+          nextState = result.next_state;
           const connection = await getWhatsAppSettings(supabase, tenantId);
           if (connection && result.message_to_send) {
-            const sendResult = await sendMessage(connection, normalizedPhone, result.message_to_send, result.menu_to_send);
+            const sendResult = await sendMessage(connection, normalizedPhone, result.message_to_send);
             
             // Log outgoing message
             await supabase.from("automation_logs").insert({
@@ -170,8 +174,6 @@ serve(async (req) => {
               phone: normalizedPhone,
               direction: 'outgoing',
               processed_template: result.message_to_send,
-              option_id: result.menu_to_send ? 'menu_sent' : null,
-              payload: result.menu_to_send,
               status: sendResult.success ? 'success' : 'error',
               error_message: sendResult.error,
               sent_at: new Date().toISOString()
@@ -179,7 +181,7 @@ serve(async (req) => {
           }
         }
 
-        // Log incoming response
+        // Log incoming response with detailed debug info
         await supabase.from("automation_logs").insert({
           tenant_id: tenantId,
           conversation_id: conversation.id,
@@ -187,13 +189,32 @@ serve(async (req) => {
           phone: normalizedPhone,
           direction: 'incoming',
           processed_template: messageText,
-          option_id: option.id,
+          option_id: identifiedOptionId,
           payload: body,
           status: 'success',
+          metadata: {
+            normalized_phone: normalizedPhone,
+            identified_option: identifiedOptionId,
+            current_state: conversation.current_state,
+            next_state: nextState,
+            action_executed: actionExecuted,
+            raw_payload: body
+          },
           received_at: new Date().toISOString()
         });
       } else {
-        console.log(`[Z-API Webhook] Nenhuma Conversa Ativa Encontrada para ${normalizedPhone} no tenant ${tenantId}`);
+        console.log(`[Z-API Webhook] Nenhuma Conversa Ativa para ${normalizedPhone}`);
+        // Log unknown message
+        await supabase.from("automation_logs").insert({
+          tenant_id: tenantId,
+          phone: normalizedPhone,
+          direction: 'incoming',
+          processed_template: messageText,
+          payload: body,
+          status: 'ignored',
+          error_message: 'No active conversation found',
+          received_at: new Date().toISOString()
+        });
       }
     }
 
