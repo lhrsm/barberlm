@@ -3494,12 +3494,13 @@ function ShopPageComponent() {
       </Dialog>
       {/* Painel Debug solicitado pelo usuário */}
       <div className="fixed bottom-4 left-4 z-[9999] p-4 bg-black/90 text-white text-[10px] font-mono rounded-2xl border border-white/20 shadow-2xl max-w-xs pointer-events-none opacity-40 hover:opacity-100 transition-opacity">
-        <p className="font-bold border-b border-white/20 pb-1 mb-2 text-primary uppercase tracking-tighter">Access Debug (v10)</p>
+        <p className="font-bold border-b border-white/20 pb-1 mb-2 text-primary uppercase tracking-tighter">Access Debug (v11)</p>
         <div className="space-y-1">
           <p><span className="text-zinc-500">slug:</span> {slug}</p>
           <p><span className="text-zinc-500">tenant_id:</span> {shop?.id}</p>
           <p><span className="text-zinc-500">sub_status:</span> {blockReason?.includes('Liberado') ? 'active' : 'inactive'}</p>
           <p><span className="text-zinc-500">plan_id:</span> {shop?.plan}</p>
+          <p><span className="text-zinc-500">eff_plan:</span> {shop?.effective_plan}</p>
           <p><span className="text-zinc-500">trial_end:</span> {shop?.trial_end}</p>
           <p><span className="text-zinc-500">can_access:</span> <span className={canAccess ? "text-green-400" : "text-red-400"}>{canAccess ? 'TRUE' : 'FALSE'}</span></p>
           <p className="mt-2 pt-2 border-t border-white/10 text-[9px] italic text-zinc-400">{blockReason}</p>
