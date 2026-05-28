@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.zapi-catch-all]
 verify_jwt = false
+
+[functions.zapi-receive-json]
+verify_jwt = false
