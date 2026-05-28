@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { format, parse } from "https://esm.sh/date-fns@2.30.0";
 import { ptBR } from "https://esm.sh/date-fns@2.30.0/locale";
-import { formatBrazilDate, formatBrazilTime } from "./utils.ts";
+import { formatBrazilDate, formatBrazilTime, normalizePhone } from "./utils.ts";
 import { sendMessage, getWhatsAppSettings } from "./whatsapp-settings.ts";
 
 export const AUTOMATION_STATES = {
@@ -374,6 +374,7 @@ async function processConfirmationDispatch(
     const customer = firstAppt.customers;
     
     if (!customer?.phone) continue;
+    const normalizedPhone = normalizePhone(customer.phone);
 
     const uniqueKey = `conf:${tenant.id}:${groupKey}`;
     
@@ -442,7 +443,7 @@ async function processConfirmationDispatch(
       // First, ensure any old active conversations for this phone/tenant are closed
       await supabase.from("automation_conversations")
         .update({ status: 'expired' })
-        .eq("phone", customer.phone)
+        .eq("phone_normalized", normalizedPhone)
         .eq("tenant_id", tenant.id)
         .eq("status", "active");
 
@@ -450,6 +451,7 @@ async function processConfirmationDispatch(
         tenant_id: tenant.id,
         customer_id: customer.id,
         phone: customer.phone,
+        phone_normalized: normalizedPhone,
         automation_type: AUTOMATION_TYPES.CONFIRMATION,
         automation_id: automation.id,
         appointment_ids: group.map(a => a.id),

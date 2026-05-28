@@ -285,6 +285,7 @@ export type Database = {
           id: string
           last_option_id: string | null
           phone: string
+          phone_normalized: string | null
           remaining_appointment_ids: string[] | null
           selected_appointment_id: string | null
           status: string
@@ -302,6 +303,7 @@ export type Database = {
           id?: string
           last_option_id?: string | null
           phone: string
+          phone_normalized?: string | null
           remaining_appointment_ids?: string[] | null
           selected_appointment_id?: string | null
           status?: string
@@ -319,6 +321,7 @@ export type Database = {
           id?: string
           last_option_id?: string | null
           phone?: string
+          phone_normalized?: string | null
           remaining_appointment_ids?: string[] | null
           selected_appointment_id?: string | null
           status?: string
@@ -2411,6 +2414,66 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zapi_webhook_debug: {
+        Row: {
+          headers_raw: Json | null
+          id: string
+          matched_conversation_id: string | null
+          message_text: string | null
+          option_id: string | null
+          payload_raw: Json | null
+          phone_normalized: string | null
+          phone_raw: string | null
+          processed: boolean | null
+          processing_error: string | null
+          received_at: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          headers_raw?: Json | null
+          id?: string
+          matched_conversation_id?: string | null
+          message_text?: string | null
+          option_id?: string | null
+          payload_raw?: Json | null
+          phone_normalized?: string | null
+          phone_raw?: string | null
+          processed?: boolean | null
+          processing_error?: string | null
+          received_at?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          headers_raw?: Json | null
+          id?: string
+          matched_conversation_id?: string | null
+          message_text?: string | null
+          option_id?: string | null
+          payload_raw?: Json | null
+          phone_normalized?: string | null
+          phone_raw?: string | null
+          processed?: boolean | null
+          processing_error?: string | null
+          received_at?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zapi_webhook_debug_matched_conversation_id_fkey"
+            columns: ["matched_conversation_id"]
+            isOneToOne: false
+            referencedRelation: "automation_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zapi_webhook_debug_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
             referencedColumns: ["id"]
           },
         ]

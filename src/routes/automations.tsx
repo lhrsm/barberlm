@@ -92,6 +92,9 @@ function AutomationsComponent() {
   const [isManualSummaryOpen, setIsManualSummaryOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [isDebugDialogOpen, setIsDebugDialogOpen] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<any[]>([]);
+  const [activeConversations, setActiveConversations] = useState<any[]>([]);
+  const [isTestWebhookLoading, setIsTestWebhookLoading] = useState(false);
 
 
   const fetchServerInfo = async () => {
@@ -226,6 +229,7 @@ function AutomationsComponent() {
       fetchAutomations();
       fetchLogs();
       fetchCronStatus();
+      fetchDebugData();
       
       // Real-time updates for automation status
       const statusChannel = supabase
@@ -253,9 +257,16 @@ function AutomationsComponent() {
         })
         .subscribe();
         
+      const debugChannel = supabase
+        .channel('debug_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'zapi_webhook_debug' }, () => fetchDebugData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_conversations' }, () => fetchDebugData())
+        .subscribe();
+        
       return () => {
         supabase.removeChannel(statusChannel);
         supabase.removeChannel(logsChannel);
+        supabase.removeChannel(debugChannel);
       };
     }
   }, [tenantId]);
@@ -319,6 +330,76 @@ function AutomationsComponent() {
       console.error("Error fetching status:", err);
     }
   }
+
+  async function fetchDebugData() {
+    if (!tenantId) return;
+    
+    const { data: dLogs } = await supabase
+      .from("zapi_webhook_debug")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .order("received_at", { ascending: false })
+      .limit(10);
+      
+    if (dLogs) setDebugLogs(dLogs);
+
+    const { data: convs } = await supabase
+      .from("automation_conversations")
+      .select("*, customers(name)")
+      .eq("tenant_id", tenantId)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(10);
+      
+    if (convs) setActiveConversations(convs);
+  }
+
+  const handleTestWebhookManually = async (phone: string, text: string = "1") => {
+    if (!tenantId) return;
+    setIsTestWebhookLoading(true);
+    
+    try {
+      const { data: instance } = await supabase
+        .from("whatsapp_instances")
+        .select("instance_id")
+        .eq("tenant_id", tenantId)
+        .eq("status", "connected")
+        .maybeSingle();
+
+      if (!instance) {
+        toast.error("Nenhuma instância Z-API conectada encontrada para teste.");
+        return;
+      }
+
+      const payload = {
+        type: "ReceivedMessage",
+        instanceId: instance.instance_id,
+        phone: phone,
+        text: { message: text },
+        message: { text: text }
+      };
+
+      const { data, error } = await supabase.functions.invoke('zapi-webhook', {
+        body: payload
+      });
+
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success("Simulação de webhook enviada com sucesso!");
+        fetchDebugData();
+        fetchLogs();
+      } else {
+        toast.error("Erro na simulação: " + (data.error || "Erro desconhecido"));
+      }
+    } catch (err: any) {
+      console.error("Test Webhook Error:", err);
+      toast.error(err.message || "Erro ao processar simulação de webhook");
+    } finally {
+      setIsTestWebhookLoading(false);
+    }
+  };
+
 
   async function handleToggleAutomation(type: string, currentEnabled: boolean) {
     if (!tenantId) return;
@@ -558,9 +639,10 @@ function AutomationsComponent() {
         </div>
 
         <Tabs defaultValue="automations" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-[800px]">
+          <TabsList className="grid w-full grid-cols-5 max-w-[1000px]">
             <TabsTrigger value="automations" className="gap-2"><Zap size={16} /> Automações</TabsTrigger>
             <TabsTrigger value="logs" className="gap-2"><History size={16} /> Logs de Envio</TabsTrigger>
+            <TabsTrigger value="debug" className="gap-2 text-red-500 font-bold"><AlertCircle size={16} /> Debug Webhook</TabsTrigger>
             <TabsTrigger value="settings" className="gap-2"><Settings2 size={16} /> Configurações</TabsTrigger>
             <TabsTrigger value="integrations" className="gap-2"><MessageSquare size={16} /> Integrações</TabsTrigger>
           </TabsList>
@@ -850,6 +932,156 @@ function AutomationsComponent() {
                               </div>
                             </td>
                           </motion.tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="debug" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Zap className="text-primary" size={20} />
+                    Simular Webhook
+                  </CardTitle>
+                  <CardDescription>
+                    Envie um sinal de resposta manual para testar o fluxo.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Telefone do Cliente (com DDI)</Label>
+                    <Input id="debug-phone" placeholder="5511999999999" defaultValue="5511999999999" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Resposta (Texto ou Número)</Label>
+                    <Input id="debug-text" placeholder="1" defaultValue="1" />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="w-full gap-2" 
+                    onClick={() => {
+                      const phone = (document.getElementById('debug-phone') as HTMLInputElement).value;
+                      const text = (document.getElementById('debug-text') as HTMLInputElement).value;
+                      handleTestWebhookManually(phone, text);
+                    }}
+                    disabled={isTestWebhookLoading}
+                  >
+                    {isTestWebhookLoading ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
+                    Executar Teste Manual
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MessageSquare size={20} className="text-blue-500" />
+                    Conversas Ativas
+                  </CardTitle>
+                  <CardDescription>
+                    Sessões de automação aguardando resposta do cliente.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {activeConversations.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">Nenhuma conversa ativa no momento.</p>
+                    ) : (
+                      activeConversations.map(conv => (
+                        <div key={conv.id} className="p-3 bg-muted rounded-lg border text-xs space-y-1">
+                          <div className="flex justify-between items-start">
+                            <span className="font-bold">{conv.customers?.name || conv.phone}</span>
+                            <Badge variant="outline" className="text-[9px] uppercase">{conv.current_state}</Badge>
+                          </div>
+                          <p className="text-muted-foreground">ID: {conv.id}</p>
+                          <p className="text-muted-foreground">Expira em: {new Date(conv.expires_at).toLocaleString('pt-BR')}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Webhook Debug (Z-API)</CardTitle>
+                  <CardDescription>
+                    Últimos 10 payloads recebidos pela Z-API.
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={fetchDebugData}>
+                  <RefreshCw size={14} className="mr-2" /> Atualizar
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Data</th>
+                        <th className="px-3 py-2 text-left">Telefone</th>
+                        <th className="px-3 py-2 text-left">Mensagem</th>
+                        <th className="px-3 py-2 text-left">Tenant</th>
+                        <th className="px-3 py-2 text-left">Conversa</th>
+                        <th className="px-3 py-2 text-right">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {debugLogs.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">Nenhum log de debug encontrado.</td>
+                        </tr>
+                      ) : (
+                        debugLogs.map(log => (
+                          <tr key={log.id} className="border-t hover:bg-muted/30">
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              {new Date(log.received_at).toLocaleTimeString('pt-BR')}
+                            </td>
+                            <td className="px-3 py-2">
+                              {log.phone_raw || '-'}
+                            </td>
+                            <td className="px-3 py-2 max-w-[150px] truncate">
+                              {log.message_text || log.payload_raw?.text?.message || '-'}
+                            </td>
+                            <td className="px-3 py-2">
+                              <Badge variant={log.tenant_id ? "default" : "destructive"} className="text-[9px]">
+                                {log.tenant_id ? 'Identificado' : 'Falha'}
+                              </Badge>
+                            </td>
+                            <td className="px-3 py-2">
+                              <Badge variant={log.matched_conversation_id ? "outline" : "secondary"} className="text-[9px]">
+                                {log.matched_conversation_id ? 'Encontrada' : 'Não'}
+                              </Badge>
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  setSelectedLog({
+                                    ...log,
+                                    metadata: {
+                                      raw_payload: log.payload_raw,
+                                      current_state: 'DEBUG_RAW'
+                                    }
+                                  });
+                                  setIsDebugDialogOpen(true);
+                                }}
+                              >
+                                <Settings2 size={12} />
+                              </Button>
+                            </td>
+                          </tr>
                         ))
                       )}
                     </tbody>

@@ -2,21 +2,13 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { getWhatsAppSettings, sendMessage } from "../_shared/whatsapp-settings.ts";
 import { handleAutomationWhatsappResponse, AUTOMATION_STATES } from "../_shared/automation-engine.ts";
+import { normalizePhone } from "../_shared/utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function normalizePhone(phone: string): string {
-  if (!phone) return "";
-  let digits = phone.replace(/\D/g, "");
-  // Remove "55" if it's there twice or something weird, but standard is CC+DDD+Number
-  if (digits.length === 10 || digits.length === 11) {
-    digits = "55" + digits;
-  }
-  return digits;
-}
 
 function extractSelectedOption(payload: any) {
   let text = "";
@@ -80,7 +72,22 @@ serve(async (req) => {
     const tenantIdFromUrl = pathParts[pathParts.length - 1]; // Fallback tenant ID from URL path
 
     const body = await req.json();
-    console.log("[Z-API Webhook] Payload:", JSON.stringify(body));
+    const headers = Object.fromEntries(req.headers.entries());
+    
+    // 0. INITIAL LOG (Save everything immediately)
+    const { data: debugLog, error: debugError } = await supabase
+      .from("zapi_webhook_debug")
+      .insert({
+        payload_raw: body,
+        headers_raw: headers,
+        received_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (debugError) {
+      console.error("[Z-API Webhook] Error creating initial debug log:", debugError);
+    }
 
     const { type, phone, instanceId } = body;
 
@@ -93,6 +100,13 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         })
         .eq("instance_id", instanceId);
+      
+      if (debugLog) {
+        await supabase.from("zapi_webhook_debug")
+          .update({ processed: true })
+          .eq("id", debugLog.id);
+      }
+
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -105,6 +119,18 @@ serve(async (req) => {
       let identifiedOptionId = option.id;
       if (!identifiedOptionId && /^\d+$/.test(messageText)) {
         identifiedOptionId = messageText;
+      }
+
+      // Update debug log with extracted info
+      if (debugLog) {
+        await supabase.from("zapi_webhook_debug")
+          .update({
+            phone_raw: phone,
+            phone_normalized: normalizedPhone,
+            message_text: messageText,
+            option_id: identifiedOptionId
+          })
+          .eq("id", debugLog.id);
       }
 
       console.log(`[Z-API Webhook] Payload Recebido:`, JSON.stringify(body));
@@ -126,7 +152,18 @@ serve(async (req) => {
         tenantId = tenantIdFromUrl;
       }
 
+      if (debugLog && tenantId) {
+        await supabase.from("zapi_webhook_debug")
+          .update({ tenant_id: tenantId })
+          .eq("id", debugLog.id);
+      }
+
       if (!tenantId) {
+        if (debugLog) {
+          await supabase.from("zapi_webhook_debug")
+            .update({ processing_error: "Tenant not identified" })
+            .eq("id", debugLog.id);
+        }
         return new Response(JSON.stringify({ success: false, error: "Instance not identified" }), { status: 200, headers: corsHeaders });
       }
 
@@ -140,6 +177,12 @@ serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      if (debugLog && conversation) {
+        await supabase.from("zapi_webhook_debug")
+          .update({ matched_conversation_id: conversation.id })
+          .eq("id", debugLog.id);
+      }
 
       let actionExecuted = "none";
       let nextState = "none";
