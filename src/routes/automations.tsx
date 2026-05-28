@@ -1100,6 +1100,37 @@ function AutomationsComponent() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurações de Automação</CardTitle>
+                <CardDescription>Gerencie o comportamento global das suas automações.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Confirmação Instantânea</Label>
+                    <p className="text-sm text-muted-foreground italic">Enviar mensagem de confirmação no momento que o agendamento é criado.</p>
+                  </div>
+                  <Switch checked={true} disabled />
+                </div>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Validação de Telefone</Label>
+                    <p className="text-sm text-muted-foreground italic">Normalizar e validar números antes de tentar enviar.</p>
+                  </div>
+                  <Switch checked={true} disabled />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="integrations">
+            <div className="grid gap-6">
+              {tenantId && <ZApiWhatsAppCard tenantId={tenantId} />}
+            </div>
+          </TabsContent>
         </Tabs>
 
         {/* A modal anterior foi removida em favor da nova modal de resumo manual que é mais completa */}
