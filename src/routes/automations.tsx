@@ -393,6 +393,40 @@ function AutomationsComponent() {
     } finally {
       setIsTestWebhookLoading(false);
     }
+  };
+
+  async function fetchCronStatus() {
+    if (!tenantId) return;
+    try {
+      const { data: cronData } = await supabase.rpc('get_cron_status');
+      if (cronData && cronData.length > 0) {
+        setCronStatus(cronData[0]);
+      }
+      
+      // Calculate real stats for this tenant from the DB
+      const [{ count: activeCount }, { data: logStats }] = await Promise.all([
+        supabase.from("automations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("enabled", true),
+        supabase.from("automation_logs").select("status").eq("tenant_id", tenantId)
+      ]);
+
+      const sent = logStats?.filter(l => l.status === 'success').length || 0;
+      const failed = logStats?.filter(l => l.status === 'error').length || 0;
+
+      // Also get the latest global status for the scheduler info
+      const { data: statusData } = await supabase
+        .from("automation_status")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+      
+      if (statusData) {
+        setAutomationStatus({
+          ...statusData,
+          total_processed: activeCount || 0,
+          messages_sent: sent,
+          messages_failed: failed
+        });
+      }
     } catch (err) {
       console.error("Error fetching status:", err);
     }
