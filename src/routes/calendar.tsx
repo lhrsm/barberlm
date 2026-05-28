@@ -282,8 +282,7 @@ function CalendarComponent() {
               onSuccess={() => fetchData()}
               trigger={
                 <Button 
-                  className="gap-2 bg-sky-500 text-white hover:bg-sky-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 rounded-xl h-11 px-6 shadow-md shadow-sky-200" 
-                  variant={canAddAppointment ? "default" : "secondary"}
+                  className="gap-2 bg-white text-black hover:bg-white/90 border border-input shadow-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 rounded-xl h-11 px-6" 
                   onClick={() => {
                     setModalInitialData({ editingId: undefined });
                     setIsDialogOpen(true);

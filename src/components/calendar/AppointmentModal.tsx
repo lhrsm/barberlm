@@ -576,7 +576,7 @@ export function AppointmentModal({
                   <Button 
                     onClick={handleNextStep} 
                     disabled={isLoading}
-                    className="rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-semibold shadow-sm"
+                    className="rounded-xl bg-primary hover:opacity-90 text-primary-foreground font-semibold shadow-sm transition-all duration-200"
                   >
                     {isLoading ? "Validando..." : "Próximo"}
                   </Button>
@@ -584,7 +584,7 @@ export function AppointmentModal({
                   <Button 
                     onClick={handleCreateAppointment} 
                     disabled={isLoading}
-                    className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow-sm"
+                    className="rounded-xl bg-primary hover:opacity-90 text-primary-foreground font-semibold shadow-sm transition-all duration-200"
                   >
                     {isLoading ? "Salvando..." : "Confirmar"}
                   </Button>
