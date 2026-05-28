@@ -25,6 +25,7 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const tenantId = body.tenantId;
+    const appointmentId = body.appointmentId;
     const forceMode = body.forceMode === true;
 
     // Update global status to executing
@@ -40,7 +41,7 @@ serve(async (req) => {
     }
 
     // Call Engine
-    const results = await processAutomationDispatches(supabase, { tenantId, forceMode });
+    const results = await processAutomationDispatches(supabase, { tenantId, appointmentId, forceMode });
 
     // Update status to idle
     if (globalStatusId) {
