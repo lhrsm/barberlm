@@ -33,7 +33,8 @@ import {
   Sparkles,
   Check,
   CheckCircle2,
-  Loader2
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import {
   Dialog,
@@ -53,76 +54,18 @@ export const Route = createFileRoute("/automations")({
 });
 
 const AUTOMATION_TYPES = [
-  {
-    id: "appointment_confirmation",
-    title: "Confirmação de Agendamento",
-    description: "Enviado assim que o cliente realiza um novo agendamento.",
-    icon: CalendarCheck,
-    color: "text-blue-500",
-    bg: "bg-blue-50",
-    trigger: "Novo Agendamento",
-    plan: "starter"
-  },
-  {
-    id: "appointment_reminder",
-    title: "Lembrete de Agendamento",
-    description: "Lembre o cliente do seu horário (24h ou 2h antes).",
-    icon: BellRing,
-    color: "text-amber-500",
-    bg: "bg-amber-50",
-    trigger: "Horário Próximo",
-    plan: "starter"
-  },
-  {
-    id: "rescheduling",
-    title: "Reagendamento",
-    description: "Notifica sobre mudanças de horário ou profissional.",
-    icon: Clock,
-    color: "text-purple-500",
-    bg: "bg-purple-50",
-    trigger: "Alteração de Horário",
-    plan: "pro"
-  },
-  {
-    id: "cancellation",
-    title: "Cancelamento",
-    description: "Enviado quando um agendamento é cancelado.",
-    icon: Ban,
-    color: "text-red-500",
-    bg: "bg-red-50",
-    trigger: "Agendamento Cancelado",
-    plan: "pro"
-  },
-  {
-    id: "birthday",
-    title: "Mensagem de Aniversário",
-    description: "Parabenize e ofereça mimos aos seus clientes no dia especial.",
-    icon: Gift,
-    color: "text-pink-500",
-    bg: "bg-pink-50",
-    trigger: "Data de Nascimento",
-    plan: "pro"
-  },
-  {
-    id: "inactive_customer",
-    title: "Cliente Inativo",
-    description: "Recupere clientes que não aparecem há mais de 30 dias.",
-    icon: UserMinus,
-    color: "text-orange-500",
-    bg: "bg-orange-50",
-    trigger: "Inatividade (30 dias)",
-    plan: "pro"
-  },
-  {
-    id: "post_service",
-    title: "Pós-Atendimento",
-    description: "Solicite avaliações 1h após a conclusão do serviço.",
-    icon: Star,
-    color: "text-green-500",
-    bg: "bg-green-50",
-    trigger: "Serviço Concluído",
-    plan: "pro"
-  }
+  { id: "appointment_confirmation", title: "Confirmação de Agendamento", description: "Enviado assim que o cliente realiza um novo agendamento.", icon: CalendarCheck, color: "text-blue-500", bg: "bg-blue-50", trigger: "Novo Agendamento", plan: "starter" },
+  { id: "appointment_reminder", title: "Lembrete de Agendamento", description: "Lembre o cliente do seu horário.", icon: BellRing, color: "text-amber-500", bg: "bg-amber-50", trigger: "Horário Próximo", plan: "starter" },
+  { id: "rescheduling", title: "Reagendamento", description: "Notifica sobre mudanças de horário ou profissional.", icon: Clock, color: "text-purple-500", bg: "bg-purple-50", trigger: "Alteração de Horário", plan: "pro" },
+  { id: "cancellation", title: "Cancelamento", description: "Enviado quando um agendamento é cancelado.", icon: Ban, color: "text-red-500", bg: "bg-red-50", trigger: "Agendamento Cancelado", plan: "pro" },
+  { id: "birthday", title: "Mensagem de Aniversário", description: "Parabenize seus clientes no dia especial.", icon: Gift, color: "text-pink-500", bg: "bg-pink-50", trigger: "Data de Nascimento", plan: "pro" },
+  { id: "inactive_customer", title: "Cliente Inativo", description: "Recupere clientes inativos há 30 dias.", icon: UserMinus, color: "text-orange-500", bg: "bg-orange-50", trigger: "Inatividade", plan: "pro" },
+  { id: "post_service", title: "Pós-Atendimento", description: "Solicite avaliações após o serviço.", icon: Star, color: "text-green-500", bg: "bg-green-50", trigger: "Serviço Concluído", plan: "pro" },
+  { id: "professional_confirmation", title: "Confirmação p/ Profissional", description: "Notifique o barbeiro sobre novos atendimentos.", icon: CalendarCheck, color: "text-cyan-500", bg: "bg-cyan-50", trigger: "Agendamento Confirmado", plan: "pro" },
+  { id: "service_rating", title: "Avaliação de Atendimento", description: "Solicite feedback detalhado.", icon: Star, color: "text-yellow-500", bg: "bg-yellow-50", trigger: "Após serviço", plan: "elite" },
+  { id: "manual_promotion", title: "Promoções Manuais", description: "Envie ofertas exclusivas.", icon: Zap, color: "text-indigo-500", bg: "bg-indigo-50", trigger: "Manual", plan: "elite" },
+  { id: "cancellation_recovery", title: "Recuperação de Cancelamento", description: "Tente recuperar clientes que cancelaram.", icon: RefreshCw, color: "text-rose-500", bg: "bg-rose-50", trigger: "Cancelamento", plan: "elite" },
+  { id: "day_reminder", title: "Lembrete do Dia", description: "Aviso matinal com agenda do dia.", icon: BellRing, color: "text-teal-500", bg: "bg-teal-50", trigger: "Início do dia", plan: "elite" }
 ];
 
 function AutomationsComponent() {
@@ -538,68 +481,42 @@ function AutomationsComponent() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className={cn(
-            "border-2 transition-all duration-300",
-            automationStatus?.status === 'executing' ? "border-amber-500 bg-amber-50/50" :
-            automationStatus?.status === 'error' ? "border-red-500 bg-red-50/50" :
-            automationStatus?.status === 'active' ? "border-emerald-500 bg-emerald-50/50" :
-            "border-muted bg-muted/30"
-          )}>
-            <CardContent className="p-4 flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
-                  <Zap size={16} className={cn(
-                    automationStatus?.status === 'executing' ? "text-amber-500 animate-pulse" :
-                    automationStatus?.status === 'error' ? "text-red-500" :
-                    automationStatus?.status === 'active' ? "text-emerald-500" :
-                    "text-muted-foreground"
-                  )} />
-                  Scheduler: {automationStatus?.status || 'Inativo'}
+          <Card className="border-2 border-emerald-500 bg-emerald-50/50">
+            <CardContent className="p-4 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-emerald-600">
+                <div className="flex items-center gap-2">
+                  <Zap size={14} className="animate-pulse" />
+                  Scheduler Active
                 </div>
-                <Badge variant={
-                  automationStatus?.status === 'active' ? "default" :
-                  automationStatus?.status === 'executing' ? "secondary" :
-                  "destructive"
-                } className="h-5">
-                  {automationStatus?.status === 'active' ? 'Funcionando' : 
-                   automationStatus?.status === 'executing' ? 'Executando' : 
-                   automationStatus?.status === 'error' ? 'Erro' : 'Offline'}
-                </Badge>
+                <Badge className="bg-emerald-500">Executando</Badge>
               </div>
-              
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Última execução:</span>
-                  <span className="font-semibold">{automationStatus?.last_run_at ? new Date(automationStatus.last_run_at).toLocaleTimeString('pt-BR') : '--:--'}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Próxima em:</span>
-                  <span className="font-mono font-bold text-primary">{nextRunIn}</span>
-                </div>
+              <div className="flex justify-between items-baseline mt-2">
+                <span className="text-muted-foreground text-[10px] uppercase">Próxima em:</span>
+                <span className="text-xl font-mono font-bold text-primary">{nextRunIn}</span>
               </div>
-              
-              {automationStatus?.last_error && (
-                <div className="text-[10px] text-red-600 bg-red-100/50 p-2 rounded border border-red-200 truncate" title={automationStatus.last_error}>
-                  {automationStatus.last_error}
-                </div>
-              )}
+              <div className="text-[10px] text-muted-foreground">
+                Última: {automationStatus?.last_run ? new Date(automationStatus.last_run).toLocaleTimeString('pt-BR') : '--:--'}
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-muted/30 border-dashed">
+          <Card className="bg-muted/30 border-muted">
             <CardContent className="p-4 flex flex-col justify-center h-full">
               <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Processamento</div>
-              <div className="text-2xl font-bold flex items-baseline gap-2">
-                {automationStatus?.total_processed || 0}
-                <span className="text-xs font-normal text-muted-foreground uppercase">Automações Ativas</span>
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                Na última execução do sistema
+              <div className="flex justify-between items-end">
+                <div>
+                  <div className="text-2xl font-bold">{automations.filter(a => a.enabled).length}</div>
+                  <div className="text-[10px] uppercase text-emerald-600 font-bold">Ativas</div>
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-muted-foreground">{automations.filter(a => !a.enabled).length}</div>
+                  <div className="text-[10px] uppercase text-muted-foreground font-bold text-right">Inativas</div>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-muted/30 border-dashed">
+          <Card className="bg-muted/30 border-muted">
             <CardContent className="p-4 flex flex-col justify-center h-full">
               <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Envios (Z-API)</div>
               <div className="flex gap-4">
@@ -619,38 +536,34 @@ function AutomationsComponent() {
             </CardContent>
           </Card>
 
-          <Card className="bg-muted/30 border-dashed">
+          <Card className="bg-muted/30 border-muted">
             <CardContent className="p-4 flex flex-col justify-center h-full">
               <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Horário do Servidor</div>
-              <div className="text-xl font-bold flex items-center gap-2">
-                <Clock size={18} className="text-primary" />
+              <div className="text-lg font-bold flex items-center gap-2">
+                <Clock size={16} className="text-primary" />
                 {(() => {
-                  if (!serverInfo) return "--:--:--";
-                  const elapsed = Date.now() - serverInfo.fetch_time;
+                  if (!serverInfo) return "--:--";
+                  const elapsed = Date.now() - (serverInfo.fetch_time || 0);
                   const currentServerTime = new Date(new Date(serverInfo.server_time).getTime() + elapsed);
                   return currentServerTime.toLocaleTimeString('pt-BR');
                 })()}
               </div>
-              <div className="text-[10px] text-muted-foreground uppercase mt-1">
-                {serverInfo?.timezone || 'America/Bahia'} (UTC-3)
+              <div className="text-[10px] text-muted-foreground font-bold mt-1">
+                {serverInfo?.timezone || 'America/Bahia'}
               </div>
             </CardContent>
           </Card>
-
         </div>
 
-
-        <Tabs defaultValue="all" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
-            <TabsTrigger value="all" className="gap-2">
-              <Zap size={16} /> Automações
-            </TabsTrigger>
-            <TabsTrigger value="logs" className="gap-2">
-              <History size={16} /> Logs de Envio
-            </TabsTrigger>
+        <Tabs defaultValue="automations" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 max-w-[800px]">
+            <TabsTrigger value="automations" className="gap-2"><Zap size={16} /> Automações</TabsTrigger>
+            <TabsTrigger value="logs" className="gap-2"><History size={16} /> Logs de Envio</TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2"><Settings2 size={16} /> Configurações</TabsTrigger>
+            <TabsTrigger value="integrations" className="gap-2"><MessageSquare size={16} /> Integrações</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="space-y-6">
+          <TabsContent value="automations" className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {AUTOMATION_TYPES.map((item, index) => {
                 const data = automations.find(a => a.type === item.id);
