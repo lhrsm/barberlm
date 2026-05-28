@@ -846,7 +846,80 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </TabsContent>
 
           <TabsContent value="diagnostico" className="pt-4 space-y-4">
+            {/* Nova Seção: Teste de URL Pública Exclusiva */}
+            <div className="bg-emerald-900/20 p-4 rounded-xl border border-emerald-500/20 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold flex items-center gap-2 text-emerald-400">
+                    <ShieldCheck size={16} />
+                    Validação de URL Pública (zapi-receive-json)
+                  </h3>
+                  <p className="text-[10px] text-emerald-300/70">
+                    URL exclusiva sem autenticação para testes de entrega do suporte Z-API.
+                  </p>
+                </div>
+                <Button 
+                  onClick={configureNewZApiUrl} 
+                  disabled={isConfiguringNew || !instance}
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-[10px] h-8"
+                >
+                  {isConfiguringNew ? <Loader2 className="animate-spin mr-1" size={12} /> : <Zap className="mr-1" size={12} />}
+                  Configurar nova URL na Z-API
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[9px] text-emerald-500 uppercase font-bold tracking-wider">Nova URL para o Suporte</Label>
+                <div className="bg-black/40 p-2 rounded font-mono text-[10px] break-all border border-emerald-500/20 flex justify-between items-center group">
+                  <span className="text-emerald-300">
+                    {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-receive-json`}
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 opacity-60 group-hover:opacity-100 transition-opacity"
+                    onClick={() => {
+                      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-receive-json`;
+                      navigator.clipboard.writeText(url);
+                      toast.success("URL copiada!");
+                    }}
+                  >
+                    <Copy size={12} />
+                  </Button>
+                </div>
+              </div>
+
+              {lastNewWebhookResult && (
+                <div className="bg-black/40 p-3 rounded-lg border border-emerald-500/10 space-y-2">
+                  <div className="flex justify-between items-center border-b border-white/5 pb-1">
+                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Status da Configuração</span>
+                    <Badge className={lastNewWebhookResult.success ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
+                      {lastNewWebhookResult.success ? "SUCESSO" : "FALHA"}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-[9px]">
+                    <div className="bg-black/20 p-2 rounded border border-white/5">
+                      <p className="text-slate-500 uppercase font-bold mb-1">Status HTTP</p>
+                      <p className="font-bold">{lastNewWebhookResult.status}</p>
+                    </div>
+                    <div className="bg-black/20 p-2 rounded border border-white/5">
+                      <p className="text-slate-500 uppercase font-bold mb-1">Resposta value</p>
+                      <p className="font-bold text-emerald-400">{String(lastNewWebhookResult.result?.value)}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-slate-500 uppercase text-[9px] font-bold">Resposta Completa Z-API</p>
+                    <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-24">
+                      {JSON.stringify(lastNewWebhookResult.result, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="bg-slate-900/50 p-4 rounded-xl border border-white/10 space-y-4">
+
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   <Activity size={16} className="text-blue-400" />
