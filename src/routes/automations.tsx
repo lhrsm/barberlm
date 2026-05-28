@@ -409,13 +409,12 @@ function AutomationsComponent() {
     }
   };
 
-  const handleDirectPostTest = async () => {
+  const handleDirectPostTest = async (mode: 'browser' | 'server' = 'browser') => {
     if (!tenantId) return;
     setIsDirectPosting(true);
     setDirectPostResult(null);
     
     try {
-      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`;
       const payload = {
         phone: "5571999999999",
         fromMe: false,
@@ -423,41 +422,67 @@ function AutomationsComponent() {
           message: "1"
         },
         type: "ReceivedCallback",
-        source: "direct_post_test"
+        source: mode === 'browser' ? "direct_post_test" : "server_test"
       };
 
-      console.log("Testing POST to:", functionUrl);
-      
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-test-post': 'true'
-        },
-        body: JSON.stringify(payload)
-      });
+      if (mode === 'browser') {
+        const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`;
+        console.log("Testing Browser POST to:", functionUrl);
+        
+        const response = await fetch(functionUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-test-post': 'true'
+          },
+          body: JSON.stringify(payload)
+        });
 
-      const data = await response.json();
-      
-      setDirectPostResult({
-        status: response.status,
-        statusText: response.statusText,
-        data: data
-      });
+        const data = await response.json();
+        
+        setDirectPostResult({
+          mode: 'browser (CORS)',
+          status: response.status,
+          statusText: response.statusText,
+          data: data
+        });
 
-      if (response.ok) {
-        toast.success("POST direto realizado com sucesso!");
-        fetchDebugData();
+        if (response.ok && data.ok) {
+          toast.success("POST direto via Browser realizado com sucesso!");
+          fetchDebugData();
+        } else {
+          toast.error(`Erro no POST Browser: ${data.error || response.statusText}`);
+        }
       } else {
-        toast.error(`Erro no POST: ${response.status} ${response.statusText}`);
+        // Server-side test using invoke
+        console.log("Testing Server-side POST via invoke");
+        const { data, error } = await supabase.functions.invoke('zapi-webhook', {
+          body: { ...payload, source: "server_test" }
+        });
+
+        if (error) throw error;
+
+        setDirectPostResult({
+          mode: 'server (invoke)',
+          status: 200,
+          data: data
+        });
+
+        if (data.ok) {
+          toast.success("POST via Servidor realizado com sucesso!");
+          fetchDebugData();
+        } else {
+          toast.error(`Erro no POST Servidor: ${data.error || "Erro desconhecido"}`);
+        }
       }
     } catch (err: any) {
-      console.error("Direct POST Error:", err);
+      console.error(`Direct POST (${mode}) Error:`, err);
       setDirectPostResult({
+        mode: mode,
         error: err.message || "Erro de conexão",
         stack: err.stack
       });
-      toast.error("Falha na conexão com a Edge Function");
+      toast.error(`Falha na conexão: ${err.message}`);
     } finally {
       setIsDirectPosting(false);
     }
@@ -1021,64 +1046,72 @@ function AutomationsComponent() {
                   <div className="space-y-2">
                     <Label>Telefone do Cliente (com DDI)</Label>
                     <Input id="debug-phone" placeholder="5511999999999" defaultValue="5511999999999" />
-            </div>
+                  </div>
 
-            <Card className="border-blue-500/20 bg-blue-500/5">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <RefreshCw className="text-blue-500" size={20} />
-                  Diagnóstico de Conectividade (POST Direto)
-                </CardTitle>
-                <CardDescription>
-                  Este teste faz um POST real do seu navegador para a Edge Function pública, sem passar pela biblioteca do Supabase, simulando exatamente o que a Z-API faz.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-black/80 p-4 rounded-lg font-mono text-[10px] text-blue-400 overflow-x-auto">
-                  <p>POST {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`}</p>
-                  <p>Content-Type: application/json</p>
-                  <pre className="mt-2 text-white">
+                  <Card className="border-blue-500/20 bg-blue-500/5">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <RefreshCw className="text-blue-500" size={20} />
+                        Diagnóstico de Conectividade (POST Direto)
+                      </CardTitle>
+                      <CardDescription>
+                        Simule o comportamento real da Z-API via Browser ou Servidor.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="bg-black/80 p-4 rounded-lg font-mono text-[10px] text-blue-400 overflow-x-auto">
+                        <p>POST {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`}</p>
+                        <p>Content-Type: application/json</p>
+                        <pre className="mt-2 text-white">
 {JSON.stringify({
   "phone": "5571999999999",
   "fromMe": false,
   "text": { "message": "1" },
   "type": "ReceivedCallback"
 }, null, 2)}
-                  </pre>
-                </div>
+                        </pre>
+                      </div>
 
-                {directPostResult && (
-                  <div className={cn(
-                    "p-4 rounded-lg text-xs space-y-2 border",
-                    directPostResult.error ? "bg-red-50 border-red-200 text-red-800" : "bg-emerald-50 border-emerald-200 text-emerald-800"
-                  )}>
-                    <div className="font-bold flex items-center justify-between">
-                      <span>Resultado do Teste:</span>
-                      <Badge variant={directPostResult.status === 200 ? "default" : "destructive"}>
-                        HTTP {directPostResult.status || 'ERR'}
-                      </Badge>
-                    </div>
-                    <pre className="bg-white/50 p-2 rounded max-h-[150px] overflow-y-auto whitespace-pre-wrap">
-                      {JSON.stringify(directPostResult, null, 2)}
-                    </pre>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter className="flex flex-col gap-3">
-                <Button 
-                  variant="outline"
-                  className="w-full gap-2 border-blue-500 text-blue-600 hover:bg-blue-50" 
-                  onClick={handleDirectPostTest}
-                  disabled={isDirectPosting}
-                >
-                  {isDirectPosting ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-                  Testar POST direto no webhook
-                </Button>
-                <p className="text-[10px] text-muted-foreground text-center">
-                  Se este teste gerar um log abaixo com "Real" ou "POST Direto", mas o WhatsApp real não, o problema está na configuração da Z-API.
-                </p>
-              </CardFooter>
-            </Card>
+                      {directPostResult && (
+                        <div className={cn(
+                          "p-4 rounded-lg text-xs space-y-2 border",
+                          directPostResult.error ? "bg-red-50 border-red-200 text-red-800" : "bg-emerald-50 border-emerald-200 text-emerald-800"
+                        )}>
+                          <div className="font-bold flex items-center justify-between">
+                            <span>Resultado ({directPostResult.mode}):</span>
+                            <Badge variant={directPostResult.status === 200 ? "default" : "destructive"}>
+                              HTTP {directPostResult.status || 'ERR'}
+                            </Badge>
+                          </div>
+                          <pre className="bg-white/50 p-2 rounded max-h-[150px] overflow-y-auto whitespace-pre-wrap">
+                            {JSON.stringify(directPostResult.data || directPostResult, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </CardContent>
+                    <CardFooter className="flex flex-col gap-3">
+                      <div className="grid grid-cols-2 gap-2 w-full">
+                        <Button 
+                          variant="outline"
+                          className="gap-2 border-blue-500 text-blue-600 hover:bg-blue-50" 
+                          onClick={() => handleDirectPostTest('browser')}
+                          disabled={isDirectPosting}
+                        >
+                          {isDirectPosting ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                          Browser (CORS)
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          className="gap-2 border-purple-500 text-purple-600 hover:bg-purple-50" 
+                          onClick={() => handleDirectPostTest('server')}
+                          disabled={isDirectPosting}
+                        >
+                          {isDirectPosting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                          Servidor (Invoke)
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
 
                   <div className="space-y-2">
                     <Label>Resposta (Texto ou Número)</Label>
@@ -1096,7 +1129,7 @@ function AutomationsComponent() {
                     disabled={isTestWebhookLoading}
                   >
                     {isTestWebhookLoading ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
-                    Executar Teste Manual
+                    Executar Simulação Interna
                   </Button>
                 </CardFooter>
               </Card>
