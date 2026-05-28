@@ -31,23 +31,26 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export function NotificationsCenter() {
+  const { tenantId } = useTenant();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const instanceId = useId().replace(/:/g, ""); // Remove colons for channel name compatibility
   
-  
   const { data: notifications, isLoading } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notifications", tenantId],
     queryFn: async () => {
+      if (!tenantId) return [];
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
+        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(30);
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!tenantId
   });
 
   const unreadCount = notifications?.filter(n => !n.read).length || 0;
