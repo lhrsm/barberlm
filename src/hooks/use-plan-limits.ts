@@ -155,21 +155,23 @@ export function usePlanLimits() {
     ? Math.max(0, differenceInDays(new Date(trialEndsAt), new Date()))
     : 0;
 
-  // Plan logic:
-  // 1. If active/trialing/past_due subscription exists, it's NOT expired
-  // 2. Otherwise check trial days
-  const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
+  // Logic for detailed subscription status as requested by user
+  const subStatus = (subscription?.status || "").toLowerCase();
+  const profileStatus = (plan === 'free' ? 'trial' : 'active').toLowerCase(); // fallback
+
+  // Rule: exists active subscription if status is 'active', 'paid' or 'trialing'
+  // or if explicitly marked as active in profile (using common field names)
+  const hasActiveSubscription = 
+    ['active', 'paid', 'trialing', 'past_due'].includes(subStatus) || 
+    (plan !== 'free' && plan !== null);
+
+  const isTrialValid = trialEndsAt ? new Date(trialEndsAt) > new Date() : false;
+
+  // Final access rule: can access if trial is valid OR has active subscription
+  const canAccess = hasActiveSubscription || isTrialValid;
   
-  // Regras de liberação total:
-  // 1. Status da assinatura é 'active', 'trialing' ou 'past_due' (isSubscribed)
-  // 2. O plano não é free (significa que tem um plano selecionado/pago)
-  const hasActiveSubscription = isSubscribed || (plan !== 'free' && plan !== null);
-  
-  const isTrial = isSubscribed || (plan === 'free' && trialDaysRemaining > 0);
-  
-  // Bloqueio APENAS se não houver assinatura ativa E o plano for free E o trial acabou
-  // isExpired no hook define se a UI deve mostrar o bloqueio visual (TrialExpiredBlock).
-  const isExpired = !hasActiveSubscription && (plan === 'free' || !plan) && trialDaysRemaining <= 0;
+  // Bloqueio APENAS se canAccess for falso
+  const isExpired = !canAccess;
 
   useEffect(() => {
     if (!loading && tenantId) {
