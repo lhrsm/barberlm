@@ -173,6 +173,7 @@ export function usePlanLimits() {
 
   // Final access rule: can access if trial is valid OR has active subscription
   // O SaaS não possui plano free. Bloqueio somente se trial expirou E não há assinatura.
+  // REMOVI O BLOQUEIO DA ROTA PROFISSIONAL AQUI - ela deve ser controlada pela lógica de login do profissional
   const canAccess = hasActiveSubscription || isTrialValid;
   
   // Bloqueio APENAS se canAccess for falso
