@@ -2500,52 +2500,70 @@ export type Database = {
       }
       zapi_webhook_debug: {
         Row: {
+          content_type: string | null
           headers_raw: Json | null
           id: string
           integration_id: string | null
           matched_conversation_id: string | null
           message_text: string | null
+          method: string | null
           option_id: string | null
+          path_params: Json | null
           payload_raw: Json | null
           phone_normalized: string | null
           phone_raw: string | null
           processed: boolean | null
           processing_error: string | null
+          query_params: Json | null
+          raw_body: string | null
           received_at: string | null
           source: string | null
           tenant_id: string | null
+          url: string | null
         }
         Insert: {
+          content_type?: string | null
           headers_raw?: Json | null
           id?: string
           integration_id?: string | null
           matched_conversation_id?: string | null
           message_text?: string | null
+          method?: string | null
           option_id?: string | null
+          path_params?: Json | null
           payload_raw?: Json | null
           phone_normalized?: string | null
           phone_raw?: string | null
           processed?: boolean | null
           processing_error?: string | null
+          query_params?: Json | null
+          raw_body?: string | null
           received_at?: string | null
           source?: string | null
           tenant_id?: string | null
+          url?: string | null
         }
         Update: {
+          content_type?: string | null
           headers_raw?: Json | null
           id?: string
           integration_id?: string | null
           matched_conversation_id?: string | null
           message_text?: string | null
+          method?: string | null
           option_id?: string | null
+          path_params?: Json | null
           payload_raw?: Json | null
           phone_normalized?: string | null
           phone_raw?: string | null
           processed?: boolean | null
           processing_error?: string | null
+          query_params?: Json | null
+          raw_body?: string | null
           received_at?: string | null
           source?: string | null
           tenant_id?: string | null
+          url?: string | null
         }
         Relationships: [
           {
