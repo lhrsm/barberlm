@@ -188,7 +188,8 @@ export function AuthForm() {
               <Input
                 id="login-password"
                 type="password"
-                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black"
+                className="pl-10 h-11 border-gray-200 focus:border-[#D4AF37] focus:ring-[#D4AF37] text-black placeholder:text-black/60"
+                placeholder="Digite sua senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
