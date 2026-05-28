@@ -639,9 +639,10 @@ function AutomationsComponent() {
         </div>
 
         <Tabs defaultValue="automations" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-[800px]">
+          <TabsList className="grid w-full grid-cols-5 max-w-[1000px]">
             <TabsTrigger value="automations" className="gap-2"><Zap size={16} /> Automações</TabsTrigger>
             <TabsTrigger value="logs" className="gap-2"><History size={16} /> Logs de Envio</TabsTrigger>
+            <TabsTrigger value="debug" className="gap-2 text-red-500 font-bold"><AlertCircle size={16} /> Debug Webhook</TabsTrigger>
             <TabsTrigger value="settings" className="gap-2"><Settings2 size={16} /> Configurações</TabsTrigger>
             <TabsTrigger value="integrations" className="gap-2"><MessageSquare size={16} /> Integrações</TabsTrigger>
           </TabsList>
