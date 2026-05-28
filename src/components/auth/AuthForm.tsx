@@ -57,7 +57,8 @@ export function AuthForm() {
           phone: phone,
           barber_id: targetBarber.id,
           name: targetBarber.name,
-          role: 'barber'
+          role: 'barber',
+          tenant_id: targetBarber.user_id
         };
 
         login(sessionData);
