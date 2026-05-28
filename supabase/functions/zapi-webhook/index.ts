@@ -11,6 +11,7 @@ const corsHeaders = {
 function normalizePhone(phone: string): string {
   if (!phone) return "";
   let digits = phone.replace(/\D/g, "");
+  // Remove "55" if it's there twice or something weird, but standard is CC+DDD+Number
   if (digits.length === 10 || digits.length === 11) {
     digits = "55" + digits;
   }
@@ -21,10 +22,14 @@ function extractSelectedOption(payload: any) {
   let text = "";
   let id = "";
 
+  // Log full payload for debugging if needed
+  // console.log("[Z-API Webhook] Extracting option from:", JSON.stringify(payload));
+
   const possiblePaths = [
     payload.message?.listResponseMessage?.title,
     payload.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
     payload.listResponseMessage?.title,
+    payload.listResponseMessage?.singleSelectReply?.selectedRowId,
     payload.selectedRowId,
     payload.selectedId,
     payload.buttonReply?.id,
@@ -46,6 +51,7 @@ function extractSelectedOption(payload: any) {
   }
 
   id = payload.message?.listResponseMessage?.singleSelectReply?.selectedRowId || 
+       payload.listResponseMessage?.singleSelectReply?.selectedRowId ||
        payload.selectedRowId || 
        payload.selectedId || 
        payload.buttonReply?.id || 
@@ -69,6 +75,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    const url = new URL(req.url);
+    const pathParts = url.pathname.split("/");
+    const tenantIdFromUrl = pathParts[pathParts.length - 1]; // Fallback tenant ID from URL path
+
     const body = await req.json();
     console.log("[Z-API Webhook] Payload:", JSON.stringify(body));
 
@@ -91,19 +101,28 @@ serve(async (req) => {
       const option = extractSelectedOption(body);
       const messageText = body.text?.message || body.message?.text || body.text || body.body || "";
 
-      // 1. Find the tenant_id by instanceId
+      console.log(`[Z-API Webhook] Received message from ${normalizedPhone}. Option ID: ${option.id}, Text: ${option.text}`);
+
+      // 1. Find the tenant_id by instanceId or fallback to URL
+      let tenantId = "";
       const { data: instance } = await supabase
         .from("whatsapp_instances")
         .select("tenant_id")
         .eq("instance_id", instanceId)
         .maybeSingle();
 
-      if (!instance) {
-        console.error(`[Z-API Webhook] No instance found for instanceId: ${instanceId}`);
-        return new Response(JSON.stringify({ success: false, error: "Instance not found" }), { status: 200, headers: corsHeaders });
+      if (instance) {
+        tenantId = instance.tenant_id;
+      } else if (tenantIdFromUrl && tenantIdFromUrl.length > 20) {
+        tenantId = tenantIdFromUrl;
+        console.log(`[Z-API Webhook] Instance not found for ${instanceId}, using Tenant ID from URL: ${tenantId}`);
       }
 
-      const tenantId = instance.tenant_id;
+      if (!tenantId) {
+        console.error(`[Z-API Webhook] No tenant/instance identified for instanceId: ${instanceId} or URL path: ${tenantIdFromUrl}`);
+        return new Response(JSON.stringify({ success: false, error: "Instance not identified" }), { status: 200, headers: corsHeaders });
+      }
+      console.log(`[Z-API Webhook] Identified Tenant ID: ${tenantId}`);
 
       // 2. Find active conversation
       const { data: conversation } = await supabase
@@ -117,6 +136,8 @@ serve(async (req) => {
         .maybeSingle();
 
       if (conversation) {
+        console.log('SELECTED OPTION', option);
+
         // 3. Process via Automation Engine
         const result = await handleAutomationWhatsappResponse(supabase, {
           tenant_id: tenantId,
@@ -148,7 +169,6 @@ serve(async (req) => {
               error_message: sendResult.error,
               sent_at: new Date().toISOString()
             });
-
           }
         }
 
@@ -165,7 +185,8 @@ serve(async (req) => {
           status: 'success',
           received_at: new Date().toISOString()
         });
-
+      } else {
+        console.log(`[Z-API Webhook] No active conversation found for ${normalizedPhone} in tenant ${tenantId}`);
       }
     }
 
@@ -177,7 +198,7 @@ serve(async (req) => {
     console.error("[Z-API Webhook] Global Error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200, // Always return 200 to Z-API to avoid retries if we handled it
+      status: 200, 
     });
   }
 });

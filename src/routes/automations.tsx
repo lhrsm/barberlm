@@ -746,11 +746,11 @@ function AutomationsComponent() {
                     <thead className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground bg-muted/30 border-y border-white/5">
                       <tr>
                         <th className="px-6 py-4">Automação</th>
+                        <th className="px-6 py-4">Direção</th>
                         <th className="px-6 py-4">Cliente</th>
                         <th className="px-6 py-4">Telefone</th>
-                        <th className="px-6 py-4">Canal</th>
                         <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4">Mensagem</th>
+                        <th className="px-6 py-4">Conteúdo</th>
                         <th className="px-6 py-4 text-right">Data & Hora</th>
                       </tr>
                     </thead>

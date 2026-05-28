@@ -935,23 +935,13 @@ function ShopPageComponent() {
           metadata: { appointmentId: appt.id }
         });
 
-        // WhatsApp Confirmation per appointment
-        if (shop.whatsapp_enabled) {
-          const startTime = parseISO(appt.start_time);
-          triggerWhatsAppMessage({
-            userId: shop.id,
-            eventType: 'appointment_confirmation',
-            phone: normalized,
-            placeholders: {
-              cliente: customerName,
-              horario: `${format(startTime, "HH:mm")} do dia ${format(startTime, "dd/MM")}`,
-              barbeiro: barberName,
-              valor: (appt.total_price || 0).toFixed(2),
-              customer_id: finalCustId || ""
-            },
-            appointmentId: appt.id
-          });
-        }
+        // Trigger Automation System
+        supabase.functions.invoke('run-automations', {
+          body: { 
+            tenantId: shop.id, 
+            appointmentId: appt.id 
+          }
+        }).catch(err => console.error("Error triggering automation:", err));
       }
 
       toast.success("Agendamentos realizados com sucesso!");
