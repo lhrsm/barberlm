@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Outlet, useLocation } from "@tanstack/react-router";
+import { TrialExpiredBlock } from "@/components/subscription/TrialExpiredBlock";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useMemo } from "react";
