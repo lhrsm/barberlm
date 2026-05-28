@@ -376,7 +376,7 @@ async function processConfirmationDispatch(
     const sendResult = await sendMessage(connection, customer.phone, message, menu);
 
     // Create Dispatch record
-    await supabase.from("automation_dispatches").insert({
+    const { error: dispatchError } = await supabase.from("automation_dispatches").insert({
       tenant_id: tenant.id,
       automation_type: AUTOMATION_TYPES.CONFIRMATION,
       customer_id: customer.id,
@@ -384,6 +384,9 @@ async function processConfirmationDispatch(
       status: sendResult.success ? 'sent' : 'failed',
       sent_at: new Date().toISOString()
     });
+
+    if (dispatchError) console.error(`[AutomationEngine] Dispatch log error:`, dispatchError);
+
 
     // Always log the attempt
     const { data: logData, error: logError } = await supabase.from("automation_logs").insert({
@@ -402,21 +405,29 @@ async function processConfirmationDispatch(
       sent_at: new Date().toISOString()
     }).select().single();
 
+    if (logError) console.error(`[AutomationEngine] Activity log error:`, logError);
+
+
     if (sendResult.success) {
       sentCount++;
       // Create Conversation
-      await supabase.from("automation_conversations").insert({
+      const { error: convError } = await supabase.from("automation_conversations").insert({
         tenant_id: tenant.id,
         customer_id: customer.id,
         phone: customer.phone,
         automation_type: AUTOMATION_TYPES.CONFIRMATION,
+        automation_id: automation.id,
         appointment_ids: group.map(a => a.id),
         current_state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
         status: 'active'
       });
 
+      if (convError) console.error(`[AutomationEngine] Conversation error:`, convError);
+
       // Update appointments
-      await supabase.from("appointments").update({ confirmation_sent: true }).in("id", group.map(a => a.id));
+      const { error: apptUpdateError } = await supabase.from("appointments").update({ confirmation_sent: true }).in("id", group.map(a => a.id));
+      if (apptUpdateError) console.error(`[AutomationEngine] Appointment update error:`, apptUpdateError);
+
     } else {
       console.error(`[AutomationEngine] Failed to send message to ${customer.phone}:`, sendResult.error);
     }
