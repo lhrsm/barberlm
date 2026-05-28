@@ -117,33 +117,50 @@ function ProfessionalDashboard() {
         setRealSubscription(subData);
 
         // 3. Determinar o plano real
-        const planId = profileData.plan || profileData.effective_plan || "none";
+        const planId = (profileData.plan || profileData.effective_plan || "none").toLowerCase();
         setRealPlan(planId);
 
         // 4. Lógica de liberação
-        const subStatus = (subData?.status || "").toLowerCase();
-        const isActiveSub = ['active', 'paid', 'trialing', 'past_due'].includes(subStatus);
-        
+        const subStatus = (subData?.status || "none").toLowerCase();
         const now = new Date();
         const trialEnd = profileData.trial_end ? new Date(profileData.trial_end) : null;
         const isTrialValid = trialEnd ? trialEnd > now : false;
 
-        // Regra do SaaS: Libera se tiver assinatura ativa OU se o trial for válido
-        // Não existe plano free que libere acesso após o trial
-        const canAccess = isActiveSub || isTrialValid;
+        // Regras do SaaS solicitadas pelo usuário:
+        // 1. Assinatura explicitamente ativa na tabela subscriptions
+        const isActiveSub = ['active', 'paid', 'trialing'].includes(subStatus);
+        
+        // 2. Plano pago (Elite, Pro, Starter) sem bloqueio explícito
+        const isPaidPlan = ['starter', 'pro', 'elite'].includes(planId);
+        const subNotBlocked = !['canceled', 'inactive', 'past_due'].includes(subStatus);
+        const hasPaidPlanAccess = isPaidPlan && subNotBlocked;
+
+        // Regra final: Libera se tiver assinatura ativa OU trial válido OU plano pago sem bloqueio
+        const canAccess = isActiveSub || isTrialValid || hasPaidPlanAccess;
         
         setRealCanAccess(canAccess);
         
         if (canAccess) {
-          setAccessReason(isActiveSub ? "Liberado: Assinatura Ativa" : "Liberado: Período de Teste Válido");
+          if (isActiveSub) {
+            setAccessReason("Liberado: Assinatura Ativa (Tabela Subscriptions)");
+          } else if (isTrialValid) {
+            setAccessReason("Liberado: Período de Teste Válido");
+          } else if (hasPaidPlanAccess) {
+            setAccessReason(`Liberado: Plano Pago (${planId}) detectado sem bloqueio`);
+          } else {
+            setAccessReason("Liberado: Acesso concedido");
+          }
         } else {
-          setAccessReason("Bloqueado: Período de teste expirado e sem assinatura ativa");
+          setAccessReason("Bloqueado: Período de teste expirado e sem plano pago ativo");
         }
 
         console.log("[profissional-access-debug] Validation result:", {
           tenant_id: tId,
+          subStatus,
           isActiveSub,
           isTrialValid,
+          isPaidPlan,
+          hasPaidPlanAccess,
           canAccess,
           planId
         });
@@ -405,13 +422,15 @@ function ProfessionalDashboard() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="bg-slate-900/90 text-[10px] p-6 rounded-xl border border-primary/20 text-white font-mono space-y-3 shadow-2xl max-w-md w-full">
             <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
-              <span className="font-bold text-primary uppercase tracking-widest text-[11px]">Acesso Negado (v11)</span>
+              <span className="font-bold text-primary uppercase tracking-widest text-[11px]">Acesso Negado (v12)</span>
             </div>
             <div className="grid grid-cols-1 gap-y-2">
               <p><span className="text-white/50">slug:</span> {slug}</p>
               <p><span className="text-white/50">tenant_id:</span> {foundTenantId || "N/A"}</p>
-              <p><span className="text-white/50">subscription:</span> {realSubscription?.status || "none"}</p>
-              <p><span className="text-white/50">plan:</span> {realPlan}</p>
+              <p><span className="text-white/50">subscription_id:</span> {realSubscription?.id || "N/A"}</p>
+              <p><span className="text-white/50">subscription_status:</span> {realSubscription?.status || "none"}</p>
+              <p><span className="text-white/50">plan_name:</span> {realPlan}</p>
+              <p><span className="text-white/50">trial_end:</span> {foundTenantId ? "Expirado ou Vazio" : "N/A"}</p>
               <p className="text-red-400 font-bold uppercase mt-2">{accessReason}</p>
             </div>
             <Button variant="outline" className="w-full mt-4 border-primary/20 hover:bg-primary/10" asChild>
@@ -429,7 +448,7 @@ function ProfessionalDashboard() {
         {/* Debug Panel - Temporário v11 */}
         <div className="bg-slate-900/90 text-[10px] p-4 rounded-xl border border-primary/20 text-white font-mono space-y-1 shadow-2xl">
           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
-            <span className="font-bold text-primary uppercase tracking-widest text-[9px]">Acesso Debug (v11)</span>
+            <span className="font-bold text-primary uppercase tracking-widest text-[9px]">Acesso Debug (v12)</span>
             <span className="bg-primary/20 text-primary px-2 py-0.5 rounded text-[8px] uppercase font-bold">Definitivo</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1">
@@ -437,11 +456,13 @@ function ProfessionalDashboard() {
             <p><span className="text-white/50">tenant_id:</span> {foundTenantId || "N/A"}</p>
             <p><span className="text-white/50">sub_status:</span> <span className={cn(realSubscription?.status === 'active' ? "text-green-400" : "text-amber-400")}>{realSubscription?.status || "none"}</span></p>
             <p><span className="text-white/50">sub_id:</span> {realSubscription?.id || "N/A"}</p>
+            <p><span className="text-white/50">plan_name:</span> {realPlan}</p>
             <p><span className="text-white/50">plan_id:</span> {realPlan}</p>
             <p><span className="text-white/50">can_access:</span> <span className={cn(realCanAccess ? "text-green-400" : "text-red-400")}>{String(realCanAccess)}</span></p>
-            <p><span className="text-white/50">tabela:</span> profiles + subscriptions</p>
+            <p><span className="text-white/50">tabela_plano:</span> profiles</p>
+            <p><span className="text-white/50">tabela_sub:</span> subscriptions</p>
           </div>
-          <p className="pt-2 border-t border-white/10 mt-2"><span className="text-white/50">block_reason:</span> {accessReason}</p>
+          <p className="pt-2 border-t border-white/10 mt-2"><span className="text-white/50">motivo_liberacao:</span> {accessReason}</p>
           <p><span className="text-white/50">fonte dos dados:</span> Query Direta Supabase (Tenant by Slug)</p>
         </div>
 
