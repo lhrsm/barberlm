@@ -81,6 +81,85 @@ function ProfessionalDashboard() {
   }, [session, loading, navigate]);
 
   useEffect(() => {
+    async function validateAccess() {
+      if (!slug) return;
+      setIsDataLoading(true);
+      console.log("[profissional-access-debug] Starting validation for slug:", slug);
+
+      try {
+        // 1. Buscar tenant pelo slug na tabela profiles
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, plan, effective_plan, trial_end")
+          .eq("slug", slug.toLowerCase())
+          .maybeSingle();
+
+        if (profileError || !profileData) {
+          console.error("Tenant not found for slug:", slug);
+          setAccessReason("Erro: Barbearia não encontrada para este endereço");
+          setRealCanAccess(false);
+          setIsDataLoading(false);
+          return;
+        }
+
+        const tId = profileData.id;
+        setFoundTenantId(tId);
+
+        // 2. Buscar assinatura ativa na tabela subscriptions
+        const { data: subData, error: subError } = await supabase
+          .from("subscriptions")
+          .select("*")
+          .eq("user_id", tId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        setRealSubscription(subData);
+
+        // 3. Determinar o plano real
+        const planId = profileData.plan || profileData.effective_plan || "none";
+        setRealPlan(planId);
+
+        // 4. Lógica de liberação
+        const subStatus = (subData?.status || "").toLowerCase();
+        const isActiveSub = ['active', 'paid', 'trialing', 'past_due'].includes(subStatus);
+        
+        const now = new Date();
+        const trialEnd = profileData.trial_end ? new Date(profileData.trial_end) : null;
+        const isTrialValid = trialEnd ? trialEnd > now : false;
+
+        // Regra do SaaS: Libera se tiver assinatura ativa OU se o trial for válido
+        // Não existe plano free que libere acesso após o trial
+        const canAccess = isActiveSub || isTrialValid;
+        
+        setRealCanAccess(canAccess);
+        
+        if (canAccess) {
+          setAccessReason(isActiveSub ? "Liberado: Assinatura Ativa" : "Liberado: Período de Teste Válido");
+        } else {
+          setAccessReason("Bloqueado: Período de teste expirado e sem assinatura ativa");
+        }
+
+        console.log("[profissional-access-debug] Validation result:", {
+          tenant_id: tId,
+          isActiveSub,
+          isTrialValid,
+          canAccess,
+          planId
+        });
+
+      } catch (err) {
+        console.error("Error validating access:", err);
+        setAccessReason("Erro técnico na validação do acesso");
+      } finally {
+        setIsDataLoading(false);
+      }
+    }
+
+    validateAccess();
+  }, [slug]);
+
+  useEffect(() => {
     if (session?.barber_id) {
       console.log("ProfessionalDashboard: Loading data for barber", session.barber_id);
       fetchData();
