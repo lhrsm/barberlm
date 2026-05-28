@@ -141,11 +141,11 @@ function DashboardComponent() {
           table: 'appointments', 
           filter: `tenant_id=eq.${tenantId}` 
         }, (payload: any) => {
-          console.log('REALTIME PAYLOAD', payload);
-          console.log('STATUS UPDATED', payload.new?.id, payload.new?.status);
+          console.log('REALTIME APPOINTMENT CHANGE', payload);
           
           fetchTodayAppointments();
           fetchStats();
+          refreshLimits();
           
           // Invalida todas as queries relacionadas
           queryClient.invalidateQueries({ queryKey: ['appointments'] });
@@ -155,6 +155,7 @@ function DashboardComponent() {
           queryClient.invalidateQueries({ queryKey: ['calendar-appointments'] });
           queryClient.invalidateQueries({ queryKey: ['dashboard-appointments'] });
           queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] });
         })
         .on('postgres_changes', { 
           event: '*', 
@@ -164,6 +165,8 @@ function DashboardComponent() {
         }, () => {
           console.log("Realtime: transactions changed, invalidating queries");
           fetchStats();
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+          queryClient.invalidateQueries({ queryKey: ['finances'] });
         })
         .on('postgres_changes', { 
           event: '*', 
@@ -173,6 +176,7 @@ function DashboardComponent() {
         }, () => {
           console.log("Realtime: notifications changed");
           fetchNotifications();
+          queryClient.invalidateQueries({ queryKey: ["notifications"] });
         })
         .on('postgres_changes', { 
           event: '*', 
@@ -182,6 +186,8 @@ function DashboardComponent() {
         }, () => {
           console.log("Realtime: customers changed");
           fetchStats();
+          fetchBirthdayCustomers();
+          queryClient.invalidateQueries({ queryKey: ['customers'] });
         })
         .subscribe((status) => {
           console.log(`Realtime: Subscription status for tenant ${tenantId}:`, status);
