@@ -803,37 +803,6 @@ function DashboardComponent() {
           </div>
         )}
 
-        {/* Card de Assinatura Ativa (Substitui o de Trial se assinado) */}
-        {isSubscribed && (
-          <div className="relative overflow-hidden rounded-[2rem] p-6 mb-6 shadow-2xl transition-all duration-500 group bg-white border-2 border-emerald-500/50 shadow-emerald-500/10">
-            <div className="absolute -top-24 -right-24 w-64 h-64 blur-[100px] opacity-10 rounded-full bg-emerald-500" />
-            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-5">
-                <div className="p-4 rounded-2xl shadow-inner flex items-center justify-center bg-emerald-100 text-emerald-600">
-                  <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-xl font-black italic tracking-tight text-emerald-900 uppercase">Assinatura ativa</h3>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-muted-foreground font-medium">
-                      Plano atual: <span className="font-bold text-emerald-700 uppercase">{plan}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground italic">
-                      Sua assinatura está ativa e você tem acesso total aos recursos do plano.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <Button 
-                variant="outline"
-                onClick={() => navigate({ to: "/subscription" })}
-                className="px-8 h-12 rounded-2xl font-black italic transition-all duration-300 hover:scale-105 active:scale-95 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-              >
-                GERENCIAR PLANO
-              </Button>
-            </div>
-          </div>
-        )}
 
         {profile?.slug && (
           <Card className="bg-primary/5 border-primary/20 overflow-hidden mb-6">
