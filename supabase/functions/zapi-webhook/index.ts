@@ -75,6 +75,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    const url = new URL(req.url);
+    const pathParts = url.pathname.split("/");
+    const tenantIdFromUrl = pathParts[pathParts.length - 1]; // Fallback tenant ID from URL path
+
     const body = await req.json();
     console.log("[Z-API Webhook] Payload:", JSON.stringify(body));
 
@@ -99,19 +103,25 @@ serve(async (req) => {
 
       console.log(`[Z-API Webhook] Received message from ${normalizedPhone}. Option ID: ${option.id}, Text: ${option.text}`);
 
-      // 1. Find the tenant_id by instanceId
+      // 1. Find the tenant_id by instanceId or fallback to URL
+      let tenantId = "";
       const { data: instance } = await supabase
         .from("whatsapp_instances")
         .select("tenant_id")
         .eq("instance_id", instanceId)
         .maybeSingle();
 
-      if (!instance) {
-        console.error(`[Z-API Webhook] No instance found for instanceId: ${instanceId}`);
-        return new Response(JSON.stringify({ success: false, error: "Instance not found" }), { status: 200, headers: corsHeaders });
+      if (instance) {
+        tenantId = instance.tenant_id;
+      } else if (tenantIdFromUrl && tenantIdFromUrl.length > 20) {
+        tenantId = tenantIdFromUrl;
+        console.log(`[Z-API Webhook] Instance not found for ${instanceId}, using Tenant ID from URL: ${tenantId}`);
       }
 
-      const tenantId = instance.tenant_id;
+      if (!tenantId) {
+        console.error(`[Z-API Webhook] No tenant/instance identified for instanceId: ${instanceId} or URL path: ${tenantIdFromUrl}`);
+        return new Response(JSON.stringify({ success: false, error: "Instance not identified" }), { status: 200, headers: corsHeaders });
+      }
       console.log(`[Z-API Webhook] Identified Tenant ID: ${tenantId}`);
 
       // 2. Find active conversation
