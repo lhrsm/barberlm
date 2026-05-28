@@ -423,3 +423,6 @@ function ProfessionalDashboard() {
     </AppLayout>
   );
 }
+}
+
+export default ProfessionalDashboard;
