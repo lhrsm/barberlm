@@ -57,6 +57,10 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<string | null>(null);
   const [lastWebhookCall, setLastWebhookCall] = useState<any>(null);
+  const [lastReceivedConfig, setLastReceivedConfig] = useState<any>(null);
+  const [lastExpandedConfig, setLastExpandedConfig] = useState<any>(null);
+  const [lastSentMessageInfo, setLastSentMessageInfo] = useState<{id: string, time: string} | null>(null);
+
   
   const [formData, setFormData] = useState({
     instance_id: "",
@@ -152,6 +156,14 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (data.success) {
         toast.success("Mensagem de teste enviada!");
         setZapiResponse(data.result);
+        
+        if (data.result?.messageId) {
+          setLastSentMessageInfo({
+            id: data.result.messageId,
+            time: new Date().toISOString()
+          });
+        }
+
         
         setTimeout(() => {
           checkWebhookDebug();
@@ -253,7 +265,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (res2.error) throw new Error("Erro em update-every-webhooks: " + res2.error.message);
       
       setLastWebhookCall(res2.data);
+      setLastExpandedConfig(res2.data);
       setZapiResponse(res2.data.result);
+
       
       if (res2.data.success && res2.data.result?.value === true) {
         toast.success("Webhooks ampliados configurados! Enviando mensagem teste...");
@@ -410,7 +424,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (error) throw error;
       
       setLastWebhookCall(data);
+      setLastReceivedConfig(data);
       setZapiResponse(data.result);
+
       
       if (data.success && data.result?.value === true) {
         toast.success("Webhook Ao Receber configurado com sucesso.");
