@@ -309,6 +309,33 @@ function ProfessionalDashboard() {
   
   if (!session) return null;
 
+  // Se estiver bloqueado pelo trial, o AppLayout já deve lidar, 
+  // mas garantimos que o conteúdo só carrega se houver acesso.
+  if (isExpired && !planLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="bg-slate-900/90 text-[10px] p-6 rounded-xl border border-primary/20 text-white font-mono space-y-3 shadow-2xl max-w-md w-full">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
+              <span className="font-bold text-primary uppercase tracking-widest text-[11px]">Acesso Negado (Debug)</span>
+            </div>
+            <div className="grid grid-cols-1 gap-y-2">
+              <p><span className="text-white/50">slug:</span> {slug}</p>
+              <p><span className="text-white/50">subscription:</span> {subscription?.status || "none"}</p>
+              <p><span className="text-white/50">plan:</span> {plan}</p>
+              <p><span className="text-white/50">isTrial:</span> {String(isTrial)}</p>
+              <p><span className="text-white/50">trial_end:</span> {trialEndsAt}</p>
+              <p className="text-red-400 font-bold uppercase mt-2">O acesso foi bloqueado porque o trial expirou e não há assinatura ativa.</p>
+            </div>
+            <Button variant="outline" className="w-full mt-4 border-primary/20 hover:bg-primary/10" asChild>
+              <Link to="/subscription">Ver Planos de Assinatura</Link>
+            </Button>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="space-y-8 pb-12">
