@@ -317,7 +317,82 @@ function AutomationsComponent() {
           messages_sent: sent,
           messages_failed: failed
         });
+  }
+  
+  async function fetchDebugData() {
+    if (!tenantId) return;
+    
+    // Fetch Z-API Webhook Debug Logs
+    const { data: dLogs } = await supabase
+      .from("zapi_webhook_debug")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .order("received_at", { ascending: false })
+      .limit(10);
+      
+    if (dLogs) setDebugLogs(dLogs);
+
+    // Fetch Active Conversations
+    const { data: convs } = await supabase
+      .from("automation_conversations")
+      .select("*, customers(name)")
+      .eq("tenant_id", tenantId)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(10);
+      
+    if (convs) setActiveConversations(convs);
+  }
+
+  const handleTestWebhookManually = async (phone: string, text: string = "1") => {
+    if (!tenantId) return;
+    setIsTestWebhookLoading(true);
+    
+    try {
+      // Find instance ID first
+      const { data: instance } = await supabase
+        .from("whatsapp_instances")
+        .select("instance_id")
+        .eq("tenant_id", tenantId)
+        .eq("status", "connected")
+        .maybeSingle();
+
+      if (!instance) {
+        toast.error("Nenhuma instância Z-API conectada encontrada para teste.");
+        return;
       }
+
+      const payload = {
+        type: "ReceivedMessage",
+        instanceId: instance.instance_id,
+        phone: phone,
+        text: {
+          message: text
+        },
+        message: {
+          text: text
+        }
+      };
+
+      const { data, error } = await supabase.functions.invoke('zapi-webhook', {
+        body: payload
+      });
+
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success("Simulação de webhook enviada com sucesso!");
+        fetchDebugData();
+        fetchLogs();
+      } else {
+        toast.error("Erro na simulação: " + (data.error || "Erro desconhecido"));
+      }
+    } catch (err: any) {
+      console.error("Test Webhook Error:", err);
+      toast.error(err.message || "Erro ao processar simulação de webhook");
+    } finally {
+      setIsTestWebhookLoading(false);
+    }
     } catch (err) {
       console.error("Error fetching status:", err);
     }
