@@ -938,6 +938,8 @@ function AutomationsComponent() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
           <TabsContent value="debug" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="border-primary/20 bg-primary/5">
