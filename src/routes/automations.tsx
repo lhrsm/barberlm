@@ -820,8 +820,23 @@ function AutomationsComponent() {
                               </Badge>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="max-w-[150px] truncate text-[11px] text-muted-foreground" title={log.processed_template}>
-                                {log.processed_template || '-'}
+                              <div className="flex items-center gap-2">
+                                <div className="max-w-[150px] truncate text-[11px] text-muted-foreground" title={log.processed_template}>
+                                  {log.processed_template || '-'}
+                                </div>
+                                {log.metadata && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-6 w-6 text-primary hover:bg-primary/10"
+                                    onClick={() => {
+                                      setSelectedLog(log);
+                                      setIsDebugDialogOpen(true);
+                                    }}
+                                  >
+                                    <Sparkles size={12} />
+                                  </Button>
+                                )}
                               </div>
                             </td>
                             <td className="px-6 py-4 text-right">
