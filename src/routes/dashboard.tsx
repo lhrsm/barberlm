@@ -803,37 +803,6 @@ function DashboardComponent() {
           </div>
         )}
 
-        {/* Card de Assinatura Ativa (Substitui o de Trial se assinado) */}
-        {isSubscribed && (
-          <div className="relative overflow-hidden rounded-[2rem] p-6 mb-6 shadow-2xl transition-all duration-500 group bg-white border-2 border-emerald-500/50 shadow-emerald-500/10">
-            <div className="absolute -top-24 -right-24 w-64 h-64 blur-[100px] opacity-10 rounded-full bg-emerald-500" />
-            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-5">
-                <div className="p-4 rounded-2xl shadow-inner flex items-center justify-center bg-emerald-100 text-emerald-600">
-                  <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-xl font-black italic tracking-tight text-emerald-900 uppercase">Assinatura ativa</h3>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-muted-foreground font-medium">
-                      Plano atual: <span className="font-bold text-emerald-700 uppercase">{plan}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground italic">
-                      Sua assinatura está ativa e você tem acesso total aos recursos do plano.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <Button 
-                variant="outline"
-                onClick={() => navigate({ to: "/subscription" })}
-                className="px-8 h-12 rounded-2xl font-black italic transition-all duration-300 hover:scale-105 active:scale-95 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-              >
-                GERENCIAR PLANO
-              </Button>
-            </div>
-          </div>
-        )}
 
         {profile?.slug && (
           <Card className="bg-primary/5 border-primary/20 overflow-hidden mb-6">
@@ -1038,19 +1007,68 @@ function DashboardComponent() {
           
           <Card className={cn(
             "col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group",
-            isTrial 
-              ? "bg-white border-amber-500/30 shadow-2xl shadow-amber-500/10" 
-              : "bg-white border-amber-500/20 shadow-lg shadow-amber-500/5"
+            isSubscribed 
+              ? "bg-white border-emerald-500/30 shadow-2xl shadow-emerald-500/10"
+              : isTrial 
+                ? "bg-white border-amber-500/30 shadow-2xl shadow-amber-500/10" 
+                : "bg-white border-amber-500/20 shadow-lg shadow-amber-500/5"
           )}>
             {/* Glow sutil no fundo */}
-            <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-500" />
+            <div className={cn(
+              "absolute -bottom-12 -left-12 w-32 h-32 blur-[50px] rounded-full pointer-events-none group-hover:opacity-100 transition-all duration-500",
+              isSubscribed ? "bg-emerald-500/10 opacity-60" : "bg-amber-500/10 opacity-60"
+            )} />
             
             <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Crown className="w-12 h-12 text-amber-500 rotate-12" />
+              <Crown className={cn("w-12 h-12 rotate-12", isSubscribed ? "text-emerald-500" : "text-amber-500")} />
             </div>
 
             <CardContent className="py-6 text-center space-y-4 relative z-10">
-              {isTrial ? (
+              {isSubscribed ? (
+                <>
+                  <div className="flex justify-center mb-2">
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm shadow-emerald-500/5">
+                      <Crown className="w-3 h-3 text-emerald-600" />
+                      <span className="text-[10px] font-black italic text-emerald-700 tracking-tight uppercase">
+                        Status da Assinatura SaaS
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-4 text-left p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 shadow-inner">
+                    <div className="flex justify-between items-center border-b border-emerald-100 pb-2">
+                      <span className="text-xs font-bold text-emerald-800/60 uppercase italic">Status</span>
+                      <Badge className="bg-emerald-500 text-white border-none text-[10px] font-black italic tracking-widest uppercase">ATIVA</Badge>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-emerald-100 pb-2">
+                      <span className="text-xs font-bold text-emerald-800/60 uppercase italic">Plano</span>
+                      <span className="text-sm font-black text-emerald-900 uppercase italic">
+                        {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}
+                      </span>
+                    </div>
+                    {subscription?.currentPeriodEnd && (
+                      <div className="flex justify-between items-center border-b border-emerald-100 pb-2">
+                        <span className="text-xs font-bold text-emerald-800/60 uppercase italic">Próxima cobrança</span>
+                        <span className="text-sm font-bold text-emerald-900">
+                          {format(new Date(subscription.currentPeriodEnd), "dd/MM/yyyy")}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-emerald-800/60 uppercase italic">Pagamento</span>
+                      <span className="text-sm font-bold text-emerald-900">Cartão de Crédito</span>
+                    </div>
+                  </div>
+
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-black italic uppercase tracking-wider h-11 rounded-xl transition-all hover:scale-[1.02] active:scale-95" 
+                    asChild
+                  >
+                    <Link to="/subscription">Gerenciar Assinatura</Link>
+                  </Button>
+                </>
+              ) : isTrial ? (
                 <>
                   <div className="flex justify-center mb-2">
                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 shadow-sm shadow-amber-500/5">
@@ -1088,24 +1106,24 @@ function DashboardComponent() {
               ) : plan === 'starter' || plan === 'pro' || plan === 'elite' ? (
                 <>
                   <div className="flex justify-center mb-2">
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 shadow-sm shadow-amber-500/5">
-                      <Crown className="w-3 h-3 text-amber-600" />
-                      <span className="text-[10px] font-black italic text-amber-700 tracking-tight uppercase">
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm shadow-emerald-500/5">
+                      <Crown className="w-3 h-3 text-emerald-600" />
+                      <span className="text-[10px] font-black italic text-emerald-700 tracking-tight uppercase">
                         Status da Assinatura SaaS
                       </span>
                     </div>
                   </div>
 
                   <div className="flex justify-center mb-2">
-                    <div className="p-3 bg-amber-100 rounded-full text-amber-600 shadow-inner">
-                      <Crown size={24} />
+                    <div className="p-3 bg-emerald-100 rounded-full text-emerald-600 shadow-inner">
+                      <Check size={24} />
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-amber-900 italic uppercase">Assinatura Ativa</h4>
-                    <p className="text-sm text-amber-700/70 font-medium">Obrigado por utilizar o Barbex!</p>
+                    <h4 className="font-bold text-lg text-emerald-900 italic uppercase">Assinatura Ativa</h4>
+                    <p className="text-sm text-muted-foreground font-medium">Obrigado por utilizar o Barbex!</p>
                   </div>
-                  <Button variant="outline" className="w-full" asChild>
+                  <Button variant="outline" className="w-full h-11 rounded-xl font-black italic uppercase tracking-widest border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-all" asChild>
                     <Link to="/subscription">Gerenciar Assinatura</Link>
                   </Button>
                 </>
