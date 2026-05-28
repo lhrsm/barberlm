@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, useMemo } from "react";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
