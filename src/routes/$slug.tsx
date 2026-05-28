@@ -51,6 +51,8 @@ function ShopPageComponent() {
   const [barbers, setBarbers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canAccess, setCanAccess] = useState(true);
+  const [blockReason, setBlockReason] = useState("");
   
   // Debug logs to trace route issues
   useEffect(() => {
