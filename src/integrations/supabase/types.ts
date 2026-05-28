@@ -87,6 +87,7 @@ export type Database = {
           appointment_group_id: string | null
           barber_id: string | null
           barbershop_amount: number | null
+          cancel_reason: string | null
           cancel_token: string | null
           cashback_earned: number | null
           cashback_used: number | null
@@ -125,6 +126,7 @@ export type Database = {
           appointment_group_id?: string | null
           barber_id?: string | null
           barbershop_amount?: number | null
+          cancel_reason?: string | null
           cancel_token?: string | null
           cashback_earned?: number | null
           cashback_used?: number | null
@@ -163,6 +165,7 @@ export type Database = {
           appointment_group_id?: string | null
           barber_id?: string | null
           barbershop_amount?: number | null
+          cancel_reason?: string | null
           cancel_token?: string | null
           cashback_earned?: number | null
           cashback_used?: number | null
@@ -650,6 +653,7 @@ export type Database = {
           active: boolean | null
           avatar_url: string | null
           average_rating: number | null
+          bio: string | null
           category: string | null
           commission_rate: number | null
           created_at: string
@@ -657,6 +661,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          specialties: string[] | null
           tenant_id: string | null
           total_ratings: number | null
           user_id: string
@@ -666,6 +671,7 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           average_rating?: number | null
+          bio?: string | null
           category?: string | null
           commission_rate?: number | null
           created_at?: string
@@ -673,6 +679,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          specialties?: string[] | null
           tenant_id?: string | null
           total_ratings?: number | null
           user_id: string
@@ -682,6 +689,7 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           average_rating?: number | null
+          bio?: string | null
           category?: string | null
           commission_rate?: number | null
           created_at?: string
@@ -689,6 +697,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          specialties?: string[] | null
           tenant_id?: string | null
           total_ratings?: number | null
           user_id?: string
