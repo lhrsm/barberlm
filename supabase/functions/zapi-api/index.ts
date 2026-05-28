@@ -203,6 +203,7 @@ serve(async (req) => {
       });
     }
 
+    if (action === "update-webhook-received") {
       const webhookUrl = data.webhookUrl;
       const url = `${baseUrl}/instances/${instanceId}/token/${token}/update-webhook-received`;
       
