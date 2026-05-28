@@ -161,21 +161,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading && !planLoading) {
-      console.log("%c[AppLayout] ROUTE ACCESS DEBUG (v6)", "background: #222; color: #ff00ff; font-size: 14px; padding: 4px;", {
+      console.log("%c[AppLayout] ROUTE ACCESS DEBUG (v7)", "background: #222; color: #ff00ff; font-size: 14px; padding: 4px;", {
         slug,
         tenantId,
         pathname,
         role,
         subscription_status: subscription?.status,
         plan_id: plan,
-        is_subscribed: isSubscribed,
-        has_paid_plan: hasPaidPlan,
         is_expired_from_hook: isExpired,
         should_block_ui: shouldBlock,
-        reason: shouldBlock ? "Bloqueado: Sem plano ativo e trial expirado" : "Liberado: Acesso concedido"
+        reason: shouldBlock ? "Bloqueado: Trial expirado e sem plano ativo detectado" : "Liberado: Acesso concedido"
       });
     }
-  }, [slug, tenantId, pathname, role, subscription?.status, plan, isSubscribed, hasPaidPlan, isExpired, shouldBlock, loading, planLoading]);
+  }, [slug, tenantId, pathname, role, subscription?.status, plan, isExpired, shouldBlock, loading, planLoading]);
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
