@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { format, parse } from "https://esm.sh/date-fns@2.30.0";
 import { ptBR } from "https://esm.sh/date-fns@2.30.0/locale";
 import { formatBrazilDate, formatBrazilTime } from "./utils.ts";
-import { sendMessage } from "./whatsapp-settings.ts";
+import { sendMessage, getWhatsAppSettings } from "./whatsapp-settings.ts";
 
 export const AUTOMATION_STATES = {
   AWAITING_MAIN_ACTION: 'AWAITING_MAIN_ACTION',
@@ -97,8 +97,13 @@ export async function handleAutomationWhatsappResponse(
         }
       } else if (option_id === 'reschedule_appointment') {
         // ... Handle reschedule logic
+        messageToSend = "Como deseja reagendar?";
+        // Simple placeholder for now
+        nextState = AUTOMATION_STATES.COMPLETED;
       } else if (option_id === 'cancel_appointment') {
         // ... Handle cancel logic
+        messageToSend = "Deseja realmente cancelar seu agendamento?";
+        nextState = AUTOMATION_STATES.COMPLETED;
       }
       break;
 
@@ -165,8 +170,6 @@ export async function handleAutomationWhatsappResponse(
         actionExecuted = `confirm_specific_${selectedId}`;
       }
       break;
-
-    // Add more cases for reschedule, cancel, etc.
   }
 
   // Update conversation state
@@ -188,8 +191,11 @@ export async function handleAutomationWhatsappResponse(
   };
 }
 
-export async function processAutomationDispatches(supabase: any, { tenantId, forceMode }: { tenantId?: string, forceMode?: boolean }) {
-  console.log(`[AutomationEngine] Starting dispatch process. Tenant: ${tenantId || 'All'}`);
+export async function processAutomationDispatches(
+  supabase: any, 
+  { tenantId, appointmentId, forceMode }: { tenantId?: string, appointmentId?: string, forceMode?: boolean }
+) {
+  console.log(`[AutomationEngine] Starting dispatch process. Tenant: ${tenantId || 'All'}, AppointmentId: ${appointmentId || 'All'}`);
 
   // 1. Get Tenants
   let tenantQuery = supabase.from("barbershops").select("id, name");
@@ -213,22 +219,36 @@ export async function processAutomationDispatches(supabase: any, { tenantId, for
         .eq("tenant_id", tenant.id)
         .eq("enabled", true);
 
-      if (!automations || automations.length === 0) continue;
+      if (!automations || automations.length === 0) {
+        console.log(`[AutomationEngine] No active automations for tenant ${tenant.id}`);
+        continue;
+      }
 
       // 3. Get Z-API connection
       const connection = await getWhatsAppSettings(supabase, tenant.id);
-      if (!connection || !connection.connected) continue;
+      if (!connection) {
+        console.log(`[AutomationEngine] No WhatsApp connection found for tenant ${tenant.id}`);
+        continue;
+      }
+
+      if (!connection.connected) {
+        console.log(`[AutomationEngine] WhatsApp connection not connected for tenant ${tenant.id}`);
+        continue;
+      }
 
       for (const automation of automations) {
         // Handle each type
         if (automation.type === AUTOMATION_TYPES.CONFIRMATION) {
-          await processConfirmationDispatch(supabase, tenant, automation, connection, forceMode);
-        } else if (automation.type === AUTOMATION_TYPES.REMINDER) {
-          await processReminderDispatch(supabase, tenant, automation, connection, forceMode);
+          const sentCount = await processConfirmationDispatch(supabase, tenant, automation, connection, appointmentId, forceMode);
+          results.dispatches_sent += sentCount;
+        } else if (automation.type === AUTOMATION_TYPES.REMINDER && !appointmentId) {
+          // Reminders usually don't run on immediate appointment trigger
+          const sentCount = await processReminderDispatch(supabase, tenant, automation, connection, forceMode);
+          results.dispatches_sent += sentCount;
         }
-        // ... Add more types
       }
     } catch (err: any) {
+      console.error(`[AutomationEngine] Error in tenant ${tenant.name}:`, err);
       results.errors.push(`Tenant ${tenant.name}: ${err.message}`);
     }
   }
@@ -236,19 +256,50 @@ export async function processAutomationDispatches(supabase: any, { tenantId, for
   return results;
 }
 
-async function processConfirmationDispatch(supabase: any, tenant: any, automation: any, connection: any, forceMode: boolean) {
-  // Find new appointments created in last 15 mins
-  const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-  
-  const { data: appointments } = await supabase
+async function processConfirmationDispatch(
+  supabase: any, 
+  tenant: any, 
+  automation: any, 
+  connection: any, 
+  appointmentId?: string,
+  forceMode?: boolean
+) {
+  console.log(`[AutomationEngine] Processing CONFIRMATION for tenant ${tenant.name}. AppointmentId: ${appointmentId || 'All'}`);
+
+  let query = supabase
     .from("appointments")
     .select("*, customers(*), services(name), barbers(name)")
     .eq("tenant_id", tenant.id)
     .eq("status", "scheduled")
-    .eq("confirmation_sent", false)
-    .gte("created_at", fifteenMinsAgo);
+    .eq("confirmation_sent", false);
 
-  if (!appointments || appointments.length === 0) return;
+  if (appointmentId) {
+    // Immediate mode: fetch the specific appointment and its group
+    const { data: specificAppt } = await supabase.from("appointments").select("appointment_group_id").eq("id", appointmentId).maybeSingle();
+    if (specificAppt?.appointment_group_id) {
+      query = query.eq("appointment_group_id", specificAppt.appointment_group_id);
+    } else {
+      query = query.eq("id", appointmentId);
+    }
+  } else {
+    // Sweep mode: fetch new ones in last 15 mins
+    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    query = query.gte("created_at", fifteenMinsAgo);
+  }
+
+  const { data: appointments, error: apptError } = await query;
+
+  if (apptError) {
+    console.error(`[AutomationEngine] Error fetching appointments:`, apptError);
+    return 0;
+  }
+
+  if (!appointments || appointments.length === 0) {
+    console.log(`[AutomationEngine] No eligible appointments found for confirmation.`);
+    return 0;
+  }
+
+  console.log(`[AutomationEngine] Found ${appointments.length} appointments for confirmation.`);
 
   // Group by customer and group_id
   const groups: Record<string, any[]> = {};
@@ -258,22 +309,31 @@ async function processConfirmationDispatch(supabase: any, tenant: any, automatio
     groups[key].push(appt);
   }
 
+  let sentCount = 0;
+
   for (const groupKey in groups) {
     const group = groups[groupKey];
     const firstAppt = group[0];
     const customer = firstAppt.customers;
-    if (!customer?.phone) continue;
+    
+    if (!customer?.phone) {
+      console.log(`[AutomationEngine] Customer has no phone. Appointment ID: ${firstAppt.id}`);
+      continue;
+    }
 
     const uniqueKey = `conf:${tenant.id}:${groupKey}`;
     
-    // Check dispatch
+    // Check dispatch record
     if (!forceMode) {
       const { data: existing } = await supabase
         .from("automation_dispatches")
         .select("id")
         .eq("unique_key", uniqueKey)
         .maybeSingle();
-      if (existing) continue;
+      if (existing) {
+        console.log(`[AutomationEngine] Confirmation already sent for group ${groupKey}. Skipping.`);
+        continue;
+      }
     }
 
     // Prepare message
@@ -301,13 +361,18 @@ async function processConfirmationDispatch(supabase: any, tenant: any, automatio
         buttonLabel: "Ver opções",
         title: "Opções",
         options: [
-          { id: 'confirm_appointment', title: 'Confirmar Agendamento', description: isMultiple ? 'Confirmar todos ou um específico' : 'Confirmar este atendimento' },
+          { 
+            id: 'confirm_appointment', 
+            title: 'Confirmar Agendamento', 
+            description: isMultiple ? 'Confirmar todos ou um específico' : 'Confirmar este atendimento' 
+          },
           { id: 'reschedule_appointment', title: 'Reagendar', description: 'Alterar data ou horário' },
           { id: 'cancel_appointment', title: 'Cancelar', description: 'Cancelar atendimento' }
         ]
       }
     };
 
+    console.log(`[AutomationEngine] Sending confirmation to ${customer.phone}`);
     const sendResult = await sendMessage(connection, customer.phone, message, menu);
 
     // Create Dispatch record
@@ -320,9 +385,27 @@ async function processConfirmationDispatch(supabase: any, tenant: any, automatio
       sent_at: new Date().toISOString()
     });
 
+    // Always log the attempt
+    const { data: logData, error: logError } = await supabase.from("automation_logs").insert({
+      tenant_id: tenant.id,
+      automation_id: automation.id,
+      customer_id: customer.id,
+      appointment_id: firstAppt.id,
+      phone: customer.phone,
+      direction: 'outgoing',
+      message_type: AUTOMATION_TYPES.CONFIRMATION,
+      message: message,
+      payload: menu,
+      status: sendResult.success ? 'success' : 'error',
+      error_message: sendResult.success ? null : sendResult.error,
+      response: sendResult.response,
+      sent_at: new Date().toISOString()
+    }).select().single();
+
     if (sendResult.success) {
+      sentCount++;
       // Create Conversation
-      const { data: conv } = await supabase.from("automation_conversations").insert({
+      await supabase.from("automation_conversations").insert({
         tenant_id: tenant.id,
         customer_id: customer.id,
         phone: customer.phone,
@@ -330,29 +413,19 @@ async function processConfirmationDispatch(supabase: any, tenant: any, automatio
         appointment_ids: group.map(a => a.id),
         current_state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
         status: 'active'
-      }).select().single();
-
-      // Log
-      await supabase.from("automation_logs").insert({
-        tenant_id: tenant.id,
-        automation_id: automation.id,
-        conversation_id: conv.id,
-        customer_id: customer.id,
-        phone: customer.phone,
-        direction: 'outgoing',
-        message: message,
-        payload: menu,
-        status: 'success',
-        sent_at: new Date().toISOString()
       });
 
       // Update appointments
       await supabase.from("appointments").update({ confirmation_sent: true }).in("id", group.map(a => a.id));
+    } else {
+      console.error(`[AutomationEngine] Failed to send message to ${customer.phone}:`, sendResult.error);
     }
   }
+
+  return sentCount;
 }
 
 async function processReminderDispatch(supabase: any, tenant: any, automation: any, connection: any, forceMode: boolean) {
-  // Similar logic for reminders...
+  // Logic for reminders...
+  return 0;
 }
-
