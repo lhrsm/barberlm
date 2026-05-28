@@ -160,12 +160,15 @@ export function usePlanLimits() {
   // 2. Otherwise check trial days
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
   
-  // A barbearia tem assinatura ativa se o status for active ou se houver trial vigente
-  const hasActiveSubscription = isSubscribed || (plan !== 'free' && subscription?.status === 'active');
+  // Regras de liberação total:
+  // 1. Status da assinatura é 'active', 'trialing' ou 'past_due' (isSubscribed)
+  // 2. O plano não é free (significa que tem um plano selecionado/pago)
+  const hasActiveSubscription = isSubscribed || (plan !== 'free' && plan !== null);
+  
   const isTrial = isSubscribed || (plan === 'free' && trialDaysRemaining > 0);
   
-  // Bloqueio apenas se: não estiver inscrito E não estiver em trial
-  const isExpired = !isSubscribed && trialDaysRemaining <= 0 && plan === 'free';
+  // Bloqueio apenas se: não houver assinatura ativa E não estiver em trial
+  const isExpired = !hasActiveSubscription && trialDaysRemaining <= 0;
 
   useEffect(() => {
     if (!loading) {
