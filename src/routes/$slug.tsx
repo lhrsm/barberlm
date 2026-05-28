@@ -628,7 +628,7 @@ function ShopPageComponent() {
 
       console.log("[profissional-access-debug] Final Decision:", canAccess);
 
-      setCanAccess(true); // FORÇAR LIBERAÇÃO TEMPORÁRIA PARA TESTE DE ROTA
+      setCanAccess(canAccess); 
       setBlockReason(block_reason);
       
       // Bypass any local cache for this specific logic
