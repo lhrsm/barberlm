@@ -443,7 +443,7 @@ async function processConfirmationDispatch(
       // First, ensure any old active conversations for this phone/tenant are closed
       await supabase.from("automation_conversations")
         .update({ status: 'expired' })
-        .eq("phone", customer.phone)
+        .eq("phone_normalized", normalizedPhone)
         .eq("tenant_id", tenant.id)
         .eq("status", "active");
 
@@ -451,6 +451,7 @@ async function processConfirmationDispatch(
         tenant_id: tenant.id,
         customer_id: customer.id,
         phone: customer.phone,
+        phone_normalized: normalizedPhone,
         automation_type: AUTOMATION_TYPES.CONFIRMATION,
         automation_id: automation.id,
         appointment_ids: group.map(a => a.id),
