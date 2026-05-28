@@ -291,7 +291,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       setZapiResponse(data.result);
       toast.success("Webhook reconfigurado com sucesso!");
       
-      // Fetch current config after update
+      // Fetch integration logs and current config after update
+      await fetchIntegrationLogs();
       await fetchWebhookConfig();
     } catch (err: any) {
       console.error(err);
