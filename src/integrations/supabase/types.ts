@@ -273,20 +273,152 @@ export type Database = {
           },
         ]
       }
+      automation_conversations: {
+        Row: {
+          appointment_ids: string[] | null
+          automation_type: string
+          created_at: string
+          current_state: string
+          customer_id: string | null
+          expires_at: string
+          id: string
+          last_option_id: string | null
+          phone: string
+          remaining_appointment_ids: string[] | null
+          selected_appointment_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_ids?: string[] | null
+          automation_type: string
+          created_at?: string
+          current_state?: string
+          customer_id?: string | null
+          expires_at?: string
+          id?: string
+          last_option_id?: string | null
+          phone: string
+          remaining_appointment_ids?: string[] | null
+          selected_appointment_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_ids?: string[] | null
+          automation_type?: string
+          created_at?: string
+          current_state?: string
+          customer_id?: string | null
+          expires_at?: string
+          id?: string
+          last_option_id?: string | null
+          phone?: string
+          remaining_appointment_ids?: string[] | null
+          selected_appointment_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_conversations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_dispatches: {
+        Row: {
+          appointment_id: string | null
+          automation_type: string
+          created_at: string
+          customer_id: string | null
+          id: string
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          tenant_id: string
+          unique_key: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          automation_type: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          tenant_id: string
+          unique_key?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          automation_type?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          tenant_id?: string
+          unique_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_dispatches_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_dispatches_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_dispatches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_logs: {
         Row: {
           appointment_id: string | null
           automation_id: string
           barber_id: string | null
+          conversation_id: string | null
           created_at: string | null
           customer_id: string | null
+          direction: string | null
           error_message: string | null
           id: string
           message_type: string | null
+          option_id: string | null
           original_template: string | null
+          payload: Json | null
           phone: string | null
           processed_template: string | null
           provider: string | null
+          received_at: string | null
           response: Json | null
           sent_at: string
           status: string
@@ -296,15 +428,20 @@ export type Database = {
           appointment_id?: string | null
           automation_id: string
           barber_id?: string | null
+          conversation_id?: string | null
           created_at?: string | null
           customer_id?: string | null
+          direction?: string | null
           error_message?: string | null
           id?: string
           message_type?: string | null
+          option_id?: string | null
           original_template?: string | null
+          payload?: Json | null
           phone?: string | null
           processed_template?: string | null
           provider?: string | null
+          received_at?: string | null
           response?: Json | null
           sent_at?: string
           status: string
@@ -314,15 +451,20 @@ export type Database = {
           appointment_id?: string | null
           automation_id?: string
           barber_id?: string | null
+          conversation_id?: string | null
           created_at?: string | null
           customer_id?: string | null
+          direction?: string | null
           error_message?: string | null
           id?: string
           message_type?: string | null
+          option_id?: string | null
           original_template?: string | null
+          payload?: Json | null
           phone?: string | null
           processed_template?: string | null
           provider?: string | null
+          received_at?: string | null
           response?: Json | null
           sent_at?: string
           status?: string
@@ -341,6 +483,13 @@ export type Database = {
             columns: ["automation_id"]
             isOneToOne: false
             referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "automation_conversations"
             referencedColumns: ["id"]
           },
           {
