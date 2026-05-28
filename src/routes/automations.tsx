@@ -1021,7 +1021,65 @@ function AutomationsComponent() {
                   <div className="space-y-2">
                     <Label>Telefone do Cliente (com DDI)</Label>
                     <Input id="debug-phone" placeholder="5511999999999" defaultValue="5511999999999" />
+            </div>
+
+            <Card className="border-blue-500/20 bg-blue-500/5">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <RefreshCw className="text-blue-500" size={20} />
+                  Diagnóstico de Conectividade (POST Direto)
+                </CardTitle>
+                <CardDescription>
+                  Este teste faz um POST real do seu navegador para a Edge Function pública, sem passar pela biblioteca do Supabase, simulando exatamente o que a Z-API faz.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-black/80 p-4 rounded-lg font-mono text-[10px] text-blue-400 overflow-x-auto">
+                  <p>POST {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`}</p>
+                  <p>Content-Type: application/json</p>
+                  <pre className="mt-2 text-white">
+{JSON.stringify({
+  "phone": "5571999999999",
+  "fromMe": false,
+  "text": { "message": "1" },
+  "type": "ReceivedCallback"
+}, null, 2)}
+                  </pre>
+                </div>
+
+                {directPostResult && (
+                  <div className={cn(
+                    "p-4 rounded-lg text-xs space-y-2 border",
+                    directPostResult.error ? "bg-red-50 border-red-200 text-red-800" : "bg-emerald-50 border-emerald-200 text-emerald-800"
+                  )}>
+                    <div className="font-bold flex items-center justify-between">
+                      <span>Resultado do Teste:</span>
+                      <Badge variant={directPostResult.status === 200 ? "default" : "destructive"}>
+                        HTTP {directPostResult.status || 'ERR'}
+                      </Badge>
+                    </div>
+                    <pre className="bg-white/50 p-2 rounded max-h-[150px] overflow-y-auto whitespace-pre-wrap">
+                      {JSON.stringify(directPostResult, null, 2)}
+                    </pre>
                   </div>
+                )}
+              </CardContent>
+              <CardFooter className="flex flex-col gap-3">
+                <Button 
+                  variant="outline"
+                  className="w-full gap-2 border-blue-500 text-blue-600 hover:bg-blue-50" 
+                  onClick={handleDirectPostTest}
+                  disabled={isDirectPosting}
+                >
+                  {isDirectPosting ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                  Testar POST direto no webhook
+                </Button>
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Se este teste gerar um log abaixo com "Real" ou "POST Direto", mas o WhatsApp real não, o problema está na configuração da Z-API.
+                </p>
+              </CardFooter>
+            </Card>
+
                   <div className="space-y-2">
                     <Label>Resposta (Texto ou Número)</Label>
                     <Input id="debug-text" placeholder="1" defaultValue="1" />
