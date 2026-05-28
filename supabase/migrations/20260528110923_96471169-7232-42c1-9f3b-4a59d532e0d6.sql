@@ -1,0 +1,1 @@
+ALTER TABLE public.zapi_webhook_debug ADD COLUMN IF NOT EXISTS integration_id TEXT;

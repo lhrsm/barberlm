@@ -2422,6 +2422,7 @@ export type Database = {
         Row: {
           headers_raw: Json | null
           id: string
+          integration_id: string | null
           matched_conversation_id: string | null
           message_text: string | null
           option_id: string | null
@@ -2437,6 +2438,7 @@ export type Database = {
         Insert: {
           headers_raw?: Json | null
           id?: string
+          integration_id?: string | null
           matched_conversation_id?: string | null
           message_text?: string | null
           option_id?: string | null
@@ -2452,6 +2454,7 @@ export type Database = {
         Update: {
           headers_raw?: Json | null
           id?: string
+          integration_id?: string | null
           matched_conversation_id?: string | null
           message_text?: string | null
           option_id?: string | null
