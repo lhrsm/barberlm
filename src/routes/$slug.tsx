@@ -1379,6 +1379,8 @@ function ShopPageComponent() {
         )}
       </AnimatePresence>
 
+      {!canAccess && <TrialExpiredBlock />}
+
       {/* Main Content */}
       {(!isPortalRoute && !isProfissionalRoute && !isProfessionalsRoute) ? (
         <>
