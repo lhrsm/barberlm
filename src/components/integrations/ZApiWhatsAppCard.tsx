@@ -97,12 +97,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         }
 
         const lastSent = data.find(l => l.action === 'send-test-message' && l.status_code === 200);
-        if (lastSent && lastSent.response_payload?.messageId) {
+        if (lastSent && (lastSent.response_payload as any)?.messageId) {
           setLastSentMessageInfo({
-            id: lastSent.response_payload.messageId,
+            id: (lastSent.response_payload as any).messageId,
             time: lastSent.created_at
           });
         }
+
 
       }
     } catch (error) {
