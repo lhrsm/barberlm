@@ -311,6 +311,26 @@ function ProfessionalDashboard() {
   return (
     <AppLayout>
       <div className="space-y-8 pb-12">
+        {/* Debug Panel - Temporário conforme solicitado pelo usuário */}
+        <div className="bg-slate-900/90 text-[10px] p-4 rounded-xl border border-primary/20 text-white font-mono space-y-1 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
+            <span className="font-bold text-primary uppercase tracking-widest text-[9px]">Acesso Debug</span>
+            <span className="bg-primary/20 text-primary px-2 py-0.5 rounded text-[8px] uppercase font-bold">Definitivo</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1">
+            <p><span className="text-white/50">slug:</span> {slug}</p>
+            <p><span className="text-white/50">tenant_id:</span> {session?.tenant_id || "N/A"}</p>
+            <p><span className="text-white/50">subscription_status:</span> <span className={cn(subscription?.status === 'active' ? "text-green-400" : "text-amber-400")}>{subscription?.status || "none"}</span></p>
+            <p><span className="text-white/50">plan_id:</span> {plan}</p>
+            <p><span className="text-white/50">trial_end:</span> {trialEndsAt ? format(new Date(trialEndsAt), "dd/MM/yyyy HH:mm") : "N/A"}</p>
+            <p><span className="text-white/50">trial_expired:</span> <span className={cn(!isTrial ? "text-red-400" : "text-green-400")}>{String(!isTrial)}</span></p>
+            <p><span className="text-white/50">has_active_subscription:</span> <span className={cn(!isExpired || subscription?.status === 'active' ? "text-green-400" : "text-red-400")}>{String(!isExpired)}</span></p>
+            <p><span className="text-white/50">can_access:</span> <span className={cn(!isExpired ? "text-green-400" : "text-red-400")}>{String(!isExpired)}</span></p>
+          </div>
+          <p className="pt-2 border-t border-white/10 mt-2"><span className="text-white/50">block_reason:</span> {isExpired ? "Bloqueado: Trial expirado e sem assinatura ativa" : "Liberado: Acesso concedido"}</p>
+          <p><span className="text-white/50">fonte dos dados:</span> usePlanLimits Hook + Professional Session</p>
+        </div>
+
         {/* Header section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card p-6 rounded-2xl border shadow-sm">
           <div className="flex items-center gap-4">
