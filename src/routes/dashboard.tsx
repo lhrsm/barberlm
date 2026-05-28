@@ -63,7 +63,7 @@ function DashboardComponent() {
   const { tenantId, isLoading: tenantLoading } = useTenant();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { plan, usage, limits, trialDaysRemaining, isTrial, isExpired, subscription } = usePlanLimits();
+  const { plan, usage, limits, trialDaysRemaining, isTrial, isExpired, subscription, refresh: refreshLimits } = usePlanLimits();
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status || '');
   const loading = authLoading || tenantLoading;
   const [notifications, setNotifications] = useState<any[]>([]);
