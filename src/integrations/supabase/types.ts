@@ -422,6 +422,7 @@ export type Database = {
           error_message: string | null
           id: string
           message_type: string | null
+          metadata: Json | null
           option_id: string | null
           original_template: string | null
           payload: Json | null
@@ -445,6 +446,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           message_type?: string | null
+          metadata?: Json | null
           option_id?: string | null
           original_template?: string | null
           payload?: Json | null
@@ -468,6 +470,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           message_type?: string | null
+          metadata?: Json | null
           option_id?: string | null
           original_template?: string | null
           payload?: Json | null
