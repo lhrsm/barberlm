@@ -595,9 +595,10 @@ function ShopPageComponent() {
       const plan_id = currentShop.plan || "";
       const trial_end = currentShop.trial_end;
       
+      // LOGICA CORRIGIDA: Acesso se TRIAL VÁLIDO OU ASSINATURA ATIVA (active, trialing, paid, past_due)
       const hasActiveSubscription = 
         ['active', 'paid', 'trialing', 'past_due'].includes(subscription_status.toLowerCase()) || 
-        (plan_id !== 'free' && plan_id !== null && plan_id !== '');
+        (plan_id && plan_id !== 'free');
       
       const isTrialValid = trial_end ? new Date(trial_end) > new Date() : false;
       const canAccess = hasActiveSubscription || isTrialValid;
@@ -608,23 +609,24 @@ function ShopPageComponent() {
         slug: normalizedSlug,
         tenant_id: currentShop.id,
         subscription_status,
-        is_subscription_active: hasActiveSubscription, // simplified
-        active_subscription: hasActiveSubscription, // simplified
+        is_subscription_active: hasActiveSubscription,
+        active_subscription: hasActiveSubscription,
         plan_id,
         trial_end,
         trial_valid: isTrialValid,
         has_active_subscription: hasActiveSubscription,
         can_access: canAccess,
-        block_reason
+        block_reason,
+        now: new Date().toISOString()
       });
-
-      // If blocked, we could potentially show the block UI here.
-      // But user only asked to fix the logic and add logs.
-      // We will ensure that the professionals route only renders if canAccess is true.
-
 
       setCanAccess(canAccess);
       setBlockReason(block_reason);
+      
+      // Bypass any local cache for this specific logic
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(`subscription_cache_${currentShop.id}`);
+      }
 
       // Fetch services, barbers and products for this shop (all public now)
       const [servicesRes, barbersRes, productsRes] = await Promise.all([
@@ -3486,6 +3488,19 @@ function ShopPageComponent() {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Painel Debug solicitado pelo usuário */}
+      <div className="fixed bottom-4 left-4 z-[9999] p-4 bg-black/90 text-white text-[10px] font-mono rounded-2xl border border-white/20 shadow-2xl max-w-xs pointer-events-none opacity-40 hover:opacity-100 transition-opacity">
+        <p className="font-bold border-b border-white/20 pb-1 mb-2 text-primary uppercase tracking-tighter">Access Debug (v10)</p>
+        <div className="space-y-1">
+          <p><span className="text-zinc-500">slug:</span> {slug}</p>
+          <p><span className="text-zinc-500">tenant_id:</span> {shop?.id}</p>
+          <p><span className="text-zinc-500">sub_status:</span> {blockReason?.includes('Liberado') ? 'active' : 'inactive'}</p>
+          <p><span className="text-zinc-500">plan_id:</span> {shop?.plan}</p>
+          <p><span className="text-zinc-500">trial_end:</span> {shop?.trial_end}</p>
+          <p><span className="text-zinc-500">can_access:</span> <span className={canAccess ? "text-green-400" : "text-red-400"}>{canAccess ? 'TRUE' : 'FALSE'}</span></p>
+          <p className="mt-2 pt-2 border-t border-white/10 text-[9px] italic text-zinc-400">{blockReason}</p>
+        </div>
+      </div>
     </div>
   );
 }
