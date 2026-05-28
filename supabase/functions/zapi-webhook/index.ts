@@ -155,6 +155,8 @@ serve(async (req) => {
         });
 
         if (result) {
+          console.log(`[Z-API Webhook] Próxima Ação Executada: ${result.action_executed}`);
+          console.log(`[Z-API Webhook] Próximo State: ${result.next_state}`);
           const connection = await getWhatsAppSettings(supabase, tenantId);
           if (connection && result.message_to_send) {
             const sendResult = await sendMessage(connection, normalizedPhone, result.message_to_send, result.menu_to_send);
