@@ -127,6 +127,8 @@ async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: 
 
       if (instance) {
         tenantId = instance.tenant_id;
+      } else if (body.tenantId) {
+        tenantId = body.tenantId;
       } else if (tenantIdFromUrl && tenantIdFromUrl.length > 20) {
         tenantId = tenantIdFromUrl;
       }
