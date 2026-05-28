@@ -669,32 +669,67 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 <Terminal size={16} className="text-amber-400" />
                 Logs de Integração (zapi_integration_logs)
               </h3>
-              <div className="space-y-2 max-h-[300px] overflow-auto pr-2 custom-scrollbar">
-                {integrationLogs.map((log, i) => (
+              <div className="space-y-2 max-h-[400px] overflow-auto pr-2 custom-scrollbar">
+                {integrationLogs.map((log) => (
                   <div key={log.id} className="bg-black/30 border border-white/5 rounded-lg p-3 space-y-2">
                     <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[9px] uppercase font-bold">
-                          {log.action}
-                        </Badge>
-                        <span className={cn(
-                          "text-[10px] font-bold",
-                          log.status_code >= 200 && log.status_code < 300 ? "text-emerald-400" : "text-red-400"
-                        )}>
-                          HTTP {log.status_code}
-                        </span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[9px] uppercase font-bold bg-blue-500/10">
+                            {log.action}
+                          </Badge>
+                          <span className={cn(
+                            "text-[10px] font-bold",
+                            log.status_code >= 200 && log.status_code < 300 ? "text-emerald-400" : "text-red-400"
+                          )}>
+                            HTTP {log.status_code}
+                          </span>
+                        </div>
+                        {log.phone_number && (
+                          <span className="text-[10px] text-blue-300 flex items-center gap-1">
+                            <Phone size={10} /> {log.phone_number}
+                          </span>
+                        )}
                       </div>
                       <span className="text-[10px] text-slate-500">
-                        {new Date(log.created_at).toLocaleTimeString()}
+                        {new Date(log.created_at).toLocaleString()}
                       </span>
                     </div>
-                    <div className="grid grid-cols-1 gap-2">
+
+                    {log.endpoint && (
                       <div className="space-y-1">
-                        <p className="text-[9px] text-slate-500 uppercase">Resposta da API</p>
-                        <pre className="text-[9px] bg-black/20 p-2 rounded overflow-auto max-h-24 text-slate-300 font-mono">
-                          {JSON.stringify(log.response_payload, null, 2)}
-                        </pre>
+                        <p className="text-[9px] text-slate-500 uppercase flex items-center gap-1">
+                          <ExternalLink size={10} /> Endpoint
+                        </p>
+                        <p className="text-[9px] font-mono break-all text-slate-400 bg-black/20 p-1 rounded">
+                          {log.endpoint}
+                        </p>
                       </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <p className="text-[9px] text-slate-500 uppercase">Tokens (Mascarados)</p>
+                        <div className="text-[9px] bg-black/20 p-2 rounded text-slate-400 space-y-1">
+                          <p>Token: {log.token_masked || "---"}</p>
+                          <p>Client: {log.client_token_masked || "---"}</p>
+                        </div>
+                      </div>
+                      {log.error_message && (
+                        <div className="space-y-1">
+                          <p className="text-[9px] text-red-500 uppercase font-bold">Erro</p>
+                          <p className="text-[9px] bg-red-500/10 p-2 rounded text-red-300 border border-red-500/20">
+                            {log.error_message}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[9px] text-slate-500 uppercase">Resposta Completa</p>
+                      <pre className="text-[9px] bg-black/20 p-2 rounded overflow-auto max-h-32 text-slate-300 font-mono">
+                        {JSON.stringify(log.response_payload, null, 2)}
+                      </pre>
                     </div>
                   </div>
                 ))}
