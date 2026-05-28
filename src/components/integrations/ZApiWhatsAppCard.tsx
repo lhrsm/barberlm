@@ -190,13 +190,19 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         .from("zapi_webhook_debug")
         .select("id")
         .eq("source", "zapi_real")
-        .gte("created_at", new Date(Date.now() - 60000).toISOString())
+        .gte("created_at", new Date(Date.now() - 300000).toISOString()) // Increased to 5 minutes
         .limit(1);
 
       if (!data || data.length === 0) {
-        toast.warning("A instância envia mensagens, mas não está disparando webhook Ao Receber. Verifique no painel da Z-API se o webhook de mensagens recebidas está habilitado nessa mesma instância.", {
-          duration: 10000,
-        });
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <span className="font-bold">Falha Crítica no Webhook</span>
+            <p className="text-xs">
+              A Z-API aceitou a URL, mas não está entregando callbacks. Verifique no painel da Z-API se a instância está conectada, se o webhook está habilitado no evento correto ou acione o suporte da Z-API informando instanceId, messageId e horário do teste.
+            </p>
+          </div>,
+          { duration: 15000 }
+        );
       } else {
         toast.success("Webhook real detectado com sucesso!");
       }
@@ -204,6 +210,69 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       console.error(err);
     }
   }
+
+  async function runExpandedWebhookTest() {
+    if (!instance?.id) {
+      toast.error("Salve as configurações primeiro");
+      return;
+    }
+    
+    setIsConfiguring(true);
+    setZapiResponse(null);
+    setLastWebhookCall(null);
+    
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+      const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook/${tenantId}`;
+      
+      toast.info("Iniciando teste ampliado de webhooks...");
+
+      // 1. Chamar update-notify-sent-by-me
+      const res1 = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'update-notify-sent-by-me', 
+          instanceId: instance.id,
+          data: { notifySentByMe: true }
+        }
+      });
+      
+      if (res1.error) throw new Error("Erro em update-notify-sent-by-me: " + res1.error.message);
+      
+      // 2. Chamar update-every-webhooks
+      const res2 = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'update-every-webhooks', 
+          instanceId: instance.id,
+          data: { 
+            webhookUrl: webhookUrl,
+            notifySentByMe: true 
+          }
+        }
+      });
+      
+      if (res2.error) throw new Error("Erro em update-every-webhooks: " + res2.error.message);
+      
+      setLastWebhookCall(res2.data);
+      setZapiResponse(res2.data.result);
+      
+      if (res2.data.success && res2.data.result?.value === true) {
+        toast.success("Webhooks ampliados configurados! Enviando mensagem teste...");
+        // Enviar mensagem teste após configurar
+        await sendTestMessage();
+      } else {
+        toast.error("Z-API recusou a configuração ampliada");
+      }
+      
+      await fetchIntegrationLogs();
+      await fetchInstance();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro no teste ampliado: " + err.message);
+    } finally {
+      setIsConfiguring(false);
+    }
+  }
+
 
   async function fetchInstance() {
     try {
