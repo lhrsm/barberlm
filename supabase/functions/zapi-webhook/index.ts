@@ -26,11 +26,13 @@ function extractSelectedOption(payload: any) {
     payload.buttonsResponseMessage?.selectedButtonId,
     payload.buttonsResponseMessage?.selectedDisplayText,
     payload.message?.text,
+    payload.text?.message, // Added this
     payload.text,
     payload.body,
     payload.optionListReply?.title,
     payload.optionListReply?.id
   ];
+
 
   for (const val of possiblePaths) {
     if (val && typeof val === 'string') {
