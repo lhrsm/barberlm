@@ -507,7 +507,69 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       toast.error("Erro ao configurar: " + err.message);
     } finally {
       setIsConfiguringTemp(false);
+  }
+  
+  async function configureNewZApiUrl() {
+    if (!instance?.id) {
+      toast.error("Salve as configurações primeiro");
+      return;
     }
+    
+    setIsConfiguringNew(true);
+    setLastNewWebhookResult(null);
+    
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+      const newWebhookUrl = `${supabaseUrl}/functions/v1/zapi-receive-json`;
+      
+      toast.info("Configurando nova URL pública na Z-API...");
+
+      // 1. update-webhook-received
+      const res1 = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'update-webhook-received', 
+          instanceId: instance.id,
+          data: { webhookUrl: newWebhookUrl }
+        }
+      });
+      
+      if (res1.error) throw new Error("Erro ao configurar Ao Receber: " + res1.error.message);
+
+      // 2. update-every-webhooks
+      const res2 = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'update-every-webhooks', 
+          instanceId: instance.id,
+          data: { 
+            webhookUrl: newWebhookUrl,
+            notifySentByMe: true 
+          }
+        }
+      });
+      
+      if (res2.error) throw new Error("Erro ao configurar Todos os Webhooks: " + res2.error.message);
+
+      setLastNewWebhookResult({
+        ...res2.data,
+        timestamp: new Date().toISOString(),
+        webhookApplied: newWebhookUrl
+      });
+      
+      if (res2.data.success && res2.data.result?.value === true) {
+        toast.success("Nova URL configurada com sucesso em todos os eventos!");
+      } else {
+        toast.error("Falha ao configurar nova URL na Z-API");
+      }
+      
+      await fetchIntegrationLogs();
+      await fetchInstance();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro na configuração: " + err.message);
+    } finally {
+      setIsConfiguringNew(false);
+    }
+
   }
 
   async function restoreSaasWebhook() {
