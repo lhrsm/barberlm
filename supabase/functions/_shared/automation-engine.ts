@@ -403,25 +403,12 @@ async function processConfirmationDispatch(
       message += `⏰ Horário: ${formatBrazilTime(firstAppt.start_time)}\n\n`;
     }
 
-    message += `O que deseja fazer?`;
+    message += `Digite uma das opções abaixo:\n\n`;
+    message += `1 - Confirmar agendamento\n`;
+    message += `2 - Reagendar\n`;
+    message += `3 - Cancelar`;
 
-    const menu = {
-      list: {
-        buttonLabel: "Ver opções",
-        title: "Opções",
-        options: [
-          { 
-            id: 'confirm_appointment', 
-            title: 'Confirmar Agendamento', 
-            description: isMultiple ? 'Confirmar todos ou escolher um' : 'Confirmar este atendimento' 
-          },
-          { id: 'reschedule_appointment', title: 'Reagendar', description: isMultiple ? 'Reagendar todos ou escolher um' : 'Alterar data ou horário' },
-          { id: 'cancel_appointment', title: 'Cancelar', description: isMultiple ? 'Cancelar todos ou escolher um' : 'Cancelar atendimento' }
-        ]
-      }
-    };
-
-    const sendResult = await sendMessage(connection, customer.phone, message, menu);
+    const sendResult = await sendMessage(connection, customer.phone, message);
 
     await supabase.from("automation_dispatches").insert({
       tenant_id: tenant.id,
@@ -432,6 +419,9 @@ async function processConfirmationDispatch(
       sent_at: new Date().toISOString()
     });
 
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
     await supabase.from("automation_logs").insert({
       tenant_id: tenant.id,
       automation_id: automation.id,
@@ -441,7 +431,6 @@ async function processConfirmationDispatch(
       direction: 'outgoing',
       message_type: AUTOMATION_TYPES.CONFIRMATION,
       processed_template: message,
-      payload: menu,
       status: sendResult.success ? 'success' : 'error',
       error_message: sendResult.success ? null : sendResult.error,
       response: sendResult.response,
@@ -450,6 +439,13 @@ async function processConfirmationDispatch(
 
     if (sendResult.success) {
       sentCount++;
+      // First, ensure any old active conversations for this phone/tenant are closed
+      await supabase.from("automation_conversations")
+        .update({ status: 'expired' })
+        .eq("phone", customer.phone)
+        .eq("tenant_id", tenant.id)
+        .eq("status", "active");
+
       await supabase.from("automation_conversations").insert({
         tenant_id: tenant.id,
         customer_id: customer.id,
@@ -458,7 +454,8 @@ async function processConfirmationDispatch(
         automation_id: automation.id,
         appointment_ids: group.map(a => a.id),
         current_state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
-        status: 'active'
+        status: 'active',
+        expires_at: expiresAt.toISOString()
       });
 
       await supabase.from("appointments").update({ confirmation_sent: true }).in("id", group.map(a => a.id));
