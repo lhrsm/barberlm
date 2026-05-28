@@ -507,7 +507,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       toast.error("Erro ao configurar: " + err.message);
     } finally {
       setIsConfiguringTemp(false);
+    }
   }
+
   
   async function configureNewZApiUrl() {
     if (!instance?.id) {
