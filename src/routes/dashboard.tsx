@@ -740,90 +740,13 @@ function DashboardComponent() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="relative">
-                  <Bell size={20} />
-                  {notifications.filter(n => !n.read).length > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
-                      {notifications.filter(n => !n.read).length}
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0" align="end">
-                <div className="p-4 border-b flex justify-between items-center">
-                  <h4 className="font-semibold">Notificações</h4>
-                  {notifications.filter(n => !n.read).length > 0 && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs h-8 text-primary"
-                      onClick={async () => {
-                        if (!tenantId) return;
-                        await supabase
-                          .from("notifications")
-                          .update({ read: true })
-                          .eq("user_id", tenantId)
-                          .eq("read", false);
-                        fetchNotifications();
-                        toast.success("Todas as notificações marcadas como lidas");
-                      }}
-                    >
-                      Ler todas
-                    </Button>
-                  )}
-                </div>
-                <ScrollArea className="h-[300px]">
-                  {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-muted-foreground">
-                      Nenhuma notificação encontrada.
-                    </div>
-                  ) : (
-                    notifications.map((n) => (
-                      <div 
-                        key={n.id} 
-                        className={`p-4 border-b hover:bg-muted/50 transition-colors group relative ${!n.read ? 'bg-primary/5' : ''}`}
-                        onClick={() => {
-                          if (!n.read) markAsRead(n.id);
-                          if (n.link) navigate({ to: n.link });
-                        }}
-                      >
-                        <div className="flex justify-between items-start gap-2">
-                          <p className={`text-sm pr-6 ${!n.read ? 'font-bold' : 'font-medium'}`}>{n.title}</p>
-                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
-                        
-                        {!n.read && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 bottom-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              markAsRead(n.id);
-                            }}
-                            title="Marcar como lida"
-                          >
-                            <Check className="h-3 w-3 text-primary" />
-                          </Button>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
             <AppointmentModal 
               onSuccess={() => {
                 fetchTodayAppointments();
                 fetchStats();
               }}
               trigger={
-                <Button className="gap-2">
+                <Button className="gap-2 bg-white text-black hover:bg-white/90 border border-input shadow-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95">
                   <Calendar size={18} /> Novo Agendamento
                 </Button>
               }
