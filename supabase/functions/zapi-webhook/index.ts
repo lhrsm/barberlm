@@ -101,7 +101,10 @@ serve(async (req) => {
       const option = extractSelectedOption(body);
       const messageText = body.text?.message || body.message?.text || body.text || body.body || "";
 
-      console.log(`[Z-API Webhook] Received message from ${normalizedPhone}. Option ID: ${option.id}, Text: ${option.text}`);
+      console.log(`[Z-API Webhook] Payload Recebido da Z-API:`, JSON.stringify(body));
+      console.log(`[Z-API Webhook] Phone: ${normalizedPhone}`);
+      console.log(`[Z-API Webhook] Option ID Identificado: ${option.id}`);
+      console.log(`[Z-API Webhook] Option Text: ${option.text}`);
 
       // 1. Find the tenant_id by instanceId or fallback to URL
       let tenantId = "";
@@ -122,7 +125,7 @@ serve(async (req) => {
         console.error(`[Z-API Webhook] No tenant/instance identified for instanceId: ${instanceId} or URL path: ${tenantIdFromUrl}`);
         return new Response(JSON.stringify({ success: false, error: "Instance not identified" }), { status: 200, headers: corsHeaders });
       }
-      console.log(`[Z-API Webhook] Identified Tenant ID: ${tenantId}`);
+      console.log(`[Z-API Webhook] Tenant ID Identificado: ${tenantId}`);
 
       // 2. Find active conversation
       const { data: conversation } = await supabase
@@ -136,6 +139,8 @@ serve(async (req) => {
         .maybeSingle();
 
       if (conversation) {
+        console.log(`[Z-API Webhook] Conversa Encontrada:`, JSON.stringify(conversation));
+        console.log(`[Z-API Webhook] Current State Atual: ${conversation.current_state}`);
         console.log('SELECTED OPTION', option);
 
         // 3. Process via Automation Engine
@@ -150,6 +155,8 @@ serve(async (req) => {
         });
 
         if (result) {
+          console.log(`[Z-API Webhook] Próxima Ação Executada: ${result.action_executed}`);
+          console.log(`[Z-API Webhook] Próximo State: ${result.next_state}`);
           const connection = await getWhatsAppSettings(supabase, tenantId);
           if (connection && result.message_to_send) {
             const sendResult = await sendMessage(connection, normalizedPhone, result.message_to_send, result.menu_to_send);
@@ -186,7 +193,7 @@ serve(async (req) => {
           received_at: new Date().toISOString()
         });
       } else {
-        console.log(`[Z-API Webhook] No active conversation found for ${normalizedPhone} in tenant ${tenantId}`);
+        console.log(`[Z-API Webhook] Nenhuma Conversa Ativa Encontrada para ${normalizedPhone} no tenant ${tenantId}`);
       }
     }
 
