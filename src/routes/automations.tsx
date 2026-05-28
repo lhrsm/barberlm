@@ -1016,7 +1016,21 @@ function AutomationsComponent() {
               </Card>
             </div>
 
+            {debugLogs.length > 0 && !debugLogs.some(l => l.source === 'zapi_real') && (
+              <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-start gap-3 mb-4">
+                <AlertCircle className="text-amber-500 shrink-0" size={20} />
+                <div className="text-sm">
+                  <p className="font-semibold text-amber-800">Webhook real da Z-API não está chegando</p>
+                  <p className="text-amber-700">
+                    O teste manual funcionou, mas não recebemos payloads reais. 
+                    Verifique se a URL pública está cadastrada corretamente no painel da Z-API ("Ao receber").
+                  </p>
+                </div>
+              </div>
+            )}
+
             <Card>
+
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-lg">Webhook Debug (Z-API)</CardTitle>
