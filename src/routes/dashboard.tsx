@@ -755,8 +755,8 @@ function DashboardComponent() {
           </div>
         </div>
         
-        {/* Banner de Trial Premium */}
-        {(isTrial || isExpired) && (
+        {/* Banner de Trial / Assinatura */}
+        {((isTrial || isExpired) && !isSubscribed) && (
           <div className={cn(
             "relative overflow-hidden rounded-[2rem] p-6 mb-6 shadow-2xl transition-all duration-500 group",
             isExpired ? "bg-white border-2 border-red-500/50 shadow-red-500/10" : 
@@ -782,38 +782,55 @@ function DashboardComponent() {
                     isExpired ? "text-red-900" : "text-amber-900"
                   )}>
                     {isExpired ? "PERÍODO DE TESTE EXPIRADO" : "STATUS DA ASSINATURA SAAS"}
-                    {!isExpired && <Badge className="bg-amber-500/20 text-amber-700 border-amber-500/30">TRIAL ATIVO</Badge>}
                   </h3>
-                  <p className={cn(
-                    "font-bold",
-                    isExpired ? "text-red-700/70" : "text-amber-800/70"
-                  )}>
-                    {isExpired ? (
-                      "Seu período de 15 dias de teste chegou ao fim. Faça o upgrade para continuar usando todos os recursos."
-                    ) : trialDaysRemaining === 1 ? (
-                      "Seu período de teste termina amanhã. Não perca o acesso aos seus dados!"
-                    ) : trialDaysRemaining === 0 ? (
-                      "Seu período de teste expira hoje!"
-                    ) : (
-                      `Seu período de teste termina em ${trialDaysRemaining} dias.`
-                    )}
+                  <p className="text-muted-foreground font-medium max-w-md">
+                    {isExpired 
+                      ? "Seu período de avaliação gratuita terminou. Assine agora para continuar usando todos os recursos." 
+                      : `Você está usando o período de teste gratuito. Restam ${trialDaysRemaining} dias.`}
                   </p>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-4">
-                <Button 
-                  size="lg" 
-                  className={cn(
-                    "rounded-xl px-8 font-black uppercase italic tracking-widest transition-all hover:scale-105 active:scale-95",
-                    isExpired ? "bg-red-600 hover:bg-red-700 text-white" : 
-                    "bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg shadow-amber-500/20 border-b-4 border-amber-700"
-                  )}
-                  asChild
-                >
-                  <Link to="/subscription">Escolher Plano</Link>
-                </Button>
+              <Button 
+                onClick={() => navigate({ to: "/subscription" })}
+                className={cn(
+                  "px-8 h-12 rounded-2xl font-black italic transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl",
+                  isExpired ? "bg-red-600 hover:bg-red-700 text-white" : "bg-amber-500 hover:bg-amber-600 text-white"
+                )}
+              >
+                {isExpired ? "ASSINAR AGORA" : "FAZER UPGRADE"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Card de Assinatura Ativa (Substitui o de Trial se assinado) */}
+        {isSubscribed && (
+          <div className="relative overflow-hidden rounded-[2rem] p-6 mb-6 shadow-2xl transition-all duration-500 group bg-white border-2 border-emerald-500/50 shadow-emerald-500/10">
+            <div className="absolute -top-24 -right-24 w-64 h-64 blur-[100px] opacity-10 rounded-full bg-emerald-500" />
+            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div className="p-4 rounded-2xl shadow-inner flex items-center justify-center bg-emerald-100 text-emerald-600">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black italic tracking-tight text-emerald-900 uppercase">Assinatura ativa</h3>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-muted-foreground font-medium">
+                      Plano atual: <span className="font-bold text-emerald-700 uppercase">{plan}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground italic">
+                      Sua assinatura está ativa e você tem acesso total aos recursos do plano.
+                    </p>
+                  </div>
+                </div>
               </div>
+              <Button 
+                variant="outline"
+                onClick={() => navigate({ to: "/subscription" })}
+                className="px-8 h-12 rounded-2xl font-black italic transition-all duration-300 hover:scale-105 active:scale-95 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              >
+                GERENCIAR PLANO
+              </Button>
             </div>
           </div>
         )}
