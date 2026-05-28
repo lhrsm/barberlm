@@ -47,10 +47,20 @@ export const Route = createFileRoute("/$slug/profissional")({
 
 function ProfessionalDashboard() {
   const { session, loading, logout } = useProfessionalAuth();
-  const { plan, subscription, isTrial, isExpired, trialEndsAt, loading: planLoading } = usePlanLimits();
+  // Plan limits via hook (will be updated by our manual fetch if needed)
+  const planLimits = usePlanLimits();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { slug } = Route.useParams();
+  
+  // State for real subscription data
+  const [realSubscription, setRealSubscription] = useState<any>(null);
+  const [realPlan, setRealPlan] = useState<string>("none");
+  const [realCanAccess, setRealCanAccess] = useState<boolean>(true);
+  const [accessReason, setAccessReason] = useState<string>("Verificando...");
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [foundTenantId, setFoundTenantId] = useState<string | null>(null);
+
   const [appointments, setAppointments] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [barber, setBarber] = useState<any>(null);
