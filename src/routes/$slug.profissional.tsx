@@ -45,8 +45,10 @@ export const Route = createFileRoute("/$slug/profissional")({
 
 function ProfessionalDashboard() {
   const { session, loading, logout } = useProfessionalAuth();
+  const { plan, subscription, isTrial, isExpired, trialEndsAt, loading: planLoading } = usePlanLimits();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { slug } = Route.useParams();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [barber, setBarber] = useState<any>(null);
