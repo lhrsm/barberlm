@@ -139,6 +139,8 @@ serve(async (req) => {
         .maybeSingle();
 
       if (conversation) {
+        console.log(`[Z-API Webhook] Conversa Encontrada:`, JSON.stringify(conversation));
+        console.log(`[Z-API Webhook] Current State Atual: ${conversation.current_state}`);
         console.log('SELECTED OPTION', option);
 
         // 3. Process via Automation Engine
