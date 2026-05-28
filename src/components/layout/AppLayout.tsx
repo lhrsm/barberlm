@@ -151,26 +151,29 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { isExpired, isTrial, subscription, plan, trialEndsAt, loading: planLoading } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
   
-  // A rota só deve ser bloqueada se o trial expirou E não houver assinatura ativa
-  // A lógica de isExpired no hook já considera se há assinatura ativa.
-  // IMPORTANTE: isExpired no hook usePlanLimits agora só é true se (plan === 'free' && trial acabou && no subscription)
-  const shouldBlock = isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
+  // Condição mestre de bloqueio:
+  // Só bloqueamos se (trial expirou && não tem assinatura && não tem plano pago && não é super_admin && não é página de assinatura)
+  const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
+  const hasPaidPlan = plan !== 'free' && plan !== null;
+  const shouldBlock = isExpired && !isSubscriptionPage && role !== 'super_admin' && !isSubscribed && !hasPaidPlan && !planLoading && !loading;
 
   useEffect(() => {
     if (!loading && !planLoading) {
-      console.log("ROUTE ACCESS DEBUG (v3):", {
+      console.log("ROUTE ACCESS DEBUG (v5):", {
         slug,
         tenantId,
         pathname,
+        role,
         subscription_status: subscription?.status,
         plan_id: plan,
-        trial_end: trialEndsAt,
+        is_subscribed: isSubscribed,
+        has_paid_plan: hasPaidPlan,
         is_expired_from_hook: isExpired,
         should_block_ui: shouldBlock,
-        motivo_bloqueio: shouldBlock ? "Trial expirado e sem assinatura ativa detectada" : "Acesso liberado"
+        reason: shouldBlock ? "Bloqueado: Trial expirado e sem plano ativo detectado" : "Liberado: Acesso concedido"
       });
     }
-  }, [slug, tenantId, pathname, subscription?.status, plan, trialEndsAt, isExpired, shouldBlock, loading, planLoading]);
+  }, [slug, tenantId, pathname, role, subscription?.status, plan, isSubscribed, hasPaidPlan, isExpired, shouldBlock, loading, planLoading]);
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
