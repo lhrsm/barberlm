@@ -42,6 +42,3 @@ export async function fetchBarberStats(barberId: string) {
     cancelledMonth: monthCancelledApps.length
   };
 }
-
-  };
-}
