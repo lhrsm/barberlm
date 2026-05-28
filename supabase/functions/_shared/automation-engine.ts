@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { format, parse } from "https://esm.sh/date-fns@2.30.0";
 import { ptBR } from "https://esm.sh/date-fns@2.30.0/locale";
-import { formatBrazilDate, formatBrazilTime } from "./utils.ts";
+import { formatBrazilDate, formatBrazilTime, normalizePhone } from "./utils.ts";
 import { sendMessage, getWhatsAppSettings } from "./whatsapp-settings.ts";
 
 export const AUTOMATION_STATES = {
