@@ -276,6 +276,7 @@ export type Database = {
       automation_conversations: {
         Row: {
           appointment_ids: string[] | null
+          automation_id: string | null
           automation_type: string
           created_at: string
           current_state: string
@@ -292,6 +293,7 @@ export type Database = {
         }
         Insert: {
           appointment_ids?: string[] | null
+          automation_id?: string | null
           automation_type: string
           created_at?: string
           current_state?: string
@@ -308,6 +310,7 @@ export type Database = {
         }
         Update: {
           appointment_ids?: string[] | null
+          automation_id?: string | null
           automation_type?: string
           created_at?: string
           current_state?: string
@@ -323,6 +326,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "automation_conversations_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "automation_conversations_customer_id_fkey"
             columns: ["customer_id"]
