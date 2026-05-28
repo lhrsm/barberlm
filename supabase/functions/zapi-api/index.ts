@@ -71,6 +71,36 @@ serve(async (req) => {
       });
     }
 
+    if (action === "update-webhook-received") {
+      const webhookUrl = data.webhookUrl;
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/update-webhook-received`;
+      
+      console.log(`[Z-API] Updating received webhook to: ${webhookUrl}`);
+      
+      const res = await fetch(url, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ value: webhookUrl })
+      });
+      
+      const result = await res.json();
+      return new Response(JSON.stringify({ success: true, result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    if (action === "get-webhooks") {
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/webhooks`;
+      const res = await fetch(url, { method: "GET", headers });
+      const result = await res.json();
+
+      return new Response(JSON.stringify({ success: true, result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     if (action === "set-webhook") {
       const webhookUrl = data.webhookUrl;
       const types = [
@@ -81,8 +111,9 @@ serve(async (req) => {
       ];
       
       const results = await Promise.all(types.map(async (webhookType) => {
+        // We use PUT here as per recent Z-API requirements for webhook updates
         const res = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`, {
-          method: "POST",
+          method: "PUT",
           headers,
           body: JSON.stringify({ value: webhookUrl })
         });
