@@ -70,8 +70,89 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     if (tenantId) {
       fetchInstance();
       fetchLogs();
+      fetchIntegrationLogs();
     }
   }, [tenantId]);
+
+  async function fetchIntegrationLogs() {
+    try {
+      const { data } = await supabase
+        .from("zapi_integration_logs")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      
+      if (data) {
+        setIntegrationLogs(data);
+        if (data.length > 0) {
+          setLastCheckTime(data[0].created_at);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching integration logs:", error);
+    }
+  }
+
+  async function sendTestMessage() {
+    if (!instance?.id || !formData.phone) {
+      toast.error("Configure a instância e o telefone primeiro");
+      return;
+    }
+
+    setIsSendingTest(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'send-test-message', 
+          instanceId: instance.id,
+          data: { 
+            phone: formData.phone.replace(/\D/g, ""),
+            message: "Teste de diagnóstico Z-API. Por favor, responda '1' para testar o webhook." 
+          }
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data.result?.sent) {
+        toast.success("Mensagem de teste enviada!");
+        setZapiResponse(data.result);
+        
+        // Check if debug log appears after a delay
+        setTimeout(() => {
+          checkWebhookDebug();
+        }, 5000);
+      } else {
+        toast.error("Erro ao enviar: " + (data.result?.message || "Erro desconhecido"));
+      }
+    } catch (err: any) {
+      toast.error("Erro no teste: " + err.message);
+    } finally {
+      setIsSendingTest(false);
+    }
+  }
+
+  async function checkWebhookDebug() {
+    try {
+      const { data } = await supabase
+        .from("zapi_webhook_debug")
+        .select("id")
+        .eq("source", "zapi_real")
+        .gte("created_at", new Date(Date.now() - 60000).toISOString())
+        .limit(1);
+
+      if (!data || data.length === 0) {
+        toast.warning("A instância envia mensagens, mas não está disparando webhook Ao Receber. Verifique no painel da Z-API se o webhook de mensagens recebidas está habilitado nessa mesma instância.", {
+          duration: 10000,
+        });
+      } else {
+        toast.success("Webhook real detectado com sucesso!");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function fetchInstance() {
     try {
