@@ -148,7 +148,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     navigate({ to: "/auth" });
   };
 
-  const { isExpired, isTrial, subscription, loading: planLoading } = usePlanLimits();
+  const { isExpired, isTrial, subscription, plan, trialEndsAt, loading: planLoading } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
   
   // A rota só deve ser bloqueada se:
@@ -157,8 +157,32 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // 3. E não for a página de assinatura
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
   
-  // Se estiver inscrito, isExpired deve ser falso, mas garantimos aqui
-  const shouldBlock = !isSubscribed && isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
+  // Regra clara: Se subscription_status = active, liberar sempre.
+  const hasActiveSubscription = isSubscribed || subscription?.status === 'active';
+  
+  // O bloqueio só deve ocorrer se:
+  // - Não houver assinatura ativa (hasActiveSubscription)
+  // - E o trial expirou (isExpired)
+  // - E não for super_admin
+  // - E não for a página de assinatura
+  const shouldBlock = !hasActiveSubscription && isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
+
+  useEffect(() => {
+    if (!loading && !planLoading) {
+      console.log("ROUTE ACCESS DEBUG:", {
+        slug,
+        tenantId,
+        pathname,
+        subscription_status: subscription?.status,
+        has_active_subscription: hasActiveSubscription,
+        plan_id: plan,
+        trial_end: trialEndsAt,
+        trial_expired: isExpired,
+        should_block_access: shouldBlock,
+        motivo_bloqueio: shouldBlock ? "Assinatura inativa e trial expirado" : "Acesso liberado"
+      });
+    }
+  }, [slug, tenantId, pathname, subscription?.status, hasActiveSubscription, plan, trialEndsAt, isExpired, shouldBlock, loading, planLoading]);
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
