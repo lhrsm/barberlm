@@ -148,17 +148,32 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     navigate({ to: "/auth" });
   };
 
-  const { isExpired, isTrial, subscription, loading: planLoading } = usePlanLimits();
+  const { isExpired, isTrial, subscription, plan, trialEndsAt, loading: planLoading } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
   
-  // A rota só deve ser bloqueada se:
-  // 1. Não houver assinatura ativa (isSubscribed é falso)
-  // 2. E o trial expirou (isExpired é verdadeiro)
-  // 3. E não for a página de assinatura
+  // A rota só deve ser bloqueada se o trial expirou E não houver assinatura ativa
+  // A lógica de isExpired no hook já considera se há assinatura ativa.
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
+  const hasActiveSubscription = isSubscribed || (plan !== 'free' && plan !== null);
   
-  // Se estiver inscrito, isExpired deve ser falso, mas garantimos aqui
-  const shouldBlock = !isSubscribed && isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
+  const shouldBlock = isExpired && !isSubscriptionPage && role !== 'super_admin' && !planLoading && !loading;
+
+  useEffect(() => {
+    if (!loading && !planLoading) {
+      console.log("ROUTE ACCESS DEBUG:", {
+        slug,
+        tenantId,
+        pathname,
+        subscription_status: subscription?.status,
+        has_active_subscription: hasActiveSubscription,
+        plan_id: plan,
+        trial_end: trialEndsAt,
+        trial_expired: isExpired,
+        should_block_access: shouldBlock,
+        motivo_bloqueio: shouldBlock ? "Trial expirado e sem assinatura ativa detectada" : "Acesso liberado"
+      });
+    }
+  }, [slug, tenantId, pathname, subscription?.status, hasActiveSubscription, plan, trialEndsAt, isExpired, shouldBlock, loading, planLoading]);
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">

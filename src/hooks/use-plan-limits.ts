@@ -159,8 +159,32 @@ export function usePlanLimits() {
   // 1. If active/trialing/past_due subscription exists, it's NOT expired
   // 2. Otherwise check trial days
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
+  
+  // Regras de liberação total:
+  // 1. Status da assinatura é 'active', 'trialing' ou 'past_due' (isSubscribed)
+  // 2. O plano não é free (significa que tem um plano selecionado/pago)
+  const hasActiveSubscription = isSubscribed || (plan !== 'free' && plan !== null);
+  
   const isTrial = isSubscribed || (plan === 'free' && trialDaysRemaining > 0);
-  const isExpired = !isSubscribed && plan === 'free' && trialDaysRemaining <= 0;
+  
+  // Bloqueio apenas se: não houver assinatura ativa E não estiver em trial
+  const isExpired = !hasActiveSubscription && trialDaysRemaining <= 0;
+
+  useEffect(() => {
+    if (!loading) {
+      console.log("[usePlanLimits] Access Logic Debug:", {
+        tenantId,
+        plan,
+        subscriptionStatus: subscription?.status,
+        isSubscribed,
+        hasActiveSubscription,
+        trialDaysRemaining,
+        isTrial,
+        isExpired,
+        trialEndsAt
+      });
+    }
+  }, [loading, tenantId, plan, subscription?.status, isSubscribed, hasActiveSubscription, trialDaysRemaining, isTrial, isExpired, trialEndsAt]);
 
   const checkLimit = (type: keyof typeof usage) => {
     if (!limits) return false;
