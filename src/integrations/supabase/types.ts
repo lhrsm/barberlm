@@ -2418,6 +2418,47 @@ export type Database = {
           },
         ]
       }
+      zapi_integration_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          instance_id: string | null
+          request_payload: Json | null
+          response_payload: Json | null
+          status_code: number | null
+          tenant_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          status_code?: number | null
+          tenant_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          status_code?: number | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zapi_integration_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zapi_webhook_debug: {
         Row: {
           headers_raw: Json | null
