@@ -374,6 +374,7 @@ async function processConfirmationDispatch(
     const customer = firstAppt.customers;
     
     if (!customer?.phone) continue;
+    const normalizedPhone = normalizePhone(customer.phone);
 
     const uniqueKey = `conf:${tenant.id}:${groupKey}`;
     
