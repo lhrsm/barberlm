@@ -63,6 +63,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [tempWebhookUrl, setTempWebhookUrl] = useState("https://ancient-meadow-00.webhook.cool");
   const [isConfiguringTemp, setIsConfiguringTemp] = useState(false);
   const [lastTempWebhookResult, setLastTempWebhookResult] = useState<any>(null);
+  const [isConfiguringNew, setIsConfiguringNew] = useState(false);
+  const [lastNewWebhookResult, setLastNewWebhookResult] = useState<any>(null);
+
 
   
   const [formData, setFormData] = useState({
