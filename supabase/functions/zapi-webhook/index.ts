@@ -136,18 +136,19 @@ serve(async (req) => {
             // Log outgoing message
             await supabase.from("automation_logs").insert({
               tenant_id: tenantId,
-              automation_id: conversation.automation_id, // Need to make sure this is stored in conversation
+              automation_id: conversation.automation_id,
               conversation_id: conversation.id,
               customer_id: conversation.customer_id,
               phone: normalizedPhone,
               direction: 'outgoing',
-              message: result.message_to_send,
+              processed_template: result.message_to_send,
               option_id: result.menu_to_send ? 'menu_sent' : null,
               payload: result.menu_to_send,
               status: sendResult.success ? 'success' : 'error',
               error_message: sendResult.error,
               sent_at: new Date().toISOString()
             });
+
           }
         }
 
@@ -158,12 +159,13 @@ serve(async (req) => {
           customer_id: conversation.customer_id,
           phone: normalizedPhone,
           direction: 'incoming',
-          message: messageText,
+          processed_template: messageText,
           option_id: option.id,
           payload: body,
           status: 'success',
           received_at: new Date().toISOString()
         });
+
       }
     }
 

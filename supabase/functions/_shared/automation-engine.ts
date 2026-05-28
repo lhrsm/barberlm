@@ -397,13 +397,14 @@ async function processConfirmationDispatch(
       phone: customer.phone,
       direction: 'outgoing',
       message_type: AUTOMATION_TYPES.CONFIRMATION,
-      message: message,
+      processed_template: message,
       payload: menu,
       status: sendResult.success ? 'success' : 'error',
       error_message: sendResult.success ? null : sendResult.error,
       response: sendResult.response,
       sent_at: new Date().toISOString()
     }).select().single();
+
 
     if (logError) console.error(`[AutomationEngine] Activity log error:`, logError);
 
