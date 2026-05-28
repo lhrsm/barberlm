@@ -168,8 +168,8 @@ export function usePlanLimits() {
   const isTrial = isSubscribed || (plan === 'free' && trialDaysRemaining > 0);
   
   // Bloqueio APENAS se não houver assinatura ativa E o plano for free E o trial acabou
-  // isExpired no hook define se a UI deve mostrar o bloqueio.
-  const isExpired = !hasActiveSubscription && plan === 'free' && trialDaysRemaining <= 0;
+  // isExpired no hook define se a UI deve mostrar o bloqueio visual (TrialExpiredBlock).
+  const isExpired = !hasActiveSubscription && (plan === 'free' || !plan) && trialDaysRemaining <= 0;
 
   useEffect(() => {
     if (!loading && tenantId) {
