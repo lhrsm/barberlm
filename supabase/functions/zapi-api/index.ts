@@ -57,6 +57,8 @@ serve(async (req) => {
       response: any, 
       status: number,
       endpoint?: string,
+      method?: string,
+      webhook_url?: string,
       phone?: string,
       errorMessage?: string
     }) {
@@ -67,10 +69,15 @@ serve(async (req) => {
             tenant_id: instance.tenant_id,
             instance_id: instanceId,
             action: params.action,
+            method: params.method || (params.action.includes('update') ? 'PUT' : 'GET'),
             request_payload: params.request,
+            request_body: params.request,
             response_payload: params.response,
+            response_body: params.response,
             status_code: params.status,
+            response_status: params.status,
             endpoint: params.endpoint,
+            webhook_url: params.webhook_url,
             phone_number: params.phone,
             error_message: params.errorMessage,
             token_masked: maskToken(token),
@@ -99,7 +106,14 @@ serve(async (req) => {
         })
         .eq("id", tableId);
 
-      await logToDb({ action: "check-status", request: { url }, response: result, status: status_code, endpoint: url });
+      await logToDb({ 
+        action: "check-status", 
+        method: "GET",
+        request: { url }, 
+        response: result, 
+        status: status_code, 
+        endpoint: url 
+      });
 
       return new Response(JSON.stringify({ 
         success: true, 
@@ -125,29 +139,29 @@ serve(async (req) => {
       const status_code = res.status;
       const result = await res.json();
 
+      // Se o PUT retornar 200, salvar na tabela da integração
+      if (status_code === 200) {
+        await supabase
+          .from("whatsapp_instances")
+          .update({
+            webhook_received_url: webhookUrl,
+            webhook_received_configured_at: new Date().toISOString(),
+            webhook_received_last_response: result
+          })
+          .eq("id", tableId);
+      }
+
       await logToDb({ 
         action: "update-webhook-received", 
-        request: { url, webhookUrl }, 
+        method: "PUT",
+        request: { value: webhookUrl }, 
+        webhook_url: webhookUrl,
         response: result, 
         status: status_code, 
         endpoint: url 
       });
 
-      return new Response(JSON.stringify({ success: true, result }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
-    if (action === "get-webhooks") {
-      const url = `${baseUrl}/instances/${instanceId}/token/${token}/webhooks`;
-      const res = await fetch(url, { method: "GET", headers });
-      const status_code = res.status;
-      const result = await res.json();
-
-      await logToDb({ action: "get-webhooks", request: { url }, response: result, status: status_code, endpoint: url });
-
-      return new Response(JSON.stringify({ success: true, result }), {
+      return new Response(JSON.stringify({ success: status_code === 200, result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -173,6 +187,7 @@ serve(async (req) => {
 
       await logToDb({ 
         action: "send-test-message", 
+        method: "POST",
         request: { phone, message }, 
         response: result.response, 
         status: status_code, 
@@ -211,7 +226,16 @@ serve(async (req) => {
         });
         const status_code = res.status;
         const result = await res.json();
-        await logToDb({ action: `set-webhook:${webhookType}`, request: { url, webhookUrl }, response: result, status: status_code, endpoint: url });
+        
+        await logToDb({ 
+          action: `set-webhook:${webhookType}`, 
+          method: "PUT",
+          request: { value: webhookUrl }, 
+          webhook_url: webhookUrl,
+          response: result, 
+          status: status_code, 
+          endpoint: url 
+        });
         return result;
       }));
 
@@ -230,7 +254,14 @@ serve(async (req) => {
       const status_code = res.status;
       const result = await res.json();
       
-      await logToDb({ action: "disconnect", request: { url }, response: result, status: status_code, endpoint: url });
+      await logToDb({ 
+        action: "disconnect", 
+        method: "GET",
+        request: { url }, 
+        response: result, 
+        status: status_code, 
+        endpoint: url 
+      });
 
       await supabase
         .from("whatsapp_instances")
