@@ -1026,13 +1026,37 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-xs text-slate-400">URL temporária do webhook</Label>
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs text-slate-400">URL temporária do webhook</Label>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="link" 
+                        className="h-auto p-0 text-[10px] text-blue-400 hover:text-blue-300"
+                        onClick={() => setTempWebhookUrl("https://ancient-meadow-00.webhook.cool")}
+                      >
+                        Webhook.cool
+                      </Button>
+                      <Button 
+                        variant="link" 
+                        className="h-auto p-0 text-[10px] text-amber-400 hover:text-amber-300"
+                        onClick={() => {
+                          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+                          setTempWebhookUrl(`${supabaseUrl}/functions/v1/zapi-catch-all`);
+                        }}
+                      >
+                        URL Catch-All (SaaS)
+                      </Button>
+                    </div>
+                  </div>
                   <Input 
                     value={tempWebhookUrl}
                     onChange={e => setTempWebhookUrl(e.target.value)}
                     className="bg-white/5 border-white/10 text-xs"
                     placeholder="https://sua-url-de-teste.com"
                   />
+                  <p className="text-[9px] text-slate-500 italic">
+                    Use a URL Catch-All para verificar se o problema é na lógica da função principal ou na entrega da Z-API.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
