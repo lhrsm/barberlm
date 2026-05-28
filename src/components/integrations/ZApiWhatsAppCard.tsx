@@ -56,6 +56,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [integrationLogs, setIntegrationLogs] = useState<any[]>([]);
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<string | null>(null);
+  const [lastWebhookCall, setLastWebhookCall] = useState<any>(null);
   
   const [formData, setFormData] = useState({
     instance_id: "",
@@ -323,6 +324,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     
     setIsConfiguring(true);
     setZapiResponse(null);
+    setLastWebhookCall(null);
     
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
@@ -338,15 +340,16 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       
       if (error) throw error;
       
-      if (data.success) {
-        toast.success("Webhook Ao Receber configurado com sucesso.");
-      } else {
-        toast.error("Erro ao configurar webhook: " + (data.result?.message || "Verifique os logs"));
-      }
-      
+      setLastWebhookCall(data);
       setZapiResponse(data.result);
       
-      // Fetch integration logs and refresh instance
+      if (data.success && data.result?.value === true) {
+        toast.success("Webhook Ao Receber configurado com sucesso.");
+      } else {
+        const errorMsg = data.result?.message || (data.result?.value !== true ? "Z-API não retornou value: true" : "Verifique os logs");
+        toast.error("Falha na configuração: " + errorMsg);
+      }
+      
       await fetchIntegrationLogs();
       await fetchInstance();
     } catch (err: any) {
