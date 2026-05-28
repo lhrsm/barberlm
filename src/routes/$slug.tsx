@@ -568,7 +568,9 @@ function ShopPageComponent() {
           pix_qr_code_url, 
           status,
           trial_end,
-          plan
+          plan,
+          effective_plan,
+          selected_plan
         `)
         .eq("slug", normalizedSlug)
         .maybeSingle();
@@ -593,16 +595,18 @@ function ShopPageComponent() {
       // Access logic for public route
       const subscription_status = subData?.status || "";
       const plan_id = currentShop.plan || "";
+      const effective_plan = currentShop.effective_plan || "";
       const trial_end = currentShop.trial_end;
       
-      // LOGICA CORRIGIDA: Acesso se TRIAL VÁLIDO OU ASSINATURA ATIVA (active, trialing, paid, past_due)
+      // LOGICA DEFINITIVA: Acesso se TRIAL VÁLIDO OU ASSINATURA ATIVA
       const hasActiveSubscription = 
         ['active', 'paid', 'trialing', 'past_due'].includes(subscription_status.toLowerCase()) || 
-        (plan_id && plan_id !== 'free');
+        (plan_id && plan_id !== 'free') ||
+        (effective_plan && effective_plan !== 'free');
       
       const isTrialValid = trial_end ? new Date(trial_end) > new Date() : false;
       const canAccess = hasActiveSubscription || isTrialValid;
-      const block_reason = !canAccess ? "Bloqueado: Trial expirado e sem assinatura ativa" : "Liberado: Acesso concedido";
+      const block_reason = !canAccess ? "Bloqueado: Trial expirado e sem assinatura ativa detectada" : "Liberado: Acesso concedido";
 
       // Temporary logs for debugging access as requested by user
       console.log("[professionals-access-debug]", {
