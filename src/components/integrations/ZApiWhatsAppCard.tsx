@@ -95,8 +95,34 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   }
 
   async function sendTestMessage() {
-    if (!instance?.id || !formData.phone) {
-      toast.error("Configure a instância e o telefone primeiro");
+    if (!instance?.id) {
+      toast.error("Salve as configurações primeiro");
+      return;
+    }
+
+    if (!formData.phone) {
+      toast.error("Telefone de destino ausente");
+      return;
+    }
+
+    const phone = formData.phone.replace(/\D/g, "");
+    if (!phone.startsWith("55") || phone.length < 12) {
+      toast.error("Telefone deve estar no formato 55DDDNUMERO (ex: 5571999999999)");
+      return;
+    }
+
+    if (!formData.instance_id) {
+      toast.error("ID da instância ausente");
+      return;
+    }
+
+    if (!formData.instance_token) {
+      toast.error("Token ausente");
+      return;
+    }
+
+    if (!formData.client_token) {
+      toast.error("Client Token ausente");
       return;
     }
 
@@ -107,26 +133,48 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           action: 'send-test-message', 
           instanceId: instance.id,
           data: { 
-            phone: formData.phone.replace(/\D/g, ""),
+            phone: phone,
             message: "Teste de diagnóstico Z-API. Por favor, responda '1' para testar o webhook." 
           }
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Function error:", error);
+        toast.error(`Erro na Edge Function: ${error.message || "Erro desconhecido"}`);
+        await fetchIntegrationLogs();
+        return;
+      }
       
-      if (data.result?.sent) {
+      if (data.success) {
         toast.success("Mensagem de teste enviada!");
         setZapiResponse(data.result);
         
-        // Check if debug log appears after a delay
         setTimeout(() => {
           checkWebhookDebug();
         }, 5000);
       } else {
-        toast.error("Erro ao enviar: " + (data.result?.message || "Erro desconhecido"));
+        // Report detailed error from Z-API
+        const errorMsg = data.error || data.result?.message || "Erro desconhecido";
+        const status = data.status || "N/A";
+        const endpoint = data.endpoint || "N/A";
+        
+        setZapiResponse(data.result || { error: errorMsg, status, endpoint });
+        
+        toast.error(
+          <div className="flex flex-col gap-1">
+            <span className="font-bold">Falha no envio (Z-API)</span>
+            <span className="text-[10px] opacity-80">Status: {status}</span>
+            <span className="text-[10px] opacity-80">Erro: {errorMsg}</span>
+            <span className="text-[10px] opacity-80 truncate">URL: {endpoint}</span>
+          </div>,
+          { duration: 8000 }
+        );
       }
+      
+      await fetchIntegrationLogs();
     } catch (err: any) {
+      console.error("Catch error:", err);
       toast.error("Erro no teste: " + err.message);
     } finally {
       setIsSendingTest(false);
