@@ -2269,6 +2269,9 @@ export type Database = {
           tenant_id: string
           token: string
           updated_at: string
+          webhook_received_configured_at: string | null
+          webhook_received_last_response: Json | null
+          webhook_received_url: string | null
           webhook_url: string | null
         }
         Insert: {
@@ -2285,6 +2288,9 @@ export type Database = {
           tenant_id: string
           token: string
           updated_at?: string
+          webhook_received_configured_at?: string | null
+          webhook_received_last_response?: Json | null
+          webhook_received_url?: string | null
           webhook_url?: string | null
         }
         Update: {
@@ -2301,6 +2307,9 @@ export type Database = {
           tenant_id?: string
           token?: string
           updated_at?: string
+          webhook_received_configured_at?: string | null
+          webhook_received_last_response?: Json | null
+          webhook_received_url?: string | null
           webhook_url?: string | null
         }
         Relationships: [
@@ -2427,12 +2436,17 @@ export type Database = {
           error_message: string | null
           id: string
           instance_id: string | null
+          method: string | null
           phone_number: string | null
+          request_body: Json | null
           request_payload: Json | null
+          response_body: Json | null
           response_payload: Json | null
+          response_status: number | null
           status_code: number | null
           tenant_id: string | null
           token_masked: string | null
+          webhook_url: string | null
         }
         Insert: {
           action: string
@@ -2442,12 +2456,17 @@ export type Database = {
           error_message?: string | null
           id?: string
           instance_id?: string | null
+          method?: string | null
           phone_number?: string | null
+          request_body?: Json | null
           request_payload?: Json | null
+          response_body?: Json | null
           response_payload?: Json | null
+          response_status?: number | null
           status_code?: number | null
           tenant_id?: string | null
           token_masked?: string | null
+          webhook_url?: string | null
         }
         Update: {
           action?: string
@@ -2457,12 +2476,17 @@ export type Database = {
           error_message?: string | null
           id?: string
           instance_id?: string | null
+          method?: string | null
           phone_number?: string | null
+          request_body?: Json | null
           request_payload?: Json | null
+          response_body?: Json | null
           response_payload?: Json | null
+          response_status?: number | null
           status_code?: number | null
           tenant_id?: string | null
           token_masked?: string | null
+          webhook_url?: string | null
         }
         Relationships: [
           {
