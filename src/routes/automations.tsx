@@ -409,6 +409,61 @@ function AutomationsComponent() {
     }
   };
 
+  const handleDirectPostTest = async () => {
+    if (!tenantId) return;
+    setIsDirectPosting(true);
+    setDirectPostResult(null);
+    
+    try {
+      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`;
+      const payload = {
+        phone: "5571999999999",
+        fromMe: false,
+        text: {
+          message: "1"
+        },
+        type: "ReceivedCallback",
+        source: "direct_post_test"
+      };
+
+      console.log("Testing POST to:", functionUrl);
+      
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-test-post': 'true'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      
+      setDirectPostResult({
+        status: response.status,
+        statusText: response.statusText,
+        data: data
+      });
+
+      if (response.ok) {
+        toast.success("POST direto realizado com sucesso!");
+        fetchDebugData();
+      } else {
+        toast.error(`Erro no POST: ${response.status} ${response.statusText}`);
+      }
+    } catch (err: any) {
+      console.error("Direct POST Error:", err);
+      setDirectPostResult({
+        error: err.message || "Erro de conexão",
+        stack: err.stack
+      });
+      toast.error("Falha na conexão com a Edge Function");
+    } finally {
+      setIsDirectPosting(false);
+    }
+  };
+
+
 
   async function handleToggleAutomation(type: string, currentEnabled: boolean) {
     if (!tenantId) return;
