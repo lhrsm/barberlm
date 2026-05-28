@@ -1880,8 +1880,7 @@ function ShopPageComponent() {
     </section>
   ) : (
     <Outlet />
-  )
-}
+  )}
 
 
 
