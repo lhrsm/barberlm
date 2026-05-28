@@ -431,88 +431,58 @@ function ProfessionalDashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="overflow-hidden border-2 border-slate-100 shadow-sm bg-white text-black">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Atendimentos</CardTitle>
-              <Clock className="h-4 w-4 text-blue-500" />
+              <CardTitle className="text-sm font-medium">Atendimentos Hoje</CardTitle>
+              <Users className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.today}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Hoje • {stats.week} esta semana
+                {stats.week} esta semana • {stats.month} no mês
               </p>
-              <div className="mt-3">
-                <Progress value={(stats.today / 15) * 100} className="h-1" />
-              </div>
             </CardContent>
           </Card>
 
           <Card className="overflow-hidden border-2 border-slate-100 shadow-sm bg-white text-black">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Faturamento (Comissão)</CardTitle>
+              <CardTitle className="text-sm font-medium">Faturamento Mês</CardTitle>
               <CircleDollarSign className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ {stats.revenue.toFixed(2)}</div>
+              <div className="text-2xl font-bold">R$ {stats.revenueMonth.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Ref. {barber?.commission_rate || 0}% de comissão
+                Minha parte ({barber?.commission_rate || 0}%): R$ {stats.commissionMonth.toFixed(2)}
               </p>
             </CardContent>
           </Card>
 
           <Card className="overflow-hidden border-2 border-slate-100 shadow-sm bg-white text-black">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Recebido</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-indigo-500" />
+              <CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
+              <TrendingUp className="h-4 w-4 text-indigo-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ {stats.received.toFixed(2)}</div>
+              <div className="text-2xl font-bold">R$ {stats.avgTicket.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Pagamentos confirmados
+                Baseado em atendimentos concluídos
               </p>
             </CardContent>
           </Card>
 
           <Card className="overflow-hidden border-2 border-slate-100 shadow-sm bg-white text-black">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pendente</CardTitle>
+              <CardTitle className="text-sm font-medium">Próximo Horário</CardTitle>
               <Clock className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ {stats.pending.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Aguardando pagamento
+              <div className="text-lg font-bold truncate">
+                {stats.nextAppointment ? format(new Date(stats.nextAppointment.start_time), "HH:mm") : "---"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 truncate">
+                {stats.nextAppointment ? `Com ${stats.nextAppointment.customer_name || 'Cliente'}` : "Sem agendamentos"}
               </p>
             </CardContent>
           </Card>
         </div>
-
-        <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="bg-muted/50 p-1 rounded-xl">
-            <TabsTrigger value="appointments" className="gap-2 rounded-lg">
-              <Calendar className="h-4 w-4" /> Próximos Atendimentos
-            </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2 rounded-lg">
-              <BarChart3 className="h-4 w-4" /> Financeiro
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2 rounded-lg">
-              <UserIcon className="h-4 w-4" /> Perfil & Horários
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="appointments" className="mt-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Agenda do Dia</h2>
-              <Button variant="link" size="sm" asChild>
-                <Link to="/calendar">Ver agenda completa <ArrowRight className="ml-1 h-4 w-4" /></Link>
-              </Button>
-            </div>
-            
-            <div className="grid gap-4">
-               {appointments.filter(a => {
-                  const appDate = new Date(a.start_time);
-                  const today = new Date();
-                  return (
-                    appDate.getDate() === today.getDate() &&
-                    appDate.getMonth() === today.getMonth() &&
                     appDate.getFullYear() === today.getFullYear()
                   );
                 }).length === 0 ? (
