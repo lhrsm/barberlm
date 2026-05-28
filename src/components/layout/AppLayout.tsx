@@ -159,7 +159,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading && !planLoading) {
-      console.log("ROUTE ACCESS DEBUG (v5):", {
+      console.log("%c[AppLayout] ROUTE ACCESS DEBUG (v6)", "background: #222; color: #ff00ff; font-size: 14px; padding: 4px;", {
         slug,
         tenantId,
         pathname,
@@ -170,7 +170,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         has_paid_plan: hasPaidPlan,
         is_expired_from_hook: isExpired,
         should_block_ui: shouldBlock,
-        reason: shouldBlock ? "Bloqueado: Trial expirado e sem plano ativo detectado" : "Liberado: Acesso concedido"
+        reason: shouldBlock ? "Bloqueado: Sem plano ativo e trial expirado" : "Liberado: Acesso concedido"
       });
     }
   }, [slug, tenantId, pathname, role, subscription?.status, plan, isSubscribed, hasPaidPlan, isExpired, shouldBlock, loading, planLoading]);
