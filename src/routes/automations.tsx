@@ -1090,15 +1090,27 @@ function AutomationsComponent() {
                 )}
               </CardContent>
               <CardFooter className="flex flex-col gap-3">
-                <Button 
-                  variant="outline"
-                  className="w-full gap-2 border-blue-500 text-blue-600 hover:bg-blue-50" 
-                  onClick={handleDirectPostTest}
-                  disabled={isDirectPosting}
-                >
-                  {isDirectPosting ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-                  Testar POST direto no webhook
-                </Button>
+              <CardFooter className="flex flex-col gap-3">
+                <div className="grid grid-cols-2 gap-2 w-full">
+                  <Button 
+                    variant="outline"
+                    className="gap-2 border-blue-500 text-blue-600 hover:bg-blue-50" 
+                    onClick={() => handleDirectPostTest('browser')}
+                    disabled={isDirectPosting}
+                  >
+                    {isDirectPosting ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                    Browser (CORS)
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="gap-2 border-purple-500 text-purple-600 hover:bg-purple-50" 
+                    onClick={() => handleDirectPostTest('server')}
+                    disabled={isDirectPosting}
+                  >
+                    {isDirectPosting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                    Servidor (Invoke)
+                  </Button>
+                </div>
                 <p className="text-[10px] text-muted-foreground text-center">
                   Se este teste gerar um log abaixo com "Real" ou "POST Direto", mas o WhatsApp real não, o problema está na configuração da Z-API.
                 </p>
