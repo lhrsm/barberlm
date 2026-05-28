@@ -1090,7 +1090,6 @@ function AutomationsComponent() {
                 )}
               </CardContent>
               <CardFooter className="flex flex-col gap-3">
-              <CardFooter className="flex flex-col gap-3">
                 <div className="grid grid-cols-2 gap-2 w-full">
                   <Button 
                     variant="outline"
