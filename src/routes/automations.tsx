@@ -938,6 +938,154 @@ function AutomationsComponent() {
                 </div>
               </CardContent>
             </Card>
+          <TabsContent value="debug" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Zap className="text-primary" size={20} />
+                    Simular Webhook
+                  </CardTitle>
+                  <CardDescription>
+                    Envie um sinal de resposta manual para testar o fluxo.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Telefone do Cliente (com DDI)</Label>
+                    <Input id="debug-phone" placeholder="5511999999999" defaultValue="5511999999999" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Resposta (Texto ou Número)</Label>
+                    <Input id="debug-text" placeholder="1" defaultValue="1" />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="w-full gap-2" 
+                    onClick={() => {
+                      const phone = (document.getElementById('debug-phone') as HTMLInputElement).value;
+                      const text = (document.getElementById('debug-text') as HTMLInputElement).value;
+                      handleTestWebhookManually(phone, text);
+                    }}
+                    disabled={isTestWebhookLoading}
+                  >
+                    {isTestWebhookLoading ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
+                    Executar Teste Manual
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MessageSquare size={20} className="text-blue-500" />
+                    Conversas Ativas
+                  </CardTitle>
+                  <CardDescription>
+                    Sessões de automação aguardando resposta do cliente.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {activeConversations.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">Nenhuma conversa ativa no momento.</p>
+                    ) : (
+                      activeConversations.map(conv => (
+                        <div key={conv.id} className="p-3 bg-muted rounded-lg border text-xs space-y-1">
+                          <div className="flex justify-between items-start">
+                            <span className="font-bold">{conv.customers?.name || conv.phone}</span>
+                            <Badge variant="outline" className="text-[9px] uppercase">{conv.current_state}</Badge>
+                          </div>
+                          <p className="text-muted-foreground">ID: {conv.id}</p>
+                          <p className="text-muted-foreground">Expira em: {new Date(conv.expires_at).toLocaleString('pt-BR')}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Webhook Debug (Z-API)</CardTitle>
+                  <CardDescription>
+                    Últimos 10 payloads recebidos pela Z-API.
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={fetchDebugData}>
+                  <RefreshCw size={14} className="mr-2" /> Atualizar
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Data</th>
+                        <th className="px-3 py-2 text-left">Telefone</th>
+                        <th className="px-3 py-2 text-left">Mensagem</th>
+                        <th className="px-3 py-2 text-left">Tenant</th>
+                        <th className="px-3 py-2 text-left">Conversa</th>
+                        <th className="px-3 py-2 text-right">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {debugLogs.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">Nenhum log de debug encontrado.</td>
+                        </tr>
+                      ) : (
+                        debugLogs.map(log => (
+                          <tr key={log.id} className="border-t hover:bg-muted/30">
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              {new Date(log.received_at).toLocaleTimeString('pt-BR')}
+                            </td>
+                            <td className="px-3 py-2">
+                              {log.phone_raw || '-'}
+                            </td>
+                            <td className="px-3 py-2 max-w-[150px] truncate">
+                              {log.message_text || log.payload_raw?.text?.message || '-'}
+                            </td>
+                            <td className="px-3 py-2">
+                              <Badge variant={log.tenant_id ? "default" : "destructive"} className="text-[9px]">
+                                {log.tenant_id ? 'Identificado' : 'Falha'}
+                              </Badge>
+                            </td>
+                            <td className="px-3 py-2">
+                              <Badge variant={log.matched_conversation_id ? "outline" : "secondary"} className="text-[9px]">
+                                {log.matched_conversation_id ? 'Encontrada' : 'Não'}
+                              </Badge>
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  setSelectedLog({
+                                    ...log,
+                                    metadata: {
+                                      raw_payload: log.payload_raw,
+                                      current_state: 'DEBUG_RAW'
+                                    }
+                                  });
+                                  setIsDebugDialogOpen(true);
+                                }}
+                              >
+                                <Settings2 size={12} />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
