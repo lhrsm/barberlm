@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 export function TrialExpiredBlock() {
   return (
-    <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex items-center justify-center p-4 overflow-auto">
+    <div className="fixed inset-0 z-[9999] bg-background/95 backdrop-blur-md flex items-center justify-center p-4 overflow-auto">
       <Card className="max-w-md w-full border-2 border-primary/20 shadow-2xl">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center">
