@@ -175,23 +175,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [slug, tenantId, pathname, subscription?.status, hasActiveSubscription, plan, trialEndsAt, isExpired, shouldBlock, loading, planLoading]);
 
-  useEffect(() => {
-    if (!loading && !planLoading) {
-      console.log("ROUTE ACCESS DEBUG:", {
-        slug,
-        tenantId,
-        pathname,
-        subscription_status: subscription?.status,
-        has_active_subscription: hasActiveSubscription,
-        plan_id: plan,
-        trial_end: trialEndsAt,
-        trial_expired: isExpired,
-        should_block_access: shouldBlock,
-        motivo_bloqueio: shouldBlock ? "Assinatura inativa e trial expirado" : "Acesso liberado"
-      });
-    }
-  }, [slug, tenantId, pathname, subscription?.status, hasActiveSubscription, plan, trialEndsAt, isExpired, shouldBlock, loading, planLoading]);
-
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
       {shouldBlock && <TrialExpiredBlock />}
