@@ -115,7 +115,7 @@ async function handleIncomingWhatsappWebhook(supabase: any, body: any, headers: 
           .eq("id", debugLog.id);
       }
 
-      console.log(`[Z-API Webhook][${source}] Phone: ${normalizedPhone}, Message: ${messageText}, Option: ${identifiedOptionId}`);
+      console.log(`[Z-API Webhook][${source}] Received from ${phone} (${normalizedPhone}). Message: "${messageText}", Identified Option: ${identifiedOptionId}`);
 
       // Find the tenant_id
       let tenantId = "";
