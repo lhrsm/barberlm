@@ -763,7 +763,7 @@ function DashboardComponent() {
         </div>
         
         {/* Banner de Trial / Assinatura */}
-        {((isTrial || isExpired) && !isSubscribed) && (
+        {((isTrial || isExpired) && !hasActiveSubscription) && (
           <div className={cn(
             "relative overflow-hidden rounded-[2rem] p-6 mb-6 shadow-2xl transition-all duration-500 group",
             isExpired ? "bg-white border-2 border-red-500/50 shadow-red-500/10" : 
