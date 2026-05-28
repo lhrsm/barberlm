@@ -151,21 +151,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { isExpired, isTrial, subscription, plan, trialEndsAt, loading: planLoading } = usePlanLimits();
   const isSubscriptionPage = pathname === "/subscription";
   
-  // Liberar acesso se:
-  // 1. For super_admin
-  // 2. Tiver assinatura ativa (status 'active', 'trialing', 'past_due')
-  // 3. Estiver em um plano pago (plan !== 'free')
-  // 4. O trial de 15 dias ainda não expirou (isExpired === false)
+  // Condição mestre de bloqueio:
+  // Só bloqueamos se (trial expirou && não tem assinatura && não tem plano pago && não é super_admin && não é página de assinatura)
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status?.toLowerCase() || '');
   const hasPaidPlan = plan !== 'free' && plan !== null;
-  const isTrialActive = !isExpired;
-
-  // Só bloqueamos se não for super_admin, não for página de assinatura e (não tem assinatura E não tem plano pago E o trial acabou)
-  const shouldBlock = !isSubscriptionPage && role !== 'super_admin' && !isSubscribed && !hasPaidPlan && isExpired && !planLoading && !loading;
+  const shouldBlock = isExpired && !isSubscriptionPage && role !== 'super_admin' && !isSubscribed && !hasPaidPlan && !planLoading && !loading;
 
   useEffect(() => {
     if (!loading && !planLoading) {
-      console.log("ROUTE ACCESS DEBUG (v4):", {
+      console.log("ROUTE ACCESS DEBUG (v5):", {
         slug,
         tenantId,
         pathname,
@@ -176,7 +170,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         has_paid_plan: hasPaidPlan,
         is_expired_from_hook: isExpired,
         should_block_ui: shouldBlock,
-        reason: shouldBlock ? "Trial expirado e sem plano ativo" : "Acesso liberado"
+        reason: shouldBlock ? "Bloqueado: Trial expirado e sem plano ativo detectado" : "Liberado: Acesso concedido"
       });
     }
   }, [slug, tenantId, pathname, role, subscription?.status, plan, isSubscribed, hasPaidPlan, isExpired, shouldBlock, loading, planLoading]);
