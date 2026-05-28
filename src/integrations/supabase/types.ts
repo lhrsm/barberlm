@@ -2431,6 +2431,7 @@ export type Database = {
           processed: boolean | null
           processing_error: string | null
           received_at: string | null
+          source: string | null
           tenant_id: string | null
         }
         Insert: {
@@ -2445,6 +2446,7 @@ export type Database = {
           processed?: boolean | null
           processing_error?: string | null
           received_at?: string | null
+          source?: string | null
           tenant_id?: string | null
         }
         Update: {
@@ -2459,6 +2461,7 @@ export type Database = {
           processed?: boolean | null
           processing_error?: string | null
           received_at?: string | null
+          source?: string | null
           tenant_id?: string | null
         }
         Relationships: [

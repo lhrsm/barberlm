@@ -376,7 +376,9 @@ function AutomationsComponent() {
         instanceId: instance.instance_id,
         phone: phone,
         text: { message: text },
-        message: { text: text }
+        message: { text: text },
+        source: "manual_simulation",
+        tenantId: tenantId
       };
 
       const { data, error } = await supabase.functions.invoke('zapi-webhook', {
@@ -1028,6 +1030,7 @@ function AutomationsComponent() {
                     <thead className="bg-muted">
                       <tr>
                         <th className="px-3 py-2 text-left">Data</th>
+                        <th className="px-3 py-2 text-left">Origem</th>
                         <th className="px-3 py-2 text-left">Telefone</th>
                         <th className="px-3 py-2 text-left">Mensagem</th>
                         <th className="px-3 py-2 text-left">Tenant</th>
@@ -1045,6 +1048,11 @@ function AutomationsComponent() {
                           <tr key={log.id} className="border-t hover:bg-muted/30">
                             <td className="px-3 py-2 whitespace-nowrap">
                               {new Date(log.received_at).toLocaleTimeString('pt-BR')}
+                            </td>
+                            <td className="px-3 py-2">
+                              <Badge variant="outline" className={cn("text-[9px] uppercase", log.source === 'manual_simulation' ? "border-amber-500 text-amber-500" : "border-blue-500 text-blue-500")}>
+                                {log.source === 'manual_simulation' ? 'Simulação' : 'Real'}
+                              </Badge>
                             </td>
                             <td className="px-3 py-2">
                               {log.phone_raw || '-'}
