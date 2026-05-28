@@ -354,7 +354,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-white/5 border-white/10">
             <TabsTrigger value="config">Configuração</TabsTrigger>
-            <TabsTrigger value="logs">Logs</TabsTrigger>
+            <TabsTrigger value="logs">Logs Automação</TabsTrigger>
+            <TabsTrigger value="diagnostico">Diagnóstico Z-API</TabsTrigger>
           </TabsList>
           
           <TabsContent value="config" className="space-y-4 pt-4">
