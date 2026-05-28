@@ -160,7 +160,18 @@ serve(async (req) => {
         tenantId = tenantIdFromUrl;
       }
 
+      if (debugLog && tenantId) {
+        await supabase.from("zapi_webhook_debug")
+          .update({ tenant_id: tenantId })
+          .eq("id", debugLog.id);
+      }
+
       if (!tenantId) {
+        if (debugLog) {
+          await supabase.from("zapi_webhook_debug")
+            .update({ processing_error: "Tenant not identified" })
+            .eq("id", debugLog.id);
+        }
         return new Response(JSON.stringify({ success: false, error: "Instance not identified" }), { status: 200, headers: corsHeaders });
       }
 
@@ -174,6 +185,12 @@ serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      if (debugLog && conversation) {
+        await supabase.from("zapi_webhook_debug")
+          .update({ matched_conversation_id: conversation.id })
+          .eq("id", debugLog.id);
+      }
 
       let actionExecuted = "none";
       let nextState = "none";
