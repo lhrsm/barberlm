@@ -336,14 +336,16 @@ function AutomationsComponent() {
   async function fetchDebugData() {
     if (!tenantId) return;
     
+    // Buscar tanto por tenant_id quanto por integration_id (caso o tenant_id ainda não tenha sido identificado)
     const { data: dLogs } = await supabase
       .from("zapi_webhook_debug")
       .select("*")
-      .eq("tenant_id", tenantId)
+      .or(`tenant_id.eq.${tenantId},integration_id.eq.${tenantId}`)
       .order("received_at", { ascending: false })
-      .limit(10);
+      .limit(20);
       
     if (dLogs) setDebugLogs(dLogs);
+
 
     const { data: convs } = await supabase
       .from("automation_conversations")
