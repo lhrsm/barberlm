@@ -125,7 +125,7 @@ serve(async (req) => {
         console.error(`[Z-API Webhook] No tenant/instance identified for instanceId: ${instanceId} or URL path: ${tenantIdFromUrl}`);
         return new Response(JSON.stringify({ success: false, error: "Instance not identified" }), { status: 200, headers: corsHeaders });
       }
-      console.log(`[Z-API Webhook] Identified Tenant ID: ${tenantId}`);
+      console.log(`[Z-API Webhook] Tenant ID Identificado: ${tenantId}`);
 
       // 2. Find active conversation
       const { data: conversation } = await supabase
