@@ -161,7 +161,17 @@ serve(async (req) => {
         endpoint: url 
       });
 
-      return new Response(JSON.stringify({ success: status_code === 200, result }), {
+      return new Response(JSON.stringify({ 
+        success: status_code === 200, 
+        result,
+        status: status_code,
+        endpoint: url,
+        requestBody: { value: webhookUrl },
+        headers: {
+          "Content-Type": "application/json",
+          "Client-Token": maskToken(clientToken)
+        }
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
