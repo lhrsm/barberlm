@@ -622,6 +622,9 @@ function ShopPageComponent() {
       // We will ensure that the professionals route only renders if canAccess is true.
 
 
+      setCanAccess(canAccess);
+      setBlockReason(block_reason);
+
       // Fetch services, barbers and products for this shop (all public now)
       const [servicesRes, barbersRes, productsRes] = await Promise.all([
         supabase
@@ -634,6 +637,7 @@ function ShopPageComponent() {
           .select("*, barber_services(service_id)")
           .eq("user_id", currentShop.id)
           .eq("active", true),
+
         supabase
           .from("products")
           .select("*")
