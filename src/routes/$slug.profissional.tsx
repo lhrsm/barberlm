@@ -69,9 +69,11 @@ function ProfessionalDashboard() {
     today: 0,
     week: 0,
     month: 0,
-    revenue: 0,
-    received: 0,
-    pending: 0
+    revenueMonth: 0,
+    commissionMonth: 0,
+    avgTicket: 0,
+    customerCount: 0,
+    nextAppointment: null as any
   });
 
   useEffect(() => {
