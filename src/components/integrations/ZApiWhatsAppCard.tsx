@@ -53,7 +53,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isSaving, setIsSaving] = useState(false);
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [zapiResponse, setZapiResponse] = useState<any>(null);
-  const [webhookConfig, setWebhookConfig] = useState<any>(null);
   const [integrationLogs, setIntegrationLogs] = useState<any[]>([]);
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<string | null>(null);
@@ -508,12 +507,17 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                     </div>
                   </div>
 
-                  {webhookConfig && (
+                  {instance?.webhook_received_url && (
                     <div className="space-y-2 pt-2 border-t border-white/5">
-                      <p className="text-slate-500 uppercase text-[10px] font-bold">Webhook Configurado (Mensagens Recebidas)</p>
+                      <p className="text-slate-500 uppercase text-[10px] font-bold">Webhook Configurado Localmente (Ao Receber)</p>
                       <div className="bg-black/30 p-2 rounded font-mono text-[10px] break-all border border-white/5">
-                        {webhookConfig.webhookReceived || "Nenhum configurado"}
+                        {instance.webhook_received_url}
                       </div>
+                      {instance.webhook_received_configured_at && (
+                        <p className="text-[9px] text-slate-500 italic">
+                          Configurado em: {new Date(instance.webhook_received_configured_at).toLocaleString()}
+                        </p>
+                      )}
                     </div>
                   )}
 
@@ -622,18 +626,18 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] text-slate-500 uppercase font-bold">URL Webhook "Ao Receber"</Label>
+                <Label className="text-[10px] text-slate-500 uppercase font-bold">URL Webhook "Ao Receber" (Configuração Local)</Label>
                 <div className="bg-black/40 p-2 rounded font-mono text-[10px] break-all border border-white/10 flex justify-between items-center group">
                   <span className="text-blue-300">
-                    {webhookConfig?.webhookReceived || "Não detectado"}
+                    {instance?.webhook_received_url || "Não configurado"}
                   </span>
                   <Button 
                     variant="ghost" 
                     size="icon" 
                     className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => {
-                      if (webhookConfig?.webhookReceived) {
-                        navigator.clipboard.writeText(webhookConfig.webhookReceived);
+                      if (instance?.webhook_received_url) {
+                        navigator.clipboard.writeText(instance.webhook_received_url);
                         toast.success("URL copiada!");
                       }
                     }}
