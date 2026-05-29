@@ -191,8 +191,8 @@ function ProfessionalDashboard() {
 
   return (
     <AppLayout>
-      <div className="space-y-8 pb-12 px-4 md:px-0 bg-white min-h-screen">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-[#D4AF37] shadow-sm">
+      <div className="space-y-8 pb-12 px-4 md:px-0 bg-[#0F1115] min-h-screen">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-[12px] border border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-2 border-[#D4AF37]/20 shadow-sm">
               <AvatarImage src={barber?.avatar_url} />
