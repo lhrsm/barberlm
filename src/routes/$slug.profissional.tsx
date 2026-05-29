@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Calendar, CircleDollarSign, Clock, Users, Scissors, TrendingUp, Edit2, 
-  User as UserIcon, LogOut, RefreshCcw, CheckCircle2, Phone, Mail, UserCheck, X
+  User as UserIcon, LogOut, RefreshCcw, CheckCircle2, Phone, Mail, UserCheck, X,
+  AlertCircle
 } from "lucide-react";
 import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
