@@ -370,6 +370,13 @@ function ProfessionalDashboard() {
                             >
                               <X className="h-4 w-4 mr-2" /> Cancelar
                             </Button>
+                            <Button 
+                              size="sm"
+                              className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] h-11 w-11 p-0 flex items-center justify-center transition-all hover:scale-[1.05]"
+                              onClick={() => toast.info(`Detalhes de ${app.customers?.name}`)}
+                            >
+                              <Eye className="h-4 w-4 text-[#D4AF37]" />
+                            </Button>
                           </>
                         ) : (
                           <Badge className={cn(
