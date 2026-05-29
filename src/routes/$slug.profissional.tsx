@@ -283,22 +283,22 @@ function ProfessionalDashboard() {
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="bg-white p-1 rounded-xl border border-[#D4AF37] mb-6 flex overflow-x-auto h-auto">
+          <TabsList className="bg-transparent p-0 gap-3 mb-8 flex overflow-x-auto h-auto">
             <TabsTrigger 
               value="appointments" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-[#111827] rounded-lg py-2.5 transition-all"
+              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] bg-white text-black border border-[#D4AF37] rounded-[10px] py-3.5 transition-all hover:bg-[#D4AF37]/5 font-bold"
             >
               <Calendar className="h-4 w-4" /> Agenda
             </TabsTrigger>
             <TabsTrigger 
               value="history" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-[#111827] rounded-lg py-2.5 transition-all"
+              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] bg-white text-black border border-[#D4AF37] rounded-[10px] py-3.5 transition-all hover:bg-[#D4AF37]/5 font-bold"
             >
               <TrendingUp className="h-4 w-4" /> Histórico
             </TabsTrigger>
             <TabsTrigger 
               value="profile" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-[#111827] rounded-lg py-2.5 transition-all"
+              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] bg-white text-black border border-[#D4AF37] rounded-[10px] py-3.5 transition-all hover:bg-[#D4AF37]/5 font-bold"
             >
               <UserIcon className="h-4 w-4" /> Perfil
             </TabsTrigger>
@@ -307,63 +307,63 @@ function ProfessionalDashboard() {
           <TabsContent value="appointments" className="mt-0 space-y-4">
             <div className="grid gap-4">
               {appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).length === 0 ? (
-                <Card className="border-dashed border-[#D4AF37]/50 py-12 text-center bg-white rounded-2xl">
+                <Card className="border-dashed border-[#D4AF37]/50 py-16 text-center bg-white rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
                   <CardContent className="flex flex-col items-center">
-                    <Calendar className="h-12 w-12 text-[#D4AF37] opacity-30 mb-4" />
-                    <p className="text-[#6B7280]">Nenhum atendimento para hoje.</p>
+                    <Calendar className="h-16 w-16 text-[#D4AF37] opacity-20 mb-4" />
+                    <p className="text-[#6B7280] font-medium">Nenhum atendimento para hoje.</p>
                   </CardContent>
                 </Card>
               ) : (
                 appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).map(app => (
-                  <Card key={app.id} className="overflow-hidden bg-white border-[#D4AF37] shadow-sm rounded-2xl">
+                  <Card key={app.id} className="overflow-hidden bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px]">
                     <div className="flex flex-col md:flex-row md:items-center">
-                      <div className="w-full md:w-32 bg-[#D4AF37]/10 p-4 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#D4AF37]/20">
-                        <span className="text-2xl font-black text-[#111827]">{format(new Date(app.start_time), "HH:mm")}</span>
-                        <span className="text-[10px] uppercase font-bold text-[#D4AF37]">Hoje</span>
+                      <div className="w-full md:w-32 bg-[#D4AF37]/5 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#D4AF37]/20">
+                        <span className="text-3xl font-black text-[#111827]">{format(new Date(app.start_time), "HH:mm")}</span>
+                        <span className="text-[10px] uppercase font-black text-[#D4AF37] tracking-wider mt-1">Hoje</span>
                       </div>
-                      <div className="flex-1 p-4 flex items-center gap-4">
-                        <Avatar className="h-10 w-10 border border-[#D4AF37]/10">
+                      <div className="flex-1 p-6 flex items-center gap-4">
+                        <Avatar className="h-12 w-12 border border-[#D4AF37]/10 shadow-sm">
                           <AvatarImage src={app.customers?.avatar_url} />
-                          <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37]">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37] font-bold">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold truncate text-[#111827]">{app.customers?.name || "Cliente"}</h4>
-                          <p className="text-xs text-[#6B7280] flex items-center gap-1">
-                            <Scissors size={12} className="text-[#D4AF37]" /> {app.services?.name}
+                          <h4 className="font-bold text-lg truncate text-[#111827]">{app.customers?.name || "Cliente"}</h4>
+                          <p className="text-sm text-[#6B7280] flex items-center gap-2 font-medium">
+                            <Scissors size={14} className="text-[#D4AF37]" /> {app.services?.name}
                           </p>
                         </div>
-                        <div className="text-right flex flex-col items-end gap-1">
+                        <div className="text-right flex flex-col items-end gap-2">
                           <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'} className={cn(
-                            "text-[10px] font-bold",
-                            app.payment_status === 'paid' ? "bg-green-600 text-white" : "text-[#D4AF37] border-[#D4AF37] bg-white"
+                            "text-[10px] font-black px-2 py-0.5",
+                            app.payment_status === 'paid' ? "bg-green-600 text-white border-transparent" : "text-[#D4AF37] border-[#D4AF37] bg-white"
                           )}>
                             {app.payment_status === 'paid' ? 'PAGO' : 'PENDENTE'}
                           </Badge>
-                          <span className="font-bold text-sm text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
+                          <span className="font-black text-lg text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
                         </div>
                       </div>
-                      <div className="p-4 bg-gray-50 flex items-center gap-2 border-t md:border-t-0 md:border-l border-[#D4AF37]/10">
+                      <div className="p-6 bg-gray-50/50 flex items-center gap-3 border-t md:border-t-0 md:border-l border-[#D4AF37]/10">
                         {app.status === 'scheduled' || app.status === 'confirmed' ? (
                           <>
                             <Button 
                               size="sm" 
                               onClick={() => handleAction(app, 'completed')} 
-                              className="bg-[#D4AF37] hover:bg-[#B8962E] text-black font-bold flex-1"
+                              className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-11 transition-all hover:scale-[1.02] active:scale-[0.98] flex-1"
                             >
-                              <CheckCircle2 className="h-4 w-4 mr-1" /> Concluir
+                              <CheckCircle2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Concluir
                             </Button>
                             <Button 
                               size="sm" 
                               variant="outline" 
                               onClick={() => { setSelectedAppointment(app); setShowCancelDialog(true); }} 
-                              className="border-red-200 text-red-500 hover:bg-red-50 flex-1"
+                              className="bg-white hover:bg-red-50 text-red-500 border-red-200 rounded-[10px] font-bold px-4 h-11 flex-1"
                             >
-                              <X className="h-4 w-4 mr-1" /> Cancelar
+                              <X className="h-4 w-4 mr-2" /> Cancelar
                             </Button>
                           </>
                         ) : (
                           <Badge className={cn(
-                            "w-full justify-center py-1 font-bold",
+                            "w-full justify-center py-2 font-black rounded-[8px]",
                             app.status === 'completed' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                           )}>
                             {app.status === 'completed' ? 'CONCLUÍDO' : 'CANCELADO'}
