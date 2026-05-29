@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Calendar, CircleDollarSign, Clock, Users, Scissors, TrendingUp, Edit2, 
-  User as UserIcon, LogOut, RefreshCcw, CheckCircle2, Phone, Mail, UserCheck, X
+  User as UserIcon, LogOut, RefreshCcw, CheckCircle2, Phone, Mail, UserCheck, X,
+  AlertCircle
 } from "lucide-react";
 import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -129,31 +130,34 @@ function ProfessionalDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-black gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="text-muted-foreground text-sm animate-pulse">Carregando painel do profissional...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+        <p className="text-[#6B7280] text-sm animate-pulse font-medium">Carregando painel do profissional...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black p-4">
-        <Card className="max-w-md w-full border-red-500/50 bg-red-500/5 shadow-2xl">
-          <CardHeader>
-            <div className="flex items-center gap-2 text-red-500 mb-2">
-              <X className="h-6 w-6" />
+      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+        <Card className="max-w-md w-full border-red-200 bg-white shadow-2xl rounded-2xl overflow-hidden">
+          <CardHeader className="bg-red-50/50 border-b border-red-100">
+            <div className="flex items-center gap-2 text-red-600 mb-2">
+              <AlertCircle className="h-6 w-6" />
               <CardTitle>Erro no Painel</CardTitle>
             </div>
-            <CardDescription className="text-red-400/80">
+            <CardDescription className="text-red-500/80">
               Ocorreu um problema ao carregar as informações do seu painel.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-black/40 p-3 rounded-lg border border-red-500/20 text-xs font-mono text-red-300 break-words">
+          <CardContent className="space-y-4 pt-6">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs font-mono text-gray-600 break-words leading-relaxed">
               {error}
             </div>
-            <Button className="w-full bg-red-600 hover:bg-red-700 text-white" onClick={() => window.location.reload()}>
+            <Button 
+              className="w-full bg-[#D4AF37] hover:bg-[#B8962E] text-black font-bold h-11" 
+              onClick={() => window.location.reload()}
+            >
               <RefreshCcw className="h-4 w-4 mr-2" /> Tentar Novamente
             </Button>
           </CardContent>
@@ -164,9 +168,9 @@ function ProfessionalDashboard() {
 
   if (!stats && !error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-black gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="text-muted-foreground text-sm">Sincronizando dados...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+        <p className="text-[#6B7280] text-sm font-medium">Sincronizando dados...</p>
       </div>
     );
   }
@@ -187,78 +191,91 @@ function ProfessionalDashboard() {
 
   return (
     <AppLayout>
-      <div className="space-y-8 pb-12 px-4 md:px-0">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card p-6 rounded-2xl border shadow-sm">
+      <div className="space-y-8 pb-12 px-4 md:px-0 bg-white min-h-screen">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-[#D4AF37] shadow-sm">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-primary/10 shadow-sm">
+            <Avatar className="h-16 w-16 border-2 border-[#D4AF37]/20 shadow-sm">
               <AvatarImage src={barber?.avatar_url} />
-              <AvatarFallback>{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold">Olá, {session.name} 👋</h1>
+              <h1 className="text-2xl font-bold text-[#111827]">Olá, {session.name} 👋</h1>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className={cn(barber?.active ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50")}>
+                <Badge variant="outline" className={cn(
+                  "border-[#D4AF37]/30",
+                  barber?.active ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
+                )}>
                   {barber?.active ? "Disponível" : "Indisponível"}
                 </Badge>
-                <span className="text-xs text-muted-foreground">{barber?.category || "Profissional"}</span>
+                <span className="text-xs text-[#6B7280]">{barber?.category || "Profissional"}</span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <ProfessionalNotifications barberId={session.barber_id} />
-            <Button variant="outline" size="icon" onClick={fetchData} className="h-10 w-10 rounded-full border-primary/20 hover:bg-primary/5">
-              <RefreshCcw className="h-5 w-5 text-primary" />
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={fetchData} 
+              className="h-10 w-10 rounded-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10"
+            >
+              <RefreshCcw className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={logout} className="text-destructive hover:bg-destructive/10">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={logout} 
+              className="text-red-500 hover:bg-red-50"
+            >
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border shadow-sm">
+          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Hoje</CardTitle>
-              <Users className="h-4 w-4 text-blue-500" />
+              <CardTitle className="text-sm font-medium text-[#111827]">Hoje</CardTitle>
+              <Users className="h-4 w-4 text-[#D4AF37]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.today}</div>
-              <p className="text-xs text-muted-foreground mt-1">{stats.week} na semana</p>
+              <div className="text-2xl font-bold text-[#111827]">{stats.today}</div>
+              <p className="text-xs text-[#6B7280] mt-1">{stats.week} na semana</p>
             </CardContent>
           </Card>
 
-          <Card className="border shadow-sm">
+          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Faturamento Mês</CardTitle>
-              <CircleDollarSign className="h-4 w-4 text-emerald-500" />
+              <CardTitle className="text-sm font-medium text-[#111827]">Faturamento Mês</CardTitle>
+              <CircleDollarSign className="h-4 w-4 text-[#D4AF37]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ {stats.revenueMonth.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">Ticket: R$ {stats.avgTicket.toFixed(2)}</p>
+              <div className="text-2xl font-bold text-[#111827]">R$ {stats.revenueMonth.toFixed(2)}</div>
+              <p className="text-xs text-[#6B7280] mt-1">Ticket: R$ {stats.avgTicket.toFixed(2)}</p>
             </CardContent>
           </Card>
 
-          <Card className="border shadow-sm">
+          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Cancelamentos</CardTitle>
+              <CardTitle className="text-sm font-medium text-[#111827]">Cancelamentos</CardTitle>
               <X className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.cancelledMonth}</div>
-              <p className="text-xs text-muted-foreground mt-1">No mês atual</p>
+              <div className="text-2xl font-bold text-[#111827]">{stats.cancelledMonth}</div>
+              <p className="text-xs text-[#6B7280] mt-1">No mês atual</p>
             </CardContent>
           </Card>
 
-          <Card className="border shadow-sm">
+          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Próximo</CardTitle>
-              <Clock className="h-4 w-4 text-amber-500" />
+              <CardTitle className="text-sm font-medium text-[#111827]">Próximo</CardTitle>
+              <Clock className="h-4 w-4 text-[#D4AF37]" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold truncate">
+              <div className="text-lg font-bold truncate text-[#111827]">
                 {stats.nextApp ? format(new Date(stats.nextApp.start_time), "HH:mm") : "---"}
               </div>
-              <p className="text-xs text-muted-foreground mt-1 truncate">
+              <p className="text-xs text-[#6B7280] mt-1 truncate">
                 {stats.nextApp ? `Com ${stats.nextApp.customers?.name || 'Cliente'}` : "Sem agendamentos"}
               </p>
             </CardContent>
@@ -266,69 +283,87 @@ function ProfessionalDashboard() {
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="bg-muted/50 p-1 rounded-xl">
-            <TabsTrigger value="appointments" className="gap-2">
+          <TabsList className="bg-white p-1 rounded-xl border border-[#D4AF37] mb-6 flex overflow-x-auto h-auto">
+            <TabsTrigger 
+              value="appointments" 
+              className="gap-2 flex-1 data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-[#111827] rounded-lg py-2.5 transition-all"
+            >
               <Calendar className="h-4 w-4" /> Agenda
             </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2">
+            <TabsTrigger 
+              value="history" 
+              className="gap-2 flex-1 data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-[#111827] rounded-lg py-2.5 transition-all"
+            >
               <TrendingUp className="h-4 w-4" /> Histórico
             </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2">
+            <TabsTrigger 
+              value="profile" 
+              className="gap-2 flex-1 data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-[#111827] rounded-lg py-2.5 transition-all"
+            >
               <UserIcon className="h-4 w-4" /> Perfil
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="appointments" className="mt-6 space-y-4">
+          <TabsContent value="appointments" className="mt-0 space-y-4">
             <div className="grid gap-4">
               {appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).length === 0 ? (
-                <Card className="border-dashed py-12 text-center bg-muted/5">
+                <Card className="border-dashed border-[#D4AF37]/50 py-12 text-center bg-white rounded-2xl">
                   <CardContent className="flex flex-col items-center">
-                    <Calendar className="h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-                    <p className="text-muted-foreground">Nenhum atendimento para hoje.</p>
+                    <Calendar className="h-12 w-12 text-[#D4AF37] opacity-30 mb-4" />
+                    <p className="text-[#6B7280]">Nenhum atendimento para hoje.</p>
                   </CardContent>
                 </Card>
               ) : (
                 appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).map(app => (
-                  <Card key={app.id} className="overflow-hidden border shadow-sm">
+                  <Card key={app.id} className="overflow-hidden bg-white border-[#D4AF37] shadow-sm rounded-2xl">
                     <div className="flex flex-col md:flex-row md:items-center">
-                      <div className="w-full md:w-32 bg-muted/30 p-4 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r">
-                        <span className="text-2xl font-black text-primary">{format(new Date(app.start_time), "HH:mm")}</span>
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground">Hoje</span>
+                      <div className="w-full md:w-32 bg-[#D4AF37]/10 p-4 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#D4AF37]/20">
+                        <span className="text-2xl font-black text-[#111827]">{format(new Date(app.start_time), "HH:mm")}</span>
+                        <span className="text-[10px] uppercase font-bold text-[#D4AF37]">Hoje</span>
                       </div>
                       <div className="flex-1 p-4 flex items-center gap-4">
-                        <Avatar className="h-10 w-10">
+                        <Avatar className="h-10 w-10 border border-[#D4AF37]/10">
                           <AvatarImage src={app.customers?.avatar_url} />
-                          <AvatarFallback>{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37]">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold truncate">{app.customers?.name || "Cliente"}</h4>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Scissors size={12} /> {app.services?.name}
+                          <h4 className="font-bold truncate text-[#111827]">{app.customers?.name || "Cliente"}</h4>
+                          <p className="text-xs text-[#6B7280] flex items-center gap-1">
+                            <Scissors size={12} className="text-[#D4AF37]" /> {app.services?.name}
                           </p>
                         </div>
                         <div className="text-right flex flex-col items-end gap-1">
                           <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'} className={cn(
-                            "text-[10px]",
-                            app.payment_status === 'paid' ? "bg-green-600" : "text-amber-600 bg-amber-50"
+                            "text-[10px] font-bold",
+                            app.payment_status === 'paid' ? "bg-green-600 text-white" : "text-[#D4AF37] border-[#D4AF37] bg-white"
                           )}>
                             {app.payment_status === 'paid' ? 'PAGO' : 'PENDENTE'}
                           </Badge>
-                          <span className="font-bold text-sm">R$ {Number(app.total_price || 0).toFixed(2)}</span>
+                          <span className="font-bold text-sm text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
                         </div>
                       </div>
-                      <div className="p-4 bg-muted/10 flex items-center gap-2 border-t md:border-t-0 md:border-l">
+                      <div className="p-4 bg-gray-50 flex items-center gap-2 border-t md:border-t-0 md:border-l border-[#D4AF37]/10">
                         {app.status === 'scheduled' || app.status === 'confirmed' ? (
                           <>
-                            <Button size="sm" onClick={() => handleAction(app, 'completed')} className="bg-primary hover:bg-primary/90 flex-1">
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleAction(app, 'completed')} 
+                              className="bg-[#D4AF37] hover:bg-[#B8962E] text-black font-bold flex-1"
+                            >
                               <CheckCircle2 className="h-4 w-4 mr-1" /> Concluir
                             </Button>
-                            <Button size="sm" variant="outline" onClick={() => { setSelectedAppointment(app); setShowCancelDialog(true); }} className="text-destructive hover:bg-destructive/5 flex-1">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => { setSelectedAppointment(app); setShowCancelDialog(true); }} 
+                              className="border-red-200 text-red-500 hover:bg-red-50 flex-1"
+                            >
                               <X className="h-4 w-4 mr-1" /> Cancelar
                             </Button>
                           </>
                         ) : (
                           <Badge className={cn(
-                            "w-full justify-center py-1",
+                            "w-full justify-center py-1 font-bold",
                             app.status === 'completed' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                           )}>
                             {app.status === 'completed' ? 'CONCLUÍDO' : 'CANCELADO'}
@@ -342,34 +377,34 @@ function ProfessionalDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="history" className="mt-6 space-y-4">
-            <Card className="border shadow-sm">
-              <CardHeader>
-                <CardTitle>Histórico de Atendimentos</CardTitle>
-                <CardDescription>Lista completa dos seus serviços prestados.</CardDescription>
+          <TabsContent value="history" className="mt-0 space-y-4">
+            <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl overflow-hidden">
+              <CardHeader className="border-b border-[#D4AF37]/10">
+                <CardTitle className="text-[#111827]">Histórico de Atendimentos</CardTitle>
+                <CardDescription className="text-[#6B7280]">Lista completa dos seus serviços prestados.</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="divide-y">
+                <div className="divide-y divide-[#D4AF37]/10">
                   {appointments.length === 0 ? (
-                    <div className="py-12 text-center text-muted-foreground italic">Nenhum atendimento registrado.</div>
+                    <div className="py-12 text-center text-[#6B7280] italic">Nenhum atendimento registrado.</div>
                   ) : (
                     appointments.map(app => (
-                      <div key={app.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-muted/20 transition-colors">
+                      <div key={app.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-[#D4AF37]/5 transition-colors">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-muted flex flex-col items-center justify-center text-center">
-                            <span className="text-xs font-bold leading-none">{format(new Date(app.start_time), "dd")}</span>
-                            <span className="text-[10px] uppercase text-muted-foreground">{format(new Date(app.start_time), "MMM", { locale: ptBR })}</span>
+                          <div className="w-12 h-12 rounded-xl bg-[#D4AF37]/10 flex flex-col items-center justify-center text-center border border-[#D4AF37]/20">
+                            <span className="text-xs font-bold leading-none text-[#111827]">{format(new Date(app.start_time), "dd")}</span>
+                            <span className="text-[10px] uppercase text-[#D4AF37] font-bold">{format(new Date(app.start_time), "MMM", { locale: ptBR })}</span>
                           </div>
                           <div>
-                            <p className="font-bold text-sm">{app.customers?.name || "Cliente"}</p>
-                            <p className="text-xs text-muted-foreground">{app.services?.name} • {format(new Date(app.start_time), "HH:mm")}</p>
+                            <p className="font-bold text-sm text-[#111827]">{app.customers?.name || "Cliente"}</p>
+                            <p className="text-xs text-[#6B7280]">{app.services?.name} • {format(new Date(app.start_time), "HH:mm")}</p>
                           </div>
                         </div>
                         <div className="flex items-center justify-between md:justify-end gap-6">
                           <div className="text-right">
-                            <p className="text-sm font-bold">R$ {Number(app.total_price || 0).toFixed(2)}</p>
+                            <p className="text-sm font-bold text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</p>
                             <Badge className={cn(
-                              "text-[10px]",
+                              "text-[10px] font-bold",
                               app.status === 'completed' ? "bg-green-100 text-green-700" :
                               app.status === 'cancelled' ? "bg-red-100 text-red-700" :
                               "bg-blue-100 text-blue-700"
@@ -387,38 +422,43 @@ function ProfessionalDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="profile" className="mt-6">
+          <TabsContent value="profile" className="mt-0">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card className="border shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Perfil Profissional</CardTitle>
-                  <Button size="sm" variant="outline" onClick={() => setShowEditProfile(true)}>
-                    <Edit2 className="h-4 w-4 mr-2" /> Editar Perfil
+              <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10">
+                  <CardTitle className="text-[#111827]">Perfil Profissional</CardTitle>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setShowEditProfile(true)}
+                    className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" /> Editar
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 pt-6">
                   <div className="flex flex-col items-center gap-4 py-4">
-                    <Avatar className="h-24 w-24 border-4 border-primary/10">
+                    <Avatar className="h-24 w-24 border-4 border-[#D4AF37]/20 shadow-lg">
                       <AvatarImage src={barber?.avatar_url} />
-                      <AvatarFallback className="text-3xl">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback className="text-3xl bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="text-center">
-                      <h3 className="text-xl font-bold">{barber?.name}</h3>
-                      <p className="text-sm text-muted-foreground">{barber?.category || "Profissional"}</p>
+                      <h3 className="text-xl font-bold text-[#111827]">{barber?.name}</h3>
+                      <p className="text-sm text-[#D4AF37] font-medium">{barber?.category || "Profissional"}</p>
                     </div>
                   </div>
-                  <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-4 pt-4 border-t border-[#D4AF37]/10">
                     <div className="space-y-1">
-                      <p className="text-xs font-bold uppercase text-muted-foreground">Bio / Descrição</p>
-                      <p className="text-sm">{barber?.bio || "Sem descrição informada."}</p>
+                      <p className="text-xs font-bold uppercase text-[#D4AF37]">Bio / Descrição</p>
+                      <p className="text-sm text-[#111827] leading-relaxed">{barber?.bio || "Sem descrição informada."}</p>
                     </div>
-                    <div className="grid gap-2">
-                      <div className="flex items-center gap-3 text-sm">
-                        <Phone className="h-4 w-4 text-primary" />
+                    <div className="grid gap-3">
+                      <div className="flex items-center gap-3 text-sm text-[#111827] bg-[#D4AF37]/5 p-2 rounded-lg">
+                        <Phone className="h-4 w-4 text-[#D4AF37]" />
                         <span>{barber?.phone || "Não informado"}</span>
                       </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <Mail className="h-4 w-4 text-primary" />
+                      <div className="flex items-center gap-3 text-sm text-[#111827] bg-[#D4AF37]/5 p-2 rounded-lg">
+                        <Mail className="h-4 w-4 text-[#D4AF37]" />
                         <span>{barber?.email || "Não informado"}</span>
                       </div>
                     </div>
@@ -426,14 +466,19 @@ function ProfessionalDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="border shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Horários</CardTitle>
-                  <Button size="sm" variant="outline" onClick={() => setShowEditSchedule(true)}>
-                    <Edit2 className="h-4 w-4 mr-2" /> Editar Horários
+              <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10">
+                  <CardTitle className="text-[#111827]">Horários</CardTitle>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setShowEditSchedule(true)}
+                    className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" /> Ajustar
                   </Button>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="space-y-3">
                     {barber?.working_hours ? (
                       sortedDays.map(dayKey => {
@@ -441,18 +486,18 @@ function ProfessionalDashboard() {
                         if (!config) return null;
                         return (
                           <div key={dayKey} className={cn(
-                            "flex items-center justify-between p-3 rounded-xl border transition-colors",
-                            config.enabled ? "bg-primary/5 border-primary/10" : "bg-muted/20 border-transparent opacity-50"
+                            "flex items-center justify-between p-3 rounded-xl border transition-all",
+                            config.enabled ? "bg-white border-[#D4AF37]/30 shadow-sm" : "bg-gray-50 border-transparent opacity-40"
                           )}>
-                            <span className="text-sm font-bold">{dayNames[dayKey]}</span>
-                            <div className="flex items-center gap-2 text-xs font-mono bg-card px-3 py-1 rounded-full border shadow-sm">
+                            <span className="text-sm font-bold text-[#111827]">{dayNames[dayKey]}</span>
+                            <div className="flex items-center gap-2 text-xs font-bold bg-[#D4AF37]/10 text-[#D4AF37] px-3 py-1 rounded-full border border-[#D4AF37]/20">
                               {config.enabled ? `${config.start} - ${config.end}` : "Fechado"}
                             </div>
                           </div>
                         );
                       })
                     ) : (
-                      <p className="text-center text-muted-foreground py-12">Nenhum horário cadastrado.</p>
+                      <p className="text-center text-[#6B7280] py-12">Nenhum horário cadastrado.</p>
                     )}
                   </div>
                 </CardContent>
