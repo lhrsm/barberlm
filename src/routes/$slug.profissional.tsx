@@ -129,31 +129,34 @@ function ProfessionalDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-black gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="text-muted-foreground text-sm animate-pulse">Carregando painel do profissional...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+        <p className="text-[#6B7280] text-sm animate-pulse font-medium">Carregando painel do profissional...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black p-4">
-        <Card className="max-w-md w-full border-red-500/50 bg-red-500/5 shadow-2xl">
-          <CardHeader>
-            <div className="flex items-center gap-2 text-red-500 mb-2">
-              <X className="h-6 w-6" />
+      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+        <Card className="max-w-md w-full border-red-200 bg-white shadow-2xl rounded-2xl overflow-hidden">
+          <CardHeader className="bg-red-50/50 border-b border-red-100">
+            <div className="flex items-center gap-2 text-red-600 mb-2">
+              <AlertCircle className="h-6 w-6" />
               <CardTitle>Erro no Painel</CardTitle>
             </div>
-            <CardDescription className="text-red-400/80">
+            <CardDescription className="text-red-500/80">
               Ocorreu um problema ao carregar as informações do seu painel.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-black/40 p-3 rounded-lg border border-red-500/20 text-xs font-mono text-red-300 break-words">
+          <CardContent className="space-y-4 pt-6">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs font-mono text-gray-600 break-words leading-relaxed">
               {error}
             </div>
-            <Button className="w-full bg-red-600 hover:bg-red-700 text-white" onClick={() => window.location.reload()}>
+            <Button 
+              className="w-full bg-[#D4AF37] hover:bg-[#B8962E] text-black font-bold h-11" 
+              onClick={() => window.location.reload()}
+            >
               <RefreshCcw className="h-4 w-4 mr-2" /> Tentar Novamente
             </Button>
           </CardContent>
@@ -164,9 +167,9 @@ function ProfessionalDashboard() {
 
   if (!stats && !error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-black gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="text-muted-foreground text-sm">Sincronizando dados...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
+        <p className="text-[#6B7280] text-sm font-medium">Sincronizando dados...</p>
       </div>
     );
   }
