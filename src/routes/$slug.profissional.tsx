@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   Calendar, CircleDollarSign, Clock, Users, Scissors, TrendingUp, Edit2, 
   User as UserIcon, LogOut, RefreshCcw, CheckCircle2, Phone, Mail, UserCheck, X,
-  AlertCircle
+  AlertCircle, Eye, ChevronLeft, ChevronRight, Filter
 } from "lucide-react";
 import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -191,8 +191,8 @@ function ProfessionalDashboard() {
 
   return (
     <AppLayout>
-      <div className="space-y-8 pb-12 px-4 md:px-0 bg-white min-h-screen">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-[#D4AF37] shadow-sm">
+      <div className="space-y-8 pb-12 px-4 md:px-0 bg-[#0F1115] min-h-screen">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-[12px] border border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-2 border-[#D4AF37]/20 shadow-sm">
               <AvatarImage src={barber?.avatar_url} />
@@ -225,7 +225,7 @@ function ProfessionalDashboard() {
               variant="ghost" 
               size="sm" 
               onClick={logout} 
-              className="text-red-500 hover:bg-red-50"
+              className="text-red-500 hover:bg-red-50 rounded-[10px]"
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -233,49 +233,49 @@ function ProfessionalDashboard() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
+          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-[#111827]">Hoje</CardTitle>
+              <CardTitle className="text-sm font-bold text-[#111827]">Hoje</CardTitle>
               <Users className="h-4 w-4 text-[#D4AF37]" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#111827]">{stats.today}</div>
-              <p className="text-xs text-[#6B7280] mt-1">{stats.week} na semana</p>
+              <p className="text-xs text-[#6B7280] mt-1 font-medium">{stats.week} na semana</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
+          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-[#111827]">Faturamento Mês</CardTitle>
+              <CardTitle className="text-sm font-bold text-[#111827]">Faturamento Mês</CardTitle>
               <CircleDollarSign className="h-4 w-4 text-[#D4AF37]" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#111827]">R$ {stats.revenueMonth.toFixed(2)}</div>
-              <p className="text-xs text-[#6B7280] mt-1">Ticket: R$ {stats.avgTicket.toFixed(2)}</p>
+              <p className="text-xs text-[#6B7280] mt-1 font-medium">Ticket: R$ {stats.avgTicket.toFixed(2)}</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
+          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-[#111827]">Cancelamentos</CardTitle>
+              <CardTitle className="text-sm font-bold text-[#111827]">Cancelamentos</CardTitle>
               <X className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#111827]">{stats.cancelledMonth}</div>
-              <p className="text-xs text-[#6B7280] mt-1">No mês atual</p>
+              <p className="text-xs text-[#6B7280] mt-1 font-medium">No mês atual</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
+          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-[#111827]">Próximo</CardTitle>
+              <CardTitle className="text-sm font-bold text-[#111827]">Próximo</CardTitle>
               <Clock className="h-4 w-4 text-[#D4AF37]" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold truncate text-[#111827]">
                 {stats.nextApp ? format(new Date(stats.nextApp.start_time), "HH:mm") : "---"}
               </div>
-              <p className="text-xs text-[#6B7280] mt-1 truncate">
+              <p className="text-xs text-[#6B7280] mt-1 truncate font-medium">
                 {stats.nextApp ? `Com ${stats.nextApp.customers?.name || 'Cliente'}` : "Sem agendamentos"}
               </p>
             </CardContent>
@@ -283,87 +283,104 @@ function ProfessionalDashboard() {
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="bg-white p-1 rounded-xl border border-[#D4AF37] mb-6 flex overflow-x-auto h-auto">
+          <TabsList className="bg-transparent p-0 gap-3 mb-8 flex overflow-x-auto h-auto">
             <TabsTrigger 
               value="appointments" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-[#111827] rounded-lg py-2.5 transition-all"
+              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] bg-white text-black border border-[#D4AF37] rounded-[10px] py-3.5 transition-all hover:bg-[#D4AF37]/5 font-bold"
             >
               <Calendar className="h-4 w-4" /> Agenda
             </TabsTrigger>
             <TabsTrigger 
               value="history" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-[#111827] rounded-lg py-2.5 transition-all"
+              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] bg-white text-black border border-[#D4AF37] rounded-[10px] py-3.5 transition-all hover:bg-[#D4AF37]/5 font-bold"
             >
               <TrendingUp className="h-4 w-4" /> Histórico
             </TabsTrigger>
             <TabsTrigger 
               value="profile" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-[#111827] rounded-lg py-2.5 transition-all"
+              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] bg-white text-black border border-[#D4AF37] rounded-[10px] py-3.5 transition-all hover:bg-[#D4AF37]/5 font-bold"
             >
               <UserIcon className="h-4 w-4" /> Perfil
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="appointments" className="mt-0 space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-[#D4AF37] font-black uppercase text-xs tracking-[0.2em]">Agendamentos de Hoje</h2>
+              <Button 
+                size="sm"
+                className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-black px-4 h-9 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                onClick={() => toast.info("Funcionalidade de novo agendamento disponível em breve no painel do profissional.")}
+              >
+                <Calendar className="h-4 w-4 mr-2 text-[#D4AF37]" /> Novo Agendamento
+              </Button>
+            </div>
             <div className="grid gap-4">
               {appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).length === 0 ? (
-                <Card className="border-dashed border-[#D4AF37]/50 py-12 text-center bg-white rounded-2xl">
+                <Card className="border-dashed border-[#D4AF37]/50 py-16 text-center bg-white rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
                   <CardContent className="flex flex-col items-center">
-                    <Calendar className="h-12 w-12 text-[#D4AF37] opacity-30 mb-4" />
-                    <p className="text-[#6B7280]">Nenhum atendimento para hoje.</p>
+                    <Calendar className="h-16 w-16 text-[#D4AF37] opacity-20 mb-4" />
+                    <p className="text-[#6B7280] font-medium">Nenhum atendimento para hoje.</p>
                   </CardContent>
                 </Card>
               ) : (
                 appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).map(app => (
-                  <Card key={app.id} className="overflow-hidden bg-white border-[#D4AF37] shadow-sm rounded-2xl">
+                  <Card key={app.id} className="overflow-hidden bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px]">
                     <div className="flex flex-col md:flex-row md:items-center">
-                      <div className="w-full md:w-32 bg-[#D4AF37]/10 p-4 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#D4AF37]/20">
-                        <span className="text-2xl font-black text-[#111827]">{format(new Date(app.start_time), "HH:mm")}</span>
-                        <span className="text-[10px] uppercase font-bold text-[#D4AF37]">Hoje</span>
+                      <div className="w-full md:w-32 bg-[#D4AF37]/5 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#D4AF37]/20">
+                        <span className="text-3xl font-black text-[#111827]">{format(new Date(app.start_time), "HH:mm")}</span>
+                        <span className="text-[10px] uppercase font-black text-[#D4AF37] tracking-wider mt-1">Hoje</span>
                       </div>
-                      <div className="flex-1 p-4 flex items-center gap-4">
-                        <Avatar className="h-10 w-10 border border-[#D4AF37]/10">
+                      <div className="flex-1 p-6 flex items-center gap-4">
+                        <Avatar className="h-12 w-12 border border-[#D4AF37]/10 shadow-sm">
                           <AvatarImage src={app.customers?.avatar_url} />
-                          <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37]">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37] font-bold">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold truncate text-[#111827]">{app.customers?.name || "Cliente"}</h4>
-                          <p className="text-xs text-[#6B7280] flex items-center gap-1">
-                            <Scissors size={12} className="text-[#D4AF37]" /> {app.services?.name}
+                          <h4 className="font-bold text-lg truncate text-[#111827]">{app.customers?.name || "Cliente"}</h4>
+                          <p className="text-sm text-[#6B7280] flex items-center gap-2 font-medium">
+                            <Scissors size={14} className="text-[#D4AF37]" /> {app.services?.name}
                           </p>
                         </div>
-                        <div className="text-right flex flex-col items-end gap-1">
+                        <div className="text-right flex flex-col items-end gap-2">
                           <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'} className={cn(
-                            "text-[10px] font-bold",
-                            app.payment_status === 'paid' ? "bg-green-600 text-white" : "text-[#D4AF37] border-[#D4AF37] bg-white"
+                            "text-[10px] font-black px-2 py-0.5",
+                            app.payment_status === 'paid' ? "bg-green-600 text-white border-transparent" : "text-[#D4AF37] border-[#D4AF37] bg-white"
                           )}>
                             {app.payment_status === 'paid' ? 'PAGO' : 'PENDENTE'}
                           </Badge>
-                          <span className="font-bold text-sm text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
+                          <span className="font-black text-lg text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
                         </div>
                       </div>
-                      <div className="p-4 bg-gray-50 flex items-center gap-2 border-t md:border-t-0 md:border-l border-[#D4AF37]/10">
+                      <div className="p-6 bg-gray-50/50 flex items-center gap-3 border-t md:border-t-0 md:border-l border-[#D4AF37]/10">
                         {app.status === 'scheduled' || app.status === 'confirmed' ? (
                           <>
                             <Button 
                               size="sm" 
                               onClick={() => handleAction(app, 'completed')} 
-                              className="bg-[#D4AF37] hover:bg-[#B8962E] text-black font-bold flex-1"
+                              className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-11 transition-all hover:scale-[1.02] active:scale-[0.98] flex-1"
                             >
-                              <CheckCircle2 className="h-4 w-4 mr-1" /> Concluir
+                              <CheckCircle2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Concluir
                             </Button>
                             <Button 
                               size="sm" 
                               variant="outline" 
                               onClick={() => { setSelectedAppointment(app); setShowCancelDialog(true); }} 
-                              className="border-red-200 text-red-500 hover:bg-red-50 flex-1"
+                              className="bg-white hover:bg-red-50 text-red-500 border-red-200 rounded-[10px] font-bold px-4 h-11 flex-1"
                             >
-                              <X className="h-4 w-4 mr-1" /> Cancelar
+                              <X className="h-4 w-4 mr-2" /> Cancelar
+                            </Button>
+                            <Button 
+                              size="sm"
+                              className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] h-11 w-11 p-0 flex items-center justify-center transition-all hover:scale-[1.05]"
+                              onClick={() => toast.info(`Detalhes de ${app.customers?.name}`)}
+                            >
+                              <Eye className="h-4 w-4 text-[#D4AF37]" />
                             </Button>
                           </>
                         ) : (
                           <Badge className={cn(
-                            "w-full justify-center py-1 font-bold",
+                            "w-full justify-center py-2 font-black rounded-[8px]",
                             app.status === 'completed' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                           )}>
                             {app.status === 'completed' ? 'CONCLUÍDO' : 'CANCELADO'}
@@ -378,87 +395,133 @@ function ProfessionalDashboard() {
           </TabsContent>
 
           <TabsContent value="history" className="mt-0 space-y-4">
-            <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl overflow-hidden">
-              <CardHeader className="border-b border-[#D4AF37]/10">
-                <CardTitle className="text-[#111827]">Histórico de Atendimentos</CardTitle>
-                <CardDescription className="text-[#6B7280]">Lista completa dos seus serviços prestados.</CardDescription>
+            <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+              <CardHeader className="border-b border-[#D4AF37]/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="text-xl font-bold text-[#111827]">Histórico de Atendimentos</CardTitle>
+                  <CardDescription className="text-[#6B7280] font-medium">Lista completa dos seus serviços prestados.</CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="bg-[#111111] text-white border-[#D4AF37] rounded-[8px] h-9 px-4 font-bold transition-all hover:scale-[1.02]">Tudo</Button>
+                  <Button variant="outline" size="sm" className="bg-white text-black border-[#D4AF37]/30 rounded-[8px] h-9 px-4 font-bold hover:bg-[#D4AF37]/5 transition-all">Este Mês</Button>
+                  <Button variant="outline" size="sm" className="bg-white text-black border-[#D4AF37]/30 rounded-[8px] h-9 px-4 font-bold hover:bg-[#D4AF37]/5 transition-all">
+                    <Filter className="h-4 w-4 mr-2 text-[#D4AF37]" /> Filtros
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="divide-y divide-[#D4AF37]/10">
-                  {appointments.length === 0 ? (
-                    <div className="py-12 text-center text-[#6B7280] italic">Nenhum atendimento registrado.</div>
-                  ) : (
-                    appointments.map(app => (
-                      <div key={app.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-[#D4AF37]/5 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-[#D4AF37]/10 flex flex-col items-center justify-center text-center border border-[#D4AF37]/20">
-                            <span className="text-xs font-bold leading-none text-[#111827]">{format(new Date(app.start_time), "dd")}</span>
-                            <span className="text-[10px] uppercase text-[#D4AF37] font-bold">{format(new Date(app.start_time), "MMM", { locale: ptBR })}</span>
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm text-[#111827]">{app.customers?.name || "Cliente"}</p>
-                            <p className="text-xs text-[#6B7280]">{app.services?.name} • {format(new Date(app.start_time), "HH:mm")}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between md:justify-end gap-6">
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</p>
-                            <Badge className={cn(
-                              "text-[10px] font-bold",
-                              app.status === 'completed' ? "bg-green-100 text-green-700" :
-                              app.status === 'cancelled' ? "bg-red-100 text-red-700" :
-                              "bg-blue-100 text-blue-700"
-                            )}>
-                              {app.status === 'completed' ? 'CONCLUÍDO' : 
-                               app.status === 'cancelled' ? 'CANCELADO' : 'AGENDADO'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50/50 border-b border-[#D4AF37]/10">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Data</th>
+                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Cliente</th>
+                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Serviço</th>
+                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Valor</th>
+                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#D4AF37]/5 bg-white">
+                      {appointments.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-12 text-center text-[#6B7280] italic font-medium">Nenhum atendimento registrado.</td>
+                        </tr>
+                      ) : (
+                        appointments.slice(0, 10).map((app, index) => (
+                          <tr key={app.id} className={cn(
+                            "transition-colors hover:bg-[#D4AF37]/5",
+                            index % 2 === 1 ? "bg-gray-50/30" : "bg-white"
+                          )}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-3">
+                                <Calendar className="h-4 w-4 text-[#D4AF37]" />
+                                <span className="text-sm font-bold text-[#111827]">{format(new Date(app.start_time), "dd/MM/yyyy")}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8 border border-[#D4AF37]/10">
+                                  <AvatarImage src={app.customers?.avatar_url} />
+                                  <AvatarFallback className="text-[10px] bg-[#D4AF37]/5 text-[#D4AF37] font-bold">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <span className="text-sm font-bold text-[#111827]">{app.customers?.name || "Cliente"}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm text-[#6B7280] font-medium">{app.services?.name}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm font-black text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <Badge className={cn(
+                                "text-[10px] font-black px-2 py-0.5 rounded-[6px]",
+                                app.status === 'completed' ? "bg-green-100 text-green-700" :
+                                app.status === 'cancelled' ? "bg-red-100 text-red-700" :
+                                "bg-blue-100 text-blue-700"
+                              )}>
+                                {app.status === 'completed' ? 'CONCLUÍDO' : 
+                                 app.status === 'cancelled' ? 'CANCELADO' : 'AGENDADO'}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
+                {appointments.length > 0 && (
+                  <div className="bg-gray-50/50 p-4 border-t border-[#D4AF37]/10 flex items-center justify-between">
+                    <p className="text-xs text-[#6B7280] font-bold">Mostrando 1-10 de {appointments.length} atendimentos</p>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[8px] border-[#D4AF37] text-[#D4AF37] bg-white hover:bg-[#D4AF37]/5"><ChevronLeft size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[8px] border-[#D4AF37] text-[#D4AF37] bg-white hover:bg-[#D4AF37]/5"><ChevronRight size={18} /></Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="profile" className="mt-0">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10">
-                  <CardTitle className="text-[#111827]">Perfil Profissional</CardTitle>
+              <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
+                  <CardTitle className="text-xl font-bold text-[#111827]">Perfil Profissional</CardTitle>
                   <Button 
                     size="sm" 
-                    variant="outline" 
                     onClick={() => setShowEditProfile(true)}
-                    className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                    className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Edit2 className="h-4 w-4 mr-2" /> Editar
+                    <Edit2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Editar
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-6 pt-6">
-                  <div className="flex flex-col items-center gap-4 py-4">
-                    <Avatar className="h-24 w-24 border-4 border-[#D4AF37]/20 shadow-lg">
+                <CardContent className="space-y-6 pt-8 px-6 pb-8">
+                  <div className="flex flex-col items-center gap-4">
+                    <Avatar className="h-28 w-28 border-4 border-[#D4AF37] shadow-xl">
                       <AvatarImage src={barber?.avatar_url} />
-                      <AvatarFallback className="text-3xl bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback className="text-4xl font-black bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="text-center">
-                      <h3 className="text-xl font-bold text-[#111827]">{barber?.name}</h3>
-                      <p className="text-sm text-[#D4AF37] font-medium">{barber?.category || "Profissional"}</p>
+                      <h3 className="text-2xl font-black text-[#111827]">{barber?.name}</h3>
+                      <p className="text-sm text-[#D4AF37] font-black uppercase tracking-widest mt-1">{barber?.category || "Profissional"}</p>
                     </div>
                   </div>
-                  <div className="space-y-4 pt-4 border-t border-[#D4AF37]/10">
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold uppercase text-[#D4AF37]">Bio / Descrição</p>
-                      <p className="text-sm text-[#111827] leading-relaxed">{barber?.bio || "Sem descrição informada."}</p>
+                  
+                  <div className="space-y-6 pt-6 border-t border-[#D4AF37]/10">
+                    <div className="space-y-2">
+                      <p className="text-xs font-black uppercase text-[#D4AF37] tracking-wider">Bio / Descrição</p>
+                      <p className="text-sm text-[#111827] leading-relaxed font-medium bg-gray-50 p-4 rounded-[10px] border border-gray-100">
+                        {barber?.bio || "Sem descrição informada."}
+                      </p>
                     </div>
-                    <div className="grid gap-3">
-                      <div className="flex items-center gap-3 text-sm text-[#111827] bg-[#D4AF37]/5 p-2 rounded-lg">
-                        <Phone className="h-4 w-4 text-[#D4AF37]" />
+                    <div className="grid gap-4">
+                      <div className="flex items-center gap-4 text-sm text-[#111827] bg-[#D4AF37]/5 p-4 rounded-[10px] border border-[#D4AF37]/10 font-bold">
+                        <Phone className="h-5 w-5 text-[#D4AF37]" />
                         <span>{barber?.phone || "Não informado"}</span>
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-[#111827] bg-[#D4AF37]/5 p-2 rounded-lg">
-                        <Mail className="h-4 w-4 text-[#D4AF37]" />
+                      <div className="flex items-center gap-4 text-sm text-[#111827] bg-[#D4AF37]/5 p-4 rounded-[10px] border border-[#D4AF37]/10 font-bold">
+                        <Mail className="h-5 w-5 text-[#D4AF37]" />
                         <span>{barber?.email || "Não informado"}</span>
                       </div>
                     </div>
@@ -466,19 +529,18 @@ function ProfessionalDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10">
-                  <CardTitle className="text-[#111827]">Horários</CardTitle>
+              <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
+                  <CardTitle className="text-xl font-bold text-[#111827]">Horários</CardTitle>
                   <Button 
                     size="sm" 
-                    variant="outline" 
                     onClick={() => setShowEditSchedule(true)}
-                    className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                    className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Edit2 className="h-4 w-4 mr-2" /> Ajustar
+                    <Edit2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Ajustar
                   </Button>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="p-6">
                   <div className="space-y-3">
                     {barber?.working_hours ? (
                       sortedDays.map(dayKey => {
@@ -486,18 +548,21 @@ function ProfessionalDashboard() {
                         if (!config) return null;
                         return (
                           <div key={dayKey} className={cn(
-                            "flex items-center justify-between p-3 rounded-xl border transition-all",
-                            config.enabled ? "bg-white border-[#D4AF37]/30 shadow-sm" : "bg-gray-50 border-transparent opacity-40"
+                            "flex items-center justify-between p-4 rounded-[10px] border transition-all",
+                            config.enabled ? "bg-white border-[#D4AF37]/30 shadow-sm" : "bg-gray-50 border-transparent opacity-50"
                           )}>
                             <span className="text-sm font-bold text-[#111827]">{dayNames[dayKey]}</span>
-                            <div className="flex items-center gap-2 text-xs font-bold bg-[#D4AF37]/10 text-[#D4AF37] px-3 py-1 rounded-full border border-[#D4AF37]/20">
+                            <div className="flex items-center gap-2 text-xs font-black bg-[#D4AF37]/10 text-[#D4AF37] px-4 py-1.5 rounded-full border border-[#D4AF37]/20 uppercase tracking-tighter">
                               {config.enabled ? `${config.start} - ${config.end}` : "Fechado"}
                             </div>
                           </div>
                         );
                       })
                     ) : (
-                      <p className="text-center text-[#6B7280] py-12">Nenhum horário cadastrado.</p>
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <Clock className="h-12 w-12 text-[#D4AF37] opacity-20 mb-4" />
+                        <p className="text-[#6B7280] font-medium">Nenhum horário cadastrado.</p>
+                      </div>
                     )}
                   </div>
                 </CardContent>
