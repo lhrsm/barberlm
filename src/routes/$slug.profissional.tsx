@@ -305,6 +305,16 @@ function ProfessionalDashboard() {
           </TabsList>
           
           <TabsContent value="appointments" className="mt-0 space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-[#D4AF37] font-black uppercase text-xs tracking-[0.2em]">Agendamentos de Hoje</h2>
+              <Button 
+                size="sm"
+                className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-black px-4 h-9 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                onClick={() => toast.info("Funcionalidade de novo agendamento disponível em breve no painel do profissional.")}
+              >
+                <Calendar className="h-4 w-4 mr-2 text-[#D4AF37]" /> Novo Agendamento
+              </Button>
+            </div>
             <div className="grid gap-4">
               {appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).length === 0 ? (
                 <Card className="border-dashed border-[#D4AF37]/50 py-16 text-center bg-white rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
