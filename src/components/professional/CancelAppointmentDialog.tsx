@@ -53,7 +53,7 @@ export function CancelAppointmentDialog({ isOpen, onClose, appointment, onConfir
               placeholder="Ex: Profissional teve um imprevisto, cliente solicitou via telefone..." 
               value={reason} 
               onChange={(e) => setReason(e.target.value)}
-              className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 min-h-[120px] rounded-[10px] font-medium"
+              className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 min-h-[120px] rounded-[10px] font-medium text-[#111827] bg-white placeholder:text-[#6B7280]"
             />
           </div>
         </div>

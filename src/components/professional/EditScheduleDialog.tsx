@@ -26,16 +26,23 @@ export function EditScheduleDialog({ isOpen, onClose, barber, onUpdate }: any) {
   const [hours, setHours] = useState<any>({});
 
   useEffect(() => {
-    if (barber?.working_hours) {
-      setHours(barber.working_hours);
-    } else {
-      const initial: any = {};
-      sortedDays.forEach(day => {
-        initial[day] = { start: "09:00", end: "18:00", enabled: true };
-      });
-      setHours(initial);
+    if (barber && isOpen) {
+      if (barber.working_hours && Object.keys(barber.working_hours).length > 0) {
+        // Merge with defaults to ensure all days exist
+        const merged: any = {};
+        sortedDays.forEach(day => {
+          merged[day] = barber.working_hours[day] || { start: "09:00", end: "18:00", enabled: false };
+        });
+        setHours(merged);
+      } else {
+        const initial: any = {};
+        sortedDays.forEach(day => {
+          initial[day] = { start: "09:00", end: "18:00", enabled: false };
+        });
+        setHours(initial);
+      }
     }
-  }, [barber]);
+  }, [barber, isOpen]);
 
   const handleToggle = (day: string) => {
     setHours({
@@ -84,11 +91,16 @@ export function EditScheduleDialog({ isOpen, onClose, barber, onUpdate }: any) {
               <div key={day} className="bg-white border border-[#D4AF37]/20 p-5 rounded-[12px] shadow-sm space-y-4 transition-all hover:border-[#D4AF37]/40">
                 <div className="flex items-center justify-between">
                   <Label className="font-black text-sm text-[#111827] uppercase tracking-wide">{dayNames[day]}</Label>
-                  <Switch 
-                    checked={hours[day]?.enabled}
-                    onCheckedChange={() => handleToggle(day)}
-                    className="data-[state=checked]:bg-[#D4AF37]"
-                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-[#6B7280]">
+                      {hours[day]?.enabled ? "ABERTO" : "FECHADO"}
+                    </span>
+                    <Switch 
+                      checked={hours[day]?.enabled}
+                      onCheckedChange={() => handleToggle(day)}
+                      className="data-[state=checked]:bg-[#D4AF37]"
+                    />
+                  </div>
                 </div>
                 {hours[day]?.enabled && (
                   <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
@@ -98,7 +110,7 @@ export function EditScheduleDialog({ isOpen, onClose, barber, onUpdate }: any) {
                         type="time" 
                         value={hours[day].start}
                         onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
-                        className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 h-10 rounded-[8px] font-bold"
+                        className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 h-10 rounded-[8px] font-bold text-[#111827] bg-white"
                       />
                     </div>
                     <div className="space-y-2">
@@ -107,7 +119,7 @@ export function EditScheduleDialog({ isOpen, onClose, barber, onUpdate }: any) {
                         type="time" 
                         value={hours[day].end}
                         onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
-                        className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 h-10 rounded-[8px] font-bold"
+                        className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 h-10 rounded-[8px] font-bold text-[#111827] bg-white"
                       />
                     </div>
                   </div>
