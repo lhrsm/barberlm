@@ -225,7 +225,7 @@ function ProfessionalDashboard() {
               variant="ghost" 
               size="sm" 
               onClick={logout} 
-              className="text-red-500 hover:bg-red-50"
+              className="text-red-500 hover:bg-red-50 rounded-[10px]"
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -233,49 +233,49 @@ function ProfessionalDashboard() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
+          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-[#111827]">Hoje</CardTitle>
+              <CardTitle className="text-sm font-bold text-[#111827]">Hoje</CardTitle>
               <Users className="h-4 w-4 text-[#D4AF37]" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#111827]">{stats.today}</div>
-              <p className="text-xs text-[#6B7280] mt-1">{stats.week} na semana</p>
+              <p className="text-xs text-[#6B7280] mt-1 font-medium">{stats.week} na semana</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
+          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-[#111827]">Faturamento Mês</CardTitle>
+              <CardTitle className="text-sm font-bold text-[#111827]">Faturamento Mês</CardTitle>
               <CircleDollarSign className="h-4 w-4 text-[#D4AF37]" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#111827]">R$ {stats.revenueMonth.toFixed(2)}</div>
-              <p className="text-xs text-[#6B7280] mt-1">Ticket: R$ {stats.avgTicket.toFixed(2)}</p>
+              <p className="text-xs text-[#6B7280] mt-1 font-medium">Ticket: R$ {stats.avgTicket.toFixed(2)}</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
+          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-[#111827]">Cancelamentos</CardTitle>
+              <CardTitle className="text-sm font-bold text-[#111827]">Cancelamentos</CardTitle>
               <X className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#111827]">{stats.cancelledMonth}</div>
-              <p className="text-xs text-[#6B7280] mt-1">No mês atual</p>
+              <p className="text-xs text-[#6B7280] mt-1 font-medium">No mês atual</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl transition-all hover:shadow-md">
+          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-[#111827]">Próximo</CardTitle>
+              <CardTitle className="text-sm font-bold text-[#111827]">Próximo</CardTitle>
               <Clock className="h-4 w-4 text-[#D4AF37]" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold truncate text-[#111827]">
                 {stats.nextApp ? format(new Date(stats.nextApp.start_time), "HH:mm") : "---"}
               </div>
-              <p className="text-xs text-[#6B7280] mt-1 truncate">
+              <p className="text-xs text-[#6B7280] mt-1 truncate font-medium">
                 {stats.nextApp ? `Com ${stats.nextApp.customers?.name || 'Cliente'}` : "Sem agendamentos"}
               </p>
             </CardContent>
