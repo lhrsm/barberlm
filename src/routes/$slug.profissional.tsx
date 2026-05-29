@@ -396,9 +396,18 @@ function ProfessionalDashboard() {
 
           <TabsContent value="history" className="mt-0 space-y-4">
             <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
-              <CardHeader className="border-b border-[#D4AF37]/10 p-6">
-                <CardTitle className="text-xl font-bold text-[#111827]">Histórico de Atendimentos</CardTitle>
-                <CardDescription className="text-[#6B7280] font-medium">Lista completa dos seus serviços prestados.</CardDescription>
+              <CardHeader className="border-b border-[#D4AF37]/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="text-xl font-bold text-[#111827]">Histórico de Atendimentos</CardTitle>
+                  <CardDescription className="text-[#6B7280] font-medium">Lista completa dos seus serviços prestados.</CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="bg-[#111111] text-white border-[#D4AF37] rounded-[8px] h-9 px-4 font-bold transition-all hover:scale-[1.02]">Tudo</Button>
+                  <Button variant="outline" size="sm" className="bg-white text-black border-[#D4AF37]/30 rounded-[8px] h-9 px-4 font-bold hover:bg-[#D4AF37]/5 transition-all">Este Mês</Button>
+                  <Button variant="outline" size="sm" className="bg-white text-black border-[#D4AF37]/30 rounded-[8px] h-9 px-4 font-bold hover:bg-[#D4AF37]/5 transition-all">
+                    <Filter className="h-4 w-4 mr-2 text-[#D4AF37]" /> Filtros
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -418,7 +427,7 @@ function ProfessionalDashboard() {
                           <td colSpan={5} className="px-6 py-12 text-center text-[#6B7280] italic font-medium">Nenhum atendimento registrado.</td>
                         </tr>
                       ) : (
-                        appointments.map((app, index) => (
+                        appointments.slice(0, 10).map((app, index) => (
                           <tr key={app.id} className={cn(
                             "transition-colors hover:bg-[#D4AF37]/5",
                             index % 2 === 1 ? "bg-gray-50/30" : "bg-white"
@@ -433,7 +442,7 @@ function ProfessionalDashboard() {
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8 border border-[#D4AF37]/10">
                                   <AvatarImage src={app.customers?.avatar_url} />
-                                  <AvatarFallback className="text-[10px] bg-[#D4AF37]/5 text-[#D4AF37]">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                  <AvatarFallback className="text-[10px] bg-[#D4AF37]/5 text-[#D4AF37] font-bold">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 <span className="text-sm font-bold text-[#111827]">{app.customers?.name || "Cliente"}</span>
                               </div>
@@ -461,6 +470,15 @@ function ProfessionalDashboard() {
                     </tbody>
                   </table>
                 </div>
+                {appointments.length > 0 && (
+                  <div className="bg-gray-50/50 p-4 border-t border-[#D4AF37]/10 flex items-center justify-between">
+                    <p className="text-xs text-[#6B7280] font-bold">Mostrando 1-10 de {appointments.length} atendimentos</p>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[8px] border-[#D4AF37] text-[#D4AF37] bg-white hover:bg-[#D4AF37]/5"><ChevronLeft size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[8px] border-[#D4AF37] text-[#D4AF37] bg-white hover:bg-[#D4AF37]/5"><ChevronRight size={18} /></Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
