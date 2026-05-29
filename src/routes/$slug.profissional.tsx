@@ -378,45 +378,71 @@ function ProfessionalDashboard() {
           </TabsContent>
 
           <TabsContent value="history" className="mt-0 space-y-4">
-            <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl overflow-hidden">
-              <CardHeader className="border-b border-[#D4AF37]/10">
-                <CardTitle className="text-[#111827]">Histórico de Atendimentos</CardTitle>
-                <CardDescription className="text-[#6B7280]">Lista completa dos seus serviços prestados.</CardDescription>
+            <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+              <CardHeader className="border-b border-[#D4AF37]/10 p-6">
+                <CardTitle className="text-xl font-bold text-[#111827]">Histórico de Atendimentos</CardTitle>
+                <CardDescription className="text-[#6B7280] font-medium">Lista completa dos seus serviços prestados.</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="divide-y divide-[#D4AF37]/10">
-                  {appointments.length === 0 ? (
-                    <div className="py-12 text-center text-[#6B7280] italic">Nenhum atendimento registrado.</div>
-                  ) : (
-                    appointments.map(app => (
-                      <div key={app.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-[#D4AF37]/5 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-[#D4AF37]/10 flex flex-col items-center justify-center text-center border border-[#D4AF37]/20">
-                            <span className="text-xs font-bold leading-none text-[#111827]">{format(new Date(app.start_time), "dd")}</span>
-                            <span className="text-[10px] uppercase text-[#D4AF37] font-bold">{format(new Date(app.start_time), "MMM", { locale: ptBR })}</span>
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm text-[#111827]">{app.customers?.name || "Cliente"}</p>
-                            <p className="text-xs text-[#6B7280]">{app.services?.name} • {format(new Date(app.start_time), "HH:mm")}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between md:justify-end gap-6">
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</p>
-                            <Badge className={cn(
-                              "text-[10px] font-bold",
-                              app.status === 'completed' ? "bg-green-100 text-green-700" :
-                              app.status === 'cancelled' ? "bg-red-100 text-red-700" :
-                              "bg-blue-100 text-blue-700"
-                            )}>
-                              {app.status === 'completed' ? 'CONCLUÍDO' : 
-                               app.status === 'cancelled' ? 'CANCELADO' : 'AGENDADO'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50/50 border-b border-[#D4AF37]/10">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Data</th>
+                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Cliente</th>
+                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Serviço</th>
+                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Valor</th>
+                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#D4AF37]/5 bg-white">
+                      {appointments.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-12 text-center text-[#6B7280] italic font-medium">Nenhum atendimento registrado.</td>
+                        </tr>
+                      ) : (
+                        appointments.map((app, index) => (
+                          <tr key={app.id} className={cn(
+                            "transition-colors hover:bg-[#D4AF37]/5",
+                            index % 2 === 1 ? "bg-gray-50/30" : "bg-white"
+                          )}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-3">
+                                <Calendar className="h-4 w-4 text-[#D4AF37]" />
+                                <span className="text-sm font-bold text-[#111827]">{format(new Date(app.start_time), "dd/MM/yyyy")}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8 border border-[#D4AF37]/10">
+                                  <AvatarImage src={app.customers?.avatar_url} />
+                                  <AvatarFallback className="text-[10px] bg-[#D4AF37]/5 text-[#D4AF37]">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <span className="text-sm font-bold text-[#111827]">{app.customers?.name || "Cliente"}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm text-[#6B7280] font-medium">{app.services?.name}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm font-black text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <Badge className={cn(
+                                "text-[10px] font-black px-2 py-0.5 rounded-[6px]",
+                                app.status === 'completed' ? "bg-green-100 text-green-700" :
+                                app.status === 'cancelled' ? "bg-red-100 text-red-700" :
+                                "bg-blue-100 text-blue-700"
+                              )}>
+                                {app.status === 'completed' ? 'CONCLUÍDO' : 
+                                 app.status === 'cancelled' ? 'CANCELADO' : 'AGENDADO'}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>
