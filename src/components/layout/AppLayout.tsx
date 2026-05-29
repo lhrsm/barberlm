@@ -157,24 +157,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isProfissionalRoute = pathname.includes('/profissional');
   const shouldBlock = isExpired && !isSubscriptionPage && !isProfissionalRoute && role !== 'super_admin' && !planLoading && !loading;
 
-  // Forçar visibilidade para depuração: se shouldBlock for true, a UI será substituída pelo TrialExpiredBlock
-  console.log("%c[AppLayout] MASTER BLOCK CHECK", shouldBlock ? "color: red" : "color: green", { shouldBlock, isExpired, isSubscriptionPage, isProfissionalRoute, role });
-
-  useEffect(() => {
-    if (!loading && !planLoading) {
-      console.log("%c[AppLayout] ROUTE ACCESS DEBUG (v8)", "background: #222; color: #ff00ff; font-size: 14px; padding: 4px;", {
-        slug,
-        tenantId,
-        pathname,
-        role,
-        subscription_status: subscription?.status,
-        plan_id: plan,
-        is_expired_from_hook: isExpired,
-        should_block_ui: shouldBlock,
-        reason: shouldBlock ? "Bloqueado: Trial expirado e sem plano ativo detectado" : "Liberado: Acesso concedido"
-      });
-    }
-  }, [slug, tenantId, pathname, role, subscription?.status, plan, isExpired, shouldBlock, loading, planLoading]);
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
