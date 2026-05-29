@@ -286,19 +286,19 @@ function ProfessionalDashboard() {
           <TabsList className="bg-transparent p-0 gap-3 mb-8 flex overflow-x-auto h-auto">
             <TabsTrigger 
               value="appointments" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] bg-white text-black border border-[#D4AF37] rounded-[10px] py-3.5 transition-all hover:bg-[#D4AF37]/5 font-bold"
+              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] data-[state=active]:shadow-[0_4px_16px_rgba(212,175,55,0.2)] bg-white text-[#111827] border border-[#D4AF37] rounded-[10px] py-3.5 transition-all duration-250 ease-in-out hover:bg-[#F9F4E6] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(212,175,55,0.15)] data-[state=active]:hover:bg-[#111111] data-[state=active]:hover:shadow-[0_6px_20px_rgba(212,175,55,0.25)] font-bold"
             >
               <Calendar className="h-4 w-4" /> Agenda
             </TabsTrigger>
             <TabsTrigger 
               value="history" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] bg-white text-black border border-[#D4AF37] rounded-[10px] py-3.5 transition-all hover:bg-[#D4AF37]/5 font-bold"
+              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] data-[state=active]:shadow-[0_4px_16px_rgba(212,175,55,0.2)] bg-white text-[#111827] border border-[#D4AF37] rounded-[10px] py-3.5 transition-all duration-250 ease-in-out hover:bg-[#F9F4E6] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(212,175,55,0.15)] data-[state=active]:hover:bg-[#111111] data-[state=active]:hover:shadow-[0_6px_20px_rgba(212,175,55,0.25)] font-bold"
             >
               <TrendingUp className="h-4 w-4" /> Histórico
             </TabsTrigger>
             <TabsTrigger 
               value="profile" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] bg-white text-black border border-[#D4AF37] rounded-[10px] py-3.5 transition-all hover:bg-[#D4AF37]/5 font-bold"
+              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] data-[state=active]:shadow-[0_4px_16_rgba(212,175,55,0.2)] bg-white text-[#111827] border border-[#D4AF37] rounded-[10px] py-3.5 transition-all duration-250 ease-in-out hover:bg-[#F9F4E6] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(212,175,55,0.15)] data-[state=active]:hover:bg-[#111111] data-[state=active]:hover:shadow-[0_6px_20px_rgba(212,175,55,0.25)] font-bold"
             >
               <UserIcon className="h-4 w-4" /> Perfil
             </TabsTrigger>
