@@ -450,41 +450,43 @@ function ProfessionalDashboard() {
 
           <TabsContent value="profile" className="mt-0">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10">
-                  <CardTitle className="text-[#111827]">Perfil Profissional</CardTitle>
+              <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
+                  <CardTitle className="text-xl font-bold text-[#111827]">Perfil Profissional</CardTitle>
                   <Button 
                     size="sm" 
-                    variant="outline" 
                     onClick={() => setShowEditProfile(true)}
-                    className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                    className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Edit2 className="h-4 w-4 mr-2" /> Editar
+                    <Edit2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Editar
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-6 pt-6">
-                  <div className="flex flex-col items-center gap-4 py-4">
-                    <Avatar className="h-24 w-24 border-4 border-[#D4AF37]/20 shadow-lg">
+                <CardContent className="space-y-6 pt-8 px-6 pb-8">
+                  <div className="flex flex-col items-center gap-4">
+                    <Avatar className="h-28 w-28 border-4 border-[#D4AF37] shadow-xl">
                       <AvatarImage src={barber?.avatar_url} />
-                      <AvatarFallback className="text-3xl bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback className="text-4xl font-black bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="text-center">
-                      <h3 className="text-xl font-bold text-[#111827]">{barber?.name}</h3>
-                      <p className="text-sm text-[#D4AF37] font-medium">{barber?.category || "Profissional"}</p>
+                      <h3 className="text-2xl font-black text-[#111827]">{barber?.name}</h3>
+                      <p className="text-sm text-[#D4AF37] font-black uppercase tracking-widest mt-1">{barber?.category || "Profissional"}</p>
                     </div>
                   </div>
-                  <div className="space-y-4 pt-4 border-t border-[#D4AF37]/10">
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold uppercase text-[#D4AF37]">Bio / Descrição</p>
-                      <p className="text-sm text-[#111827] leading-relaxed">{barber?.bio || "Sem descrição informada."}</p>
+                  
+                  <div className="space-y-6 pt-6 border-t border-[#D4AF37]/10">
+                    <div className="space-y-2">
+                      <p className="text-xs font-black uppercase text-[#D4AF37] tracking-wider">Bio / Descrição</p>
+                      <p className="text-sm text-[#111827] leading-relaxed font-medium bg-gray-50 p-4 rounded-[10px] border border-gray-100">
+                        {barber?.bio || "Sem descrição informada."}
+                      </p>
                     </div>
-                    <div className="grid gap-3">
-                      <div className="flex items-center gap-3 text-sm text-[#111827] bg-[#D4AF37]/5 p-2 rounded-lg">
-                        <Phone className="h-4 w-4 text-[#D4AF37]" />
+                    <div className="grid gap-4">
+                      <div className="flex items-center gap-4 text-sm text-[#111827] bg-[#D4AF37]/5 p-4 rounded-[10px] border border-[#D4AF37]/10 font-bold">
+                        <Phone className="h-5 w-5 text-[#D4AF37]" />
                         <span>{barber?.phone || "Não informado"}</span>
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-[#111827] bg-[#D4AF37]/5 p-2 rounded-lg">
-                        <Mail className="h-4 w-4 text-[#D4AF37]" />
+                      <div className="flex items-center gap-4 text-sm text-[#111827] bg-[#D4AF37]/5 p-4 rounded-[10px] border border-[#D4AF37]/10 font-bold">
+                        <Mail className="h-5 w-5 text-[#D4AF37]" />
                         <span>{barber?.email || "Não informado"}</span>
                       </div>
                     </div>
@@ -492,19 +494,18 @@ function ProfessionalDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border-[#D4AF37] shadow-sm rounded-2xl overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10">
-                  <CardTitle className="text-[#111827]">Horários</CardTitle>
+              <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
+                  <CardTitle className="text-xl font-bold text-[#111827]">Horários</CardTitle>
                   <Button 
                     size="sm" 
-                    variant="outline" 
                     onClick={() => setShowEditSchedule(true)}
-                    className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                    className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Edit2 className="h-4 w-4 mr-2" /> Ajustar
+                    <Edit2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Ajustar
                   </Button>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="p-6">
                   <div className="space-y-3">
                     {barber?.working_hours ? (
                       sortedDays.map(dayKey => {
@@ -512,18 +513,21 @@ function ProfessionalDashboard() {
                         if (!config) return null;
                         return (
                           <div key={dayKey} className={cn(
-                            "flex items-center justify-between p-3 rounded-xl border transition-all",
-                            config.enabled ? "bg-white border-[#D4AF37]/30 shadow-sm" : "bg-gray-50 border-transparent opacity-40"
+                            "flex items-center justify-between p-4 rounded-[10px] border transition-all",
+                            config.enabled ? "bg-white border-[#D4AF37]/30 shadow-sm" : "bg-gray-50 border-transparent opacity-50"
                           )}>
                             <span className="text-sm font-bold text-[#111827]">{dayNames[dayKey]}</span>
-                            <div className="flex items-center gap-2 text-xs font-bold bg-[#D4AF37]/10 text-[#D4AF37] px-3 py-1 rounded-full border border-[#D4AF37]/20">
+                            <div className="flex items-center gap-2 text-xs font-black bg-[#D4AF37]/10 text-[#D4AF37] px-4 py-1.5 rounded-full border border-[#D4AF37]/20 uppercase tracking-tighter">
                               {config.enabled ? `${config.start} - ${config.end}` : "Fechado"}
                             </div>
                           </div>
                         );
                       })
                     ) : (
-                      <p className="text-center text-[#6B7280] py-12">Nenhum horário cadastrado.</p>
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <Clock className="h-12 w-12 text-[#D4AF37] opacity-20 mb-4" />
+                        <p className="text-[#6B7280] font-medium">Nenhum horário cadastrado.</p>
+                      </div>
                     )}
                   </div>
                 </CardContent>
