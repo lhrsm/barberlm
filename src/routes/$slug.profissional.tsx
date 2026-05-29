@@ -35,18 +35,7 @@ function ProfessionalDashboard() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [barber, setBarber] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
-  
-  // Dialog States
-  const [showEditProfile, setShowEditProfile] = useState(false);
-  const [showEditSchedule, setShowEditSchedule] = useState(false);
-function ProfessionalDashboard() {
-  const { session, loading, logout } = useProfessionalAuth();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [barber, setBarber] = useState<any>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   
   // Dialog States
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -55,32 +44,60 @@ function ProfessionalDashboard() {
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/auth" });
+    console.log("[PROFISSIONAL_PAGE_MOUNTED]");
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !session) {
+      console.log("[PROFISSIONAL_NO_SESSION] Redirecting to /auth");
+      navigate({ to: "/auth" });
+    }
   }, [session, loading, navigate]);
+
 
   const fetchData = async () => {
     if (!session?.barber_id) return;
     
-    // Stats
-    const statsData = await fetchBarberStats(session.barber_id);
-    setStats(statsData);
+    try {
+      setError(null);
+      console.log("[PROFISSIONAL_FETCH_START]", session.barber_id);
+      
+      // Stats
+      const statsData = await fetchBarberStats(session.barber_id);
+      console.log("[PROFISSIONAL_STATS_RESULT]", statsData);
+      setStats(statsData);
 
-    // Profile
-    const { data: bData } = await supabase
-      .from("barbers")
-      .select("*")
-      .eq("id", session.barber_id)
-      .single();
-    setBarber(bData);
+      // Profile
+      const { data: bData, error: bError } = await supabase
+        .from("barbers")
+        .select("*")
+        .eq("id", session.barber_id)
+        .single();
+      
+      if (bError) {
+        console.error("[PROFISSIONAL_BARBER_ERROR]", bError);
+        throw new Error("Erro ao carregar dados do profissional: " + bError.message);
+      }
+      console.log("[PROFISSIONAL_BARBER_DATA]", bData);
+      setBarber(bData);
 
-    // Appointments
-    const { data: allApps } = await supabase
-      .from("appointments")
-      .select("*, customers(name, phone, avatar_url), services(name)")
-      .eq("barber_id", session.barber_id);
-    
-    if (allApps) {
-      setAppointments(allApps.sort((a,b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()));
+      // Appointments
+      const { data: allApps, error: aError } = await supabase
+        .from("appointments")
+        .select("*, customers(name, phone, avatar_url), services(name)")
+        .eq("barber_id", session.barber_id);
+      
+      if (aError) {
+        console.error("[PROFISSIONAL_APPOINTMENTS_ERROR]", aError);
+        throw new Error("Erro ao carregar agenda: " + aError.message);
+      }
+      
+      if (allApps) {
+        setAppointments(allApps.sort((a,b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()));
+      }
+    } catch (e: any) {
+      console.error("[PROFISSIONAL_FETCH_ERROR]", e);
+      setError(e.message);
     }
   };
 
@@ -110,7 +127,50 @@ function ProfessionalDashboard() {
     }
   };
 
-  if (loading || !stats) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="text-muted-foreground text-sm animate-pulse">Carregando painel do profissional...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black p-4">
+        <Card className="max-w-md w-full border-red-500/50 bg-red-500/5 shadow-2xl">
+          <CardHeader>
+            <div className="flex items-center gap-2 text-red-500 mb-2">
+              <X className="h-6 w-6" />
+              <CardTitle>Erro no Painel</CardTitle>
+            </div>
+            <CardDescription className="text-red-400/80">
+              Ocorreu um problema ao carregar as informações do seu painel.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-black/40 p-3 rounded-lg border border-red-500/20 text-xs font-mono text-red-300 break-words">
+              {error}
+            </div>
+            <Button className="w-full bg-red-600 hover:bg-red-700 text-white" onClick={() => window.location.reload()}>
+              <RefreshCcw className="h-4 w-4 mr-2" /> Tentar Novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!stats && !error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="text-muted-foreground text-sm">Sincronizando dados...</p>
+      </div>
+    );
+  }
+
   if (!session) return null;
 
   const dayNames: Record<string, string> = {
@@ -422,7 +482,6 @@ function ProfessionalDashboard() {
       />
     </AppLayout>
   );
-}
 }
 
 export default ProfessionalDashboard;
