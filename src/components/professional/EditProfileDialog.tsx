@@ -14,36 +14,54 @@ export function EditProfileDialog({ isOpen, onClose, barber, onUpdate }: any) {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    email: "",
     bio: "",
     avatar_url: "",
     active: true,
-    specialties: [] as string[]
+    category: "",
+    specialties_string: ""
   });
 
   useEffect(() => {
-    if (barber) {
+    if (barber && isOpen) {
       setFormData({
         name: barber.name || "",
         phone: barber.phone || "",
+        email: barber.email || "",
         bio: barber.bio || "",
         avatar_url: barber.avatar_url || "",
         active: barber.active !== false,
-        specialties: barber.specialties || []
+        category: barber.category || "",
+        specialties_string: Array.isArray(barber.specialties) ? barber.specialties.join(", ") : ""
       });
     }
-  }, [barber]);
+  }, [barber, isOpen]);
 
   const handleSave = async () => {
     setLoading(true);
     try {
+      const specialties = formData.specialties_string
+        .split(",")
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
       const { error } = await supabase
         .from("barbers")
-        .update(formData)
+        .update({
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          bio: formData.bio,
+          avatar_url: formData.avatar_url,
+          active: formData.active,
+          category: formData.category,
+          specialties: specialties
+        })
         .eq("id", barber.id);
       
       if (error) throw error;
       toast.success("Perfil atualizado!");
-      onUpdate();
+      if (onUpdate) onUpdate();
       onClose();
     } catch (e: any) {
       toast.error("Erro ao salvar: " + e.message);
@@ -70,26 +88,60 @@ export function EditProfileDialog({ isOpen, onClose, barber, onUpdate }: any) {
                 placeholder="https://..." 
                 value={formData.avatar_url}
                 onChange={(e) => setFormData({...formData, avatar_url: e.target.value})}
-                className="text-xs border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 rounded-[10px]"
+                className="text-sm border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 rounded-[10px] text-[#111827] placeholder:text-[#6B7280] bg-white font-medium"
               />
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label className="text-[#111827] font-black uppercase text-[10px] tracking-wider">Nome Completo</Label>
-            <Input 
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 rounded-[10px] font-bold"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[#111827] font-black uppercase text-[10px] tracking-wider">Nome Completo</Label>
+              <Input 
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 rounded-[10px] font-bold text-[#111827] bg-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[#111827] font-black uppercase text-[10px] tracking-wider">E-mail</Label>
+              <Input 
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 rounded-[10px] font-bold text-[#111827] bg-white"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[#111827] font-black uppercase text-[10px] tracking-wider">Telefone / WhatsApp</Label>
+              <Input 
+                value={formData.phone}
+                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 rounded-[10px] font-bold text-[#111827] bg-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[#111827] font-black uppercase text-[10px] tracking-wider">Cargo / Tipo</Label>
+              <Input 
+                placeholder="Ex: Freelancer, Master, etc."
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 rounded-[10px] font-bold text-[#111827] bg-white"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-[#111827] font-black uppercase text-[10px] tracking-wider">Telefone / WhatsApp</Label>
+            <Label className="text-[#111827] font-black uppercase text-[10px] tracking-wider">Especialidades (separadas por vírgula)</Label>
             <Input 
-              value={formData.phone}
-              onChange={(e) => setFormData({...formData, phone: e.target.value})}
-              className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 rounded-[10px] font-bold"
+              placeholder="Ex: Corte Degradê, Barba, Pigmentação"
+              value={formData.specialties_string}
+              onChange={(e) => setFormData({...formData, specialties_string: e.target.value})}
+              className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 rounded-[10px] font-bold text-[#111827] bg-white"
             />
           </div>
 
@@ -98,13 +150,13 @@ export function EditProfileDialog({ isOpen, onClose, barber, onUpdate }: any) {
             <Textarea 
               value={formData.bio}
               onChange={(e) => setFormData({...formData, bio: e.target.value})}
-              className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 min-h-[100px] rounded-[10px] font-medium"
+              className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 min-h-[100px] rounded-[10px] font-medium text-[#111827] bg-white"
             />
           </div>
 
           <div className="flex items-center justify-between p-4 bg-[#D4AF37]/5 rounded-[12px] border border-[#D4AF37]/20">
             <div className="space-y-0.5">
-              <Label className="text-[#111827] font-black uppercase text-[10px]">Perfil Visível</Label>
+              <Label className="text-[#111827] font-black uppercase text-[10px]">Perfil Disponível</Label>
               <p className="text-[10px] text-[#6B7280] font-medium">Clientes podem ver seu perfil e agendar</p>
             </div>
             <Switch 
