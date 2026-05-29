@@ -525,6 +525,18 @@ function ProfessionalDashboard() {
                         <span>{barber?.email || "Não informado"}</span>
                       </div>
                     </div>
+                    {barber?.specialties && barber.specialties.length > 0 && (
+                      <div className="space-y-2 pt-2">
+                        <p className="text-xs font-black uppercase text-[#D4AF37] tracking-wider">Especialidades</p>
+                        <div className="flex flex-wrap gap-2">
+                          {barber.specialties.map((spec: string, i: number) => (
+                            <Badge key={i} variant="outline" className="border-[#D4AF37]/30 text-[#111827] bg-white font-bold text-[10px] uppercase py-1 px-3 rounded-[6px]">
+                              {spec}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
