@@ -1195,9 +1195,11 @@ function AutomationsComponent() {
                       <tr>
                         <th className="px-6 py-4">Status</th>
                         <th className="px-6 py-4">Telefone</th>
+                        <th className="px-6 py-4">Normalizado (9)</th>
+                        <th className="px-6 py-4">Fallback (8)</th>
                         <th className="px-6 py-4">Tipo</th>
-                        <th className="px-6 py-4">Opção Extraída</th>
-                        <th className="px-6 py-4">Erro</th>
+                        <th className="px-6 py-4">Opção</th>
+                        <th className="px-6 py-4">Conversa</th>
                         <th className="px-6 py-4 text-right">Data & Hora</th>
                       </tr>
                     </thead>
@@ -1225,7 +1227,14 @@ function AutomationsComponent() {
                               </Badge>
                             </td>
                             <td className="px-6 py-4 font-medium text-muted-foreground tabular-nums">
-                              {log.extracted_phone || log.phone || '-'}
+                              <span className="text-[10px] block opacity-50">Bruto:</span>
+                              {log.phone_raw || '-'}
+                            </td>
+                            <td className="px-6 py-4 font-bold text-primary tabular-nums">
+                              {log.phone || log.extracted_phone || '-'}
+                            </td>
+                            <td className="px-6 py-4 font-medium text-muted-foreground tabular-nums opacity-60">
+                              {log.phone_normalized_8 || '-'}
                             </td>
                             <td className="px-6 py-4">
                               <Badge variant="outline" className="text-[10px] uppercase font-bold">
@@ -1238,9 +1247,20 @@ function AutomationsComponent() {
                               </code>
                             </td>
                             <td className="px-6 py-4">
-                              <span className="text-[10px] text-red-500 truncate block max-w-[150px]" title={log.error}>
-                                {log.error || '-'}
-                              </span>
+                              <div className="flex flex-col gap-1">
+                                {log.metadata?.conversation_found ? (
+                                  <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[8px] uppercase">
+                                    Encontrada
+                                  </Badge>
+                                ) : (
+                                  <Badge className="bg-red-500/10 text-red-500 border-none text-[8px] uppercase">
+                                    Não Encontrada
+                                  </Badge>
+                                )}
+                                {log.metadata?.state && (
+                                  <span className="text-[9px] text-muted-foreground">Status: {log.metadata.state}</span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex flex-col items-end">

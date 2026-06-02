@@ -8,9 +8,26 @@ export const normalizePhone = (phone: string): string => {
   
   let digits = phone.replace(/\D/g, "");
   
-  // Se tiver 10 ou 11 dígitos, assume que falta o DDI 55
-  if (digits.length === 10 || digits.length === 11) {
-    digits = "55" + digits;
+  // Se não começar com 55, tenta identificar se é um número brasileiro sem DDI
+  if (!digits.startsWith('55')) {
+    // Se tiver 10 ou 11 dígitos, assume que falta o DDI 55
+    if (digits.length === 10 || digits.length === 11) {
+      digits = "55" + digits;
+    }
+  }
+  
+  // Tratamento específico para Brasil (DDI 55)
+  if (digits.startsWith('55')) {
+    const country = digits.slice(0, 2); // 55
+    const ddd = digits.slice(2, 4);     // DDD
+    let number = digits.slice(4);       // O resto do número
+    
+    // Regra: Se tiver apenas 8 dígitos após o DDD, adicionamos o 9 na frente.
+    if (number.length === 8) {
+      number = "9" + number;
+    }
+    
+    return `${country}${ddd}${number}`;
   }
   
   return digits;

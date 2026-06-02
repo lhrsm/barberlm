@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { getWhatsAppSettings, sendMessage } from "../_shared/whatsapp-settings.ts";
 import { handleAutomationWhatsappResponse } from "../_shared/automation-engine.ts";
-import { normalizePhone } from "../_shared/utils.ts";
+import { normalizePhone, removeNinthDigit } from "../_shared/utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,11 +79,13 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   const instanceId = body.instanceId || null;
   const phone = extractPhoneFromZapiPayload(body);
   const normalizedPhone = normalizePhone(phone);
+  const fallbackPhone = removeNinthDigit(normalizedPhone);
   const selectedOptionRaw = extractSelectedOption(body);
   
   console.log('--- Z-API WEBHOOK RECEIVED ---');
-  console.log('PHONE RECEIVED:', phone);
-  console.log('PHONE NORMALIZED:', normalizedPhone);
+  console.log('PHONE BRUTO:', phone);
+  console.log('PHONE NORMALIZED (9 digits):', normalizedPhone);
+  console.log('PHONE FALLBACK (8 digits):', fallbackPhone);
   console.log('BARBER:', barberId);
   console.log('TYPE:', eventType);
   console.log('OPTION:', selectedOptionRaw);
@@ -97,13 +99,22 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
       payload: body,
       phone: normalizedPhone,
       extracted_phone: normalizedPhone,
+      phone_raw: phone,
+      phone_normalized_8: fallbackPhone,
       event_type: eventType,
       type: eventType,
       processed: false,
       selected_option: selectedOptionRaw,
       extracted_option: selectedOptionRaw,
       instance_id: instanceId,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      metadata: {
+        phone_raw: phone,
+        phone_normalized_9: normalizedPhone,
+        phone_normalized_8: fallbackPhone,
+        eventType,
+        barberId
+      }
     })
     .select()
     .single();
@@ -157,9 +168,10 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
 
   // 4. Find active conversation
   console.log('CONVERSATION LOOKUP');
-  console.log('webhook_phone:', normalizedPhone);
+  console.log('webhook_phone (9 dig):', normalizedPhone);
+  console.log('webhook_phone (8 dig):', fallbackPhone);
 
-  const { data: conversation, error: convLookupError } = await supabase
+  let { data: conversation, error: convLookupError } = await supabase
     .from("whatsapp_conversations")
     .select("*")
     .eq("phone", normalizedPhone)
@@ -167,6 +179,32 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // FALLBACK: Se não encontrou com 9 dígitos, tenta com 8 dígitos
+  if (!conversation && fallbackPhone !== normalizedPhone) {
+    console.log('[Z-API] Tentando fallback para 8 dígitos:', fallbackPhone);
+    const { data: fallbackConv } = await supabase
+      .from("whatsapp_conversations")
+      .select("*")
+      .eq("phone", fallbackPhone)
+      .eq("active", true)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+      
+    if (fallbackConv) {
+      console.log('[Z-API] Conversa encontrada via fallback (8 dígitos). Atualizando para 9 dígitos.');
+      conversation = fallbackConv;
+      
+      // Atualiza o registro para o padrão de 9 dígitos para futuras consultas
+      const { error: updateErr } = await supabase
+        .from("whatsapp_conversations")
+        .update({ phone: normalizedPhone })
+        .eq("id", conversation.id);
+        
+      if (updateErr) console.error('[Z-API] Erro ao atualizar telefone da conversa para 9 dígitos:', updateErr);
+    }
+  }
     
   if (conversation) {
     console.log('conversation_phone found:', conversation.phone);
@@ -203,6 +241,9 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
         error: "No active conversation",
         metadata: { 
           ...body, 
+          phone_raw: phone,
+          phone_normalized_9: normalizedPhone,
+          phone_normalized_8: fallbackPhone,
           conversation_found: false,
           debug_matches: debugConv
         } 
@@ -217,6 +258,9 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     await supabase.from("zapi_webhook_logs").update({ 
       metadata: { 
         ...body, 
+        phone_raw: phone,
+        phone_normalized_9: normalizedPhone,
+        phone_normalized_8: fallbackPhone,
         conversation_found: true,
         conversation_id: conversation.id,
         state: conversation.state,

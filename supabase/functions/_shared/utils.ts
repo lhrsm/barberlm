@@ -48,18 +48,51 @@ export function getNowBrazil(): Date {
 
 export function normalizePhone(phone: string): string {
   if (!phone) return "";
-  const original = phone;
-  let digits = phone.replace(/\D/g, "");
   
-  // Se tiver 10 ou 11 dígitos, assume que falta o DDI 55
-  if (digits.length === 10 || digits.length === 11) {
-    digits = "55" + digits;
+  let digits = String(phone).replace(/\D/g, "");
+  
+  // Se não começar com 55, tenta identificar se é um número brasileiro sem DDI
+  if (!digits.startsWith('55')) {
+    // Se tiver 10 ou 11 dígitos, assume que falta o DDI 55
+    if (digits.length === 10 || digits.length === 11) {
+      digits = "55" + digits;
+    }
   }
   
-  // O usuário solicitou explicitamente NÃO remover o nono dígito.
-  // Padronização: 55 + DDD + 9 dígitos (total 13) ou 8 dígitos (total 12)
+  // Tratamento específico para Brasil (DDI 55)
+  if (digits.startsWith('55')) {
+    const country = digits.slice(0, 2); // 55
+    const ddd = digits.slice(2, 4);     // DDD
+    let number = digits.slice(4);       // O resto do número
+    
+    // Regra: Se for celular (número começa com 7, 8 ou 9, ou conforme necessidade) 
+    // e tiver apenas 8 dígitos após o DDD, adicionamos o 9 na frente.
+    // Como o BarberLM usa WhatsApp, quase sempre tratamos como celular.
+    if (number.length === 8) {
+      number = "9" + number;
+    }
+    
+    return `${country}${ddd}${number}`;
+  }
   
-  console.log(`PHONE NORMALIZED: original=${original} -> result=${digits}`);
+  return digits;
+}
+
+/**
+ * Remove o nono dígito de um número brasileiro (DDI 55 + DDD + 9 dígitos)
+ * Retorna o número com 8 dígitos após o DDD.
+ */
+export function removeNinthDigit(phone: string): string {
+  if (!phone) return "";
+  const digits = String(phone).replace(/\D/g, "");
+  
+  // Apenas se for Brasil e tiver 13 dígitos (55 + DDD + 9 dígitos)
+  if (digits.startsWith('55') && digits.length === 13) {
+    const country = digits.slice(0, 2);
+    const ddd = digits.slice(2, 4);
+    const number = digits.slice(5); // Pula o primeiro dígito do número (o nono dígito)
+    return `${country}${ddd}${number}`;
+  }
   
   return digits;
 }
