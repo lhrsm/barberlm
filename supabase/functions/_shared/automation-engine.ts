@@ -51,11 +51,27 @@ export async function handleAutomationWhatsappResponse(
 
   const groupId = conversation.appointment_group_id;
   
-  // Get appointments for this group
-  const { data: appointments } = await supabase
+  // Get appointments for this group or conversation
+  let appointmentsQuery = supabase
     .from("appointments")
-    .select("*, services(name)")
-    .eq("appointment_group_id", groupId);
+    .select("*, services(name)");
+
+  if (groupId) {
+    appointmentsQuery = appointmentsQuery.eq("appointment_group_id", groupId);
+  } else {
+    // If no group, get the specific appointment from the conversation or recent pending ones for this customer
+    if (conversation.appointment_id) {
+      appointmentsQuery = appointmentsQuery.eq("id", conversation.appointment_id);
+    } else {
+      appointmentsQuery = appointmentsQuery
+        .eq("customer_id", conversation.customer_id)
+        .in("status", ['scheduled', 'pending', 'awaiting_payment', 'confirmed'])
+        .order("start_time", { ascending: true });
+    }
+  }
+
+  const { data: appointments } = await appointmentsQuery;
+
 
   const isMultiple = appointments && appointments.length > 1;
   const appointmentIds = appointments?.map(a => a.id) || [];
