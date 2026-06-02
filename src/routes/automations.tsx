@@ -306,6 +306,18 @@ function AutomationsComponent() {
     
     if (data) setLogs(data);
   }
+  
+  async function fetchCronRuns() {
+    if (!tenantId) return;
+    const { data } = await supabase
+      .from("automation_cron_runs")
+      .select("*")
+      .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
+      .order("started_at", { ascending: false })
+      .limit(20);
+    
+    if (data) setCronRuns(data);
+  }
 
   async function fetchCronStatus() {
     if (!tenantId) return;
