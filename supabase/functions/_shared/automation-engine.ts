@@ -461,9 +461,21 @@ export async function processAutomationDispatches(
           
           if (containsPlaceholders(message)) {
             console.error('Message still contains placeholders', message);
+            const logData = {
+              barber_id: tenant_id,
+              phone: normalizePhone(customer.phone),
+              webhook_type: auto.type,
+              direction: 'outgoing',
+              status: 'error',
+              error_message: `Mensagem contém placeholders não substituídos: ${message}`,
+              message_sent: message,
+              appointment_group_id: firstAppt.appointment_group_id
+            };
+            await supabase.from("automation_logs").insert(logData);
             results.errors.push({ group: groupKey, error: 'Placeholders remaining' });
             continue;
           }
+
         }
 
         const connection = await getWhatsAppSettings(supabase, tenant_id);
