@@ -83,7 +83,11 @@ export async function handleAutomationWhatsappResponse(
           selectedOptionNormalized = "main_confirm";
         } else {
           // Multiple: Ask scope
-          messageToSend = "Como você deseja confirmar seus agendamentos?\n\n1️⃣ Confirmar todos\n2️⃣ Escolher um específico";
+          messageToSend = "Como você deseja confirmar seus agendamentos?";
+          buttons = [
+            { id: "confirm_all", label: "Confirmar todos" },
+            { id: "confirm_single", label: "Escolher específico" }
+          ];
           nextState = AUTOMATION_STATES.AWAITING_CONFIRMATION_SCOPE;
           actionExecuted = "ask_confirmation_scope";
           selectedOptionNormalized = "main_confirm";
@@ -95,27 +99,45 @@ export async function handleAutomationWhatsappResponse(
           actionExecuted = "reschedule_direct";
           selectedOptionNormalized = "main_reschedule";
         } else {
-          messageToSend = "Como você deseja reagendar seus agendamentos?\n\n1️⃣ Reagendar todos\n2️⃣ Escolher um específico";
+          messageToSend = "Como você deseja reagendar seus agendamentos?";
+          buttons = [
+            { id: "reschedule_all", label: "Reagendar todos" },
+            { id: "reschedule_single", label: "Escolher específico" }
+          ];
           nextState = AUTOMATION_STATES.AWAITING_RESCHEDULE_SCOPE;
           actionExecuted = "ask_reschedule_scope";
           selectedOptionNormalized = "main_reschedule";
         }
       } else if (normalizedOption === 'main_cancel' || normalizedOption === '3' || normalizedOption.includes('cancelar')) {
         if (!isMultiple) {
-          messageToSend = "Você realmente deseja cancelar seu agendamento?\n\n1️⃣ Sim, cancelar\n2️⃣ Não, manter";
+          messageToSend = "Você realmente deseja cancelar seu agendamento?";
+          buttons = [
+            { id: "cancel_yes", label: "Sim, cancelar" },
+            { id: "cancel_no", label: "Não, manter" }
+          ];
           nextState = AUTOMATION_STATES.AWAITING_CANCEL_CONFIRMATION;
           actionExecuted = "ask_cancel_confirmation";
           selectedOptionNormalized = "main_cancel";
         } else {
-          messageToSend = "Como você deseja cancelar seus agendamentos?\n\n1️⃣ Cancelar todos\n2️⃣ Escolher um específico";
+          messageToSend = "Como você deseja cancelar seus agendamentos?";
+          buttons = [
+            { id: "cancel_all", label: "Cancelar todos" },
+            { id: "cancel_single", label: "Escolher específico" }
+          ];
           nextState = AUTOMATION_STATES.AWAITING_CANCEL_SCOPE;
           actionExecuted = "ask_cancel_scope";
           selectedOptionNormalized = "main_cancel";
         }
       } else {
-        messageToSend = "Não consegui entender sua escolha. 🤔\n\nUse o menu de opções ou responda:\n1️⃣ Confirmar\n2️⃣ Reagendar\n3️⃣ Cancelar";
+        messageToSend = "Não consegui entender sua escolha. 🤔\n\nPor favor, escolha uma das opções abaixo:";
+        buttons = [
+          { id: "main_confirm", label: "Confirmar" },
+          { id: "main_reschedule", label: "Reagendar" },
+          { id: "main_cancel", label: "Cancelar" }
+        ];
         actionExecuted = "invalid_option_main";
       }
+
       break;
 
     case AUTOMATION_STATES.AWAITING_CONFIRMATION_SCOPE:
