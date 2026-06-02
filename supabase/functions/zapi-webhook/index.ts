@@ -34,33 +34,32 @@ function extractPhoneFromZapiPayload(body: any): string {
 }
 
 function extractSelectedOption(body: any): string {
-  // 1. Check if it is a list response (selectedRowId)
-  if (body.listResponseMessage?.singleSelectReply?.selectedRowId) {
-    return body.listResponseMessage.singleSelectReply.selectedRowId;
+  const possiblePaths = [
+    body.buttonReply?.id,
+    body.buttonReply?.title,
+    body.buttonsResponseMessage?.selectedButtonId,
+    body.buttonsResponseMessage?.selectedDisplayText,
+    body.listResponseMessage?.title,
+    body.listResponseMessage?.singleSelectReply?.selectedRowId,
+    body.message?.listResponseMessage?.title,
+    body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
+    body.selectedRowId,
+    body.selectedId,
+    body.text,
+    body.body,
+    body.message?.text,
+    body.message?.body,
+    body.message?.contents,
+    body.message?.caption
+  ];
+
+  for (const val of possiblePaths) {
+    if (val !== undefined && val !== null && val !== '') {
+      return String(val).trim();
+    }
   }
 
-  // 2. Check if it is a button response (selectedButtonId)
-  if (body.buttonsResponseMessage?.selectedButtonId) {
-    return body.buttonsResponseMessage.selectedButtonId;
-  }
-  
-  // 3. Check for direct button reply from Z-API
-  if (body.buttonReply?.id) {
-    return body.buttonReply.id;
-  }
-
-  // 4. Try to get text/title if no ID
-  const text = (
-    body.text || 
-    body.body || 
-    body.buttonReply?.title || 
-    body.buttonsResponseMessage?.selectedDisplayText ||
-    body.listResponseMessage?.title ||
-    body.message?.text ||
-    ""
-  ).trim();
-
-  return text;
+  return "";
 }
 
 
@@ -122,6 +121,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   }
 
   const selectedOptionRaw = extractSelectedOption(body);
+  
   console.log('WEBHOOK RECEIVED', JSON.stringify(body));
   console.log('EXTRACTED PHONE', normalizedPhone);
   console.log('EXTRACTED OPTION', selectedOptionRaw);
@@ -143,6 +143,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     .maybeSingle();
 
   if (!conversation) {
+    // Try to find in automation_conversations as fallback
     const { data: altConv } = await supabase
       .from("automation_conversations")
       .select("*, tenant_id, current_state")
@@ -165,20 +166,28 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     }
   }
 
+  console.log('CONVERSATION FOUND', conversation ? 'YES' : 'NO');
+  if (conversation) {
+    console.log('CONVERSATION STATE', conversation.state);
+  }
+
   if (!conversation) {
     console.log("[Z-API] No active conversation found for phone:", normalizedPhone);
-    await supabase.from("zapi_webhook_logs").update({ processed: true }).eq("id", logEntry.id);
+    
+    // Enviar fallback se for uma interação que parece ser resposta a um menu
+    if (selectedOptionRaw && selectedOptionRaw.length < 50) {
+      const connection = await getWhatsAppSettings(supabase, barberId);
+      if (connection) {
+        await sendMessage(connection, normalizedPhone, "Não encontrei uma conversa ativa para continuar. Por favor, faça um novo agendamento ou fale conosco diretamente.");
+      }
+    }
+    
+    await supabase.from("zapi_webhook_logs").update({ processed: true, error: "No active conversation" }).eq("id", logEntry.id);
     return;
   }
 
   // 4. Process state machine
   try {
-    console.log('WEBHOOK RECEIVED');
-    console.log('PHONE', normalizedPhone);
-    console.log('SELECTED OPTION', selectedOptionRaw);
-    console.log('CONVERSATION', JSON.stringify(conversation));
-    console.log('STATE BEFORE', conversation?.state);
-
     const result = await handleAutomationWhatsappResponse(supabase, {
       tenant_id: conversation.barber_id,
       phone: normalizedPhone,
@@ -189,6 +198,10 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
       conversation_id: conversation.id
     });
 
+    console.log('ACTION EXECUTED', result?.action_executed);
+    console.log('STATE AFTER', result?.next_state);
+    console.log('IS MULTIPLE', result?.is_multiple);
+
     if (result) {
       const connection = await getWhatsAppSettings(supabase, conversation.barber_id);
       if (connection && result.message_to_send) {
@@ -197,7 +210,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
           list: result.list
         });
 
-        
+        // Log to automation_logs
         await supabase.from("automation_logs").insert({
           barber_id: conversation.barber_id,
           tenant_id: conversation.barber_id,
@@ -218,10 +231,10 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
           appointment_id: conversation.appointment_id,
           metadata: {
             appointments_count: result.appointments_count || 0,
-            is_multiple: result.is_multiple || false
+            is_multiple: result.is_multiple || false,
+            raw_payload: body
           }
         });
-
       }
     }
 
@@ -229,6 +242,16 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   } catch (error: any) {
     console.error("[Z-API] Processing error:", error);
     await supabase.from("zapi_webhook_logs").update({ error: error.message }).eq("id", logEntry.id);
+    
+    // Log error to automation_logs too
+    await supabase.from("automation_logs").insert({
+      barber_id: conversation.barber_id,
+      phone: normalizedPhone,
+      webhook_type: 'webhook_error',
+      error_message: error.message,
+      direction: 'incoming',
+      metadata: { error_stack: error.stack, raw_payload: body }
+    });
   }
 }
 
