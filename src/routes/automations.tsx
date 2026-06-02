@@ -787,9 +787,9 @@ function AutomationsComponent() {
           <TabsList className="grid w-full grid-cols-5 max-w-[1000px]">
             <TabsTrigger value="automations" className="gap-2"><Zap size={16} /> Automações</TabsTrigger>
             <TabsTrigger value="logs" className="gap-2"><History size={16} /> Logs de Envio</TabsTrigger>
-            <TabsTrigger value="debug" className="gap-2 text-red-500 font-bold"><AlertCircle size={16} /> Debug Webhook</TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2"><Settings2 size={16} /> Configurações</TabsTrigger>
-            <TabsTrigger value="integrations" className="gap-2"><MessageSquare size={16} /> Integrações</TabsTrigger>
+            <TabsTrigger value="webhooks" className="gap-2"><Activity size={16} /> Webhooks Recebidos</TabsTrigger>
+            <TabsTrigger value="debug" className="gap-2 text-red-500 font-bold"><AlertCircle size={16} /> Debug & Testes</TabsTrigger>
+            <TabsTrigger value="integrations" className="gap-2"><MessageSquare size={16} /> WhatsApp</TabsTrigger>
           </TabsList>
 
           <TabsContent value="automations" className="space-y-6">
@@ -1175,13 +1175,16 @@ function AutomationsComponent() {
               </CardContent>
             </Card>
 
-            <Card className="mt-8 border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+          </TabsContent>
+
+          <TabsContent value="webhooks">
+            <Card className="border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden">
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl font-bold flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
                     <MessageSquare size={18} />
                   </div>
-                  Logs de Webhooks (Z-API)
+                  Webhooks Recebidos (Z-API)
                 </CardTitle>
                 <CardDescription>Depuração técnica de cliques e respostas recebidas via WhatsApp.</CardDescription>
               </CardHeader>
@@ -1214,10 +1217,11 @@ function AutomationsComponent() {
                                   "px-2 py-0.5 rounded-full text-[10px] font-black uppercase border-none",
                                   log.processed ? "bg-emerald-500/10 text-emerald-500" :
                                   log.error ? "bg-red-500/10 text-red-500" :
+                                  log.ignored ? "bg-slate-500/10 text-slate-500" :
                                   "bg-amber-500/10 text-amber-500"
                                 )}
                               >
-                                {log.processed ? 'Processado' : log.error ? 'Erro' : 'Pendente'}
+                                {log.processed ? 'Processado' : log.error ? 'Erro' : log.ignored ? 'Ignorado' : 'Pendente'}
                               </Badge>
                             </td>
                             <td className="px-6 py-4 font-medium text-muted-foreground tabular-nums">
@@ -1229,7 +1233,7 @@ function AutomationsComponent() {
                               </Badge>
                             </td>
                             <td className="px-6 py-4">
-                              <code className="text-[11px] bg-muted/50 px-1.5 py-0.5 rounded text-primary">
+                              <code className="text-[11px] bg-muted/50 px-1.5 py-0.5 rounded text-primary font-bold">
                                 {log.extracted_option || log.selected_option || '-'}
                               </code>
                             </td>

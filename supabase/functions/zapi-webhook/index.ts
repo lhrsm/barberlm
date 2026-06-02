@@ -35,34 +35,37 @@ function extractPhoneFromZapiPayload(body: any): string {
 }
 
 function extractSelectedOption(body: any): string {
+  // Debug paths specifically for buttons and lists
   const possiblePaths = [
-    // Z-API Buttons
+    // Z-API List Responses
+    body.listResponseMessage?.singleSelectReply?.selectedRowId,
+    body.listResponseMessage?.title,
+    body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
+    
+    // Z-API Button Responses
     body.buttonReply?.id,
     body.buttonReply?.title,
     body.buttonsResponseMessage?.selectedButtonId,
     body.buttonsResponseMessage?.selectedDisplayText,
-    // Z-API List
-    body.listResponseMessage?.title,
-    body.listResponseMessage?.singleSelectReply?.selectedRowId,
-    body.message?.listResponseMessage?.title,
-    body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
+    body.message?.buttonReply?.id,
+    
+    // Common ID fields
+    body.selectedRowId,
+    body.selectedId,
+    
     // Standard text or body
+    body.text?.message,
     body.text,
     body.body,
     body.message?.text,
     body.message?.body,
     body.message?.contents,
-    body.message?.caption,
-    // Selected ID fields
-    body.selectedRowId,
-    body.selectedId,
-    // Nested message object
-    body.message?.buttonReply?.id,
-    body.message?.buttonReply?.title
+    body.message?.caption
   ];
 
   for (const val of possiblePaths) {
     if (val !== undefined && val !== null && val !== '') {
+      if (typeof val === 'object' && val.message) return String(val.message).trim();
       return String(val).trim();
     }
   }
@@ -71,10 +74,11 @@ function extractSelectedOption(body: any): string {
 }
 
 async function processZapiWebhook(supabase: any, body: any, barberId: string) {
-  const phone = extractPhoneFromZapiPayload(body);
-  const normalizedPhone = normalizePhone(phone);
+  // 1. OBLIGATORY: Log everything BEFORE any filters
   const eventType = body.type || 'unknown';
   const instanceId = body.instanceId || null;
+  const phone = extractPhoneFromZapiPayload(body);
+  const normalizedPhone = normalizePhone(phone);
   const selectedOptionRaw = extractSelectedOption(body);
   
   console.log('--- Z-API WEBHOOK RECEIVED ---');
@@ -84,14 +88,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   console.log('OPTION:', selectedOptionRaw);
   console.log('PAYLOAD:', JSON.stringify(body));
 
-  const ignoredEvents = [
-    'PresenceChatCallback', 'StatusCallback', 'MessageStatusCallback',
-    'DeliveredCallback', 'ReadCallback', 'ConnectedCallback', 'DisconnectedCallback'
-  ];
-  
-  const isIgnored = ignoredEvents.includes(eventType) || body.fromMe === true || body.isSentByMe === true;
-  
-  // 1. Log to zapi_webhook_logs immediately
+  // 1. Save to zapi_webhook_logs immediately
   const { data: logEntry, error: logError } = await supabase
     .from("zapi_webhook_logs")
     .insert({
@@ -101,30 +98,38 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
       extracted_phone: normalizedPhone,
       event_type: eventType,
       type: eventType,
-      ignored: isIgnored,
       processed: false,
       selected_option: selectedOptionRaw,
       extracted_option: selectedOptionRaw,
-      instance_id: instanceId
+      instance_id: instanceId,
+      created_at: new Date().toISOString()
     })
     .select()
     .single();
 
   if (logError) console.error("[Z-API] Error logging webhook:", logError);
 
+  // 2. Filter ignored events AFTER logging
+  const ignoredEvents = [
+    'PresenceChatCallback', 'StatusCallback', 'MessageStatusCallback',
+    'DeliveredCallback', 'ReadCallback', 'ConnectedCallback', 'DisconnectedCallback'
+  ];
+  
+  const isIgnored = ignoredEvents.includes(eventType) || body.fromMe === true || body.isSentByMe === true;
+
   if (isIgnored) {
     console.log(`[Z-API] Event ${eventType} ignored.`);
+    if (logEntry) await supabase.from("zapi_webhook_logs").update({ ignored: true }).eq("id", logEntry.id);
     return { success: true, ignored: true };
   }
 
   if (!normalizedPhone) {
     console.error("[Z-API] Could not extract phone from payload");
     if (logEntry) await supabase.from("zapi_webhook_logs").update({ error: "No phone extracted" }).eq("id", logEntry.id);
-    return { success: false, error: "No phone extracted" };
+    return { success: true, error: "No phone extracted" }; // Still return 200
   }
 
-  // 2. Immediate Feedback Message
-  // Mapping logic for immediate response
+  // 3. Send immediate feedback for actions
   const rawInput = selectedOptionRaw.toLowerCase();
   const isAction = selectedOptionRaw && (
     rawInput.includes('confirm') || 
@@ -132,7 +137,9 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     rawInput.includes('cancelar') ||
     rawInput.includes('atendimento') ||
     rawInput.includes('agendamento') ||
-    ['1', '2', '3'].includes(rawInput)
+    ['1', '2', '3'].includes(rawInput) ||
+    eventType === 'ListResponseCallback' ||
+    eventType === 'ButtonCallback'
   );
 
   if (isAction) {
@@ -147,7 +154,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     }
   }
 
-  // 3. Find active conversation
+  // 4. Find active conversation
   const { data: conversation } = await supabase
     .from("whatsapp_conversations")
     .select("*")
@@ -167,7 +174,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     return { success: true, warning: "No active conversation" };
   }
 
-  // 4. Process state machine
+  // 5. Process state machine
   try {
     const result = await handleAutomationWhatsappResponse(supabase, {
       tenant_id: conversation.barber_id,
@@ -207,7 +214,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
           message_sent: result.message_to_send,
           status: sendResult.success ? 'success' : 'error',
           direction: 'outgoing',
-          metadata: { raw_payload: body }
+          metadata: { raw_payload: body, webhook_log_id: logEntry?.id }
         });
       }
     }
@@ -217,7 +224,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   } catch (error: any) {
     console.error("[Z-API] Processing error:", error);
     if (logEntry) await supabase.from("zapi_webhook_logs").update({ error: error.message }).eq("id", logEntry.id);
-    return { success: false, error: error.message };
+    return { success: true, error: error.message }; // Always 200
   }
 }
 
@@ -226,7 +233,10 @@ serve(async (req) => {
 
   const url = new URL(req.url);
   const pathParts = url.pathname.split("/");
-  const barberId = pathParts[pathParts.length - 1];
+  // The barber_id is expected to be the last part of the path or passed via header
+  const barberIdFromPath = pathParts[pathParts.length - 1];
+  const barberIdFromHeader = req.headers.get('x-barber-id');
+  const barberId = barberIdFromHeader || barberIdFromPath;
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -236,17 +246,17 @@ serve(async (req) => {
   try {
     const body = await req.json();
     
-    // IMPORTANT: Process SYNCHRONOUSLY for debugging as requested
+    // Process synchronously and always return 200
     const result = await processZapiWebhook(supabase, body, barberId);
 
     return new Response(JSON.stringify(result), {
-      status: result.success ? 200 : 500,
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   } catch (error: any) {
     console.error("[Z-API Webhook] Global error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {
-      status: 500,
+      status: 200, // Return 200 even on error as requested to avoid Z-API retries/blocking
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   }
