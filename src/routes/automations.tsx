@@ -28,6 +28,7 @@ import {
   Star,
   AlertCircle,
   Zap,
+  Activity,
   Lock,
   ArrowRight,
   Sparkles,
