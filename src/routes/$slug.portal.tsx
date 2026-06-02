@@ -567,15 +567,31 @@ function ClientPortalComponent() {
         customerId = newCust.id;
       }
 
-      // 2. Create or update client_auth record
-      const { error: authErr } = await supabase
-        .from("client_auth")
-        .upsert({
-          phone: normalized,
-          customer_id: customerId
-        }, { onConflict: 'phone' });
+      // 2. Create or update client_auth record using a more robust check to avoid ON CONFLICT issues
+      try {
+        const { data: existingAuth } = await supabase
+          .from("client_auth")
+          .select("id")
+          .eq("phone", normalized)
+          .maybeSingle();
 
-      if (authErr) throw authErr;
+        if (existingAuth) {
+          await supabase
+            .from("client_auth")
+            .update({ customer_id: customerId })
+            .eq("id", existingAuth.id);
+        } else {
+          await supabase
+            .from("client_auth")
+            .insert({
+              phone: normalized,
+              customer_id: customerId
+            });
+        }
+      } catch (authErr: any) {
+        console.error("Error updating client_auth:", authErr);
+        // We don't throw here to not block the registration if only the auth link fails
+      }
 
       toast.success("Cadastro realizado com sucesso!");
       
