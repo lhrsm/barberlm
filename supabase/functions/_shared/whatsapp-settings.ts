@@ -127,9 +127,10 @@ export async function sendMessage(
   // 3. Fallback or standard text message
   console.log('SENDING STANDARD TEXT MESSAGE (OR FALLBACK)');
   
-  // Protection against sending raw JSON
-  if (message.includes('[') && message.includes(']') && message.includes('{') && message.includes('}')) {
-     console.error('[Z-API] Detected potential raw JSON in message body, blocking send');
+  // Protection against sending raw JSON - more specific check
+  const jsonPattern = /\[\s*\{\s*".*?"\s*:\s*".*?"/g;
+  if (jsonPattern.test(message) && message.includes('{') && message.includes('}')) {
+     console.error('[Z-API] Detected raw JSON in message body, blocking send');
      return { success: false, error: "Potential JSON in message body blocked" };
   }
 

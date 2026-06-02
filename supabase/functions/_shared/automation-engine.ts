@@ -603,15 +603,30 @@ export async function processAutomationDispatches(
 
         // Validation before sending
         const hasPlaceholders = containsPlaceholders(message);
-        const hasPotentialJson = message.includes('[') && message.includes(']');
         
+        // Better JSON detection: look for array of objects or object structure
+        const jsonPattern = /\[\s*\{\s*".*?"\s*:\s*".*?"/g;
+        const hasPotentialJson = jsonPattern.test(message) || (message.includes('{"') && message.includes('"}'));
+        
+        console.log(`[AutomationEngine] MESSAGE BEFORE SENDING to ${customer.phone}:`, message);
+        console.log(`[AutomationEngine] VALIDATION: Placeholders=${hasPlaceholders}, JSON=${hasPotentialJson}`);
+        
+        if (hasPotentialJson) {
+          console.warn(`[AutomationEngine] JSON detected in message body. Attempting to clean...`);
+          // Try to remove JSON-like structures from the message
+          message = message.replace(/\[\s*\{\s*".*?id".*?\}.*?\]/gs, '');
+          message = message.replace(/\{\s*".*?id".*?\}/gs, '');
+          message = message.trim();
+          console.log(`[AutomationEngine] MESSAGE AFTER CLEANING:`, message);
+        }
+
         let sendResult = { success: false, error: "Validation failed", response: null };
         
-        if (!hasPlaceholders && !hasPotentialJson) {
+        if (!hasPlaceholders) {
           sendResult = await sendMessage(connection, customer.phone, message, { buttons });
         } else {
-          console.error(`[AutomationEngine] Message validation failed. Placeholders: ${hasPlaceholders}, JSON: ${hasPotentialJson}`);
-          sendResult.error = `Validation failed: Placeholders=${hasPlaceholders}, JSON=${hasPotentialJson}`;
+          console.error(`[AutomationEngine] Message validation failed. Placeholders remain in text.`);
+          sendResult.error = `Validation failed: Placeholders=true`;
         }
         
         // Log to automation_logs
