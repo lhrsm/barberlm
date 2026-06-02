@@ -448,14 +448,26 @@ export async function handleAutomationWhatsappResponse(
       messageToSend = "Não consegui entender sua escolha. 🤔\n\nUse o menu de opções ou responda:\n1️⃣ Confirmar\n2️⃣ Reagendar\n3️⃣ Cancelar";
       break;
   }
+  
+  console.log('[AutomationEngine] FLOW SUMMARY:', {
+    actionExecuted,
+    nextState,
+    messageSent: messageToSend ? 'YES' : 'NO',
+    appointmentsCount: appointments?.length || 0
+  });
 
-  await supabase.from("whatsapp_conversations")
+  // Final update of conversation
+  const { error: updateError } = await supabase.from("whatsapp_conversations")
     .update({ 
       state: nextState,
-      active: nextState !== AUTOMATION_STATES.COMPLETED,
+      active: nextState !== AUTOMATION_STATES.COMPLETED && nextState !== AUTOMATION_STATES.EXPIRED,
       updated_at: new Date().toISOString()
     })
     .eq("id", conversation_id);
+
+  if (updateError) {
+    console.error('[AutomationEngine] Error updating conversation state:', updateError);
+  }
 
   return {
     action_executed: actionExecuted,
