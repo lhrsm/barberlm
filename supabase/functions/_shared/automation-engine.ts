@@ -11,6 +11,7 @@ export const AUTOMATION_STATES = {
   AWAITING_SPECIFIC_APPOINTMENT_SELECTION: 'awaiting_specific_selection',
   AWAITING_REMAINING_APPOINTMENT_ACTION: 'awaiting_remaining_action',
   AWAITING_RESCHEDULE_SCOPE: 'awaiting_reschedule_scope',
+  AWAITING_RESCHEDULE_DATE: 'awaiting_reschedule_date',
   AWAITING_CANCEL_CONFIRMATION: 'awaiting_cancel_confirmation',
   AWAITING_CANCEL_SCOPE: 'awaiting_cancel_scope',
   COMPLETED: 'completed',
