@@ -598,7 +598,18 @@ export async function processAutomationDispatches(
           { id: "main_cancel", label: "Cancelar" }
         ];
 
-        const sendResult = await sendMessage(connection, customer.phone, message, { buttons });
+        // Validation before sending
+        const hasPlaceholders = containsPlaceholders(message);
+        const hasPotentialJson = message.includes('[') && message.includes(']');
+        
+        let sendResult = { success: false, error: "Validation failed", response: null };
+        
+        if (!hasPlaceholders && !hasPotentialJson) {
+          sendResult = await sendMessage(connection, customer.phone, message, { buttons });
+        } else {
+          console.error(`[AutomationEngine] Message validation failed. Placeholders: ${hasPlaceholders}, JSON: ${hasPotentialJson}`);
+          sendResult.error = `Validation failed: Placeholders=${hasPlaceholders}, JSON=${hasPotentialJson}`;
+        }
         
         // Log to automation_logs
         await supabase.from("automation_logs").insert({
@@ -612,8 +623,15 @@ export async function processAutomationDispatches(
           message_sent: message,
           appointment_id: !isMultiple ? firstAppt.id : null,
           appointment_group_id: group_id,
-          zapi_response: sendResult.response
+          zapi_response: sendResult.response,
+          metadata: {
+            has_placeholders: hasPlaceholders,
+            has_json: hasPotentialJson,
+            appointments_count: apptGroup.length,
+            is_multiple: isMultiple
+          }
         });
+
 
         if (sendResult.success) {
           results.processed_count += apptGroup.length;

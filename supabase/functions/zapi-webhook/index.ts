@@ -185,6 +185,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
       customer_id: conversation.customer_id,
       current_state: conversation.state,
       option_id: selectedOptionRaw,
+
       payload: body,
       conversation_id: conversation.id
     });
