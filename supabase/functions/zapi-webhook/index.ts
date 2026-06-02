@@ -157,8 +157,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
 
   // 4. Find active conversation
   console.log('CONVERSATION LOOKUP');
-  console.log('phone recebido (raw):', phone);
-  console.log('phone recebido (normalized):', normalizedPhone);
+  console.log('webhook_phone:', normalizedPhone);
 
   const { data: conversation, error: convLookupError } = await supabase
     .from("whatsapp_conversations")
@@ -168,6 +167,11 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+    
+  if (conversation) {
+    console.log('conversation_phone found:', conversation.phone);
+    console.log('conversation_phone == webhook_phone:', conversation.phone === normalizedPhone);
+  }
 
   if (conversation) {
     console.log('conversation encontrada:', conversation.id);
