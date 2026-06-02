@@ -359,7 +359,7 @@ export async function handleAutomationWhatsappResponse(
         messageToSend = "Opção inválida.";
         buttons = [
           { id: "cancel_all", label: "Cancelar todos" },
-          { id: "cancel_single", label: "Escolher específico" }
+          { id: "cancel_single", label: "Cancelar um específico" }
         ];
       }
       break;
