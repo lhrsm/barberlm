@@ -108,8 +108,8 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     return;
   }
 
-  if (isIgnored) {
-    console.log(`[Z-API] Event ${eventType} ignored.`);
+  if (isIgnored || body.fromMe === true || body.isSentByMe === true) {
+    console.log(`[Z-API] Event ${eventType} ignored. (isIgnored: ${isIgnored}, fromMe: ${body.fromMe})`);
     return;
   }
 
