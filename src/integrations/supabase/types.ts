@@ -364,33 +364,42 @@ export type Database = {
       automation_cron_runs: {
         Row: {
           appointment_id: string | null
+          details: Json | null
+          error: string | null
           error_count: number | null
           errors: Json | null
           finished_at: string | null
           id: string
           processed_count: number | null
+          skipped_count: number | null
           started_at: string
           status: string
           tenant_id: string | null
         }
         Insert: {
           appointment_id?: string | null
+          details?: Json | null
+          error?: string | null
           error_count?: number | null
           errors?: Json | null
           finished_at?: string | null
           id?: string
           processed_count?: number | null
+          skipped_count?: number | null
           started_at?: string
           status: string
           tenant_id?: string | null
         }
         Update: {
           appointment_id?: string | null
+          details?: Json | null
+          error?: string | null
           error_count?: number | null
           errors?: Json | null
           finished_at?: string | null
           id?: string
           processed_count?: number | null
+          skipped_count?: number | null
           started_at?: string
           status?: string
           tenant_id?: string | null
