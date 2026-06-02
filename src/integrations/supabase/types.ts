@@ -2759,8 +2759,11 @@ export type Database = {
           id: string
           ignored: boolean | null
           instance_id: string | null
+          metadata: Json | null
           payload: Json
           phone: string | null
+          phone_normalized_8: string | null
+          phone_raw: string | null
           processed: boolean | null
           selected_option: string | null
           status_code: number | null
@@ -2776,8 +2779,11 @@ export type Database = {
           id?: string
           ignored?: boolean | null
           instance_id?: string | null
+          metadata?: Json | null
           payload: Json
           phone?: string | null
+          phone_normalized_8?: string | null
+          phone_raw?: string | null
           processed?: boolean | null
           selected_option?: string | null
           status_code?: number | null
@@ -2793,8 +2799,11 @@ export type Database = {
           id?: string
           ignored?: boolean | null
           instance_id?: string | null
+          metadata?: Json | null
           payload?: Json
           phone?: string | null
+          phone_normalized_8?: string | null
+          phone_raw?: string | null
           processed?: boolean | null
           selected_option?: string | null
           status_code?: number | null
