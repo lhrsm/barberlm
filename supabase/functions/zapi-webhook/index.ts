@@ -188,7 +188,11 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     if (result) {
       const connection = await getWhatsAppSettings(supabase, conversation.barber_id);
       if (connection && result.message_to_send) {
-        const sendResult = await sendMessage(connection, normalizedPhone, result.message_to_send);
+        const sendResult = await sendMessage(connection, normalizedPhone, result.message_to_send, {
+          buttons: result.buttons,
+          list: result.list
+        });
+
         
         await supabase.from("automation_logs").insert({
           barber_id: conversation.barber_id,
