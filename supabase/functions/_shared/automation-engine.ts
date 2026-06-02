@@ -239,7 +239,7 @@ export async function handleAutomationWhatsappResponse(
         messageToSend = "Opção inválida.";
         buttons = [
           { id: "confirm_all", label: "Confirmar todos" },
-          { id: "confirm_single", label: "Escolher específico" }
+          { id: "confirm_single", label: "Confirmar um específico" }
         ];
       }
 
