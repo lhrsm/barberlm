@@ -3,6 +3,7 @@ import { format, parse } from "https://esm.sh/date-fns@2.30.0";
 import { ptBR } from "https://esm.sh/date-fns@2.30.0/locale";
 import { formatBrazilDate, formatBrazilTime, normalizePhone } from "./utils.ts";
 import { sendMessage, getWhatsAppSettings } from "./whatsapp-settings.ts";
+import { processAutomationTemplate, containsPlaceholders } from "./template-parser.ts";
 
 export const AUTOMATION_STATES = {
   AWAITING_MAIN_ACTION: 'awaiting_main_action',
@@ -37,9 +38,6 @@ export async function handleAutomationWhatsappResponse(
 ) {
   console.log(`[AutomationEngine] Handling response for ${phone} in state ${current_state} with option ${option_id}`);
 
-  // Fetch active conversation from whatsapp_conversations or automation_conversations
-  // The user asked to use whatsapp_conversations or automation_conversations logic
-  // Based on zapi-webhook/index.ts, we use whatsapp_conversations
   const { data: conversation, error: convError } = await supabase
     .from("whatsapp_conversations")
     .select("*")
@@ -248,12 +246,10 @@ export async function handleAutomationWhatsappResponse(
       break;
       
     default:
-      // Fallback
       messageToSend = "Não consegui entender sua escolha. 🤔\n\nUse o menu de opções ou responda:\n1️⃣ Confirmar\n2️⃣ Reagendar\n3️⃣ Cancelar";
       break;
   }
 
-  // Update conversation
   await supabase.from("whatsapp_conversations")
     .update({ 
       state: nextState,
@@ -274,160 +270,195 @@ export async function processAutomationDispatches(
   supabase: any,
   { tenantId, appointmentId, forceMode }: { tenantId?: string; appointmentId?: string; forceMode?: boolean }
 ) {
-  console.log(`[AutomationEngine] Starting dispatch process. Tenant: ${tenantId || 'All'}, Appointment: ${appointmentId || 'All'}, Force: ${forceMode}`);
+  const runId = crypto.randomUUID();
+  console.log(`[AutomationEngine] Starting dispatch process ${runId}. Tenant: ${tenantId || 'All'}, Appointment: ${appointmentId || 'All'}, Force: ${forceMode}`);
   
+  await supabase.from("automation_cron_runs").insert({
+    id: runId,
+    status: 'running',
+    tenant_id: tenantId,
+    appointment_id: appointmentId
+  });
+
   const results = {
     success: true,
-    appointmentsFound: [] as any[],
-    messagesSent: [] as any[],
+    processed_count: 0,
+    error_count: 0,
+    messages_sent: [] as any[],
     errors: [] as any[]
   };
 
   try {
-    // 1. Define time window (reminders for the next 24 hours, or confirmations for new ones)
-    const now = new Date();
-    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    
-    // 2. Fetch pending appointments that might need automation
     let query = supabase
       .from("appointments")
-      .select("*, customers(*), barbers(*), services(*)")
-      .in("status", ["pending", "confirmed"]);
+      .select("*, customers(*), barbers(*), services(*), profiles:tenant_id(business_name)")
+      .eq("status", "pending")
+      .is("confirmation_sent_at", null);
 
     if (tenantId) query = query.eq("tenant_id", tenantId);
     if (appointmentId) query = query.eq("id", appointmentId);
     
-    // Only future appointments unless forceMode
-    if (!forceMode && !appointmentId) {
-      query = query.gte("start_time", now.toISOString()).lte("start_time", tomorrow.toISOString());
-    }
-
     const { data: appointments, error: appError } = await query;
 
     if (appError) throw appError;
     if (!appointments || appointments.length === 0) {
-      console.log("[AutomationEngine] No appointments found in window.");
-      return { ...results, message: "No appointments found" };
+      console.log("[AutomationEngine] No pending appointments found.");
+      await supabase.from("automation_cron_runs").update({ status: 'success', finished_at: new Date().toISOString() }).eq('id', runId);
+      return { ...results, message: "No pending appointments found" };
     }
 
-    results.appointmentsFound = appointments;
-    console.log(`[AutomationEngine] Found ${appointments.length} appointments to check.`);
-
-    // 3. For each appointment, check applicable automations
+    const groups: Record<string, any[]> = {};
     for (const appt of appointments) {
+      const key = appt.appointment_group_id || `${appt.tenant_id}_${appt.customers?.phone}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(appt);
+    }
+
+    for (const [groupKey, apptGroup] of Object.entries(groups)) {
       try {
-        // Fetch enabled automations for this tenant
-        const { data: automations } = await supabase
+        const firstAppt = apptGroup[0];
+        const tenant_id = firstAppt.tenant_id;
+        const customer = firstAppt.customers;
+        const profile = firstAppt.profiles;
+        
+        if (!customer?.phone) continue;
+
+        const { data: auto } = await supabase
           .from("automations")
           .select("*")
-          .eq("tenant_id", appt.tenant_id)
-          .eq("enabled", true);
+          .eq("tenant_id", tenant_id)
+          .eq("type", AUTOMATION_TYPES.CONFIRMATION)
+          .eq("enabled", true)
+          .maybeSingle();
 
-        if (!automations || automations.length === 0) continue;
+        if (!auto) continue;
 
-        for (const auto of automations) {
-          // Check if already sent for this appointment/automation type
-          const { data: existingLog } = await supabase
-            .from("automation_logs")
-            .select("id")
-            .eq("appointment_id", appt.id)
-            .eq("barber_id", appt.tenant_id)
-            .eq("webhook_type", auto.type)
-            .eq("status", "success")
-            .maybeSingle();
-
-          if (existingLog && !forceMode) {
-            console.log(`[AutomationEngine] Automation ${auto.type} already sent for appointment ${appt.id}`);
+        const isMultiple = apptGroup.length > 1;
+        let message = "";
+        
+        if (!isMultiple) {
+          const appt = firstAppt;
+          const templateData = {
+            customer_name: customer.name,
+            barbershop_name: profile?.business_name,
+            service_name: appt.services?.name,
+            professional_name: appt.barbers?.name,
+            appointment_date: formatBrazilDate(appt.start_time),
+            appointment_time: formatBrazilTime(appt.start_time),
+            service_price: appt.final_amount ? `R$ ${appt.final_amount.toFixed(2).replace('.', ',')}` : "R$ 0,00"
+          };
+          
+          const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nSeu agendamento na {{barbershop_name}} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {{service_name}}\n💈 Profissional: {{professional_name}}\n📅 Data: {{appointment_date}}\n⏰ Horário: {{appointment_time}}\n💰 Valor: {{service_price}}\n\nO que deseja fazer?`;
+          
+          message = processAutomationTemplate(rawTemplate, templateData);
+          
+          if (containsPlaceholders(message)) {
+            console.error('Message still contains placeholders', message);
+            results.errors.push({ group: groupKey, error: 'Placeholders remaining' });
             continue;
           }
+        } else {
+          let appointmentsList = "";
+          apptGroup.forEach((appt, i) => {
+            appointmentsList += `${i + 1}️⃣ ${appt.services?.name}\n💈 ${appt.barbers?.name}\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n\n`;
+          });
 
-          // Determine if we should send based on trigger type/time (simplified for now)
-          // For now, just send confirmation if status is pending, and reminder if confirmed
-          const shouldSend = 
-            (auto.type === 'appointment_confirmation' && appt.status === 'pending') ||
-            (auto.type === 'appointment_reminder' && appt.status === 'confirmed');
-
-          if (!shouldSend && !forceMode) continue;
-
-          // Process template
-          const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", appt.tenant_id).single();
-          
-          const message = auto.template 
-            ? auto.template
-                .replace("{{cliente_nome}}", appt.customers?.name || "Cliente")
-                .replace("{{horario}}", formatBrazilTime(appt.start_time))
-                .replace("{{data}}", formatBrazilDate(appt.start_time))
-                .replace("{{barbearia_nome}}", profile?.business_name || "Barbearia")
-                .replace("{{servico}}", appt.services?.name || "Serviço")
-                .replace("{{profissional}}", appt.barbers?.name || "Profissional")
-            : `Olá ${appt.customers?.name}, lembrete do seu agendamento em ${profile?.business_name} às ${formatBrazilTime(appt.start_time)}.`;
-
-          // Send WhatsApp
-          const connection = await getWhatsAppSettings(supabase, appt.tenant_id);
-          if (!connection) {
-            console.warn(`[AutomationEngine] No WhatsApp connection for tenant ${appt.tenant_id}`);
-            continue;
-          }
-
-          const sendResult = await sendMessage(connection, appt.customers?.phone, message);
-          
-          // Log result
-          const logData = {
-            barber_id: appt.tenant_id,
-            phone: appt.customers?.phone,
-            webhook_type: auto.type,
-            direction: 'outgoing',
-            status: sendResult.success ? 'success' : 'error',
-            error_message: sendResult.error,
-            message_sent: message,
-            appointment_id: appt.id,
-            appointment_group_id: appt.appointment_group_id
+          const templateData = {
+            customer_name: customer.name,
+            barbershop_name: profile?.business_name,
+            appointments_list: appointmentsList.trim()
           };
 
-          await supabase.from("automation_logs").insert(logData);
-          results.messagesSent.push(logData);
+          const rawTemplate = `Olá {{customer_name}} 👋\n\nVocê possui {{count}} agendamentos na {{barbershop_name}}.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}\n\nO que deseja fazer?`
+            .replace("{{count}}", String(apptGroup.length));
 
-          // If confirmation, create conversation state
-          if (auto.type === 'appointment_confirmation' && sendResult.success) {
-            await supabase.from("whatsapp_conversations").insert({
-              barber_id: appt.tenant_id,
-              customer_id: appt.customer_id,
-              phone: normalizePhone(appt.customers?.phone),
-              state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
-              active: true,
-              appointment_group_id: appt.appointment_group_id,
-              appointment_id: appt.id
-            });
+          message = processAutomationTemplate(rawTemplate, templateData);
+          
+          if (containsPlaceholders(message)) {
+            console.error('Message still contains placeholders', message);
+            results.errors.push({ group: groupKey, error: 'Placeholders remaining' });
+            continue;
           }
         }
-      } catch (apptError: any) {
-        console.error(`[AutomationEngine] Error processing appointment ${appt.id}:`, apptError);
-        results.errors.push({ appointmentId: appt.id, error: apptError.message });
+
+        const connection = await getWhatsAppSettings(supabase, tenant_id);
+        if (!connection) continue;
+
+        const buttons = [
+          { id: "main_confirm", label: "Confirmar agendamento" },
+          { id: "main_reschedule", label: "Reagendar" },
+          { id: "main_cancel", label: "Cancelar" }
+        ];
+
+        const sendResult = await sendMessage(connection, customer.phone, message, { buttons });
+        
+        const logData = {
+          barber_id: tenant_id,
+          phone: normalizePhone(customer.phone),
+          webhook_type: auto.type,
+          direction: 'outgoing',
+          status: sendResult.success ? 'success' : 'error',
+          error_message: sendResult.error,
+          message_sent: message,
+          appointment_id: !isMultiple ? firstAppt.id : null,
+          appointment_group_id: firstAppt.appointment_group_id
+        };
+
+        await supabase.from("automation_logs").insert(logData);
+        results.messages_sent.push(logData);
+
+        if (sendResult.success) {
+          results.processed_count++;
+          
+          await supabase.from("whatsapp_conversations").insert({
+            barber_id: tenant_id,
+            customer_id: customer.id,
+            phone: normalizePhone(customer.phone),
+            state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+            active: true,
+            appointment_group_id: firstAppt.appointment_group_id,
+            appointment_id: !isMultiple ? firstAppt.id : null,
+            context: {
+              appointment_ids: apptGroup.map(a => a.id),
+              multiple: isMultiple
+            }
+          });
+
+          const nowIso = new Date().toISOString();
+          await supabase.from("appointments")
+            .update({ 
+              confirmation_sent: true, 
+              confirmation_sent_at: nowIso 
+            })
+            .in("id", apptGroup.map(a => a.id));
+        } else {
+          results.error_count++;
+        }
+
+      } catch (err: any) {
+        console.error(`[AutomationEngine] Error processing group ${groupKey}:`, err);
+        results.error_count++;
+        results.errors.push({ group: groupKey, error: err.message });
       }
     }
+
+    await supabase.from("automation_cron_runs").update({
+      status: results.error_count === 0 ? 'success' : 'error',
+      finished_at: new Date().toISOString(),
+      processed_count: results.processed_count,
+      error_count: results.error_count,
+      errors: results.errors
+    }).eq('id', runId);
+
+    return results;
+
   } catch (error: any) {
-    console.error("[AutomationEngine] Fatal Error:", error);
-    results.success = false;
-    results.errors.push({ error: error.message });
-  }
-
-  return results;
-}
-
-function formatBrazilDate(dateStr: string) {
-  try {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR');
-  } catch {
-    return dateStr;
-  }
-}
-
-function formatBrazilTime(dateStr: string) {
-  try {
-    const date = new Date(dateStr);
-    return date.toLocaleTimeString('pt-BR', { hour: '2-numeric', minute: '2-numeric' });
-  } catch {
-    return dateStr;
+    console.error("[AutomationEngine] Fatal error in dispatches:", error);
+    await supabase.from("automation_cron_runs").update({ 
+      status: 'error', 
+      finished_at: new Date().toISOString(),
+      errors: [{ fatal: error.message }]
+    }).eq('id', runId);
+    return { ...results, success: false, error: error.message };
   }
 }
