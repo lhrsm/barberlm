@@ -100,7 +100,7 @@ export async function handleAutomationWhatsappResponse(
     normalizedInput === 'confirmar_agendamento' ||
     normalizedInput.includes('confirmar agendamento') || 
     normalizedInput.includes('confirmar atendimento') || 
-    normalizedInput === 'confirmar' || 
+    normalizedInput.includes('confirmar') || 
     normalizedInput === 'confirm' || 
     normalizedInput === '1'
   ) {
@@ -130,7 +130,7 @@ export async function handleAutomationWhatsappResponse(
   if (rawInput === 'main_reschedule') mappedOption = 'main_reschedule';
   if (rawInput === 'main_cancel') mappedOption = 'main_cancel';
 
-  console.log('MAPPED OPTION:', mappedOption);
+  console.log('[AutomationEngine] MAPPED OPTION:', mappedOption);
   console.log('CONVERSATION STATE:', current_state);
   console.log('APPOINTMENTS COUNT:', appointments?.length || 0);
 
