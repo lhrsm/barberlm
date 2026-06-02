@@ -6,12 +6,19 @@ export function processAutomationTemplate(template: string, data: Record<string,
   let result = template;
 
   // 1. Handle Conditional Blocks: {{#if variable}}...{{/if}}
-  // This regex finds {{#if variable}}content{{/if}}
-  const ifRegex = /{{#if\s+([a-zA-Z0-9_]+)}}(.*?){{\/if}}/gs;
+  // More flexible regex to handle spaces and various formats
+  const ifRegex = /{{\s*#if\s+([a-zA-Z0-9_]+)\s*}}(.*?){{\s*\/if\s*}}/gs;
   result = result.replace(ifRegex, (match, variable, content) => {
     const value = data[variable];
     // If value is truthy (exists and not empty string/zero), keep content, else remove
-    if (value && value !== "R$ 0,00" && value !== "0,00" && value !== "") {
+    const isTruthy = value && 
+                     value !== "R$ 0,00" && 
+                     value !== "0,00" && 
+                     value !== "" && 
+                     value !== "false" && 
+                     value !== false;
+                     
+    if (isTruthy) {
       return content;
     }
     return "";
@@ -47,13 +54,14 @@ export function processAutomationTemplate(template: string, data: Record<string,
 
   // 3. Replace simple placeholders: {{variable}}
   for (const [key, value] of Object.entries(variables)) {
-    const placeholder = `{{${key}}}`;
+    // Regex to match {{key}} with optional spaces: {{ key }}
+    const placeholderRegex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
     const stringValue = String(value || "");
-    result = result.split(placeholder).join(stringValue);
+    result = result.replace(placeholderRegex, stringValue);
   }
 
-  // 4. Final Cleanup: Remove any remaining Handlebars tags to avoid sending them to user
-  result = result.replace(/{{[#\/]?[a-zA-Z0-9_ ]+}}/g, "");
+  // 4. Final Cleanup: Remove any remaining Handlebars tags
+  result = result.replace(/{{\s*[#\/]?[a-zA-Z0-9_ ]+\s*}}/g, "");
 
   return result.trim();
 }
