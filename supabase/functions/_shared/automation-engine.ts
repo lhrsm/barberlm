@@ -80,9 +80,9 @@ export async function handleAutomationWhatsappResponse(
   switch (current_state) {
     case AUTOMATION_STATES.AWAITING_MAIN_ACTION:
       // Map numeric responses to internal actions
-      const mainOption = String(option_id).trim();
+      const mainOption = String(option_id).trim().toLowerCase();
       
-      if (mainOption === '1') { // Confirmar
+      if (mainOption === '1' || mainOption === 'confirm' || mainOption.includes('confirmar')) { 
         if (!isMultiple) {
           // Confirm direct
           const apptId = appointmentIds[0];
@@ -96,9 +96,9 @@ export async function handleAutomationWhatsappResponse(
           nextState = AUTOMATION_STATES.AWAITING_CONFIRMATION_SCOPE;
           actionExecuted = "ask_confirmation_scope";
         }
-      } else if (mainOption === '2') { // Reagendar
+      } else if (mainOption === '2' || mainOption === 'reschedule' || mainOption.includes('reagendar')) {
         if (!isMultiple) {
-          messageToSend = "Para reagendar seu atendimento, por favor entre em contato conosco ou acesse nosso portal de agendamentos: https://agendamento.barber.com.br";
+          messageToSend = "Para reagendar seu atendimento, por favor entre em contato conosco ou acesse nosso portal de agendamentos.";
           nextState = AUTOMATION_STATES.COMPLETED;
           actionExecuted = "reschedule_direct";
         } else {
@@ -106,7 +106,7 @@ export async function handleAutomationWhatsappResponse(
           nextState = AUTOMATION_STATES.AWAITING_RESCHEDULE_SCOPE;
           actionExecuted = "ask_reschedule_scope";
         }
-      } else if (mainOption === '3') { // Cancelar
+      } else if (mainOption === '3' || mainOption === 'cancel' || mainOption.includes('cancelar')) {
         if (!isMultiple) {
           messageToSend = "Você realmente deseja cancelar seu agendamento?\n\nDigite:\n1 - Sim, cancelar\n2 - Não, manter";
           nextState = AUTOMATION_STATES.AWAITING_CANCEL_SCOPE;
@@ -118,7 +118,7 @@ export async function handleAutomationWhatsappResponse(
         }
       } else {
         // Resposta inválida
-        messageToSend = "Não consegui entender sua resposta. 🤔\n\nPor favor, digite apenas o número da opção desejada:\n\n1 - Confirmar agendamento\n2 - Reagendar\n3 - Cancelar";
+        messageToSend = "Não consegui entender sua resposta. 🤔\n\nPor favor, escolha uma das opções:\n\n1 - Confirmar agendamento\n2 - Reagendar\n3 - Cancelar";
         actionExecuted = "invalid_option_main";
       }
       break;
