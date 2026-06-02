@@ -2594,6 +2594,39 @@ export type Database = {
           },
         ]
       }
+      zapi_webhook_logs: {
+        Row: {
+          barber_id: string | null
+          created_at: string
+          error: string | null
+          event_type: string | null
+          id: string
+          payload: Json
+          phone: string | null
+          processed: boolean | null
+        }
+        Insert: {
+          barber_id?: string | null
+          created_at?: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          payload: Json
+          phone?: string | null
+          processed?: boolean | null
+        }
+        Update: {
+          barber_id?: string | null
+          created_at?: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json
+          phone?: string | null
+          processed?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
