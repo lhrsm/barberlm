@@ -1011,11 +1011,15 @@ function AutomationsComponent() {
                                   "px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border-none",
                                   log.status === 'success' || log.status === 'sent'
                                     ? "bg-emerald-500/10 text-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.1)]" 
+                                    : log.status === 'skipped'
+                                    ? "bg-amber-500/10 text-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.1)]"
                                     : "bg-red-500/10 text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
                                 )}
                               >
                                 {log.status === 'success' || log.status === 'sent' ? (
                                   <span className="flex items-center gap-1"><Check size={10} /> Sucesso</span>
+                                ) : log.status === 'skipped' ? (
+                                  <span className="flex items-center gap-1"><AlertCircle size={10} /> Ignorado</span>
                                 ) : (
                                   <div className="flex flex-col">
                                     <span className="flex items-center gap-1"><AlertCircle size={10} /> Falha</span>
