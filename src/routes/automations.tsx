@@ -78,6 +78,7 @@ function AutomationsComponent() {
   
   const [automations, setAutomations] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
+  const [cronRuns, setCronRuns] = useState<any[]>([]);
   const [cronStatus, setCronStatus] = useState<any>(null);
   const [automationStatus, setAutomationStatus] = useState<any>(null);
   const [nextRunIn, setNextRunIn] = useState<string>("");
