@@ -64,6 +64,8 @@ export async function handleAutomationWhatsappResponse(
   let messageToSend = "";
   let actionExecuted = "";
   let selectedOptionNormalized = option_id;
+  let buttons: any[] | undefined = undefined;
+
 
   // Normalize option
   const normalizedOption = String(option_id).trim().toLowerCase();
