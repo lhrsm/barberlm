@@ -269,3 +269,165 @@ export async function handleAutomationWhatsappResponse(
     selected_option_normalized: selectedOptionNormalized
   };
 }
+
+export async function processAutomationDispatches(
+  supabase: any,
+  { tenantId, appointmentId, forceMode }: { tenantId?: string; appointmentId?: string; forceMode?: boolean }
+) {
+  console.log(`[AutomationEngine] Starting dispatch process. Tenant: ${tenantId || 'All'}, Appointment: ${appointmentId || 'All'}, Force: ${forceMode}`);
+  
+  const results = {
+    success: true,
+    appointmentsFound: [] as any[],
+    messagesSent: [] as any[],
+    errors: [] as any[]
+  };
+
+  try {
+    // 1. Define time window (reminders for the next 24 hours, or confirmations for new ones)
+    const now = new Date();
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    
+    // 2. Fetch pending appointments that might need automation
+    let query = supabase
+      .from("appointments")
+      .select("*, customers(*), barbers(*), services(*)")
+      .in("status", ["pending", "confirmed"]);
+
+    if (tenantId) query = query.eq("tenant_id", tenantId);
+    if (appointmentId) query = query.eq("id", appointmentId);
+    
+    // Only future appointments unless forceMode
+    if (!forceMode && !appointmentId) {
+      query = query.gte("start_time", now.toISOString()).lte("start_time", tomorrow.toISOString());
+    }
+
+    const { data: appointments, error: appError } = await query;
+
+    if (appError) throw appError;
+    if (!appointments || appointments.length === 0) {
+      console.log("[AutomationEngine] No appointments found in window.");
+      return { ...results, message: "No appointments found" };
+    }
+
+    results.appointmentsFound = appointments;
+    console.log(`[AutomationEngine] Found ${appointments.length} appointments to check.`);
+
+    // 3. For each appointment, check applicable automations
+    for (const appt of appointments) {
+      try {
+        // Fetch enabled automations for this tenant
+        const { data: automations } = await supabase
+          .from("automations")
+          .select("*")
+          .eq("tenant_id", appt.tenant_id)
+          .eq("enabled", true);
+
+        if (!automations || automations.length === 0) continue;
+
+        for (const auto of automations) {
+          // Check if already sent for this appointment/automation type
+          const { data: existingLog } = await supabase
+            .from("automation_logs")
+            .select("id")
+            .eq("appointment_id", appt.id)
+            .eq("barber_id", appt.tenant_id)
+            .eq("webhook_type", auto.type)
+            .eq("status", "success")
+            .maybeSingle();
+
+          if (existingLog && !forceMode) {
+            console.log(`[AutomationEngine] Automation ${auto.type} already sent for appointment ${appt.id}`);
+            continue;
+          }
+
+          // Determine if we should send based on trigger type/time (simplified for now)
+          // For now, just send confirmation if status is pending, and reminder if confirmed
+          const shouldSend = 
+            (auto.type === 'appointment_confirmation' && appt.status === 'pending') ||
+            (auto.type === 'appointment_reminder' && appt.status === 'confirmed');
+
+          if (!shouldSend && !forceMode) continue;
+
+          // Process template
+          const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", appt.tenant_id).single();
+          
+          const message = auto.template 
+            ? auto.template
+                .replace("{{cliente_nome}}", appt.customers?.name || "Cliente")
+                .replace("{{horario}}", formatBrazilTime(appt.start_time))
+                .replace("{{data}}", formatBrazilDate(appt.start_time))
+                .replace("{{barbearia_nome}}", profile?.business_name || "Barbearia")
+                .replace("{{servico}}", appt.services?.name || "Serviço")
+                .replace("{{profissional}}", appt.barbers?.name || "Profissional")
+            : `Olá ${appt.customers?.name}, lembrete do seu agendamento em ${profile?.business_name} às ${formatBrazilTime(appt.start_time)}.`;
+
+          // Send WhatsApp
+          const connection = await getWhatsAppSettings(supabase, appt.tenant_id);
+          if (!connection) {
+            console.warn(`[AutomationEngine] No WhatsApp connection for tenant ${appt.tenant_id}`);
+            continue;
+          }
+
+          const sendResult = await sendMessage(connection, appt.customers?.phone, message);
+          
+          // Log result
+          const logData = {
+            barber_id: appt.tenant_id,
+            phone: appt.customers?.phone,
+            webhook_type: auto.type,
+            direction: 'outgoing',
+            status: sendResult.success ? 'success' : 'error',
+            error_message: sendResult.error,
+            message_sent: message,
+            appointment_id: appt.id,
+            appointment_group_id: appt.appointment_group_id
+          };
+
+          await supabase.from("automation_logs").insert(logData);
+          results.messagesSent.push(logData);
+
+          // If confirmation, create conversation state
+          if (auto.type === 'appointment_confirmation' && sendResult.success) {
+            await supabase.from("whatsapp_conversations").insert({
+              barber_id: appt.tenant_id,
+              customer_id: appt.customer_id,
+              phone: normalizePhone(appt.customers?.phone),
+              state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+              active: true,
+              appointment_group_id: appt.appointment_group_id,
+              appointment_id: appt.id
+            });
+          }
+        }
+      } catch (apptError: any) {
+        console.error(`[AutomationEngine] Error processing appointment ${appt.id}:`, apptError);
+        results.errors.push({ appointmentId: appt.id, error: apptError.message });
+      }
+    }
+  } catch (error: any) {
+    console.error("[AutomationEngine] Fatal Error:", error);
+    results.success = false;
+    results.errors.push({ error: error.message });
+  }
+
+  return results;
+}
+
+function formatBrazilDate(dateStr: string) {
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('pt-BR');
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatBrazilTime(dateStr: string) {
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString('pt-BR', { hour: '2-numeric', minute: '2-numeric' });
+  } catch {
+    return dateStr;
+  }
+}
