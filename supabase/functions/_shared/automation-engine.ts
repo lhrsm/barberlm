@@ -553,6 +553,7 @@ export async function processAutomationDispatches(
         }
 
         const isMultiple = apptGroup.length > 1;
+        console.log(`[AutomationEngine] Group ${groupKey}: Size=${apptGroup.length}, isMultiple=${isMultiple}`);
         let message = "";
         
         if (!isMultiple) {
