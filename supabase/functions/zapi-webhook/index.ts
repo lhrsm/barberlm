@@ -185,12 +185,12 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   }
 
   // Se encontrou via fallback ou similar, garantir que o campo 'phone' esteja com 9 dígitos
-  if (conversation && conversation.phone !== normalizedPhoneValue && normalizedPhoneValue.length === 13) {
-    console.log('[Z-API] Conversa encontrada com divergência de telefone. Atualizando para 9 dígitos:', normalizedPhoneValue);
+  if (conversation && conversation.phone !== normalizedPhone && normalizedPhone.length === 13) {
+    console.log('[Z-API] Conversa encontrada com divergência de telefone. Atualizando para 9 dígitos:', normalizedPhone);
     await supabase.from("whatsapp_conversations")
-      .update({ phone: normalizedPhoneValue, phone_fallback: fallbackPhone })
+      .update({ phone: normalizedPhone, phone_fallback: fallbackPhone })
       .eq("id", conversation.id);
-    conversation.phone = normalizedPhoneValue;
+    conversation.phone = normalizedPhone;
   }
     
   if (conversation) {
@@ -204,19 +204,16 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     // Debug: Listar as últimas 10 conversas para ajudar a identificar o problema
     const { data: recentConvs } = await supabase
       .from("whatsapp_conversations")
-      .select("id, phone, phone_fallback, state, active, updated_at")
+      .select("id, phone, phone_fallback, state, active, appointment_id, appointment_group_id, updated_at")
       .order("updated_at", { ascending: false })
       .limit(10);
       
     console.log("[Z-API] ÚLTIMAS 10 CONVERSAS PARA COMPARAÇÃO:");
     if (recentConvs) {
       recentConvs.forEach((c: any) => {
-        console.log(`- ID: ${c.id}, Phone: ${c.phone}, Fallback: ${c.phone_fallback}, State: ${c.state}, Active: ${c.active}, Updated: ${c.updated_at}`);
+        console.log(`- ID: ${c.id}, Phone: ${c.phone}, Fallback: ${c.phone_fallback}, State: ${c.state}, Active: ${c.active}, Appt: ${c.appointment_id}, Group: ${c.appointment_group_id}, Updated: ${c.updated_at}`);
       });
-    } else {
-      console.log("Nenhuma conversa recente encontrada na tabela.");
     }
-  }
 
     const connection = await getWhatsAppSettings(supabase, barberId);
     if (connection && isAction) {
@@ -233,7 +230,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
           phone_normalized_9: normalizedPhone,
           phone_normalized_8: fallbackPhone,
           conversation_found: false,
-          debug_matches: debugConv
+          recent_conversations: recentConvs
         } 
       }).eq("id", logEntry.id);
     }
