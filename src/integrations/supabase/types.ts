@@ -2756,9 +2756,12 @@ export type Database = {
           event_type: string | null
           id: string
           ignored: boolean | null
+          instance_id: string | null
           payload: Json
           phone: string | null
           processed: boolean | null
+          selected_option: string | null
+          status_code: number | null
         }
         Insert: {
           barber_id?: string | null
@@ -2767,9 +2770,12 @@ export type Database = {
           event_type?: string | null
           id?: string
           ignored?: boolean | null
+          instance_id?: string | null
           payload: Json
           phone?: string | null
           processed?: boolean | null
+          selected_option?: string | null
+          status_code?: number | null
         }
         Update: {
           barber_id?: string | null
@@ -2778,9 +2784,12 @@ export type Database = {
           event_type?: string | null
           id?: string
           ignored?: boolean | null
+          instance_id?: string | null
           payload?: Json
           phone?: string | null
           processed?: boolean | null
+          selected_option?: string | null
+          status_code?: number | null
         }
         Relationships: []
       }
