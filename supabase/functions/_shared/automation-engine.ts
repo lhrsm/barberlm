@@ -100,7 +100,7 @@ export async function handleAutomationWhatsappResponse(
     normalizedInput === 'confirmar_agendamento' ||
     normalizedInput.includes('confirmar agendamento') || 
     normalizedInput.includes('confirmar atendimento') || 
-    normalizedInput === 'confirmar' || 
+    normalizedInput.includes('confirmar') || 
     normalizedInput === 'confirm' || 
     normalizedInput === '1'
   ) {
@@ -130,7 +130,7 @@ export async function handleAutomationWhatsappResponse(
   if (rawInput === 'main_reschedule') mappedOption = 'main_reschedule';
   if (rawInput === 'main_cancel') mappedOption = 'main_cancel';
 
-  console.log('MAPPED OPTION:', mappedOption);
+  console.log('[AutomationEngine] MAPPED OPTION:', mappedOption);
   console.log('CONVERSATION STATE:', current_state);
   console.log('APPOINTMENTS COUNT:', appointments?.length || 0);
 
@@ -645,6 +645,37 @@ export async function processAutomationDispatches(
         const profile = firstAppt.profiles;
         const group_id = firstAppt.appointment_group_id;
 
+        // 1. Idempotency Check
+        const normalizedPhoneValue = normalizePhone(customer.phone);
+        const fallbackPhoneValue = removeNinthDigit(normalizedPhoneValue);
+        
+        console.log(`[AutomationEngine] Checking idempotency for ${groupKey} / ${normalizedPhoneValue}`);
+        
+        // Check if there is already an active conversation for this group or appointment
+        let convCheckQuery = supabase
+          .from("whatsapp_conversations")
+          .select("id, state, active")
+          .eq("active", true)
+          .or(`phone.eq.${normalizedPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue},phone_fallback.eq.${fallbackPhoneValue}`);
+          
+        if (group_id) {
+          convCheckQuery = convCheckQuery.eq("appointment_group_id", group_id);
+        } else {
+          convCheckQuery = convCheckQuery.eq("appointment_id", firstAppt.id);
+        }
+        
+        const { data: existingActiveConv } = await convCheckQuery.maybeSingle();
+        
+        // Also check if confirmation_sent_at is already set (double check)
+        const alreadySent = apptGroup.every(a => a.confirmation_sent_at !== null);
+        
+        if (existingActiveConv || alreadySent) {
+          console.log(`[AutomationEngine] Group ${groupKey} already has an active conversation or confirmation sent. Skipping to avoid duplication.`);
+          results.details.push(`Grupo ${groupKey}: skipped_already_sent`);
+          results.skipped_count += apptGroup.length;
+          continue;
+        }
+
         // Check if automation is enabled for this tenant
         const { data: auto } = await supabase
           .from("automations")
@@ -701,13 +732,12 @@ export async function processAutomationDispatches(
           message = processAutomationTemplate(rawTemplate, templateData);
         }
 
-
         // Send via Z-API
         const connection = await getWhatsAppSettings(supabase, tenant_id);
         if (!connection) {
           const reason = "Sem conexão Z-API ativa";
           results.details.push(`Grupo ${groupKey}: ${reason}`);
-          results.error_count++;
+          results.error_count += apptGroup.length;
           continue;
         }
 
@@ -717,7 +747,7 @@ export async function processAutomationDispatches(
           { id: "main_cancel", label: "Cancelar" }
         ];
 
-        // Validation before sending - ERRO 1 PREVENTION
+        // Validation before sending
         const forbiddenPhrases = [
           "Agendamento confirmado com sucesso",
           "Como deseja confirmar?",
@@ -725,7 +755,6 @@ export async function processAutomationDispatches(
           "Você ainda possui outro agendamento pendente"
         ];
         
-        // Add "Você possui mais de um agendamento" to forbidden if single
         if (!isMultiple) {
           forbiddenPhrases.push("Você possui mais de um agendamento");
         }
@@ -733,84 +762,61 @@ export async function processAutomationDispatches(
         const hasForbiddenPhrase = forbiddenPhrases.some(phrase => message.includes(phrase));
         const hasPlaceholders = containsPlaceholders(message);
         
-        // Better JSON detection: look for array of objects or object structure
-        const jsonPattern = /\[\s*\{\s*".*?"\s*:\s*".*?"/g;
-        const hasPotentialJson = jsonPattern.test(message) || (message.includes('{"') && message.includes('"}'));
-        
         console.log(`[AutomationEngine] MESSAGE BEFORE SENDING to ${customer.phone}:`, message);
-        console.log(`[AutomationEngine] VALIDATION: Placeholders=${hasPlaceholders}, JSON=${hasPotentialJson}, Forbidden=${hasForbiddenPhrase}`);
         
-        if (hasPotentialJson) {
-          console.warn(`[AutomationEngine] JSON detected in message body. Attempting to clean...`);
-          // Try to remove JSON-like structures from the message
-          message = message.replace(/\[\s*\{\s*".*?id".*?\}.*?\]/gs, '');
-          message = message.replace(/\{\s*".*?id".*?\}/gs, '');
-          message = message.trim();
-          console.log(`[AutomationEngine] MESSAGE AFTER CLEANING:`, message);
+        // 2. PREPARAR/CRIAR CONVERSA ANTES DO ENVIO
+        console.log('--- PREPARING CONVERSATION ---');
+        
+        // Desativar conversas anteriores para o mesmo telefone
+        await supabase.from("whatsapp_conversations")
+          .update({ active: false })
+          .or(`phone.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone_fallback.eq.${fallbackPhoneValue}`)
+          .eq("active", true);
+
+        // Upsert conversation
+        const convPayload = {
+          tenant_id: tenant_id,
+          barber_id: tenant_id,
+          customer_id: customer.id,
+          phone: normalizedPhoneValue,
+          phone_fallback: fallbackPhoneValue,
+          state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+          active: true,
+          appointment_group_id: group_id,
+          appointment_id: !isMultiple ? firstAppt.id : null,
+          context: {
+            appointment_ids: apptGroup.map(a => a.id),
+            multiple: isMultiple
+          },
+          updated_at: new Date().toISOString()
+        };
+
+        // We use insert then check if we should have updated, but the user requested:
+        // "NÃO usar upsert com onConflict se não houver unique."
+        // We already deactivated previous ones, so we just insert a new one.
+        const { data: newConv, error: convError } = await supabase
+          .from("whatsapp_conversations")
+          .insert(convPayload)
+          .select()
+          .single();
+
+        if (convError) {
+          console.error('CONVERSATION CREATE ERROR:', convError);
+        } else {
+          console.log('CONVERSATION CREATED:', newConv.id);
         }
 
         let sendResult = { success: false, error: "Validation failed", response: null };
         
         if (!hasPlaceholders && !hasForbiddenPhrase) {
-          console.log('INITIAL CONFIRMATION ONLY');
-          console.log('STOPPING AT awaiting_main_action');
+          console.log('SENDING INITIAL CONFIRMATION');
           sendResult = await sendMessage(connection, customer.phone, message, { buttons });
         } else {
           console.error(`[AutomationEngine] Message validation failed. Placeholders=${hasPlaceholders}, Forbidden=${hasForbiddenPhrase}`);
           sendResult.error = `Validation failed: Placeholders=${hasPlaceholders}, Forbidden=${hasForbiddenPhrase}`;
         }
         
-        // 1. Prepare conversation data
-        const normalizedPhoneValue = normalizePhone(customer.phone);
-        const fallbackPhoneValue = removeNinthDigit(normalizedPhoneValue);
-        
-        console.log('--- PREPARING CONVERSATION ---');
-        console.log('CUSTOMER PHONE:', customer.phone);
-        console.log('NORMALIZED (9):', normalizedPhoneValue);
-        console.log('FALLBACK (8):', fallbackPhoneValue);
-        
-        // 2. Desativar conversas anteriores para o mesmo telefone
-        const { error: deactivateError } = await supabase.from("whatsapp_conversations")
-          .update({ active: false })
-          .or(`phone.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone_fallback.eq.${fallbackPhoneValue}`)
-          .eq("active", true);
-
-        if (deactivateError) {
-          console.error('Error deactivating previous conversations:', deactivateError);
-        }
-
-        let newConv = null;
-        if (sendResult.success) {
-          // 3. Create conversation state
-          const convPayload = {
-            tenant_id: tenant_id,
-            barber_id: tenant_id,
-            customer_id: customer.id,
-            phone: normalizedPhoneValue,
-            phone_fallback: fallbackPhoneValue,
-            state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
-            active: true,
-            appointment_group_id: group_id,
-            appointment_id: !isMultiple ? firstAppt.id : null,
-            context: {
-              appointment_ids: apptGroup.map(a => a.id),
-              multiple: isMultiple
-            }
-          };
-
-          console.log('CONVERSATION CREATE PAYLOAD:', JSON.stringify(convPayload));
-          const { data, error: convError } = await supabase.from("whatsapp_conversations").insert(convPayload).select().single();
-          newConv = data;
-
-          if (newConv) {
-            console.log('CONVERSATION CREATE RESULT: SUCCESS');
-            console.log('CONVERSATION ID:', newConv.id);
-          } else if (convError) {
-            console.error('CONVERSATION CREATE ERROR:', convError);
-          }
-        }
-
-        // 4. Log to automation_logs
+        // 3. Log to automation_logs
         await supabase.from("automation_logs").insert({
           tenant_id: tenant_id,
           barber_id: tenant_id,
@@ -822,14 +828,13 @@ export async function processAutomationDispatches(
           message_sent: message,
           appointment_id: !isMultiple ? firstAppt.id : null,
           appointment_group_id: group_id,
+          conversation_id: newConv?.id,
           zapi_response: sendResult.response,
           metadata: {
             has_placeholders: hasPlaceholders,
-            has_json: hasPotentialJson,
             appointments_count: apptGroup.length,
             is_multiple: isMultiple,
             conversation_id: newConv?.id,
-            conversation_phone: newConv?.phone,
             conversation_state: newConv?.state,
             conversation_active: newConv?.active
           }
@@ -839,9 +844,7 @@ export async function processAutomationDispatches(
           results.processed_count += apptGroup.length;
           results.messages_sent.push({ phone: customer.phone, status: 'success' });
           
-          console.log('STOPPING FLOW AT awaiting_main_action');
-          
-          // Mark appointments as confirmed SENT
+          // 4. Mark appointments only AFTER success
           await supabase.from("appointments")
             .update({ 
               confirmation_sent: true, 
@@ -849,10 +852,17 @@ export async function processAutomationDispatches(
             })
             .in("id", apptGroup.map(a => a.id));
             
-          console.log('NO NEXT STEP SHOULD RUN NOW');
+          console.log('SUCCESS: Message sent and appointments marked.');
         } else {
           results.error_count += apptGroup.length;
           results.errors.push({ group: groupKey, error: sendResult.error });
+          
+          // If sending failed, maybe deactivate the conversation we just created?
+          // User didn't specify, but usually better to keep it if they might reply anyway, 
+          // but here we failed to even send the initial message.
+          if (newConv) {
+            await supabase.from("whatsapp_conversations").update({ active: false, error: sendResult.error }).eq("id", newConv.id);
+          }
         }
 
       } catch (err: any) {
