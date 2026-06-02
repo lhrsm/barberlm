@@ -1174,6 +1174,88 @@ function AutomationsComponent() {
                 </div>
               </CardContent>
             </Card>
+
+            <Card className="mt-8 border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-bold flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
+                    <MessageSquare size={18} />
+                  </div>
+                  Logs de Webhooks (Z-API)
+                </CardTitle>
+                <CardDescription>Depuração técnica de cliques e respostas recebidas via WhatsApp.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground bg-muted/30 border-y border-white/5">
+                      <tr>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4">Telefone</th>
+                        <th className="px-6 py-4">Tipo</th>
+                        <th className="px-6 py-4">Opção Extraída</th>
+                        <th className="px-6 py-4">Erro</th>
+                        <th className="px-6 py-4 text-right">Data & Hora</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {webhookLogs.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground italic">
+                            Nenhum webhook registrado recentemente.
+                          </td>
+                        </tr>
+                      ) : (
+                        webhookLogs.map((log) => (
+                          <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="px-6 py-4">
+                              <Badge 
+                                className={cn(
+                                  "px-2 py-0.5 rounded-full text-[10px] font-black uppercase border-none",
+                                  log.processed ? "bg-emerald-500/10 text-emerald-500" :
+                                  log.error ? "bg-red-500/10 text-red-500" :
+                                  "bg-amber-500/10 text-amber-500"
+                                )}
+                              >
+                                {log.processed ? 'Processado' : log.error ? 'Erro' : 'Pendente'}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4 font-medium text-muted-foreground tabular-nums">
+                              {log.extracted_phone || log.phone || '-'}
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge variant="outline" className="text-[10px] uppercase font-bold">
+                                {log.type || log.event_type || 'Unknown'}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <code className="text-[11px] bg-muted/50 px-1.5 py-0.5 rounded text-primary">
+                                {log.extracted_option || log.selected_option || '-'}
+                              </code>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="text-[10px] text-red-500 truncate block max-w-[150px]" title={log.error}>
+                                {log.error || '-'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-foreground/80 tabular-nums">
+                                  {new Date(log.created_at).toLocaleDateString('pt-BR')}
+                                </span>
+                                <span className="text-xs text-muted-foreground tabular-nums">
+                                  {new Date(log.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="debug" className="space-y-4">
