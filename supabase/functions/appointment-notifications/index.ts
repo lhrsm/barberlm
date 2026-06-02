@@ -5,9 +5,13 @@ import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
 serve(async (req) => {
+  console.log('EDGE FUNCTION STARTED: appointment-notifications');
+  console.log('REQUEST METHOD:', req.method);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -18,7 +22,9 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { appointmentId, type, updatedBy, previousData } = await req.json();
+    const body = await req.json();
+    console.log('REQUEST BODY:', body);
+    const { appointmentId, type, updatedBy, previousData } = body;
 
     console.log(`[Appointment Notification] Processing: ${type} for Appointment: ${appointmentId}`);
 
@@ -124,11 +130,11 @@ serve(async (req) => {
           let targetPhone = note.phone.replace(/\D/g, "");
           if (targetPhone.length === 10 || targetPhone.length === 11) targetPhone = "55" + targetPhone;
 
-          const body = { phone: targetPhone, message: note.message };
+          const msgBody = { phone: targetPhone, message: note.message };
           const headers: any = { "Content-Type": "application/json" };
           if (instance.client_token) headers["Client-Token"] = instance.client_token;
           
-          await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
+          await fetch(url, { method: "POST", headers, body: JSON.stringify(msgBody) });
         }
       }
     }
@@ -138,11 +144,11 @@ serve(async (req) => {
       status: 200,
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("[Notification Error]:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ success: false, error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
+      status: 500,
     });
   }
 });

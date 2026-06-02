@@ -48,16 +48,15 @@ function extractSelectedOption(body: any): string {
     body.text,
     body.body,
     body.message?.text,
-    body.message?.body
+    body.message?.body,
+    body.message?.content // Some Z-API versions use content
   ];
 
   for (const val of possiblePaths) {
     if (val && typeof val === 'string') {
       let text = val.trim().toLowerCase();
-      // Remover acentos
       text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       
-      // Mapeamento de opções comuns para IDs internos se necessário
       if (text === "1" || text.includes("confirmar")) return "main_confirm";
       if (text === "2" || text.includes("reagendar")) return "main_reschedule";
       if (text === "3" || text.includes("cancelar")) return "main_cancel";
@@ -69,6 +68,7 @@ function extractSelectedOption(body: any): string {
 }
 
 async function processZapiWebhook(supabase: any, body: any, barberId: string) {
+  console.log(`[Z-API] Processing webhook for barber ${barberId}`);
   const phone = extractPhoneFromZapiPayload(body);
   const normalizedPhone = normalizePhone(phone);
   const eventType = body.type || 'unknown';
@@ -89,7 +89,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   const { data: logEntry, error: logError } = await supabase
     .from("zapi_webhook_logs")
     .insert({
-      barber_id: barberId.length > 20 ? null : barberId, // Basic check for UUID vs slug/junk
+      barber_id: barberId.length > 40 ? null : barberId, // UUID check
       payload: body,
       phone: normalizedPhone,
       event_type: eventType,
@@ -118,7 +118,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     'ListResponseCallback'
   ];
 
-  if (!allowedEvents.includes(eventType) && !body.text && !body.buttonReply) {
+  if (!allowedEvents.includes(eventType) && !body.text && !body.buttonReply && !body.message) {
     console.log(`[Z-API] Event ${eventType} not in allowed list and no message body found.`);
     return;
   }
@@ -135,7 +135,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   }
 
   // 3. Find active conversation
-  let { data: conversation, error: convError } = await supabase
+  let { data: conversation } = await supabase
     .from("whatsapp_conversations")
     .select("*")
     .eq("phone", normalizedPhone)
@@ -144,7 +144,6 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     .limit(1)
     .maybeSingle();
 
-  // Fallback to automation_conversations if not found in whatsapp_conversations
   if (!conversation) {
     const { data: altConv } = await supabase
       .from("automation_conversations")
@@ -162,32 +161,14 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
         phone: altConv.phone_normalized,
         state: altConv.current_state,
         active: true,
-        appointment_group_id: altConv.appointment_ids?.[0], // Fallback mapping
+        appointment_group_id: altConv.appointment_ids?.[0],
         context: altConv
       };
     }
   }
 
-  console.log('CONVERSATION FOUND', conversation);
-  console.log('STATE BEFORE', conversation?.state);
-
   if (!conversation) {
     console.log("[Z-API] No active conversation found for phone:", normalizedPhone);
-    
-    // Optional fallback if we want to be helpful
-    const connection = await getWhatsAppSettings(supabase, barberId);
-    if (connection) {
-      await sendMessage(connection, normalizedPhone, "Não encontrei uma conversa ativa. Por favor, faça um novo agendamento ou entre em contato com a barbearia.");
-    }
-    
-    await supabase.from("automation_logs").insert({
-      barber_id: barberId,
-      phone: normalizedPhone,
-      webhook_type: eventType,
-      error_message: "no active conversation found",
-      direction: 'incoming'
-    });
-    
     await supabase.from("zapi_webhook_logs").update({ processed: true }).eq("id", logEntry.id);
     return;
   }
@@ -230,15 +211,18 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     }
 
     await supabase.from("zapi_webhook_logs").update({ processed: true }).eq("id", logEntry.id);
-  } catch (error) {
+  } catch (error: any) {
     console.error("[Z-API] Processing error:", error);
     await supabase.from("zapi_webhook_logs").update({ error: error.message }).eq("id", logEntry.id);
   }
 }
 
 serve(async (req) => {
+  console.log('EDGE FUNCTION STARTED: zapi-webhook');
+  console.log('REQUEST METHOD:', req.method);
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   const url = new URL(req.url);
@@ -252,6 +236,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
+    console.log('REQUEST BODY:', body);
 
     // Process in background to respond fast
     processZapiWebhook(supabase, body, barberId).catch(err => {
@@ -262,10 +247,13 @@ serve(async (req) => {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("[Z-API Webhook] Request error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 400,
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error.message || String(error) 
+    }), {
+      status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   }

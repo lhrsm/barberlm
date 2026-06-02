@@ -190,12 +190,19 @@ function AutomationsComponent() {
     
     setExecutionSummary(null);
     
+    console.log('CALLING EDGE FUNCTION', 'run-automations');
+    console.log('PAYLOAD', { tenantId, forceMode });
+    
     try {
       const { data, error } = await supabase.functions.invoke('run-automations', {
         body: { tenantId, forceMode }
       });
 
+      console.log('EDGE FUNCTION DATA', data);
+      console.log('EDGE FUNCTION ERROR', error);
+
       if (error) throw error;
+
       
       if (data.success) {
         setExecutionSummary(data);

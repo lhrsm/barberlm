@@ -17,9 +17,13 @@ function normalizePhone(phone: string): string {
 }
 
 serve(async (req) => {
+  console.log('EDGE FUNCTION STARTED: test-automation');
+  console.log('REQUEST METHOD:', req.method);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
 
   try {
     const supabase = createClient(
