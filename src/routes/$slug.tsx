@@ -3307,20 +3307,22 @@ function ShopPageComponent() {
                     const normalized = typeof normalizePhone === "function" ? normalizePhone(customerPhone) : customerPhone;
                     
                     // 1. Try to find existing
-                    const { data: custData } = await supabase
+                    console.log('TABLE:', 'customers');
+                    console.log('ACTION:', 'select/insert (Standalone Sale)');
+                    const { data: custData, error: checkError } = await supabase
                       .from("customers")
                       .select("id")
                       .eq("phone", normalized)
                       .eq("user_id", shop.id)
                       .maybeSingle();
-                      
+                    
+                    if (checkError) console.error('SUPABASE ERROR (check customer standalone):', checkError);
+
                     if (custData) {
                       saleCustomerId = custData.id;
+                      console.log('DEBUG: Found existing customer for standalone sale', saleCustomerId);
                     } else if (customerName) {
                       // For standalone product sales, we might need a barber_id too if the RLS requires it
-                      // In the shop page, we might not have a selectedBarber if it's just a direct purchase
-                      // but usually products are sold in the context of a barber visit in this app's flow.
-                      // If selectedBarber is missing, we pick the first one or the "geral" one if exists.
                       const defaultBarberId = selectedBarber?.id || barbers[0]?.id;
                       
                       if (!defaultBarberId) {
@@ -3336,7 +3338,7 @@ function ShopPageComponent() {
                         cashback_balance: 0,
                         loyalty_points: 0
                       };
-                      console.log('INSERT CUSTOMER DATA (Standalone)', customerPayload);
+                      console.log('PAYLOAD:', customerPayload);
 
                       const { data: newCust, error: createError } = await supabase
                         .from("customers")
@@ -3344,8 +3346,12 @@ function ShopPageComponent() {
                         .select("id")
                         .single();
                         
-                      if (createError) throw createError;
+                      if (createError) {
+                        console.error('SUPABASE ERROR (insert customer standalone):', createError);
+                        throw createError;
+                      }
                       saleCustomerId = newCust.id;
+                      console.log('DEBUG: New customer created for standalone sale', saleCustomerId);
                     }
                   }
 
@@ -3360,14 +3366,20 @@ function ShopPageComponent() {
                     status: 'completed' as any,
                     items: items as any
                   };
-                  console.log('INSERT PRODUCT SALE DATA (Standalone)', salePayload);
+                  
+                  console.log('TABLE:', 'product_sales');
+                  console.log('ACTION:', 'insert');
+                  console.log('PAYLOAD:', salePayload);
 
                   const { data: saleData, error: saleError } = await supabase.from("product_sales").insert([salePayload]).select().single();
 
-                  if (saleError) throw saleError;
+                  if (saleError) {
+                    console.error('SUPABASE ERROR (insert sale standalone):', saleError);
+                    throw saleError;
+                  }
 
                   // 2. Create finance transaction for the "Financeiro" tab
-                  const { error: transError } = await supabase.from("transactions").insert([{
+                  const transPayload = {
                     user_id: shop.id,
                     barber_id: defaultBarberId,
                     type: "income",
@@ -3375,9 +3387,17 @@ function ShopPageComponent() {
                     amount: totalAmount,
                     description: `Venda de Produtos (Standalone) - Itens: ${items.map(i => `${i.name} (x${i.quantity})`).join(", ")}`,
                     date: new Date().toISOString().split('T')[0]
-                  }]);
+                  };
+                  console.log('TABLE:', 'transactions');
+                  console.log('ACTION:', 'insert');
+                  console.log('PAYLOAD:', transPayload);
 
-                  if (transError) throw transError;
+                  const { error: transError } = await supabase.from("transactions").insert([transPayload]);
+
+                  if (transError) {
+                    console.error('SUPABASE ERROR (insert transaction standalone):', transError);
+                    throw transError;
+                  }
 
                   // 3. Update stock for each product
                   for (const item of items) {
