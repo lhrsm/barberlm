@@ -155,7 +155,11 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   }
 
   // 4. Find active conversation
-  const { data: conversation } = await supabase
+  console.log('CONVERSATION LOOKUP');
+  console.log('phone recebido (raw):', phone);
+  console.log('phone recebido (normalized):', normalizedPhone);
+
+  const { data: conversation, error: convLookupError } = await supabase
     .from("whatsapp_conversations")
     .select("*")
     .eq("phone", normalizedPhone)
@@ -164,14 +168,56 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     .limit(1)
     .maybeSingle();
 
+  if (conversation) {
+    console.log('conversation encontrada:', conversation.id);
+    console.log('state:', conversation.state);
+    console.log('active:', conversation.active);
+  }
+
   if (!conversation) {
     console.log("[Z-API] No active conversation found for phone:", normalizedPhone);
+    
+    // Debug search to see if there's any similar conversation
+    const last8 = normalizedPhone.slice(-8);
+    const { data: debugConv } = await supabase
+      .from("whatsapp_conversations")
+      .select("*")
+      .ilike("phone", `%${last8}`)
+      .limit(5);
+    
+    console.log(`[Z-API] Debug lookup (LIKE %${last8}):`, JSON.stringify(debugConv));
+
     const connection = await getWhatsAppSettings(supabase, barberId);
     if (connection && isAction) {
       await sendMessage(connection, normalizedPhone, "❌ Não encontrei uma conversa ativa para este atendimento.");
     }
-    if (logEntry) await supabase.from("zapi_webhook_logs").update({ processed: true, error: "No active conversation" }).eq("id", logEntry.id);
+    
+    if (logEntry) {
+      await supabase.from("zapi_webhook_logs").update({ 
+        processed: true, 
+        error: "No active conversation",
+        metadata: { 
+          ...body, 
+          conversation_found: false,
+          debug_matches: debugConv
+        } 
+      }).eq("id", logEntry.id);
+    }
+    
     return { success: true, warning: "No active conversation" };
+  }
+
+  // Found conversation!
+  if (logEntry) {
+    await supabase.from("zapi_webhook_logs").update({ 
+      metadata: { 
+        ...body, 
+        conversation_found: true,
+        conversation_id: conversation.id,
+        state: conversation.state,
+        active: conversation.active
+      } 
+    }).eq("id", logEntry.id);
   }
 
   // 5. Process state machine
