@@ -726,10 +726,10 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               <div className="space-y-4">
                 <div className="flex flex-col gap-2">
                   <Label className="text-blue-400 font-bold flex items-center gap-2">
-                    <ShieldCheck size={16} /> URL do Webhook
+                    <ShieldCheck size={16} /> URL do Webhook (Copiar para Z-API)
                   </Label>
                   <p className="text-xs text-slate-400">
-                    Copie a URL abaixo e cadastre no painel da Z-API (Webhook de Mensagens Recebidas).
+                    Esta URL deve estar configurada no painel da Z-API em <strong>Webhooks -> Ao receber</strong>.
                   </p>
                   <div className="flex gap-2">
                     <Input 
@@ -740,6 +740,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                     <Button 
                       variant="outline" 
                       size="icon"
+                      className="shrink-0"
                       onClick={() => {
                         const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`;
                         navigator.clipboard.writeText(url);
@@ -753,50 +754,87 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
 
                 <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold">Configuração Atual na Z-API</h4>
-                    <Button 
-                      onClick={reconfigureWebhook} 
-                      disabled={isConfiguring || !instance}
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700 text-xs"
-                    >
-                      {isConfiguring ? <Loader2 className="animate-spin mr-2" size={14} /> : <RefreshCw className="mr-2" size={14} />}
-                      Reconfigurar Webhook "Ao Receber"
-                    </Button>
+                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                      <Terminal size={14} className="text-blue-400" />
+                      Dados da Integração
+                    </h4>
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => {
+                          const testPayload = {
+                            type: "ListResponseCallback",
+                            phone: formData.phone || "5571996242196",
+                            selectedRowId: "main_confirm",
+                            text: "Confirmar agendamento",
+                            instanceId: instance?.instance_id
+                          };
+                          
+                          toast.promise(
+                            supabase.functions.invoke('zapi-webhook', {
+                              body: testPayload,
+                              headers: { 'x-barber-id': tenantId }
+                            }),
+                            {
+                              loading: 'Simulando clique...',
+                              success: (res) => {
+                                if (res.data?.success) return 'Simulação concluída! Verifique os logs.';
+                                throw new Error(res.data?.error || 'Erro na simulação');
+                              },
+                              error: (err) => `Erro: ${err.message}`
+                            }
+                          );
+                        }}
+                        disabled={!instance}
+                        size="sm"
+                        variant="secondary"
+                        className="text-xs h-8"
+                      >
+                        <Send className="mr-2" size={14} />
+                        Testar Webhook (Simular Clique)
+                      </Button>
+                      <Button 
+                        onClick={reconfigureWebhook} 
+                        disabled={isConfiguring || !instance}
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-xs h-8"
+                      >
+                        {isConfiguring ? <Loader2 className="animate-spin mr-2" size={14} /> : <RefreshCw className="mr-2" size={14} />}
+                        Reconfigurar na Z-API
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                     <div className="space-y-1">
-                      <p className="text-slate-500 uppercase text-[10px] font-bold">Instance ID</p>
-                      <p className="font-mono">{instance?.instance_id || "---"}</p>
+                      <p className="text-slate-500 uppercase text-[10px] font-bold tracking-wider">Barber ID (Tenant)</p>
+                      <p className="font-mono text-blue-300">{tenantId || "---"}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-slate-500 uppercase text-[10px] font-bold">Status da Instância</p>
-                      <Badge variant="outline" className={cn("text-[10px]", isConnected ? "text-emerald-400 border-emerald-400/20" : "text-red-400 border-red-400/20")}>
+                      <p className="text-slate-500 uppercase text-[10px] font-bold tracking-wider">Instance ID</p>
+                      <p className="font-mono text-emerald-300">{instance?.instance_id || "---"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-slate-500 uppercase text-[10px] font-bold tracking-wider">Status da Instância</p>
+                      <Badge variant="outline" className={cn("text-[10px] py-0 font-bold", isConnected ? "text-emerald-400 border-emerald-400/20 bg-emerald-400/5" : "text-red-400 border-red-400/20 bg-red-400/5")}>
                         {isConnected ? "Conectada" : "Desconectada"}
                       </Badge>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-slate-500 uppercase text-[10px] font-bold">Token (Mascarado)</p>
-                      <p className="font-mono">{maskToken(instance?.token || "")}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-slate-500 uppercase text-[10px] font-bold">Client Token (Mascarado)</p>
-                      <p className="font-mono">{maskToken(instance?.client_token || "")}</p>
+                      <p className="text-slate-500 uppercase text-[10px] font-bold tracking-wider">Telefone Conectado</p>
+                      <p className="font-mono">{instance?.phone || "---"}</p>
                     </div>
                   </div>
 
                   {instance?.webhook_received_url && (
-                    <div className="space-y-2 pt-2 border-t border-white/5">
-                      <p className="text-slate-500 uppercase text-[10px] font-bold">Webhook Configurado Localmente (Ao Receber)</p>
-                      <div className="bg-black/30 p-2 rounded font-mono text-[10px] break-all border border-white/5">
+                    <div className="space-y-2 pt-3 border-t border-white/5">
+                      <p className="text-slate-500 uppercase text-[10px] font-bold">Webhook Configurado Localmente</p>
+                      <div className="bg-black/30 p-2 rounded font-mono text-[10px] break-all border border-white/5 text-slate-300">
                         {instance.webhook_received_url}
                       </div>
-                      {instance.webhook_received_configured_at && (
-                        <p className="text-[9px] text-slate-500 italic">
-                          Configurado em: {new Date(instance.webhook_received_configured_at).toLocaleString()}
-                        </p>
-                      )}
+                      <p className="text-[9px] text-slate-500 italic flex justify-between">
+                        <span>Configurado em: {new Date(instance.webhook_received_configured_at || "").toLocaleString()}</span>
+                        <span className="text-blue-400 font-bold uppercase tracking-tighter">✔ Configuração Sincronizada</span>
+                      </p>
                     </div>
                   )}
 
