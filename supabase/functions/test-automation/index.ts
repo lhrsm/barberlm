@@ -8,23 +8,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function normalizePhone(phone: string): string {
-  if (!phone) return "";
-  let digits = phone.replace(/\D/g, "");
-  
-  // Se tiver 10 ou 11 dígitos, assume que falta o DDI 55
-  if (digits.length === 10 || digits.length === 11) {
-    digits = "55" + digits;
-  }
-  
-  // Tratamento especial para números do Brasil (DDI 55)
-  // Remove o nono dígito se presente para padronizar a busca/armazenamento
-  if (digits.startsWith("55") && digits.length === 13) {
-    digits = digits.substring(0, 4) + digits.substring(5);
-  }
-  
-  return digits;
-}
 
 serve(async (req) => {
   console.log('EDGE FUNCTION STARTED: test-automation');
