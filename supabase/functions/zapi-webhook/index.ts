@@ -135,7 +135,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   }
 
   // 3. Find active conversation
-  const { data: conversation, error: convError } = await supabase
+  let { data: conversation, error: convError } = await supabase
     .from("whatsapp_conversations")
     .select("*")
     .eq("phone", normalizedPhone)
@@ -143,6 +143,30 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // Fallback to automation_conversations if not found in whatsapp_conversations
+  if (!conversation) {
+    const { data: altConv } = await supabase
+      .from("automation_conversations")
+      .select("*, tenant_id, current_state")
+      .eq("phone_normalized", normalizedPhone)
+      .eq("status", "active")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (altConv) {
+      conversation = {
+        id: altConv.id,
+        barber_id: altConv.tenant_id,
+        phone: altConv.phone_normalized,
+        state: altConv.current_state,
+        active: true,
+        appointment_group_id: altConv.appointment_ids?.[0], // Fallback mapping
+        context: altConv
+      };
+    }
+  }
 
   console.log('CONVERSATION FOUND', conversation);
   console.log('STATE BEFORE', conversation?.state);
