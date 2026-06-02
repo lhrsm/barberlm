@@ -150,10 +150,11 @@ export async function handleAutomationWhatsappResponse(
       } else if (normalizedOption === 'confirm_single' || normalizedOption === '2') {
         messageToSend = "Qual atendimento você deseja confirmar?";
         const options = appointments.map((a, i) => ({
-          id: String(i + 1),
+          id: `appointment:${a.id}`,
           title: `${formatBrazilTime(a.start_time)}`,
           description: `${a.services?.name}`
         }));
+
         
         await supabase.from("whatsapp_conversations")
           .update({ 
@@ -186,12 +187,21 @@ export async function handleAutomationWhatsappResponse(
       break;
 
     case AUTOMATION_STATES.AWAITING_SPECIFIC_APPOINTMENT_SELECTION:
-      const mapping = conversation.context?.appt_mapping || appointmentIds;
-      const index = parseInt(normalizedOption) - 1;
       const cancelMode = conversation.context?.cancel_mode === true;
-      
-      if (!isNaN(index) && index >= 0 && index < mapping.length) {
-        const selectedId = mapping[index];
+      let selectedId = "";
+
+      if (normalizedOption.includes('appointment:')) {
+        selectedId = normalizedOption.split(':')[1];
+      } else {
+        // Fallback for numbered text response
+        const mapping = conversation.context?.appt_mapping || appointmentIds;
+        const index = parseInt(normalizedOption) - 1;
+        if (!isNaN(index) && index >= 0 && index < mapping.length) {
+          selectedId = mapping[index];
+        }
+      }
+
+      if (selectedId) {
         const newStatus = cancelMode ? 'cancelled' : 'confirmed';
         await supabase.from("appointments").update({ status: newStatus }).eq("id", selectedId);
         
@@ -199,8 +209,14 @@ export async function handleAutomationWhatsappResponse(
         
         if (remainingIds.length > 0) {
           const actionText = cancelMode ? "cancelado" : "confirmado";
-          messageToSend = `✅ Agendamento ${actionText}! O que deseja fazer com os demais agendamentos?\n\n1️⃣ Confirmar demais\n2️⃣ Reagendar demais\n3️⃣ Cancelar demais`;
+          messageToSend = `✅ Agendamento ${actionText}! O que deseja fazer com os demais agendamentos?`;
+          buttons = [
+            { id: "1", label: "Confirmar demais" },
+            { id: "2", label: "Reagendar demais" },
+            { id: "3", label: "Cancelar demais" }
+          ];
           nextState = AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION;
+
           
           await supabase.from("whatsapp_conversations")
             .update({ 
@@ -254,10 +270,11 @@ export async function handleAutomationWhatsappResponse(
       } else if (normalizedOption === 'cancel_single' || normalizedOption === '2') {
         messageToSend = "Qual atendimento você deseja cancelar?";
         const options = appointments.map((a, i) => ({
-          id: String(i + 1),
+          id: `appointment:${a.id}`,
           title: `${formatBrazilTime(a.start_time)}`,
           description: `${a.services?.name}`
         }));
+
         
         await supabase.from("whatsapp_conversations")
           .update({ 
