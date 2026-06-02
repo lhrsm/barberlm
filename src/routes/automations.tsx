@@ -209,21 +209,25 @@ function AutomationsComponent() {
       if (data.success) {
         setExecutionSummary(data);
         
-        const sent = data.messagesSent?.filter((m: any) => m.status === 'success').length || 0;
-        const found = (data.appointmentsFound?.length || 0) + (data.birthdaysFound?.length || 0);
-        const failed = data.messagesSent?.filter((m: any) => m.status === 'error').length || 0;
+        const sent = data.processed_count || 0;
+        const found = data.found_count || 0;
+        const failed = data.error_count || 0;
+        const skipped = data.skipped_count || 0;
 
-        if (found === 0 && (!data.ignoredRecords || data.ignoredRecords.length === 0)) {
-          toast.info("Nenhuma automação precisava ser processada no momento.");
+        if (found === 0) {
+          toast.info("Nenhum agendamento pendente encontrado no momento.");
         } else if (sent > 0) {
-          toast.success(`${sent} mensagens enviadas com sucesso!`);
+          toast.success(`${sent} agendamentos processados com sucesso!`);
         } else if (failed > 0) {
-          toast.error(`${failed} mensagens falharam ao enviar.`);
+          toast.error(`${failed} agendamentos falharam.`);
+        } else if (skipped > 0) {
+          toast.info(`${skipped} agendamentos foram ignorados (ver detalhes).`);
         }
 
         setIsManualSummaryOpen(true);
         fetchLogs();
         fetchCronStatus();
+        fetchCronRuns();
       } else {
         toast.error("Erro ao executar automações: " + (data.error || "Erro desconhecido"));
       }
