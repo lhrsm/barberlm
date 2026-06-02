@@ -92,10 +92,12 @@ export async function handleAutomationWhatsappResponse(
 
   let mappedOption = rawInput;
   
-  // Mapping logic as requested
+  // Mapping logic as requested - very explicit
   if (
     normalizedInput === 'main_confirm' || 
     normalizedInput === 'confirm_appointment' || 
+    normalizedInput === 'confirmar_atendimento' ||
+    normalizedInput === 'confirmar_agendamento' ||
     normalizedInput.includes('confirmar agendamento') || 
     normalizedInput.includes('confirmar atendimento') || 
     normalizedInput === 'confirmar' || 
@@ -106,6 +108,7 @@ export async function handleAutomationWhatsappResponse(
   } else if (
     normalizedInput === 'main_reschedule' || 
     normalizedInput === 'reschedule_appointment' || 
+    normalizedInput === 'reagendar_agendamento' ||
     normalizedInput.includes('reagendar') || 
     normalizedInput === 'reschedule' || 
     normalizedInput === '2'
@@ -114,6 +117,7 @@ export async function handleAutomationWhatsappResponse(
   } else if (
     normalizedInput === 'main_cancel' || 
     normalizedInput === 'cancel_appointment' || 
+    normalizedInput === 'cancelar_agendamento' ||
     normalizedInput.includes('cancelar') || 
     normalizedInput === 'cancel' || 
     normalizedInput === '3'
@@ -121,9 +125,14 @@ export async function handleAutomationWhatsappResponse(
     mappedOption = 'main_cancel';
   }
 
-  console.log('MAPPED OPTION', mappedOption);
-  console.log('CONVERSATION STATE', current_state);
-  console.log('APPOINTMENTS COUNT', appointments?.length || 0);
+  // Handle case where Z-API returns the ID directly (like "main_confirm")
+  if (rawInput === 'main_confirm') mappedOption = 'main_confirm';
+  if (rawInput === 'main_reschedule') mappedOption = 'main_reschedule';
+  if (rawInput === 'main_cancel') mappedOption = 'main_cancel';
+
+  console.log('MAPPED OPTION:', mappedOption);
+  console.log('CONVERSATION STATE:', current_state);
+  console.log('APPOINTMENTS COUNT:', appointments?.length || 0);
 
   // State Machine Logic
   switch (current_state) {
