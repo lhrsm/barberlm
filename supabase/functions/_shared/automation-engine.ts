@@ -306,9 +306,15 @@ export async function handleAutomationWhatsappResponse(
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "cancel_remaining";
       } else {
-        messageToSend = "Opção inválida. Digite 1, 2 ou 3.";
+        messageToSend = "Opção inválida. O que deseja fazer com os demais agendamentos?";
+        buttons = [
+          { id: "1", label: "Confirmar demais" },
+          { id: "2", label: "Reagendar demais" },
+          { id: "3", label: "Cancelar demais" }
+        ];
       }
       break;
+
       
     default:
       messageToSend = "Não consegui entender sua escolha. 🤔\n\nUse o menu de opções ou responda:\n1️⃣ Confirmar\n2️⃣ Reagendar\n3️⃣ Cancelar";
