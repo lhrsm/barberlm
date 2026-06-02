@@ -392,6 +392,55 @@ export async function handleAutomationWhatsappResponse(
       break;
 
       
+    case AUTOMATION_STATES.AWAITING_RESCHEDULE_DATE:
+      messageToSend = "Recebi sua solicitação de reagendamento. Um atendente irá confirmar as novas datas disponíveis para você em breve.";
+      nextState = AUTOMATION_STATES.COMPLETED;
+      actionExecuted = "reschedule_requested";
+      break;
+
+    case AUTOMATION_STATES.AWAITING_RESCHEDULE_SCOPE:
+      if (mappedOption === 'reschedule_all' || mappedOption === '1') {
+        messageToSend = "Para reagendar todos os seus atendimentos, por favor informe as novas datas e horários desejados.";
+        nextState = AUTOMATION_STATES.AWAITING_RESCHEDULE_DATE;
+        actionExecuted = "reschedule_all_ask_date";
+      } else if (mappedOption === 'reschedule_single' || mappedOption === '2') {
+        messageToSend = "Qual atendimento você deseja reagendar?";
+        const options = appointments.map((a, i) => ({
+          id: `appointment:${a.id}`,
+          title: `${formatBrazilTime(a.start_time)}`,
+          description: `${a.services?.name}`
+        }));
+        
+        await supabase.from("whatsapp_conversations")
+          .update({ 
+            context: { ...conversation.context, appt_mapping: appointmentIds, reschedule_mode: true }
+          })
+          .eq("id", conversation_id);
+          
+        nextState = AUTOMATION_STATES.AWAITING_SPECIFIC_APPOINTMENT_SELECTION;
+        actionExecuted = "ask_specific_selection_reschedule";
+        selectedOptionNormalized = "reschedule_single";
+        
+        return {
+          action_executed: actionExecuted,
+          next_state: nextState,
+          message_to_send: messageToSend,
+          selected_option_normalized: selectedOptionNormalized,
+          list: {
+            buttonLabel: "Ver agendamentos",
+            title: "Reagendar Agendamento",
+            options
+          }
+        };
+      } else {
+        messageToSend = "Opção inválida. Como deseja reagendar?";
+        buttons = [
+          { id: "reschedule_all", label: "Reagendar todos" },
+          { id: "reschedule_single", label: "Reagendar um específico" }
+        ];
+      }
+      break;
+
     default:
       messageToSend = "Não consegui entender sua escolha. 🤔\n\nUse o menu de opções ou responda:\n1️⃣ Confirmar\n2️⃣ Reagendar\n3️⃣ Cancelar";
       break;
