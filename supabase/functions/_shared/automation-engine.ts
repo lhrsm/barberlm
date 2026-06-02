@@ -51,11 +51,27 @@ export async function handleAutomationWhatsappResponse(
 
   const groupId = conversation.appointment_group_id;
   
-  // Get appointments for this group
-  const { data: appointments } = await supabase
+  // Get appointments for this group or conversation
+  let appointmentsQuery = supabase
     .from("appointments")
-    .select("*, services(name)")
-    .eq("appointment_group_id", groupId);
+    .select("*, services(name)");
+
+  if (groupId) {
+    appointmentsQuery = appointmentsQuery.eq("appointment_group_id", groupId);
+  } else {
+    // If no group, get the specific appointment from the conversation or recent pending ones for this customer
+    if (conversation.appointment_id) {
+      appointmentsQuery = appointmentsQuery.eq("id", conversation.appointment_id);
+    } else {
+      appointmentsQuery = appointmentsQuery
+        .eq("customer_id", conversation.customer_id)
+        .in("status", ['scheduled', 'pending', 'awaiting_payment', 'confirmed'])
+        .order("start_time", { ascending: true });
+    }
+  }
+
+  const { data: appointments } = await appointmentsQuery;
+
 
   const isMultiple = appointments && appointments.length > 1;
   const appointmentIds = appointments?.map(a => a.id) || [];
@@ -69,11 +85,14 @@ export async function handleAutomationWhatsappResponse(
 
   // Normalize option
   const normalizedOption = String(option_id).trim().toLowerCase();
+  const normalizedOptionNoAccents = normalizedOption.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
 
   // State Machine Logic
   switch (current_state) {
     case AUTOMATION_STATES.AWAITING_MAIN_ACTION:
-      if (normalizedOption === 'main_confirm' || normalizedOption === '1' || normalizedOption.includes('confirmar')) {
+      if (normalizedOption === 'main_confirm' || normalizedOption === '1' || normalizedOptionNoAccents.includes('confirmar') || normalizedOptionNoAccents.includes('confirm')) {
+
         if (!isMultiple) {
           // Confirm direct
           await supabase.from("appointments").update({ status: 'confirmed' }).in("id", appointmentIds);
@@ -92,7 +111,7 @@ export async function handleAutomationWhatsappResponse(
           actionExecuted = "ask_confirmation_scope";
           selectedOptionNormalized = "main_confirm";
         }
-      } else if (normalizedOption === 'main_reschedule' || normalizedOption === '2' || normalizedOption.includes('reagendar')) {
+      } else if (normalizedOption === 'main_reschedule' || normalizedOption === '2' || normalizedOptionNoAccents.includes('reagendar') || normalizedOptionNoAccents.includes('reschedule')) {
         if (!isMultiple) {
           messageToSend = "Para reagendar seu atendimento, por favor entre em contato conosco ou acesse nosso portal de agendamentos.";
           nextState = AUTOMATION_STATES.COMPLETED;
@@ -108,7 +127,7 @@ export async function handleAutomationWhatsappResponse(
           actionExecuted = "ask_reschedule_scope";
           selectedOptionNormalized = "main_reschedule";
         }
-      } else if (normalizedOption === 'main_cancel' || normalizedOption === '3' || normalizedOption.includes('cancelar')) {
+      } else if (normalizedOption === 'main_cancel' || normalizedOption === '3' || normalizedOptionNoAccents.includes('cancelar') || normalizedOptionNoAccents.includes('cancel')) {
         if (!isMultiple) {
           messageToSend = "Você realmente deseja cancelar seu agendamento?";
           buttons = [
@@ -150,10 +169,11 @@ export async function handleAutomationWhatsappResponse(
       } else if (normalizedOption === 'confirm_single' || normalizedOption === '2') {
         messageToSend = "Qual atendimento você deseja confirmar?";
         const options = appointments.map((a, i) => ({
-          id: String(i + 1),
+          id: `appointment:${a.id}`,
           title: `${formatBrazilTime(a.start_time)}`,
           description: `${a.services?.name}`
         }));
+
         
         await supabase.from("whatsapp_conversations")
           .update({ 
@@ -186,12 +206,21 @@ export async function handleAutomationWhatsappResponse(
       break;
 
     case AUTOMATION_STATES.AWAITING_SPECIFIC_APPOINTMENT_SELECTION:
-      const mapping = conversation.context?.appt_mapping || appointmentIds;
-      const index = parseInt(normalizedOption) - 1;
       const cancelMode = conversation.context?.cancel_mode === true;
-      
-      if (!isNaN(index) && index >= 0 && index < mapping.length) {
-        const selectedId = mapping[index];
+      let selectedId = "";
+
+      if (normalizedOption.includes('appointment:')) {
+        selectedId = normalizedOption.split(':')[1];
+      } else {
+        // Fallback for numbered text response
+        const mapping = conversation.context?.appt_mapping || appointmentIds;
+        const index = parseInt(normalizedOption) - 1;
+        if (!isNaN(index) && index >= 0 && index < mapping.length) {
+          selectedId = mapping[index];
+        }
+      }
+
+      if (selectedId) {
         const newStatus = cancelMode ? 'cancelled' : 'confirmed';
         await supabase.from("appointments").update({ status: newStatus }).eq("id", selectedId);
         
@@ -199,8 +228,14 @@ export async function handleAutomationWhatsappResponse(
         
         if (remainingIds.length > 0) {
           const actionText = cancelMode ? "cancelado" : "confirmado";
-          messageToSend = `✅ Agendamento ${actionText}! O que deseja fazer com os demais agendamentos?\n\n1️⃣ Confirmar demais\n2️⃣ Reagendar demais\n3️⃣ Cancelar demais`;
+          messageToSend = `✅ Agendamento ${actionText}! O que deseja fazer com os demais agendamentos?`;
+          buttons = [
+            { id: "1", label: "Confirmar demais" },
+            { id: "2", label: "Reagendar demais" },
+            { id: "3", label: "Cancelar demais" }
+          ];
           nextState = AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION;
+
           
           await supabase.from("whatsapp_conversations")
             .update({ 
@@ -254,10 +289,11 @@ export async function handleAutomationWhatsappResponse(
       } else if (normalizedOption === 'cancel_single' || normalizedOption === '2') {
         messageToSend = "Qual atendimento você deseja cancelar?";
         const options = appointments.map((a, i) => ({
-          id: String(i + 1),
+          id: `appointment:${a.id}`,
           title: `${formatBrazilTime(a.start_time)}`,
           description: `${a.services?.name}`
         }));
+
         
         await supabase.from("whatsapp_conversations")
           .update({ 
@@ -334,9 +370,12 @@ export async function handleAutomationWhatsappResponse(
     next_state: nextState,
     message_to_send: messageToSend,
     selected_option_normalized: selectedOptionNormalized,
-    buttons
+    buttons,
+    appointments_count: appointments?.length || 0,
+    is_multiple: isMultiple
   };
 }
+
 
 
 export async function processAutomationDispatches(
@@ -523,10 +562,11 @@ export async function processAutomationDispatches(
             professional_name: appt.barbers?.name,
             appointment_date: formatBrazilDate(appt.start_time),
             appointment_time: formatBrazilTime(appt.start_time),
-            service_price: appt.final_amount ? `R$ ${appt.final_amount.toFixed(2).replace('.', ',')}` : "R$ 0,00"
+            service_price: appt.final_amount && appt.final_amount > 0 ? `R$ ${appt.final_amount.toFixed(2).replace('.', ',')}` : "",
+            appointment_id: appt.id
           };
           
-          const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nSeu agendamento na {{barbershop_name}} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {{service_name}}\n💈 Profissional: {{professional_name}}\n📅 Data: {{appointment_date}}\n⏰ Horário: {{appointment_time}}\n💰 Valor: {{service_price}}\n\nO que deseja fazer?`;
+          const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nSeu agendamento na {{barbershop_name}} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {{service_name}}\n💈 Profissional: {{professional_name}}\n📅 Data: {{appointment_date}}\n⏰ Horário: {{appointment_time}}\n{{#if service_price}}💰 Valor: {{service_price}}{{/if}}\n\nO que deseja fazer?`;
           message = processAutomationTemplate(rawTemplate, templateData);
         } else {
           let appointmentsList = "";
@@ -537,12 +577,14 @@ export async function processAutomationDispatches(
           const templateData = {
             customer_name: customer.name,
             barbershop_name: profile?.business_name || "Nossa Barbearia",
-            appointments_list: appointmentsList.trim()
+            appointments_list: appointmentsList.trim(),
+            appointment_count: apptGroup.length
           };
 
-          const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nVocê possui {{count}} agendamentos na {{barbershop_name}}.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}\n\nO que deseja fazer?`;
-          message = processAutomationTemplate(rawTemplate.replace("{{count}}", String(apptGroup.length)), templateData);
+          const rawTemplate = auto.template_multiple || `Olá {{customer_name}} 👋\n\nVocê possui {{appointment_count}} agendamentos na {{barbershop_name}}.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}\n\nO que deseja fazer?`;
+          message = processAutomationTemplate(rawTemplate, templateData);
         }
+
 
         // Send via Z-API
         const connection = await getWhatsAppSettings(supabase, tenant_id);
@@ -559,7 +601,18 @@ export async function processAutomationDispatches(
           { id: "main_cancel", label: "Cancelar" }
         ];
 
-        const sendResult = await sendMessage(connection, customer.phone, message, { buttons });
+        // Validation before sending
+        const hasPlaceholders = containsPlaceholders(message);
+        const hasPotentialJson = message.includes('[') && message.includes(']');
+        
+        let sendResult = { success: false, error: "Validation failed", response: null };
+        
+        if (!hasPlaceholders && !hasPotentialJson) {
+          sendResult = await sendMessage(connection, customer.phone, message, { buttons });
+        } else {
+          console.error(`[AutomationEngine] Message validation failed. Placeholders: ${hasPlaceholders}, JSON: ${hasPotentialJson}`);
+          sendResult.error = `Validation failed: Placeholders=${hasPlaceholders}, JSON=${hasPotentialJson}`;
+        }
         
         // Log to automation_logs
         await supabase.from("automation_logs").insert({
@@ -573,8 +626,15 @@ export async function processAutomationDispatches(
           message_sent: message,
           appointment_id: !isMultiple ? firstAppt.id : null,
           appointment_group_id: group_id,
-          zapi_response: sendResult.response
+          zapi_response: sendResult.response,
+          metadata: {
+            has_placeholders: hasPlaceholders,
+            has_json: hasPotentialJson,
+            appointments_count: apptGroup.length,
+            is_multiple: isMultiple
+          }
         });
+
 
         if (sendResult.success) {
           results.processed_count += apptGroup.length;

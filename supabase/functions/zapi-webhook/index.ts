@@ -34,38 +34,42 @@ function extractPhoneFromZapiPayload(body: any): string {
 }
 
 function extractSelectedOption(body: any): string {
-  const possiblePaths = [
+  // Priority 1: Direct ID from button or list responses
+  const idPaths = [
     body.buttonReply?.id,
-    body.buttonReply?.title,
     body.buttonsResponseMessage?.selectedButtonId,
-    body.buttonsResponseMessage?.selectedDisplayText,
-    body.listResponseMessage?.title,
     body.listResponseMessage?.singleSelectReply?.selectedRowId,
-    body.message?.listResponseMessage?.title,
     body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
     body.selectedRowId,
-    body.selectedId,
+    body.selectedId
+  ];
+
+  for (const id of idPaths) {
+    if (id && typeof id === 'string') return id.trim();
+  }
+
+  // Priority 2: Text/Title responses
+  const textPaths = [
+    body.buttonReply?.title,
+    body.buttonsResponseMessage?.selectedDisplayText,
+    body.listResponseMessage?.title,
+    body.message?.listResponseMessage?.title,
     body.text,
     body.body,
     body.message?.text,
     body.message?.body,
-    body.message?.content // Some Z-API versions use content
+    body.message?.content
   ];
 
-  for (const val of possiblePaths) {
+  for (const val of textPaths) {
     if (val && typeof val === 'string') {
-      let text = val.trim().toLowerCase();
-      text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      
-      if (text === "1" || text.includes("confirmar")) return "main_confirm";
-      if (text === "2" || text.includes("reagendar")) return "main_reschedule";
-      if (text === "3" || text.includes("cancelar")) return "main_cancel";
-      
-      return text;
+      return val.trim();
     }
   }
   return "";
 }
+
+
 
 async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   console.log(`[Z-API] Processing webhook for barber ${barberId}`);
@@ -181,6 +185,7 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
       customer_id: conversation.customer_id,
       current_state: conversation.state,
       option_id: selectedOptionRaw,
+
       payload: body,
       conversation_id: conversation.id
     });
@@ -196,8 +201,9 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
         
         await supabase.from("automation_logs").insert({
           barber_id: conversation.barber_id,
+          tenant_id: conversation.barber_id,
           phone: normalizedPhone,
-          webhook_type: eventType,
+          webhook_type: 'webhook_response',
           selected_option_raw: selectedOptionRaw,
           selected_option_normalized: result.selected_option_normalized || selectedOptionRaw,
           conversation_id: conversation.id,
@@ -207,10 +213,16 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
           message_sent: result.message_to_send,
           zapi_response: sendResult.response,
           status: sendResult.success ? 'success' : 'error',
+          error_message: sendResult.error,
           direction: 'outgoing',
           appointment_group_id: conversation.appointment_group_id,
-          appointment_id: conversation.appointment_id
+          appointment_id: conversation.appointment_id,
+          metadata: {
+            appointments_count: result.appointments_count || 0,
+            is_multiple: result.is_multiple || false
+          }
         });
+
       }
     }
 

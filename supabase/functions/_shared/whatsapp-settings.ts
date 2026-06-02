@@ -126,18 +126,25 @@ export async function sendMessage(
 
   // 3. Fallback or standard text message
   console.log('SENDING STANDARD TEXT MESSAGE (OR FALLBACK)');
+  
+  // Protection against sending raw JSON
+  if (message.includes('[') && message.includes(']') && message.includes('{') && message.includes('}')) {
+     console.error('[Z-API] Detected potential raw JSON in message body, blocking send');
+     return { success: false, error: "Potential JSON in message body blocked" };
+  }
+
   let finalMessage = message;
   
   // If we had buttons or list and it failed or wasn't sent, add them as text for fallback
   if (options?.buttons && options.buttons.length > 0) {
-    finalMessage += "\n\nEscolha uma opção:\n";
+    finalMessage += "\n\n*Escolha uma opção:*\n";
     options.buttons.forEach((b, i) => {
-      finalMessage += `*${i + 1}* - ${b.label}\n`;
+      finalMessage += `${i + 1}️⃣ ${b.label}\n`;
     });
   } else if (options?.list && options.list.options.length > 0) {
     finalMessage += `\n\n*${options.list.title}*:\n`;
     options.list.options.forEach((o, i) => {
-      finalMessage += `*${i + 1}* - ${o.title}${o.description ? ` (${o.description})` : ""}\n`;
+      finalMessage += `${i + 1}️⃣ ${o.title}${o.description ? ` (${o.description})` : ""}\n`;
     });
   }
 
@@ -162,4 +169,5 @@ export async function sendMessage(
     return { success: false, error: error.message };
   }
 }
+
 
