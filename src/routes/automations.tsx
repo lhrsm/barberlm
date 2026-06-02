@@ -241,6 +241,7 @@ function AutomationsComponent() {
     if (tenantId) {
       fetchAutomations();
       fetchLogs();
+      fetchCronRuns();
       fetchCronStatus();
       fetchDebugData();
       
@@ -253,6 +254,7 @@ function AutomationsComponent() {
           table: 'automation_status' 
         }, () => {
           fetchCronStatus();
+          fetchCronRuns();
         })
         .subscribe();
 
@@ -270,6 +272,17 @@ function AutomationsComponent() {
         })
         .subscribe();
         
+      const cronChannel = supabase
+        .channel('cron_runs_changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'automation_cron_runs'
+        }, () => {
+          fetchCronRuns();
+        })
+        .subscribe();
+        
       const debugChannel = supabase
         .channel('debug_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'zapi_webhook_debug' }, () => fetchDebugData())
@@ -279,6 +292,7 @@ function AutomationsComponent() {
       return () => {
         supabase.removeChannel(statusChannel);
         supabase.removeChannel(logsChannel);
+        supabase.removeChannel(cronChannel);
         supabase.removeChannel(debugChannel);
       };
     }
