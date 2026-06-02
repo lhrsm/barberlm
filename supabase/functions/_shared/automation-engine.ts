@@ -235,9 +235,14 @@ export async function handleAutomationWhatsappResponse(
         actionExecuted = "cancel_aborted";
         selectedOptionNormalized = "cancel_no";
       } else {
-        messageToSend = "Opção inválida. Digite 1 para confirmar o cancelamento ou 2 para manter.";
+        messageToSend = "Opção inválida. Escolha uma das opções abaixo:";
+        buttons = [
+          { id: "cancel_yes", label: "Sim, cancelar" },
+          { id: "cancel_no", label: "Não, manter" }
+        ];
       }
       break;
+
 
     case AUTOMATION_STATES.AWAITING_CANCEL_SCOPE:
       if (normalizedOption === 'cancel_all' || normalizedOption === '1') {
