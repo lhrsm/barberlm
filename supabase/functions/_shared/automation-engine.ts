@@ -88,13 +88,16 @@ export async function handleAutomationWhatsappResponse(
   const rawInput = String(option_id).trim().toLowerCase();
   const normalizedInput = rawInput.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   
+  console.log('[AutomationEngine] Normalizing input:', rawInput, '->', normalizedInput);
+
   let mappedOption = rawInput;
   
   // Mapping logic as requested
   if (
     normalizedInput === 'main_confirm' || 
     normalizedInput === 'confirm_appointment' || 
-    normalizedInput === 'confirmar agendamento' || 
+    normalizedInput.includes('confirmar agendamento') || 
+    normalizedInput.includes('confirmar atendimento') || 
     normalizedInput === 'confirmar' || 
     normalizedInput === 'confirm' || 
     normalizedInput === '1'
@@ -103,7 +106,7 @@ export async function handleAutomationWhatsappResponse(
   } else if (
     normalizedInput === 'main_reschedule' || 
     normalizedInput === 'reschedule_appointment' || 
-    normalizedInput === 'reagendar' || 
+    normalizedInput.includes('reagendar') || 
     normalizedInput === 'reschedule' || 
     normalizedInput === '2'
   ) {
@@ -111,7 +114,7 @@ export async function handleAutomationWhatsappResponse(
   } else if (
     normalizedInput === 'main_cancel' || 
     normalizedInput === 'cancel_appointment' || 
-    normalizedInput === 'cancelar' || 
+    normalizedInput.includes('cancelar') || 
     normalizedInput === 'cancel' || 
     normalizedInput === '3'
   ) {

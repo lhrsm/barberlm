@@ -20,14 +20,16 @@ function extractPhoneFromZapiPayload(body: any): string {
     body.data?.phone,
     body.data?.from,
     body.chatId,
-    body.key?.remoteJid
+    body.key?.remoteJid,
+    body.participant
   ];
 
   for (const val of possiblePaths) {
     if (val && typeof val === 'string') {
       let phone = val.split('@')[0];
       phone = phone.replace(/\D/g, "");
-      if (phone.length >= 10) return phone;
+      // Brazil numbers check (can be 10 to 13 digits)
+      if (phone.length >= 10 && phone.length <= 15) return phone;
     }
   }
   return "";
@@ -35,22 +37,29 @@ function extractPhoneFromZapiPayload(body: any): string {
 
 function extractSelectedOption(body: any): string {
   const possiblePaths = [
+    // Z-API Buttons
     body.buttonReply?.id,
     body.buttonReply?.title,
     body.buttonsResponseMessage?.selectedButtonId,
     body.buttonsResponseMessage?.selectedDisplayText,
+    // Z-API List
     body.listResponseMessage?.title,
     body.listResponseMessage?.singleSelectReply?.selectedRowId,
     body.message?.listResponseMessage?.title,
     body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
-    body.selectedRowId,
-    body.selectedId,
+    // Standard text or body
     body.text,
     body.body,
     body.message?.text,
     body.message?.body,
     body.message?.contents,
-    body.message?.caption
+    body.message?.caption,
+    // Selected ID fields
+    body.selectedRowId,
+    body.selectedId,
+    // Nested message object (common in some Z-API versions)
+    body.message?.buttonReply?.id,
+    body.message?.buttonReply?.title
   ];
 
   for (const val of possiblePaths) {
@@ -66,11 +75,18 @@ function extractSelectedOption(body: any): string {
 
 async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   console.log(`[Z-API] Processing webhook for barber ${barberId}`);
+  console.log('ZAPI WEBHOOK RECEIVED', JSON.stringify(body));
+  
   const phone = extractPhoneFromZapiPayload(body);
   const normalizedPhone = normalizePhone(phone);
   const eventType = body.type || 'unknown';
+  const instanceId = body.instanceId || null;
+  const selectedOptionRaw = extractSelectedOption(body);
   
-  // 1. Log the webhook
+  console.log('EXTRACTED PHONE', normalizedPhone);
+  console.log('EXTRACTED OPTION', selectedOptionRaw);
+
+  // 1. Log the webhook immediately
   const ignoredEvents = [
     'PresenceChatCallback',
     'StatusCallback',
@@ -81,55 +97,53 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     'DisconnectedCallback'
   ];
   
-  const isIgnored = ignoredEvents.includes(eventType);
+  const isIgnored = ignoredEvents.includes(eventType) || body.fromMe === true || body.isSentByMe === true;
   
   const { data: logEntry, error: logError } = await supabase
     .from("zapi_webhook_logs")
     .insert({
-      barber_id: barberId.length > 40 ? null : barberId, // UUID check
+      barber_id: barberId.length > 40 ? null : barberId,
       payload: body,
       phone: normalizedPhone,
       event_type: eventType,
       ignored: isIgnored,
-      processed: false
+      processed: false,
+      selected_option: selectedOptionRaw,
+      instance_id: instanceId
     })
     .select()
     .single();
 
   if (logError) {
     console.error("[Z-API] Error logging webhook:", logError);
-    return;
   }
 
-  if (isIgnored || body.fromMe === true || body.isSentByMe === true) {
-    console.log(`[Z-API] Event ${eventType} ignored. (isIgnored: ${isIgnored}, fromMe: ${body.fromMe})`);
+  if (isIgnored) {
+    console.log(`[Z-API] Event ${eventType} ignored.`);
     return;
   }
-
-  // 2. Process only message-like events
-  const allowedEvents = [
-    'ReceivedCallback',
-    'MessageCallback',
-    'TextMessage',
-    'ButtonCallback',
-    'ListResponseCallback'
-  ];
-
-  if (!allowedEvents.includes(eventType) && !body.text && !body.buttonReply && !body.message) {
-    console.log(`[Z-API] Event ${eventType} not in allowed list and no message body found.`);
-    return;
-  }
-
-  const selectedOptionRaw = extractSelectedOption(body);
-  
-  console.log('WEBHOOK RECEIVED', JSON.stringify(body));
-  console.log('EXTRACTED PHONE', normalizedPhone);
-  console.log('EXTRACTED OPTION', selectedOptionRaw);
 
   if (!normalizedPhone) {
     console.error("[Z-API] Could not extract phone from payload");
-    await supabase.from("zapi_webhook_logs").update({ error: "No phone extracted" }).eq("id", logEntry.id);
+    if (logEntry) await supabase.from("zapi_webhook_logs").update({ error: "No phone extracted" }).eq("id", logEntry.id);
     return;
+  }
+
+  // 1.5 Send Immediate Feedback Message (as requested)
+  // Only if it looks like a button click or a relevant choice
+  const triggerWords = ['confirm', 'reagendar', 'cancel', 'atendimento', 'agendamento', 'main_'];
+  const isAction = selectedOptionRaw && triggerWords.some(word => selectedOptionRaw.toLowerCase().includes(word));
+  
+  if (isAction) {
+    try {
+      const connection = await getWhatsAppSettings(supabase, barberId);
+      if (connection) {
+        console.log('[Z-API] Sending immediate feedback');
+        await sendMessage(connection, normalizedPhone, "✅ Clique recebido. Estou processando sua solicitação...");
+      }
+    } catch (e) {
+      console.error('[Z-API] Error sending immediate feedback:', e);
+    }
   }
 
   // 3. Find active conversation
