@@ -813,9 +813,9 @@ export async function processAutomationDispatches(
           }).select().single();
 
           if (newConv) {
-            console.log('CONVERSATION CREATED');
+            console.log('--- CONVERSATION CREATED ---');
+            console.log('PHONE SAVED:', newConv.phone);
             console.log('conversation_id:', newConv.id);
-            console.log('phone:', newConv.phone);
             console.log('state:', newConv.state);
             console.log('active:', newConv.active);
           } else if (convError) {
