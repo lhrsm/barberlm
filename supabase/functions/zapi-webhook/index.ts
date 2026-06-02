@@ -173,13 +173,18 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
 
   // 4. Process state machine
   try {
+    console.log('WEBHOOK RECEIVED');
+    console.log('PHONE', normalizedPhone);
+    console.log('SELECTED OPTION', selectedOptionRaw);
+    console.log('CONVERSATION', JSON.stringify(conversation));
+    console.log('STATE BEFORE', conversation?.state);
+
     const result = await handleAutomationWhatsappResponse(supabase, {
       tenant_id: conversation.barber_id,
       phone: normalizedPhone,
       customer_id: conversation.customer_id,
       current_state: conversation.state,
       option_id: selectedOptionRaw,
-
       payload: body,
       conversation_id: conversation.id
     });
