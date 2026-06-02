@@ -331,17 +331,29 @@ export function AppointmentModal({
 
       let appointmentData;
       if (editingAppointmentId) {
+        console.log('TABLE:', 'appointments');
+        console.log('ACTION:', 'update');
+        console.log('PAYLOAD:', appointmentPayload);
         const { data, error } = await supabase
           .from("appointments")
           .update(appointmentPayload)
           .eq("id", editingAppointmentId)
           .select()
           .single();
-        if (error) throw error;
+        if (error) {
+          console.error('SUPABASE ERROR (update appointment admin):', error);
+          throw error;
+        }
         appointmentData = data;
       } else {
+        console.log('TABLE:', 'appointments');
+        console.log('ACTION:', 'insert');
+        console.log('PAYLOAD:', appointmentPayload);
         const { data, error } = await supabase.from("appointments").insert([appointmentPayload]).select().single();
-        if (error) throw error;
+        if (error) {
+          console.error('SUPABASE ERROR (insert appointment admin):', error);
+          throw error;
+        }
         appointmentData = data;
       }
 
