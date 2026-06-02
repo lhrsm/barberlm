@@ -687,6 +687,7 @@ export type Database = {
           enabled: boolean | null
           id: string
           template: string | null
+          template_multiple: string | null
           tenant_id: string
           trigger_delay: number | null
           trigger_type: string
@@ -700,6 +701,7 @@ export type Database = {
           enabled?: boolean | null
           id?: string
           template?: string | null
+          template_multiple?: string | null
           tenant_id: string
           trigger_delay?: number | null
           trigger_type: string
@@ -713,6 +715,7 @@ export type Database = {
           enabled?: boolean | null
           id?: string
           template?: string | null
+          template_multiple?: string | null
           tenant_id?: string
           trigger_delay?: number | null
           trigger_type?: string
