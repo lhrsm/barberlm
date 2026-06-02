@@ -5,8 +5,15 @@
  */
 export const normalizePhone = (phone: string): string => {
   if (!phone) return "";
-  // Remove all non-numeric characters
-  return phone.replace(/\D/g, "");
+  
+  let digits = phone.replace(/\D/g, "");
+  
+  // Se tiver 10 ou 11 dígitos, assume que falta o DDI 55
+  if (digits.length === 10 || digits.length === 11) {
+    digits = "55" + digits;
+  }
+  
+  return digits;
 };
 
 /**
