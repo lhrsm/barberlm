@@ -760,11 +760,61 @@ export async function processAutomationDispatches(
           sendResult.error = `Validation failed: Placeholders=${hasPlaceholders}, Forbidden=${hasForbiddenPhrase}`;
         }
         
-        // Log to automation_logs
+        // 1. Prepare conversation data
+        const normalizedPhoneValue = normalizePhone(customer.phone);
+        const fallbackPhoneValue = removeNinthDigit(normalizedPhoneValue);
+        
+        console.log('--- PREPARING CONVERSATION ---');
+        console.log('CUSTOMER PHONE:', customer.phone);
+        console.log('NORMALIZED (9):', normalizedPhoneValue);
+        console.log('FALLBACK (8):', fallbackPhoneValue);
+        
+        // 2. Desativar conversas anteriores para o mesmo telefone
+        const { error: deactivateError } = await supabase.from("whatsapp_conversations")
+          .update({ active: false })
+          .or(`phone.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone_fallback.eq.${fallbackPhoneValue}`)
+          .eq("active", true);
+
+        if (deactivateError) {
+          console.error('Error deactivating previous conversations:', deactivateError);
+        }
+
+        let newConv = null;
+        if (sendResult.success) {
+          // 3. Create conversation state
+          const convPayload = {
+            tenant_id: tenant_id,
+            barber_id: tenant_id,
+            customer_id: customer.id,
+            phone: normalizedPhoneValue,
+            phone_fallback: fallbackPhoneValue,
+            state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+            active: true,
+            appointment_group_id: group_id,
+            appointment_id: !isMultiple ? firstAppt.id : null,
+            context: {
+              appointment_ids: apptGroup.map(a => a.id),
+              multiple: isMultiple
+            }
+          };
+
+          console.log('CONVERSATION CREATE PAYLOAD:', JSON.stringify(convPayload));
+          const { data, error: convError } = await supabase.from("whatsapp_conversations").insert(convPayload).select().single();
+          newConv = data;
+
+          if (newConv) {
+            console.log('CONVERSATION CREATE RESULT: SUCCESS');
+            console.log('CONVERSATION ID:', newConv.id);
+          } else if (convError) {
+            console.error('CONVERSATION CREATE ERROR:', convError);
+          }
+        }
+
+        // 4. Log to automation_logs
         await supabase.from("automation_logs").insert({
           tenant_id: tenant_id,
           barber_id: tenant_id,
-          phone: normalizePhone(customer.phone),
+          phone: normalizedPhoneValue,
           webhook_type: auto.type,
           direction: 'outgoing',
           status: sendResult.success ? 'success' : 'error',
@@ -777,10 +827,13 @@ export async function processAutomationDispatches(
             has_placeholders: hasPlaceholders,
             has_json: hasPotentialJson,
             appointments_count: apptGroup.length,
-            is_multiple: isMultiple
+            is_multiple: isMultiple,
+            conversation_id: newConv?.id,
+            conversation_phone: newConv?.phone,
+            conversation_state: newConv?.state,
+            conversation_active: newConv?.active
           }
         });
-
 
         if (sendResult.success) {
           results.processed_count += apptGroup.length;
@@ -788,40 +841,6 @@ export async function processAutomationDispatches(
           
           console.log('STOPPING FLOW AT awaiting_main_action');
           
-          const normalizedPhoneValue = normalizePhone(customer.phone);
-          
-          // Desativar conversas anteriores para o mesmo telefone
-          await supabase.from("whatsapp_conversations")
-            .update({ active: false })
-            .eq("phone", normalizedPhoneValue)
-            .eq("active", true);
-
-          // Create conversation state
-          const { data: newConv, error: convError } = await supabase.from("whatsapp_conversations").insert({
-            tenant_id: tenant_id,
-            barber_id: tenant_id,
-            customer_id: customer.id,
-            phone: normalizedPhoneValue,
-            state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
-            active: true,
-            appointment_group_id: group_id,
-            appointment_id: !isMultiple ? firstAppt.id : null,
-            context: {
-              appointment_ids: apptGroup.map(a => a.id),
-              multiple: isMultiple
-            }
-          }).select().single();
-
-          if (newConv) {
-            console.log('--- CONVERSATION CREATED ---');
-            console.log('PHONE SAVED:', newConv.phone);
-            console.log('conversation_id:', newConv.id);
-            console.log('state:', newConv.state);
-            console.log('active:', newConv.active);
-          } else if (convError) {
-            console.error('Error creating conversation:', convError);
-          }
-
           // Mark appointments as confirmed SENT
           await supabase.from("appointments")
             .update({ 

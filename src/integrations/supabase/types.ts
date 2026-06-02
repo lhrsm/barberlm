@@ -2358,6 +2358,7 @@ export type Database = {
           id: string
           last_action: string | null
           phone: string
+          phone_fallback: string | null
           state: string
           updated_at: string | null
         }
@@ -2372,6 +2373,7 @@ export type Database = {
           id?: string
           last_action?: string | null
           phone: string
+          phone_fallback?: string | null
           state: string
           updated_at?: string | null
         }
@@ -2386,6 +2388,7 @@ export type Database = {
           id?: string
           last_action?: string | null
           phone?: string
+          phone_fallback?: string | null
           state?: string
           updated_at?: string | null
         }

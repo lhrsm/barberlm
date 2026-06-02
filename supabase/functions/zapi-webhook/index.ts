@@ -174,61 +174,49 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   let { data: conversation, error: convLookupError } = await supabase
     .from("whatsapp_conversations")
     .select("*")
-    .eq("phone", normalizedPhone)
+    .or(`phone.eq.${normalizedPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone.eq.${fallbackPhone},phone_fallback.eq.${fallbackPhone}`)
     .eq("active", true)
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  // FALLBACK: Se não encontrou com 9 dígitos, tenta com 8 dígitos
-  if (!conversation && fallbackPhone !== normalizedPhone) {
-    console.log('[Z-API] Tentando fallback para 8 dígitos:', fallbackPhone);
-    const { data: fallbackConv } = await supabase
+  if (convLookupError) {
+    console.error("[Z-API] Error lookup up conversation:", convLookupError);
+  }
+
+  // Se encontrou via fallback ou similar, garantir que o campo 'phone' esteja com 9 dígitos
+  if (conversation && conversation.phone !== normalizedPhoneValue && normalizedPhoneValue.length === 13) {
+    console.log('[Z-API] Conversa encontrada com divergência de telefone. Atualizando para 9 dígitos:', normalizedPhoneValue);
+    await supabase.from("whatsapp_conversations")
+      .update({ phone: normalizedPhoneValue, phone_fallback: fallbackPhone })
+      .eq("id", conversation.id);
+    conversation.phone = normalizedPhoneValue;
+  }
+    
+  if (conversation) {
+    console.log('CONVERSA ENCONTRADA:', conversation.id);
+    console.log('PHONE NA CONVERSA:', conversation.phone);
+    console.log('STATE:', conversation.state);
+    console.log('ACTIVE:', conversation.active);
+  } else {
+    console.log("[Z-API] NENHUMA CONVERSA ATIVA ENCONTRADA");
+    
+    // Debug: Listar as últimas 10 conversas para ajudar a identificar o problema
+    const { data: recentConvs } = await supabase
       .from("whatsapp_conversations")
-      .select("*")
-      .eq("phone", fallbackPhone)
-      .eq("active", true)
+      .select("id, phone, phone_fallback, state, active, updated_at")
       .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(10);
       
-    if (fallbackConv) {
-      console.log('[Z-API] Conversa encontrada via fallback (8 dígitos). Atualizando para 9 dígitos.');
-      conversation = fallbackConv;
-      
-      // Atualiza o registro para o padrão de 9 dígitos para futuras consultas
-      const { error: updateErr } = await supabase
-        .from("whatsapp_conversations")
-        .update({ phone: normalizedPhone })
-        .eq("id", conversation.id);
-        
-      if (updateErr) console.error('[Z-API] Erro ao atualizar telefone da conversa para 9 dígitos:', updateErr);
+    console.log("[Z-API] ÚLTIMAS 10 CONVERSAS PARA COMPARAÇÃO:");
+    if (recentConvs) {
+      recentConvs.forEach((c: any) => {
+        console.log(`- ID: ${c.id}, Phone: ${c.phone}, Fallback: ${c.phone_fallback}, State: ${c.state}, Active: ${c.active}, Updated: ${c.updated_at}`);
+      });
+    } else {
+      console.log("Nenhuma conversa recente encontrada na tabela.");
     }
   }
-    
-  if (conversation) {
-    console.log('conversation_phone found:', conversation.phone);
-    console.log('conversation_phone == webhook_phone:', conversation.phone === normalizedPhone);
-  }
-
-  if (conversation) {
-    console.log('conversation encontrada:', conversation.id);
-    console.log('state:', conversation.state);
-    console.log('active:', conversation.active);
-  }
-
-  if (!conversation) {
-    console.log("[Z-API] No active conversation found for phone:", normalizedPhone);
-    
-    // Debug search to see if there's any similar conversation
-    const last8 = normalizedPhone.slice(-8);
-    const { data: debugConv } = await supabase
-      .from("whatsapp_conversations")
-      .select("*")
-      .ilike("phone", `%${last8}`)
-      .limit(5);
-    
-    console.log(`[Z-API] Debug lookup (LIKE %${last8}):`, JSON.stringify(debugConv));
 
     const connection = await getWhatsAppSettings(supabase, barberId);
     if (connection && isAction) {
