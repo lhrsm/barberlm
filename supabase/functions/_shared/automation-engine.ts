@@ -665,15 +665,30 @@ export async function processAutomationDispatches(
           .maybeSingle();
 
         if (!auto) {
-          const reason = "Automação de confirmação desativada para esta barbearia";
+          const reason = `Automação de confirmação desativada ou não encontrada para tenant ${tenant_id}`;
+          console.log(`[AutomationEngine] ${reason}`);
           results.details.push(`Grupo ${groupKey}: ${reason}`);
           apptGroup.forEach(a => {
             const detail = all_details.find(d => d.appointment_id === a.id);
-            if (detail) { detail.eligible = false; detail.reason = reason; }
+            if (detail) { 
+              detail.eligible = false; 
+              detail.reason = reason;
+              detail.automation_checked = true;
+            }
           });
           results.skipped_count += apptGroup.length;
           continue;
         }
+
+        // Add automation info to details for debugging
+        apptGroup.forEach(a => {
+          const detail = all_details.find(d => d.appointment_id === a.id);
+          if (detail) {
+            detail.automation_id = auto.id;
+            detail.automation_enabled = auto.enabled;
+            detail.automation_barber_id = auto.barber_id;
+          }
+        });
 
         const isMultiple = apptGroup.length > 1;
         console.log(`[AutomationEngine] Group ${groupKey}: Size=${apptGroup.length}, isMultiple=${isMultiple}`);
