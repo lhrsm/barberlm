@@ -101,6 +101,7 @@ function AutomationsComponent() {
   const [isTestWebhookLoading, setIsTestWebhookLoading] = useState(false);
   const [directPostResult, setDirectPostResult] = useState<any>(null);
   const [isDirectPosting, setIsDirectPosting] = useState(false);
+  const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
 
 
 
@@ -291,6 +292,7 @@ function AutomationsComponent() {
       const debugChannel = supabase
         .channel('debug_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'zapi_webhook_debug' }, () => fetchDebugData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'zapi_webhook_logs' }, () => fetchDebugData())
         .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_conversations' }, () => fetchDebugData())
         .subscribe();
         
@@ -387,6 +389,21 @@ function AutomationsComponent() {
       .limit(20);
       
     if (dLogs) setDebugLogs(dLogs);
+
+    // Fetch the new zapi_webhook_logs requested by user
+    const { data: wLogs } = await supabase
+      .from("zapi_webhook_logs")
+      .select("*")
+      .or(`barber_id.eq.${tenantId},phone.ilike.%${tenantId}%`) // ilike as fallback if barber_id is null
+      .order("created_at", { ascending: false })
+      .limit(20);
+      
+    if (wLogs) setWebhookLogs(wLogs);
+    else if (!tenantId) {
+       // If no tenantId yet, just show recent logs
+       const { data: recentLogs } = await supabase.from("zapi_webhook_logs").select("*").order("created_at", { ascending: false }).limit(10);
+       if (recentLogs) setWebhookLogs(recentLogs);
+    }
 
 
     const { data: convs } = await supabase
