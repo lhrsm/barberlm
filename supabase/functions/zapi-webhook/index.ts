@@ -82,8 +82,9 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   const selectedOptionRaw = extractSelectedOption(body);
   
   console.log('--- Z-API WEBHOOK RECEIVED ---');
+  console.log('PHONE RECEIVED:', phone);
+  console.log('PHONE NORMALIZED:', normalizedPhone);
   console.log('BARBER:', barberId);
-  console.log('PHONE:', normalizedPhone);
   console.log('TYPE:', eventType);
   console.log('OPTION:', selectedOptionRaw);
   console.log('PAYLOAD:', JSON.stringify(body));
