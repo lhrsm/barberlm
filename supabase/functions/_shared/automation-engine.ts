@@ -604,7 +604,20 @@ export async function processAutomationDispatches(
           { id: "main_cancel", label: "Cancelar" }
         ];
 
-        // Validation before sending
+        // Validation before sending - ERRO 1 PREVENTION
+        const forbiddenPhrases = [
+          "Agendamento confirmado com sucesso",
+          "Como deseja confirmar?",
+          "Qual agendamento deseja confirmar?",
+          "Você ainda possui outro agendamento pendente"
+        ];
+        
+        // Add "Você possui mais de um agendamento" to forbidden if single
+        if (!isMultiple) {
+          forbiddenPhrases.push("Você possui mais de um agendamento");
+        }
+
+        const hasForbiddenPhrase = forbiddenPhrases.some(phrase => message.includes(phrase));
         const hasPlaceholders = containsPlaceholders(message);
         
         // Better JSON detection: look for array of objects or object structure
@@ -612,7 +625,7 @@ export async function processAutomationDispatches(
         const hasPotentialJson = jsonPattern.test(message) || (message.includes('{"') && message.includes('"}'));
         
         console.log(`[AutomationEngine] MESSAGE BEFORE SENDING to ${customer.phone}:`, message);
-        console.log(`[AutomationEngine] VALIDATION: Placeholders=${hasPlaceholders}, JSON=${hasPotentialJson}`);
+        console.log(`[AutomationEngine] VALIDATION: Placeholders=${hasPlaceholders}, JSON=${hasPotentialJson}, Forbidden=${hasForbiddenPhrase}`);
         
         if (hasPotentialJson) {
           console.warn(`[AutomationEngine] JSON detected in message body. Attempting to clean...`);
@@ -625,12 +638,13 @@ export async function processAutomationDispatches(
 
         let sendResult = { success: false, error: "Validation failed", response: null };
         
-        if (!hasPlaceholders) {
-          console.log('SENDING ONLY INITIAL CONFIRMATION');
+        if (!hasPlaceholders && !hasForbiddenPhrase) {
+          console.log('INITIAL CONFIRMATION ONLY');
+          console.log('STOPPING AT awaiting_main_action');
           sendResult = await sendMessage(connection, customer.phone, message, { buttons });
         } else {
-          console.error(`[AutomationEngine] Message validation failed. Placeholders remain in text.`);
-          sendResult.error = `Validation failed: Placeholders=true`;
+          console.error(`[AutomationEngine] Message validation failed. Placeholders=${hasPlaceholders}, Forbidden=${hasForbiddenPhrase}`);
+          sendResult.error = `Validation failed: Placeholders=${hasPlaceholders}, Forbidden=${hasForbiddenPhrase}`;
         }
         
         // Log to automation_logs
