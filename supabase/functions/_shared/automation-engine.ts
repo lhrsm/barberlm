@@ -523,10 +523,11 @@ export async function processAutomationDispatches(
             professional_name: appt.barbers?.name,
             appointment_date: formatBrazilDate(appt.start_time),
             appointment_time: formatBrazilTime(appt.start_time),
-            service_price: appt.final_amount ? `R$ ${appt.final_amount.toFixed(2).replace('.', ',')}` : "R$ 0,00"
+            service_price: appt.final_amount && appt.final_amount > 0 ? `R$ ${appt.final_amount.toFixed(2).replace('.', ',')}` : "",
+            appointment_id: appt.id
           };
           
-          const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nSeu agendamento na {{barbershop_name}} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {{service_name}}\n💈 Profissional: {{professional_name}}\n📅 Data: {{appointment_date}}\n⏰ Horário: {{appointment_time}}\n💰 Valor: {{service_price}}\n\nO que deseja fazer?`;
+          const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nSeu agendamento na {{barbershop_name}} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {{service_name}}\n💈 Profissional: {{professional_name}}\n📅 Data: {{appointment_date}}\n⏰ Horário: {{appointment_time}}\n{{#if service_price}}💰 Valor: {{service_price}}{{/if}}\n\nO que deseja fazer?`;
           message = processAutomationTemplate(rawTemplate, templateData);
         } else {
           let appointmentsList = "";
@@ -537,12 +538,14 @@ export async function processAutomationDispatches(
           const templateData = {
             customer_name: customer.name,
             barbershop_name: profile?.business_name || "Nossa Barbearia",
-            appointments_list: appointmentsList.trim()
+            appointments_list: appointmentsList.trim(),
+            appointment_count: apptGroup.length
           };
 
-          const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nVocê possui {{count}} agendamentos na {{barbershop_name}}.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}\n\nO que deseja fazer?`;
-          message = processAutomationTemplate(rawTemplate.replace("{{count}}", String(apptGroup.length)), templateData);
+          const rawTemplate = auto.template_multiple || `Olá {{customer_name}} 👋\n\nVocê possui {{appointment_count}} agendamentos na {{barbershop_name}}.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}\n\nO que deseja fazer?`;
+          message = processAutomationTemplate(rawTemplate, templateData);
         }
+
 
         // Send via Z-API
         const connection = await getWhatsAppSettings(supabase, tenant_id);

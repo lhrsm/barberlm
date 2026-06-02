@@ -3,9 +3,22 @@ import { formatBrazilDate, formatBrazilTime } from "./utils.ts";
 export function processAutomationTemplate(template: string, data: Record<string, any>): string {
   if (!template) return "";
   
-  // Mapping of user-requested variables to real data
-  // Using both Portuguese and English variations as requested/standardized
-  const variables: Record<string, string> = {
+  let result = template;
+
+  // 1. Handle Conditional Blocks: {{#if variable}}...{{/if}}
+  // This regex finds {{#if variable}}content{{/if}}
+  const ifRegex = /{{#if\s+([a-zA-Z0-9_]+)}}(.*?){{\/if}}/gs;
+  result = result.replace(ifRegex, (match, variable, content) => {
+    const value = data[variable];
+    // If value is truthy (exists and not empty string/zero), keep content, else remove
+    if (value && value !== "R$ 0,00" && value !== "0,00" && value !== "") {
+      return content;
+    }
+    return "";
+  });
+
+  // 2. Mapping of variables to real data
+  const variables: Record<string, any> = {
     customer_name: data.customer_name || data.cliente_nome || "Cliente",
     cliente_nome: data.customer_name || data.cliente_nome || "Cliente",
     
@@ -24,23 +37,27 @@ export function processAutomationTemplate(template: string, data: Record<string,
     appointment_time: data.appointment_time || data.horario || "",
     horario: data.appointment_time || data.horario || "",
     
-    service_price: data.service_price || data.valor || "R$ 0,00",
-    valor: data.service_price || data.valor || "R$ 0,00",
+    service_price: data.service_price || data.valor || "",
+    valor: data.service_price || data.valor || "",
     
     appointments_list: data.appointments_list || "",
     link_agendamento: data.link_agendamento || "",
+    appointment_id: data.appointment_id || "",
   };
 
-  let result = template;
+  // 3. Replace simple placeholders: {{variable}}
   for (const [key, value] of Object.entries(variables)) {
     const placeholder = `{{${key}}}`;
-    result = result.split(placeholder).join(value || "");
+    const stringValue = String(value || "");
+    result = result.split(placeholder).join(stringValue);
   }
 
-  // Protection: If message still contains placeholders, log it but it's better to catch it in the caller
-  return result;
+  // 4. Final Cleanup: Remove any remaining Handlebars tags to avoid sending them to user
+  result = result.replace(/{{[#\/]?[a-zA-Z0-9_ ]+}}/g, "");
+
+  return result.trim();
 }
 
 export function containsPlaceholders(text: string): boolean {
-  return /{{[a-zA-Z0-9_]+}}/.test(text);
+  return /{{[#\/]?[a-zA-Z0-9_ ]+}}/.test(text);
 }
