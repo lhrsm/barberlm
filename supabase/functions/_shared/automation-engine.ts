@@ -428,7 +428,16 @@ export async function processAutomationDispatches(
         
         if (!customer?.phone) {
           results.skipped_count++;
-          results.details.push(`Group ${groupKey}: Skipped - No customer phone`);
+          const reason = "Skipped - No customer phone";
+          results.details.push(`Group ${groupKey}: ${reason}`);
+          await supabase.from("automation_logs").insert({
+            tenant_id: tenant_id,
+            phone: "unknown",
+            status: 'skipped',
+            error_message: reason,
+            webhook_type: AUTOMATION_TYPES.CONFIRMATION,
+            appointment_group_id: group_id
+          });
           continue;
         }
 
@@ -443,7 +452,16 @@ export async function processAutomationDispatches(
 
         if (!auto) {
           results.skipped_count++;
-          results.details.push(`Group ${groupKey}: Skipped - Automation disabled or not found for tenant ${tenant_id}`);
+          const reason = `Skipped - Automation disabled or not found for tenant ${tenant_id}`;
+          results.details.push(`Group ${groupKey}: ${reason}`);
+          await supabase.from("automation_logs").insert({
+            tenant_id: tenant_id,
+            phone: normalizePhone(customer.phone),
+            status: 'skipped',
+            error_message: reason,
+            webhook_type: AUTOMATION_TYPES.CONFIRMATION,
+            appointment_group_id: group_id
+          });
           continue;
         }
 
