@@ -418,6 +418,8 @@ export type Database = {
       }
       automation_logs: {
         Row: {
+          action: string | null
+          appointment_group_id: string | null
           appointment_id: string | null
           automation_id: string
           barber_id: string | null
@@ -427,6 +429,7 @@ export type Database = {
           direction: string | null
           error_message: string | null
           id: string
+          message_sent: string | null
           message_type: string | null
           metadata: Json | null
           option_id: string | null
@@ -437,11 +440,19 @@ export type Database = {
           provider: string | null
           received_at: string | null
           response: Json | null
+          selected_option_normalized: string | null
+          selected_option_raw: string | null
           sent_at: string
+          state_after: string | null
+          state_before: string | null
           status: string
           tenant_id: string
+          webhook_type: string | null
+          zapi_response: Json | null
         }
         Insert: {
+          action?: string | null
+          appointment_group_id?: string | null
           appointment_id?: string | null
           automation_id: string
           barber_id?: string | null
@@ -451,6 +462,7 @@ export type Database = {
           direction?: string | null
           error_message?: string | null
           id?: string
+          message_sent?: string | null
           message_type?: string | null
           metadata?: Json | null
           option_id?: string | null
@@ -461,11 +473,19 @@ export type Database = {
           provider?: string | null
           received_at?: string | null
           response?: Json | null
+          selected_option_normalized?: string | null
+          selected_option_raw?: string | null
           sent_at?: string
+          state_after?: string | null
+          state_before?: string | null
           status: string
           tenant_id: string
+          webhook_type?: string | null
+          zapi_response?: Json | null
         }
         Update: {
+          action?: string | null
+          appointment_group_id?: string | null
           appointment_id?: string | null
           automation_id?: string
           barber_id?: string | null
@@ -475,6 +495,7 @@ export type Database = {
           direction?: string | null
           error_message?: string | null
           id?: string
+          message_sent?: string | null
           message_type?: string | null
           metadata?: Json | null
           option_id?: string | null
@@ -485,9 +506,15 @@ export type Database = {
           provider?: string | null
           received_at?: string | null
           response?: Json | null
+          selected_option_normalized?: string | null
+          selected_option_raw?: string | null
           sent_at?: string
+          state_after?: string | null
+          state_before?: string | null
           status?: string
           tenant_id?: string
+          webhook_type?: string | null
+          zapi_response?: Json | null
         }
         Relationships: [
           {
@@ -2601,6 +2628,7 @@ export type Database = {
           error: string | null
           event_type: string | null
           id: string
+          ignored: boolean | null
           payload: Json
           phone: string | null
           processed: boolean | null
@@ -2611,6 +2639,7 @@ export type Database = {
           error?: string | null
           event_type?: string | null
           id?: string
+          ignored?: boolean | null
           payload: Json
           phone?: string | null
           processed?: boolean | null
@@ -2621,6 +2650,7 @@ export type Database = {
           error?: string | null
           event_type?: string | null
           id?: string
+          ignored?: boolean | null
           payload?: Json
           phone?: string | null
           processed?: boolean | null

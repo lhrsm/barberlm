@@ -10,19 +10,15 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
-function extractPhoneFromZapiPayload(body: any) {
+function extractPhoneFromZapiPayload(body: any): string {
   const possiblePaths = [
     body.phone,
     body.from,
     body.sender,
-    body.senderPhone,
-    body.participantPhone,
     body.message?.phone,
     body.message?.from,
-    body.message?.sender,
     body.data?.phone,
     body.data?.from,
-    body.data?.sender,
     body.chatId,
     body.key?.remoteJid
   ];
@@ -37,27 +33,22 @@ function extractPhoneFromZapiPayload(body: any) {
   return "";
 }
 
-function extractMessageOrOptionFromZapiPayload(body: any) {
-  if (!body) return "";
-
+function extractSelectedOption(body: any): string {
   const possiblePaths = [
     body.buttonReply?.id,
     body.buttonReply?.title,
     body.buttonsResponseMessage?.selectedButtonId,
     body.buttonsResponseMessage?.selectedDisplayText,
-    body.listResponseMessage?.singleSelectReply?.selectedRowId,
     body.listResponseMessage?.title,
-    body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
+    body.listResponseMessage?.singleSelectReply?.selectedRowId,
     body.message?.listResponseMessage?.title,
+    body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
     body.selectedRowId,
     body.selectedId,
-    body.text?.message,
-    body.message?.text,
-    body.message?.body,
-    body.data?.text,
-    body.data?.body,
     body.text,
-    body.body
+    body.body,
+    body.message?.text,
+    body.message?.body
   ];
 
   for (const val of possiblePaths) {
@@ -66,265 +57,216 @@ function extractMessageOrOptionFromZapiPayload(body: any) {
       // Remover acentos
       text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       
-      // Mapeamento de opções
-      if (text.includes("confirmar agendamento") || text === "confirmar" || text === "1" || text === "confirm") return "confirm";
-      if (text.includes("reagendar") || text === "2" || text === "reschedule") return "reschedule";
-      if (text.includes("cancelar") || text === "3" || text === "cancel") return "cancel";
-      
-      if (text === "confirm_all") return "confirm_all";
-      if (text === "confirm_single") return "confirm_single";
-      if (text === "reschedule_all") return "reschedule_all";
-      if (text === "reschedule_single") return "reschedule_single";
-      if (text === "cancel_all") return "cancel_all";
-      if (text === "cancel_single") return "cancel_single";
+      // Mapeamento de opções comuns para IDs internos se necessário
+      if (text === "1" || text.includes("confirmar")) return "main_confirm";
+      if (text === "2" || text.includes("reagendar")) return "main_reschedule";
+      if (text === "3" || text.includes("cancelar")) return "main_cancel";
       
       return text;
     }
   }
-
   return "";
 }
 
-function extractSelectedOption(payload: any) {
-  const optionId = extractMessageOrOptionFromZapiPayload(payload);
-  return {
-    id: optionId,
-    text: optionId
-  };
+async function processZapiWebhook(supabase: any, body: any, barberId: string) {
+  const phone = extractPhoneFromZapiPayload(body);
+  const normalizedPhone = normalizePhone(phone);
+  const eventType = body.type || 'unknown';
+  
+  // 1. Log the webhook
+  const ignoredEvents = [
+    'PresenceChatCallback',
+    'StatusCallback',
+    'MessageStatusCallback',
+    'DeliveredCallback',
+    'ReadCallback',
+    'ConnectedCallback',
+    'DisconnectedCallback'
+  ];
+  
+  const isIgnored = ignoredEvents.includes(eventType);
+  
+  const { data: logEntry, error: logError } = await supabase
+    .from("zapi_webhook_logs")
+    .insert({
+      barber_id: barberId.length > 20 ? null : barberId, // Basic check for UUID vs slug/junk
+      payload: body,
+      phone: normalizedPhone,
+      event_type: eventType,
+      ignored: isIgnored,
+      processed: false
+    })
+    .select()
+    .single();
+
+  if (logError) {
+    console.error("[Z-API] Error logging webhook:", logError);
+    return;
+  }
+
+  if (isIgnored) {
+    console.log(`[Z-API] Event ${eventType} ignored.`);
+    return;
+  }
+
+  // 2. Process only message-like events
+  const allowedEvents = [
+    'ReceivedCallback',
+    'MessageCallback',
+    'TextMessage',
+    'ButtonCallback',
+    'ListResponseCallback'
+  ];
+
+  if (!allowedEvents.includes(eventType) && !body.text && !body.buttonReply) {
+    console.log(`[Z-API] Event ${eventType} not in allowed list and no message body found.`);
+    return;
+  }
+
+  const selectedOptionRaw = extractSelectedOption(body);
+  console.log('WEBHOOK RECEIVED', JSON.stringify(body));
+  console.log('EXTRACTED PHONE', normalizedPhone);
+  console.log('EXTRACTED OPTION', selectedOptionRaw);
+
+  if (!normalizedPhone) {
+    console.error("[Z-API] Could not extract phone from payload");
+    await supabase.from("zapi_webhook_logs").update({ error: "No phone extracted" }).eq("id", logEntry.id);
+    return;
+  }
+
+  // 3. Find active conversation
+  let { data: conversation, error: convError } = await supabase
+    .from("whatsapp_conversations")
+    .select("*")
+    .eq("phone", normalizedPhone)
+    .eq("active", true)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // Fallback to automation_conversations if not found in whatsapp_conversations
+  if (!conversation) {
+    const { data: altConv } = await supabase
+      .from("automation_conversations")
+      .select("*, tenant_id, current_state")
+      .eq("phone_normalized", normalizedPhone)
+      .eq("status", "active")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (altConv) {
+      conversation = {
+        id: altConv.id,
+        barber_id: altConv.tenant_id,
+        phone: altConv.phone_normalized,
+        state: altConv.current_state,
+        active: true,
+        appointment_group_id: altConv.appointment_ids?.[0], // Fallback mapping
+        context: altConv
+      };
+    }
+  }
+
+  console.log('CONVERSATION FOUND', conversation);
+  console.log('STATE BEFORE', conversation?.state);
+
+  if (!conversation) {
+    console.log("[Z-API] No active conversation found for phone:", normalizedPhone);
+    
+    // Optional fallback if we want to be helpful
+    const connection = await getWhatsAppSettings(supabase, barberId);
+    if (connection) {
+      await sendMessage(connection, normalizedPhone, "Não encontrei uma conversa ativa. Por favor, faça um novo agendamento ou entre em contato com a barbearia.");
+    }
+    
+    await supabase.from("automation_logs").insert({
+      barber_id: barberId,
+      phone: normalizedPhone,
+      webhook_type: eventType,
+      error_message: "no active conversation found",
+      direction: 'incoming'
+    });
+    
+    await supabase.from("zapi_webhook_logs").update({ processed: true }).eq("id", logEntry.id);
+    return;
+  }
+
+  // 4. Process state machine
+  try {
+    const result = await handleAutomationWhatsappResponse(supabase, {
+      tenant_id: conversation.barber_id,
+      phone: normalizedPhone,
+      customer_id: conversation.customer_id,
+      current_state: conversation.state,
+      option_id: selectedOptionRaw,
+      payload: body,
+      conversation_id: conversation.id
+    });
+
+    if (result) {
+      const connection = await getWhatsAppSettings(supabase, conversation.barber_id);
+      if (connection && result.message_to_send) {
+        const sendResult = await sendMessage(connection, normalizedPhone, result.message_to_send);
+        
+        await supabase.from("automation_logs").insert({
+          barber_id: conversation.barber_id,
+          phone: normalizedPhone,
+          webhook_type: eventType,
+          selected_option_raw: selectedOptionRaw,
+          selected_option_normalized: result.selected_option_normalized || selectedOptionRaw,
+          conversation_id: conversation.id,
+          state_before: conversation.state,
+          state_after: result.next_state,
+          action: result.action_executed,
+          message_sent: result.message_to_send,
+          zapi_response: sendResult.response,
+          status: sendResult.success ? 'success' : 'error',
+          direction: 'outgoing',
+          appointment_group_id: conversation.appointment_group_id,
+          appointment_id: conversation.appointment_id
+        });
+      }
+    }
+
+    await supabase.from("zapi_webhook_logs").update({ processed: true }).eq("id", logEntry.id);
+  } catch (error) {
+    console.error("[Z-API] Processing error:", error);
+    await supabase.from("zapi_webhook_logs").update({ error: error.message }).eq("id", logEntry.id);
+  }
 }
 
 serve(async (req) => {
-  // 1. Handle CORS OPTIONS
   if (req.method === "OPTIONS") {
-    return new Response(null, { 
-      status: 204,
-      headers: corsHeaders 
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
+
+  const url = new URL(req.url);
+  const pathParts = url.pathname.split("/");
+  const barberId = pathParts[pathParts.length - 1];
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
 
-  const url = new URL(req.url);
-  const pathParts = url.pathname.split("/");
-  const integrationIdFromUrl = pathParts[pathParts.length - 1];
-  const method = req.method;
-  const headers = Object.fromEntries(req.headers.entries());
-  const contentType = headers["content-type"] || "";
-  const queryParams = Object.fromEntries(url.searchParams.entries());
-
-  let rawBody = "";
-  let body: any = null;
-  let debugLogId: string | null = null;
-
-  // 2. Extract Body (Safely)
   try {
-    const buffer = await req.arrayBuffer();
-    rawBody = new TextDecoder().decode(buffer);
-    
-    if (contentType.includes("application/json") && rawBody) {
-      try {
-        body = JSON.parse(rawBody);
-      } catch (e) {
-        console.error("[Z-API Webhook] JSON parse error:", e);
-      }
-    }
-  } catch (e) {
-    console.error("[Z-API Webhook] Error reading body:", e);
-  }
+    const body = await req.json();
 
-  // Fallback for empty body
-  if (!body) body = {};
+    // Process in background to respond fast
+    processZapiWebhook(supabase, body, barberId).catch(err => {
+      console.error("[Z-API Background Error]", err);
+    });
 
-  // 3. Save RAW payload immediately
-  console.log('ZAPI WEBHOOK RECEIVED');
-  console.log('RAW PAYLOAD', JSON.stringify(body));
-  console.log('BARBER ID', integrationIdFromUrl);
-
-  const phone = extractPhoneFromZapiPayload(body);
-  const eventType = body.type || 'unknown';
-
-  try {
-    const { data: logData, error: logError } = await supabase
-      .from("zapi_webhook_logs")
-      .insert({
-        barber_id: integrationIdFromUrl.length > 20 ? integrationIdFromUrl : null,
-        payload: body,
-        phone: phone,
-        event_type: eventType,
-        processed: false
-      })
-      .select()
-      .single();
-
-    if (logError) {
-      console.error("[Z-API Webhook] Error saving to zapi_webhook_logs:", logError);
-    } else {
-      debugLogId = logData.id;
-    }
-  } catch (e) {
-    console.error("[Z-API Webhook] Critical Error saving webhook log:", e);
-  }
-
-  // Also maintain old debug log for compatibility if table exists
-  try {
-    const { error: debugError } = await supabase
-      .from("zapi_webhook_debug")
-      .insert({
-        method,
-        url: req.url,
-        content_type: contentType,
-        payload_raw: body,
-        integration_id: integrationIdFromUrl,
-        received_at: new Date().toISOString(),
-        processed: false
-      });
-  } catch (e) {
-    // Silent fail for old table
-  }
-
-  // 4. Always return 200 OK immediately if it's Z-API (or simulate quick response)
-  // We'll proceed with processing in the background (Edge Functions allow this until the connection is closed, but here we return a promise)
-  // Actually, in Deno Deploy, once the Response is returned, the execution might be throttled or killed unless using event loop.
-  // But for now, we'll keep the logic sequential to ensure processing, but return 200 at the end regardless of errors.
-
-  try {
-    // Determine source
-    let source = "zapi_real";
-    if (body.source === "manual_simulation") {
-      source = "manual_simulation";
-    } else if (headers["x-test-post"] === "true" || body.source === "direct_post_test" || body.source === "server_test") {
-      source = body.source || "direct_post_test";
-    }
-
-    if (debugLogId) {
-      await supabase.from("zapi_webhook_debug").update({ source }).eq("id", debugLogId);
-    }
-
-    // Identify phone and message text for logging
-    const phoneRaw = body.phone || null;
-    const messageText = String(body.text?.message || body.message?.text || body.text || body.body || "").trim();
-    
-    if (debugLogId) {
-      await supabase.from("zapi_webhook_debug").update({ 
-        phone_raw: phoneRaw,
-        message_text: messageText || null
-      }).eq("id", debugLogId);
-    }
-
-    // 5. PROCESS AUTOMATION
-    const { type, phone, instanceId } = body;
-
-    // Handle Instance Connection Status
-    if (type === "Connected" || type === "Disconnected") {
-      if (instanceId) {
-        await supabase.from("whatsapp_instances")
-          .update({ 
-            status: type.toLowerCase(), 
-            connected: type === "Connected",
-            updated_at: new Date().toISOString()
-          })
-          .eq("instance_id", instanceId);
-      }
-      
-      if (debugLogId) {
-        await supabase.from("zapi_webhook_debug").update({ processed: true }).eq("id", debugLogId);
-      }
-    } else if (type === "ReceivedMessage" || type === "ReceivedCallback") {
-      const normalizedPhone = normalizePhone(phone || extractPhoneFromZapiPayload(body));
-      const optionId = extractMessageOrOptionFromZapiPayload(body);
-      
-      // Identify the tenant/barber_id
-      let tenantId = "";
-      if (instanceId) {
-        const { data: instance } = await supabase.from("whatsapp_instances").select("tenant_id").eq("instance_id", instanceId).maybeSingle();
-        if (instance) tenantId = instance.tenant_id;
-      }
-      if (!tenantId) tenantId = integrationIdFromUrl;
-
-      if (tenantId && normalizedPhone) {
-        // Find active conversation
-        const { data: conversation } = await supabase
-          .from("automation_conversations")
-          .select("*")
-          .eq("phone_normalized", normalizedPhone)
-          .eq("tenant_id", tenantId)
-          .eq("status", "active")
-          .order("updated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (conversation) {
-          const result = await handleAutomationWhatsappResponse(supabase, {
-            tenant_id: tenantId,
-            phone: normalizedPhone,
-            customer_id: conversation.customer_id,
-            automation_type: conversation.automation_type,
-            current_state: conversation.current_state,
-            option_id: optionId,
-            payload: body
-          });
-
-          if (result) {
-            const connection = await getWhatsAppSettings(supabase, tenantId);
-            if (connection && result.message_to_send) {
-              const sendResult = await sendMessage(connection, normalizedPhone, result.message_to_send);
-              
-              await supabase.from("automation_logs").insert({
-                barber_id: tenantId,
-                phone: normalizedPhone,
-                event_type: "whatsapp_response",
-                state_before: conversation.current_state,
-                state_after: result.next_state,
-                option_received: optionId,
-                message_sent: result.message_to_send,
-                zapi_response: sendResult.response,
-                status: sendResult.success ? 'success' : 'error',
-                error: sendResult.error
-              });
-            }
-          }
-          
-          if (debugLogId) {
-            await supabase.from("zapi_webhook_logs").update({ processed: true }).eq("id", debugLogId);
-          }
-        } else {
-          console.log("[Z-API Webhook] No active conversation found for phone:", normalizedPhone);
-          await supabase.from("automation_logs").insert({
-            barber_id: tenantId,
-            phone: normalizedPhone,
-            event_type: "incoming_ignored",
-            option_received: optionId,
-            error: "no active conversation found"
-          });
-          if (debugLogId) {
-            await supabase.from("zapi_webhook_logs").update({ processed: true }).eq("id", debugLogId);
-          }
-        }
-      }
-    } else {
-      if (debugLogId) {
-        await supabase.from("zapi_webhook_logs").update({ processed: true }).eq("id", debugLogId);
-      }
-    }
-
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
   } catch (error) {
-    console.error("[Z-API Webhook] Processing Error:", error);
-    if (debugLogId) {
-      await supabase.from("zapi_webhook_logs")
-        .update({ error: error.message, processed: false })
-        .eq("id", debugLogId);
-    }
+    console.error("[Z-API Webhook] Request error:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
   }
-
-  return new Response(JSON.stringify({ 
-    ok: true, 
-    received: true,
-    message: "Webhook processed (or ignored)"
-  }), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-    status: 200,
-  });
 });
