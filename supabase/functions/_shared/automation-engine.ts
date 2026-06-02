@@ -252,10 +252,12 @@ export async function handleAutomationWhatsappResponse(
         actionExecuted = "cancel_all";
         selectedOptionNormalized = "cancel_all";
       } else if (normalizedOption === 'cancel_single' || normalizedOption === '2') {
-        messageToSend = "Qual atendimento você deseja cancelar?\n\nDigite o número correspondente:\n\n";
-        appointments.forEach((a, i) => {
-          messageToSend += `${i + 1}️⃣ ${formatBrazilTime(a.start_time)}: ${a.services?.name}\n`;
-        });
+        messageToSend = "Qual atendimento você deseja cancelar?";
+        const options = appointments.map((a, i) => ({
+          id: String(i + 1),
+          title: `${formatBrazilTime(a.start_time)}`,
+          description: `${a.services?.name}`
+        }));
         
         await supabase.from("whatsapp_conversations")
           .update({ 
@@ -266,10 +268,26 @@ export async function handleAutomationWhatsappResponse(
         nextState = AUTOMATION_STATES.AWAITING_SPECIFIC_APPOINTMENT_SELECTION;
         actionExecuted = "ask_specific_selection_cancel";
         selectedOptionNormalized = "cancel_single";
+        return {
+          action_executed: actionExecuted,
+          next_state: nextState,
+          message_to_send: messageToSend,
+          selected_option_normalized: selectedOptionNormalized,
+          list: {
+            buttonLabel: "Ver agendamentos",
+            title: "Cancelar Agendamento",
+            options
+          }
+        };
       } else {
-        messageToSend = "Opção inválida. Digite 1 para cancelar todos ou 2 para escolher um específico.";
+        messageToSend = "Opção inválida.";
+        buttons = [
+          { id: "cancel_all", label: "Cancelar todos" },
+          { id: "cancel_single", label: "Escolher específico" }
+        ];
       }
       break;
+
 
     case AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION:
       const remainingIds = conversation.context?.remaining_appointment_ids || [];
