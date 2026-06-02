@@ -513,10 +513,12 @@ export async function processAutomationDispatches(
       return { ...results, message: msg };
     }
 
-    // 4. Grouping
+    // 4. Grouping - ONLY group if they share an appointment_group_id
+    // This prevents single appointments from being treated as multiple just because they share a phone
     const groups: Record<string, any[]> = {};
     for (const appt of eligibleAppointments) {
-      const key = appt.appointment_group_id || `${appt.tenant_id}_${appt.customers?.phone}`;
+      // Use group_id if available, otherwise use appointment id itself (no grouping)
+      const key = appt.appointment_group_id || `single_${appt.id}`;
       if (!groups[key]) groups[key] = [];
       groups[key].push(appt);
     }
