@@ -625,6 +625,7 @@ export async function processAutomationDispatches(
         let sendResult = { success: false, error: "Validation failed", response: null };
         
         if (!hasPlaceholders) {
+          console.log('SENDING ONLY INITIAL CONFIRMATION');
           sendResult = await sendMessage(connection, customer.phone, message, { buttons });
         } else {
           console.error(`[AutomationEngine] Message validation failed. Placeholders remain in text.`);
@@ -657,6 +658,7 @@ export async function processAutomationDispatches(
           results.processed_count += apptGroup.length;
           results.messages_sent.push({ phone: customer.phone, status: 'success' });
           
+          console.log('STOPPING FLOW AT awaiting_main_action');
           // Create conversation state
           await supabase.from("whatsapp_conversations").insert({
             tenant_id: tenant_id,
@@ -680,6 +682,8 @@ export async function processAutomationDispatches(
               confirmation_sent_at: new Date().toISOString() 
             })
             .in("id", apptGroup.map(a => a.id));
+            
+          console.log('NO NEXT STEP SHOULD RUN NOW');
         } else {
           results.error_count += apptGroup.length;
           results.errors.push({ group: groupKey, error: sendResult.error });
