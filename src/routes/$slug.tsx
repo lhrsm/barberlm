@@ -869,24 +869,56 @@ function ShopPageComponent() {
     try {
       // 1. Ensure customer exists
       let finalCustId = customerId;
+      console.log('TABLE:', 'customers');
+      console.log('ACTION:', finalCustId ? 'select/update' : 'select/insert');
+      
       if (!finalCustId) {
-        console.log('DEBUG: Creating new customer', { name: customerName, phone: normalized });
-        const { data: newCust, error: custError } = await supabase
+        console.log('DEBUG: Checking for existing customer by phone', { phone: normalized });
+        const { data: existingCust, error: checkError } = await supabase
           .from("customers")
-          .insert([{
+          .select("id")
+          .eq("phone", normalized)
+          .eq("user_id", shop.id)
+          .maybeSingle();
+        
+        if (checkError) {
+          console.error('SUPABASE ERROR (check customer):', checkError);
+          throw checkError;
+        }
+
+        if (existingCust) {
+          finalCustId = existingCust.id;
+          console.log('DEBUG: Found existing customer', finalCustId);
+          // Update name if it was missing or different
+          await supabase.from("customers").update({ name: customerName }).eq("id", finalCustId);
+        } else {
+          console.log('DEBUG: Creating new customer', { name: customerName, phone: normalized });
+          const customerPayload = {
             user_id: shop.id,
             name: customerName,
             phone: normalized
-          }])
-          .select()
-          .single();
-        
-        if (custError) throw custError;
-        finalCustId = newCust.id;
-        setCustomerId(finalCustId);
+          };
+          console.log('PAYLOAD:', customerPayload);
+          
+          const { data: newCust, error: custError } = await supabase
+            .from("customers")
+            .insert([customerPayload])
+            .select()
+            .single();
+          
+          if (custError) {
+            console.error('SUPABASE ERROR (insert customer):', custError);
+            throw custError;
+          }
+          finalCustId = newCust.id;
+          setCustomerId(finalCustId);
+          console.log('DEBUG: New customer created', finalCustId);
+        }
       } else {
         // Sync name if changed
-        await supabase.from("customers").update({ name: customerName }).eq("id", finalCustId);
+        console.log('DEBUG: Updating existing customer name', { id: finalCustId, name: customerName });
+        const { error: updateError } = await supabase.from("customers").update({ name: customerName }).eq("id", finalCustId);
+        if (updateError) console.error('SUPABASE ERROR (update customer name):', updateError);
       }
 
       // Generate Group ID for multiple appointments
@@ -894,12 +926,16 @@ function ShopPageComponent() {
       const finalPaymentMethod = paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop');
 
       // 2. Create Appointments
+      console.log('TABLE:', 'appointments');
+      console.log('ACTION:', 'insert');
+      console.log('APPOINTMENT GROUP ID:', appointmentGroupId);
+      
       const appointmentPromises = finalCart.map(item => {
         const timeWithSeconds = item.start_time.length === 5 ? `${item.start_time}:00` : item.start_time;
         const startTime = parseISO(`${item.date}T${timeWithSeconds}`);
         const endTime = addMinutes(startTime, item.duration);
 
-        return supabase.from("appointments").insert([{
+        const appointmentPayload = {
           user_id: shop.id,
           tenant_id: shop.id,
           customer_id: finalCustId,
@@ -921,12 +957,18 @@ function ShopPageComponent() {
             price: item.price,
             quantity: 1
           }]
-        }]).select().single();
+        };
+        console.log('PAYLOAD (item):', appointmentPayload);
+
+        return supabase.from("appointments").insert([appointmentPayload]).select().single();
       });
 
       const appointmentResults = await Promise.all(appointmentPromises);
       const createdAppointments = appointmentResults.map(res => {
-        if (res.error) throw res.error;
+        if (res.error) {
+          console.error('SUPABASE ERROR (insert appointment):', res.error);
+          throw res.error;
+        }
         return res.data;
       });
 
