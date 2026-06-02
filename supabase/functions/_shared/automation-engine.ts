@@ -333,9 +333,11 @@ export async function handleAutomationWhatsappResponse(
     action_executed: actionExecuted,
     next_state: nextState,
     message_to_send: messageToSend,
-    selected_option_normalized: selectedOptionNormalized
+    selected_option_normalized: selectedOptionNormalized,
+    buttons
   };
 }
+
 
 export async function processAutomationDispatches(
   supabase: any,
