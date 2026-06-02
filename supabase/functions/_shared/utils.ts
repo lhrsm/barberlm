@@ -48,6 +48,7 @@ export function getNowBrazil(): Date {
 
 export function normalizePhone(phone: string): string {
   if (!phone) return "";
+  const original = phone;
   let digits = phone.replace(/\D/g, "");
   
   // Se tiver 10 ou 11 dígitos, assume que falta o DDI 55
@@ -55,14 +56,10 @@ export function normalizePhone(phone: string): string {
     digits = "55" + digits;
   }
   
-  // Tratamento especial para números do Brasil (DDI 55)
-  // Remove o nono dígito se presente para padronizar a busca/armazenamento
-  // O nono dígito é o '9' após o DDD (ex: 55 11 9 8888 7777)
-  if (digits.startsWith("55") && digits.length === 13) {
-    // 55 + DDD (2) + 9 + 8 dígitos = 13 dígitos
-    // Transformar em 55 + DDD (2) + 8 dígitos = 12 dígitos
-    digits = digits.substring(0, 4) + digits.substring(5);
-  }
+  // O usuário solicitou explicitamente NÃO remover o nono dígito.
+  // Padronização: 55 + DDD + 9 dígitos (total 13) ou 8 dígitos (total 12)
+  
+  console.log(`PHONE NORMALIZED: original=${original} -> result=${digits}`);
   
   return digits;
 }
