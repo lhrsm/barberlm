@@ -131,15 +131,15 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
 
   // 1.5 Send Immediate Feedback Message (as requested)
   // Only if it looks like a button click or a relevant choice
-  const triggerWords = ['confirm', 'reagendar', 'cancel', 'atendimento', 'agendamento', 'main_'];
+  const triggerWords = ['confirm', 'reagendar', 'cancel', 'atendimento', 'agendamento', 'main_', '1', '2', '3'];
   const isAction = selectedOptionRaw && triggerWords.some(word => selectedOptionRaw.toLowerCase().includes(word));
   
-  if (isAction) {
+  if (isAction && !isIgnored) {
     try {
       const connection = await getWhatsAppSettings(supabase, barberId);
       if (connection) {
-        console.log('[Z-API] Sending immediate feedback');
-        await sendMessage(connection, normalizedPhone, "✅ Clique recebido. Estou processando sua solicitação...");
+        console.log('[Z-API] Sending immediate feedback message to', normalizedPhone);
+        await sendMessage(connection, normalizedPhone, "✅ Clique recebido. Estou processando sua confirmação.");
       }
     } catch (e) {
       console.error('[Z-API] Error sending immediate feedback:', e);
@@ -155,6 +155,9 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  console.log('ACTIVE CONVERSATION', conversation ? JSON.stringify(conversation) : 'NONE');
+  console.log('STATE', conversation?.state);
 
   if (!conversation) {
     // Try to find in automation_conversations as fallback
