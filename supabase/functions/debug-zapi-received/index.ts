@@ -48,12 +48,15 @@ serve(async (req) => {
   try {
     const body = await req.json();
     console.log('--- DEBUG WEBHOOK RECEIVED ---');
-    console.log(JSON.stringify(body));
+    console.log('PAYLOAD:', JSON.stringify(body));
 
     const phone = extractPhone(body);
     const normalizedPhone = normalizePhone(phone);
     const option = extractOption(body);
     const type = body.type || 'unknown';
+    
+    console.log('PHONE RECEIVED:', phone);
+    console.log('PHONE NORMALIZED:', normalizedPhone);
 
     // Save to logs as requested
     await supabase.from("zapi_webhook_logs").insert({
