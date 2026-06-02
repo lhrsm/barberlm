@@ -126,12 +126,27 @@ export async function sendMessage(
 
   // 3. Fallback or standard text message
   console.log('SENDING STANDARD TEXT MESSAGE (OR FALLBACK)');
+  let finalMessage = message;
+  
+  // If we had buttons or list and it failed or wasn't sent, add them as text for fallback
+  if (options?.buttons && options.buttons.length > 0) {
+    finalMessage += "\n\nEscolha uma opção:\n";
+    options.buttons.forEach((b, i) => {
+      finalMessage += `*${i + 1}* - ${b.label}\n`;
+    });
+  } else if (options?.list && options.list.options.length > 0) {
+    finalMessage += `\n\n*${options.list.title}*:\n`;
+    options.list.options.forEach((o, i) => {
+      finalMessage += `*${i + 1}* - ${o.title}${o.description ? ` (${o.description})` : ""}\n`;
+    });
+  }
+
   try {
     const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
     const response = await fetch(sendUrl, {
       method: "POST",
       headers,
-      body: JSON.stringify({ phone: targetPhone, message })
+      body: JSON.stringify({ phone: targetPhone, message: finalMessage })
     });
 
     const data = await response.json();

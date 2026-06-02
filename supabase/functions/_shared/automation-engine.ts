@@ -350,52 +350,98 @@ export async function processAutomationDispatches(
     id: runId,
     status: 'running',
     tenant_id: tenantId,
-    appointment_id: appointmentId
+    appointment_id: appointmentId,
+    started_at: new Date().toISOString()
   });
 
   const results = {
     success: true,
     processed_count: 0,
+    skipped_count: 0,
     error_count: 0,
     messages_sent: [] as any[],
-    errors: [] as any[]
+    errors: [] as any[],
+    details: [] as string[]
   };
 
   try {
+    // 1. Build Query
     let query = supabase
       .from("appointments")
       .select("*, customers(*), barbers(*), services(*), profiles:tenant_id(business_name)")
-      .eq("status", "pending")
       .is("confirmation_sent_at", null);
 
-    if (tenantId) query = query.eq("tenant_id", tenantId);
-    if (appointmentId) query = query.eq("id", appointmentId);
-    
-    const { data: appointments, error: appError } = await query;
+    // Filter by status as requested
+    query = query.in("status", ['scheduled', 'pending', 'awaiting_payment', 'confirmed']);
 
-    if (appError) throw appError;
-    if (!appointments || appointments.length === 0) {
-      console.log("[AutomationEngine] No pending appointments found.");
-      await supabase.from("automation_cron_runs").update({ status: 'success', finished_at: new Date().toISOString() }).eq('id', runId);
-      return { ...results, message: "No pending appointments found" };
+    if (tenantId) query = query.eq("tenant_id", tenantId);
+    if (appointmentId) {
+      query = query.eq("id", appointmentId);
+    } else if (!forceMode) {
+      // For cron, only last 24h to avoid picking ancient leftovers unless forced
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      query = query.gte("created_at", oneDayAgo);
+      results.details.push(`Filtering by created_at >= ${oneDayAgo}`);
+    } else {
+      results.details.push("Force mode enabled: Ignoring created_at window");
+    }
+    
+    const { data: allAppointments, error: appError } = await query;
+
+    if (appError) {
+      results.details.push(`Query error: ${appError.message}`);
+      throw appError;
     }
 
+    if (!allAppointments || allAppointments.length === 0) {
+      const msg = "No pending appointments found for confirmation.";
+      console.log(`[AutomationEngine] ${msg}`);
+      results.details.push(msg);
+      await supabase.from("automation_cron_runs").update({ 
+        status: 'success', 
+        finished_at: new Date().toISOString(),
+        details: { logs: results.details }
+      }).eq('id', runId);
+      return { ...results, message: msg };
+    }
+
+    results.details.push(`Found ${allAppointments.length} candidate appointments.`);
+
+    // 2. Grouping by appointment_group_id or (tenant+phone)
     const groups: Record<string, any[]> = {};
-    for (const appt of appointments) {
+    for (const appt of allAppointments) {
       const key = appt.appointment_group_id || `${appt.tenant_id}_${appt.customers?.phone}`;
       if (!groups[key]) groups[key] = [];
       groups[key].push(appt);
     }
 
+    results.details.push(`Grouped into ${Object.keys(groups).length} sets.`);
+
+    // 3. Process each group
     for (const [groupKey, apptGroup] of Object.entries(groups)) {
       try {
         const firstAppt = apptGroup[0];
         const tenant_id = firstAppt.tenant_id;
         const customer = firstAppt.customers;
         const profile = firstAppt.profiles;
+        const group_id = firstAppt.appointment_group_id;
         
-        if (!customer?.phone) continue;
+        if (!customer?.phone) {
+          results.skipped_count++;
+          const reason = "Skipped - No customer phone";
+          results.details.push(`Group ${groupKey}: ${reason}`);
+          await supabase.from("automation_logs").insert({
+            tenant_id: tenant_id,
+            phone: "unknown",
+            status: 'skipped',
+            error_message: reason,
+            webhook_type: AUTOMATION_TYPES.CONFIRMATION,
+            appointment_group_id: group_id
+          });
+          continue;
+        }
 
+        // Get automation settings for this tenant
         const { data: auto } = await supabase
           .from("automations")
           .select("*")
@@ -404,7 +450,20 @@ export async function processAutomationDispatches(
           .eq("enabled", true)
           .maybeSingle();
 
-        if (!auto) continue;
+        if (!auto) {
+          results.skipped_count++;
+          const reason = `Skipped - Automation disabled or not found for tenant ${tenant_id}`;
+          results.details.push(`Group ${groupKey}: ${reason}`);
+          await supabase.from("automation_logs").insert({
+            tenant_id: tenant_id,
+            phone: normalizePhone(customer.phone),
+            status: 'skipped',
+            error_message: reason,
+            webhook_type: AUTOMATION_TYPES.CONFIRMATION,
+            appointment_group_id: group_id
+          });
+          continue;
+        }
 
         const isMultiple = apptGroup.length > 1;
         let message = "";
@@ -424,24 +483,6 @@ export async function processAutomationDispatches(
           const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nSeu agendamento na {{barbershop_name}} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {{service_name}}\n💈 Profissional: {{professional_name}}\n📅 Data: {{appointment_date}}\n⏰ Horário: {{appointment_time}}\n💰 Valor: {{service_price}}\n\nO que deseja fazer?`;
           
           message = processAutomationTemplate(rawTemplate, templateData);
-          
-          if (containsPlaceholders(message)) {
-            console.error('Message still contains placeholders', message);
-            const logData = {
-              barber_id: tenant_id,
-              phone: normalizePhone(customer.phone),
-              webhook_type: auto.type,
-              direction: 'outgoing',
-              status: 'error',
-              error_message: `Mensagem contém placeholders não substituídos: ${message}`,
-              message_sent: message,
-              appointment_group_id: firstAppt.appointment_group_id
-            };
-            await supabase.from("automation_logs").insert(logData);
-            results.errors.push({ group: groupKey, error: 'Placeholders remaining' });
-            continue;
-          }
-
         } else {
           let appointmentsList = "";
           apptGroup.forEach((appt, i) => {
@@ -458,28 +499,36 @@ export async function processAutomationDispatches(
             .replace("{{count}}", String(apptGroup.length));
 
           message = processAutomationTemplate(rawTemplate, templateData);
-          
-          if (containsPlaceholders(message)) {
-            console.error('Message still contains placeholders', message);
-            const logData = {
-              barber_id: tenant_id,
-              phone: normalizePhone(customer.phone),
-              webhook_type: auto.type,
-              direction: 'outgoing',
-              status: 'error',
-              error_message: `Mensagem contém placeholders não substituídos: ${message}`,
-              message_sent: message,
-              appointment_group_id: firstAppt.appointment_group_id
-            };
-            await supabase.from("automation_logs").insert(logData);
-            results.errors.push({ group: groupKey, error: 'Placeholders remaining' });
-            continue;
-          }
+        }
 
+        // Validate placeholders
+        if (containsPlaceholders(message)) {
+          const errMsg = `Message contains unreplaced placeholders: ${message}`;
+          console.error(`[AutomationEngine] ${errMsg}`);
+          await supabase.from("automation_logs").insert({
+            tenant_id: tenant_id,
+            barber_id: tenant_id,
+            phone: normalizePhone(customer.phone),
+            webhook_type: auto.type,
+            direction: 'outgoing',
+            status: 'error',
+            error_message: errMsg,
+            message_sent: message,
+            appointment_group_id: group_id,
+            appointment_id: !isMultiple ? firstAppt.id : null
+          });
+          results.error_count++;
+          results.errors.push({ group: groupKey, error: 'Placeholders remaining' });
+          results.details.push(`Group ${groupKey}: Error - Placeholders remaining`);
+          continue;
         }
 
         const connection = await getWhatsAppSettings(supabase, tenant_id);
-        if (!connection) continue;
+        if (!connection) {
+          results.skipped_count++;
+          results.details.push(`Group ${groupKey}: Skipped - No Z-API connection for tenant ${tenant_id}`);
+          continue;
+        }
 
         const buttons = [
           { id: "main_confirm", label: "Confirmar agendamento" },
@@ -487,9 +536,11 @@ export async function processAutomationDispatches(
           { id: "main_cancel", label: "Cancelar" }
         ];
 
+        console.log(`[AutomationEngine] Sending message to ${customer.phone}`);
         const sendResult = await sendMessage(connection, customer.phone, message, { buttons });
         
         const logData = {
+          tenant_id: tenant_id,
           barber_id: tenant_id,
           phone: normalizePhone(customer.phone),
           webhook_type: auto.type,
@@ -498,22 +549,25 @@ export async function processAutomationDispatches(
           error_message: sendResult.error,
           message_sent: message,
           appointment_id: !isMultiple ? firstAppt.id : null,
-          appointment_group_id: firstAppt.appointment_group_id
+          appointment_group_id: group_id,
+          zapi_response: sendResult.response
         };
 
         await supabase.from("automation_logs").insert(logData);
-        results.messages_sent.push(logData);
 
         if (sendResult.success) {
           results.processed_count++;
+          results.details.push(`Group ${groupKey}: Successfully sent confirmation`);
           
+          // Create conversation state
           await supabase.from("whatsapp_conversations").insert({
+            tenant_id: tenant_id,
             barber_id: tenant_id,
             customer_id: customer.id,
             phone: normalizePhone(customer.phone),
             state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
             active: true,
-            appointment_group_id: firstAppt.appointment_group_id,
+            appointment_group_id: group_id,
             appointment_id: !isMultiple ? firstAppt.id : null,
             context: {
               appointment_ids: apptGroup.map(a => a.id),
@@ -521,6 +575,7 @@ export async function processAutomationDispatches(
             }
           });
 
+          // Mark as sent
           const nowIso = new Date().toISOString();
           await supabase.from("appointments")
             .update({ 
@@ -530,21 +585,27 @@ export async function processAutomationDispatches(
             .in("id", apptGroup.map(a => a.id));
         } else {
           results.error_count++;
+          results.errors.push({ group: groupKey, error: sendResult.error });
+          results.details.push(`Group ${groupKey}: Failed to send - ${sendResult.error}`);
         }
 
       } catch (err: any) {
         console.error(`[AutomationEngine] Error processing group ${groupKey}:`, err);
         results.error_count++;
         results.errors.push({ group: groupKey, error: err.message });
+        results.details.push(`Group ${groupKey}: Exception - ${err.message}`);
       }
     }
 
+    // Update cron run record
     await supabase.from("automation_cron_runs").update({
       status: results.error_count === 0 ? 'success' : 'error',
       finished_at: new Date().toISOString(),
       processed_count: results.processed_count,
+      skipped_count: results.skipped_count,
       error_count: results.error_count,
-      errors: results.errors
+      errors: results.errors,
+      details: { logs: results.details }
     }).eq('id', runId);
 
     return results;
@@ -554,7 +615,9 @@ export async function processAutomationDispatches(
     await supabase.from("automation_cron_runs").update({ 
       status: 'error', 
       finished_at: new Date().toISOString(),
-      errors: [{ fatal: error.message }]
+      error: error.message,
+      errors: [{ fatal: error.message }],
+      details: { logs: results.details, fatal: error.stack }
     }).eq('id', runId);
     return { ...results, success: false, error: error.message };
   }
