@@ -171,10 +171,10 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
   console.log('webhook_phone (9 dig):', normalizedPhone);
   console.log('webhook_phone (8 dig):', fallbackPhone);
 
-  let { data: conversation, error: convLookupError } = await supabase
+  const { data: conversation, error: convLookupError } = await supabase
     .from("whatsapp_conversations")
     .select("*")
-    .or(`phone.eq.${normalizedPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone.eq.${fallbackPhone},phone_fallback.eq.${fallbackPhone}`)
+    .or(`phone.eq.${normalizedPhone},phone_fallback.eq.${normalizedPhone},phone.eq.${fallbackPhone},phone_fallback.eq.${fallbackPhone}`)
     .eq("active", true)
     .order("updated_at", { ascending: false })
     .limit(1)
