@@ -87,12 +87,15 @@ export async function handleAutomationWhatsappResponse(
   const normalizedOption = String(option_id).trim().toLowerCase();
   const normalizedOptionNoAccents = normalizedOption.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
+  console.log('SELECTED OPTION', normalizedOption);
+  console.log('CONVERSATION STATE', current_state);
+  console.log('APPOINTMENTS COUNT', appointments?.length || 0);
 
   // State Machine Logic
   switch (current_state) {
     case AUTOMATION_STATES.AWAITING_MAIN_ACTION:
       if (normalizedOption === 'main_confirm' || normalizedOption === '1' || normalizedOptionNoAccents.includes('confirmar') || normalizedOptionNoAccents.includes('confirm')) {
-
+        console.log('NEXT ACTION: Confirm');
         if (!isMultiple) {
           // Confirm direct
           await supabase.from("appointments").update({ status: 'confirmed' }).in("id", appointmentIds);
@@ -112,12 +115,15 @@ export async function handleAutomationWhatsappResponse(
           selectedOptionNormalized = "main_confirm";
         }
       } else if (normalizedOption === 'main_reschedule' || normalizedOption === '2' || normalizedOptionNoAccents.includes('reagendar') || normalizedOptionNoAccents.includes('reschedule')) {
+        console.log('NEXT ACTION: Reschedule');
         if (!isMultiple) {
-          messageToSend = "Para reagendar seu atendimento, por favor entre em contato conosco ou acesse nosso portal de agendamentos.";
-          nextState = AUTOMATION_STATES.COMPLETED;
+          // Start reschedule for single
+          messageToSend = "Entendido! Você deseja reagendar seu atendimento. Para qual nova data você gostaria de mudar? (Ex: amanhã às 14h)";
+          nextState = AUTOMATION_STATES.COMPLETED; // For now we stop, but in a real flow we'd go to awaiting_reschedule_data
           actionExecuted = "reschedule_direct";
           selectedOptionNormalized = "main_reschedule";
         } else {
+          // Multiple: Ask scope
           messageToSend = "Como você deseja reagendar seus agendamentos?";
           buttons = [
             { id: "reschedule_all", label: "Reagendar todos" },
@@ -128,6 +134,7 @@ export async function handleAutomationWhatsappResponse(
           selectedOptionNormalized = "main_reschedule";
         }
       } else if (normalizedOption === 'main_cancel' || normalizedOption === '3' || normalizedOptionNoAccents.includes('cancelar') || normalizedOptionNoAccents.includes('cancel')) {
+        console.log('NEXT ACTION: Cancel');
         if (!isMultiple) {
           messageToSend = "Você realmente deseja cancelar seu agendamento?";
           buttons = [
@@ -138,6 +145,7 @@ export async function handleAutomationWhatsappResponse(
           actionExecuted = "ask_cancel_confirmation";
           selectedOptionNormalized = "main_cancel";
         } else {
+          // Multiple: Ask scope
           messageToSend = "Como você deseja cancelar seus agendamentos?";
           buttons = [
             { id: "cancel_all", label: "Cancelar todos" },
@@ -148,9 +156,10 @@ export async function handleAutomationWhatsappResponse(
           selectedOptionNormalized = "main_cancel";
         }
       } else {
+        console.log('NEXT ACTION: Invalid');
         messageToSend = "Não consegui entender sua escolha. 🤔\n\nPor favor, escolha uma das opções abaixo:";
         buttons = [
-          { id: "main_confirm", label: "Confirmar" },
+          { id: "main_confirm", label: "Confirmar agendamento" },
           { id: "main_reschedule", label: "Reagendar" },
           { id: "main_cancel", label: "Cancelar" }
         ];
