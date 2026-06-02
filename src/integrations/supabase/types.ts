@@ -365,11 +365,14 @@ export type Database = {
         Row: {
           appointment_id: string | null
           details: Json | null
+          eligible_count: number | null
           error: string | null
           error_count: number | null
           errors: Json | null
           finished_at: string | null
+          found_count: number | null
           id: string
+          processed_appointments: Json | null
           processed_count: number | null
           skipped_count: number | null
           started_at: string
@@ -379,11 +382,14 @@ export type Database = {
         Insert: {
           appointment_id?: string | null
           details?: Json | null
+          eligible_count?: number | null
           error?: string | null
           error_count?: number | null
           errors?: Json | null
           finished_at?: string | null
+          found_count?: number | null
           id?: string
+          processed_appointments?: Json | null
           processed_count?: number | null
           skipped_count?: number | null
           started_at?: string
@@ -393,11 +399,14 @@ export type Database = {
         Update: {
           appointment_id?: string | null
           details?: Json | null
+          eligible_count?: number | null
           error?: string | null
           error_count?: number | null
           errors?: Json | null
           finished_at?: string | null
+          found_count?: number | null
           id?: string
+          processed_appointments?: Json | null
           processed_count?: number | null
           skipped_count?: number | null
           started_at?: string
@@ -411,6 +420,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "appointments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_cron_runs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
           },
           {
             foreignKeyName: "automation_cron_runs_tenant_id_fkey"
@@ -465,6 +481,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "appointments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_dispatches_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
           },
           {
             foreignKeyName: "automation_dispatches_customer_id_fkey"
@@ -589,6 +612,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "appointments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
           },
           {
             foreignKeyName: "automation_logs_automation_id_fkey"
@@ -1636,6 +1666,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "service_ratings_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
             foreignKeyName: "service_ratings_barber_id_fkey"
             columns: ["barber_id"]
             isOneToOne: false
@@ -1987,6 +2024,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transactions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
             foreignKeyName: "transactions_barber_id_fkey"
             columns: ["barber_id"]
             isOneToOne: false
@@ -2190,6 +2234,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "wallet_transactions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
             foreignKeyName: "wallet_transactions_wallet_id_fkey"
             columns: ["wallet_id"]
             isOneToOne: false
@@ -2342,6 +2393,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "appointments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
           },
           {
             foreignKeyName: "whatsapp_conversations_barber_id_fkey"
@@ -2725,7 +2783,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vw_automation_debug: {
+        Row: {
+          appointment_id: string | null
+          confirmation_sent: boolean | null
+          confirmation_sent_at: string | null
+          created_at: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          start_time: string | null
+          status: string | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       cancel_appointment_by_token:
