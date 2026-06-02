@@ -99,13 +99,22 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
       payload: body,
       phone: normalizedPhone,
       extracted_phone: normalizedPhone,
+      phone_raw: phone,
+      phone_normalized_8: fallbackPhone,
       event_type: eventType,
       type: eventType,
       processed: false,
       selected_option: selectedOptionRaw,
       extracted_option: selectedOptionRaw,
       instance_id: instanceId,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      metadata: {
+        phone_raw: phone,
+        phone_normalized_9: normalizedPhone,
+        phone_normalized_8: fallbackPhone,
+        eventType,
+        barberId
+      }
     })
     .select()
     .single();
@@ -232,6 +241,9 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
         error: "No active conversation",
         metadata: { 
           ...body, 
+          phone_raw: phone,
+          phone_normalized_9: normalizedPhone,
+          phone_normalized_8: fallbackPhone,
           conversation_found: false,
           debug_matches: debugConv
         } 
@@ -246,6 +258,9 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
     await supabase.from("zapi_webhook_logs").update({ 
       metadata: { 
         ...body, 
+        phone_raw: phone,
+        phone_normalized_9: normalizedPhone,
+        phone_normalized_8: fallbackPhone,
         conversation_found: true,
         conversation_id: conversation.id,
         state: conversation.state,
