@@ -588,6 +588,8 @@ export async function processAutomationDispatches(
         phone: customer?.phone || "N/A",
         confirmation_sent_at: appt.confirmation_sent_at,
         created_at: appt.created_at,
+        appointment_date: appt.start_time ? formatBrazilDate(appt.start_time) : "N/A",
+        appointment_group_id: appt.appointment_group_id,
         eligible,
         reason
       };
