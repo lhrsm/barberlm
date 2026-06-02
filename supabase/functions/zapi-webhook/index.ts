@@ -34,33 +34,32 @@ function extractPhoneFromZapiPayload(body: any): string {
 }
 
 function extractSelectedOption(body: any): string {
-  // 1. Check if it is a list response (selectedRowId)
-  if (body.listResponseMessage?.singleSelectReply?.selectedRowId) {
-    return body.listResponseMessage.singleSelectReply.selectedRowId;
+  const possiblePaths = [
+    body.buttonReply?.id,
+    body.buttonReply?.title,
+    body.buttonsResponseMessage?.selectedButtonId,
+    body.buttonsResponseMessage?.selectedDisplayText,
+    body.listResponseMessage?.title,
+    body.listResponseMessage?.singleSelectReply?.selectedRowId,
+    body.message?.listResponseMessage?.title,
+    body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
+    body.selectedRowId,
+    body.selectedId,
+    body.text,
+    body.body,
+    body.message?.text,
+    body.message?.body,
+    body.message?.contents,
+    body.message?.caption
+  ];
+
+  for (const val of possiblePaths) {
+    if (val !== undefined && val !== null && val !== '') {
+      return String(val).trim();
+    }
   }
 
-  // 2. Check if it is a button response (selectedButtonId)
-  if (body.buttonsResponseMessage?.selectedButtonId) {
-    return body.buttonsResponseMessage.selectedButtonId;
-  }
-  
-  // 3. Check for direct button reply from Z-API
-  if (body.buttonReply?.id) {
-    return body.buttonReply.id;
-  }
-
-  // 4. Try to get text/title if no ID
-  const text = (
-    body.text || 
-    body.body || 
-    body.buttonReply?.title || 
-    body.buttonsResponseMessage?.selectedDisplayText ||
-    body.listResponseMessage?.title ||
-    body.message?.text ||
-    ""
-  ).trim();
-
-  return text;
+  return "";
 }
 
 
