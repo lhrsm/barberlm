@@ -1066,6 +1066,92 @@ function AutomationsComponent() {
                 </div>
               </CardContent>
             </Card>
+
+            <Card className="mt-8 border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-bold flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
+                    <Activity size={18} />
+                  </div>
+                  Execuções do Sistema (Cron)
+                </CardTitle>
+                <CardDescription>Status das últimas execuções automáticas de processamento.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground bg-muted/30 border-y border-white/5">
+                      <tr>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4">Início</th>
+                        <th className="px-6 py-4">Fim</th>
+                        <th className="px-6 py-4 text-center">Processados</th>
+                        <th className="px-6 py-4 text-center">Ignorados</th>
+                        <th className="px-6 py-4 text-center">Falhas</th>
+                        <th className="px-6 py-4">Detalhes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {cronRuns.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground italic">
+                            Nenhuma execução registrada.
+                          </td>
+                        </tr>
+                      ) : (
+                        cronRuns.map((run) => (
+                          <tr key={run.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="px-6 py-4">
+                              <Badge 
+                                className={cn(
+                                  "px-2 py-0.5 rounded-full text-[10px] font-black uppercase border-none",
+                                  run.status === 'success' ? "bg-emerald-500/10 text-emerald-500" :
+                                  run.status === 'running' ? "bg-blue-500/10 text-blue-500 animate-pulse" :
+                                  "bg-red-500/10 text-red-500"
+                                )}
+                              >
+                                {run.status === 'success' ? 'Sucesso' : run.status === 'running' ? 'Executando' : 'Erro'}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4 font-medium text-muted-foreground">
+                              {run.started_at ? new Date(run.started_at).toLocaleString('pt-BR') : '-'}
+                            </td>
+                            <td className="px-6 py-4 font-medium text-muted-foreground">
+                              {run.finished_at ? new Date(run.finished_at).toLocaleString('pt-BR') : '-'}
+                            </td>
+                            <td className="px-6 py-4 text-center font-bold text-emerald-500">
+                              {run.processed_count || 0}
+                            </td>
+                            <td className="px-6 py-4 text-center font-bold text-amber-500">
+                              {run.skipped_count || 0}
+                            </td>
+                            <td className="px-6 py-4 text-center font-bold text-red-500">
+                              {run.error_count || 0}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col gap-1 max-w-[200px]">
+                                {run.error && <span className="text-[10px] text-red-500 truncate">{run.error}</span>}
+                                {run.details?.logs?.length > 0 && (
+                                  <button 
+                                    className="text-[10px] text-primary hover:underline text-left"
+                                    onClick={() => {
+                                      console.log('Cron Details:', run.details.logs);
+                                      toast.info(`Log: ${run.details.logs[0]}... (veja console para detalhes)`);
+                                    }}
+                                  >
+                                    Ver {run.details.logs.length} logs
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="debug" className="space-y-4">
