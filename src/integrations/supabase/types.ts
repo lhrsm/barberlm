@@ -2754,6 +2754,8 @@ export type Database = {
           created_at: string
           error: string | null
           event_type: string | null
+          extracted_option: string | null
+          extracted_phone: string | null
           id: string
           ignored: boolean | null
           instance_id: string | null
@@ -2762,12 +2764,15 @@ export type Database = {
           processed: boolean | null
           selected_option: string | null
           status_code: number | null
+          type: string | null
         }
         Insert: {
           barber_id?: string | null
           created_at?: string
           error?: string | null
           event_type?: string | null
+          extracted_option?: string | null
+          extracted_phone?: string | null
           id?: string
           ignored?: boolean | null
           instance_id?: string | null
@@ -2776,12 +2781,15 @@ export type Database = {
           processed?: boolean | null
           selected_option?: string | null
           status_code?: number | null
+          type?: string | null
         }
         Update: {
           barber_id?: string | null
           created_at?: string
           error?: string | null
           event_type?: string | null
+          extracted_option?: string | null
+          extracted_phone?: string | null
           id?: string
           ignored?: boolean | null
           instance_id?: string | null
@@ -2790,6 +2798,7 @@ export type Database = {
           processed?: boolean | null
           selected_option?: string | null
           status_code?: number | null
+          type?: string | null
         }
         Relationships: []
       }
