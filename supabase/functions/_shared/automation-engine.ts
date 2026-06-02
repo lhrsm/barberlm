@@ -563,7 +563,6 @@ export async function processAutomationDispatches(
 
     // 3. Determine Eligibility and Log reasons
     const eligibleAppointments: any[] = [];
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     for (const appt of allAppointments) {
       let eligible = true;
@@ -579,14 +578,8 @@ export async function processAutomationDispatches(
         reason = "Cliente sem telefone cadastrado";
       }
 
-      // Check time window (unless forceMode)
-      if (eligible && !forceMode && !appointmentId) {
-        const createdAt = new Date(appt.created_at);
-        if (createdAt < oneDayAgo) {
-          eligible = false;
-          reason = `Agendamento antigo (${format(createdAt, 'dd/MM HH:mm')}). Use modo forçado para processar.`;
-        }
-      }
+      // NO TIME WINDOW FILTER - Process all as requested
+      // The only filter is confirmation_sent_at is null (done in query)
 
       const debugInfo = {
         appointment_id: appt.id,
@@ -651,27 +644,13 @@ export async function processAutomationDispatches(
         
         console.log(`[AutomationEngine] Checking idempotency for ${groupKey} / ${normalizedPhoneValue}`);
         
-        // Check if there is already an active conversation for this group or appointment
-        let convCheckQuery = supabase
-          .from("whatsapp_conversations")
-          .select("id, state, active")
-          .eq("active", true)
-          .or(`phone.eq.${normalizedPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue},phone_fallback.eq.${fallbackPhoneValue}`);
-          
-        if (group_id) {
-          convCheckQuery = convCheckQuery.eq("appointment_group_id", group_id);
-        } else {
-          convCheckQuery = convCheckQuery.eq("appointment_id", firstAppt.id);
-        }
-        
-        const { data: existingActiveConv } = await convCheckQuery.maybeSingle();
-        
-        // Also check if confirmation_sent_at is already set (double check)
+        // ONLY check if confirmation was already sent. 
+        // Existing active conversation should NOT block sending if message was never sent.
         const alreadySent = apptGroup.every(a => a.confirmation_sent_at !== null);
         
-        if (existingActiveConv || alreadySent) {
-          console.log(`[AutomationEngine] Group ${groupKey} already has an active conversation or confirmation sent. Skipping to avoid duplication.`);
-          results.details.push(`Grupo ${groupKey}: skipped_already_sent`);
+        if (alreadySent) {
+          console.log(`[AutomationEngine] Group ${groupKey} already has confirmation sent. Skipping to avoid duplication.`);
+          results.details.push(`Grupo ${groupKey}: skipped_already_sent (confirmation_sent_at exists)`);
           results.skipped_count += apptGroup.length;
           continue;
         }
@@ -768,10 +747,14 @@ export async function processAutomationDispatches(
         console.log('--- PREPARING CONVERSATION ---');
         
         // Desativar conversas anteriores para o mesmo telefone
-        await supabase.from("whatsapp_conversations")
+        const { error: deactivateError } = await supabase.from("whatsapp_conversations")
           .update({ active: false })
-          .or(`phone.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone_fallback.eq.${fallbackPhoneValue}`)
-          .eq("active", true);
+          .eq("active", true)
+          .or(`phone.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone_fallback.eq.${fallbackPhoneValue}`);
+          
+        if (deactivateError) {
+          console.log('[AutomationEngine] Warning: Could not deactivate previous conversations:', deactivateError.message);
+        }
 
         // Upsert conversation
         const convPayload = {
