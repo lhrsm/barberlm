@@ -209,21 +209,25 @@ function AutomationsComponent() {
       if (data.success) {
         setExecutionSummary(data);
         
-        const sent = data.messagesSent?.filter((m: any) => m.status === 'success').length || 0;
-        const found = (data.appointmentsFound?.length || 0) + (data.birthdaysFound?.length || 0);
-        const failed = data.messagesSent?.filter((m: any) => m.status === 'error').length || 0;
+        const sent = data.processed_count || 0;
+        const found = data.found_count || 0;
+        const failed = data.error_count || 0;
+        const skipped = data.skipped_count || 0;
 
-        if (found === 0 && (!data.ignoredRecords || data.ignoredRecords.length === 0)) {
-          toast.info("Nenhuma automação precisava ser processada no momento.");
+        if (found === 0) {
+          toast.info("Nenhum agendamento pendente encontrado no momento.");
         } else if (sent > 0) {
-          toast.success(`${sent} mensagens enviadas com sucesso!`);
+          toast.success(`${sent} agendamentos processados com sucesso!`);
         } else if (failed > 0) {
-          toast.error(`${failed} mensagens falharam ao enviar.`);
+          toast.error(`${failed} agendamentos falharam.`);
+        } else if (skipped > 0) {
+          toast.info(`${skipped} agendamentos foram ignorados (ver detalhes).`);
         }
 
         setIsManualSummaryOpen(true);
         fetchLogs();
         fetchCronStatus();
+        fetchCronRuns();
       } else {
         toast.error("Erro ao executar automações: " + (data.error || "Erro desconhecido"));
       }
@@ -1550,19 +1554,19 @@ function AutomationsComponent() {
             <div className="space-y-6 py-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-3 bg-muted/50 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-primary">{executionSummary?.summary?.records_found || 0}</div>
+                  <div className="text-2xl font-bold text-primary">{executionSummary?.found_count || 0}</div>
                   <div className="text-[10px] uppercase font-bold text-muted-foreground">Encontrados</div>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-emerald-600">{executionSummary?.summary?.messages_sent || 0}</div>
-                  <div className="text-[10px] uppercase font-bold text-muted-foreground">Enviados</div>
+                  <div className="text-2xl font-bold text-emerald-600">{executionSummary?.processed_count || 0}</div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground">Processados</div>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-amber-600">{executionSummary?.summary?.ignored || 0}</div>
+                  <div className="text-2xl font-bold text-amber-600">{executionSummary?.skipped_count || 0}</div>
                   <div className="text-[10px] uppercase font-bold text-muted-foreground">Ignorados</div>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-red-600">{executionSummary?.summary?.messages_failed || 0}</div>
+                  <div className="text-2xl font-bold text-red-600">{executionSummary?.error_count || 0}</div>
                   <div className="text-[10px] uppercase font-bold text-muted-foreground">Falhas</div>
                 </div>
               </div>
@@ -1570,70 +1574,63 @@ function AutomationsComponent() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b pb-2">
                   <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                    <Clock size={16} /> Detalhes do Servidor
+                    <Activity size={16} /> Logs de Execução
                   </h4>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <span className="text-muted-foreground">Horário Servidor:</span>
-                    <p className="font-mono">{executionSummary?.serverTime ? new Date(executionSummary.serverTime).toLocaleTimeString('pt-BR') : '---'}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Timezone:</span>
-                    <p className="font-mono">{executionSummary?.timezone || 'America/Bahia'}</p>
-                  </div>
+                <div className="bg-black/5 p-3 rounded-lg max-h-[150px] overflow-y-auto font-mono text-[10px] space-y-1">
+                  {executionSummary?.details?.logs?.map((log: string, i: number) => (
+                    <div key={i}>{log}</div>
+                  )) || executionSummary?.details?.map((log: string, i: number) => (
+                    <div key={i}>{log}</div>
+                  ))}
                 </div>
               </div>
 
-              {executionSummary?.ignoredRecords?.length > 0 && (
+              {executionSummary?.processed_appointments?.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between border-b pb-2">
-                    <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-amber-600">
-                      <History size={16} /> Registros Ignorados / Debug
+                    <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-primary">
+                      <History size={16} /> Detalhe por Agendamento
                     </h4>
                   </div>
                   <div className="space-y-2">
-                    {executionSummary.ignoredRecords.map((item: any, idx: number) => (
-                      <div key={idx} className="bg-muted/30 p-3 rounded-lg border border-dashed text-xs space-y-1">
+                    {executionSummary.processed_appointments.map((item: any, idx: number) => (
+                      <div key={idx} className={cn(
+                        "p-3 rounded-lg border text-xs space-y-1",
+                        item.eligible ? "bg-emerald-50 border-emerald-100" : "bg-amber-50 border-amber-100"
+                      )}>
                         <div className="flex justify-between items-start">
-                          <span className="font-bold text-primary capitalize">{item.type || 'Geral'}</span>
-                          <Badge variant="outline" className="text-[10px]">{item.customer_name || 'Agendamento'}</Badge>
+                          <span className="font-bold">{item.customer_name || 'Agendamento'}</span>
+                          <Badge variant={item.eligible ? 'default' : 'outline'} className={item.eligible ? "bg-emerald-500" : ""}>
+                            {item.eligible ? 'Processado' : 'Ignorado'}
+                          </Badge>
                         </div>
-                        <p className="text-muted-foreground">{item.reason}</p>
-                        {item.debug && (
-                          <pre className="text-[9px] bg-black/5 p-1 rounded mt-1 overflow-x-auto">
-                            {JSON.stringify(item.debug, null, 2)}
-                          </pre>
-                        )}
+                        <div className="grid grid-cols-2 gap-2 text-[10px] text-muted-foreground">
+                          <p>ID: {item.appointment_id?.split('-')[0]}...</p>
+                          <p>Telefone: {item.phone}</p>
+                          <p>Status: {item.status}</p>
+                          <p>Criado em: {new Date(item.created_at).toLocaleString('pt-BR')}</p>
+                        </div>
+                        <p className={cn("mt-1", item.eligible ? "text-emerald-700" : "text-amber-700 font-medium")}>
+                          {item.eligible ? "✅ Mensagem enviada com sucesso" : `⚠️ ${item.reason}`}
+                        </p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {executionSummary?.messagesSent?.length > 0 && (
+              {executionSummary?.errors?.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between border-b pb-2">
-                    <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-emerald-600">
-                      <Check size={16} /> Mensagens Processadas
+                    <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-red-600">
+                      <AlertCircle size={16} /> Erros Encontrados
                     </h4>
                   </div>
                   <div className="space-y-2">
-                    {executionSummary.messagesSent.map((item: any, idx: number) => (
-                      <div key={idx} className={cn(
-                        "p-3 rounded-lg border text-xs flex justify-between items-center",
-                        item.status === 'success' ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"
-                      )}>
-                        <div>
-                          <p className="font-bold">{item.customer_name}</p>
-                          <p className="text-muted-foreground text-[10px]">{item.phone}</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant={item.status === 'success' ? 'default' : 'destructive'} className={item.status === 'success' ? "bg-emerald-500" : ""}>
-                            {item.status === 'success' ? 'Enviado' : 'Erro'}
-                          </Badge>
-                          {item.error_message && <p className="text-[9px] text-red-500 mt-1 max-w-[200px] truncate">{item.error_message}</p>}
-                        </div>
+                    {executionSummary.errors.map((item: any, idx: number) => (
+                      <div key={idx} className="bg-red-50 border border-red-100 p-3 rounded-lg text-xs text-red-800">
+                        <span className="font-bold">Grupo {item.group}:</span> {item.error}
                       </div>
                     ))}
                   </div>

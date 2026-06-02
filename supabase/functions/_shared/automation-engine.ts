@@ -344,47 +344,47 @@ export async function processAutomationDispatches(
   { tenantId, appointmentId, forceMode }: { tenantId?: string; appointmentId?: string; forceMode?: boolean }
 ) {
   const runId = crypto.randomUUID();
+  const startTime = new Date().toISOString();
   console.log(`[AutomationEngine] Starting dispatch process ${runId}. Tenant: ${tenantId || 'All'}, Appointment: ${appointmentId || 'All'}, Force: ${forceMode}`);
   
-  await supabase.from("automation_cron_runs").insert({
-    id: runId,
-    status: 'running',
-    tenant_id: tenantId,
-    appointment_id: appointmentId,
-    started_at: new Date().toISOString()
-  });
-
+  // Track everything for debug
+  const all_details: any[] = [];
   const results = {
     success: true,
     processed_count: 0,
     skipped_count: 0,
     error_count: 0,
+    found_count: 0,
+    eligible_count: 0,
     messages_sent: [] as any[],
     errors: [] as any[],
-    details: [] as string[]
+    details: [] as string[],
+    ignoredRecords: [] as any[]
   };
 
   try {
-    // 1. Build Query
+    // 1. Initial Insert
+    await supabase.from("automation_cron_runs").insert({
+      id: runId,
+      status: 'running',
+      tenant_id: tenantId,
+      appointment_id: appointmentId,
+      started_at: startTime
+    });
+
+    // 2. Build Query
+    // We fetch ALL appointments without confirmation to be able to debug why they are not being processed
     let query = supabase
       .from("appointments")
       .select("*, customers(*), barbers(*), services(*), profiles:tenant_id(business_name)")
       .is("confirmation_sent_at", null);
 
-    // Filter by status as requested
-    query = query.in("status", ['scheduled', 'pending', 'awaiting_payment', 'confirmed']);
+    // Filter by valid statuses for confirmation
+    const validStatuses = ['scheduled', 'pending', 'awaiting_payment', 'confirmed'];
+    query = query.in("status", validStatuses);
 
     if (tenantId) query = query.eq("tenant_id", tenantId);
-    if (appointmentId) {
-      query = query.eq("id", appointmentId);
-    } else if (!forceMode) {
-      // For cron, only last 24h to avoid picking ancient leftovers unless forced
-      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      query = query.gte("created_at", oneDayAgo);
-      results.details.push(`Filtering by created_at >= ${oneDayAgo}`);
-    } else {
-      results.details.push("Force mode enabled: Ignoring created_at window");
-    }
+    if (appointmentId) query = query.eq("id", appointmentId);
     
     const { data: allAppointments, error: appError } = await query;
 
@@ -393,31 +393,96 @@ export async function processAutomationDispatches(
       throw appError;
     }
 
+    results.found_count = allAppointments?.length || 0;
+    results.details.push(`Found ${results.found_count} appointments with status ${validStatuses.join(',')} and no confirmation sent.`);
+
     if (!allAppointments || allAppointments.length === 0) {
-      const msg = "No pending appointments found for confirmation.";
-      console.log(`[AutomationEngine] ${msg}`);
+      const msg = "Nenhum agendamento pendente encontrado para processamento.";
       results.details.push(msg);
       await supabase.from("automation_cron_runs").update({ 
         status: 'success', 
         finished_at: new Date().toISOString(),
-        details: { logs: results.details }
+        found_count: 0,
+        eligible_count: 0,
+        details: { logs: results.details, summary: "No appointments found" }
       }).eq('id', runId);
       return { ...results, message: msg };
     }
 
-    results.details.push(`Found ${allAppointments.length} candidate appointments.`);
+    // 3. Determine Eligibility and Log reasons
+    const eligibleAppointments: any[] = [];
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    // 2. Grouping by appointment_group_id or (tenant+phone)
-    const groups: Record<string, any[]> = {};
     for (const appt of allAppointments) {
+      let eligible = true;
+      let reason = "Elegível";
+      const customer = appt.customers;
+      
+      // Check customer & phone
+      if (!customer) {
+        eligible = false;
+        reason = "Cliente não encontrado";
+      } else if (!customer.phone) {
+        eligible = false;
+        reason = "Cliente sem telefone cadastrado";
+      }
+
+      // Check time window (unless forceMode)
+      if (eligible && !forceMode && !appointmentId) {
+        const createdAt = new Date(appt.created_at);
+        if (createdAt < oneDayAgo) {
+          eligible = false;
+          reason = `Agendamento antigo (${format(createdAt, 'dd/MM HH:mm')}). Use modo forçado para processar.`;
+        }
+      }
+
+      const debugInfo = {
+        appointment_id: appt.id,
+        status: appt.status,
+        customer_id: appt.customer_id,
+        phone: customer?.phone || "N/A",
+        confirmation_sent_at: appt.confirmation_sent_at,
+        created_at: appt.created_at,
+        eligible,
+        reason
+      };
+
+      all_details.push(debugInfo);
+
+      if (eligible) {
+        eligibleAppointments.push(appt);
+      } else {
+        results.ignoredRecords.push(debugInfo);
+        results.skipped_count++;
+      }
+    }
+
+    results.eligible_count = eligibleAppointments.length;
+    results.details.push(`${results.eligible_count} agendamentos são elegíveis para envio.`);
+
+    if (eligibleAppointments.length === 0) {
+      const msg = "Nenhum agendamento elegível após filtros.";
+      await supabase.from("automation_cron_runs").update({ 
+        status: 'success', 
+        finished_at: new Date().toISOString(),
+        found_count: results.found_count,
+        eligible_count: 0,
+        skipped_count: results.skipped_count,
+        processed_appointments: all_details,
+        details: { logs: results.details, summary: msg, ignored: results.ignoredRecords }
+      }).eq('id', runId);
+      return { ...results, message: msg };
+    }
+
+    // 4. Grouping
+    const groups: Record<string, any[]> = {};
+    for (const appt of eligibleAppointments) {
       const key = appt.appointment_group_id || `${appt.tenant_id}_${appt.customers?.phone}`;
       if (!groups[key]) groups[key] = [];
       groups[key].push(appt);
     }
 
-    results.details.push(`Grouped into ${Object.keys(groups).length} sets.`);
-
-    // 3. Process each group
+    // 5. Process Groups
     for (const [groupKey, apptGroup] of Object.entries(groups)) {
       try {
         const firstAppt = apptGroup[0];
@@ -425,23 +490,8 @@ export async function processAutomationDispatches(
         const customer = firstAppt.customers;
         const profile = firstAppt.profiles;
         const group_id = firstAppt.appointment_group_id;
-        
-        if (!customer?.phone) {
-          results.skipped_count++;
-          const reason = "Skipped - No customer phone";
-          results.details.push(`Group ${groupKey}: ${reason}`);
-          await supabase.from("automation_logs").insert({
-            tenant_id: tenant_id,
-            phone: "unknown",
-            status: 'skipped',
-            error_message: reason,
-            webhook_type: AUTOMATION_TYPES.CONFIRMATION,
-            appointment_group_id: group_id
-          });
-          continue;
-        }
 
-        // Get automation settings for this tenant
+        // Check if automation is enabled for this tenant
         const { data: auto } = await supabase
           .from("automations")
           .select("*")
@@ -451,17 +501,13 @@ export async function processAutomationDispatches(
           .maybeSingle();
 
         if (!auto) {
-          results.skipped_count++;
-          const reason = `Skipped - Automation disabled or not found for tenant ${tenant_id}`;
-          results.details.push(`Group ${groupKey}: ${reason}`);
-          await supabase.from("automation_logs").insert({
-            tenant_id: tenant_id,
-            phone: normalizePhone(customer.phone),
-            status: 'skipped',
-            error_message: reason,
-            webhook_type: AUTOMATION_TYPES.CONFIRMATION,
-            appointment_group_id: group_id
+          const reason = "Automação de confirmação desativada para esta barbearia";
+          results.details.push(`Grupo ${groupKey}: ${reason}`);
+          apptGroup.forEach(a => {
+            const detail = all_details.find(d => d.appointment_id === a.id);
+            if (detail) { detail.eligible = false; detail.reason = reason; }
           });
+          results.skipped_count += apptGroup.length;
           continue;
         }
 
@@ -472,7 +518,7 @@ export async function processAutomationDispatches(
           const appt = firstAppt;
           const templateData = {
             customer_name: customer.name,
-            barbershop_name: profile?.business_name,
+            barbershop_name: profile?.business_name || "Nossa Barbearia",
             service_name: appt.services?.name,
             professional_name: appt.barbers?.name,
             appointment_date: formatBrazilDate(appt.start_time),
@@ -481,7 +527,6 @@ export async function processAutomationDispatches(
           };
           
           const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nSeu agendamento na {{barbershop_name}} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {{service_name}}\n💈 Profissional: {{professional_name}}\n📅 Data: {{appointment_date}}\n⏰ Horário: {{appointment_time}}\n💰 Valor: {{service_price}}\n\nO que deseja fazer?`;
-          
           message = processAutomationTemplate(rawTemplate, templateData);
         } else {
           let appointmentsList = "";
@@ -491,42 +536,20 @@ export async function processAutomationDispatches(
 
           const templateData = {
             customer_name: customer.name,
-            barbershop_name: profile?.business_name,
+            barbershop_name: profile?.business_name || "Nossa Barbearia",
             appointments_list: appointmentsList.trim()
           };
 
-          const rawTemplate = `Olá {{customer_name}} 👋\n\nVocê possui {{count}} agendamentos na {{barbershop_name}}.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}\n\nO que deseja fazer?`
-            .replace("{{count}}", String(apptGroup.length));
-
-          message = processAutomationTemplate(rawTemplate, templateData);
+          const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nVocê possui {{count}} agendamentos na {{barbershop_name}}.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}\n\nO que deseja fazer?`;
+          message = processAutomationTemplate(rawTemplate.replace("{{count}}", String(apptGroup.length)), templateData);
         }
 
-        // Validate placeholders
-        if (containsPlaceholders(message)) {
-          const errMsg = `Message contains unreplaced placeholders: ${message}`;
-          console.error(`[AutomationEngine] ${errMsg}`);
-          await supabase.from("automation_logs").insert({
-            tenant_id: tenant_id,
-            barber_id: tenant_id,
-            phone: normalizePhone(customer.phone),
-            webhook_type: auto.type,
-            direction: 'outgoing',
-            status: 'error',
-            error_message: errMsg,
-            message_sent: message,
-            appointment_group_id: group_id,
-            appointment_id: !isMultiple ? firstAppt.id : null
-          });
-          results.error_count++;
-          results.errors.push({ group: groupKey, error: 'Placeholders remaining' });
-          results.details.push(`Group ${groupKey}: Error - Placeholders remaining`);
-          continue;
-        }
-
+        // Send via Z-API
         const connection = await getWhatsAppSettings(supabase, tenant_id);
         if (!connection) {
-          results.skipped_count++;
-          results.details.push(`Group ${groupKey}: Skipped - No Z-API connection for tenant ${tenant_id}`);
+          const reason = "Sem conexão Z-API ativa";
+          results.details.push(`Grupo ${groupKey}: ${reason}`);
+          results.error_count++;
           continue;
         }
 
@@ -536,10 +559,10 @@ export async function processAutomationDispatches(
           { id: "main_cancel", label: "Cancelar" }
         ];
 
-        console.log(`[AutomationEngine] Sending message to ${customer.phone}`);
         const sendResult = await sendMessage(connection, customer.phone, message, { buttons });
         
-        const logData = {
+        // Log to automation_logs
+        await supabase.from("automation_logs").insert({
           tenant_id: tenant_id,
           barber_id: tenant_id,
           phone: normalizePhone(customer.phone),
@@ -551,13 +574,11 @@ export async function processAutomationDispatches(
           appointment_id: !isMultiple ? firstAppt.id : null,
           appointment_group_id: group_id,
           zapi_response: sendResult.response
-        };
-
-        await supabase.from("automation_logs").insert(logData);
+        });
 
         if (sendResult.success) {
-          results.processed_count++;
-          results.details.push(`Group ${groupKey}: Successfully sent confirmation`);
+          results.processed_count += apptGroup.length;
+          results.messages_sent.push({ phone: customer.phone, status: 'success' });
           
           // Create conversation state
           await supabase.from("whatsapp_conversations").insert({
@@ -575,50 +596,51 @@ export async function processAutomationDispatches(
             }
           });
 
-          // Mark as sent
-          const nowIso = new Date().toISOString();
+          // Mark appointments as confirmed SENT
           await supabase.from("appointments")
             .update({ 
               confirmation_sent: true, 
-              confirmation_sent_at: nowIso 
+              confirmation_sent_at: new Date().toISOString() 
             })
             .in("id", apptGroup.map(a => a.id));
         } else {
-          results.error_count++;
+          results.error_count += apptGroup.length;
           results.errors.push({ group: groupKey, error: sendResult.error });
-          results.details.push(`Group ${groupKey}: Failed to send - ${sendResult.error}`);
         }
 
       } catch (err: any) {
-        console.error(`[AutomationEngine] Error processing group ${groupKey}:`, err);
+        console.error(`[AutomationEngine] Group ${groupKey} Error:`, err);
         results.error_count++;
         results.errors.push({ group: groupKey, error: err.message });
-        results.details.push(`Group ${groupKey}: Exception - ${err.message}`);
       }
     }
 
-    // Update cron run record
+    // 6. Final Update to Cron Run
     await supabase.from("automation_cron_runs").update({
       status: results.error_count === 0 ? 'success' : 'error',
       finished_at: new Date().toISOString(),
       processed_count: results.processed_count,
       skipped_count: results.skipped_count,
       error_count: results.error_count,
+      found_count: results.found_count,
+      eligible_count: results.eligible_count,
+      processed_appointments: all_details,
       errors: results.errors,
-      details: { logs: results.details }
+      details: { logs: results.details, ignored: results.ignoredRecords }
     }).eq('id', runId);
 
     return results;
 
   } catch (error: any) {
-    console.error("[AutomationEngine] Fatal error in dispatches:", error);
+    console.error("[AutomationEngine] Fatal Error:", error);
     await supabase.from("automation_cron_runs").update({ 
       status: 'error', 
       finished_at: new Date().toISOString(),
       error: error.message,
-      errors: [{ fatal: error.message }],
+      processed_appointments: all_details,
       details: { logs: results.details, fatal: error.stack }
     }).eq('id', runId);
     return { ...results, success: false, error: error.message };
   }
 }
+
