@@ -69,11 +69,14 @@ export async function handleAutomationWhatsappResponse(
 
   // Normalize option
   const normalizedOption = String(option_id).trim().toLowerCase();
+  const normalizedOptionNoAccents = normalizedOption.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
 
   // State Machine Logic
   switch (current_state) {
     case AUTOMATION_STATES.AWAITING_MAIN_ACTION:
-      if (normalizedOption === 'main_confirm' || normalizedOption === '1' || normalizedOption.includes('confirmar')) {
+      if (normalizedOption === 'main_confirm' || normalizedOption === '1' || normalizedOptionNoAccents.includes('confirmar') || normalizedOptionNoAccents.includes('confirm')) {
+
         if (!isMultiple) {
           // Confirm direct
           await supabase.from("appointments").update({ status: 'confirmed' }).in("id", appointmentIds);
@@ -92,7 +95,7 @@ export async function handleAutomationWhatsappResponse(
           actionExecuted = "ask_confirmation_scope";
           selectedOptionNormalized = "main_confirm";
         }
-      } else if (normalizedOption === 'main_reschedule' || normalizedOption === '2' || normalizedOption.includes('reagendar')) {
+      } else if (normalizedOption === 'main_reschedule' || normalizedOption === '2' || normalizedOptionNoAccents.includes('reagendar') || normalizedOptionNoAccents.includes('reschedule')) {
         if (!isMultiple) {
           messageToSend = "Para reagendar seu atendimento, por favor entre em contato conosco ou acesse nosso portal de agendamentos.";
           nextState = AUTOMATION_STATES.COMPLETED;
@@ -108,7 +111,7 @@ export async function handleAutomationWhatsappResponse(
           actionExecuted = "ask_reschedule_scope";
           selectedOptionNormalized = "main_reschedule";
         }
-      } else if (normalizedOption === 'main_cancel' || normalizedOption === '3' || normalizedOption.includes('cancelar')) {
+      } else if (normalizedOption === 'main_cancel' || normalizedOption === '3' || normalizedOptionNoAccents.includes('cancelar') || normalizedOptionNoAccents.includes('cancel')) {
         if (!isMultiple) {
           messageToSend = "Você realmente deseja cancelar seu agendamento?";
           buttons = [

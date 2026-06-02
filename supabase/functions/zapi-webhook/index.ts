@@ -63,25 +63,12 @@ function extractSelectedOption(body: any): string {
 
   for (const val of textPaths) {
     if (val && typeof val === 'string') {
-      let text = val.trim().toLowerCase();
-      
-      // Map common text responses to internal IDs
-      // Main Actions
-      if (text === "1" || text === "confirmar" || text === "confirm" || text.includes("confirmar agendamento")) return "main_confirm";
-      if (text === "2" || text === "reagendar" || text === "reschedule") return "main_reschedule";
-      if (text === "3" || text === "cancelar" || text === "cancel") return "main_cancel";
-      
-      // Normalized version for other checks
-      const normalized = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      if (normalized.includes("confirmar")) return "main_confirm";
-      if (normalized.includes("reagendar")) return "main_reschedule";
-      if (normalized.includes("cancelar")) return "main_cancel";
-      
-      return text;
+      return val.trim();
     }
   }
   return "";
 }
+
 
 
 async function processZapiWebhook(supabase: any, body: any, barberId: string) {
