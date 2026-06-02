@@ -16,9 +16,13 @@ function normalizePhone(phone: string): string {
 }
 
 serve(async (req) => {
+  console.log('EDGE FUNCTION STARTED: whatsapp-cloud');
+  console.log('REQUEST METHOD:', req.method);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
