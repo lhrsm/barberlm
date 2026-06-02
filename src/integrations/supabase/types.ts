@@ -92,6 +92,7 @@ export type Database = {
           cashback_earned: number | null
           cashback_used: number | null
           confirmation_sent: boolean | null
+          confirmation_sent_at: string | null
           coupon_code: string | null
           coupon_id: string | null
           created_at: string
@@ -111,6 +112,7 @@ export type Database = {
           refund_status: string | null
           refund_type: string | null
           reminder_sent: boolean | null
+          reminder_sent_at: string | null
           service_id: string | null
           source: string | null
           start_time: string
@@ -131,6 +133,7 @@ export type Database = {
           cashback_earned?: number | null
           cashback_used?: number | null
           confirmation_sent?: boolean | null
+          confirmation_sent_at?: string | null
           coupon_code?: string | null
           coupon_id?: string | null
           created_at?: string
@@ -150,6 +153,7 @@ export type Database = {
           refund_status?: string | null
           refund_type?: string | null
           reminder_sent?: boolean | null
+          reminder_sent_at?: string | null
           service_id?: string | null
           source?: string | null
           start_time: string
@@ -170,6 +174,7 @@ export type Database = {
           cashback_earned?: number | null
           cashback_used?: number | null
           confirmation_sent?: boolean | null
+          confirmation_sent_at?: string | null
           coupon_code?: string | null
           coupon_id?: string | null
           created_at?: string
@@ -189,6 +194,7 @@ export type Database = {
           refund_status?: string | null
           refund_type?: string | null
           reminder_sent?: boolean | null
+          reminder_sent_at?: string | null
           service_id?: string | null
           source?: string | null
           start_time?: string
@@ -351,6 +357,57 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_cron_runs: {
+        Row: {
+          appointment_id: string | null
+          error_count: number | null
+          errors: Json | null
+          finished_at: string | null
+          id: string
+          processed_count: number | null
+          started_at: string
+          status: string
+          tenant_id: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          error_count?: number | null
+          errors?: Json | null
+          finished_at?: string | null
+          id?: string
+          processed_count?: number | null
+          started_at?: string
+          status: string
+          tenant_id?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          error_count?: number | null
+          errors?: Json | null
+          finished_at?: string | null
+          id?: string
+          processed_count?: number | null
+          started_at?: string
+          status?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_cron_runs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_cron_runs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
