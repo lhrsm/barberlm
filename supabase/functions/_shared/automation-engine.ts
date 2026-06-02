@@ -787,12 +787,21 @@ export async function processAutomationDispatches(
           results.messages_sent.push({ phone: customer.phone, status: 'success' });
           
           console.log('STOPPING FLOW AT awaiting_main_action');
+          
+          const normalizedPhoneValue = normalizePhone(customer.phone);
+          
+          // Desativar conversas anteriores para o mesmo telefone
+          await supabase.from("whatsapp_conversations")
+            .update({ active: false })
+            .eq("phone", normalizedPhoneValue)
+            .eq("active", true);
+
           // Create conversation state
-          await supabase.from("whatsapp_conversations").insert({
+          const { data: newConv, error: convError } = await supabase.from("whatsapp_conversations").insert({
             tenant_id: tenant_id,
             barber_id: tenant_id,
             customer_id: customer.id,
-            phone: normalizePhone(customer.phone),
+            phone: normalizedPhoneValue,
             state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
             active: true,
             appointment_group_id: group_id,
@@ -801,7 +810,17 @@ export async function processAutomationDispatches(
               appointment_ids: apptGroup.map(a => a.id),
               multiple: isMultiple
             }
-          });
+          }).select().single();
+
+          if (newConv) {
+            console.log('CONVERSATION CREATED');
+            console.log('conversation_id:', newConv.id);
+            console.log('phone:', newConv.phone);
+            console.log('state:', newConv.state);
+            console.log('active:', newConv.active);
+          } else if (convError) {
+            console.error('Error creating conversation:', convError);
+          }
 
           // Mark appointments as confirmed SENT
           await supabase.from("appointments")
