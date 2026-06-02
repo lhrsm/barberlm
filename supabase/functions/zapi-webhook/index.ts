@@ -201,8 +201,9 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
         
         await supabase.from("automation_logs").insert({
           barber_id: conversation.barber_id,
+          tenant_id: conversation.barber_id,
           phone: normalizedPhone,
-          webhook_type: eventType,
+          webhook_type: 'webhook_response',
           selected_option_raw: selectedOptionRaw,
           selected_option_normalized: result.selected_option_normalized || selectedOptionRaw,
           conversation_id: conversation.id,
@@ -212,10 +213,16 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
           message_sent: result.message_to_send,
           zapi_response: sendResult.response,
           status: sendResult.success ? 'success' : 'error',
+          error_message: sendResult.error,
           direction: 'outgoing',
           appointment_group_id: conversation.appointment_group_id,
-          appointment_id: conversation.appointment_id
+          appointment_id: conversation.appointment_id,
+          metadata: {
+            appointments_count: result.appointments_count || 0,
+            is_multiple: result.is_multiple || false
+          }
         });
+
       }
     }
 

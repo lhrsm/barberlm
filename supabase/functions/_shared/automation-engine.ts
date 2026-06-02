@@ -370,9 +370,12 @@ export async function handleAutomationWhatsappResponse(
     next_state: nextState,
     message_to_send: messageToSend,
     selected_option_normalized: selectedOptionNormalized,
-    buttons
+    buttons,
+    appointments_count: appointments?.length || 0,
+    is_multiple: isMultiple
   };
 }
+
 
 
 export async function processAutomationDispatches(
