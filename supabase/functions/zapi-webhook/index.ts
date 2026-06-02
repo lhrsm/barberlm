@@ -233,8 +233,10 @@ serve(async (req) => {
 
   const url = new URL(req.url);
   const pathParts = url.pathname.split("/");
-  // The barber_id is expected to be the last part of the path
-  const barberId = pathParts[pathParts.length - 1];
+  // The barber_id is expected to be the last part of the path or passed via header
+  const barberIdFromPath = pathParts[pathParts.length - 1];
+  const barberIdFromHeader = req.headers.get('x-barber-id');
+  const barberId = barberIdFromHeader || barberIdFromPath;
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
