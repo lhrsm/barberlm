@@ -729,7 +729,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                     <ShieldCheck size={16} /> URL do Webhook (Copiar para Z-API)
                   </Label>
                   <p className="text-xs text-slate-400">
-                    Esta URL deve estar configurada no painel da Z-API em <strong>Webhooks -> Ao receber</strong>.
+                    Esta URL deve estar configurada no painel da Z-API em <strong>Webhooks → Ao receber</strong>.
                   </p>
                   <div className="flex gap-2">
                     <Input 
