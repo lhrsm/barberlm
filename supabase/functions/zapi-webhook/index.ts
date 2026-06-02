@@ -34,39 +34,33 @@ function extractPhoneFromZapiPayload(body: any): string {
 }
 
 function extractSelectedOption(body: any): string {
-  // Priority 1: Direct ID from button or list responses
-  const idPaths = [
-    body.buttonReply?.id,
-    body.buttonsResponseMessage?.selectedButtonId,
-    body.listResponseMessage?.singleSelectReply?.selectedRowId,
-    body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
-    body.selectedRowId,
-    body.selectedId
-  ];
-
-  for (const id of idPaths) {
-    if (id && typeof id === 'string') return id.trim();
+  // 1. Check if it is a list response (selectedRowId)
+  if (body.listResponseMessage?.singleSelectReply?.selectedRowId) {
+    return body.listResponseMessage.singleSelectReply.selectedRowId;
   }
 
-  // Priority 2: Text/Title responses
-  const textPaths = [
-    body.buttonReply?.title,
-    body.buttonsResponseMessage?.selectedDisplayText,
-    body.listResponseMessage?.title,
-    body.message?.listResponseMessage?.title,
-    body.text,
-    body.body,
-    body.message?.text,
-    body.message?.body,
-    body.message?.content
-  ];
-
-  for (const val of textPaths) {
-    if (val && typeof val === 'string') {
-      return val.trim();
-    }
+  // 2. Check if it is a button response (selectedButtonId)
+  if (body.buttonsResponseMessage?.selectedButtonId) {
+    return body.buttonsResponseMessage.selectedButtonId;
   }
-  return "";
+  
+  // 3. Check for direct button reply from Z-API
+  if (body.buttonReply?.id) {
+    return body.buttonReply.id;
+  }
+
+  // 4. Try to get text/title if no ID
+  const text = (
+    body.text || 
+    body.body || 
+    body.buttonReply?.title || 
+    body.buttonsResponseMessage?.selectedDisplayText ||
+    body.listResponseMessage?.title ||
+    body.message?.text ||
+    ""
+  ).trim();
+
+  return text;
 }
 
 
@@ -179,13 +173,18 @@ async function processZapiWebhook(supabase: any, body: any, barberId: string) {
 
   // 4. Process state machine
   try {
+    console.log('WEBHOOK RECEIVED');
+    console.log('PHONE', normalizedPhone);
+    console.log('SELECTED OPTION', selectedOptionRaw);
+    console.log('CONVERSATION', JSON.stringify(conversation));
+    console.log('STATE BEFORE', conversation?.state);
+
     const result = await handleAutomationWhatsappResponse(supabase, {
       tenant_id: conversation.barber_id,
       phone: normalizedPhone,
       customer_id: conversation.customer_id,
       current_state: conversation.state,
       option_id: selectedOptionRaw,
-
       payload: body,
       conversation_id: conversation.id
     });
