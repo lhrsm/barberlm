@@ -168,6 +168,13 @@ function AutomationsComponent() {
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [testPhone, setTestPhone] = useState("");
   const [testDataType, setTestDataType] = useState("last"); // "last" or "mock"
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredWorkflows = workflows.filter(w => 
+    w.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    w.trigger_event.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   const fetchData = async () => {
     if (!tenantId) return;
