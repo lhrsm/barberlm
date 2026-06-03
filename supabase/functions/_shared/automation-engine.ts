@@ -425,16 +425,16 @@ Estamos te esperando na Barbearia LM.
 
     case AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION:
       const remainingIds = conversation.context?.remaining_appointment_ids || [];
-      if (normalizedOption === '1' || normalizedOption.includes('confirmar')) {
+      if (mappedOption === 'confirm_all' || normalizedInput === '1' || normalizedInput.includes('confirmar')) {
         await supabase.from("appointments").update({ status: 'confirmed' }).in("id", remainingIds);
         messageToSend = "✅ Todos os agendamentos restantes foram confirmados.";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "confirm_remaining";
-      } else if (normalizedOption === '2' || normalizedOption.includes('reagendar')) {
+      } else if (mappedOption === 'main_reschedule' || normalizedInput === '2' || normalizedInput.includes('reagendar')) {
         messageToSend = "Para reagendar os demais atendimentos, por favor entre em contato conosco.";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "reschedule_remaining";
-      } else if (normalizedOption === '3' || normalizedOption.includes('cancelar')) {
+      } else if (mappedOption === 'main_cancel' || normalizedInput === '3' || normalizedInput.includes('cancelar')) {
         await supabase.from("appointments").update({ status: 'cancelled' }).in("id", remainingIds);
         messageToSend = "❌ Agendamentos restantes foram cancelados.";
         nextState = AUTOMATION_STATES.COMPLETED;
@@ -442,9 +442,9 @@ Estamos te esperando na Barbearia LM.
       } else {
         messageToSend = "Opção inválida. O que deseja fazer com os demais agendamentos?";
         buttons = [
-          { id: "1", label: "Confirmar demais" },
-          { id: "2", label: "Reagendar demais" },
-          { id: "3", label: "Cancelar demais" }
+          { id: "confirm_all", label: "Confirmar demais" },
+          { id: "main_reschedule", label: "Reagendar demais" },
+          { id: "main_cancel", label: "Cancelar demais" }
         ];
       }
       break;
