@@ -198,6 +198,17 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
     ]
   });
 
+  // 5. Update session with provider message ID
+  if (result.success && result.response?.messageId) {
+    await supabase
+      .from("conversation_sessions")
+      .update({ 
+        provider_message_id: result.response.messageId,
+        last_message_id: result.response.messageId
+      })
+      .eq("id", session.id);
+  }
+
   // 5. Log
   await supabase.from("automation_logs").insert({
     tenant_id: tenantId,
