@@ -583,7 +583,11 @@ export async function processAutomationDispatches(
     query = query.in("status", validStatuses);
 
     if (tenantId) query = query.eq("tenant_id", tenantId);
-    if (appointmentId) query = query.eq("id", appointmentId);
+    if (appointmentGroupId) {
+      query = query.eq("appointment_group_id", appointmentGroupId);
+    } else if (appointmentId) {
+      query = query.eq("id", appointmentId);
+    }
     
     const { data: allAppointments, error: appError } = await query;
 
