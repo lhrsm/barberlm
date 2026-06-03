@@ -93,7 +93,10 @@ serve(async (req) => {
     const selectedOption = extractSelectedOption(body);
     const referenceMessageId = body.referenceMessageId;
 
-    console.log(`[Z-API Webhook] Incoming message from ${normalizedPhone}. Option: ${selectedOption}`);
+    console.log(`[Z-API Webhook] Incoming message from ${normalizedPhone}. Option: ${selectedOption}. referenceMessageId: ${referenceMessageId}`);
+    console.log(`[Z-API Webhook] body.buttonsResponseMessage.buttonId: ${body?.buttonsResponseMessage?.buttonId}`);
+    console.log(`[Z-API Webhook] body.buttonsResponseMessage.message: ${body?.buttonsResponseMessage?.message}`);
+
 
     // Find active session
     let session = null;
@@ -203,9 +206,19 @@ serve(async (req) => {
       status: "success",
       message: `Opção ${selectedOption} processada. Novo estado: ${engineResult?.next_state}`,
       error_details: JSON.stringify({ 
+        raw_payload: body,
+        buttonId: body?.buttonsResponseMessage?.buttonId,
+        buttonMessage: body?.buttonsResponseMessage?.message,
+        referenceMessageId: body?.referenceMessageId,
+        phone_raw: phone,
+        phone_normalized: normalizedPhone,
         selectedOption: selectedOption, 
+        selectedOptionNormalized: engineResult?.selected_option_normalized,
+        session_found: !!session,
+        session_id: session.id,
+        provider_message_id: session.provider_message_id,
         current_step_before: stateBefore, 
-        appointments_count: engineResult?.appointments_count || 0,
+        appointments_count: engineResult?.appointments_count || (appointments?.length || 0),
         appointment_group_id: session.appointment_group_id,
         action: engineResult?.action_executed,
         current_step_after: engineResult?.next_state,
@@ -213,6 +226,7 @@ serve(async (req) => {
         loop_blocked: true
       })
     });
+
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
