@@ -1403,10 +1403,46 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                       "text-[10px] font-bold p-2 bg-black/40 rounded border border-white/5",
                       lastWebhookCall.status >= 200 && lastWebhookCall.status < 300 ? "text-emerald-400" : "text-red-400"
                     )}>
-                      {lastWebhookCall.status}
+                      {lastWebhookCall.status || "N/A"}
                     </p>
                   </div>
                 </div>
+
+                {lastWebhookCall.result?.results && (
+                  <div className="space-y-2">
+                    <p className="text-[9px] text-slate-500 uppercase font-bold">Detalhamento por Webhook</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {lastWebhookCall.result.results.map((r: any, idx: number) => (
+                        <div key={idx} className="bg-black/20 p-2 rounded border border-white/5 flex justify-between items-center">
+                          <span className="text-[9px] font-mono truncate mr-2">{r.type.replace('update-webhook-', '')}</span>
+                          <Badge className={cn("text-[8px] h-4 py-0", r.success ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400")}>
+                            {r.success ? "OK" : "ERRO"}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <p className="text-slate-500 uppercase text-[9px] font-bold">Resposta Completa Z-API</p>
+                  <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-48">
+                    {JSON.stringify(lastWebhookCall.result, null, 2)}
+                  </pre>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[8px] opacity-60">
+                   <div>
+                      <p className="uppercase font-bold">Instância</p>
+                      <p>{instance?.instance_id}</p>
+                   </div>
+                   <div>
+                      <p className="uppercase font-bold">Client Token</p>
+                      <p>{maskTokenDisplay(instance?.client_token)}</p>
+                   </div>
+                </div>
+              </div>
+            )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
