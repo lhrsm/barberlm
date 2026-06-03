@@ -123,6 +123,8 @@ async function handleMainConfirmDirectly(supabase: any, body: any, tenantId: str
       .select("*, services(name)")
       .eq("id", session.appointment_id);
     appointments = data ? [data] : [];
+  } else if (session.context?.appointments) {
+    appointments = session.context.appointments;
   }
 
   if (appointments.length > 1) {
