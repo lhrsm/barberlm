@@ -1051,7 +1051,9 @@ export type Database = {
           customer_id: string | null
           expires_at: string | null
           id: string
+          last_message_id: string | null
           phone: string
+          provider_message_id: string | null
           status: string
           tenant_id: string | null
           updated_at: string
@@ -1066,7 +1068,9 @@ export type Database = {
           customer_id?: string | null
           expires_at?: string | null
           id?: string
+          last_message_id?: string | null
           phone: string
+          provider_message_id?: string | null
           status?: string
           tenant_id?: string | null
           updated_at?: string
@@ -1081,7 +1085,9 @@ export type Database = {
           customer_id?: string | null
           expires_at?: string | null
           id?: string
+          last_message_id?: string | null
           phone?: string
+          provider_message_id?: string | null
           status?: string
           tenant_id?: string | null
           updated_at?: string
