@@ -561,8 +561,8 @@ function AutomationsComponent() {
                   {sessions.map((s) => (
                     <div key={s.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-4">
-                        <div className="bg-purple-100 p-2 rounded-full">
-                          <MessageSquare className="w-5 h-5 text-purple-600" />
+                        <div className="bg-amber-500/10 p-2 rounded-full">
+                          <MessageSquare className="w-5 h-5 text-amber-500" />
                         </div>
                         <div>
                           <p className="font-medium">{s.customers?.name || s.phone}</p>
