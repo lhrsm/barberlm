@@ -52,6 +52,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { TenantCharts } from "@/components/dashboard/TenantCharts";
+import { useAppointmentStatus } from "@/hooks/use-appointment-status";
 
 
 export const Route = createFileRoute("/dashboard")({
@@ -67,6 +68,7 @@ function DashboardComponent() {
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status || '');
   const hasActiveSubscription = isSubscribed || subscription?.status === 'active';
   const loading = authLoading || tenantLoading;
+  const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -324,7 +326,6 @@ function DashboardComponent() {
     let remainingToPay = Number(appointment.final_amount || totalPrice);
 
     // Determine how much credit and cashback will be used
-    // If it's already paid (e.g. via PIX online), we don't apply automatic deductions here
     if (appointment.payment_status !== 'paid' && usedCredits === 0 && usedCashback === 0 && remainingToPay === totalPrice) {
       if (availableCashback > 0) {
         usedCashback = Math.min(availableCashback, remainingToPay);
@@ -350,25 +351,24 @@ function DashboardComponent() {
     // Calculate new cashback earned (R$ 10 for every R$ 100 paid in new money)
     const cashbackEarned = Math.floor(remainingToPay / 100) * 10;
 
-    // 2. Update appointment status and financial details using RPC
-    const { error } = await supabase.rpc('update_appointment_status', {
-      p_appointment_id: appointment.id,
-      p_new_status: 'completed',
-      p_changed_by_type: 'admin',
-      p_changed_by_id: user?.id || '',
-      p_source: 'dashboard',
-      p_metadata: {
+    // 2. Update appointment status and financial details using CENTRALIZED hook
+    const result = await centralUpdateStatus(
+      appointment.id,
+      'completed',
+      {
         payment_status: 'paid',
         credit_used: usedCredits,
         cashback_used: usedCashback,
         cashback_earned: cashbackEarned,
         final_amount: remainingToPay,
         barbershop_amount: remainingToPay
-      }
-    });
+      },
+      'dashboard'
+    );
 
-    // Also update the row directly for standard fields not handled by metadata in update_appointment_status if needed
-    // Note: the RPC handles basic status and timestamps. Financial fields are better kept in metadata or separate updates.
+    if (!result.success) return;
+
+    // Update financial fields directly to ensure they are on the row
     await supabase.from("appointments").update({
       payment_status: 'paid',
       credit_used: usedCredits,
@@ -377,11 +377,6 @@ function DashboardComponent() {
       final_amount: remainingToPay,
       barbershop_amount: remainingToPay
     }).eq("id", appointment.id);
-
-    if (error) {
-      toast.error("Erro ao concluir agendamento");
-      return;
-    }
 
     // 3. Increment loyalty points and cashback balance
     if (appointment.customer_id) {
