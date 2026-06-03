@@ -396,15 +396,19 @@ function DashboardComponent() {
       .maybeSingle();
 
     if (!existingTrans) {
+      // For transactions, we only record the actual money received (remainingToPay)
+      // If remainingToPay is 0 (fully paid by credits/cashback), we can still record it but it won't affect cash inflow stats
+      
       const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
       const cashbackText = usedCashback > 0 ? ` (Abatimento Cashback: R$ ${usedCashback.toFixed(2)})` : "";
       const deductionText = `${creditText}${cashbackText}`;
 
-      
       if (!tenantId) {
         toast.error("Tenant não identificado");
         return;
       }
+
+      console.log("DEBUG: Creating transaction on completion", { amount: remainingToPay, appointmentId: appointment.id });
 
       const { error: transError } = await supabase
         .from("transactions")
