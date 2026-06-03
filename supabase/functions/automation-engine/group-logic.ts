@@ -118,7 +118,13 @@ export async function handleGroupAppointmentCreated(supabase: any, tenantId: str
     event_name: 'appointment.group_created',
     status: result.success ? "success" : "error",
     message: result.success ? "Mensagem agrupada enviada" : `Erro ao enviar: ${result.error}`,
-    error_details: JSON.stringify({ group_id: groupId, appointments_count: groupItems.length })
+    error_details: JSON.stringify({ 
+      group_id: groupId, 
+      group_size: groupItems.length,
+      message_type: 'grouped',
+      individual_send_blocked: true,
+      loop_blocked: true
+    })
   });
 
   return result;

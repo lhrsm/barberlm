@@ -40,7 +40,7 @@ export async function handleAutomationWhatsappResponse(
   console.log(`[AutomationEngine] Handling response for ${phone} in state ${current_state} with option ${option_id}`);
 
   const { data: conversation, error: convError } = await supabase
-    .from("whatsapp_conversations")
+    .from("conversation_sessions")
     .select("*")
     .eq("id", conversation_id)
     .maybeSingle();
@@ -123,12 +123,22 @@ export async function handleAutomationWhatsappResponse(
     normalizedInput === '3'
   ) {
     mappedOption = 'main_cancel';
+  } else if (normalizedInput === 'confirm_all' || normalizedInput === 'confirmar_todos') {
+    mappedOption = 'confirm_all';
+  } else if (normalizedInput === 'confirm_single' || normalizedInput === 'confirmar_um' || normalizedInput === 'choose_one') {
+    mappedOption = 'confirm_single';
+  } else if (normalizedInput.startsWith('confirm_appt_')) {
+    mappedOption = 'confirm_specific';
   }
 
-  // Handle case where Z-API returns the ID directly (like "main_confirm")
+  // Handle case where Z-API returns the ID directly
   if (rawInput === 'main_confirm') mappedOption = 'main_confirm';
   if (rawInput === 'main_reschedule') mappedOption = 'main_reschedule';
   if (rawInput === 'main_cancel') mappedOption = 'main_cancel';
+  if (rawInput === 'confirm_all') mappedOption = 'confirm_all';
+  if (rawInput === 'confirm_single') mappedOption = 'confirm_single';
+  if (rawInput.startsWith('confirm_appt_')) mappedOption = 'confirm_specific';
+
 
   console.log('[AutomationEngine] MAPPED OPTION:', mappedOption);
   console.log('CONVERSATION STATE:', current_state);
@@ -228,35 +238,41 @@ Estamos te esperando na Barbearia LM.
 
     case AUTOMATION_STATES.AWAITING_CONFIRMATION_SCOPE:
       if (
-        normalizedOption === 'confirm_all' || 
-        normalizedOption === '1' || 
-        normalizedOption.includes('confirmar todos')
+        mappedOption === 'confirm_all' || 
+        normalizedInput === '1' || 
+        normalizedInput.includes('confirmar todos')
       ) {
-        await supabase.from("appointments")
+        console.log('[AutomationEngine] Executing confirm_all for group:', groupId);
+        
+        // 1. Update ALL appointments in the group
+        const { data: updated, error: updateError } = await supabase.from("appointments")
           .update({ 
             status: 'confirmed',
             confirmed_at: new Date().toISOString() 
           })
           .in("id", appointmentIds);
+        
+        if (updateError) console.error('[AutomationEngine] Error confirming all:', updateError);
+
         messageToSend = "✅ Todos os seus agendamentos foram confirmados com sucesso!";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "confirm_all";
         selectedOptionNormalized = "confirm_all";
+
+        console.log('[AutomationEngine] confirm_all completed. Loop blocked by state=completed');
       } else if (
-        normalizedOption === 'confirm_single' || 
-        normalizedOption === '2' || 
-        normalizedOption === 'choose_one' ||
-        normalizedOption.includes('especifico')
+        mappedOption === 'confirm_single' || 
+        normalizedInput === '2' || 
+        normalizedInput.includes('especifico')
       ) {
         messageToSend = "Qual atendimento você deseja confirmar?";
         const options = appointments.map((a, i) => ({
-          id: `appointment:${a.id}`,
+          id: `confirm_appt_${a.id}`,
           title: `${formatBrazilTime(a.start_time)}`,
           description: `${a.services?.name}`
         }));
 
-        
-        await supabase.from("whatsapp_conversations")
+        await supabase.from("conversation_sessions")
           .update({ 
             context: { ...conversation.context, appt_mapping: appointmentIds }
           })
@@ -290,12 +306,14 @@ Estamos te esperando na Barbearia LM.
       const cancelMode = conversation.context?.cancel_mode === true;
       let selectedId = "";
 
-      if (normalizedOption.includes('appointment:')) {
-        selectedId = normalizedOption.split(':')[1];
+      if (rawInput.includes('confirm_appt_')) {
+        selectedId = rawInput.replace('confirm_appt_', '');
+      } else if (rawInput.includes('appointment:')) {
+        selectedId = rawInput.split(':')[1];
       } else {
         // Fallback for numbered text response
         const mapping = conversation.context?.appt_mapping || appointmentIds;
-        const index = parseInt(normalizedOption) - 1;
+        const index = parseInt(normalizedInput) - 1;
         if (!isNaN(index) && index >= 0 && index < mapping.length) {
           selectedId = mapping[index];
         }
@@ -311,14 +329,13 @@ Estamos te esperando na Barbearia LM.
           const actionText = cancelMode ? "cancelado" : "confirmado";
           messageToSend = `✅ Agendamento ${actionText}! O que deseja fazer com os demais agendamentos?`;
           buttons = [
-            { id: "1", label: "Confirmar demais" },
-            { id: "2", label: "Reagendar demais" },
-            { id: "3", label: "Cancelar demais" }
+            { id: "confirm_all", label: "Confirmar demais" },
+            { id: "main_reschedule", label: "Reagendar demais" },
+            { id: "main_cancel", label: "Cancelar demais" }
           ];
           nextState = AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION;
 
-          
-          await supabase.from("whatsapp_conversations")
+          await supabase.from("conversation_sessions")
             .update({ 
               context: { 
                 ...conversation.context, 
@@ -334,7 +351,7 @@ Estamos te esperando na Barbearia LM.
         }
         actionExecuted = `${cancelMode ? 'cancel' : 'confirm'}_specific`;
       } else {
-        messageToSend = "Opção inválida. Por favor, digite o número correspondente ao atendimento desejado.";
+        messageToSend = "Opção inválida. Por favor, escolha um dos agendamentos da lista.";
       }
       break;
 
@@ -376,7 +393,7 @@ Estamos te esperando na Barbearia LM.
         }));
 
         
-        await supabase.from("whatsapp_conversations")
+        await supabase.from("conversation_sessions")
           .update({ 
             context: { ...conversation.context, appt_mapping: appointmentIds, cancel_mode: true }
           })
@@ -408,16 +425,16 @@ Estamos te esperando na Barbearia LM.
 
     case AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION:
       const remainingIds = conversation.context?.remaining_appointment_ids || [];
-      if (normalizedOption === '1' || normalizedOption.includes('confirmar')) {
+      if (mappedOption === 'confirm_all' || normalizedInput === '1' || normalizedInput.includes('confirmar')) {
         await supabase.from("appointments").update({ status: 'confirmed' }).in("id", remainingIds);
         messageToSend = "✅ Todos os agendamentos restantes foram confirmados.";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "confirm_remaining";
-      } else if (normalizedOption === '2' || normalizedOption.includes('reagendar')) {
+      } else if (mappedOption === 'main_reschedule' || normalizedInput === '2' || normalizedInput.includes('reagendar')) {
         messageToSend = "Para reagendar os demais atendimentos, por favor entre em contato conosco.";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "reschedule_remaining";
-      } else if (normalizedOption === '3' || normalizedOption.includes('cancelar')) {
+      } else if (mappedOption === 'main_cancel' || normalizedInput === '3' || normalizedInput.includes('cancelar')) {
         await supabase.from("appointments").update({ status: 'cancelled' }).in("id", remainingIds);
         messageToSend = "❌ Agendamentos restantes foram cancelados.";
         nextState = AUTOMATION_STATES.COMPLETED;
@@ -425,9 +442,9 @@ Estamos te esperando na Barbearia LM.
       } else {
         messageToSend = "Opção inválida. O que deseja fazer com os demais agendamentos?";
         buttons = [
-          { id: "1", label: "Confirmar demais" },
-          { id: "2", label: "Reagendar demais" },
-          { id: "3", label: "Cancelar demais" }
+          { id: "confirm_all", label: "Confirmar demais" },
+          { id: "main_reschedule", label: "Reagendar demais" },
+          { id: "main_cancel", label: "Cancelar demais" }
         ];
       }
       break;
@@ -452,7 +469,7 @@ Estamos te esperando na Barbearia LM.
           description: `${a.services?.name}`
         }));
         
-        await supabase.from("whatsapp_conversations")
+        await supabase.from("conversation_sessions")
           .update({ 
             context: { ...conversation.context, appt_mapping: appointmentIds, reschedule_mode: true }
           })
@@ -495,10 +512,11 @@ Estamos te esperando na Barbearia LM.
   });
 
   // Final update of conversation
-  const { error: updateError } = await supabase.from("whatsapp_conversations")
+  const { error: updateError } = await supabase.from("conversation_sessions")
     .update({ 
-      state: nextState,
+      current_step: nextState,
       active: nextState !== AUTOMATION_STATES.COMPLETED && nextState !== AUTOMATION_STATES.EXPIRED,
+      status: (nextState === AUTOMATION_STATES.COMPLETED || nextState === AUTOMATION_STATES.EXPIRED) ? 'closed' : 'active',
       updated_at: new Date().toISOString()
     })
     .eq("id", conversation_id);
@@ -800,10 +818,10 @@ export async function processAutomationDispatches(
         console.log('--- PREPARING CONVERSATION ---');
         
         // Desativar conversas anteriores para o mesmo telefone
-        const { error: deactivateError } = await supabase.from("whatsapp_conversations")
-          .update({ active: false })
+        const { error: deactivateError } = await supabase.from("conversation_sessions")
+          .update({ active: false, status: 'closed' })
           .eq("active", true)
-          .or(`phone.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone_fallback.eq.${fallbackPhoneValue}`);
+          .or(`phone.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue}`);
           
         if (deactivateError) {
           console.log('[AutomationEngine] Warning: Could not deactivate previous conversations:', deactivateError.message);
@@ -813,7 +831,7 @@ export async function processAutomationDispatches(
         let conversationId = null;
         if (group_id) {
           const { data: existingGroupConv } = await supabase
-            .from("whatsapp_conversations")
+            .from("conversation_sessions")
             .select("id")
             .eq("appointment_group_id", group_id)
             .maybeSingle();
@@ -826,15 +844,14 @@ export async function processAutomationDispatches(
 
         let newConv = null;
         if (!conversationId) {
-          // Upsert conversation
+          // Create conversation
           const convPayload = {
             tenant_id: tenant_id,
-            barber_id: tenant_id,
             customer_id: customer.id,
             phone: normalizedPhoneValue,
-            phone_fallback: fallbackPhoneValue,
-            state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+            current_step: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
             active: true,
+            status: 'active',
             appointment_group_id: group_id,
             appointment_id: !isMultiple ? firstAppt.id : null,
             context: {
@@ -845,7 +862,7 @@ export async function processAutomationDispatches(
           };
 
           const { data, error: convError } = await supabase
-            .from("whatsapp_conversations")
+            .from("conversation_sessions")
             .insert(convPayload)
             .select()
             .single();
@@ -859,10 +876,11 @@ export async function processAutomationDispatches(
         } else {
           // Update existing group conversation to be active again
           const { data, error: convError } = await supabase
-            .from("whatsapp_conversations")
+            .from("conversation_sessions")
             .update({
               active: true,
-              state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+              status: 'active',
+              current_step: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
               updated_at: new Date().toISOString()
             })
             .eq("id", conversationId)
@@ -874,9 +892,6 @@ export async function processAutomationDispatches(
           } else {
             newConv = data;
           }
-        }
-        } else {
-          console.log('CONVERSATION CREATED:', newConv.id);
         }
 
         let sendResult = { success: false, error: "Validation failed", response: null };
@@ -908,7 +923,7 @@ export async function processAutomationDispatches(
             appointments_count: apptGroup.length,
             is_multiple: isMultiple,
             conversation_id: newConv?.id,
-            conversation_state: newConv?.state,
+            conversation_state: newConv?.current_step,
             conversation_active: newConv?.active
           }
         });
@@ -934,7 +949,7 @@ export async function processAutomationDispatches(
           // User didn't specify, but usually better to keep it if they might reply anyway, 
           // but here we failed to even send the initial message.
           if (newConv) {
-            await supabase.from("whatsapp_conversations").update({ active: false, error: sendResult.error }).eq("id", newConv.id);
+            await supabase.from("conversation_sessions").update({ active: false, status: 'closed', error: sendResult.error }).eq("id", newConv.id);
           }
         }
 
