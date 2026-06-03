@@ -1071,6 +1071,64 @@ export type Database = {
           },
         ]
       }
+      cashback_transactions: {
+        Row: {
+          amount: number
+          appointment_id: string | null
+          base_amount: number | null
+          created_at: string
+          customer_id: string
+          description: string | null
+          id: string
+          tenant_id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          appointment_id?: string | null
+          base_amount?: number | null
+          created_at?: string
+          customer_id: string
+          description?: string | null
+          id?: string
+          tenant_id: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string | null
+          base_amount?: number | null
+          created_at?: string
+          customer_id?: string
+          description?: string | null
+          id?: string
+          tenant_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cashback_transactions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cashback_transactions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "cashback_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_auth: {
         Row: {
           created_at: string
@@ -3396,6 +3454,15 @@ export type Database = {
             } & "Could not choose the best candidate function between: public.cancel_appointment_by_token(token_val => text), public.cancel_appointment_by_token(token_val => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
           }
       check_expired_trials: { Args: never; Returns: undefined }
+      complete_appointment: {
+        Args: {
+          p_appointment_id: string
+          p_changed_by_id?: string
+          p_changed_by_type?: string
+          p_source?: string
+        }
+        Returns: Json
+      }
       create_notification: {
         Args: {
           p_barber_id?: string
