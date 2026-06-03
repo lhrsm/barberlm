@@ -96,3 +96,23 @@ export function removeNinthDigit(phone: string): string {
   
   return digits;
 }
+
+/**
+ * Formata os dados de um agendamento para exibição em mensagens de WhatsApp.
+ * Garante o uso do timezone America/Sao_Paulo.
+ */
+export function formatAppointmentDateTimeForMessage(appointment: any) {
+  if (!appointment || !appointment.start_time) {
+    return {
+      date: "Data não definida",
+      time: "Horário não definido"
+    };
+  }
+
+  const date = formatBrazilDate(appointment.start_time);
+  const time = formatBrazilTime(appointment.start_time);
+
+  console.log(`[Utils] Formatting appointment ${appointment.id}: ${appointment.start_time} -> ${date} ${time} (America/Sao_Paulo)`);
+
+  return { date, time };
+}
