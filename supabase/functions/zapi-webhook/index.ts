@@ -36,6 +36,8 @@ function extractSelectedOption(body: any): string {
   const possiblePaths = [
     body.buttonsResponseMessage?.buttonId,
     body.buttonsResponseMessage?.selectedButtonId,
+    body.message?.buttonsResponseMessage?.buttonId,
+    body.message?.buttonsResponseMessage?.selectedButtonId,
     body.listResponseMessage?.singleSelectReply?.selectedRowId,
     body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
     body.buttonReply?.id,
@@ -45,7 +47,9 @@ function extractSelectedOption(body: any): string {
     body.text,
     body.body,
     body.message?.text,
-    body.message?.body
+    body.message?.body,
+    body.message?.contents,
+    body.contents
   ];
 
   for (const val of possiblePaths) {
@@ -299,7 +303,36 @@ serve(async (req) => {
       });
     }
 
-    const body = await req.json();
+    const bodyText = await req.text();
+    let body: any = {};
+    try {
+      body = JSON.parse(bodyText);
+    } catch (e) {
+      console.error("[Z-API Webhook] Error parsing body:", e);
+    }
+    
+    // DEBUG: Log ALL incoming webhooks
+    try {
+      const phone = extractPhoneFromZapiPayload(body);
+      const normalizedPhone = normalizePhone(phone);
+      const selectedOption = extractSelectedOption(body);
+      
+      await supabase.from("zapi_webhook_debug").insert({
+        tenant_id: tenantId,
+        source: "zapi_real",
+        payload_raw: body,
+        raw_body: bodyText,
+        phone_raw: phone,
+        phone_normalized: normalizedPhone,
+        option_id: selectedOption,
+        method: req.method,
+        url: req.url,
+        content_type: req.headers.get("content-type"),
+        received_at: new Date().toISOString()
+      });
+    } catch (dbErr) {
+      console.error("[Z-API Webhook] Error logging debug:", dbErr);
+    }
     
     if (body.fromMe === true || body.isSentByMe === true || body.fromApi === true) {
       return new Response(JSON.stringify({ success: true, ignored: true }), {

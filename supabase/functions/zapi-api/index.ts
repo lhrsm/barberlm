@@ -264,9 +264,7 @@ serve(async (req) => {
       if (!clientToken) throw new Error("client_token ausente");
       if (!phone) throw new Error("telefone de destino ausente");
       if (!phone.startsWith("55") || phone.length < 12) throw new Error("telefone deve estar no formato 55DDDNUMERO");
-      if (instance.provider !== 'z-api' && instance.provider !== 'zapi') throw new Error(`provider inválido: ${instance.provider}`);
       
-      // Use the same function as the automation
       const result = await sendMessage(instance, phone, message);
       
       const status_code = result.success ? 200 : (result.response?.status || 400);
@@ -295,13 +293,51 @@ serve(async (req) => {
       });
     }
 
+    if (action === "send-test-button") {
+      const phone = data.phone;
+      if (!phone) throw new Error("telefone de destino ausente");
+      
+      const result = await sendMessage(instance, phone, "Teste de botão. Clique abaixo para confirmar o recebimento do webhook.", {
+        buttons: [
+          { id: "main_confirm", label: "Confirmar agendamento" }
+        ]
+      });
+      
+      const status_code = result.success ? 200 : (result.response?.status || 400);
+      const url = `${baseUrl}/instances/${instanceId}/token/${token}/send-button`;
+
+      await logToDb({ 
+        action: "send-test-button", 
+        method: "POST",
+        request: { phone, buttons: true }, 
+        response: result.response, 
+        status: status_code, 
+        endpoint: url,
+        phone: phone,
+        errorMessage: result.error
+      });
+
+      return new Response(JSON.stringify({ 
+        success: result.success, 
+        result: result.response,
+        error: result.error,
+        endpoint: url,
+        status: status_code
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     if (action === "set-webhook") {
       const webhookUrl = data.webhookUrl;
       const types = [
         "update-webhook-received",
         "update-webhook-disconnected",
         "update-webhook-connected",
-        "update-webhook-message-status"
+        "update-webhook-message-status",
+        "update-webhook-button-response",
+        "update-webhook-list-response"
       ];
       
       const results = await Promise.all(types.map(async (webhookType) => {

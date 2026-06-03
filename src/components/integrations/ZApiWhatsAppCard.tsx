@@ -60,11 +60,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [lastReceivedConfig, setLastReceivedConfig] = useState<any>(null);
   const [lastExpandedConfig, setLastExpandedConfig] = useState<any>(null);
   const [lastSentMessageInfo, setLastSentMessageInfo] = useState<{id: string, time: string} | null>(null);
-  const [tempWebhookUrl, setTempWebhookUrl] = useState("https://ancient-meadow-00.webhook.cool");
+  const [tempWebhookUrl, setTempWebhookUrl] = useState("");
   const [isConfiguringTemp, setIsConfiguringTemp] = useState(false);
   const [lastTempWebhookResult, setLastTempWebhookResult] = useState<any>(null);
   const [isConfiguringNew, setIsConfiguringNew] = useState(false);
   const [lastNewWebhookResult, setLastNewWebhookResult] = useState<any>(null);
+  const [isSendingButtonTest, setIsSendingButtonTest] = useState(false);
+  const [buttonTestMessageId, setButtonTestMessageId] = useState<string | null>(null);
 
 
   
@@ -209,6 +211,73 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       toast.error("Erro no teste: " + err.message);
     } finally {
       setIsSendingTest(false);
+    }
+  }
+
+  async function sendTestButtonMessage() {
+    if (!instance?.id) {
+      toast.error("Salve as configurações primeiro");
+      return;
+    }
+
+    if (!formData.phone) {
+      toast.error("Telefone de destino ausente");
+      return;
+    }
+
+    const phone = formData.phone.replace(/\D/g, "");
+    setIsSendingButtonTest(true);
+    setButtonTestMessageId(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'send-test-button', 
+          instanceId: instance.id,
+          data: { phone }
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success("Mensagem com botão enviada!");
+        if (data.result?.messageId) {
+          setButtonTestMessageId(data.result.messageId);
+        }
+        
+        // Iniciar polling para ver se o webhook de resposta chega
+        toast.info("Aguardando clique no botão... (5 min)", { duration: 10000 });
+        
+        let attempts = 0;
+        const interval = setInterval(async () => {
+          attempts++;
+          const { data: webhookLogs } = await supabase
+            .from("zapi_webhook_debug")
+            .select("*")
+            .eq("tenant_id", tenantId)
+            .eq("option_id", "main_confirm")
+            .gte("created_at", new Date(Date.now() - 300000).toISOString())
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          if (webhookLogs && webhookLogs.length > 0) {
+            clearInterval(interval);
+            toast.success("WEBHOOK RECEBIDO! O clique no botão foi detectado com sucesso.", { duration: 10000 });
+            setZapiResponse(webhookLogs[0]);
+          }
+
+          if (attempts > 30) { // 5 minutos aprox
+            clearInterval(interval);
+          }
+        }, 10000);
+      } else {
+        toast.error("Erro ao enviar botão: " + (data.error || "Erro desconhecido"));
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setIsSendingButtonTest(false);
     }
   }
 
@@ -432,7 +501,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       
       const { data, error } = await supabase.functions.invoke('zapi-api', {
         body: { 
-          action: 'update-webhook-received', 
+          action: 'set-webhook', 
           instanceId: instance.id,
           data: { webhookUrl }
         }
@@ -873,7 +942,52 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </TabsContent>
           
           <TabsContent value="logs" className="pt-4">
-            <div className="space-y-2">
+              <div className="space-y-4">
+                <div className="bg-slate-900/50 p-4 rounded-lg border border-white/5 space-y-4">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status do Webhook na Z-API</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-slate-500">URL Configurada no Sistema</p>
+                      <div className="bg-black/40 p-2 rounded text-[10px] font-mono truncate text-blue-300">
+                        {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-slate-500">Eventos Habilitados</p>
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">ReceivedCallback</Badge>
+                        <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">ButtonResponse</Badge>
+                        <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">ListResponse</Badge>
+                        <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">MessageStatus</Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {lastReceivedConfig && (
+                    <div className="space-y-2 pt-2 border-t border-white/5">
+                      <p className="text-[10px] text-emerald-400 font-bold uppercase">Último Retorno da Z-API (Webhook)</p>
+                      <pre className="bg-black/30 p-2 rounded font-mono text-[9px] overflow-auto max-h-32 text-emerald-300/70">
+                        {JSON.stringify(lastReceivedConfig, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={reconfigureWebhook} 
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 h-9 text-xs"
+                    disabled={isConfiguring}
+                  >
+                    {isConfiguring ? <Loader2 className="animate-spin mr-2" size={14} /> : <RefreshCw className="mr-2" size={14} />}
+                    Forçar Reconfiguração de Webhooks
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
               {logs.map((log, i) => (
                 <div key={i} className="text-xs p-2 border border-white/5 rounded bg-black/20 flex justify-between">
                   <span>{log.message_type} - {log.phone}</span>
@@ -885,6 +999,29 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </TabsContent>
 
           <TabsContent value="diagnostico" className="pt-4 space-y-4">
+            <div className="bg-blue-900/20 p-4 rounded-xl border border-blue-500/20 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold flex items-center gap-2 text-blue-400">
+                    <MessageSquare size={16} />
+                    Teste Real de Botões
+                  </h3>
+                  <p className="text-[10px] text-blue-300/70">
+                    Envia um botão interativo para o seu número e valida se a Z-API devolve o clique.
+                  </p>
+                </div>
+                <Button 
+                  onClick={sendTestButtonMessage} 
+                  disabled={isSendingButtonTest || !instance}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-[10px] h-8"
+                >
+                  {isSendingButtonTest ? <Loader2 className="animate-spin mr-1" size={12} /> : <Send className="mr-1" size={12} />}
+                  Testar recebimento de resposta
+                </Button>
+              </div>
+            </div>
+
             {/* Nova Seção: Teste de URL Pública Exclusiva */}
             <div className="bg-emerald-900/20 p-4 rounded-xl border border-emerald-500/20 space-y-4">
               <div className="flex items-center justify-between">
