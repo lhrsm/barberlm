@@ -82,7 +82,7 @@ export function usePlanLimits() {
         supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end, stripe_customer_id, price_id").eq("user_id", tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from("barbers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
         supabase.from("services").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
-        supabase.from("products").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("active", true),
+        supabase.from("products").select("*", { count: "exact", head: true }).eq("user_id", tenantId).eq("active", true),
         supabase.from("appointments").select("*", { count: "exact", head: true })
           .eq("tenant_id", tenantId)
           .neq("status", "cancelled")
