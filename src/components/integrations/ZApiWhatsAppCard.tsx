@@ -1269,10 +1269,10 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                   </pre>
                 </div>
 
-                {!lastWebhookCall.success || lastWebhookCall.result?.value !== true ? (
+                {!isZApiSuccess(lastWebhookCall) ? (
                   <div className="p-2 bg-red-500/10 border border-red-500/20 rounded text-[10px] text-red-400 flex items-center gap-2">
                     <AlertCircle size={14} />
-                    <span>A Z-API não confirmou a configuração (value: true). Verifique se o Client-Token e Instance ID estão corretos.</span>
+                    <span>A Z-API não confirmou explicitamente a configuração. Verifique se o Client-Token e Instance ID estão corretos na Z-API. Resposta: {JSON.stringify(lastWebhookCall.result)}</span>
                   </div>
                 ) : (
                   <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 flex items-center gap-2">
