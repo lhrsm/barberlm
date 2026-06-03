@@ -33,7 +33,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { tenantId, appointmentId, forceMode } = body as any;
+    const { tenantId, appointmentId, appointmentGroupId, forceMode } = body as any;
 
     // Update global status to executing
     const { data: statusRows } = await supabase.from("automation_status").select("id").limit(1);
@@ -49,7 +49,7 @@ serve(async (req) => {
 
     // Call Engine
     console.log('Calling processAutomationDispatches...');
-    const results = await processAutomationDispatches(supabase, { tenantId, appointmentId, forceMode });
+    const results = await processAutomationDispatches(supabase, { tenantId, appointmentId, appointmentGroupId, forceMode });
     console.log('Dispatches results:', JSON.stringify(results));
 
     // Update status to idle

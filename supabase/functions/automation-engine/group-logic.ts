@@ -78,10 +78,10 @@ export async function handleGroupAppointmentCreated(supabase: any, tenantId: str
   let resumo = "";
   groupItems.forEach((appt, index) => {
     const { date, time } = formatAppointmentDateTimeForMessage(appt);
-    resumo += `\n${index + 1}️⃣ *${appt.services?.name}*\n💈 Profissional: ${appt.barbers?.name}\n📅 Data: ${date}\n⏰ Horário: ${time}\n`;
+    resumo += `\n${index + 1}️⃣ Serviço: ${appt.services?.name}\n💈 Profissional: ${appt.barbers?.name}\n📅 Data: ${date}\n⏰ Horário: ${time}\n`;
   });
 
-  const message = `Olá ${customer.name}! 👋\n\nSeus agendamentos na ${barbershopName} foram realizados com sucesso.\n\n📋 *Resumo dos agendamentos:*\n${resumo}\nO que deseja fazer?`;
+  const message = `Olá ${customer.name}! 👋\n\nSeus agendamentos na ${barbershopName} foram realizados com sucesso.\n\n📋 Resumo dos agendamentos:\n${resumo}\nO que deseja fazer?`;
 
   // 6. Send Message
   const connection = await getWhatsAppSettings(supabase, tenantId);

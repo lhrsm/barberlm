@@ -540,7 +540,7 @@ Estamos te esperando na Barbearia LM.
 
 export async function processAutomationDispatches(
   supabase: any,
-  { tenantId, appointmentId, forceMode }: { tenantId?: string; appointmentId?: string; forceMode?: boolean }
+  { tenantId, appointmentId, appointmentGroupId, forceMode }: { tenantId?: string; appointmentId?: string; appointmentGroupId?: string; forceMode?: boolean }
 ) {
   const runId = crypto.randomUUID();
   const startTime = new Date().toISOString();
@@ -583,7 +583,11 @@ export async function processAutomationDispatches(
     query = query.in("status", validStatuses);
 
     if (tenantId) query = query.eq("tenant_id", tenantId);
-    if (appointmentId) query = query.eq("id", appointmentId);
+    if (appointmentGroupId) {
+      query = query.eq("appointment_group_id", appointmentGroupId);
+    } else if (appointmentId) {
+      query = query.eq("id", appointmentId);
+    }
     
     const { data: allAppointments, error: appError } = await query;
 
@@ -767,7 +771,7 @@ export async function processAutomationDispatches(
           apptGroup.forEach((appt, i) => {
             const { date: dateStr, time: timeStr } = formatAppointmentDateTimeForMessage(appt);
             console.log(`[AutomationEngine] Formatting group item ${i}: ${appt.start_time} -> ${timeStr}`);
-            appointmentsList += `${i + 1}️⃣ ${appt.services?.name}\n💈 ${appt.barbers?.name}\n📅 ${dateStr}\n⏰ ${timeStr}\n\n`;
+            appointmentsList += `${i + 1}️⃣ Serviço: ${appt.services?.name}\n💈 Profissional: ${appt.barbers?.name}\n📅 Data: ${dateStr}\n⏰ Horário: ${timeStr}\n\n`;
           });
 
 
@@ -778,7 +782,7 @@ export async function processAutomationDispatches(
             appointment_count: apptGroup.length
           };
 
-          const rawTemplate = auto.template_multiple || `Olá {{customer_name}} 👋\n\nVocê possui {{appointment_count}} agendamentos na {{barbershop_name}}.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}\n\nO que deseja fazer?`;
+          const rawTemplate = auto.template_multiple || `Olá {{customer_name}} 👋\n\nSeus agendamentos na {{barbershop_name}} foram realizados com sucesso.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}O que deseja fazer?`;
           message = processAutomationTemplate(rawTemplate, templateData);
         }
 

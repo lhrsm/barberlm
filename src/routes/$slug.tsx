@@ -1061,14 +1061,28 @@ function ShopPageComponent() {
           customerId: finalCustId || undefined,
           metadata: { appointmentId: appt.id }
         });
+      }
 
-        // Trigger Automation System
-        supabase.functions.invoke('run-automations', {
-          body: { 
-            tenantId: shop.id, 
-            appointmentId: appt.id 
-          }
-        }).catch(err => console.error("Error triggering automation:", err));
+      // 5. Trigger Automation System
+      if (createdAppointments.length > 0) {
+        if (appointmentGroupId) {
+          // If multiple appointments, trigger once for the group
+          supabase.functions.invoke('run-automations', {
+            body: { 
+              tenantId: shop.id, 
+              appointmentGroupId: appointmentGroupId 
+            }
+          }).catch(err => console.error("Error triggering automation for group:", err));
+        } else {
+          // Fallback for single appointment if groupId is missing
+          const appt = createdAppointments[0];
+          supabase.functions.invoke('run-automations', {
+            body: { 
+              tenantId: shop.id, 
+              appointmentId: appt.id 
+            }
+          }).catch(err => console.error("Error triggering automation:", err));
+        }
       }
 
       toast.success("Agendamentos realizados com sucesso!");
