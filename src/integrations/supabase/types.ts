@@ -166,6 +166,7 @@ export type Database = {
           payment_method: string | null
           payment_status: string | null
           pix_amount: number | null
+          refund_preference: string | null
           refund_requested_at: string | null
           refund_status: string | null
           refund_type: string | null
@@ -215,6 +216,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string | null
           pix_amount?: number | null
+          refund_preference?: string | null
           refund_requested_at?: string | null
           refund_status?: string | null
           refund_type?: string | null
@@ -264,6 +266,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string | null
           pix_amount?: number | null
+          refund_preference?: string | null
           refund_requested_at?: string | null
           refund_status?: string | null
           refund_type?: string | null
