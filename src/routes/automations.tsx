@@ -204,6 +204,14 @@ function AutomationsComponent() {
   useEffect(() => {
     fetchData();
     
+    // Deduplicate on mount
+    if (tenantId) {
+      supabase.rpc('deduplicate_automation_workflows', { p_tenant_id: tenantId })
+        .then(({ error }) => {
+          if (error) console.error("Error deduplicating workflows:", error);
+        });
+    }
+    
     const channel = supabase.channel('automation_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_queue' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_logs' }, () => fetchData())
@@ -250,26 +258,36 @@ function AutomationsComponent() {
     if (!tenantId) return;
     setLoading(true);
     try {
-      for (const template of DEFAULT_TEMPLATES) {
-        // Check if exists
-        const { data: existing } = await supabase
-          .from("automation_workflows")
-          .select("id")
-          .eq("tenant_id", tenantId)
-          .eq("name", template.name)
-          .maybeSingle();
-        
-        if (!existing) {
-          await supabase.from("automation_workflows").insert({
+      // Get current workflows to avoid duplicates
+      const { data: currentWorkflows } = await supabase
+        .from("automation_workflows")
+        .select("name, trigger_event")
+        .eq("tenant_id", tenantId);
+
+      const existingSet = new Set(
+        currentWorkflows?.map(w => `${w.name}|${w.trigger_event}`) || []
+      );
+
+      const toInsert = DEFAULT_TEMPLATES.filter(
+        t => !existingSet.has(`${t.name}|${t.trigger_event}`)
+      );
+
+      if (toInsert.length > 0) {
+        const { error } = await supabase.from("automation_workflows").insert(
+          toInsert.map(template => ({
             tenant_id: tenantId,
             name: template.name,
             trigger_event: template.trigger_event,
             active: false,
             configuration: { template: template.template }
-          });
-        }
+          }))
+        );
+        if (error) throw error;
+        toast.success(`${toInsert.length} novos modelos carregados!`);
+      } else {
+        toast.info("Todos os modelos já estão carregados.");
       }
-      toast.success("Modelos carregados com sucesso!");
+      
       fetchData();
     } catch (error: any) {
       toast.error("Erro ao carregar modelos: " + error.message);
@@ -399,7 +417,7 @@ function AutomationsComponent() {
           <Button 
             onClick={handleRunEngine} 
             disabled={isProcessing}
-            className="bg-purple-600 hover:bg-purple-700"
+            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold shadow-lg shadow-amber-500/20 border border-amber-400"
           >
             {isProcessing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
             Processar Fila Agora
@@ -409,13 +427,13 @@ function AutomationsComponent() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <ScrollArea className="w-full whitespace-nowrap">
             <TabsList className="inline-flex w-full justify-start border-b rounded-none bg-transparent h-12 p-0">
-              <TabsTrigger value="automations" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Automações</TabsTrigger>
-              <TabsTrigger value="queue" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Fila</TabsTrigger>
-              <TabsTrigger value="conversations" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Conversas</TabsTrigger>
-              <TabsTrigger value="logs" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Logs</TabsTrigger>
-              <TabsTrigger value="webhooks" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Webhooks</TabsTrigger>
-              <TabsTrigger value="tests" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Testes</TabsTrigger>
-              <TabsTrigger value="integrations" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Integrações</TabsTrigger>
+              <TabsTrigger value="automations" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Automações</TabsTrigger>
+              <TabsTrigger value="queue" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Fila</TabsTrigger>
+              <TabsTrigger value="conversations" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Conversas</TabsTrigger>
+              <TabsTrigger value="logs" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Logs</TabsTrigger>
+              <TabsTrigger value="webhooks" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Webhooks</TabsTrigger>
+              <TabsTrigger value="tests" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Testes</TabsTrigger>
+              <TabsTrigger value="integrations" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Integrações</TabsTrigger>
             </TabsList>
           </ScrollArea>
           
@@ -441,16 +459,26 @@ function AutomationsComponent() {
 
             {filteredWorkflows.map((w) => (
 
-              <Card key={w.id} className="relative overflow-hidden flex flex-col justify-between">
+              <Card key={w.id} className="relative overflow-hidden flex flex-col justify-between border-zinc-800 hover:border-amber-500/60 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg">{w.name}</CardTitle>
-                    <Switch 
-                      checked={w.active} 
-                      onCheckedChange={(checked) => handleToggleWorkflow(w.id, checked)}
-                    />
+                    <div className="flex flex-col items-end gap-1">
+                      <Switch 
+                        checked={w.active} 
+                        onCheckedChange={(checked) => handleToggleWorkflow(w.id, checked)}
+                        className="data-[state=unchecked]:bg-zinc-700 data-[state=unchecked]:border-zinc-500 data-[state=checked]:bg-amber-500"
+                        thumbClassName="data-[state=unchecked]:bg-zinc-300"
+                      />
+                      <span className={cn(
+                        "text-[10px] font-medium uppercase tracking-wider",
+                        w.active ? "text-amber-400" : "text-zinc-500"
+                      )}>
+                        {w.active ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </div>
                   </div>
-                  <CardDescription>Gatilho: <Badge variant="secondary">{w.trigger_event}</Badge></CardDescription>
+                  <CardDescription>Gatilho: <Badge variant="secondary" className="bg-zinc-800 text-zinc-300 border-zinc-700">{w.trigger_event}</Badge></CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-sm text-muted-foreground italic h-12 overflow-hidden">
@@ -533,8 +561,8 @@ function AutomationsComponent() {
                   {sessions.map((s) => (
                     <div key={s.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-4">
-                        <div className="bg-purple-100 p-2 rounded-full">
-                          <MessageSquare className="w-5 h-5 text-purple-600" />
+                        <div className="bg-amber-500/10 p-2 rounded-full">
+                          <MessageSquare className="w-5 h-5 text-amber-500" />
                         </div>
                         <div>
                           <p className="font-medium">{s.customers?.name || s.phone}</p>
@@ -731,8 +759,15 @@ function AutomationsComponent() {
                       <Switch 
                         checked={selectedWorkflow.active} 
                         onCheckedChange={(checked) => setSelectedWorkflow({ ...selectedWorkflow, active: checked })}
+                        className="data-[state=unchecked]:bg-zinc-700 data-[state=unchecked]:border-zinc-500 data-[state=checked]:bg-amber-500"
+                        thumbClassName="data-[state=unchecked]:bg-zinc-300"
                       />
-                      <Label className="font-normal">{selectedWorkflow.active ? 'Ativo' : 'Inativo'}</Label>
+                      <Label className={cn(
+                        "font-normal",
+                        selectedWorkflow.active ? "text-amber-400" : "text-zinc-500"
+                      )}>
+                        {selectedWorkflow.active ? 'Ativo' : 'Inativo'}
+                      </Label>
                     </div>
                   </div>
                 </div>
