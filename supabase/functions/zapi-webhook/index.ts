@@ -56,6 +56,137 @@ function extractSelectedOption(body: any): string {
   return "";
 }
 
+async function handleMainConfirmDirectly(supabase: any, body: any, tenantId: string) {
+  const phone = extractPhoneFromZapiPayload(body);
+  const normalizedPhone = normalizePhone(phone);
+  const fallbackPhone = removeNinthDigit(normalizedPhone);
+  const referenceMessageId = body.referenceMessageId;
+
+  console.log(`[DirectHandler] Handling main_confirm for ${normalizedPhone}`);
+
+  // 1. Search session
+  let session = null;
+  
+  // Try by referenceMessageId
+  if (referenceMessageId) {
+    const { data } = await supabase
+      .from("conversation_sessions")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .eq("provider_message_id", referenceMessageId)
+      .maybeSingle();
+    session = data;
+  }
+
+  // Try by phone
+  if (!session && normalizedPhone) {
+    const { data } = await supabase
+      .from("conversation_sessions")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .eq("active", true)
+      .or(`phone.eq.${normalizedPhone},phone.eq.${fallbackPhone}`)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    session = data;
+  }
+
+  const connection = await getWhatsAppSettings(supabase, tenantId);
+
+  if (!session) {
+    if (connection) {
+      await sendMessage(connection, normalizedPhone, "Recebi sua resposta, mas não encontrei a sessão deste agendamento. Por favor, fale com a barbearia.");
+    }
+    
+    await supabase.from("automation_logs").insert({
+      tenant_id: tenantId,
+      event_name: 'whatsapp.direct_handler_error',
+      status: "error",
+      message: "Sessão não encontrada no handler direto",
+      error_details: JSON.stringify({ phone: normalizedPhone, referenceMessageId })
+    });
+    return true;
+  }
+
+  // 2. Fetch appointments
+  let appointments = [];
+  if (session.appointment_group_id) {
+    const { data } = await supabase
+      .from("appointments")
+      .select("*, services(name)")
+      .eq("appointment_group_id", session.appointment_group_id);
+    appointments = data || [];
+  } else if (session.appointment_id) {
+    const { data } = await supabase
+      .from("appointments")
+      .select("*, services(name)")
+      .eq("id", session.appointment_id);
+    appointments = data ? [data] : [];
+  } else if (session.context?.appointments) {
+    appointments = session.context.appointments;
+  }
+
+  if (appointments.length > 1) {
+    let menuSent = false;
+    let fallbackSent = false;
+    let zapiResponse = null;
+
+    if (connection) {
+      const message = "Como deseja confirmar?";
+      const buttons = [
+        { id: "confirm_all", label: "Confirmar todos" },
+        { id: "confirm_single", label: "Confirmar um específico" }
+      ];
+      
+      const sendResult = await sendMessage(connection, normalizedPhone, message, { buttons });
+      zapiResponse = sendResult.response;
+      menuSent = sendResult.success;
+      
+      if (!sendResult.success) {
+        // Fallback text
+        const fallbackText = "Como deseja confirmar?\n\n1️⃣ Confirmar todos\n2️⃣ Confirmar um específico";
+        const fallbackResult = await sendMessage(connection, normalizedPhone, fallbackText);
+        fallbackSent = fallbackResult.success;
+      }
+    }
+
+    // Update session
+    const nextStep = 'awaiting_confirm_scope';
+    await supabase.from("conversation_sessions")
+      .update({ 
+        current_step: nextStep,
+        active: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", session.id);
+      
+    // Log
+    await supabase.from("automation_logs").insert({
+      tenant_id: tenantId,
+      session_id: session.id,
+      appointment_group_id: session.appointment_group_id,
+      event_name: 'whatsapp.direct_handler_executed',
+      status: "success",
+      message: "Handler direto executado para múltiplos agendamentos",
+      error_details: JSON.stringify({ 
+        buttonId: "main_confirm",
+        direct_handler_executed: true,
+        session_found: true,
+        appointments_count: appointments.length,
+        menu_sent: menuSent,
+        fallback_sent: fallbackSent,
+        current_step_after: nextStep,
+        zapi_response: zapiResponse
+      })
+    });
+    return true;
+  }
+
+  // If only 1 appointment, let it go to the normal engine
+  return false;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -94,8 +225,18 @@ serve(async (req) => {
     const referenceMessageId = body.referenceMessageId;
 
     console.log(`[Z-API Webhook] Incoming message from ${normalizedPhone}. Option: ${selectedOption}. referenceMessageId: ${referenceMessageId}`);
-    console.log(`[Z-API Webhook] body.buttonsResponseMessage.buttonId: ${body?.buttonsResponseMessage?.buttonId}`);
-    console.log(`[Z-API Webhook] body.buttonsResponseMessage.message: ${body?.buttonsResponseMessage?.message}`);
+
+    // Direct Handler for main_confirm (Multiple appointments flow)
+    if (selectedOption === 'main_confirm') {
+      console.log(`[Z-API Webhook] Intercepting main_confirm for direct handling`);
+      const handled = await handleMainConfirmDirectly(supabase, body, tenantId);
+      if (handled) {
+        return new Response(JSON.stringify({ success: true, direct: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
 
 
     // Find active session
@@ -218,7 +359,7 @@ serve(async (req) => {
         session_id: session.id,
         provider_message_id: session.provider_message_id,
         current_step_before: stateBefore, 
-        appointments_count: engineResult?.appointments_count || (appointments?.length || 0),
+        appointments_count: engineResult?.appointments_count || 0,
         appointment_group_id: session.appointment_group_id,
         action: engineResult?.action_executed,
         current_step_after: engineResult?.next_state,
