@@ -57,22 +57,26 @@ function extractSelectedOption(body: any): string {
 }
 
 async function getAppointmentsForSession(supabase: any, session: any) {
-  if (session.appointment_group_id) {
+  const groupId = session.appointment_group_id;
+  const appointmentId = session.appointment_id;
+
+  if (groupId) {
     const { data } = await supabase
       .from("appointments")
       .select("*, services(name), barbers(name)")
-      .eq("appointment_group_id", session.appointment_group_id)
+      .eq("appointment_group_id", groupId)
       .order("start_time", { ascending: true });
     return data || [];
-  } else if (session.appointment_id) {
+  } else if (appointmentId) {
     const { data } = await supabase
       .from("appointments")
       .select("*, services(name), barbers(name)")
-      .eq("id", session.appointment_id);
-    return data ? [data] : [];
+      .eq("id", appointmentId);
+    return data || [];
   }
   return [];
 }
+
 
 async function updateSessionState(supabase: any, sessionId: string, step: string, active: boolean = true, contextUpdate: any = null) {
   const updateData: any = { 
@@ -137,8 +141,21 @@ async function handleContingencyFlow(
     }
 
     const appointments = await getAppointmentsForSession(supabase, session);
+    const isMultiple = appointments.length > 1;
+    const appointmentIds = appointments.map((a: any) => a.id);
+
+    console.log(`[Contingency] LOG:
+      session_id: ${session.id}
+      phone: ${normalizedPhone}
+      appointment_id: ${session.appointment_id}
+      appointment_group_id: ${session.appointment_group_id}
+      appointments_loaded: ${JSON.stringify(appointmentIds)}
+      appointments_count: ${appointments.length}
+      isMultiple: ${isMultiple}
+      query_used: ${session.appointment_group_id ? 'group_id' : 'appointment_id'}`);
     
-    if (appointments.length > 1) {
+    if (isMultiple) {
+
       const text = "Como deseja confirmar?\n\n1️⃣ Confirmar todos\n2️⃣ Confirmar um específico";
       if (connection) {
         await sendMessage(connection, normalizedPhone, text);
@@ -147,13 +164,46 @@ async function handleContingencyFlow(
       await updateSessionState(supabase, session.id, 'awaiting_confirm_scope');
       await logContingency(supabase, tenantId, session, "send_scope_menu", {
         current_step_after: 'awaiting_confirm_scope',
-        appointments_count: appointments.length
+        appointments_count: appointments.length,
+        isMultiple: true
+      });
+      return true;
+    } else if (appointments.length === 1) {
+      // Single appointment confirmation direct in contingency
+      const appt = appointments[0];
+      await supabase.from("appointments").update({ 
+        status: 'confirmed',
+        confirmed_at: new Date().toISOString() 
+      }).eq("id", appt.id);
+
+      const time = formatBrazilTime(appt.start_time);
+      const barber = appt.barbers?.name || "Profissional";
+      const service = appt.services?.name || "Serviço";
+      
+      const successMessage = `✅ Agendamento confirmado com sucesso!
+      
+Estamos te esperando na Barbearia LM.
+
+⏰ ${time}
+💈 ${barber}
+✂️ ${service}`;
+
+      if (connection) {
+        await sendMessage(connection, normalizedPhone, successMessage);
+      }
+      
+      await updateSessionState(supabase, session.id, 'completed', false);
+      await logContingency(supabase, tenantId, session, "confirm_direct_success", { 
+        appointment_id: appt.id,
+        isMultiple: false
       });
       return true;
     }
-    // If only 1, let it go to the engine (or handle it here if engine fails)
+
+    
     return false;
   }
+
 
   // 2. Handle numerical responses if in a contingency state
   if (session) {
