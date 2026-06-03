@@ -1019,146 +1019,107 @@ function DashboardComponent() {
           
           <Card className={cn(
             "col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group",
-            isSubscribed 
+            !isExpired 
               ? "bg-white border-emerald-500/30 shadow-2xl shadow-emerald-500/10"
-              : isTrial 
-                ? "bg-white border-amber-500/30 shadow-2xl shadow-amber-500/10" 
-                : "bg-white border-amber-500/20 shadow-lg shadow-amber-500/5"
+              : "bg-white border-red-500/30 shadow-2xl shadow-red-500/10"
           )}>
-            {/* Glow sutil no fundo */}
             <div className={cn(
               "absolute -bottom-12 -left-12 w-32 h-32 blur-[50px] rounded-full pointer-events-none group-hover:opacity-100 transition-all duration-500",
-              isSubscribed ? "bg-emerald-500/10 opacity-60" : "bg-amber-500/10 opacity-60"
+              !isExpired ? "bg-emerald-500/10 opacity-60" : "bg-red-500/10 opacity-60"
             )} />
             
             <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Crown className={cn("w-12 h-12 rotate-12", isSubscribed ? "text-emerald-500" : "text-amber-500")} />
+              <Crown className={cn("w-12 h-12 rotate-12", !isExpired ? "text-emerald-500" : "text-red-500")} />
             </div>
 
-            <CardContent className="py-6 text-center space-y-4 relative z-10">
-              {isSubscribed ? (
-                <>
-                  <div className="flex justify-center mb-2">
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm shadow-emerald-500/5">
-                      <Crown className="w-3 h-3 text-emerald-600" />
-                      <span className="text-[10px] font-black italic text-emerald-700 tracking-tight uppercase">
-                        Status da Assinatura SaaS
-                      </span>
-                    </div>
-                  </div>
+            <CardContent className="py-6 space-y-6 relative z-10">
+              <div className="flex justify-center mb-2">
+                <div className={cn(
+                  "flex items-center gap-1.5 px-3 py-1 rounded-full shadow-sm",
+                  !isExpired ? "bg-emerald-500/10 border border-emerald-500/20 shadow-emerald-500/5" : "bg-red-500/10 border border-red-500/20 shadow-red-500/5"
+                )}>
+                  <Crown className={cn("w-3 h-3", !isExpired ? "text-emerald-600" : "text-red-600")} />
+                  <span className={cn("text-[10px] font-black italic tracking-tight uppercase", !isExpired ? "text-emerald-700" : "text-red-700")}>
+                    Status da Assinatura SaaS
+                  </span>
+                </div>
+              </div>
 
-                  <div className="flex flex-col gap-4 text-left p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 shadow-inner">
-                    <div className="flex justify-between items-center border-b border-emerald-100 pb-2">
-                      <span className="text-xs font-bold text-emerald-800/60 uppercase italic">Status</span>
-                      <Badge className="bg-emerald-500 text-white border-none text-[10px] font-black italic tracking-widest uppercase">ATIVA</Badge>
-                    </div>
-                    <div className="flex justify-between items-center border-b border-emerald-100 pb-2">
-                      <span className="text-xs font-bold text-emerald-800/60 uppercase italic">Plano</span>
-                      <span className="text-sm font-black text-emerald-900 uppercase italic">
-                        {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}
-                      </span>
-                    </div>
-                    {subscription?.currentPeriodEnd && (
-                      <div className="flex justify-between items-center border-b border-emerald-100 pb-2">
-                        <span className="text-xs font-bold text-emerald-800/60 uppercase italic">Próxima cobrança</span>
-                        <span className="text-sm font-bold text-emerald-900">
-                          {format(new Date(subscription.currentPeriodEnd), "dd/MM/yyyy")}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-emerald-800/60 uppercase italic">Pagamento</span>
-                      <span className="text-sm font-bold text-emerald-900">Cartão de Crédito</span>
-                    </div>
-                  </div>
+              {/* Plan & Status */}
+              <div className="flex justify-between items-center bg-muted/30 p-4 rounded-2xl border border-border">
+                <div>
+                  <h4 className="text-[10px] font-bold uppercase italic text-muted-foreground">Plano Atual</h4>
+                  <p className="text-lg font-black uppercase italic text-foreground">
+                    {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}
+                  </p>
+                </div>
+                <Badge className={cn(
+                  "text-[10px] font-black italic tracking-widest uppercase px-3 py-1 border-none",
+                  isExpired ? "bg-red-500 text-white" : isTrial ? "bg-amber-500 text-white" : "bg-emerald-500 text-white"
+                )}>
+                  {isExpired ? "EXPIRADA" : isTrial ? "TRIAL" : "ATIVA"}
+                </Badge>
+              </div>
 
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-black italic uppercase tracking-wider h-11 rounded-xl transition-all hover:scale-[1.02] active:scale-95" 
-                    asChild
-                  >
-                    <Link to="/subscription">Gerenciar Assinatura</Link>
-                  </Button>
-                </>
-              ) : isTrial ? (
-                <>
-                  <div className="flex justify-center mb-2">
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 shadow-sm shadow-amber-500/5">
-                      <Crown className="w-3 h-3 text-amber-600" />
-                      <span className="text-[10px] font-black italic text-amber-700 tracking-tight uppercase">
-                        Status da Assinatura SaaS
-                      </span>
-                    </div>
+              {/* Limits */}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-bold uppercase italic text-muted-foreground">Uso do Plano</h4>
+                <div className="grid grid-cols-1 gap-2.5">
+                  <div className="flex justify-between items-center text-xs font-medium">
+                    <span className="flex items-center gap-2"><Users size={14} className="text-primary" /> Profissionais</span>
+                    <span className="font-bold">{usage.barbers} / {limits.barbers === Infinity ? '∞' : limits.barbers}</span>
                   </div>
-                  <div className="bg-gradient-to-br from-amber-500/5 to-yellow-500/5 border border-amber-500/20 rounded-[2rem] p-5 flex flex-col items-center text-center gap-3 mb-6 shadow-xl shadow-amber-500/5 animate-in fade-in zoom-in duration-700">
-                    <div className="p-3 bg-amber-500 rounded-2xl text-white shadow-lg shadow-amber-500/40">
-                      <AlertCircle className="h-6 w-6" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700 leading-none mb-1">Aviso Prioritário</p>
-                      <h4 className="text-sm font-black text-amber-900 uppercase italic">Período Experimental Ativo</h4>
-                      <p className="text-xs font-bold text-amber-800/80 leading-relaxed">Você possui <span className="text-amber-600 underline decoration-amber-500/30 underline-offset-2">{trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia restante' : 'dias restantes'}</span> de um total de 15 dias para testar todas as funcionalidades premium.</p>
-                    </div>
+                  <div className="flex justify-between items-center text-xs font-medium">
+                    <span className="flex items-center gap-2"><Scissors size={14} className="text-primary" /> Serviços</span>
+                    <span className="font-bold">{usage.services} / {limits.services === Infinity ? '∞' : limits.services}</span>
                   </div>
-                  <div className="flex justify-center mb-2">
-                    <div className="p-3 bg-amber-100 rounded-full text-amber-600 animate-pulse">
-                      <Clock size={24} />
-                    </div>
+                  <div className="flex justify-between items-center text-xs font-medium">
+                    <span className="flex items-center gap-2"><Calendar size={14} className="text-primary" /> Agendamentos (Mês)</span>
+                    <span className="font-bold">{usage.monthlyAppointments} / {limits.monthlyAppointments === Infinity ? '∞' : limits.monthlyAppointments}</span>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-lg text-amber-900 italic uppercase tracking-tight">
-                      {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia restante' : 'dias restantes'} (Total: 15 dias)
-                    </h4>
-                    <p className="text-sm text-amber-700/70 font-medium">Sua barbearia está em período experimental.</p>
+                  <div className="flex justify-between items-center text-xs font-medium">
+                    <span className="flex items-center gap-2"><Zap size={14} className="text-primary" /> Conexões WhatsApp</span>
+                    <span className="font-bold">{usage.whatsappConnections} / {limits.whatsappConnections === Infinity ? '∞' : limits.whatsappConnections}</span>
                   </div>
-                  <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-black uppercase italic tracking-widest shadow-xl shadow-amber-500/20 border-b-4 border-amber-700 transition-all hover:scale-[1.02] active:scale-95" asChild>
-                    <Link to="/subscription">Assinar Plano Profissional</Link>
-                  </Button>
-                </>
-              ) : plan === 'starter' || plan === 'pro' || plan === 'elite' ? (
-                <>
-                  <div className="flex justify-center mb-2">
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm shadow-emerald-500/5">
-                      <Crown className="w-3 h-3 text-emerald-600" />
-                      <span className="text-[10px] font-black italic text-emerald-700 tracking-tight uppercase">
-                        Status da Assinatura SaaS
-                      </span>
-                    </div>
-                  </div>
+                </div>
+              </div>
 
-                  <div className="flex justify-center mb-2">
-                    <div className="p-3 bg-emerald-100 rounded-full text-emerald-600 shadow-inner">
-                      <Check size={24} />
+              {/* Financial Tenant Stats */}
+              <div className="pt-4 border-t border-border grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <h4 className="text-[10px] font-bold uppercase text-purple-700 dark:text-purple-300">Créditos Clientes</h4>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                      <Wallet className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                     </div>
+                    <span className="text-base font-black text-purple-700 dark:text-purple-300">
+                      R$ {stats.total.customerCredits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-lg text-emerald-900 italic uppercase">Assinatura Ativa</h4>
-                    <p className="text-sm text-muted-foreground font-medium">Obrigado por utilizar o Barbex!</p>
-                  </div>
-                  <Button variant="outline" className="w-full h-11 rounded-xl font-black italic uppercase tracking-widest border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-all" asChild>
-                    <Link to="/subscription">Gerenciar Assinatura</Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  {trialDaysRemaining > 0 && (
-                    <div className="bg-gradient-to-br from-amber-500/10 to-yellow-500/10 border-2 border-amber-500/30 rounded-[2rem] p-5 flex flex-col items-center text-center gap-3 mb-6 shadow-lg shadow-amber-500/5 animate-in fade-in zoom-in duration-700">
-                      <div className="p-3 bg-amber-500 rounded-2xl text-white shadow-lg shadow-amber-500/40">
-                        <AlertCircle className="h-6 w-6" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700 leading-none mb-1">Aviso Prioritário</p>
-                        <h4 className="text-sm font-black text-amber-900 uppercase italic">Período Experimental Ativo</h4>
-                        <p className="text-xs font-bold text-amber-800/80 leading-relaxed">Você possui <span className="text-amber-600 underline decoration-amber-500/30 underline-offset-2">{trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia restante' : 'dias restantes'}</span> de um total de 15 dias para testar todas as funcionalidades premium.</p>
-                      </div>
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-[10px] font-bold uppercase text-orange-600 dark:text-amber-300">Cashback Total</h4>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                      <Gift className="w-3.5 h-3.5 text-orange-600 dark:text-amber-500" />
                     </div>
-                  )}
-                  <p className="text-sm font-black uppercase tracking-widest text-amber-600 italic">Precisando de mais recursos?</p>
-                  <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-black uppercase italic tracking-widest shadow-xl shadow-amber-500/20 border-b-4 border-amber-700 transition-all hover:scale-[1.02] active:scale-95" asChild>
-                    <Link to="/subscription">Ver Planos de Assinatura</Link>
-                  </Button>
-                </>
-              )}
+                    <span className="text-base font-black text-orange-600 dark:text-amber-300">
+                      R$ {stats.total.customerCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                variant="outline" 
+                className={cn(
+                  "w-full mt-2 font-black italic uppercase tracking-wider h-11 rounded-xl transition-all hover:scale-[1.02] active:scale-95",
+                  !isExpired ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50" : "border-red-200 text-red-700 hover:bg-red-50"
+                )} 
+                asChild
+              >
+                <Link to="/subscription">Gerenciar Assinatura</Link>
+              </Button>
             </CardContent>
           </Card>
         </div>
