@@ -1031,23 +1031,23 @@ function DashboardComponent() {
               {/* Financial Tenant Stats */}
               <div className="pt-4 border-t border-border grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase text-purple-700 dark:text-purple-400">Créditos Clientes</h4>
+                  <h4 className="text-[10px] font-bold uppercase text-purple-800 dark:text-purple-300">Créditos Clientes</h4>
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                      <Wallet className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                    <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg">
+                      <Wallet className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />
                     </div>
-                    <span className="text-base font-black text-purple-700 dark:text-purple-300">
+                    <span className="text-base font-black text-purple-900 dark:text-purple-100">
                       R$ {stats.total.customerCredits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase text-orange-600 dark:text-orange-400">Cashback Total</h4>
+                  <h4 className="text-[10px] font-bold uppercase text-orange-800 dark:text-orange-300">Cashback Total</h4>
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                      <Gift className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                    <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg">
+                      <Gift className="w-3.5 h-3.5 text-orange-700 dark:text-orange-400" />
                     </div>
-                    <span className="text-base font-black text-orange-600 dark:text-orange-300">
+                    <span className="text-base font-black text-orange-900 dark:text-orange-100">
                       R$ {stats.total.customerCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
