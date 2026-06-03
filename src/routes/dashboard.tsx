@@ -714,6 +714,17 @@ function DashboardComponent() {
         customerCashback: totalCashback
       }
     });
+
+    console.log('TENANT CARD DATA', {
+      tenantId,
+      plan: (profileData.data as any)?.plan || 'free',
+      appointmentsCount: monthlyApp.count || 0,
+      professionalsCount: barbersData.data?.length || 0,
+      servicesCount: totalServ.count || 0,
+      whatsappCount: 0, // Need to fetch this too if needed, but it's in usePlanLimits
+      totalCredits,
+      totalCashback
+    });
   }
 
   if (loading || !user) return null;
