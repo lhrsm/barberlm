@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { formatBrazilDate, formatBrazilTime, normalizePhone, formatAppointmentDateTimeForMessage } from "../_shared/utils.ts";
 import { sendMessage, getWhatsAppSettings } from "../_shared/whatsapp-settings.ts";
 import { AUTOMATION_STATES } from "../_shared/automation-engine.ts";
+import { handleGroupAppointmentCreated } from "./group-logic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -139,6 +140,11 @@ async function processWorkflowItem(supabase: any, item: any, workflow: any, even
   console.log(`[AutomationEngine] Processing event ${eventName} for entity ${entityId}`);
 
   if (eventName === 'appointment.created') {
+    // Check for group
+    const groupId = payload.appointment_group_id || event.payload?.appointment_group_id;
+    if (groupId) {
+      return await handleGroupAppointmentCreated(supabase, tenantId, groupId, payload, workflow, item.id);
+    }
     return await handleAppointmentCreated(supabase, tenantId, entityId, payload, workflow, item.id);
   }
   

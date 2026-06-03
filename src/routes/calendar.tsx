@@ -82,6 +82,20 @@ function getCalendarStatusConfig(status: string) {
     };
   }
 
+  if (['rescheduled', 'reagendado'].includes(normalized)) {
+    return {
+      label: 'Reagendado',
+      className: 'bg-purple-500 text-white border-purple-600'
+    };
+  }
+
+  if (['awaiting_payment'].includes(normalized)) {
+    return {
+      label: 'Pgto Pendente',
+      className: 'bg-amber-500 text-white border-amber-600'
+    };
+  }
+
   return {
     label: 'Pendente',
     className: 'bg-orange-500 text-white border-orange-600'

@@ -350,19 +350,33 @@ function DashboardComponent() {
     // Calculate new cashback earned (R$ 10 for every R$ 100 paid in new money)
     const cashbackEarned = Math.floor(remainingToPay / 100) * 10;
 
-    // 2. Update appointment status and financial details
-    const { error } = await supabase
-      .from("appointments")
-      .update({ 
-        status: 'completed',
+    // 2. Update appointment status and financial details using RPC
+    const { error } = await supabase.rpc('update_appointment_status', {
+      p_appointment_id: appointment.id,
+      p_new_status: 'completed',
+      p_changed_by_type: 'admin',
+      p_changed_by_id: user?.id || '',
+      p_source: 'dashboard',
+      p_metadata: {
         payment_status: 'paid',
         credit_used: usedCredits,
         cashback_used: usedCashback,
         cashback_earned: cashbackEarned,
         final_amount: remainingToPay,
         barbershop_amount: remainingToPay
-      })
-      .eq("id", appointment.id);
+      }
+    });
+
+    // Also update the row directly for standard fields not handled by metadata in update_appointment_status if needed
+    // Note: the RPC handles basic status and timestamps. Financial fields are better kept in metadata or separate updates.
+    await supabase.from("appointments").update({
+      payment_status: 'paid',
+      credit_used: usedCredits,
+      cashback_used: usedCashback,
+      cashback_earned: cashbackEarned,
+      final_amount: remainingToPay,
+      barbershop_amount: remainingToPay
+    }).eq("id", appointment.id);
 
     if (error) {
       toast.error("Erro ao concluir agendamento");
