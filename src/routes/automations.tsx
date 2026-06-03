@@ -407,7 +407,7 @@ function AutomationsComponent() {
           <Button 
             onClick={handleRunEngine} 
             disabled={isProcessing}
-            className="bg-purple-600 hover:bg-purple-700"
+            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold shadow-lg shadow-amber-500/20 border border-amber-400"
           >
             {isProcessing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
             Processar Fila Agora
@@ -417,13 +417,13 @@ function AutomationsComponent() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <ScrollArea className="w-full whitespace-nowrap">
             <TabsList className="inline-flex w-full justify-start border-b rounded-none bg-transparent h-12 p-0">
-              <TabsTrigger value="automations" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Automações</TabsTrigger>
-              <TabsTrigger value="queue" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Fila</TabsTrigger>
-              <TabsTrigger value="conversations" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Conversas</TabsTrigger>
-              <TabsTrigger value="logs" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Logs</TabsTrigger>
-              <TabsTrigger value="webhooks" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Webhooks</TabsTrigger>
-              <TabsTrigger value="tests" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Testes</TabsTrigger>
-              <TabsTrigger value="integrations" className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none bg-transparent">Integrações</TabsTrigger>
+              <TabsTrigger value="automations" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Automações</TabsTrigger>
+              <TabsTrigger value="queue" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Fila</TabsTrigger>
+              <TabsTrigger value="conversations" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Conversas</TabsTrigger>
+              <TabsTrigger value="logs" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Logs</TabsTrigger>
+              <TabsTrigger value="webhooks" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Webhooks</TabsTrigger>
+              <TabsTrigger value="tests" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Testes</TabsTrigger>
+              <TabsTrigger value="integrations" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Integrações</TabsTrigger>
             </TabsList>
           </ScrollArea>
           
