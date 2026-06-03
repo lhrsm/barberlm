@@ -512,10 +512,11 @@ Estamos te esperando na Barbearia LM.
   });
 
   // Final update of conversation
-  const { error: updateError } = await supabase.from("whatsapp_conversations")
+  const { error: updateError } = await supabase.from("conversation_sessions")
     .update({ 
-      state: nextState,
+      current_step: nextState,
       active: nextState !== AUTOMATION_STATES.COMPLETED && nextState !== AUTOMATION_STATES.EXPIRED,
+      status: (nextState === AUTOMATION_STATES.COMPLETED || nextState === AUTOMATION_STATES.EXPIRED) ? 'closed' : 'active',
       updated_at: new Date().toISOString()
     })
     .eq("id", conversation_id);
