@@ -145,7 +145,7 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
   if (!appointment.customers?.phone) throw new Error("Customer phone not found");
 
   const customer = appointment.customers;
-  const phone = customer.phone;
+  const phone = payload.force_phone || customer.phone;
 
   // 2. Generate Message (simplified for now, using workflow config or default)
   const template = workflow.configuration?.template || "Olá {customer_name}, seu agendamento para {service_name} com {barber_name} em {appointment_date} às {appointment_time} foi recebido!";
