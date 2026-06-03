@@ -318,7 +318,9 @@ export function AppointmentModal({
         original_total: service?.price || 0,
         status: "scheduled",
         payment_status: paymentStatus,
-        payment_method: paymentMethod === 'wallet' ? 'credits' : 'barbershop',
+        payment_method: paymentMethod === 'wallet' ? 'credits' : (paymentMethod || 'cash'),
+        credit_used: paymentMethod === 'wallet' ? (service?.price || 0) : 0,
+        final_amount: paymentMethod === 'wallet' ? 0 : (paymentStatus === 'paid' ? 0 : (service?.price || 0)),
         source: 'admin',
         items: [{
           id: selectedService,
@@ -361,6 +363,29 @@ export function AppointmentModal({
       const customer = customers.find(c => c.id === selectedCustomer);
       const barber = barbers.find(b => b.id === selectedBarber);
       const notificationMessage = `${customer?.name} agendou ${service?.name} às ${selectedTime}`;
+
+      // 2.5 Create Transaction if already paid
+      if (appointmentData.payment_status === 'paid' && Number(appointmentData.total_price || 0) > 0) {
+        const { data: existingTrans } = await supabase
+          .from("transactions")
+          .select("id")
+          .eq("appointment_id", appointmentData.id)
+          .maybeSingle();
+
+        if (!existingTrans) {
+          await supabase.from("transactions").insert([{
+            amount: Number(appointmentData.total_price || 0),
+            type: "income",
+            description: `Agendamento Admin (${appointmentData.payment_method?.toUpperCase()}): ${service?.name || 'Serviço'} - ${customer?.name || 'Cliente'}`,
+            category: "Serviço",
+            barber_id: appointmentData.barber_id,
+            appointment_id: appointmentData.id,
+            tenant_id: tenantId,
+            user_id: tenantId,
+            date: new Date().toISOString().split('T')[0]
+          }]);
+        }
+      }
       
       // Centralized notification for Barbershop and Barber
       await Promise.all([
@@ -564,7 +589,25 @@ export function AppointmentModal({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pending">Pendente (Pagar na Barbearia)</SelectItem>
-                          <SelectItem value="paid">Pago (PIX/Cartão/Dinheiro)</SelectItem>
+                          <SelectItem value="paid">Pago (Já recebido)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Forma de Pagamento</Label>
+                      <Select 
+                        value={paymentMethod} 
+                        onValueChange={setPaymentMethod}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a forma" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cash">Dinheiro</SelectItem>
+                          <SelectItem value="card">Cartão</SelectItem>
+                          <SelectItem value="pix">PIX</SelectItem>
+                          <SelectItem value="wallet">Créditos do Cliente</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

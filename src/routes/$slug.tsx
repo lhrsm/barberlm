@@ -972,6 +972,30 @@ function ShopPageComponent() {
         return res.data;
       });
 
+      // 2.5 Create Finance Transactions for Paid Appointments (e.g. PIX)
+      for (const appt of createdAppointments) {
+        if (appt.payment_status === 'paid' && (appt.payment_method === 'pix' || appt.payment_method === 'card' || appt.payment_method === 'barbershop')) {
+          const item = finalCart.find(i => i.service_id === appt.service_id);
+          const amount = appt.total_price || 0;
+          
+          if (amount > 0) {
+            console.log('DEBUG: Creating transaction for paid appointment', appt.id);
+            await supabase.from("transactions").insert([{
+              amount: amount,
+              type: "income",
+              description: `Agendamento Online (${appt.payment_method?.toUpperCase()}): ${item?.service_name || 'Serviço'} - ${customerName}`,
+              category: "Serviço",
+              barber_id: appt.barber_id,
+              appointment_id: appt.id,
+              tenant_id: shop.id,
+              user_id: shop.id,
+              date: new Date().toISOString().split('T')[0]
+            }]);
+          }
+        }
+      }
+
+
       // 3. Handle Product Sales if any
       if (selectedProducts.length > 0) {
         const totalProducts = selectedProducts.reduce((acc, p) => acc + (p.price * (p.quantity || 1)), 0);

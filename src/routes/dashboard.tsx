@@ -323,9 +323,9 @@ function DashboardComponent() {
     let usedCashback = Number(appointment.cashback_used || 0);
     let remainingToPay = Number(appointment.final_amount || totalPrice);
 
-    // If credits/cashback haven't been applied yet (e.g., manual completion by admin)
-    // Priority: 1. Cashback, 2. Credits
-    if (usedCredits === 0 && usedCashback === 0 && remainingToPay === totalPrice) {
+    // Determine how much credit and cashback will be used
+    // If it's already paid (e.g. via PIX online), we don't apply automatic deductions here
+    if (appointment.payment_status !== 'paid' && usedCredits === 0 && usedCashback === 0 && remainingToPay === totalPrice) {
       if (availableCashback > 0) {
         usedCashback = Math.min(availableCashback, remainingToPay);
         remainingToPay -= usedCashback;
@@ -335,14 +335,16 @@ function DashboardComponent() {
         remainingToPay -= usedCredits;
       }
 
-      // Deduct from customer wallet
-      await supabase
-        .from("customers")
-        .update({ 
-          credits: availableCredits - usedCredits,
-          cashback_balance: availableCashback - usedCashback
-        })
-        .eq("id", appointment.customer_id);
+      // Deduct from customer wallet if anything was used
+      if (usedCredits > 0 || usedCashback > 0) {
+        await supabase
+          .from("customers")
+          .update({ 
+            credits: availableCredits - usedCredits,
+            cashback_balance: availableCashback - usedCashback
+          })
+          .eq("id", appointment.customer_id);
+      }
     }
 
     // Calculate new cashback earned (R$ 10 for every R$ 100 paid in new money)
@@ -394,15 +396,19 @@ function DashboardComponent() {
       .maybeSingle();
 
     if (!existingTrans) {
+      // For transactions, we only record the actual money received (remainingToPay)
+      // If remainingToPay is 0 (fully paid by credits/cashback), we can still record it but it won't affect cash inflow stats
+      
       const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
       const cashbackText = usedCashback > 0 ? ` (Abatimento Cashback: R$ ${usedCashback.toFixed(2)})` : "";
       const deductionText = `${creditText}${cashbackText}`;
 
-      
       if (!tenantId) {
         toast.error("Tenant não identificado");
         return;
       }
+
+      console.log("DEBUG: Creating transaction on completion", { amount: remainingToPay, appointmentId: appointment.id });
 
       const { error: transError } = await supabase
         .from("transactions")
