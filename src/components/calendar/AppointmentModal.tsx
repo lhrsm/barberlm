@@ -359,6 +359,30 @@ export function AppointmentModal({
         appointmentData = data;
       }
 
+      // 2.5 Create Transaction if already paid
+      if (appointmentData.payment_status === 'paid' && appointmentData.total_price > 0) {
+        const { data: existingTrans } = await supabase
+          .from("transactions")
+          .select("id")
+          .eq("appointment_id", appointmentData.id)
+          .maybeSingle();
+
+        if (!existingTrans) {
+          await supabase.from("transactions").insert([{
+            amount: appointmentData.total_price,
+            type: "income",
+            description: `Agendamento Admin (${appointmentData.payment_method?.toUpperCase()}): ${service?.name || 'Serviço'} - ${customer?.name || 'Cliente'}`,
+            category: "Serviço",
+            barber_id: appointmentData.barber_id,
+            appointment_id: appointmentData.id,
+            tenant_id: tenantId,
+            user_id: tenantId,
+            date: new Date().toISOString().split('T')[0]
+          }]);
+        }
+      }
+
+
       // Notifications
       const customer = customers.find(c => c.id === selectedCustomer);
       const barber = barbers.find(b => b.id === selectedBarber);
