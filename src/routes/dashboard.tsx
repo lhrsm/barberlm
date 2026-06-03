@@ -1460,8 +1460,8 @@ function DashboardComponent() {
                                           .eq("id", app.customer_id);
                                       }
 
-                                      const result = await centralUpdateStatus(app.id, 'cancelled', {}, 'dashboard');
-                                      if (error) throw error;
+                                       const result = await centralUpdateStatus(app.id, 'cancelled', {}, 'dashboard');
+                                       if (!result.success) throw result.error;
 
                                       fetchTodayAppointments();
                                       fetchStats();
