@@ -180,12 +180,44 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
   let nextStep = 'completed';
   let actionExecuted = "confirm_appointment";
 
-  if (session.appointment_id) {
+  // Check for multiple pending appointments for this customer
+  const { data: appointments } = await supabase
+    .from("appointments")
+    .select("id, start_time, services(name)")
+    .eq("customer_id", session.customer_id)
+    .eq("status", "scheduled")
+    .order("start_time", { ascending: true });
+
+  if (appointments && appointments.length > 1) {
+    responseMessage = "Você possui mais de um agendamento pendente. Deseja confirmar todos ou um específico?";
+    nextStep = 'awaiting_confirm_scope';
+    actionExecuted = "multiple_appointments_found";
+    
+    // In a real scenario, we would send a button list with options:
+    // 1. Confirmar todos
+    // 2. Escolher um
+    await supabase.functions.invoke('automation-engine', {
+      body: { 
+        tenantId, 
+        action: 'send_message', 
+        phone: session.phone, 
+        message: responseMessage,
+        options: {
+          buttons: [
+            { id: "confirm_all", label: "Confirmar todos" },
+            { id: "choose_one", label: "Escolher um" }
+          ]
+        }
+      }
+    });
+  } else if (session.appointment_id || (appointments && appointments.length === 1)) {
+    const apptId = session.appointment_id || appointments?.[0]?.id;
+    
     // 1. Confirm the appointment
     const { error: updateError } = await supabase
       .from("appointments")
       .update({ status: 'confirmed' })
-      .eq("id", session.appointment_id);
+      .eq("id", apptId);
 
     if (updateError) {
       console.error(`[Z-API Webhook] Error updating appointment:`, updateError);
@@ -193,28 +225,36 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
     }
 
     responseMessage = "✅ Seu agendamento foi confirmado com sucesso! Te esperamos aqui.";
+    nextStep = 'completed';
+    
+    await supabase.functions.invoke('automation-engine', {
+      body: { 
+        tenantId, 
+        action: 'send_message', 
+        phone: session.phone, 
+        message: responseMessage 
+      }
+    });
   } else {
-    // Check if there are multiple appointments in context or for this customer
-    // For now, follow the simple 1-appointment logic as requested
-    responseMessage = "Seu agendamento foi processado com sucesso.";
+    responseMessage = "Não encontramos nenhum agendamento pendente para confirmar.";
+    nextStep = 'completed';
+    
+    await supabase.functions.invoke('automation-engine', {
+      body: { 
+        tenantId, 
+        action: 'send_message', 
+        phone: session.phone, 
+        message: responseMessage 
+      }
+    });
   }
 
   // Update session
   await supabase.from("conversation_sessions").update({
     current_step: nextStep,
-    status: 'closed',
+    status: nextStep === 'completed' ? 'closed' : 'active',
     updated_at: new Date().toISOString()
   }).eq("id", session.id);
-
-  // Send response via engine
-  await supabase.functions.invoke('automation-engine', {
-    body: { 
-      tenantId, 
-      action: 'send_message', 
-      phone: session.phone, 
-      message: responseMessage 
-    }
-  });
 
   // Log
   await supabase.from("automation_logs").insert({
