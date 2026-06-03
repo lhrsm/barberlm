@@ -64,10 +64,10 @@ function DashboardComponent() {
   const { tenantId, isLoading: tenantLoading } = useTenant();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { plan, usage, limits, trialDaysRemaining, isTrial, isExpired, subscription, refresh: refreshLimits } = usePlanLimits();
+  const { plan, usage, limits, trialDaysRemaining, isTrial, isExpired, subscription, refresh: refreshLimits, loading: planLoading } = usePlanLimits();
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status || '');
   const hasActiveSubscription = isSubscribed || subscription?.status === 'active';
-  const loading = authLoading || tenantLoading;
+  const loading = authLoading || tenantLoading || planLoading;
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
@@ -305,7 +305,7 @@ function DashboardComponent() {
     let usedCashback = Number(appointment.cashback_used || 0);
     let remainingToPay = Number(appointment.final_amount || totalPrice);
 
-    // Determine how much credit and cashback will be used
+    // Determine how much credit and cashback will be used if not already set
     if (appointment.payment_status !== 'paid' && usedCredits === 0 && usedCashback === 0 && remainingToPay === totalPrice) {
       if (availableCashback > 0) {
         usedCashback = Math.min(availableCashback, remainingToPay);
@@ -315,23 +315,11 @@ function DashboardComponent() {
         usedCredits = Math.min(availableCredits, remainingToPay);
         remainingToPay -= usedCredits;
       }
-
-      // Deduct from customer wallet if anything was used
-      if (usedCredits > 0 || usedCashback > 0) {
-        await supabase
-          .from("customers")
-          .update({ 
-            credits: availableCredits - usedCredits,
-            cashback_balance: availableCashback - usedCashback
-          })
-          .eq("id", appointment.customer_id);
-      }
     }
 
-    // Calculate new cashback earned (R$ 10 for every R$ 100 paid in new money)
-    const cashbackEarned = Math.floor(remainingToPay / 100) * 10;
-
-    // 2. Update appointment status and financial details using CENTRALIZED hook
+    // 2. Update status using CENTRALIZED RPC hook
+    // The RPC handled in useAppointmentStatus (complete_appointment) 
+    // already handles cashback and loyalty points calculation based on tenant settings
     const result = await centralUpdateStatus(
       appointment.id,
       'completed',
@@ -339,7 +327,6 @@ function DashboardComponent() {
         payment_status: 'paid',
         credit_used: usedCredits,
         cashback_used: usedCashback,
-        cashback_earned: cashbackEarned,
         final_amount: remainingToPay,
         barbershop_amount: remainingToPay
       },
@@ -348,36 +335,7 @@ function DashboardComponent() {
 
     if (!result.success) return;
 
-    // Update financial fields directly to ensure they are on the row
-    await supabase.from("appointments").update({
-      payment_status: 'paid',
-      credit_used: usedCredits,
-      cashback_used: usedCashback,
-      cashback_earned: cashbackEarned,
-      final_amount: remainingToPay,
-      barbershop_amount: remainingToPay
-    }).eq("id", appointment.id);
-
-    // 3. Increment loyalty points and cashback balance
-    if (appointment.customer_id) {
-      const currentPoints = customerData?.loyalty_points || 0;
-      const currentCashback = Number(customerData?.cashback_balance || 0);
-      
-      // If we deducted usedCashback above, we use the updated value
-      const baseCashback = (usedCredits === 0 && usedCashback === 0 && totalPrice === remainingToPay + usedCredits + usedCashback) 
-        ? availableCashback - usedCashback 
-        : currentCashback;
-
-      await supabase
-        .from("customers")
-        .update({ 
-          loyalty_points: currentPoints + 1,
-          cashback_balance: baseCashback + cashbackEarned
-        })
-        .eq("id", appointment.customer_id);
-    }
-
-    // 4. Create Financial Transaction
+    // 3. Create Financial Transaction if not already exists
     const { data: existingTrans } = await supabase
       .from("transactions")
       .select("id")
@@ -385,21 +343,13 @@ function DashboardComponent() {
       .maybeSingle();
 
     if (!existingTrans) {
-      // For transactions, we only record the actual money received (remainingToPay)
-      // If remainingToPay is 0 (fully paid by credits/cashback), we can still record it but it won't affect cash inflow stats
-      
       const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
       const cashbackText = usedCashback > 0 ? ` (Abatimento Cashback: R$ ${usedCashback.toFixed(2)})` : "";
       const deductionText = `${creditText}${cashbackText}`;
 
-      if (!tenantId) {
-        toast.error("Tenant não identificado");
-        return;
-      }
+      if (!tenantId) return;
 
-      console.log("DEBUG: Creating transaction on completion", { amount: remainingToPay, appointmentId: appointment.id });
-
-      const { error: transError } = await supabase
+      await supabase
         .from("transactions")
         .insert([{
           amount: remainingToPay,
@@ -413,25 +363,11 @@ function DashboardComponent() {
           date: new Date().toISOString().split('T')[0],
           time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
         }]);
-      
-      if (transError) console.error("Error creating transaction:", transError);
     }
 
     toast.success("Serviço concluído e registrado no financeiro!");
     fetchTodayAppointments();
     fetchStats();
-
-    // Invalidate queries for other views
-    const queryClient = (window as any).queryClient;
-    if (queryClient) {
-      queryClient.invalidateQueries({ queryKey: ["appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-    }
   }
 
   async function togglePaymentStatus(appointment: any) {
@@ -1000,24 +936,24 @@ function DashboardComponent() {
                   <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400">Créditos</span>
+                  <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400">Créditos</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-lg font-black leading-none text-purple-700 dark:text-purple-300">
+                    <span className="text-lg font-black leading-none text-purple-800 dark:text-purple-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
                     </span>
                   </div>
-                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400 w-fit">
+                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg text-purple-700 dark:text-purple-300 w-fit">
                     <Wallet size={12} />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-orange-600 dark:text-orange-400">Cashback</span>
+                  <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Cashback</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-lg font-black leading-none text-orange-700 dark:text-orange-300">
+                    <span className="text-lg font-black leading-none text-orange-800 dark:text-orange-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
                     </span>
                   </div>
-                  <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400 w-fit">
+                  <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg text-orange-700 dark:text-orange-300 w-fit">
                     <Gift size={12} />
                   </div>
                 </div>
@@ -1095,23 +1031,23 @@ function DashboardComponent() {
               {/* Financial Tenant Stats */}
               <div className="pt-4 border-t border-border grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase text-purple-700 dark:text-purple-400">Créditos Clientes</h4>
+                  <h4 className="text-[10px] font-bold uppercase text-purple-800 dark:text-purple-300">Créditos Clientes</h4>
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                      <Wallet className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                    <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg">
+                      <Wallet className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />
                     </div>
-                    <span className="text-base font-black text-purple-700 dark:text-purple-300">
+                    <span className="text-base font-black text-purple-900 dark:text-purple-100">
                       R$ {stats.total.customerCredits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase text-orange-600 dark:text-orange-400">Cashback Total</h4>
+                  <h4 className="text-[10px] font-bold uppercase text-orange-800 dark:text-orange-300">Cashback Total</h4>
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                      <Gift className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                    <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg">
+                      <Gift className="w-3.5 h-3.5 text-orange-700 dark:text-orange-400" />
                     </div>
-                    <span className="text-base font-black text-orange-600 dark:text-orange-300">
+                    <span className="text-base font-black text-orange-900 dark:text-orange-100">
                       R$ {stats.total.customerCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
