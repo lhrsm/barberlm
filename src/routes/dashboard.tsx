@@ -1183,6 +1183,21 @@ function DashboardComponent() {
                     />
                   </PopoverContent>
                 </Popover>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={() => {
+                    fetchStats();
+                    fetchTodayAppointments();
+                    fetchNotifications();
+                    fetchBirthdayCustomers();
+                    toast.success("Dados do dashboard atualizados!");
+                  }}
+                >
+                  <RefreshCcw size={14} />
+                  Recalcular Dashboard
+                </Button>
               </div>
               <div className="flex gap-2">
                 <Button 
