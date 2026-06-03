@@ -1424,26 +1424,6 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                   </div>
                 )}
 
-                <div className="space-y-1">
-                  <p className="text-slate-500 uppercase text-[9px] font-bold">Resposta Completa Z-API</p>
-                  <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-48">
-                    {JSON.stringify(lastWebhookCall.result, null, 2)}
-                  </pre>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[8px] opacity-60">
-                   <div>
-                      <p className="uppercase font-bold">Instância</p>
-                      <p>{instance?.instance_id}</p>
-                   </div>
-                   <div>
-                      <p className="uppercase font-bold">Client Token</p>
-                      <p>{maskTokenDisplay(instance?.client_token)}</p>
-                   </div>
-                </div>
-              </div>
-            )}
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <p className="text-[9px] text-slate-500 uppercase font-bold">Headers (Mascarados)</p>
@@ -1460,10 +1440,21 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-[9px] text-slate-500 uppercase font-bold">Resposta Completa da Z-API</p>
-                  <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-40">
-                    {JSON.stringify(lastWebhookCall.result || lastWebhookCall.results, null, 2)}
+                  <p className="text-slate-500 uppercase text-[9px] font-bold">Resposta Completa Z-API</p>
+                  <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-48">
+                    {JSON.stringify(lastWebhookCall.result, null, 2)}
                   </pre>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[8px] opacity-60">
+                   <div>
+                      <p className="uppercase font-bold">Instância</p>
+                      <p>{instance?.instance_id}</p>
+                   </div>
+                   <div>
+                      <p className="uppercase font-bold">Client Token</p>
+                      <p>{maskTokenDisplay(instance?.client_token)}</p>
+                   </div>
                 </div>
 
                 {!isZApiSuccess(lastWebhookCall) ? (
