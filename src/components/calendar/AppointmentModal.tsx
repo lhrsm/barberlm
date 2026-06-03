@@ -191,7 +191,7 @@ export function AppointmentModal({
       .from("appointments")
       .select("id, start_time, end_time, status")
       .eq("barber_id", barberId)
-      .in("status", ["scheduled", "confirmed", "in_progress"])
+      .in("status", ["scheduled", "confirmed", "in_progress", "awaiting_payment"])
       .lt("start_time", endIso)
       .gt("end_time", startIso);
 

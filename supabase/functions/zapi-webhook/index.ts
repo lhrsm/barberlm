@@ -528,8 +528,13 @@ async function handleCancel(supabase: any, session: any, tenantId: string, optio
   // 1. Initial Cancel Request (main_cancel)
   if (option.includes('main_cancel') || option === 'cancelar') {
     const isPaid = appointment.payment_status === 'paid';
-    const isPix = (appointment.payment_method === 'pix' || appointment.payment_method === 'PIX');
+    const paymentMethod = (appointment.payment_method || '').toLowerCase();
+    const isPix = (paymentMethod === 'pix');
     const hasCredits = (appointment.credit_used || 0) > 0;
+    
+    // local payment methods: pay_at_shop, local, cash_on_site, pagar_na_barbearia, barbershop, in_person, cash
+    const localPaymentMethods = ['pay_at_shop', 'local', 'cash_on_site', 'pagar_na_barbearia', 'barbershop', 'in_person', 'cash'];
+    const isLocalPayment = localPaymentMethods.includes(paymentMethod) || !isPaid;
 
     if (isPix && isPaid) {
       // Case PIX Paid: Ask for Refund or Credit
@@ -549,7 +554,7 @@ async function handleCancel(supabase: any, session: any, tenantId: string, optio
       }).eq("id", session.id);
 
       return { success: true };
-    } else if (hasCredits) {
+    } else if (hasCredits && !isLocalPayment) {
       // Case Credits: Ask for Confirmation
       const message = `Tem certeza que deseja cancelar? O valor de R$ ${appointment.credit_used} será devolvido aos seus créditos.`;
       const buttons = [
@@ -568,7 +573,7 @@ async function handleCancel(supabase: any, session: any, tenantId: string, optio
 
       return { success: true };
     } else {
-      // Case Normal: Ask for Confirmation
+      // Case Local Payment or Unpaid: Direct Confirmation
       const message = `Tem certeza que deseja cancelar seu agendamento para ${appointment.services?.name}?`;
       const buttons = [
         { id: "cancel_confirm", label: "Sim, cancelar" },

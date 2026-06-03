@@ -68,7 +68,8 @@ export function useAppointmentStatus() {
         ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
         ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
         ['admin-dashboard'], ['professional-dashboard'], ['professional-appointments'],
-        ['credits'], ['finances']
+        ['credits'], ['finances'], ['financial-dashboard'], ['customer-portal'],
+        ['barber-dashboard'], ['customer-appointments']
       ];
 
       queryKeys.forEach(key => {
