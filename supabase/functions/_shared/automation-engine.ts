@@ -771,7 +771,7 @@ export async function processAutomationDispatches(
           apptGroup.forEach((appt, i) => {
             const { date: dateStr, time: timeStr } = formatAppointmentDateTimeForMessage(appt);
             console.log(`[AutomationEngine] Formatting group item ${i}: ${appt.start_time} -> ${timeStr}`);
-            appointmentsList += `${i + 1}️⃣ ${appt.services?.name}\n💈 ${appt.barbers?.name}\n📅 ${dateStr}\n⏰ ${timeStr}\n\n`;
+            appointmentsList += `${i + 1}️⃣ Serviço: ${appt.services?.name}\n💈 Profissional: ${appt.barbers?.name}\n📅 Data: ${dateStr}\n⏰ Horário: ${timeStr}\n\n`;
           });
 
 
