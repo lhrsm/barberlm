@@ -650,10 +650,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         webhookApplied: newWebhookUrl
       });
       
-      if (res2.data.success && res2.data.result?.value === true) {
+      if (isZApiSuccess(res2.data)) {
         toast.success("Nova URL configurada com sucesso em todos os eventos!");
       } else {
-        toast.error("Falha ao configurar nova URL na Z-API");
+        const errorMsg = res2.data?.result?.message || res2.data?.error || "Falha ao configurar nova URL na Z-API";
+        toast.error("Erro: " + errorMsg);
       }
       
       await fetchIntegrationLogs();
