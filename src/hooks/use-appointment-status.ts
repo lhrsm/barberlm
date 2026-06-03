@@ -16,35 +16,34 @@ export function useAppointmentStatus() {
       
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Validação básica de status permitidos
-      const allowedStatus = [
-        'scheduled', 'confirmed', 'completed', 'cancelled', 
-        'rescheduled', 'awaiting_payment', 'no_show', 'pending', 'in_progress'
-      ];
+      let result;
       
-      if (!allowedStatus.includes(newStatus)) {
-        console.warn('STATUS_NOT_IN_STANDARD_LIST', newStatus);
-      }
-
-      const { error } = await supabase.rpc('update_appointment_status', {
-        p_appointment_id: appointmentId,
-        p_new_status: newStatus,
-        p_changed_by_type: 'admin',
-        p_changed_by_id: user?.id || undefined, // Usar undefined para bater com o tipo gerado
-        p_source: source,
-        p_metadata: metadata
-      });
-
-      if (error) {
-        console.error('APPOINTMENT_STATUS_UPDATE_ERROR', {
-          appointmentId,
-          newStatus,
-          error
+      if (newStatus === 'cancelled') {
+        const { data, error } = await supabase.rpc('cancel_appointment', {
+          p_appointment_id: appointmentId,
+          p_cancelled_by: source.includes('portal') ? 'customer' : 'admin',
+          p_source: source,
+          p_refund_preference: metadata.refund_preference || 'none',
+          p_changed_by_id: user?.id || undefined
         });
-        throw error;
+        
+        if (error) throw error;
+        result = data as any;
+      } else {
+        const { data, error } = await supabase.rpc('update_appointment_status', {
+          p_appointment_id: appointmentId,
+          p_new_status: newStatus,
+          p_changed_by_type: source.includes('portal') ? 'customer' : 'admin',
+          p_changed_by_id: user?.id || undefined,
+          p_source: source,
+          p_metadata: metadata
+        });
+        
+        if (error) throw error;
+        result = data as any;
       }
 
-      console.log('APPOINTMENT_STATUS_UPDATE_SUCCESS', { appointmentId, newStatus });
+      console.log('APPOINTMENT_STATUS_UPDATE_SUCCESS', { appointmentId, newStatus, result });
       
       const statusLabels: Record<string, string> = {
         confirmed: "confirmado",
@@ -55,25 +54,18 @@ export function useAppointmentStatus() {
 
       toast.success(`Agendamento ${statusLabels[newStatus] || newStatus} com sucesso!`);
       
-      // Invalidação agressiva de cache para garantir sincronização entre painéis
       const queryKeys = [
-        ['appointments'],
-        ['calendar'],
-        ['dashboard'],
-        ['customerAppointments'],
-        ['calendar-appointments'],
-        ['dashboard-appointments'],
-        ['admin-stats'],
-        ['admin-dashboard'],
-        ['professional-dashboard'],
-        ['professional-appointments']
+        ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
+        ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
+        ['admin-dashboard'], ['professional-dashboard'], ['professional-appointments'],
+        ['credits'], ['finances']
       ];
 
       queryKeys.forEach(key => {
         queryClient.invalidateQueries({ queryKey: key });
       });
       
-      return { success: true };
+      return { success: true, ...(typeof result === 'object' ? result : {}) };
     } catch (error: any) {
       console.error('APPOINTMENT_STATUS_UPDATE_FATAL', error);
       toast.error(error.message || "Erro ao atualizar status do agendamento");

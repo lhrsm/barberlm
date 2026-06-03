@@ -1245,6 +1245,61 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          appointment_id: string | null
+          created_at: string
+          customer_id: string
+          description: string | null
+          id: string
+          tenant_id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          appointment_id?: string | null
+          created_at?: string
+          customer_id: string
+          description?: string | null
+          id?: string
+          tenant_id: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string | null
+          created_at?: string
+          customer_id?: string
+          description?: string | null
+          id?: string
+          tenant_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_transactions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "credit_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           avatar_url: string | null
@@ -2115,6 +2170,70 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      refund_requests: {
+        Row: {
+          amount: number
+          appointment_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          notes: string | null
+          payment_method: string
+          processed_at: string | null
+          requested_at: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          amount: number
+          appointment_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          notes?: string | null
+          payment_method: string
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refund_requests_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refund_requests_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "refund_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
         ]
@@ -3253,6 +3372,16 @@ export type Database = {
       }
     }
     Functions: {
+      cancel_appointment: {
+        Args: {
+          p_appointment_id: string
+          p_cancelled_by: string
+          p_changed_by_id?: string
+          p_refund_preference?: string
+          p_source: string
+        }
+        Returns: Json
+      }
       cancel_appointment_by_token:
         | {
             Args: { token_val: string }
@@ -3340,7 +3469,7 @@ export type Database = {
           p_new_status: string
           p_source?: string
         }
-        Returns: undefined
+        Returns: Json
       }
     }
     Enums: {
