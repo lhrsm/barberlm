@@ -942,7 +942,52 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </TabsContent>
           
           <TabsContent value="logs" className="pt-4">
-            <div className="space-y-2">
+              <div className="space-y-4">
+                <div className="bg-slate-900/50 p-4 rounded-lg border border-white/5 space-y-4">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status do Webhook na Z-API</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-slate-500">URL Configurada no Sistema</p>
+                      <div className="bg-black/40 p-2 rounded text-[10px] font-mono truncate text-blue-300">
+                        {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-webhook/${tenantId}`}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-slate-500">Eventos Habilitados</p>
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">ReceivedCallback</Badge>
+                        <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">ButtonResponse</Badge>
+                        <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">ListResponse</Badge>
+                        <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">MessageStatus</Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {lastReceivedConfig && (
+                    <div className="space-y-2 pt-2 border-t border-white/5">
+                      <p className="text-[10px] text-emerald-400 font-bold uppercase">Último Retorno da Z-API (Webhook)</p>
+                      <pre className="bg-black/30 p-2 rounded font-mono text-[9px] overflow-auto max-h-32 text-emerald-300/70">
+                        {JSON.stringify(lastReceivedConfig, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={reconfigureWebhook} 
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 h-9 text-xs"
+                    disabled={isConfiguring}
+                  >
+                    {isConfiguring ? <Loader2 className="animate-spin mr-2" size={14} /> : <RefreshCw className="mr-2" size={14} />}
+                    Forçar Reconfiguração de Webhooks
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
               {logs.map((log, i) => (
                 <div key={i} className="text-xs p-2 border border-white/5 rounded bg-black/20 flex justify-between">
                   <span>{log.message_type} - {log.phone}</span>
