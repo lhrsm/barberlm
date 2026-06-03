@@ -1330,6 +1330,54 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               )}
             </div>
 
+            {callbackResult && (
+              <div className={cn(
+                "p-4 rounded-xl border space-y-3",
+                callbackResult.received ? "bg-emerald-500/5 border-emerald-500/20" : "bg-red-500/5 border-red-500/20"
+              )}>
+                <div className="flex items-center justify-between">
+                  <h3 className={cn(
+                    "text-sm font-bold flex items-center gap-2",
+                    callbackResult.received ? "text-emerald-400" : "text-red-400"
+                  )}>
+                    {callbackResult.received ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                    {callbackResult.received ? "Callback Recebido!" : "Callback não recebido"}
+                  </h3>
+                  <Badge className={callbackResult.received ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
+                    {callbackResult.received ? "SUCESSO" : "FALHA"}
+                  </Badge>
+                </div>
+
+                {callbackResult.received ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px]">
+                    <div className="bg-black/20 p-2 rounded border border-white/5">
+                      <p className="text-slate-500 uppercase font-bold mb-1">Horário</p>
+                      <p>{new Date(callbackResult.time || "").toLocaleString()}</p>
+                    </div>
+                    <div className="bg-black/20 p-2 rounded border border-white/5">
+                      <p className="text-slate-500 uppercase font-bold mb-1">Botão Clicado</p>
+                      <p className="font-mono text-emerald-400 font-bold">{callbackResult.buttonId}</p>
+                    </div>
+                    <div className="bg-black/20 p-2 rounded border border-white/5">
+                      <p className="text-slate-500 uppercase font-bold mb-1">Telefone</p>
+                      <p className="font-mono">{callbackResult.phone}</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-3">
+                      <p className="text-slate-500 uppercase text-[9px] font-bold mb-1">Payload Completo</p>
+                      <pre className="bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-32 text-[9px]">
+                        {JSON.stringify(callbackResult.payload, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-red-300/80">
+                    A mensagem foi enviada, mas o servidor não detectou nenhum clique no botão nos últimos 30 segundos. 
+                    Certifique-se de que clicou no botão "Confirmar agendamento" no WhatsApp.
+                  </p>
+                )}
+              </div>
+            )}
+
             {lastWebhookCall && (
               <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
