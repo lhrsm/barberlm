@@ -970,6 +970,8 @@ function ShopPageComponent() {
           throw res.error;
         }
         return res.data;
+      });
+
       // 2.5 Create Finance Transactions for Paid Appointments (e.g. PIX)
       for (const appt of createdAppointments) {
         if (appt.payment_status === 'paid' && (appt.payment_method === 'pix' || appt.payment_method === 'card' || appt.payment_method === 'barbershop')) {
