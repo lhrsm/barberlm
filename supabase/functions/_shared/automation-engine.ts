@@ -51,37 +51,63 @@ export async function handleAutomationWhatsappResponse(
   }
 
   const groupId = conversation.appointment_group_id;
+  const appointmentId = conversation.appointment_id;
   
-  // Get appointments for this group or conversation
-  let appointmentsQuery = supabase
-    .from("appointments")
-    .select("*, services(name)");
+  // Get appointments for this group or conversation - STRICT RULE
+  let appointments: any[] = [];
+  let queryUsed = "";
 
   if (groupId) {
-    appointmentsQuery = appointmentsQuery.eq("appointment_group_id", groupId);
+    const { data, error: groupError } = await supabase
+      .from("appointments")
+      .select("*, services(name), barbers(name)")
+      .eq("appointment_group_id", groupId)
+      .order("start_time", { ascending: true });
+    
+    if (groupError) console.error("[AutomationEngine] Error fetching group appointments:", groupError);
+    appointments = data || [];
+    queryUsed = `appointment_group_id: ${groupId}`;
+  } else if (appointmentId) {
+    const { data, error: idError } = await supabase
+      .from("appointments")
+      .select("*, services(name), barbers(name)")
+      .eq("id", appointmentId);
+    
+    if (idError) console.error("[AutomationEngine] Error fetching single appointment:", idError);
+    appointments = data || [];
+    queryUsed = `appointment_id: ${appointmentId}`;
   } else {
-    // If no group, get the specific appointment from the conversation or recent pending ones for this customer
-    if (conversation.appointment_id) {
-      appointmentsQuery = appointmentsQuery.eq("id", conversation.appointment_id);
-    } else {
-      appointmentsQuery = appointmentsQuery
-        .eq("customer_id", conversation.customer_id)
-        .in("status", ['scheduled', 'pending', 'awaiting_payment', 'confirmed'])
-        .order("start_time", { ascending: true });
-    }
+    console.error("[AutomationEngine] Session without appointment reference for ID:", conversation_id);
+    await supabase.from("automation_logs").insert({
+      tenant_id,
+      session_id: conversation_id,
+      event_name: 'error.session_without_reference',
+      status: "error",
+      message: "Sessão sem referência de agendamento ou grupo.",
+      error_details: JSON.stringify({ phone, conversation_id })
+    });
+    return null;
   }
 
-  const { data: appointments } = await appointmentsQuery;
+  const isMultiple = appointments.length > 1;
+  const appointmentIds = appointments.map(a => a.id);
 
-
-  const isMultiple = appointments && appointments.length > 1;
-  const appointmentIds = appointments?.map(a => a.id) || [];
+  console.log(`[AutomationEngine] LOG:
+    session_id: ${conversation_id}
+    phone: ${phone}
+    appointment_id: ${appointmentId}
+    appointment_group_id: ${groupId}
+    appointments_loaded: ${JSON.stringify(appointmentIds)}
+    appointments_count: ${appointments.length}
+    isMultiple: ${isMultiple}
+    query_used: ${queryUsed}`);
 
   let nextState = current_state;
   let messageToSend = "";
   let actionExecuted = "";
   let selectedOptionNormalized = option_id;
   let buttons: any[] | undefined = undefined;
+
 
 
   // Normalize and Map options
