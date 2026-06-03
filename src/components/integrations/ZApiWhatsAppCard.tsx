@@ -358,10 +358,17 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       const { data, error } = await supabase.functions.invoke('zapi-api', { body: { action: 'set-webhook', instanceId: instance.id, data: { webhookUrl } } });
       if (error) throw error;
       setLastWebhookCall(data);
-      if (isZApiSuccess(data)) toast.success("Webhook configurado!");
-      else toast.error("Falha na configuração");
+      if (isZApiSuccess(data)) {
+        if (data.allCompatible) {
+          toast.success("Webhooks configurados com sucesso!");
+        } else {
+          toast.success("Webhook principal configurado! Alguns opcionais não são suportados nesta versão da Z-API.");
+        }
+      } else {
+        toast.error("Falha na configuração do webhook");
+      }
       await fetchInstance();
-    } catch (err: any) { toast.error("Erro"); }
+    } catch (err: any) { toast.error("Erro na reconfiguração"); }
     finally { setIsConfiguring(false); }
   }
 
