@@ -461,7 +461,9 @@ function AutomationsComponent() {
                 Nenhuma automação configurada.
               </div>
             )}
+            </div>
           </TabsContent>
+
 
           {/* ABA 2: FILA */}
           <TabsContent value="queue" className="space-y-4">
