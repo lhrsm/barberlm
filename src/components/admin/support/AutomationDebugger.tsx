@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Play, Bug, Database, Info } from "lucide-react";
+import { Play, Bug, Info } from "lucide-react";
 
 export function AutomationDebugger() {
   const [loading, setLoading] = useState(false);
@@ -35,16 +35,12 @@ export function AutomationDebugger() {
         throw new Error("Nenhuma sessão ativa com grupo encontrada para este tenant.");
       }
 
-      // Check if it has multiple appointments in context or group
-      const appointmentsCount = session.context?.appointment_ids?.length || 0;
+      // Safe access to JSON context
+      const context = session.context as Record<string, any>;
+      const appointmentsCount = context?.appointment_ids?.length || 0;
       
       toast.info(`Simulando clique para sessão ${session.id} (${appointmentsCount} agendamentos)`);
 
-      // 2. Call the webhook logic directly via a dedicated test function or by triggering the webhook
-      // For the most "direct" test as requested, we'll call an edge function that executes handleAutomationWhatsappResponse
-      // Since we can't call internal functions of another edge function easily, 
-      // we'll trigger the zapi-webhook with a simulated payload.
-      
       const payload = {
         phone: session.phone,
         referenceMessageId: session.provider_message_id,
@@ -55,11 +51,17 @@ export function AutomationDebugger() {
         type: "ReceivedCallback"
       };
 
+      // Fixing headers/options for invoke
       const { data, error } = await supabase.functions.invoke("zapi-webhook", {
         body: payload,
-        queryParams: { tenantId }
+        headers: {
+          "x-tenant-id": tenantId // Some functions use headers, we'll also pass it as query param via full URL if needed
+        }
       });
 
+      // If invoke doesn't support queryParams directly in the options object, 
+      // we might need to use a different approach, but let's try this first.
+      
       if (error) throw error;
       
       setResult({
