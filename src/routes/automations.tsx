@@ -237,9 +237,10 @@ function AutomationsComponent() {
                           </td>
                           <td className="px-4 py-3 text-center">{item.attempts}</td>
                           <td className="px-4 py-3 text-muted-foreground">
-                            {new Date(item.scheduled_for).toLocaleString('pt-BR')}
+                            {item.scheduled_for ? new Date(item.scheduled_for).toLocaleString('pt-BR') : '-'}
                           </td>
                         </tr>
+
                       ))}
                     </tbody>
                   </table>
