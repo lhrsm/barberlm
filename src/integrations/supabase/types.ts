@@ -82,6 +82,57 @@ export type Database = {
           },
         ]
       }
+      appointment_status_logs: {
+        Row: {
+          appointment_id: string
+          changed_by_id: string | null
+          changed_by_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          new_status: string
+          old_status: string | null
+          source: string
+        }
+        Insert: {
+          appointment_id: string
+          changed_by_id?: string | null
+          changed_by_type: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          new_status: string
+          old_status?: string | null
+          source: string
+        }
+        Update: {
+          appointment_id?: string
+          changed_by_id?: string | null
+          changed_by_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          new_status?: string
+          old_status?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_status_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_status_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           appointment_group_id: string | null
@@ -3261,6 +3312,17 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      update_appointment_status: {
+        Args: {
+          p_appointment_id: string
+          p_changed_by_id: string
+          p_changed_by_type: string
+          p_metadata?: Json
+          p_new_status: string
+          p_source: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
