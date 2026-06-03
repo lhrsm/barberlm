@@ -652,10 +652,10 @@ function DashboardComponent() {
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", monthStart).lte("start_time", monthEnd),
-      supabase.from("customers").select("credit_balance, cashback_balance").eq("tenant_id", tenantId)
+      supabase.from("customers").select("credits, cashback_balance").eq("tenant_id", tenantId)
     ]);
 
-    const totalCredits = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.credit_balance || 0), 0) || 0;
+    const totalCredits = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.credits || 0), 0) || 0;
     const totalCashback = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_balance || 0), 0) || 0;
 
     setBarbers(barbersData.data || []);
@@ -908,7 +908,7 @@ function DashboardComponent() {
         )}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mb-6">
-          <Card className="col-span-4 bg-white border-2 border-amber-500/20 shadow-lg shadow-amber-500/5 relative overflow-hidden group">
+          <Card className="col-span-4 bg-card border-2 border-amber-500/20 shadow-lg shadow-amber-500/5 relative overflow-hidden group">
             {/* Glow sutil no fundo */}
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-500" />
             
@@ -916,12 +916,12 @@ function DashboardComponent() {
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <div className="flex items-center flex-wrap gap-2">
-                    <CardTitle className="text-xl font-black italic tracking-tight text-amber-900">
+                    <CardTitle className="text-xl font-black italic tracking-tight text-amber-600 dark:text-amber-500">
                       Plano {plan === 'free' ? 'Teste Grátis' : plan.charAt(0).toUpperCase() + plan.slice(1)}
                     </CardTitle>
                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
                       <Crown className="w-3 h-3 text-amber-600" />
-                      <span className="text-[10px] font-black italic text-amber-700 tracking-tight uppercase">
+                      <span className="text-[10px] font-black italic text-amber-700 dark:text-amber-400 tracking-tight uppercase">
                         Status da Assinatura SaaS
                       </span>
                     </div>
@@ -939,12 +939,12 @@ function DashboardComponent() {
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="font-bold text-amber-900/40 text-[11px] tracking-wide uppercase italic">
+                  <CardDescription className="font-bold text-muted-foreground text-[11px] tracking-wide uppercase italic">
                     Gerencie os recursos e limites da sua barbearia
                   </CardDescription>
                 </div>
-                <div className="p-2 rounded-xl bg-amber-50 flex items-center justify-center">
-                  {plan === 'elite' ? <Rocket className="w-5 h-5 text-amber-600" /> : 
+                <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center border border-amber-100 dark:border-amber-800/30">
+                  {plan === 'elite' ? <Rocket className="w-5 h-5 text-amber-600 animate-bounce-slow" /> : 
                    plan === 'pro' ? <Crown className="w-5 h-5 text-amber-500" /> : 
                    <Zap className="w-5 h-5 text-amber-500" />}
                 </div>
@@ -953,12 +953,12 @@ function DashboardComponent() {
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-amber-900/40 italic">Profissionais</span>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground italic">Profissionais</span>
                   <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none text-amber-900">{usage.barbers}</span>
-                    <span className="text-[10px] text-amber-600/60 font-bold">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
+                    <span className="text-lg font-black leading-none text-foreground">{usage.barbers}</span>
+                    <span className="text-[10px] text-muted-foreground font-bold">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
                   </div>
-                  <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
                       style={{ width: `${limits.barbers === Infinity ? 100 : Math.min((usage.barbers / limits.barbers) * 100, 100)}%` }}
@@ -966,12 +966,12 @@ function DashboardComponent() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-amber-900/40 italic">Serviços</span>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground italic">Serviços</span>
                   <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none text-amber-900">{usage.services}</span>
-                    <span className="text-[10px] text-amber-600/60 font-bold">/ {limits.services === Infinity ? "∞" : limits.services}</span>
+                    <span className="text-lg font-black leading-none text-foreground">{usage.services}</span>
+                    <span className="text-[10px] text-muted-foreground font-bold">/ {limits.services === Infinity ? "∞" : limits.services}</span>
                   </div>
-                  <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
                       style={{ width: `${limits.services === Infinity ? 100 : Math.min((usage.services / limits.services) * 100, 100)}%` }}
@@ -979,12 +979,12 @@ function DashboardComponent() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-amber-900/40 italic">Agendamentos</span>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground italic">Agendamentos</span>
                   <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none text-amber-900">{usage.monthlyAppointments}</span>
-                    <span className="text-[10px] text-amber-600/60 font-bold">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
+                    <span className="text-lg font-black leading-none text-foreground">{usage.monthlyAppointments}</span>
+                    <span className="text-[10px] text-muted-foreground font-bold">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
                   </div>
-                  <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000 ease-out" 
                       style={{ width: `${limits.monthlyAppointments === Infinity ? 100 : Math.min((usage.monthlyAppointments / limits.monthlyAppointments) * 100, 100)}%` }}
@@ -994,30 +994,30 @@ function DashboardComponent() {
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground">WhatsApp</span>
                   <div className="flex items-end gap-1">
-                    <span className="text-lg font-bold leading-none">{usage.whatsappConnections}</span>
+                    <span className="text-lg font-black leading-none text-foreground">{usage.whatsappConnections}</span>
                     <span className="text-[10px] text-muted-foreground">/ {limits.whatsappConnections === Infinity ? "∞" : limits.whatsappConnections}</span>
                   </div>
                   <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Créditos</span>
+                  <span className="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400">Créditos</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-lg font-bold leading-none">
+                    <span className="text-lg font-black leading-none text-purple-700 dark:text-purple-300">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
                     </span>
                   </div>
-                  <div className="p-1.5 bg-purple-100 rounded-lg text-purple-600 w-fit">
+                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400 w-fit">
                     <Wallet size={12} />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Cashback</span>
+                  <span className="text-[10px] uppercase font-bold text-orange-600 dark:text-orange-400">Cashback</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-lg font-bold leading-none">
+                    <span className="text-lg font-black leading-none text-orange-700 dark:text-orange-300">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
                     </span>
                   </div>
-                  <div className="p-1.5 bg-orange-100 rounded-lg text-orange-600 w-fit">
+                  <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400 w-fit">
                     <Gift size={12} />
                   </div>
                 </div>
@@ -1026,10 +1026,10 @@ function DashboardComponent() {
           </Card>
           
           <Card className={cn(
-            "col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group",
+            "col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group bg-card",
             !isExpired 
-              ? "bg-white border-emerald-500/30 shadow-2xl shadow-emerald-500/10"
-              : "bg-white border-red-500/30 shadow-2xl shadow-red-500/10"
+              ? "border-emerald-500/30 shadow-2xl shadow-emerald-500/10"
+              : "border-red-500/30 shadow-2xl shadow-red-500/10"
           )}>
             <div className={cn(
               "absolute -bottom-12 -left-12 w-32 h-32 blur-[50px] rounded-full pointer-events-none group-hover:opacity-100 transition-all duration-500",
@@ -1054,7 +1054,7 @@ function DashboardComponent() {
               </div>
 
               {/* Plan & Status */}
-              <div className="flex justify-between items-center bg-muted/30 p-4 rounded-2xl border border-border">
+              <div className="flex justify-between items-center bg-muted/50 p-4 rounded-2xl border border-border">
                 <div>
                   <h4 className="text-[10px] font-bold uppercase italic text-muted-foreground">Plano Atual</h4>
                   <p className="text-lg font-black uppercase italic text-foreground">
@@ -1073,19 +1073,19 @@ function DashboardComponent() {
               <div className="space-y-3">
                 <h4 className="text-[10px] font-bold uppercase italic text-muted-foreground">Uso do Plano</h4>
                 <div className="grid grid-cols-1 gap-2.5">
-                  <div className="flex justify-between items-center text-xs font-medium">
+                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
                     <span className="flex items-center gap-2"><Users size={14} className="text-primary" /> Profissionais</span>
                     <span className="font-bold">{usage.barbers} / {limits.barbers === Infinity ? '∞' : limits.barbers}</span>
                   </div>
-                  <div className="flex justify-between items-center text-xs font-medium">
+                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
                     <span className="flex items-center gap-2"><Scissors size={14} className="text-primary" /> Serviços</span>
                     <span className="font-bold">{usage.services} / {limits.services === Infinity ? '∞' : limits.services}</span>
                   </div>
-                  <div className="flex justify-between items-center text-xs font-medium">
+                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
                     <span className="flex items-center gap-2"><Calendar size={14} className="text-primary" /> Agendamentos (Mês)</span>
                     <span className="font-bold">{usage.monthlyAppointments} / {limits.monthlyAppointments === Infinity ? '∞' : limits.monthlyAppointments}</span>
                   </div>
-                  <div className="flex justify-between items-center text-xs font-medium">
+                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
                     <span className="flex items-center gap-2"><Zap size={14} className="text-primary" /> Conexões WhatsApp</span>
                     <span className="font-bold">{usage.whatsappConnections} / {limits.whatsappConnections === Infinity ? '∞' : limits.whatsappConnections}</span>
                   </div>
@@ -1095,7 +1095,7 @@ function DashboardComponent() {
               {/* Financial Tenant Stats */}
               <div className="pt-4 border-t border-border grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase text-purple-700 dark:text-purple-300">Créditos Clientes</h4>
+                  <h4 className="text-[10px] font-bold uppercase text-purple-700 dark:text-purple-400">Créditos Clientes</h4>
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                       <Wallet className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
@@ -1106,12 +1106,12 @@ function DashboardComponent() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase text-orange-600 dark:text-amber-300">Cashback Total</h4>
+                  <h4 className="text-[10px] font-bold uppercase text-orange-600 dark:text-orange-400">Cashback Total</h4>
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                      <Gift className="w-3.5 h-3.5 text-orange-600 dark:text-amber-500" />
+                      <Gift className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                     </div>
-                    <span className="text-base font-black text-orange-600 dark:text-amber-300">
+                    <span className="text-base font-black text-orange-600 dark:text-orange-300">
                       R$ {stats.total.customerCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -1121,8 +1121,8 @@ function DashboardComponent() {
               <Button 
                 variant="outline" 
                 className={cn(
-                  "w-full mt-2 font-black italic uppercase tracking-wider h-11 rounded-xl transition-all hover:scale-[1.02] active:scale-95",
-                  !isExpired ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50" : "border-red-200 text-red-700 hover:bg-red-50"
+                  "w-full mt-2 font-black italic uppercase tracking-wider h-11 rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-sm",
+                  !isExpired ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/30" : "border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
                 )} 
                 asChild
               >
