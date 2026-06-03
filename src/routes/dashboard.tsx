@@ -1026,10 +1026,10 @@ function DashboardComponent() {
           </Card>
           
           <Card className={cn(
-            "col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group",
+            "col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group bg-card",
             !isExpired 
-              ? "bg-white border-emerald-500/30 shadow-2xl shadow-emerald-500/10"
-              : "bg-white border-red-500/30 shadow-2xl shadow-red-500/10"
+              ? "border-emerald-500/30 shadow-2xl shadow-emerald-500/10"
+              : "border-red-500/30 shadow-2xl shadow-red-500/10"
           )}>
             <div className={cn(
               "absolute -bottom-12 -left-12 w-32 h-32 blur-[50px] rounded-full pointer-events-none group-hover:opacity-100 transition-all duration-500",
@@ -1054,7 +1054,7 @@ function DashboardComponent() {
               </div>
 
               {/* Plan & Status */}
-              <div className="flex justify-between items-center bg-muted/30 p-4 rounded-2xl border border-border">
+              <div className="flex justify-between items-center bg-muted/50 p-4 rounded-2xl border border-border">
                 <div>
                   <h4 className="text-[10px] font-bold uppercase italic text-muted-foreground">Plano Atual</h4>
                   <p className="text-lg font-black uppercase italic text-foreground">
@@ -1073,19 +1073,19 @@ function DashboardComponent() {
               <div className="space-y-3">
                 <h4 className="text-[10px] font-bold uppercase italic text-muted-foreground">Uso do Plano</h4>
                 <div className="grid grid-cols-1 gap-2.5">
-                  <div className="flex justify-between items-center text-xs font-medium">
+                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
                     <span className="flex items-center gap-2"><Users size={14} className="text-primary" /> Profissionais</span>
                     <span className="font-bold">{usage.barbers} / {limits.barbers === Infinity ? '∞' : limits.barbers}</span>
                   </div>
-                  <div className="flex justify-between items-center text-xs font-medium">
+                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
                     <span className="flex items-center gap-2"><Scissors size={14} className="text-primary" /> Serviços</span>
                     <span className="font-bold">{usage.services} / {limits.services === Infinity ? '∞' : limits.services}</span>
                   </div>
-                  <div className="flex justify-between items-center text-xs font-medium">
+                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
                     <span className="flex items-center gap-2"><Calendar size={14} className="text-primary" /> Agendamentos (Mês)</span>
                     <span className="font-bold">{usage.monthlyAppointments} / {limits.monthlyAppointments === Infinity ? '∞' : limits.monthlyAppointments}</span>
                   </div>
-                  <div className="flex justify-between items-center text-xs font-medium">
+                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
                     <span className="flex items-center gap-2"><Zap size={14} className="text-primary" /> Conexões WhatsApp</span>
                     <span className="font-bold">{usage.whatsappConnections} / {limits.whatsappConnections === Infinity ? '∞' : limits.whatsappConnections}</span>
                   </div>
@@ -1095,7 +1095,7 @@ function DashboardComponent() {
               {/* Financial Tenant Stats */}
               <div className="pt-4 border-t border-border grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase text-purple-700 dark:text-purple-300">Créditos Clientes</h4>
+                  <h4 className="text-[10px] font-bold uppercase text-purple-700 dark:text-purple-400">Créditos Clientes</h4>
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                       <Wallet className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
@@ -1106,12 +1106,12 @@ function DashboardComponent() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase text-orange-600 dark:text-amber-300">Cashback Total</h4>
+                  <h4 className="text-[10px] font-bold uppercase text-orange-600 dark:text-orange-400">Cashback Total</h4>
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                      <Gift className="w-3.5 h-3.5 text-orange-600 dark:text-amber-500" />
+                      <Gift className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                     </div>
-                    <span className="text-base font-black text-orange-600 dark:text-amber-300">
+                    <span className="text-base font-black text-orange-600 dark:text-orange-300">
                       R$ {stats.total.customerCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -1121,8 +1121,8 @@ function DashboardComponent() {
               <Button 
                 variant="outline" 
                 className={cn(
-                  "w-full mt-2 font-black italic uppercase tracking-wider h-11 rounded-xl transition-all hover:scale-[1.02] active:scale-95",
-                  !isExpired ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50" : "border-red-200 text-red-700 hover:bg-red-50"
+                  "w-full mt-2 font-black italic uppercase tracking-wider h-11 rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-sm",
+                  !isExpired ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/30" : "border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
                 )} 
                 asChild
               >
