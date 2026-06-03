@@ -644,10 +644,10 @@ function DashboardComponent() {
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", monthStart).lte("start_time", monthEnd),
-      supabase.from("customers").select("credits, cashback_balance").eq("tenant_id", tenantId)
+      supabase.from("customers").select("credit_balance, cashback_balance").eq("tenant_id", tenantId)
     ]);
 
-    const totalCredits = walletData.data?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
+    const totalCredits = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.credit_balance || 0), 0) || 0;
     const totalCashback = customersWithBalances.data?.reduce((acc, curr) => acc + Number(curr.cashback_balance || 0), 0) || 0;
 
     setBarbers(barbersData.data || []);
