@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { formatBrazilDate, formatBrazilTime, normalizePhone } from "../_shared/utils.ts";
+import { formatBrazilDate, formatBrazilTime, normalizePhone, formatAppointmentDateTimeForMessage } from "../_shared/utils.ts";
 import { sendMessage, getWhatsAppSettings } from "../_shared/whatsapp-settings.ts";
 import { AUTOMATION_STATES } from "../_shared/automation-engine.ts";
 
@@ -146,15 +146,33 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
   const rawPhone = payload.force_phone || customer.phone;
   const normalizedPhoneValue = normalizePhone(rawPhone);
 
-  // 2. Generate Message
+  // Use centralized formatting with America/Sao_Paulo timezone
+  const { date: formattedDate, time: formattedTime } = formatAppointmentDateTimeForMessage(appointment);
+
+  // 2. Anti-loop Check
+  if (appointment.confirmation_sent === true || appointment.confirmation_sent_at) {
+    console.log(`[AutomationEngine] BLOCKED: Initial message loop for appointment ${appointmentId}. Message already sent at ${appointment.confirmation_sent_at}`);
+    
+    await supabase.from("automation_logs").insert({
+      tenant_id: tenantId,
+      workflow_id: workflow.id,
+      queue_id: queueId,
+      event_name: 'blocked_initial_message_loop',
+      status: "skipped",
+      message: "Envio inicial bloqueado para evitar loop (já enviado)",
+      error_details: JSON.stringify({
+        appointment_id: appointmentId,
+        confirmation_sent: appointment.confirmation_sent,
+        confirmation_sent_at: appointment.confirmation_sent_at
+      })
+    });
+    
+    return { success: true, message: "Loop blocked" };
+  }
+
+  // 3. Generate Message
   const template = workflow.configuration?.template || "Olá {customer_name}, seu agendamento para {service_name} com {barber_name} em {appointment_date} às {appointment_time} foi recebido!";
   
-  // Use formatBrazil utils for consistent timezone (America/Sao_Paulo)
-  const formattedDate = formatBrazilDate(appointment.start_time);
-  const formattedTime = formatBrazilTime(appointment.start_time);
-
-  console.log(`[AutomationEngine] Formatting message for appointment at ${appointment.start_time} -> ${formattedDate} ${formattedTime}`);
-
   const message = template
     .replace('{customer_name}', customer.name || 'Cliente')
     .replace('{barbershop_name}', appointment.profiles?.business_name || 'Barbearia')
@@ -168,14 +186,15 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
     .replace('{payment_method}', appointment.payment_method || 'Não definido')
     .replace('{appointment_status}', appointment.status || 'Pendente');
 
-  // 3. Deactivate previous active conversations for this customer
+  // 4. Deactivate previous active conversations for this customer to avoid overlapping sessions
   await supabase.from("conversation_sessions")
     .update({ status: 'closed', active: false })
     .eq("tenant_id", tenantId)
     .eq("phone", normalizedPhoneValue)
     .eq("status", "active");
 
-  // 4. Create Session (conversation_sessions)
+  // 5. Create Session (conversation_sessions)
+
   const { data: session, error: sessionError } = await supabase
     .from("conversation_sessions")
     .insert({
