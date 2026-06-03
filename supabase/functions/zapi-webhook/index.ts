@@ -142,16 +142,20 @@ async function handleContingencyFlow(
 
     const appointments = await getAppointmentsForSession(supabase, session);
     const isMultiple = appointments.length > 1;
+    const appointmentIds = appointments.map((a: any) => a.id);
 
     console.log(`[Contingency] LOG:
       session_id: ${session.id}
       phone: ${normalizedPhone}
       appointment_id: ${session.appointment_id}
       appointment_group_id: ${session.appointment_group_id}
+      appointments_loaded: ${JSON.stringify(appointmentIds)}
       appointments_count: ${appointments.length}
-      isMultiple: ${isMultiple}`);
+      isMultiple: ${isMultiple}
+      query_used: ${session.appointment_group_id ? 'group_id' : 'appointment_id'}`);
     
     if (isMultiple) {
+
       const text = "Como deseja confirmar?\n\n1️⃣ Confirmar todos\n2️⃣ Confirmar um específico";
       if (connection) {
         await sendMessage(connection, normalizedPhone, text);
@@ -173,8 +177,19 @@ async function handleContingencyFlow(
       }).eq("id", appt.id);
 
       const time = formatBrazilTime(appt.start_time);
+      const barber = appt.barbers?.name || "Profissional";
+      const service = appt.services?.name || "Serviço";
+      
+      const successMessage = `✅ Agendamento confirmado com sucesso!
+      
+Estamos te esperando na Barbearia LM.
+
+⏰ ${time}
+💈 ${barber}
+✂️ ${service}`;
+
       if (connection) {
-        await sendMessage(connection, normalizedPhone, `✅ Agendamento das ${time} confirmado com sucesso!`);
+        await sendMessage(connection, normalizedPhone, successMessage);
       }
       
       await updateSessionState(supabase, session.id, 'completed', false);
@@ -184,6 +199,7 @@ async function handleContingencyFlow(
       });
       return true;
     }
+
     
     return false;
   }
