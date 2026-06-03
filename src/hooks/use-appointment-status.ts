@@ -30,7 +30,7 @@ export function useAppointmentStatus() {
         p_appointment_id: appointmentId,
         p_new_status: newStatus,
         p_changed_by_type: 'admin',
-        p_changed_by_id: user?.id || null, // Importante: usar null em vez de string vazia
+        p_changed_by_id: user?.id || undefined, // Usar undefined para bater com o tipo gerado
         p_source: source,
         p_metadata: metadata
       });
