@@ -334,7 +334,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       const { data } = await supabase
         .from("automation_logs")
         .select("*")
-        .eq("barber_id", tenantId)
+        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(20);
       
@@ -343,6 +343,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       console.error("Error fetching logs:", error);
     }
   }
+
 
   async function saveSettings(e: React.FormEvent) {
     e.preventDefault();

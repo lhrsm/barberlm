@@ -282,85 +282,6 @@ export type Database = {
           },
         ]
       }
-      automation_conversations: {
-        Row: {
-          appointment_ids: string[] | null
-          automation_id: string | null
-          automation_type: string
-          created_at: string
-          current_state: string
-          customer_id: string | null
-          expires_at: string
-          id: string
-          last_option_id: string | null
-          phone: string
-          phone_normalized: string | null
-          remaining_appointment_ids: string[] | null
-          selected_appointment_id: string | null
-          status: string
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          appointment_ids?: string[] | null
-          automation_id?: string | null
-          automation_type: string
-          created_at?: string
-          current_state?: string
-          customer_id?: string | null
-          expires_at?: string
-          id?: string
-          last_option_id?: string | null
-          phone: string
-          phone_normalized?: string | null
-          remaining_appointment_ids?: string[] | null
-          selected_appointment_id?: string | null
-          status?: string
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          appointment_ids?: string[] | null
-          automation_id?: string | null
-          automation_type?: string
-          created_at?: string
-          current_state?: string
-          customer_id?: string | null
-          expires_at?: string
-          id?: string
-          last_option_id?: string | null
-          phone?: string
-          phone_normalized?: string | null
-          remaining_appointment_ids?: string[] | null
-          selected_appointment_id?: string | null
-          status?: string
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "automation_conversations_automation_id_fkey"
-            columns: ["automation_id"]
-            isOneToOne: false
-            referencedRelation: "automations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automation_conversations_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automation_conversations_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "barbershops"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       automation_cron_runs: {
         Row: {
           appointment_id: string | null
@@ -505,140 +426,172 @@ export type Database = {
           },
         ]
       }
-      automation_logs: {
+      automation_events: {
         Row: {
-          action: string | null
-          appointment_group_id: string | null
-          appointment_id: string | null
-          automation_id: string
-          barber_id: string | null
-          conversation_id: string | null
-          created_at: string | null
-          customer_id: string | null
-          direction: string | null
-          error_message: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          event_name: string
           id: string
-          message_sent: string | null
-          message_type: string | null
-          metadata: Json | null
-          option_id: string | null
-          original_template: string | null
-          payload: Json | null
-          phone: string | null
-          processed_template: string | null
-          provider: string | null
-          received_at: string | null
-          response: Json | null
-          selected_option_normalized: string | null
-          selected_option_raw: string | null
-          sent_at: string
-          state_after: string | null
-          state_before: string | null
-          status: string
-          tenant_id: string
-          webhook_type: string | null
-          zapi_response: Json | null
+          payload: Json
+          tenant_id: string | null
         }
         Insert: {
-          action?: string | null
-          appointment_group_id?: string | null
-          appointment_id?: string | null
-          automation_id: string
-          barber_id?: string | null
-          conversation_id?: string | null
-          created_at?: string | null
-          customer_id?: string | null
-          direction?: string | null
-          error_message?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          event_name: string
           id?: string
-          message_sent?: string | null
-          message_type?: string | null
-          metadata?: Json | null
-          option_id?: string | null
-          original_template?: string | null
-          payload?: Json | null
-          phone?: string | null
-          processed_template?: string | null
-          provider?: string | null
-          received_at?: string | null
-          response?: Json | null
-          selected_option_normalized?: string | null
-          selected_option_raw?: string | null
-          sent_at?: string
-          state_after?: string | null
-          state_before?: string | null
-          status: string
-          tenant_id: string
-          webhook_type?: string | null
-          zapi_response?: Json | null
+          payload?: Json
+          tenant_id?: string | null
         }
         Update: {
-          action?: string | null
-          appointment_group_id?: string | null
-          appointment_id?: string | null
-          automation_id?: string
-          barber_id?: string | null
-          conversation_id?: string | null
-          created_at?: string | null
-          customer_id?: string | null
-          direction?: string | null
-          error_message?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          event_name?: string
           id?: string
-          message_sent?: string | null
-          message_type?: string | null
-          metadata?: Json | null
-          option_id?: string | null
-          original_template?: string | null
-          payload?: Json | null
-          phone?: string | null
-          processed_template?: string | null
-          provider?: string | null
-          received_at?: string | null
-          response?: Json | null
-          selected_option_normalized?: string | null
-          selected_option_raw?: string | null
-          sent_at?: string
-          state_after?: string | null
-          state_before?: string | null
-          status?: string
-          tenant_id?: string
-          webhook_type?: string | null
-          zapi_response?: Json | null
+          payload?: Json
+          tenant_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "automation_logs_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automation_logs_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "vw_automation_debug"
-            referencedColumns: ["appointment_id"]
-          },
-          {
-            foreignKeyName: "automation_logs_automation_id_fkey"
-            columns: ["automation_id"]
-            isOneToOne: false
-            referencedRelation: "automations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automation_logs_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "automation_conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automation_logs_tenant_id_fkey"
+            foreignKeyName: "automation_events_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_logs: {
+        Row: {
+          created_at: string
+          error_details: string | null
+          event_name: string | null
+          id: string
+          message: string | null
+          queue_id: string | null
+          session_id: string | null
+          status: string
+          step: string | null
+          tenant_id: string | null
+          workflow_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_details?: string | null
+          event_name?: string | null
+          id?: string
+          message?: string | null
+          queue_id?: string | null
+          session_id?: string | null
+          status: string
+          step?: string | null
+          tenant_id?: string | null
+          workflow_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_details?: string | null
+          event_name?: string | null
+          id?: string
+          message?: string | null
+          queue_id?: string | null
+          session_id?: string | null
+          status?: string
+          step?: string | null
+          tenant_id?: string | null
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "automation_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_tenant_id_fkey1"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_queue: {
+        Row: {
+          attempts: number | null
+          created_at: string
+          error: string | null
+          event_id: string | null
+          id: string
+          processed_at: string | null
+          scheduled_for: string | null
+          status: string
+          tenant_id: string | null
+          workflow_id: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          processed_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          tenant_id?: string | null
+          workflow_id?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          processed_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          tenant_id?: string | null
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_queue_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "automation_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_queue_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_queue_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
             referencedColumns: ["id"]
           },
         ]
@@ -678,6 +631,47 @@ export type Database = {
           total_processed?: number | null
         }
         Relationships: []
+      }
+      automation_workflows: {
+        Row: {
+          active: boolean | null
+          configuration: Json
+          created_at: string
+          id: string
+          name: string
+          tenant_id: string | null
+          trigger_event: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          configuration?: Json
+          created_at?: string
+          id?: string
+          name: string
+          tenant_id?: string | null
+          trigger_event: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          configuration?: Json
+          created_at?: string
+          id?: string
+          name?: string
+          tenant_id?: string | null
+          trigger_event?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_workflows_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       automations: {
         Row: {
@@ -1037,6 +1031,83 @@ export type Database = {
           },
         ]
       }
+      conversation_sessions: {
+        Row: {
+          appointment_group_id: string | null
+          appointment_id: string | null
+          channel: string
+          context: Json
+          created_at: string
+          current_step: string | null
+          customer_id: string | null
+          expires_at: string | null
+          id: string
+          phone: string
+          status: string
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          channel?: string
+          context?: Json
+          created_at?: string
+          current_step?: string | null
+          customer_id?: string | null
+          expires_at?: string | null
+          id?: string
+          phone: string
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          channel?: string
+          context?: Json
+          created_at?: string
+          current_step?: string | null
+          customer_id?: string | null
+          expires_at?: string | null
+          id?: string
+          phone?: string
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "conversation_sessions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupons: {
         Row: {
           active: boolean | null
@@ -1198,6 +1269,341 @@ export type Database = {
             foreignKeyName: "email_settings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legacy_automation_conversations: {
+        Row: {
+          appointment_ids: string[] | null
+          automation_id: string | null
+          automation_type: string
+          created_at: string
+          current_state: string
+          customer_id: string | null
+          expires_at: string
+          id: string
+          last_option_id: string | null
+          phone: string
+          phone_normalized: string | null
+          remaining_appointment_ids: string[] | null
+          selected_appointment_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_ids?: string[] | null
+          automation_id?: string | null
+          automation_type: string
+          created_at?: string
+          current_state?: string
+          customer_id?: string | null
+          expires_at?: string
+          id?: string
+          last_option_id?: string | null
+          phone: string
+          phone_normalized?: string | null
+          remaining_appointment_ids?: string[] | null
+          selected_appointment_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_ids?: string[] | null
+          automation_id?: string | null
+          automation_type?: string
+          created_at?: string
+          current_state?: string
+          customer_id?: string | null
+          expires_at?: string
+          id?: string
+          last_option_id?: string | null
+          phone?: string
+          phone_normalized?: string | null
+          remaining_appointment_ids?: string[] | null
+          selected_appointment_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_conversations_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_conversations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legacy_automation_logs: {
+        Row: {
+          action: string | null
+          appointment_group_id: string | null
+          appointment_id: string | null
+          automation_id: string
+          barber_id: string | null
+          conversation_id: string | null
+          created_at: string | null
+          customer_id: string | null
+          direction: string | null
+          error_message: string | null
+          id: string
+          message_sent: string | null
+          message_type: string | null
+          metadata: Json | null
+          option_id: string | null
+          original_template: string | null
+          payload: Json | null
+          phone: string | null
+          processed_template: string | null
+          provider: string | null
+          received_at: string | null
+          response: Json | null
+          selected_option_normalized: string | null
+          selected_option_raw: string | null
+          sent_at: string
+          state_after: string | null
+          state_before: string | null
+          status: string
+          tenant_id: string
+          webhook_type: string | null
+          zapi_response: Json | null
+        }
+        Insert: {
+          action?: string | null
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          automation_id: string
+          barber_id?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          direction?: string | null
+          error_message?: string | null
+          id?: string
+          message_sent?: string | null
+          message_type?: string | null
+          metadata?: Json | null
+          option_id?: string | null
+          original_template?: string | null
+          payload?: Json | null
+          phone?: string | null
+          processed_template?: string | null
+          provider?: string | null
+          received_at?: string | null
+          response?: Json | null
+          selected_option_normalized?: string | null
+          selected_option_raw?: string | null
+          sent_at?: string
+          state_after?: string | null
+          state_before?: string | null
+          status: string
+          tenant_id: string
+          webhook_type?: string | null
+          zapi_response?: Json | null
+        }
+        Update: {
+          action?: string | null
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          automation_id?: string
+          barber_id?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          direction?: string | null
+          error_message?: string | null
+          id?: string
+          message_sent?: string | null
+          message_type?: string | null
+          metadata?: Json | null
+          option_id?: string | null
+          original_template?: string | null
+          payload?: Json | null
+          phone?: string | null
+          processed_template?: string | null
+          provider?: string | null
+          received_at?: string | null
+          response?: Json | null
+          selected_option_normalized?: string | null
+          selected_option_raw?: string | null
+          sent_at?: string
+          state_after?: string | null
+          state_before?: string | null
+          status?: string
+          tenant_id?: string
+          webhook_type?: string | null
+          zapi_response?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "automation_logs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "legacy_automation_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legacy_whatsapp_conversations: {
+        Row: {
+          active: boolean | null
+          appointment_group_id: string | null
+          appointment_id: string | null
+          barber_id: string | null
+          context: Json | null
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          last_action: string | null
+          phone: string
+          phone_fallback: string | null
+          state: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          barber_id?: string | null
+          context?: Json | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          last_action?: string | null
+          phone: string
+          phone_fallback?: string | null
+          state: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          barber_id?: string | null
+          context?: Json | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          last_action?: string | null
+          phone?: string
+          phone_fallback?: string | null
+          state?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversations_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messaging_providers: {
+        Row: {
+          active: boolean | null
+          client_token: string | null
+          created_at: string
+          id: string
+          instance_id: string | null
+          provider: string
+          tenant_id: string | null
+          token: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          client_token?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          provider: string
+          tenant_id?: string | null
+          token?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          client_token?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          provider?: string
+          tenant_id?: string | null
+          token?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messaging_providers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2346,83 +2752,6 @@ export type Database = {
           },
         ]
       }
-      whatsapp_conversations: {
-        Row: {
-          active: boolean | null
-          appointment_group_id: string | null
-          appointment_id: string | null
-          barber_id: string | null
-          context: Json | null
-          created_at: string | null
-          customer_id: string | null
-          id: string
-          last_action: string | null
-          phone: string
-          phone_fallback: string | null
-          state: string
-          updated_at: string | null
-        }
-        Insert: {
-          active?: boolean | null
-          appointment_group_id?: string | null
-          appointment_id?: string | null
-          barber_id?: string | null
-          context?: Json | null
-          created_at?: string | null
-          customer_id?: string | null
-          id?: string
-          last_action?: string | null
-          phone: string
-          phone_fallback?: string | null
-          state: string
-          updated_at?: string | null
-        }
-        Update: {
-          active?: boolean | null
-          appointment_group_id?: string | null
-          appointment_id?: string | null
-          barber_id?: string | null
-          context?: Json | null
-          created_at?: string | null
-          customer_id?: string | null
-          id?: string
-          last_action?: string | null
-          phone?: string
-          phone_fallback?: string | null
-          state?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "whatsapp_conversations_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "whatsapp_conversations_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "vw_automation_debug"
-            referencedColumns: ["appointment_id"]
-          },
-          {
-            foreignKeyName: "whatsapp_conversations_barber_id_fkey"
-            columns: ["barber_id"]
-            isOneToOne: false
-            referencedRelation: "barbers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "whatsapp_conversations_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       whatsapp_instances: {
         Row: {
           barber_id: string | null
@@ -2739,7 +3068,7 @@ export type Database = {
             foreignKeyName: "zapi_webhook_debug_matched_conversation_id_fkey"
             columns: ["matched_conversation_id"]
             isOneToOne: false
-            referencedRelation: "automation_conversations"
+            referencedRelation: "legacy_automation_conversations"
             referencedColumns: ["id"]
           },
           {
