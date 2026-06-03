@@ -340,12 +340,14 @@ function ProfessionalDashboard() {
                           </p>
                         </div>
                         <div className="text-right flex flex-col items-end gap-2">
-                          <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'} className={cn(
-                            "text-[10px] font-black px-2 py-0.5",
-                            app.payment_status === 'paid' ? "bg-green-600 text-white border-transparent" : "text-[#D4AF37] border-[#D4AF37] bg-white"
-                          )}>
-                            {app.payment_status === 'paid' ? 'PAGO' : 'PENDENTE'}
-                          </Badge>
+                           {app.status !== 'cancelled' && (
+                             <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'} className={cn(
+                               "text-[10px] font-black px-2 py-0.5",
+                               app.payment_status === 'paid' ? "bg-green-600 text-white border-transparent" : "text-[#D4AF37] border-[#D4AF37] bg-white"
+                             )}>
+                               {app.payment_status === 'paid' ? 'PAGO' : 'PENDENTE'}
+                             </Badge>
+                           )}
                           <span className="font-black text-lg text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
                         </div>
                       </div>

@@ -1093,11 +1093,17 @@ function ClientPortalComponent() {
                            </div>
                          </div>
                          <div className="flex items-center gap-3 self-end sm:self-center">
-                           <Badge className={cn(
-                             app.payment_status === 'paid' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-outline border text-foreground'
-                           )}>
-                             {app.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
-                           </Badge>
+                           {app.status !== 'cancelled' ? (
+                             <Badge className={cn(
+                               app.payment_status === 'paid' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-outline border text-foreground'
+                             )}>
+                               {app.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
+                             </Badge>
+                           ) : (
+                             <Badge variant="outline" className="text-zinc-400 border-zinc-200">
+                               Sem cobrança
+                             </Badge>
+                           )}
                             <Badge variant={app.status === 'completed' ? 'default' : app.status === 'scheduled' ? 'secondary' : 'destructive'} className={cn(
                               app.status === 'completed' && "bg-green-600 hover:bg-green-700",
                               app.status === 'scheduled' && "bg-blue-500 hover:bg-blue-600",
