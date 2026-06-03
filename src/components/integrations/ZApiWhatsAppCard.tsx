@@ -60,11 +60,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [lastReceivedConfig, setLastReceivedConfig] = useState<any>(null);
   const [lastExpandedConfig, setLastExpandedConfig] = useState<any>(null);
   const [lastSentMessageInfo, setLastSentMessageInfo] = useState<{id: string, time: string} | null>(null);
-  const [tempWebhookUrl, setTempWebhookUrl] = useState("https://ancient-meadow-00.webhook.cool");
+  const [tempWebhookUrl, setTempWebhookUrl] = useState("");
   const [isConfiguringTemp, setIsConfiguringTemp] = useState(false);
   const [lastTempWebhookResult, setLastTempWebhookResult] = useState<any>(null);
   const [isConfiguringNew, setIsConfiguringNew] = useState(false);
   const [lastNewWebhookResult, setLastNewWebhookResult] = useState<any>(null);
+  const [isSendingButtonTest, setIsSendingButtonTest] = useState(false);
+  const [buttonTestMessageId, setButtonTestMessageId] = useState<string | null>(null);
 
 
   
