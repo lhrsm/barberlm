@@ -141,27 +141,36 @@ async function processWorkflowItem(supabase: any, item: any, workflow: any, even
 
   if (eventName === 'appointment.created') {
     // Check for group
-    const groupId = payload.appointment_group_id || event.payload?.appointment_group_id;
+    const groupId = payload.appointment_group_id || event.payload?.appointment_group_id || (payload.appointment && payload.appointment.appointment_group_id);
     
     if (groupId) {
-      console.log(`[AutomationEngine] Group creation detected. GroupId: ${groupId}`);
+      console.log(`[AutomationEngine] Group creation detected. GroupId: ${groupId}. RunId: ${item.id}`);
       
-      // 1. Mark ALL queue items for this group as processing to avoid duplicate runs
-      const { data: queueItems } = await supabase
+      // 1. Mark ALL OTHER pending queue items for this group as completed to avoid duplicate runs
+      const { data: duplicateItems } = await supabase
         .from("automation_queue")
         .select("id")
         .eq("status", "pending")
+        .eq("tenant_id", tenantId)
+        .neq("id", item.id) // Don't mark current one
         .filter("payload->>appointment_group_id", "eq", groupId);
         
-      if (queueItems && queueItems.length > 0) {
-        console.log(`[AutomationEngine] Marking ${queueItems.length} duplicate group items as skipped`);
+      if (duplicateItems && duplicateItems.length > 0) {
+        console.log(`[AutomationEngine] Marking ${duplicateItems.length} duplicate group items as skipped`);
         await supabase.from("automation_queue")
           .update({ 
             status: "completed", 
             processed_at: new Date().toISOString(),
-            error: "Skipped: Handled by group processor" 
+            error: "Skipped: Handled by group processor in parallel run" 
           })
-          .in("id", queueItems.map((q: any) => q.id).filter((id: string) => id !== item.id));
+          .in("id", duplicateItems.map((q: any) => q.id));
+      }
+
+      // Check if this group was already handled by checking confirmation_sent_at for appointments in this group
+      const { data: groupAppts } = await supabase.from("appointments").select("confirmation_sent_at").eq("appointment_group_id", groupId);
+      if (groupAppts && groupAppts.some((a: any) => a.confirmation_sent_at)) {
+         console.log(`[AutomationEngine] Group ${groupId} already processed (confirmation_sent_at found). Skipping.`);
+         return { success: true, message: "Group already processed" };
       }
 
       return await handleGroupAppointmentCreated(supabase, tenantId, groupId, payload, workflow, item.id);
