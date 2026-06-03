@@ -49,7 +49,7 @@ serve(async (req) => {
 
     // Call Engine
     console.log('Calling processAutomationDispatches...');
-    const results = await processAutomationDispatches(supabase, { tenantId, appointmentId, forceMode });
+    const results = await processAutomationDispatches(supabase, { tenantId, appointmentId, appointmentGroupId, forceMode });
     console.log('Dispatches results:', JSON.stringify(results));
 
     // Update status to idle
