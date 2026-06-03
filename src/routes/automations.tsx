@@ -459,16 +459,26 @@ function AutomationsComponent() {
 
             {filteredWorkflows.map((w) => (
 
-              <Card key={w.id} className="relative overflow-hidden flex flex-col justify-between">
+              <Card key={w.id} className="relative overflow-hidden flex flex-col justify-between border-zinc-800 hover:border-amber-500/60 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg">{w.name}</CardTitle>
-                    <Switch 
-                      checked={w.active} 
-                      onCheckedChange={(checked) => handleToggleWorkflow(w.id, checked)}
-                    />
+                    <div className="flex flex-col items-end gap-1">
+                      <Switch 
+                        checked={w.active} 
+                        onCheckedChange={(checked) => handleToggleWorkflow(w.id, checked)}
+                        className="data-[state=unchecked]:bg-zinc-700 data-[state=unchecked]:border-zinc-500 data-[state=checked]:bg-amber-500"
+                        thumbClassName="data-[state=unchecked]:bg-zinc-300"
+                      />
+                      <span className={cn(
+                        "text-[10px] font-medium uppercase tracking-wider",
+                        w.active ? "text-amber-400" : "text-zinc-500"
+                      )}>
+                        {w.active ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </div>
                   </div>
-                  <CardDescription>Gatilho: <Badge variant="secondary">{w.trigger_event}</Badge></CardDescription>
+                  <CardDescription>Gatilho: <Badge variant="secondary" className="bg-zinc-800 text-zinc-300 border-zinc-700">{w.trigger_event}</Badge></CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-sm text-muted-foreground italic h-12 overflow-hidden">
