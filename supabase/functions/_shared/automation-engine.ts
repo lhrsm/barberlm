@@ -936,7 +936,14 @@ export async function processAutomationDispatches(
           results.processed_count += apptGroup.length;
           results.messages_sent.push({ phone: customer.phone, status: 'success' });
           
-          // 4. Mark appointments only AFTER success
+          // 4. Update session with provider_message_id for future replies
+          if (newConv && sendResult.response?.messageId) {
+            await supabase.from("conversation_sessions")
+              .update({ provider_message_id: sendResult.response.messageId })
+              .eq("id", newConv.id);
+          }
+
+          // 5. Mark appointments only AFTER success
           await supabase.from("appointments")
             .update({ 
               confirmation_sent: true, 
@@ -944,14 +951,11 @@ export async function processAutomationDispatches(
             })
             .in("id", apptGroup.map(a => a.id));
             
-          console.log('SUCCESS: Message sent and appointments marked.');
+          console.log('SUCCESS: Message sent, session updated with provider_message_id and appointments marked.');
         } else {
           results.error_count += apptGroup.length;
           results.errors.push({ group: groupKey, error: sendResult.error });
           
-          // If sending failed, maybe deactivate the conversation we just created?
-          // User didn't specify, but usually better to keep it if they might reply anyway, 
-          // but here we failed to even send the initial message.
           if (newConv) {
             await supabase.from("conversation_sessions").update({ active: false, status: 'closed', error: sendResult.error }).eq("id", newConv.id);
           }
