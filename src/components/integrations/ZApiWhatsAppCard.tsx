@@ -587,10 +587,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         webhookApplied: tempWebhookUrl
       });
       
-      if (data.success && data.result?.value === true) {
+      if (isZApiSuccess(data)) {
         toast.success(`Webhook temporário aplicado via ${action}`);
       } else {
-        toast.error("Z-API recusou a configuração temporária");
+        const errorMsg = data.result?.message || data.error || "Z-API recusou a configuração temporária";
+        toast.error("Falha: " + errorMsg);
       }
       
       await fetchIntegrationLogs();
