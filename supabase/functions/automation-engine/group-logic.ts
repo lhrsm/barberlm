@@ -28,10 +28,20 @@ export async function handleGroupAppointmentCreated(supabase: any, tenantId: str
   const normalizedPhoneValue = normalizePhone(customer.phone);
 
   // 2. Anti-loop Check for the group
+  // Check if ANY appointment in the group already has confirmation sent
   const alreadySent = groupItems.some(item => item.confirmation_sent === true || item.confirmation_sent_at);
-  if (alreadySent) {
-    console.log(`[AutomationEngine] BLOCKED: Initial message already sent for group ${groupId}`);
-    return { success: true, message: "Group message already sent" };
+  
+  // Also check if there's already an active conversation for this group to prevent duplication
+  const { data: existingGroupConv } = await supabase
+    .from("conversation_sessions")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("appointment_group_id", groupId)
+    .maybeSingle();
+
+  if (alreadySent || existingGroupConv) {
+    console.log(`[AutomationEngine] BLOCKED: Initial message already sent or session exists for group ${groupId}`);
+    return { success: true, message: "Group message already handled" };
   }
 
   // 3. Deactivate previous active conversations

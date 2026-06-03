@@ -169,8 +169,15 @@ async function processZapiWebhook(supabase: any, body: any, tenantId: string) {
   // 3. Process actions
   const option = selectedOptionRaw.toLowerCase();
   
-  if (option === 'main_confirm' || option.includes('confirmar')) {
+  if (option === 'main_confirm' || option === 'confirmar_agendamento' || option.includes('confirmar')) {
     return await handleMainConfirm(supabase, session, tenantId);
+  } else if (option === 'confirm_all') {
+    return await handleConfirmAll(supabase, session, tenantId);
+  } else if (option === 'choose_one' || option === 'confirm_single') {
+    return await handleChooseOne(supabase, session, tenantId);
+  } else if (option.startsWith('confirm_appt_')) {
+    const appointmentId = selectedOptionRaw.replace('confirm_appt_', '');
+    return await handleConfirmSpecific(supabase, session, tenantId, appointmentId);
   } else if (option === 'main_reschedule' || option.includes('reagendar')) {
     return await handleReschedule(supabase, session, tenantId);
   } else if (option === 'main_cancel' || option.includes('cancelar')) {
@@ -308,6 +315,179 @@ Estamos te esperando na Barbearia LM.
 
   if (logError) {
     console.error(`[Z-API Webhook] Error logging action for session ${session.id}:`, logError);
+  }
+
+  return { success: true };
+}
+
+async function handleConfirmAll(supabase: any, session: any, tenantId: string) {
+  console.log(`[Z-API Webhook] Handling confirm_all for session ${session.id}`);
+  
+  const groupId = session.appointment_group_id || session.context?.group_id;
+  
+  if (!groupId) {
+    return await handleMainConfirm(supabase, session, tenantId);
+  }
+
+  // Confirm all scheduled appointments in the group
+  const { data: updatedAppts, error: updateError } = await supabase
+    .from("appointments")
+    .update({ 
+      status: 'confirmed',
+      confirmed_at: new Date().toISOString()
+    })
+    .eq("appointment_group_id", groupId)
+    .in("status", ['scheduled', 'pending', 'awaiting_payment'])
+    .select();
+
+  if (updateError) {
+    console.error(`[Z-API Webhook] Error confirming all appointments in group ${groupId}:`, updateError);
+    return { success: false, error: "Error updating appointments" };
+  }
+
+  const responseMessage = "✅ Todos os seus agendamentos foram confirmados com sucesso!";
+  
+  await supabase.from("conversation_sessions").update({
+    current_step: 'completed',
+    status: 'closed',
+    active: false,
+    updated_at: new Date().toISOString()
+  }).eq("id", session.id);
+
+  await supabase.functions.invoke('automation-engine', {
+    body: { tenantId, action: 'send_message', phone: session.phone, message: responseMessage }
+  });
+
+  // Log
+  await supabase.from("automation_logs").insert({
+    tenant_id: tenantId,
+    session_id: session.id,
+    event_name: 'whatsapp.action_executed',
+    status: "success",
+    message: "Ação: confirm_all",
+    error_details: JSON.stringify({ 
+      group_id: groupId,
+      appointments_updated: updatedAppts?.length || 0
+    })
+  });
+
+  return { success: true };
+}
+
+async function handleChooseOne(supabase: any, session: any, tenantId: string) {
+  console.log(`[Z-API Webhook] Handling choose_one for session ${session.id}`);
+  
+  const groupId = session.appointment_group_id || session.context?.group_id;
+  
+  const { data: appointments } = await supabase
+    .from("appointments")
+    .select("*, services(name), barbers(name)")
+    .eq("appointment_group_id", groupId)
+    .in("status", ['scheduled', 'pending', 'awaiting_payment'])
+    .order("start_time", { ascending: true });
+
+  if (!appointments || appointments.length === 0) {
+    const responseMessage = "Não encontramos mais agendamentos pendentes.";
+    await supabase.functions.invoke('automation-engine', {
+      body: { tenantId, action: 'send_message', phone: session.phone, message: responseMessage }
+    });
+    return { success: true };
+  }
+
+  const buttons = appointments.slice(0, 3).map((appt: any) => {
+    const { time } = formatAppointmentDateTimeForMessage(appt);
+    return { 
+      id: `confirm_appt_${appt.id}`, 
+      label: `${time} - ${appt.services?.name}` 
+    };
+  });
+
+  const responseMessage = "Qual agendamento você deseja confirmar?";
+  
+  await supabase.from("conversation_sessions").update({
+    current_step: 'awaiting_confirm_single_selection',
+    updated_at: new Date().toISOString()
+  }).eq("id", session.id);
+
+  await supabase.functions.invoke('automation-engine', {
+    body: { 
+      tenantId, 
+      action: 'send_message', 
+      phone: session.phone, 
+      message: responseMessage,
+      options: { buttons }
+    }
+  });
+
+  return { success: true };
+}
+
+async function handleConfirmSpecific(supabase: any, session: any, tenantId: string, appointmentId: string) {
+  console.log(`[Z-API Webhook] Handling confirm_specific for appointment ${appointmentId}`);
+
+  const { data: appointment } = await supabase
+    .from("appointments")
+    .select("*, services(name), barbers(name)")
+    .eq("id", appointmentId)
+    .single();
+
+  if (!appointment) return { success: false, error: "Appointment not found" };
+
+  await supabase.rpc('update_appointment_status', {
+    p_appointment_id: appointmentId,
+    p_new_status: 'confirmed',
+    p_changed_by_type: 'customer',
+    p_changed_by_id: session.customer_id,
+    p_source: 'whatsapp'
+  });
+
+  const { date, time } = formatAppointmentDateTimeForMessage(appointment);
+  let responseMessage = `✅ Agendamento das ${time} (${appointment.services?.name}) confirmado!`;
+
+  // Check if there are more pending in the group
+  const groupId = session.appointment_group_id || session.context?.group_id;
+  const { data: remaining } = await supabase
+    .from("appointments")
+    .select("id")
+    .eq("appointment_group_id", groupId)
+    .in("status", ['scheduled', 'pending', 'awaiting_payment'])
+    .neq("id", appointmentId);
+
+  if (remaining && remaining.length > 0) {
+    responseMessage += `\n\nVocê ainda possui outros agendamentos pendentes. O que deseja fazer com eles?`;
+    
+    await supabase.from("conversation_sessions").update({
+      current_step: 'awaiting_remaining_action_after_confirm',
+      updated_at: new Date().toISOString()
+    }).eq("id", session.id);
+
+    await supabase.functions.invoke('automation-engine', {
+      body: { 
+        tenantId, 
+        action: 'send_message', 
+        phone: session.phone, 
+        message: responseMessage,
+        options: {
+          buttons: [
+            { id: "confirm_all", label: "Confirmar restantes" },
+            { id: "choose_one", label: "Escolher outro" },
+            { id: "main_cancel", label: "Cancelar restantes" }
+          ]
+        }
+      }
+    });
+  } else {
+    responseMessage += `\n\nTodos os seus agendamentos foram confirmados. Te esperamos!`;
+    await supabase.from("conversation_sessions").update({
+      current_step: 'completed',
+      status: 'closed',
+      active: false,
+      updated_at: new Date().toISOString()
+    }).eq("id", session.id);
+
+    await supabase.functions.invoke('automation-engine', {
+      body: { tenantId, action: 'send_message', phone: session.phone, message: responseMessage }
+    });
   }
 
   return { success: true };
