@@ -175,16 +175,16 @@ export async function handleAutomationWhatsappResponse(
     case AUTOMATION_STATES.AWAITING_MAIN_ACTION:
       if (mappedOption === 'main_confirm') {
         console.log('NEXT ACTION: Confirm');
-        if (!isMultiple) {
-          // Confirm direct
-          await supabase.from("appointments").update({ status: 'confirmed' }).in("id", appointmentIds);
-          
-          // Use centralized formatting for success message
-          const { date: apptDate, time: apptTime } = formatAppointmentDateTimeForMessage(appointments[0]);
-          const professionalName = appointments[0].barbers?.name || "Profissional";
-          const serviceName = appointments[0].services?.name || "Serviço";
+        // FORCE SINGLE APPOINTMENT FLOW
+        // Confirm direct
+        await supabase.from("appointments").update({ status: 'confirmed' }).in("id", appointmentIds);
+        
+        // Use centralized formatting for success message
+        const { date: apptDate, time: apptTime } = formatAppointmentDateTimeForMessage(appointments[0]);
+        const professionalName = appointments[0].barbers?.name || "Profissional";
+        const serviceName = appointments[0].services?.name || "Serviço";
 
-          messageToSend = `✅ Agendamento confirmado com sucesso!
+        messageToSend = `✅ Agendamento confirmado com sucesso!
 
 Estamos te esperando na Barbearia LM.
 
@@ -193,22 +193,9 @@ Estamos te esperando na Barbearia LM.
 💈 ${professionalName}
 ✂️ ${serviceName}`;
 
-          nextState = AUTOMATION_STATES.COMPLETED;
-          actionExecuted = "confirm_direct";
-          selectedOptionNormalized = "main_confirm";
-
-        } else {
-          // Multiple: Ask scope
-          console.log('[AutomationEngine] Multiple appointments found. Sending confirm scope menu.');
-          messageToSend = "Como deseja confirmar?";
-          buttons = [
-            { id: "confirm_all", label: "Confirmar todos" },
-            { id: "confirm_single", label: "Confirmar um específico" }
-          ];
-          nextState = AUTOMATION_STATES.AWAITING_CONFIRMATION_SCOPE;
-          actionExecuted = "send_confirm_scope_menu";
-          selectedOptionNormalized = "main_confirm";
-        }
+        nextState = AUTOMATION_STATES.COMPLETED;
+        actionExecuted = "confirm_direct";
+        selectedOptionNormalized = "main_confirm";
 
       } else if (mappedOption === 'main_reschedule') {
         console.log('NEXT ACTION: Reschedule');

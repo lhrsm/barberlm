@@ -155,10 +155,9 @@ async function processWorkflowItem(supabase: any, item: any, workflow: any, even
   console.log(`[AutomationEngine] Processing event ${eventName} for entity ${entityId}`);
 
   if (eventName === 'appointment.created') {
-    // Check for group
-    const groupId = item.appointment_group_id || payload.appointment_group_id || event.appointment_group_id || (payload.appointment && payload.appointment.appointment_group_id);
-    
-    if (groupId) {
+    // SINGLE APPOINTMENT ONLY - MULTIPLE/GROUP DISABLED AS REQUESTED
+    return await handleAppointmentCreated(supabase, tenantId, entityId, payload, workflow, item.id);
+  }
       console.log(`[AutomationEngine] Group creation detected. GroupId: ${groupId}. RunId: ${item.id}`);
       
       // 1. Mark ALL OTHER pending/processing queue items for this group as completed to avoid duplicate runs

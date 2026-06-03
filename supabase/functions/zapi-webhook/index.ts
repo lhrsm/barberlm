@@ -145,34 +145,38 @@ async function handleContingencyFlow(
     }
 
     const appointments = await getAppointmentsForSession(supabase, session);
-    const isMultiple = appointments.length > 1;
-    const appointmentIds = appointments.map((a: any) => a.id);
-
-    console.log(`[Contingency] LOG:
-      session_id: ${session.id}
-      phone: ${normalizedPhone}
-      appointment_id: ${session.appointment_id}
-      appointment_group_id: ${session.appointment_group_id}
-      appointments_loaded: ${JSON.stringify(appointmentIds)}
-      appointments_count: ${appointments.length}
-      isMultiple: ${isMultiple}
-      query_used: ${session.appointment_group_id ? 'group_id' : 'appointment_id'}`);
+    const appt = appointments[0];
     
-    if (isMultiple) {
+    if (appt) {
+      // Single appointment confirmation direct
+      await supabase.from("appointments").update({ 
+        status: 'confirmed',
+        confirmed_at: new Date().toISOString() 
+      }).eq("id", appt.id);
 
-      const text = "Como deseja confirmar?\n\n1️⃣ Confirmar todos\n2️⃣ Confirmar um específico";
+      const time = formatBrazilTime(appt.start_time);
+      const barber = appt.barbers?.name || "Profissional";
+      const service = appt.services?.name || "Serviço";
+      
+      const successMessage = `✅ Agendamento confirmado com sucesso!
+      
+Estamos te esperando na Barbearia LM.
+
+⏰ ${time}
+💈 ${barber}
+✂️ ${service}`;
+
       if (connection) {
-        await sendMessage(connection, normalizedPhone, text);
+        await sendMessage(connection, normalizedPhone, successMessage);
       }
       
-      await updateSessionState(supabase, session.id, 'awaiting_confirm_scope');
-      await logContingency(supabase, tenantId, session, "send_scope_menu", {
-        current_step_after: 'awaiting_confirm_scope',
-        appointments_count: appointments.length,
-        isMultiple: true
+      await updateSessionState(supabase, session.id, 'completed', false);
+      await logContingency(supabase, tenantId, session, "confirm_direct_success", { 
+        appointment_id: appt.id,
+        isMultiple: false
       });
       return true;
-    } else if (appointments.length === 1) {
+    }
       // Single appointment confirmation direct in contingency
       const appt = appointments[0];
       await supabase.from("appointments").update({ 
