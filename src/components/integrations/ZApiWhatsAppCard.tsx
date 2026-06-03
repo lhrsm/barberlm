@@ -91,9 +91,9 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isWaitingForCallback, setIsWaitingForCallback] = useState(false);
   const [callbackResult, setCallbackResult] = useState<{
     received: boolean;
-    time?: string;
-    buttonId?: string;
-    phone?: string;
+    time?: string | null;
+    buttonId?: string | null;
+    phone?: string | null;
     payload?: any;
   } | null>(null);
 
