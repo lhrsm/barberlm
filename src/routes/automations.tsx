@@ -303,7 +303,8 @@ function AutomationsComponent() {
   };
 
   const handleTestWorkflow = async () => {
-    if (!selectedWorkflow || !testPhone) return;
+    if (!selectedWorkflow || !testPhone || !tenantId) return;
+
     
     try {
       let entityId = null;
