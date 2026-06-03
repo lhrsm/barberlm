@@ -21,9 +21,22 @@ serve(async (req) => {
   );
 
   try {
-    const { tenantId, workflowId, queueId } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const { tenantId, workflowId, queueId, action, phone, message, options } = body;
     
-    console.log(`[AutomationEngine] Starting processing. Tenant: ${tenantId || 'ALL'}, Workflow: ${workflowId || 'ALL'}`);
+    console.log(`[AutomationEngine] Starting processing. Tenant: ${tenantId || 'ALL'}, Action: ${action || 'process_queue'}`);
+
+    // Handle specific actions first
+    if (action === 'send_message' && phone && message) {
+      console.log(`[AutomationEngine] Direct send_message to ${phone}`);
+      const connection = await getWhatsAppSettings(supabase, tenantId);
+      if (!connection) throw new Error("WhatsApp settings not found for tenant");
+      
+      const result = await sendMessage(connection, normalizePhone(phone), message, options);
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // 1. Fetch pending items from queue
     let query = supabase
@@ -48,6 +61,7 @@ serve(async (req) => {
     if (!queueItems || queueItems.length === 0) {
       return new Response(JSON.stringify({ success: true, message: "No pending items in queue" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+
       });
     }
 
