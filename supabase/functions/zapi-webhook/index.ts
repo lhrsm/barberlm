@@ -180,8 +180,10 @@ async function processZapiWebhook(supabase: any, body: any, tenantId: string) {
     return await handleConfirmSpecific(supabase, session, tenantId, appointmentId);
   } else if (option === 'main_reschedule' || option.includes('reagendar')) {
     return await handleReschedule(supabase, session, tenantId);
-  } else if (option === 'main_cancel' || option.includes('cancelar')) {
-    return await handleCancel(supabase, session, tenantId);
+  } else if (option === 'main_cancel' || option.includes('cancelar') || option === 'cancel_confirm') {
+    return await handleCancel(supabase, session, tenantId, option);
+  } else if (option === 'cancel_pix_refund' || option === 'cancel_pix_credit') {
+    return await handleCancelPixChoice(supabase, session, tenantId, option);
   }
 
   return { success: true };
@@ -509,14 +511,106 @@ async function handleReschedule(supabase: any, session: any, tenantId: string) {
   return { success: true };
 }
 
-async function handleCancel(supabase: any, session: any, tenantId: string) {
-  if (session.appointment_id) {
-    await supabase.from("appointments").update({ status: 'cancelled' }).eq("id", session.appointment_id);
-    const responseMessage = "❌ Seu agendamento foi cancelado conforme solicitado.";
-    
+async function handleCancel(supabase: any, session: any, tenantId: string, option: string) {
+  console.log(`[Z-API Webhook] Handling cancel for session ${session.id}, option: ${option}`);
+  
+  const apptId = session.appointment_id;
+  if (!apptId) return { success: true };
+
+  const { data: appointment } = await supabase
+    .from("appointments")
+    .select("*, customers(credits), services(name)")
+    .eq("id", apptId)
+    .single();
+
+  if (!appointment) return { success: true };
+
+  // 1. Initial Cancel Request (main_cancel)
+  if (option.includes('main_cancel') || option === 'cancelar') {
+    const isPaid = appointment.payment_status === 'paid';
+    const isPix = (appointment.payment_method === 'pix' || appointment.payment_method === 'PIX');
+    const hasCredits = (appointment.credit_used || 0) > 0;
+
+    if (isPix && isPaid) {
+      // Case PIX Paid: Ask for Refund or Credit
+      const message = `Você pagou via PIX. Como deseja receber o valor de R$ ${appointment.amount_paid || appointment.final_amount || appointment.total_price}?`;
+      const buttons = [
+        { id: "cancel_pix_refund", label: "Solicitar estorno" },
+        { id: "cancel_pix_credit", label: "Converter em créditos" }
+      ];
+
+      await supabase.functions.invoke('automation-engine', {
+        body: { tenantId, action: 'send_message', phone: session.phone, message, options: { buttons } }
+      });
+
+      await supabase.from("conversation_sessions").update({
+        current_step: 'awaiting_cancel_pix_choice',
+        updated_at: new Date().toISOString()
+      }).eq("id", session.id);
+
+      return { success: true };
+    } else if (hasCredits) {
+      // Case Credits: Ask for Confirmation
+      const message = `Tem certeza que deseja cancelar? O valor de R$ ${appointment.credit_used} será devolvido aos seus créditos.`;
+      const buttons = [
+        { id: "cancel_confirm", label: "Sim, cancelar" },
+        { id: "main_confirm", label: "Não, manter" }
+      ];
+
+      await supabase.functions.invoke('automation-engine', {
+        body: { tenantId, action: 'send_message', phone: session.phone, message, options: { buttons } }
+      });
+
+      await supabase.from("conversation_sessions").update({
+        current_step: 'awaiting_cancel_confirmation',
+        updated_at: new Date().toISOString()
+      }).eq("id", session.id);
+
+      return { success: true };
+    } else {
+      // Case Normal: Ask for Confirmation
+      const message = `Tem certeza que deseja cancelar seu agendamento para ${appointment.services?.name}?`;
+      const buttons = [
+        { id: "cancel_confirm", label: "Sim, cancelar" },
+        { id: "main_confirm", label: "Não, manter" }
+      ];
+
+      await supabase.functions.invoke('automation-engine', {
+        body: { tenantId, action: 'send_message', phone: session.phone, message, options: { buttons } }
+      });
+
+      await supabase.from("conversation_sessions").update({
+        current_step: 'awaiting_cancel_confirmation',
+        updated_at: new Date().toISOString()
+      }).eq("id", session.id);
+
+      return { success: true };
+    }
+  }
+
+  // 2. Cancellation Confirmed (cancel_confirm)
+  if (option === 'cancel_confirm') {
+    const { data: cancelResult, error: cancelError } = await supabase.rpc('cancel_appointment', {
+      p_appointment_id: apptId,
+      p_cancelled_by: 'automation',
+      p_source: 'whatsapp',
+      p_refund_preference: 'credit' // Default for credits refund
+    });
+
+    if (cancelError) {
+      console.error(`[Z-API Webhook] Error cancelling:`, cancelError);
+      return { success: false };
+    }
+
+    let responseMessage = "✅ Seu agendamento foi cancelado com sucesso.";
+    if (cancelResult?.credits_refunded > 0) {
+      responseMessage += `\nO valor de R$ ${cancelResult.credits_refunded} foi devolvido aos seus créditos na barbearia.`;
+    }
+
     await supabase.from("conversation_sessions").update({
       current_step: 'completed',
       status: 'closed',
+      active: false,
       updated_at: new Date().toISOString()
     }).eq("id", session.id);
 
@@ -524,6 +618,45 @@ async function handleCancel(supabase: any, session: any, tenantId: string) {
       body: { tenantId, action: 'send_message', phone: session.phone, message: responseMessage }
     });
   }
+
+  return { success: true };
+}
+
+async function handleCancelPixChoice(supabase: any, session: any, tenantId: string, option: string) {
+  const apptId = session.appointment_id;
+  const preference = option === 'cancel_pix_refund' ? 'refund' : 'credit';
+
+  const { data: cancelResult, error: cancelError } = await supabase.rpc('cancel_appointment', {
+    p_appointment_id: apptId,
+    p_cancelled_by: 'automation',
+    p_source: 'whatsapp',
+    p_refund_preference: preference
+  });
+
+  if (cancelError) return { success: false };
+
+  let responseMessage = "✅ Seu agendamento foi cancelado.";
+  if (preference === 'refund') {
+    responseMessage += "\nA solicitação de estorno foi enviada para a barbearia.";
+  } else {
+    responseMessage += `\nO valor de R$ ${cancelResult.pix_refund_amount} foi convertido em créditos na barbearia.`;
+  }
+  
+  if (cancelResult.credits_refunded > 0) {
+    responseMessage += `\nAlém disso, R$ ${cancelResult.credits_refunded} em créditos foram estornados.`;
+  }
+
+  await supabase.from("conversation_sessions").update({
+    current_step: 'completed',
+    status: 'closed',
+    active: false,
+    updated_at: new Date().toISOString()
+  }).eq("id", session.id);
+
+  await supabase.functions.invoke('automation-engine', {
+    body: { tenantId, action: 'send_message', phone: session.phone, message: responseMessage }
+  });
+
   return { success: true };
 }
 

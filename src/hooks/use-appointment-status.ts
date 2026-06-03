@@ -24,23 +24,23 @@ export function useAppointmentStatus() {
           p_cancelled_by: source.includes('portal') ? 'customer' : 'admin',
           p_source: source,
           p_refund_preference: metadata.refund_preference || 'none',
-          p_changed_by_id: user?.id || null
+          p_changed_by_id: user?.id || undefined
         });
         
         if (error) throw error;
-        result = data;
+        result = data as any;
       } else {
         const { data, error } = await supabase.rpc('update_appointment_status', {
           p_appointment_id: appointmentId,
           p_new_status: newStatus,
           p_changed_by_type: source.includes('portal') ? 'customer' : 'admin',
-          p_changed_by_id: user?.id || null,
+          p_changed_by_id: user?.id || undefined,
           p_source: source,
           p_metadata: metadata
         });
         
         if (error) throw error;
-        result = data;
+        result = data as any;
       }
 
       console.log('APPOINTMENT_STATUS_UPDATE_SUCCESS', { appointmentId, newStatus, result });
@@ -65,7 +65,7 @@ export function useAppointmentStatus() {
         queryClient.invalidateQueries({ queryKey: key });
       });
       
-      return { success: true, ...result };
+      return { success: true, ...(typeof result === 'object' ? result : {}) };
     } catch (error: any) {
       console.error('APPOINTMENT_STATUS_UPDATE_FATAL', error);
       toast.error(error.message || "Erro ao atualizar status do agendamento");
