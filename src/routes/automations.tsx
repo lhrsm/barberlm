@@ -424,7 +424,12 @@ function AutomationsComponent() {
             <div className="flex justify-between items-center gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Buscar automação..." className="pl-8" />
+                <Input 
+                  placeholder="Buscar automação..." 
+                  className="pl-8" 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
               <Button onClick={handleLoadDefaults} variant="outline" size="sm">
                 <Plus className="w-4 h-4 mr-2" />
@@ -434,7 +439,8 @@ function AutomationsComponent() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 
-            {workflows.map((w) => (
+            {filteredWorkflows.map((w) => (
+
               <Card key={w.id} className="relative overflow-hidden flex flex-col justify-between">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
