@@ -306,12 +306,14 @@ Estamos te esperando na Barbearia LM.
       const cancelMode = conversation.context?.cancel_mode === true;
       let selectedId = "";
 
-      if (normalizedOption.includes('appointment:')) {
-        selectedId = normalizedOption.split(':')[1];
+      if (rawInput.includes('confirm_appt_')) {
+        selectedId = rawInput.replace('confirm_appt_', '');
+      } else if (rawInput.includes('appointment:')) {
+        selectedId = rawInput.split(':')[1];
       } else {
         // Fallback for numbered text response
         const mapping = conversation.context?.appt_mapping || appointmentIds;
-        const index = parseInt(normalizedOption) - 1;
+        const index = parseInt(normalizedInput) - 1;
         if (!isNaN(index) && index >= 0 && index < mapping.length) {
           selectedId = mapping[index];
         }
@@ -327,13 +329,12 @@ Estamos te esperando na Barbearia LM.
           const actionText = cancelMode ? "cancelado" : "confirmado";
           messageToSend = `✅ Agendamento ${actionText}! O que deseja fazer com os demais agendamentos?`;
           buttons = [
-            { id: "1", label: "Confirmar demais" },
-            { id: "2", label: "Reagendar demais" },
-            { id: "3", label: "Cancelar demais" }
+            { id: "confirm_all", label: "Confirmar demais" },
+            { id: "main_reschedule", label: "Reagendar demais" },
+            { id: "main_cancel", label: "Cancelar demais" }
           ];
           nextState = AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION;
 
-          
           await supabase.from("whatsapp_conversations")
             .update({ 
               context: { 
@@ -350,7 +351,7 @@ Estamos te esperando na Barbearia LM.
         }
         actionExecuted = `${cancelMode ? 'cancel' : 'confirm'}_specific`;
       } else {
-        messageToSend = "Opção inválida. Por favor, digite o número correspondente ao atendimento desejado.";
+        messageToSend = "Opção inválida. Por favor, escolha um dos agendamentos da lista.";
       }
       break;
 
