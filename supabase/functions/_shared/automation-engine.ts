@@ -709,12 +709,17 @@ export async function processAutomationDispatches(
             appointment_id: appt.id
           };
           
+          console.log(`[AutomationEngine] Formatting single appointment: ${appt.start_time} -> ${templateData.appointment_time}`);
+          
           const rawTemplate = auto.template || `Olá {{customer_name}} 👋\n\nSeu agendamento na {{barbershop_name}} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {{service_name}}\n💈 Profissional: {{professional_name}}\n📅 Data: {{appointment_date}}\n⏰ Horário: {{appointment_time}}\n{{#if service_price}}💰 Valor: {{service_price}}{{/if}}\n\nO que deseja fazer?`;
           message = processAutomationTemplate(rawTemplate, templateData);
         } else {
           let appointmentsList = "";
           apptGroup.forEach((appt, i) => {
-            appointmentsList += `${i + 1}️⃣ ${appt.services?.name}\n💈 ${appt.barbers?.name}\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n\n`;
+            const timeStr = formatBrazilTime(appt.start_time);
+            const dateStr = formatBrazilDate(appt.start_time);
+            console.log(`[AutomationEngine] Formatting group item ${i}: ${appt.start_time} -> ${timeStr}`);
+            appointmentsList += `${i + 1}️⃣ ${appt.services?.name}\n💈 ${appt.barbers?.name}\n📅 ${dateStr}\n⏰ ${timeStr}\n\n`;
           });
 
           const templateData = {

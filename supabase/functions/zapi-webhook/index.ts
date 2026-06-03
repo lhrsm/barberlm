@@ -155,7 +155,15 @@ async function processZapiWebhook(supabase: any, body: any, tenantId: string) {
 
   if (!session) {
     console.log(`[Z-API Webhook] No session found for ${normalizedPhone}`);
-    return { success: true, message: "No session found" };
+    return { 
+      success: true, 
+      message: "No session found",
+      details: {
+        normalizedPhone,
+        referenceMessageId,
+        selectedOptionRaw
+      }
+    };
   }
 
   // 3. Process actions
