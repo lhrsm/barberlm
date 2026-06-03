@@ -671,7 +671,146 @@ function AutomationsComponent() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Modal de Edição */}
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent className="sm:max-width-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Automação</DialogTitle>
+              <DialogDescription>
+                Configure os detalhes e o template da sua automação.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedWorkflow && (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome da Automação</Label>
+                  <Input 
+                    id="name" 
+                    value={selectedWorkflow.name} 
+                    onChange={(e) => setSelectedWorkflow({ ...selectedWorkflow, name: e.target.value })} 
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="trigger">Gatilho (Evento)</Label>
+                    <Select 
+                      value={selectedWorkflow.trigger_event} 
+                      onValueChange={(v) => setSelectedWorkflow({ ...selectedWorkflow, trigger_event: v })}
+                    >
+                      <SelectTrigger id="trigger">
+                        <SelectValue placeholder="Selecione o gatilho" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="appointment.created">Agendamento Criado</SelectItem>
+                        <SelectItem value="appointment.confirmed">Agendamento Confirmado</SelectItem>
+                        <SelectItem value="appointment.cancelled">Agendamento Cancelado</SelectItem>
+                        <SelectItem value="appointment.reminder">Lembrete de Agendamento</SelectItem>
+                        <SelectItem value="appointment.completed">Agendamento Concluído</SelectItem>
+                        <SelectItem value="customer.birthday">Aniversário do Cliente</SelectItem>
+                        <SelectItem value="customer.inactive">Cliente Inativo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <div className="flex items-center space-x-2 pt-2">
+                      <Switch 
+                        checked={selectedWorkflow.active} 
+                        onCheckedChange={(checked) => setSelectedWorkflow({ ...selectedWorkflow, active: checked })}
+                      />
+                      <Label className="font-normal">{selectedWorkflow.active ? 'Ativo' : 'Inativo'}</Label>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="template">Template da Mensagem</Label>
+                  <Textarea 
+                    id="template" 
+                    rows={5} 
+                    value={selectedWorkflow.configuration?.template || ""} 
+                    onChange={(e) => setSelectedWorkflow({ 
+                      ...selectedWorkflow, 
+                      configuration: { ...selectedWorkflow.configuration, template: e.target.value } 
+                    })} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Variáveis Disponíveis (Clique para copiar)</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {AVAILABLE_VARIABLES.map(v => (
+                      <Badge 
+                        key={v} 
+                        variant="secondary" 
+                        className="cursor-pointer hover:bg-muted"
+                        onClick={() => {
+                          navigator.clipboard.writeText(v);
+                          toast.success("Copiado: " + v);
+                        }}
+                      >
+                        {v}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
+              <Button onClick={() => handleSaveWorkflow(selectedWorkflow)}>Salvar Alterações</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de Teste */}
+        <Dialog open={isTestModalOpen} onOpenChange={setIsTestModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Testar Automação</DialogTitle>
+              <DialogDescription>
+                Envie uma mensagem de teste para validar o template.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="test-phone">Telefone de Destino (com DDD)</Label>
+                <Input 
+                  id="test-phone" 
+                  placeholder="Ex: 71996242196" 
+                  value={testPhone} 
+                  onChange={(e) => setTestPhone(e.target.value)} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Dados para o teste</Label>
+                <Select value={testDataType} onValueChange={setTestDataType}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="last">Usar dados do último agendamento real</SelectItem>
+                    <SelectItem value="mock">Usar dados fictícios</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedWorkflow && (
+                <div className="p-4 bg-muted rounded-lg text-sm italic">
+                  Preview do template:<br/>
+                  <span className="text-muted-foreground">"{selectedWorkflow.configuration?.template}"</span>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsTestModalOpen(false)}>Cancelar</Button>
+              <Button onClick={handleTestWorkflow}>
+                <Send className="w-4 h-4 mr-2" />
+                Enviar Teste
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
 }
+
