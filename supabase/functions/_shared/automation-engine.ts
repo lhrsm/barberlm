@@ -926,7 +926,7 @@ export async function processAutomationDispatches(
             appointments_count: apptGroup.length,
             is_multiple: isMultiple,
             conversation_id: newConv?.id,
-            conversation_state: newConv?.state,
+            conversation_state: newConv?.current_step,
             conversation_active: newConv?.active
           }
         });
