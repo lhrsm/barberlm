@@ -818,10 +818,10 @@ export async function processAutomationDispatches(
         console.log('--- PREPARING CONVERSATION ---');
         
         // Desativar conversas anteriores para o mesmo telefone
-        const { error: deactivateError } = await supabase.from("whatsapp_conversations")
-          .update({ active: false })
+        const { error: deactivateError } = await supabase.from("conversation_sessions")
+          .update({ active: false, status: 'closed' })
           .eq("active", true)
-          .or(`phone.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue},phone_fallback.eq.${normalizedPhoneValue},phone_fallback.eq.${fallbackPhoneValue}`);
+          .or(`phone.eq.${normalizedPhoneValue},phone.eq.${fallbackPhoneValue}`);
           
         if (deactivateError) {
           console.log('[AutomationEngine] Warning: Could not deactivate previous conversations:', deactivateError.message);
@@ -831,7 +831,7 @@ export async function processAutomationDispatches(
         let conversationId = null;
         if (group_id) {
           const { data: existingGroupConv } = await supabase
-            .from("whatsapp_conversations")
+            .from("conversation_sessions")
             .select("id")
             .eq("appointment_group_id", group_id)
             .maybeSingle();
@@ -844,15 +844,14 @@ export async function processAutomationDispatches(
 
         let newConv = null;
         if (!conversationId) {
-          // Upsert conversation
+          // Create conversation
           const convPayload = {
             tenant_id: tenant_id,
-            barber_id: tenant_id,
             customer_id: customer.id,
             phone: normalizedPhoneValue,
-            phone_fallback: fallbackPhoneValue,
-            state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+            current_step: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
             active: true,
+            status: 'active',
             appointment_group_id: group_id,
             appointment_id: !isMultiple ? firstAppt.id : null,
             context: {
@@ -863,7 +862,7 @@ export async function processAutomationDispatches(
           };
 
           const { data, error: convError } = await supabase
-            .from("whatsapp_conversations")
+            .from("conversation_sessions")
             .insert(convPayload)
             .select()
             .single();
@@ -877,10 +876,11 @@ export async function processAutomationDispatches(
         } else {
           // Update existing group conversation to be active again
           const { data, error: convError } = await supabase
-            .from("whatsapp_conversations")
+            .from("conversation_sessions")
             .update({
               active: true,
-              state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+              status: 'active',
+              current_step: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
               updated_at: new Date().toISOString()
             })
             .eq("id", conversationId)
