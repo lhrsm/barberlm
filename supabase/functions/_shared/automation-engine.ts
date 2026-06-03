@@ -272,7 +272,7 @@ Estamos te esperando na Barbearia LM.
           description: `${a.services?.name}`
         }));
 
-        await supabase.from("whatsapp_conversations")
+        await supabase.from("conversation_sessions")
           .update({ 
             context: { ...conversation.context, appt_mapping: appointmentIds }
           })
