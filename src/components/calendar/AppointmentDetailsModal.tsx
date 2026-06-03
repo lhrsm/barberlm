@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAppointmentStatus } from "@/hooks/use-appointment-status";
 
 interface AppointmentDetailsModalProps {
   appointmentId?: string;
@@ -51,6 +52,7 @@ export function AppointmentDetailsModal({
   const [loading, setLoading] = React.useState(false);
   const [actionLoading, setActionLoading] = React.useState(false);
   const queryClient = useQueryClient();
+  const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
 
   React.useEffect(() => {
     if (open && appointmentId) {
@@ -87,39 +89,20 @@ export function AppointmentDetailsModal({
   const updateStatus = async (newStatus: string) => {
     if (!appointment) return;
     setActionLoading(true);
-    try {
-      // Usar função centralizada via RPC
-      const { error } = await supabase.rpc('update_appointment_status', {
-        p_appointment_id: appointment.id,
-        p_new_status: newStatus,
-        p_changed_by_type: 'admin', // Pode ser ajustado baseado no contexto real
-        p_changed_by_id: (await supabase.auth.getUser()).data.user?.id || '',
-        p_source: 'admin_panel',
-        p_metadata: {}
-      });
+    
+    const result = await centralUpdateStatus(
+      appointment.id, 
+      newStatus, 
+      {}, 
+      'admin_panel'
+    );
 
-      if (error) throw error;
-
-      console.log('STATUS UPDATED VIA RPC', appointment.id, newStatus);
-      toast.success(`Status atualizado para ${getStatusLabel(newStatus)}`);
-      
-      // Invalida todas as queries relacionadas
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      queryClient.invalidateQueries({ queryKey: ['calendar'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['customerAppointments'] });
-      queryClient.invalidateQueries({ queryKey: ['calendar-appointments'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-appointments'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-      
+    if (result.success) {
       if (onSuccess) onSuccess();
       onOpenChange(false);
-    } catch (error: any) {
-      console.error("Error updating status:", error);
-      toast.error("Erro ao atualizar status");
-    } finally {
-      setActionLoading(false);
     }
+    
+    setActionLoading(false);
   };
 
   const getStatusLabel = (status: string) => {
