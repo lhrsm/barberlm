@@ -340,7 +340,11 @@ function ProfessionalDashboard() {
                           </p>
                         </div>
                         <div className="text-right flex flex-col items-end gap-2">
-                           {app.status !== 'cancelled' && (
+                           {app.status === 'cancelled' ? (
+                             <Badge variant="outline" className="text-[10px] font-black px-2 py-0.5 text-zinc-400 border-zinc-200 bg-white">
+                               SEM COBRANÇA
+                             </Badge>
+                           ) : (
                              <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'} className={cn(
                                "text-[10px] font-black px-2 py-0.5",
                                app.payment_status === 'paid' ? "bg-green-600 text-white border-transparent" : "text-[#D4AF37] border-[#D4AF37] bg-white"
