@@ -155,6 +155,7 @@ export type Database = {
           coupon_id: string | null
           created_at: string
           credit_used: number | null
+          credits_used: number | null
           customer_id: string | null
           discount_amount: number | null
           end_time: string
@@ -205,6 +206,7 @@ export type Database = {
           coupon_id?: string | null
           created_at?: string
           credit_used?: number | null
+          credits_used?: number | null
           customer_id?: string | null
           discount_amount?: number | null
           end_time: string
@@ -255,6 +257,7 @@ export type Database = {
           coupon_id?: string | null
           created_at?: string
           credit_used?: number | null
+          credits_used?: number | null
           customer_id?: string | null
           discount_amount?: number | null
           end_time?: string
@@ -624,6 +627,7 @@ export type Database = {
           scheduled_for: string | null
           status: string
           tenant_id: string | null
+          updated_at: string | null
           workflow_id: string | null
         }
         Insert: {
@@ -636,6 +640,7 @@ export type Database = {
           scheduled_for?: string | null
           status?: string
           tenant_id?: string | null
+          updated_at?: string | null
           workflow_id?: string | null
         }
         Update: {
@@ -648,6 +653,7 @@ export type Database = {
           scheduled_for?: string | null
           status?: string
           tenant_id?: string | null
+          updated_at?: string | null
           workflow_id?: string | null
         }
         Relationships: [
@@ -1181,6 +1187,7 @@ export type Database = {
       }
       conversation_sessions: {
         Row: {
+          active: boolean | null
           appointment_group_id: string | null
           appointment_id: string | null
           channel: string
@@ -1198,6 +1205,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active?: boolean | null
           appointment_group_id?: string | null
           appointment_id?: string | null
           channel?: string
@@ -1215,6 +1223,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active?: boolean | null
           appointment_group_id?: string | null
           appointment_id?: string | null
           channel?: string
@@ -1381,14 +1390,18 @@ export type Database = {
           birthday_sent: boolean | null
           cashback_balance: number
           created_at: string
+          credit_balance: number | null
           credits: number | null
           email: string | null
           id: string
+          last_visit: string | null
+          lifetime_value: number | null
           loyalty_points: number | null
           name: string
           notes: string | null
           phone: string | null
           tenant_id: string | null
+          total_spent: number | null
           updated_at: string | null
           user_id: string
         }
@@ -1399,14 +1412,18 @@ export type Database = {
           birthday_sent?: boolean | null
           cashback_balance?: number
           created_at?: string
+          credit_balance?: number | null
           credits?: number | null
           email?: string | null
           id?: string
+          last_visit?: string | null
+          lifetime_value?: number | null
           loyalty_points?: number | null
           name: string
           notes?: string | null
           phone?: string | null
           tenant_id?: string | null
+          total_spent?: number | null
           updated_at?: string | null
           user_id: string
         }
@@ -1417,14 +1434,18 @@ export type Database = {
           birthday_sent?: boolean | null
           cashback_balance?: number
           created_at?: string
+          credit_balance?: number | null
           credits?: number | null
           email?: string | null
           id?: string
+          last_visit?: string | null
+          lifetime_value?: number | null
           loyalty_points?: number | null
           name?: string
           notes?: string | null
           phone?: string | null
           tenant_id?: string | null
+          total_spent?: number | null
           updated_at?: string | null
           user_id?: string
         }
