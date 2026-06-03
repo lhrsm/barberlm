@@ -1228,7 +1228,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                   <Activity size={16} className="text-blue-400" />
                   Estado da Integração
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button 
                     onClick={reconfigureWebhook} 
                     disabled={isConfiguring || !instance}
@@ -1236,8 +1236,19 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                     className="bg-blue-600 hover:bg-blue-700 text-[10px] h-8"
                   >
                     {isConfiguring ? <Loader2 className="animate-spin mr-1" size={12} /> : <RefreshCw className="mr-1" size={12} />}
-                    Reconfigurar Webhook
+                    Reconfigurar Webhook "Ao Receber"
                   </Button>
+                  
+                  <Button 
+                    onClick={sendTestButtonWithCallback} 
+                    disabled={isSendingButtonTest || isWaitingForCallback || !instance}
+                    size="sm"
+                    className="bg-purple-600 hover:bg-purple-700 text-[10px] h-8"
+                  >
+                    {isSendingButtonTest || isWaitingForCallback ? <Loader2 className="animate-spin mr-1" size={12} /> : <Send className="mr-1" size={12} />}
+                    Testar clique com callback
+                  </Button>
+
                   <Button 
                     onClick={runExpandedWebhookTest} 
                     disabled={isConfiguring || !instance}
@@ -1247,6 +1258,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                     {isConfiguring ? <Loader2 className="animate-spin mr-1" size={12} /> : <Zap className="mr-1" size={12} />}
                     Teste Ampliado Webhooks
                   </Button>
+                  
                   <Button 
                     onClick={sendTestMessage} 
                     disabled={isSendingTest || !instance}
@@ -1255,9 +1267,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                     className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 text-[10px] h-8"
                   >
                     {isSendingTest ? <Loader2 className="animate-spin mr-1" size={12} /> : <Send className="mr-1" size={12} />}
-                    Enviar Mensagem Teste
+                    Enviar Mensagem Teste (Texto)
                   </Button>
-
                 </div>
               </div>
 
