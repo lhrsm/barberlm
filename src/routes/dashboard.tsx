@@ -355,7 +355,7 @@ function DashboardComponent() {
       p_appointment_id: appointment.id,
       p_new_status: 'completed',
       p_changed_by_type: 'admin',
-      p_changed_by_id: user?.id,
+      p_changed_by_id: user?.id || '',
       p_source: 'dashboard',
       p_metadata: {
         payment_status: 'paid',

@@ -93,7 +93,7 @@ export function AppointmentDetailsModal({
         p_appointment_id: appointment.id,
         p_new_status: newStatus,
         p_changed_by_type: 'admin', // Pode ser ajustado baseado no contexto real
-        p_changed_by_id: (await supabase.auth.getUser()).data.user?.id,
+        p_changed_by_id: (await supabase.auth.getUser()).data.user?.id || '',
         p_source: 'admin_panel',
         p_metadata: {}
       });
