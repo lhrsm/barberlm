@@ -22,15 +22,132 @@ import {
   AlertCircle,
   RefreshCw,
   Search,
-  Trash2
+  Trash2,
+  Copy,
+  Plus,
+  Send,
+  Calendar,
+  User,
+  Clock,
+  Check,
+  X,
+  Smartphone
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
+const AVAILABLE_VARIABLES = [
+  "{customer_name}",
+  "{barbershop_name}",
+  "{service_name}",
+  "{professional_name}",
+  "{appointment_date}",
+  "{appointment_time}",
+  "{service_price}",
+  "{customer_phone}",
+  "{payment_method}",
+  "{appointment_status}"
+];
+
+const DEFAULT_TEMPLATES = [
+  {
+    name: "Confirmação de Agendamento",
+    trigger_event: "appointment.created",
+    template: "Olá {customer_name}! 👋 Seu agendamento na {barbershop_name} foi realizado com sucesso para {appointment_date} às {appointment_time}."
+  },
+  {
+    name: "Lembrete de Agendamento",
+    trigger_event: "appointment.reminder",
+    template: "Olá {customer_name}! Passando para lembrar do seu agendamento amanhã ({appointment_date}) às {appointment_time} na {barbershop_name}. Podemos confirmar?"
+  },
+  {
+    name: "Cancelamento de Agendamento",
+    trigger_event: "appointment.cancelled",
+    template: "Olá {customer_name}. Seu agendamento na {barbershop_name} para {appointment_date} foi cancelado conforme solicitado."
+  },
+  {
+    name: "Reagendamento de Agendamento",
+    trigger_event: "appointment.rescheduled",
+    template: "Olá {customer_name}! Seu agendamento na {barbershop_name} foi reagendado com sucesso para {appointment_date} às {appointment_time}."
+  },
+  {
+    name: "Aniversário do Cliente",
+    trigger_event: "customer.birthday",
+    template: "Feliz aniversário, {customer_name}! 🎉 A {barbershop_name} preparou uma condição especial para você hoje. Venha comemorar conosco!"
+  },
+  {
+    name: "Cliente Inativo",
+    trigger_event: "customer.inactive",
+    template: "Olá {customer_name}! Sentimos sua falta na {barbershop_name}. Que tal agendar um novo horário hoje? Temos novidades esperando por você!"
+  },
+  {
+    name: "Pós-atendimento / Agradecimento",
+    trigger_event: "appointment.completed",
+    template: "Obrigado pela visita, {customer_name}! Foi um prazer atender você na {barbershop_name}. Esperamos vê-lo em breve novamente!"
+  },
+  {
+    name: "Pedido de Avaliação",
+    trigger_event: "appointment.completed",
+    template: "Como foi sua experiência na {barbershop_name}, {customer_name}? Sua avaliação é muito importante para nós! Avalie aqui: [Link]"
+  },
+  {
+    name: "Promoção da Semana",
+    trigger_event: "manual.campaign",
+    template: "Olá {customer_name}! 🚀 Confira nossa promoção especial desta semana na {barbershop_name}. Não perca tempo e garanta seu horário!"
+  },
+  {
+    name: "Cashback Disponível",
+    trigger_event: "cashback.created",
+    template: "Você recebeu {cashback_value} de cashback para usar na {barbershop_name}! Aproveite em seu próximo serviço."
+  },
+  {
+    name: "Créditos Disponíveis",
+    trigger_event: "credit.created",
+    template: "Olá {customer_name}! Você possui {credit_value} em créditos disponíveis na {barbershop_name}."
+  },
+  {
+    name: "Pagamento Pendente",
+    trigger_event: "payment.pending",
+    template: "Olá {customer_name}, seu pagamento do agendamento de {appointment_date} ainda está pendente. Por favor, regularize para garantir sua vaga."
+  },
+  {
+    name: "Pagamento Confirmado",
+    trigger_event: "payment.confirmed",
+    template: "Tudo pronto, {customer_name}! Seu pagamento para o agendamento de {appointment_date} foi confirmado com sucesso. Até lá!"
+  },
+  {
+    name: "Profissional Notificado",
+    trigger_event: "appointment.created",
+    template: "Novo atendimento agendado com {customer_name} em {appointment_date} às {appointment_time}."
+  },
+  {
+    name: "Aviso para a Barbearia",
+    trigger_event: "appointment.created",
+    template: "Novo agendamento recebido: {customer_name}, {service_name}, {appointment_date} às {appointment_time}."
+  }
+];
 
 export const Route = createFileRoute("/automations")({
   component: AutomationsComponent,
 });
+
 
 function AutomationsComponent() {
   const { tenantId } = useTenant();
