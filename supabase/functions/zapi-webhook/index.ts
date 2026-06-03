@@ -36,6 +36,8 @@ function extractSelectedOption(body: any): string {
   const possiblePaths = [
     body.buttonsResponseMessage?.buttonId,
     body.buttonsResponseMessage?.selectedButtonId,
+    body.message?.buttonsResponseMessage?.buttonId,
+    body.message?.buttonsResponseMessage?.selectedButtonId,
     body.listResponseMessage?.singleSelectReply?.selectedRowId,
     body.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
     body.buttonReply?.id,
@@ -45,7 +47,9 @@ function extractSelectedOption(body: any): string {
     body.text,
     body.body,
     body.message?.text,
-    body.message?.body
+    body.message?.body,
+    body.message?.contents,
+    body.contents
   ];
 
   for (const val of possiblePaths) {
