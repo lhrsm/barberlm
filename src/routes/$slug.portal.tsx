@@ -668,7 +668,8 @@ function ClientPortalComponent() {
       
       if (error) throw error;
       
-      if (data && data.pix_refund_amount > 0) {
+      const result = data as any;
+      if (result && result.pix_refund_amount > 0) {
         setCancellingAppointment(app);
         setIsRefundModalOpen(true);
         return;
