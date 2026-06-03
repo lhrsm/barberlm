@@ -958,7 +958,15 @@ function ShopPageComponent() {
             quantity: 1
           }]
         };
-        console.log('PAYLOAD (item):', appointmentPayload);
+        console.log('AUDIT CHECKOUT:', {
+          appointment_id: 'pending_insert',
+          appointment_group_id: appointmentGroupId,
+          customer_id: finalCustId,
+          service_id: item.service_id,
+          barber_id: item.barber_id,
+          start_time: startTime.toISOString(),
+          created_at: new Date().toISOString()
+        });
 
         return supabase.from("appointments").insert([appointmentPayload]).select().single();
       });
