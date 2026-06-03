@@ -64,10 +64,10 @@ function DashboardComponent() {
   const { tenantId, isLoading: tenantLoading } = useTenant();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { plan, usage, limits, trialDaysRemaining, isTrial, isExpired, subscription, refresh: refreshLimits } = usePlanLimits();
+  const { plan, usage, limits, trialDaysRemaining, isTrial, isExpired, subscription, refresh: refreshLimits, loading: planLoading } = usePlanLimits();
   const isSubscribed = ['active', 'trialing', 'past_due'].includes(subscription?.status || '');
   const hasActiveSubscription = isSubscribed || subscription?.status === 'active';
-  const loading = authLoading || tenantLoading;
+  const loading = authLoading || tenantLoading || planLoading;
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
