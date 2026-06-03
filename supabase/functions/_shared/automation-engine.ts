@@ -173,6 +173,7 @@ Estamos te esperando na Barbearia LM.
 
         } else {
           // Multiple: Ask scope
+          console.log('[AutomationEngine] Multiple appointments found. Sending confirm scope menu.');
           messageToSend = "Como deseja confirmar?";
           buttons = [
             { id: "confirm_all", label: "Confirmar todos" },
@@ -182,6 +183,7 @@ Estamos te esperando na Barbearia LM.
           actionExecuted = "send_confirm_scope_menu";
           selectedOptionNormalized = "main_confirm";
         }
+
       } else if (mappedOption === 'main_reschedule') {
         console.log('NEXT ACTION: Reschedule');
         if (!isMultiple) {
