@@ -1477,21 +1477,23 @@ function DashboardComponent() {
                                 Cancelar
                               </Button>
                             )}
-                            <Button 
-                              variant={app.payment_status === 'paid' ? 'secondary' : 'outline'} 
-                              size="sm" 
-                              className={cn(
-                                "h-8 gap-1 text-xs",
-                                app.payment_status === 'paid' && "text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
-                              )}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                togglePaymentStatus(app);
-                              }}
-                            >
-                              <Check size={14} />
-                              {app.payment_status === 'paid' ? 'Pago' : 'Marcar Pago'}
-                            </Button>
+                             {app.status !== 'cancelled' && (
+                               <Button 
+                                 variant={app.payment_status === 'paid' ? 'secondary' : 'outline'} 
+                                 size="sm" 
+                                 className={cn(
+                                   "h-8 gap-1 text-xs",
+                                   app.payment_status === 'paid' && "text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
+                                 )}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   togglePaymentStatus(app);
+                                 }}
+                               >
+                                 <Check size={14} />
+                                 {app.payment_status === 'paid' ? 'Pago' : 'Marcar Pago'}
+                               </Button>
+                             )}
                             <Badge className={cn(
                               app.status === 'scheduled' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100' : 
                               app.status === 'completed' ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 
