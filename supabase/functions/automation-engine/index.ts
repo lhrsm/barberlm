@@ -40,6 +40,7 @@ serve(async (req) => {
     }
 
     // 1. Fetch pending items from queue
+    // We group by appointment_group_id to handle them together if they slipped through
     let query = supabase
       .from("automation_queue")
       .select(`
@@ -50,7 +51,7 @@ serve(async (req) => {
       .eq("status", "pending")
       .lte("scheduled_for", new Date().toISOString())
       .order("created_at", { ascending: true })
-      .limit(20);
+      .limit(50); // Increased limit to find groups
 
     if (tenantId) query = query.eq("tenant_id", tenantId);
     if (workflowId) query = query.eq("workflow_id", workflowId);
@@ -62,15 +63,27 @@ serve(async (req) => {
     if (!queueItems || queueItems.length === 0) {
       return new Response(JSON.stringify({ success: true, message: "No pending items in queue" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-
       });
     }
 
     console.log(`[AutomationEngine] Processing ${queueItems.length} items`);
 
     const results = [];
+    const processedGroups = new Set();
 
     for (const item of queueItems) {
+      // Check if this group was already processed in this batch
+      const groupId = item.appointment_group_id || item.automation_events?.appointment_group_id;
+      if (groupId && processedGroups.has(groupId)) {
+        console.log(`[AutomationEngine] Skipping item ${item.id} - Group ${groupId} already handled in this batch`);
+        await supabase.from("automation_queue").update({ 
+          status: "completed", 
+          processed_at: new Date().toISOString(),
+          error: "Skipped: Handled in group batch" 
+        }).eq("id", item.id);
+        continue;
+      }
+
       try {
         // Mark as processing
         await supabase.from("automation_queue").update({ 
@@ -95,6 +108,7 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         }).eq("id", item.id);
 
+        if (groupId) processedGroups.add(groupId);
         results.push({ id: item.id, status: "completed", result });
 
       } catch (error: any) {
@@ -111,6 +125,7 @@ serve(async (req) => {
           tenant_id: item.tenant_id,
           workflow_id: item.workflow_id,
           queue_id: item.id,
+          appointment_group_id: groupId,
           status: "error",
           message: `Erro ao processar item da fila: ${error.message}`,
           error_details: JSON.stringify({ error: error.message, stack: error.stack })
@@ -141,32 +156,31 @@ async function processWorkflowItem(supabase: any, item: any, workflow: any, even
 
   if (eventName === 'appointment.created') {
     // Check for group
-    const groupId = payload.appointment_group_id || event.payload?.appointment_group_id || (payload.appointment && payload.appointment.appointment_group_id);
+    const groupId = item.appointment_group_id || payload.appointment_group_id || event.appointment_group_id || (payload.appointment && payload.appointment.appointment_group_id);
     
     if (groupId) {
       console.log(`[AutomationEngine] Group creation detected. GroupId: ${groupId}. RunId: ${item.id}`);
       
-      // 1. Mark ALL OTHER pending queue items for this group as completed to avoid duplicate runs
+      // 1. Mark ALL OTHER pending/processing queue items for this group as completed to avoid duplicate runs
       const { data: duplicateItems } = await supabase
         .from("automation_queue")
         .select("id")
-        .eq("status", "pending")
         .eq("tenant_id", tenantId)
-        .neq("id", item.id) // Don't mark current one
-        .filter("payload->>appointment_group_id", "eq", groupId);
+        .eq("appointment_group_id", groupId)
+        .neq("id", item.id);
         
       if (duplicateItems && duplicateItems.length > 0) {
-        console.log(`[AutomationEngine] Marking ${duplicateItems.length} duplicate group items as skipped`);
+        console.log(`[AutomationEngine] Marking ${duplicateItems.length} duplicate/other group items as skipped`);
         await supabase.from("automation_queue")
           .update({ 
             status: "completed", 
             processed_at: new Date().toISOString(),
-            error: "Skipped: Handled by group processor in parallel run" 
+            error: "Skipped: Handled by group processor" 
           })
           .in("id", duplicateItems.map((q: any) => q.id));
       }
 
-      // Check if this group was already handled by checking confirmation_sent_at for appointments in this group
+      // 2. Check if this group was already handled by checking confirmation_sent_at for appointments in this group
       const { data: groupAppts } = await supabase.from("appointments").select("confirmation_sent_at").eq("appointment_group_id", groupId);
       if (groupAppts && groupAppts.some((a: any) => a.confirmation_sent_at)) {
          console.log(`[AutomationEngine] Group ${groupId} already processed (confirmation_sent_at found). Skipping.`);
@@ -176,7 +190,12 @@ async function processWorkflowItem(supabase: any, item: any, workflow: any, even
       return await handleGroupAppointmentCreated(supabase, tenantId, groupId, payload, workflow, item.id);
     }
     
-    // Normal single appointment flow
+    // Normal single appointment flow - BLOCKED if it's actually part of a group but group logic failed
+    if (payload.appointment?.appointment_group_id) {
+       console.log(`[AutomationEngine] BLOCKED: Individual send for group appointment ${entityId}`);
+       return { success: true, message: "Individual send blocked for group member", skipped: true, reason: 'grouped_appointment_should_send_once' };
+    }
+
     return await handleAppointmentCreated(supabase, tenantId, entityId, payload, workflow, item.id);
   }
   
@@ -307,6 +326,7 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
     workflow_id: workflow.id,
     queue_id: queueId,
     session_id: session.id,
+    appointment_group_id: appointment.appointment_group_id,
     event_name: 'appointment.created',
     status: result.success ? "success" : "error",
     message: result.success ? "Mensagem inicial enviada" : `Erro ao enviar: ${result.error}`,
@@ -314,7 +334,9 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
       result,
       raw_appointment_datetime: appointment.start_time,
       formatted_brazil_datetime: `${formattedDate} ${formattedTime}`,
-      message_time_sent: new Date().toISOString()
+      message_time_sent: new Date().toISOString(),
+      zapi_message_id: result.response?.messageId,
+      individual_send_blocked: false
     })
   });
 

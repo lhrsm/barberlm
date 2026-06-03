@@ -509,6 +509,7 @@ export type Database = {
       }
       automation_events: {
         Row: {
+          appointment_group_id: string | null
           created_at: string
           entity_id: string
           entity_type: string
@@ -518,6 +519,7 @@ export type Database = {
           tenant_id: string | null
         }
         Insert: {
+          appointment_group_id?: string | null
           created_at?: string
           entity_id: string
           entity_type: string
@@ -527,6 +529,7 @@ export type Database = {
           tenant_id?: string | null
         }
         Update: {
+          appointment_group_id?: string | null
           created_at?: string
           entity_id?: string
           entity_type?: string
@@ -547,6 +550,7 @@ export type Database = {
       }
       automation_logs: {
         Row: {
+          appointment_group_id: string | null
           created_at: string
           error_details: string | null
           event_name: string | null
@@ -560,6 +564,7 @@ export type Database = {
           workflow_id: string | null
         }
         Insert: {
+          appointment_group_id?: string | null
           created_at?: string
           error_details?: string | null
           event_name?: string | null
@@ -573,6 +578,7 @@ export type Database = {
           workflow_id?: string | null
         }
         Update: {
+          appointment_group_id?: string | null
           created_at?: string
           error_details?: string | null
           event_name?: string | null
@@ -618,6 +624,7 @@ export type Database = {
       }
       automation_queue: {
         Row: {
+          appointment_group_id: string | null
           attempts: number | null
           created_at: string
           error: string | null
@@ -631,6 +638,7 @@ export type Database = {
           workflow_id: string | null
         }
         Insert: {
+          appointment_group_id?: string | null
           attempts?: number | null
           created_at?: string
           error?: string | null
@@ -644,6 +652,7 @@ export type Database = {
           workflow_id?: string | null
         }
         Update: {
+          appointment_group_id?: string | null
           attempts?: number | null
           created_at?: string
           error?: string | null

@@ -60,6 +60,7 @@ export async function handleGroupAppointmentCreated(supabase: any, tenantId: str
       phone: normalizedPhoneValue,
       channel: 'whatsapp',
       status: 'active',
+      appointment_group_id: groupId,
       current_step: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
       context: { 
         group_id: groupId,
@@ -81,7 +82,7 @@ export async function handleGroupAppointmentCreated(supabase: any, tenantId: str
     resumo += `\n${index + 1}️⃣ Serviço: ${appt.services?.name}\n💈 Profissional: ${appt.barbers?.name}\n📅 Data: ${date}\n⏰ Horário: ${time}\n`;
   });
 
-  const message = `Olá ${customer.name}! 👋\n\nSeus agendamentos na ${barbershopName} foram realizados com sucesso.\n\n📋 Resumo dos agendamentos:\n${resumo}\nO que deseja fazer?`;
+  const message = `Olá ${customer.name} 👋\n\nSeus agendamentos na ${barbershopName} foram realizados com sucesso.\n\n📋 Resumo dos agendamentos:\n${resumo}\nO que deseja fazer?`;
 
   // 6. Send Message
   const connection = await getWhatsAppSettings(supabase, tenantId);
@@ -110,19 +111,26 @@ export async function handleGroupAppointmentCreated(supabase: any, tenantId: str
   }
 
   // 8. Log
+  const { data: queueItems } = await supabase.from("automation_queue").select("id").eq("appointment_group_id", groupId);
+
   await supabase.from("automation_logs").insert({
     tenant_id: tenantId,
     workflow_id: workflow.id,
     queue_id: queueId,
     session_id: session.id,
+    appointment_group_id: groupId,
     event_name: 'appointment.group_created',
     status: result.success ? "success" : "error",
     message: result.success ? "Mensagem agrupada enviada" : `Erro ao enviar: ${result.error}`,
     error_details: JSON.stringify({ 
       group_id: groupId, 
       group_size: groupItems.length,
+      appointments_in_group: groupItems.length,
+      queue_items_for_group: queueItems?.length || 0,
       message_type: 'grouped',
       individual_send_blocked: true,
+      grouped_message_sent: result.success,
+      zapi_message_id: result.response?.messageId,
       loop_blocked: true
     })
   });
