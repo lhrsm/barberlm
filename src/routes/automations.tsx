@@ -204,6 +204,14 @@ function AutomationsComponent() {
   useEffect(() => {
     fetchData();
     
+    // Deduplicate on mount
+    if (tenantId) {
+      supabase.rpc('deduplicate_automation_workflows', { p_tenant_id: tenantId })
+        .then(({ error }) => {
+          if (error) console.error("Error deduplicating workflows:", error);
+        });
+    }
+    
     const channel = supabase.channel('automation_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_queue' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_logs' }, () => fetchData())
