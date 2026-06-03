@@ -114,6 +114,7 @@ function AutomationsComponent() {
   };
 
   const handleSimulateEvent = async (eventName: string) => {
+    if (!tenantId) return;
     try {
       // Find a recent appointment to use as base
       const { data: appt } = await supabase.from("appointments").select("id").eq("tenant_id", tenantId).limit(1).single();
@@ -140,6 +141,7 @@ function AutomationsComponent() {
       toast.error("Erro ao simular evento: " + error.message);
     }
   };
+
 
   return (
     <AppLayout>
