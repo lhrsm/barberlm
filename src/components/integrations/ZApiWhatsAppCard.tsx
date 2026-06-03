@@ -536,11 +536,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       setZapiResponse(data.result);
 
       
-      if (data.success && data.result?.value === true) {
+      if (isZApiSuccess(data)) {
         toast.success("Webhook Ao Receber configurado com sucesso.");
       } else {
-        const errorMsg = data.result?.message || (data.result?.value !== true ? "Z-API não retornou value: true" : "Verifique os logs");
-        toast.error("Falha na configuração: " + errorMsg);
+        const errorMsg = data.result?.message || data.error || (isZApiSuccess(data) ? "" : "Resposta inesperada da Z-API");
+        toast.error("Falha na configuração: " + (errorMsg || "Verifique os detalhes no diagnóstico"));
       }
       
       await fetchIntegrationLogs();
