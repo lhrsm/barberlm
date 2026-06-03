@@ -12,7 +12,7 @@ export function useAppointmentStatus() {
     source: string = 'frontend'
   ) => {
     try {
-      console.log('APPOINTMENT_STATUS_UPDATE_START', { appointmentId, newStatus, source });
+      console.log('Appointment schema loaded - Updating appointment status', { appointmentId, newStatus, source, metadata });
       
       const { data: { user } } = await supabase.auth.getUser();
       
