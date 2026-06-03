@@ -142,10 +142,25 @@ export async function handleAutomationWhatsappResponse(
         if (!isMultiple) {
           // Confirm direct
           await supabase.from("appointments").update({ status: 'confirmed' }).in("id", appointmentIds);
-          messageToSend = "✅ Seu agendamento foi confirmado com sucesso! Te esperamos aqui.";
+          
+          // Use centralized formatting for success message
+          const { date: apptDate, time: apptTime } = formatAppointmentDateTimeForMessage(appointments[0]);
+          const professionalName = appointments[0].barbers?.name || "Profissional";
+          const serviceName = appointments[0].services?.name || "Serviço";
+
+          messageToSend = `✅ Agendamento confirmado com sucesso!
+
+Estamos te esperando na Barbearia LM.
+
+📅 ${apptDate}
+⏰ ${apptTime}
+💈 ${professionalName}
+✂️ ${serviceName}`;
+
           nextState = AUTOMATION_STATES.COMPLETED;
           actionExecuted = "confirm_direct";
           selectedOptionNormalized = "main_confirm";
+
         } else {
           // Multiple: Ask scope
           messageToSend = "Como você deseja confirmar seus agendamentos?";
