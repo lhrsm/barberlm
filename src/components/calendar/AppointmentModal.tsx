@@ -318,7 +318,9 @@ export function AppointmentModal({
         original_total: service?.price || 0,
         status: "scheduled",
         payment_status: paymentStatus,
-        payment_method: paymentMethod === 'wallet' ? 'credits' : 'barbershop',
+        payment_method: paymentMethod === 'wallet' ? 'credits' : (paymentMethod || 'cash'),
+        credit_used: paymentMethod === 'wallet' ? (service?.price || 0) : 0,
+        final_amount: paymentMethod === 'wallet' ? 0 : (paymentStatus === 'paid' ? 0 : (service?.price || 0)),
         source: 'admin',
         items: [{
           id: selectedService,
@@ -564,7 +566,25 @@ export function AppointmentModal({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pending">Pendente (Pagar na Barbearia)</SelectItem>
-                          <SelectItem value="paid">Pago (PIX/Cartão/Dinheiro)</SelectItem>
+                          <SelectItem value="paid">Pago (Já recebido)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Forma de Pagamento</Label>
+                      <Select 
+                        value={paymentMethod} 
+                        onValueChange={setPaymentMethod}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a forma" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cash">Dinheiro</SelectItem>
+                          <SelectItem value="card">Cartão</SelectItem>
+                          <SelectItem value="pix">PIX</SelectItem>
+                          <SelectItem value="wallet">Créditos do Cliente</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
