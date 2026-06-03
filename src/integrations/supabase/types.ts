@@ -629,6 +629,7 @@ export type Database = {
           created_at: string
           error: string | null
           event_id: string | null
+          event_name: string | null
           id: string
           processed_at: string | null
           scheduled_for: string | null
@@ -643,6 +644,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           event_id?: string | null
+          event_name?: string | null
           id?: string
           processed_at?: string | null
           scheduled_for?: string | null
@@ -657,6 +659,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           event_id?: string | null
+          event_name?: string | null
           id?: string
           processed_at?: string | null
           scheduled_for?: string | null
