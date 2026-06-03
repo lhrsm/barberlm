@@ -714,10 +714,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         webhookApplied: webhookUrl
       });
       
-      if (res2.data.success && res2.data.result?.value === true) {
+      if (isZApiSuccess(res2.data)) {
         toast.success("Webhooks do SaaS restaurados com sucesso!");
       } else {
-        toast.error("Falha ao restaurar webhooks do SaaS");
+        const errorMsg = res2.data?.result?.message || res2.data?.error || "Falha ao restaurar webhooks do SaaS";
+        toast.error("Erro: " + errorMsg);
       }
       
       await fetchIntegrationLogs();
