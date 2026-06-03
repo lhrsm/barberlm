@@ -162,6 +162,13 @@ function AutomationsComponent() {
   const [providers, setProviders] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Modal states
+  const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [testPhone, setTestPhone] = useState("");
+  const [testDataType, setTestDataType] = useState("last"); // "last" or "mock"
+
   const fetchData = async () => {
     if (!tenantId) return;
     setLoading(true);
@@ -194,6 +201,7 @@ function AutomationsComponent() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_queue' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_logs' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_sessions' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_workflows' }, () => fetchData())
       .subscribe();
 
     return () => {
@@ -210,6 +218,7 @@ function AutomationsComponent() {
     if (error) toast.error("Erro ao atualizar fluxo");
     else {
       toast.success(active ? "Fluxo ativado" : "Fluxo desativado");
+      // No need for fetchData() if channel is working, but it's safer
       fetchData();
     }
   };
@@ -230,34 +239,145 @@ function AutomationsComponent() {
     }
   };
 
-  const handleSimulateEvent = async (eventName: string) => {
+  const handleLoadDefaults = async () => {
     if (!tenantId) return;
+    setLoading(true);
     try {
-      // Find a recent appointment to use as base
-      const { data: appt } = await supabase.from("appointments").select("id").eq("tenant_id", tenantId).limit(1).single();
+      for (const template of DEFAULT_TEMPLATES) {
+        // Check if exists
+        const { data: existing } = await supabase
+          .from("automation_workflows")
+          .select("id")
+          .eq("tenant_id", tenantId)
+          .eq("name", template.name)
+          .maybeSingle();
+        
+        if (!existing) {
+          await supabase.from("automation_workflows").insert({
+            tenant_id: tenantId,
+            name: template.name,
+            trigger_event: template.trigger_event,
+            active: false,
+            configuration: { template: template.template }
+          });
+        }
+      }
+      toast.success("Modelos carregados com sucesso!");
+      fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao carregar modelos: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveWorkflow = async (workflow: any) => {
+    try {
+      // Validate variables
+      const template = workflow.configuration?.template || "";
+      const invalidVars = template.match(/\{[^{}]+\}/g)?.filter((v: string) => !AVAILABLE_VARIABLES.includes(v)) || [];
       
-      if (!appt) {
-        toast.error("Nenhum agendamento encontrado para simular evento.");
+      if (invalidVars.length > 0) {
+        toast.error(`Variáveis inválidas encontradas: ${invalidVars.join(", ")}`);
+        return;
+      }
+
+      const { error } = await supabase
+        .from("automation_workflows")
+        .update({
+          name: workflow.name,
+          trigger_event: workflow.trigger_event,
+          active: workflow.active,
+          configuration: workflow.configuration
+        })
+        .eq("id", workflow.id);
+
+      if (error) throw error;
+      
+      toast.success("Automação salva com sucesso!");
+      setIsEditModalOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao salvar: " + error.message);
+    }
+  };
+
+  const handleTestWorkflow = async () => {
+    if (!selectedWorkflow || !testPhone) return;
+    
+    try {
+      let entityId = null;
+      let payload = { simulated: true, test_phone: testPhone };
+
+      if (testDataType === "last") {
+        const { data: lastAppt } = await supabase
+          .from("appointments")
+          .select("id")
+          .eq("tenant_id", tenantId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (lastAppt) {
+          entityId = lastAppt.id;
+        }
+      }
+
+      // If no last appointment or mock selected, we'd need a mock entity, but let's assume we need a real entity for now or just a UUID
+      if (!entityId) {
+        // Try to find ANY appointment
+        const { data: anyAppt } = await supabase.from("appointments").select("id").limit(1).maybeSingle();
+        entityId = anyAppt?.id;
+      }
+
+      if (!entityId) {
+        toast.error("Nenhum dado real encontrado para o teste. Crie um agendamento primeiro.");
         return;
       }
 
       const { error } = await supabase.from("automation_events").insert({
         tenant_id: tenantId,
-        event_name: eventName,
+        event_name: selectedWorkflow.trigger_event,
         entity_type: 'appointment',
-        entity_id: appt.id,
-        payload: { simulated: true, at: new Date().toISOString() }
+        entity_id: entityId,
+        payload: { ...payload, force_phone: testPhone }
       });
 
       if (error) throw error;
-      toast.success(`Evento ${eventName} simulado com sucesso!`);
+      
+      toast.success("Evento de teste enfileirado!");
+      setIsTestModalOpen(false);
       
       // Auto-run engine after simulation
       setTimeout(handleRunEngine, 1000);
     } catch (error: any) {
-      toast.error("Erro ao simular evento: " + error.message);
+      toast.error("Erro no teste: " + error.message);
     }
   };
+
+  const handleSimulateEvent = async (eventName: string) => {
+    // Legacy test handler
+    if (!tenantId) return;
+    try {
+      const { data: appt } = await supabase.from("appointments").select("id").eq("tenant_id", tenantId).limit(1).single();
+      if (!appt) {
+        toast.error("Nenhum agendamento encontrado.");
+        return;
+      }
+      await supabase.from("automation_events").insert({
+        tenant_id: tenantId,
+        event_name: eventName,
+        entity_type: 'appointment',
+        entity_id: appt.id,
+        payload: { simulated: true }
+      });
+      toast.success("Simulado!");
+      setTimeout(handleRunEngine, 1000);
+    } catch (error: any) {
+      toast.error("Erro: " + error.message);
+    }
+  };
+
 
 
   return (
