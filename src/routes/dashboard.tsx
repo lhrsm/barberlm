@@ -135,69 +135,41 @@ function DashboardComponent() {
       fetchTodayAppointments();
       fetchBirthdayCustomers();
 
-      // Realtime subscription
-      const channel = supabase
-        .channel(`dashboard-realtime-${tenantId}`)
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'appointments', 
-          filter: `tenant_id=eq.${tenantId}` 
-        }, (payload: any) => {
-          console.log('REALTIME APPOINTMENT CHANGE', payload);
-          
-          fetchTodayAppointments();
-          fetchStats();
-          refreshLimits();
-          
-          // Invalida todas as queries relacionadas
-          queryClient.invalidateQueries({ queryKey: ['appointments'] });
-          queryClient.invalidateQueries({ queryKey: ['calendar'] });
-          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-          queryClient.invalidateQueries({ queryKey: ['customerAppointments'] });
-          queryClient.invalidateQueries({ queryKey: ['calendar-appointments'] });
-          queryClient.invalidateQueries({ queryKey: ['dashboard-appointments'] });
-          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-          queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] });
-        })
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'transactions', 
-          filter: `tenant_id=eq.${tenantId}` 
-        }, () => {
-          console.log("Realtime: transactions changed, invalidating queries");
-          fetchStats();
-          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-          queryClient.invalidateQueries({ queryKey: ['finances'] });
-        })
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'notifications', 
-          filter: `tenant_id=eq.${tenantId}` 
-        }, () => {
-          console.log("Realtime: notifications changed");
-          fetchNotifications();
-          queryClient.invalidateQueries({ queryKey: ["notifications"] });
-        })
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'customers', 
-          filter: `tenant_id=eq.${tenantId}` 
-        }, () => {
-          console.log("Realtime: customers changed");
-          fetchStats();
-          fetchBirthdayCustomers();
-          queryClient.invalidateQueries({ queryKey: ['customers'] });
-        })
-        .subscribe((status) => {
-          console.log(`Realtime: Subscription status for tenant ${tenantId}:`, status);
-        });
+      const tables = ['appointments', 'transactions', 'notifications', 'customers', 'wallet', 'wallet_transactions', 'cashback_transactions'];
+      const channels: any[] = [];
+
+      tables.forEach(table => {
+        const channel = supabase
+          .channel(`dashboard-realtime-${table}-${tenantId}`)
+          .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: table, 
+            filter: `tenant_id=eq.${tenantId}` 
+          }, (payload: any) => {
+            console.log(`REALTIME ${table.toUpperCase()} CHANGE`, payload);
+            
+            fetchTodayAppointments();
+            fetchStats();
+            refreshLimits();
+            
+            const queryKeys = [
+              ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
+              ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
+              ['admin-dashboard'], ['credits'], ['finances'], ['financial-dashboard'],
+              ['customers'], ['notifications'], ['cashback']
+            ];
+
+            queryKeys.forEach(key => {
+              queryClient.invalidateQueries({ queryKey: key });
+            });
+          })
+          .subscribe();
+        channels.push(channel);
+      });
 
       return () => {
-        supabase.removeChannel(channel);
+        channels.forEach(channel => supabase.removeChannel(channel));
       };
     }
   }, [tenantId, statusFilter, selectedDate]);
