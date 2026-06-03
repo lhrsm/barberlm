@@ -88,6 +88,14 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [lastNewWebhookResult, setLastNewWebhookResult] = useState<any>(null);
   const [isSendingButtonTest, setIsSendingButtonTest] = useState(false);
   const [buttonTestMessageId, setButtonTestMessageId] = useState<string | null>(null);
+  const [isWaitingForCallback, setIsWaitingForCallback] = useState(false);
+  const [callbackResult, setCallbackResult] = useState<{
+    received: boolean;
+    time?: string;
+    buttonId?: string;
+    phone?: string;
+    payload?: any;
+  } | null>(null);
 
 
   
