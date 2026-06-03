@@ -954,6 +954,29 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           </TabsContent>
 
           <TabsContent value="diagnostico" className="pt-4 space-y-4">
+            <div className="bg-blue-900/20 p-4 rounded-xl border border-blue-500/20 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold flex items-center gap-2 text-blue-400">
+                    <MessageSquare size={16} />
+                    Teste Real de Botões
+                  </h3>
+                  <p className="text-[10px] text-blue-300/70">
+                    Envia um botão interativo para o seu número e valida se a Z-API devolve o clique.
+                  </p>
+                </div>
+                <Button 
+                  onClick={sendTestButtonMessage} 
+                  disabled={isSendingButtonTest || !instance}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-[10px] h-8"
+                >
+                  {isSendingButtonTest ? <Loader2 className="animate-spin mr-1" size={12} /> : <Send className="mr-1" size={12} />}
+                  Testar recebimento de resposta
+                </Button>
+              </div>
+            </div>
+
             {/* Nova Seção: Teste de URL Pública Exclusiva */}
             <div className="bg-emerald-900/20 p-4 rounded-xl border border-emerald-500/20 space-y-4">
               <div className="flex items-center justify-between">
