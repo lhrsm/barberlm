@@ -713,16 +713,18 @@ export async function processAutomationDispatches(
         
         if (!isMultiple) {
           const appt = firstAppt;
+          const { date: apptDate, time: apptTime } = formatAppointmentDateTimeForMessage(appt);
           const templateData = {
             customer_name: customer.name,
             barbershop_name: profile?.business_name || "Nossa Barbearia",
             service_name: appt.services?.name,
             professional_name: appt.barbers?.name,
-            appointment_date: formatBrazilDate(appt.start_time),
-            appointment_time: formatBrazilTime(appt.start_time),
+            appointment_date: apptDate,
+            appointment_time: apptTime,
             service_price: appt.final_amount && appt.final_amount > 0 ? `R$ ${appt.final_amount.toFixed(2).replace('.', ',')}` : "",
             appointment_id: appt.id
           };
+
           
           console.log(`[AutomationEngine] Formatting single appointment: ${appt.start_time} -> ${templateData.appointment_time}`);
           
@@ -731,11 +733,11 @@ export async function processAutomationDispatches(
         } else {
           let appointmentsList = "";
           apptGroup.forEach((appt, i) => {
-            const timeStr = formatBrazilTime(appt.start_time);
-            const dateStr = formatBrazilDate(appt.start_time);
+            const { date: dateStr, time: timeStr } = formatAppointmentDateTimeForMessage(appt);
             console.log(`[AutomationEngine] Formatting group item ${i}: ${appt.start_time} -> ${timeStr}`);
             appointmentsList += `${i + 1}️⃣ ${appt.services?.name}\n💈 ${appt.barbers?.name}\n📅 ${dateStr}\n⏰ ${timeStr}\n\n`;
           });
+
 
           const templateData = {
             customer_name: customer.name,
