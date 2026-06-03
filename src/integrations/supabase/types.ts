@@ -139,14 +139,18 @@ export type Database = {
           barber_id: string | null
           barbershop_amount: number | null
           cancel_reason: string | null
+          cancel_source: string | null
           cancel_token: string | null
           cancelled_at: string | null
+          cancelled_by: string | null
           cashback_earned: number | null
           cashback_used: number | null
           completed_at: string | null
+          completed_by: string | null
           confirmation_sent: boolean | null
           confirmation_sent_at: string | null
           confirmed_at: string | null
+          confirmed_by: string | null
           coupon_code: string | null
           coupon_id: string | null
           created_at: string
@@ -184,14 +188,18 @@ export type Database = {
           barber_id?: string | null
           barbershop_amount?: number | null
           cancel_reason?: string | null
+          cancel_source?: string | null
           cancel_token?: string | null
           cancelled_at?: string | null
+          cancelled_by?: string | null
           cashback_earned?: number | null
           cashback_used?: number | null
           completed_at?: string | null
+          completed_by?: string | null
           confirmation_sent?: boolean | null
           confirmation_sent_at?: string | null
           confirmed_at?: string | null
+          confirmed_by?: string | null
           coupon_code?: string | null
           coupon_id?: string | null
           created_at?: string
@@ -229,14 +237,18 @@ export type Database = {
           barber_id?: string | null
           barbershop_amount?: number | null
           cancel_reason?: string | null
+          cancel_source?: string | null
           cancel_token?: string | null
           cancelled_at?: string | null
+          cancelled_by?: string | null
           cashback_earned?: number | null
           cashback_used?: number | null
           completed_at?: string | null
+          completed_by?: string | null
           confirmation_sent?: boolean | null
           confirmation_sent_at?: string | null
           confirmed_at?: string | null
+          confirmed_by?: string | null
           coupon_code?: string | null
           coupon_id?: string | null
           created_at?: string
