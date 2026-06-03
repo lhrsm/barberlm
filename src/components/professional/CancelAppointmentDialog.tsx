@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppointmentStatus } from "@/hooks/use-appointment-status";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +10,7 @@ import { AlertCircle, X } from "lucide-react";
 export function CancelAppointmentDialog({ isOpen, onClose, appointment, onConfirm }: any) {
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
+  const { updateStatus } = useAppointmentStatus();
 
   const handleConfirm = async () => {
     if (!reason) {
@@ -17,17 +19,25 @@ export function CancelAppointmentDialog({ isOpen, onClose, appointment, onConfir
     }
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from("appointments")
-        .update({ status: 'cancelled', cancel_reason: reason })
-        .eq("id", appointment.id);
+      const result = await updateStatus(
+        appointment.id, 
+        'cancelled', 
+        { cancel_reason: reason }, 
+        'barber_panel'
+      );
       
-      if (error) throw error;
-      toast.success("Atendimento cancelado com sucesso.");
+      if (!result.success) throw result.error;
+
+      // Update cancel_reason separately as it's not a status but a detail
+      await supabase
+        .from("appointments")
+        .update({ cancel_reason: reason })
+        .eq("id", appointment.id);
+
       onConfirm();
       onClose();
     } catch (e: any) {
-      toast.error("Erro ao cancelar: " + e.message);
+      console.error("Erro ao cancelar:", e);
     } finally {
       setLoading(false);
     }
