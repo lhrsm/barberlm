@@ -661,7 +661,14 @@ function DashboardComponent() {
           if (curr.appointment && curr.appointment.status === 'cancelled') {
             return acc;
           }
+          // Ignorar transações de créditos/cashback que não representam dinheiro novo real em caixa (PIX/Dinheiro/Cartão)
+          if (curr.category === 'Crédito Cliente' || curr.description?.includes('Crédito Gerado')) {
+            return acc;
+          }
           return acc + Number(curr.amount);
+        } else if (curr.type === 'expense') {
+            // Deduzir estornos da entrada em caixa se necessário para refletir saldo real
+            return acc - Number(curr.amount);
         }
         return acc;
       }, 0) || 0;
