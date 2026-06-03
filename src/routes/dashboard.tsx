@@ -1460,7 +1460,7 @@ function DashboardComponent() {
                                           .eq("id", app.customer_id);
                                       }
 
-                                      const { error } = await supabase.from("appointments").update({ status: "cancelled" }).eq("id", app.id);
+                                      const result = await centralUpdateStatus(app.id, 'cancelled', {}, 'dashboard');
                                       if (error) throw error;
 
                                       fetchTodayAppointments();
