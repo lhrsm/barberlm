@@ -88,15 +88,19 @@ export function AppointmentDetailsModal({
     if (!appointment) return;
     setActionLoading(true);
     try {
-      const { error } = await supabase
-        .from("appointments")
-        .update({ status: newStatus })
-        .eq("id", appointment.id);
+      // Usar função centralizada via RPC
+      const { error } = await supabase.rpc('update_appointment_status', {
+        p_appointment_id: appointment.id,
+        p_new_status: newStatus,
+        p_changed_by_type: 'admin', // Pode ser ajustado baseado no contexto real
+        p_changed_by_id: (await supabase.auth.getUser()).data.user?.id,
+        p_source: 'admin_panel',
+        p_metadata: {}
+      });
 
       if (error) throw error;
 
-      console.log('STATUS UPDATED', appointment.id, newStatus);
-
+      console.log('STATUS UPDATED VIA RPC', appointment.id, newStatus);
       toast.success(`Status atualizado para ${getStatusLabel(newStatus)}`);
       
       // Invalida todas as queries relacionadas
@@ -106,6 +110,7 @@ export function AppointmentDetailsModal({
       queryClient.invalidateQueries({ queryKey: ['customerAppointments'] });
       queryClient.invalidateQueries({ queryKey: ['calendar-appointments'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       
       if (onSuccess) onSuccess();
       onOpenChange(false);

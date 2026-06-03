@@ -223,11 +223,15 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
       .eq("id", apptId)
       .single();
 
-    // 1. Confirm the appointment
-    const { error: updateError } = await supabase
-      .from("appointments")
-      .update({ status: 'confirmed' })
-      .eq("id", apptId);
+    // 1. Confirm the appointment using centralized RPC
+    const { error: updateError } = await supabase.rpc('update_appointment_status', {
+      p_appointment_id: apptId,
+      p_new_status: 'confirmed',
+      p_changed_by_type: 'customer',
+      p_changed_by_id: session.customer_id,
+      p_source: 'whatsapp',
+      p_metadata: { session_id: session.id }
+    });
 
     if (updateError) {
       console.error(`[Z-API Webhook] Error updating appointment:`, updateError);
