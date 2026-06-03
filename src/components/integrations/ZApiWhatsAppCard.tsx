@@ -49,11 +49,12 @@ interface WhatsAppInstance {
 const isZApiSuccess = (data: any) => {
   if (!data) return false;
   if (data.success === true) return true;
+  if (data.allCompatible === true) return true;
   const result = data.result;
   if (result) {
     if (result.value === true || result.success === true || result.message?.toLowerCase().includes("sucesso")) return true;
     if (Array.isArray(data.results)) {
-      return data.results.every((r: any) => r.success);
+      return data.results.every((r: any) => r.success || r.isCompatible);
     }
   }
   if (data.status === 200 || data.status === 201) return true;
