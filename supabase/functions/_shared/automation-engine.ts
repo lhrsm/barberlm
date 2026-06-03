@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { format, parse } from "https://esm.sh/date-fns@2.30.0";
 import { ptBR } from "https://esm.sh/date-fns@2.30.0/locale";
-import { formatBrazilDate, formatBrazilTime, normalizePhone, removeNinthDigit } from "./utils.ts";
+import { formatBrazilDate, formatBrazilTime, normalizePhone, removeNinthDigit, formatAppointmentDateTimeForMessage } from "./utils.ts";
 import { sendMessage, getWhatsAppSettings } from "./whatsapp-settings.ts";
 import { processAutomationTemplate, containsPlaceholders } from "./template-parser.ts";
 
