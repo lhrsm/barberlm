@@ -305,7 +305,7 @@ function DashboardComponent() {
     let usedCashback = Number(appointment.cashback_used || 0);
     let remainingToPay = Number(appointment.final_amount || totalPrice);
 
-    // Determine how much credit and cashback will be used
+    // Determine how much credit and cashback will be used if not already set
     if (appointment.payment_status !== 'paid' && usedCredits === 0 && usedCashback === 0 && remainingToPay === totalPrice) {
       if (availableCashback > 0) {
         usedCashback = Math.min(availableCashback, remainingToPay);
@@ -315,23 +315,11 @@ function DashboardComponent() {
         usedCredits = Math.min(availableCredits, remainingToPay);
         remainingToPay -= usedCredits;
       }
-
-      // Deduct from customer wallet if anything was used
-      if (usedCredits > 0 || usedCashback > 0) {
-        await supabase
-          .from("customers")
-          .update({ 
-            credits: availableCredits - usedCredits,
-            cashback_balance: availableCashback - usedCashback
-          })
-          .eq("id", appointment.customer_id);
-      }
     }
 
-    // Calculate new cashback earned (R$ 10 for every R$ 100 paid in new money)
-    const cashbackEarned = Math.floor(remainingToPay / 100) * 10;
-
-    // 2. Update appointment status and financial details using CENTRALIZED hook
+    // 2. Update status using CENTRALIZED RPC hook
+    // The RPC handled in useAppointmentStatus (complete_appointment) 
+    // already handles cashback and loyalty points calculation based on tenant settings
     const result = await centralUpdateStatus(
       appointment.id,
       'completed',
@@ -339,7 +327,6 @@ function DashboardComponent() {
         payment_status: 'paid',
         credit_used: usedCredits,
         cashback_used: usedCashback,
-        cashback_earned: cashbackEarned,
         final_amount: remainingToPay,
         barbershop_amount: remainingToPay
       },
@@ -348,36 +335,7 @@ function DashboardComponent() {
 
     if (!result.success) return;
 
-    // Update financial fields directly to ensure they are on the row
-    await supabase.from("appointments").update({
-      payment_status: 'paid',
-      credit_used: usedCredits,
-      cashback_used: usedCashback,
-      cashback_earned: cashbackEarned,
-      final_amount: remainingToPay,
-      barbershop_amount: remainingToPay
-    }).eq("id", appointment.id);
-
-    // 3. Increment loyalty points and cashback balance
-    if (appointment.customer_id) {
-      const currentPoints = customerData?.loyalty_points || 0;
-      const currentCashback = Number(customerData?.cashback_balance || 0);
-      
-      // If we deducted usedCashback above, we use the updated value
-      const baseCashback = (usedCredits === 0 && usedCashback === 0 && totalPrice === remainingToPay + usedCredits + usedCashback) 
-        ? availableCashback - usedCashback 
-        : currentCashback;
-
-      await supabase
-        .from("customers")
-        .update({ 
-          loyalty_points: currentPoints + 1,
-          cashback_balance: baseCashback + cashbackEarned
-        })
-        .eq("id", appointment.customer_id);
-    }
-
-    // 4. Create Financial Transaction
+    // 3. Create Financial Transaction if not already exists
     const { data: existingTrans } = await supabase
       .from("transactions")
       .select("id")
@@ -385,21 +343,13 @@ function DashboardComponent() {
       .maybeSingle();
 
     if (!existingTrans) {
-      // For transactions, we only record the actual money received (remainingToPay)
-      // If remainingToPay is 0 (fully paid by credits/cashback), we can still record it but it won't affect cash inflow stats
-      
       const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
       const cashbackText = usedCashback > 0 ? ` (Abatimento Cashback: R$ ${usedCashback.toFixed(2)})` : "";
       const deductionText = `${creditText}${cashbackText}`;
 
-      if (!tenantId) {
-        toast.error("Tenant não identificado");
-        return;
-      }
+      if (!tenantId) return;
 
-      console.log("DEBUG: Creating transaction on completion", { amount: remainingToPay, appointmentId: appointment.id });
-
-      const { error: transError } = await supabase
+      await supabase
         .from("transactions")
         .insert([{
           amount: remainingToPay,
@@ -413,25 +363,11 @@ function DashboardComponent() {
           date: new Date().toISOString().split('T')[0],
           time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
         }]);
-      
-      if (transError) console.error("Error creating transaction:", transError);
     }
 
     toast.success("Serviço concluído e registrado no financeiro!");
     fetchTodayAppointments();
     fetchStats();
-
-    // Invalidate queries for other views
-    const queryClient = (window as any).queryClient;
-    if (queryClient) {
-      queryClient.invalidateQueries({ queryKey: ["appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["professional-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["professional-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["calendar-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-    }
   }
 
   async function togglePaymentStatus(appointment: any) {
