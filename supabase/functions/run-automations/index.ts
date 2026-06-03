@@ -47,8 +47,44 @@ serve(async (req) => {
       }).eq('id', globalStatusId);
     }
 
-    // Call Engine
-    console.log('Calling processAutomationDispatches...');
+    // Process pending items in automation_queue
+    console.log('Processing automation_queue...');
+    const { data: queueItems, error: queueError } = await supabase
+      .from("automation_queue")
+      .select("*")
+      .eq("status", "pending")
+      .lte("scheduled_for", serverTime);
+
+    if (queueError) {
+      console.error('Error fetching queue:', queueError);
+    } else if (queueItems && queueItems.length > 0) {
+      console.log(`Found ${queueItems.length} items to process in queue`);
+      for (const item of queueItems) {
+        try {
+          await supabase.from("automation_queue").update({ status: 'processing', attempts: (item.attempts || 0) + 1 }).eq("id", item.id);
+          
+          const dispatchResult = await processAutomationDispatches(supabase, { 
+            tenantId: item.tenant_id, 
+            appointmentId: item.event_id, // Usually the appointment_id is stored here or in the payload
+            appointmentGroupId: item.appointment_group_id 
+          });
+
+          await supabase.from("automation_queue").update({ 
+            status: 'completed', 
+            processed_at: new Date().toISOString() 
+          }).eq("id", item.id);
+        } catch (err: any) {
+          console.error(`Error processing queue item ${item.id}:`, err);
+          await supabase.from("automation_queue").update({ 
+            status: 'failed', 
+            error: err.message 
+          }).eq("id", item.id);
+        }
+      }
+    }
+
+    // Call Engine for legacy direct dispatches
+    console.log('Calling processAutomationDispatches for direct trigger...');
     const results = await processAutomationDispatches(supabase, { tenantId, appointmentId, appointmentGroupId, forceMode });
     console.log('Dispatches results:', JSON.stringify(results));
 

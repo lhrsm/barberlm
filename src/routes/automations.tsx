@@ -159,8 +159,10 @@ function AutomationsComponent() {
   const [queue, setQueue] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
+  const [cronRuns, setCronRuns] = useState<any[]>([]);
   const [providers, setProviders] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [diagnosingItem, setDiagnosingItem] = useState<any>(null);
 
   // Modal states
   const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
@@ -181,12 +183,13 @@ function AutomationsComponent() {
     setLoading(true);
     
     try {
-      const [w, q, s, l, p] = await Promise.all([
+      const [w, q, s, l, p, cr] = await Promise.all([
         supabase.from("automation_workflows").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
-        supabase.from("automation_queue").select("*, automation_events(*), automation_workflows(*)").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(20),
+        supabase.from("automation_queue").select("*, automation_events(*), automation_workflows(*)").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
         supabase.from("conversation_sessions").select("*, customers(name)").eq("tenant_id", tenantId).order("updated_at", { ascending: false }).limit(20),
         supabase.from("automation_logs").select("*, automation_workflows(name)").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(30),
-        supabase.from("messaging_providers").select("*").eq("tenant_id", tenantId)
+        supabase.from("messaging_providers").select("*").eq("tenant_id", tenantId),
+        supabase.from("automation_cron_runs").select("*").eq("tenant_id", tenantId).order("started_at", { ascending: false }).limit(20)
       ]);
 
       if (w.data) setWorkflows(w.data);
@@ -194,6 +197,7 @@ function AutomationsComponent() {
       if (s.data) setSessions(s.data);
       if (l.data) setLogs(l.data);
       if (p.data) setProviders(p.data);
+      if (cr.data) setCronRuns(cr.data);
     } catch (error) {
       console.error("Error fetching automation data:", error);
     } finally {
@@ -241,7 +245,7 @@ function AutomationsComponent() {
   const handleRunEngine = async () => {
     setIsProcessing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('automation-engine', {
+      const { data, error } = await supabase.functions.invoke('run-automations', {
         body: { tenantId }
       });
       if (error) throw error;
@@ -520,6 +524,7 @@ function AutomationsComponent() {
                         <th className="px-4 py-2">Status</th>
                         <th className="px-4 py-2">Tentativas</th>
                         <th className="px-4 py-2">Agendado para</th>
+                        <th className="px-4 py-2">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -540,6 +545,17 @@ function AutomationsComponent() {
                           <td className="px-4 py-3 text-center">{item.attempts}</td>
                           <td className="px-4 py-3 text-muted-foreground">
                             {item.scheduled_for ? new Date(item.scheduled_for).toLocaleString('pt-BR') : '-'}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+                              onClick={() => setDiagnosingItem(item)}
+                            >
+                              <Activity className="w-4 h-4 mr-1" />
+                              Diagnosticar
+                            </Button>
                           </td>
                         </tr>
 
@@ -659,7 +675,45 @@ function AutomationsComponent() {
             </Button>
           </TabsContent>
 
-          {/* ABA 7: INTEGRAÇÕES */}
+          {/* ABA 7: CRON RUNS */}
+          <TabsContent value="tests" className="space-y-4">
+            <Card>
+              <CardHeader><CardTitle>Execuções do Cron</CardTitle></CardHeader>
+              <CardContent>
+                <div className="relative overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="text-xs uppercase bg-muted">
+                      <tr>
+                        <th className="px-4 py-2">Início</th>
+                        <th className="px-4 py-2">Status</th>
+                        <th className="px-4 py-2">Encontrados</th>
+                        <th className="px-4 py-2">Processados</th>
+                        <th className="px-4 py-2">Erros</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cronRuns.map((run) => (
+                        <tr key={run.id} className="border-b">
+                          <td className="px-4 py-3 font-medium">{new Date(run.started_at).toLocaleString('pt-BR')}</td>
+                          <td className="px-4 py-3">
+                            <Badge className={run.status === 'success' ? 'bg-green-500' : 'bg-red-500'}>
+                              {run.status}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-center">{run.found_count}</td>
+                          <td className="px-4 py-3 text-center text-green-500 font-bold">{run.processed_count}</td>
+                          <td className="px-4 py-3 text-center text-red-500">{run.error_count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {cronRuns.length === 0 && <p className="py-8 text-center text-muted-foreground">Nenhuma execução registrada.</p>}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ABA 8: INTEGRAÇÕES */}
           <TabsContent value="integrations" className="space-y-4">
             <Card>
               <CardHeader>
@@ -854,6 +908,78 @@ function AutomationsComponent() {
                 <Send className="w-4 h-4 mr-2" />
                 Enviar Teste
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        {/* Modal de Diagnóstico */}
+        <Dialog open={!!diagnosingItem} onOpenChange={(open) => !open && setDiagnosingItem(null)}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Diagnóstico do Item da Fila</DialogTitle>
+              <DialogDescription>
+                Detalhes técnicos para depuração do processamento.
+              </DialogDescription>
+            </DialogHeader>
+            {diagnosingItem && (
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Queue ID</p>
+                    <p className="font-mono truncate">{diagnosingItem.id}</p>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tenant ID</p>
+                    <p className="font-mono truncate">{diagnosingItem.tenant_id}</p>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Status Atual</p>
+                    <Badge variant="outline">{diagnosingItem.status}</Badge>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tentativas</p>
+                    <p className="font-bold">{diagnosingItem.attempts}</p>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Comparação de Tempo (UTC)</p>
+                  <div className="flex flex-col gap-1 text-xs">
+                    <div className="flex justify-between">
+                      <span>Agendado para:</span>
+                      <span className="font-mono">{new Date(diagnosingItem.scheduled_for).toISOString()}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-zinc-700 pt-1 mt-1">
+                      <span>Agora (Servidor):</span>
+                      <span className="font-mono">{new Date().toISOString()}</span>
+                    </div>
+                    <div className="flex justify-between font-bold mt-2">
+                      <span>Deve processar?</span>
+                      <span className={new Date(diagnosingItem.scheduled_for) <= new Date() ? "text-green-500" : "text-amber-500"}>
+                        {new Date(diagnosingItem.scheduled_for) <= new Date() ? "SIM (Atrasado/Agora)" : "NÃO (Futuro)"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Payload do Evento</Label>
+                  <pre className="p-3 bg-black text-green-400 text-[10px] rounded-lg overflow-x-auto max-h-40">
+                    {JSON.stringify(diagnosingItem.automation_events?.payload || {}, null, 2)}
+                  </pre>
+                </div>
+
+                {diagnosingItem.error && (
+                  <div className="space-y-2">
+                    <Label className="text-red-500">Último Erro</Label>
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs rounded-lg whitespace-pre-wrap">
+                      {diagnosingItem.error}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setDiagnosingItem(null)}>Fechar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
