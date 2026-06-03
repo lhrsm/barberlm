@@ -1,6 +1,6 @@
-import { AUTOMATION_STATES, FLOW_TYPES } from "../_shared/automation-engine.ts";
-import { formatAppointmentDateTimeForMessage, normalizePhone } from "../_shared/utils.ts";
-import { sendMessage, getWhatsAppSettings } from "../_shared/whatsapp-settings.ts";
+import { AUTOMATION_STATES, FLOW_TYPES } from "../../_shared/automation-engine.ts";
+import { formatAppointmentDateTimeForMessage, normalizePhone } from "../../_shared/utils.ts";
+import { sendMessage, getWhatsAppSettings } from "../../_shared/whatsapp-settings.ts";
 
 export async function processSingleAppointmentAutomation(supabase: any, item: any, workflow: any) {
   const tenantId = item.tenant_id;
