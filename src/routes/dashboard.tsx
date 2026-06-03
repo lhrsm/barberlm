@@ -936,24 +936,24 @@ function DashboardComponent() {
                   <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400">Créditos</span>
+                  <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400">Créditos</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-lg font-black leading-none text-purple-700 dark:text-purple-300">
+                    <span className="text-lg font-black leading-none text-purple-800 dark:text-purple-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
                     </span>
                   </div>
-                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400 w-fit">
+                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg text-purple-700 dark:text-purple-300 w-fit">
                     <Wallet size={12} />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-orange-600 dark:text-orange-400">Cashback</span>
+                  <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Cashback</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-lg font-black leading-none text-orange-700 dark:text-orange-300">
+                    <span className="text-lg font-black leading-none text-orange-800 dark:text-orange-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
                     </span>
                   </div>
-                  <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400 w-fit">
+                  <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg text-orange-700 dark:text-orange-300 w-fit">
                     <Gift size={12} />
                   </div>
                 </div>
