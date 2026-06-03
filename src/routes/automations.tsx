@@ -159,6 +159,7 @@ function AutomationsComponent() {
   const [queue, setQueue] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
+  const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
   const [cronRuns, setCronRuns] = useState<any[]>([]);
   const [providers, setProviders] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -183,11 +184,12 @@ function AutomationsComponent() {
     setLoading(true);
     
     try {
-      const [w, q, s, l, p, cr] = await Promise.all([
+      const [w, q, s, l, wl, p, cr] = await Promise.all([
         supabase.from("automation_workflows").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
         supabase.from("automation_queue").select("*, automation_events(*), automation_workflows(*)").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
         supabase.from("conversation_sessions").select("*, customers(name)").eq("tenant_id", tenantId).order("updated_at", { ascending: false }).limit(20),
-        supabase.from("automation_logs").select("*, automation_workflows(name)").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(30),
+        supabase.from("automation_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
+        supabase.from("zapi_webhook_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
         supabase.from("messaging_providers").select("*").eq("tenant_id", tenantId),
         supabase.from("automation_cron_runs").select("*").eq("tenant_id", tenantId).order("started_at", { ascending: false }).limit(20)
       ]);
@@ -196,6 +198,7 @@ function AutomationsComponent() {
       if (q.data) setQueue(q.data);
       if (s.data) setSessions(s.data);
       if (l.data) setLogs(l.data);
+      if (wl.data) setWebhookLogs(wl.data);
       if (p.data) setProviders(p.data);
       if (cr.data) setCronRuns(cr.data);
     } catch (error) {
@@ -219,6 +222,7 @@ function AutomationsComponent() {
     const channel = supabase.channel('automation_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_queue' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_logs' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'zapi_webhook_logs' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_sessions' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_workflows' }, () => fetchData())
       .subscribe();
@@ -521,6 +525,7 @@ function AutomationsComponent() {
                       <tr>
                         <th className="px-4 py-2">Workflow</th>
                         <th className="px-4 py-2">Evento</th>
+                        <th className="px-4 py-2">Fluxo</th>
                         <th className="px-4 py-2">Status</th>
                         <th className="px-4 py-2">Tentativas</th>
                         <th className="px-4 py-2">Agendado para</th>
@@ -532,6 +537,13 @@ function AutomationsComponent() {
                         <tr key={item.id} className="border-b">
                           <td className="px-4 py-3 font-medium">{item.automation_workflows?.name || 'Workflow Removido'}</td>
                           <td className="px-4 py-3">{item.automation_events?.event_name}</td>
+                          <td className="px-4 py-3">
+                            <Badge variant="outline" className={cn(
+                              item.flow_type === 'multi' ? 'border-purple-500 text-purple-400' : 'border-blue-500 text-blue-400'
+                            )}>
+                              {item.flow_type || 'single'}
+                            </Badge>
+                          </td>
                           <td className="px-4 py-3">
                             <Badge className={
                               item.status === 'completed' ? 'bg-green-500' :
@@ -587,8 +599,16 @@ function AutomationsComponent() {
                       </div>
                       <div className="flex items-center gap-8">
                         <div className="text-right">
-                          <Badge variant="outline" className="mb-1">{s.current_step}</Badge>
-                          <p className="text-[10px] text-muted-foreground">Atualizado: {new Date(s.updated_at).toLocaleTimeString()}</p>
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge variant="outline">{s.current_step}</Badge>
+                            <Badge variant="secondary" className={cn(
+                              "text-[10px]",
+                              s.flow_type === 'multi' ? 'text-purple-400' : 'text-blue-400'
+                            )}>
+                              {s.flow_type || 'single'}
+                            </Badge>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-1">Atualizado: {new Date(s.updated_at).toLocaleTimeString()}</p>
                         </div>
                         <Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
                       </div>
@@ -606,21 +626,30 @@ function AutomationsComponent() {
               <CardHeader><CardTitle>Histórico de Logs</CardTitle></CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {logs.filter(l => !l.event_name?.startsWith('whatsapp.')).map((log) => (
+                  {logs.map((log) => (
                     <div key={log.id} className="flex gap-4 p-3 border-b last:border-0 items-start">
                       <div className={cn(
                         "mt-1 p-1 rounded-full",
-                        log.status === 'success' ? 'bg-green-100' : 'bg-red-100'
+                        log.status === 'success' ? 'bg-green-500/10' : 'bg-red-500/10'
                       )}>
-                        {log.status === 'success' ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <AlertCircle className="w-4 h-4 text-red-600" />}
+                        {log.status === 'success' ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <AlertCircle className="w-4 h-4 text-red-500" />}
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between">
-                          <p className="font-semibold text-sm">{log.automation_workflows?.name || log.event_name || 'Sistema'}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-sm">{log.action || log.event_name || 'Sistema'}</p>
+                            <Badge variant="outline" className="text-[10px] h-4">
+                              {log.flow_type || 'core'}
+                            </Badge>
+                          </div>
                           <span className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString('pt-BR')}</span>
                         </div>
-                        <p className="text-sm">{log.message}</p>
-                        {log.error_details && <pre className="mt-2 p-2 bg-muted rounded text-[10px] overflow-x-auto">{log.error_details}</pre>}
+                        <p className="text-sm text-zinc-300">{log.message}</p>
+                        <div className="flex gap-2 mt-1">
+                           {log.current_step_before && <Badge variant="secondary" className="text-[9px] h-4">De: {log.current_step_before}</Badge>}
+                           {log.current_step_after && <Badge variant="secondary" className="text-[9px] h-4">Para: {log.current_step_after}</Badge>}
+                        </div>
+                        {log.error && <p className="text-xs text-red-400 mt-1 font-mono">{log.error}</p>}
                       </div>
                     </div>
                   ))}
@@ -636,18 +665,38 @@ function AutomationsComponent() {
               <CardHeader><CardTitle>Webhooks Recebidos</CardTitle></CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {logs.filter(l => l.event_name?.startsWith('whatsapp.')).map((log) => (
-                    <div key={log.id} className="p-4 border rounded-lg bg-black text-green-400 font-mono text-xs overflow-hidden">
-                      <div className="flex justify-between border-b border-green-900 pb-2 mb-2">
-                        <span>{log.event_name}</span>
-                        <span>{new Date(log.created_at).toLocaleTimeString()}</span>
+                  {webhookLogs.map((log) => (
+                    <div key={log.id} className={cn(
+                      "p-4 border rounded-lg font-mono text-xs overflow-hidden",
+                      log.processed ? "border-green-500/30 bg-green-500/5" : "border-zinc-800 bg-black"
+                    )}>
+                      <div className="flex justify-between border-b border-zinc-800 pb-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={log.processed ? "text-green-400" : "text-zinc-400"}>
+                            {log.processed ? "✅ PROCESSADO" : "📥 RECEBIDO"}
+                          </span>
+                          <span className="text-zinc-500">|</span>
+                          <span className="text-amber-500">{log.phone}</span>
+                          <Badge variant="outline" className="text-[10px] h-4">
+                            {log.flow_type || 'desconhecido'}
+                          </Badge>
+                        </div>
+                        <span className="text-zinc-500">{new Date(log.created_at).toLocaleString('pt-BR')}</span>
                       </div>
-                      <div className="whitespace-pre-wrap truncate">
-                        {log.error_details}
+                      <div className="grid grid-cols-2 gap-2 mb-2 text-zinc-300">
+                        <div><span className="text-zinc-500">Botão:</span> {log.button_id || '-'}</div>
+                        <div><span className="text-zinc-500">Sessão:</span> {log.session_id ? 'Sim' : 'Não'}</div>
                       </div>
+                      <details className="mt-2">
+                        <summary className="cursor-pointer text-zinc-500 hover:text-zinc-300 transition-colors">Ver Payload Completo</summary>
+                        <pre className="mt-2 p-2 bg-zinc-950 rounded text-green-400/80 overflow-x-auto whitespace-pre-wrap">
+                          {JSON.stringify(log.payload, null, 2)}
+                        </pre>
+                      </details>
+                      {log.error && <p className="text-red-400 mt-2 border-t border-red-900/30 pt-2">Erro: {log.error}</p>}
                     </div>
                   ))}
-                  {logs.filter(l => l.event_name?.startsWith('whatsapp.')).length === 0 && (
+                  {webhookLogs.length === 0 && (
                     <p className="py-8 text-center text-muted-foreground">Nenhum webhook recente.</p>
                   )}
                 </div>
