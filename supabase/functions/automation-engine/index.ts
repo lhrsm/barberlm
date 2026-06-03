@@ -203,7 +203,7 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
 
   // 2. Anti-loop Check
   if (appointment.confirmation_sent === true || appointment.confirmation_sent_at) {
-    console.log(`[AutomationEngine] BLOCKED: Initial message loop for appointment ${appointmentId}. Message already sent at ${appointment.confirmation_sent_at}`);
+    console.log(`[AutomationEngine] BLOCKED: Initial message loop for appointment ${appointmentId}. Already sent at ${appointment.confirmation_sent_at}`);
     
     await supabase.from("automation_logs").insert({
       tenant_id: tenantId,
@@ -215,11 +215,12 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
       error_details: JSON.stringify({
         appointment_id: appointmentId,
         confirmation_sent: appointment.confirmation_sent,
-        confirmation_sent_at: appointment.confirmation_sent_at
+        confirmation_sent_at: appointment.confirmation_sent_at,
+        loop_blocked: true
       })
     });
     
-    return { success: true, message: "Loop blocked" };
+    return { success: true, message: "Loop blocked", loop_blocked: true };
   }
 
   // 3. Generate Message
