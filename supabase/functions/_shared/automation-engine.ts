@@ -393,7 +393,7 @@ Estamos te esperando na Barbearia LM.
         }));
 
         
-        await supabase.from("whatsapp_conversations")
+        await supabase.from("conversation_sessions")
           .update({ 
             context: { ...conversation.context, appt_mapping: appointmentIds, cancel_mode: true }
           })
