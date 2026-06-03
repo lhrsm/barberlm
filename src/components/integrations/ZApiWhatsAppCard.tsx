@@ -49,11 +49,12 @@ interface WhatsAppInstance {
 const isZApiSuccess = (data: any) => {
   if (!data) return false;
   if (data.success === true) return true;
+  if (data.allCompatible === true) return true;
   const result = data.result;
   if (result) {
     if (result.value === true || result.success === true || result.message?.toLowerCase().includes("sucesso")) return true;
     if (Array.isArray(data.results)) {
-      return data.results.every((r: any) => r.success);
+      return data.results.every((r: any) => r.success || r.isCompatible);
     }
   }
   if (data.status === 200 || data.status === 201) return true;
@@ -357,10 +358,17 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       const { data, error } = await supabase.functions.invoke('zapi-api', { body: { action: 'set-webhook', instanceId: instance.id, data: { webhookUrl } } });
       if (error) throw error;
       setLastWebhookCall(data);
-      if (isZApiSuccess(data)) toast.success("Webhook configurado!");
-      else toast.error("Falha na configuração");
+      if (isZApiSuccess(data)) {
+        if (data.allCompatible) {
+          toast.success("Webhooks configurados com sucesso!");
+        } else {
+          toast.success("Webhook principal configurado! Alguns opcionais não são suportados nesta versão da Z-API.");
+        }
+      } else {
+        toast.error("Falha na configuração do webhook");
+      }
       await fetchInstance();
-    } catch (err: any) { toast.error("Erro"); }
+    } catch (err: any) { toast.error("Erro na reconfiguração"); }
     finally { setIsConfiguring(false); }
   }
 
@@ -510,16 +518,51 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
             )}
 
             {lastWebhookCall && (
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-3">
+              <div className="bg-slate-900/50 border border-white/10 rounded-xl p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-amber-400">Resposta da Z-API</h3>
+                  <div>
+                    <h3 className="text-sm font-bold text-blue-400">Status da Configuração</h3>
+                    <p className="text-[10px] text-slate-400">Resumo dos endpoints da Z-API</p>
+                  </div>
                   <Badge className={isZApiSuccess(lastWebhookCall) ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
-                    {isZApiSuccess(lastWebhookCall) ? "Sucesso" : "Falha"}
+                    {isZApiSuccess(lastWebhookCall) ? (lastWebhookCall.allCompatible ? "Totalmente Compatível" : "Parcialmente Compatível") : "Falha na Configuração"}
                   </Badge>
                 </div>
-                <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-48 text-slate-300">
-                  {JSON.stringify(lastWebhookCall, null, 2)}
-                </pre>
+                
+                {lastWebhookCall.results && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {lastWebhookCall.results.map((r: any) => (
+                      <div key={r.type} className="flex items-center justify-between bg-black/40 p-2 rounded-lg border border-white/5">
+                        <span className="text-[9px] text-slate-300 truncate max-w-[150px]">{r.type.replace('update-webhook-', '')}</span>
+                        <div className="flex items-center gap-1">
+                          {r.success ? (
+                            <CheckCircle2 size={12} className="text-emerald-500" />
+                          ) : r.isCompatible ? (
+                            <ShieldCheck size={12} className="text-blue-400" />
+                          ) : (
+                            <AlertCircle size={12} className="text-red-500" />
+                          )}
+                          <span className={cn("text-[8px] font-bold", r.success ? "text-emerald-500" : r.isCompatible ? "text-blue-400" : "text-red-500")}>
+                            {r.success ? "Conectado" : r.isCompatible ? "Via Callback" : "Falha"}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {isZApiSuccess(lastWebhookCall) && !lastWebhookCall.allCompatible && (
+                  <div className="bg-blue-500/10 border border-blue-500/20 p-2 rounded text-[9px] text-blue-300">
+                    <p>ℹ️ Nota: Alguns endpoints específicos não foram encontrados, mas o webhook principal está ativo. As respostas de botões serão processadas automaticamente via ReceivedCallback.</p>
+                  </div>
+                )}
+                
+                <details className="text-[9px]">
+                  <summary className="cursor-pointer text-slate-500 hover:text-slate-300">Ver JSON completo</summary>
+                  <pre className="mt-2 text-[8px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-48 text-slate-300">
+                    {JSON.stringify(lastWebhookCall, null, 2)}
+                  </pre>
+                </details>
               </div>
             )}
 

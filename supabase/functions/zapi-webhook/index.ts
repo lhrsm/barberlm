@@ -346,8 +346,14 @@ serve(async (req) => {
     const phone = extractPhoneFromZapiPayload(body);
     const normalizedPhone = normalizePhone(phone);
     const fallbackPhone = removeNinthDigit(normalizedPhone);
-    const selectedOption = extractSelectedOption(body);
+    let selectedOption = extractSelectedOption(body);
     const referenceMessageId = body.referenceMessageId;
+
+    // Explicitly handle ReceivedCallback with buttonsResponseMessage as requested
+    if (body.type === "ReceivedCallback" && body.buttonsResponseMessage?.buttonId) {
+      selectedOption = body.buttonsResponseMessage.buttonId;
+      console.log(`[Z-API Webhook] Detected ReceivedCallback button response: ${selectedOption}`);
+    }
 
     console.log(`[Z-API Webhook] Incoming message from ${normalizedPhone}. Option: ${selectedOption}. referenceMessageId: ${referenceMessageId}`);
 
