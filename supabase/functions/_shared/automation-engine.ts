@@ -227,13 +227,27 @@ Estamos te esperando na Barbearia LM.
       break;
 
     case AUTOMATION_STATES.AWAITING_CONFIRMATION_SCOPE:
-      if (normalizedOption === 'confirm_all' || normalizedOption === '1') {
-        await supabase.from("appointments").update({ status: 'confirmed' }).in("id", appointmentIds);
+      if (
+        normalizedOption === 'confirm_all' || 
+        normalizedOption === '1' || 
+        normalizedOption.includes('confirmar todos')
+      ) {
+        await supabase.from("appointments")
+          .update({ 
+            status: 'confirmed',
+            confirmed_at: new Date().toISOString() 
+          })
+          .in("id", appointmentIds);
         messageToSend = "✅ Todos os seus agendamentos foram confirmados com sucesso!";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "confirm_all";
         selectedOptionNormalized = "confirm_all";
-      } else if (normalizedOption === 'confirm_single' || normalizedOption === '2') {
+      } else if (
+        normalizedOption === 'confirm_single' || 
+        normalizedOption === '2' || 
+        normalizedOption === 'choose_one' ||
+        normalizedOption.includes('especifico')
+      ) {
         messageToSend = "Qual atendimento você deseja confirmar?";
         const options = appointments.map((a, i) => ({
           id: `appointment:${a.id}`,

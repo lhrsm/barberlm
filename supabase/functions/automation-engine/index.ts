@@ -142,9 +142,32 @@ async function processWorkflowItem(supabase: any, item: any, workflow: any, even
   if (eventName === 'appointment.created') {
     // Check for group
     const groupId = payload.appointment_group_id || event.payload?.appointment_group_id;
+    
     if (groupId) {
+      console.log(`[AutomationEngine] Group creation detected. GroupId: ${groupId}`);
+      
+      // 1. Mark ALL queue items for this group as processing to avoid duplicate runs
+      const { data: queueItems } = await supabase
+        .from("automation_queue")
+        .select("id")
+        .eq("status", "pending")
+        .filter("payload->>appointment_group_id", "eq", groupId);
+        
+      if (queueItems && queueItems.length > 0) {
+        console.log(`[AutomationEngine] Marking ${queueItems.length} duplicate group items as skipped`);
+        await supabase.from("automation_queue")
+          .update({ 
+            status: "completed", 
+            processed_at: new Date().toISOString(),
+            error: "Skipped: Handled by group processor" 
+          })
+          .in("id", queueItems.map((q: any) => q.id).filter((id: string) => id !== item.id));
+      }
+
       return await handleGroupAppointmentCreated(supabase, tenantId, groupId, payload, workflow, item.id);
     }
+    
+    // Normal single appointment flow
     return await handleAppointmentCreated(supabase, tenantId, entityId, payload, workflow, item.id);
   }
   
