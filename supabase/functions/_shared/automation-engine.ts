@@ -952,7 +952,7 @@ export async function processAutomationDispatches(
           // User didn't specify, but usually better to keep it if they might reply anyway, 
           // but here we failed to even send the initial message.
           if (newConv) {
-            await supabase.from("whatsapp_conversations").update({ active: false, error: sendResult.error }).eq("id", newConv.id);
+            await supabase.from("conversation_sessions").update({ active: false, status: 'closed', error: sendResult.error }).eq("id", newConv.id);
           }
         }
 
