@@ -301,7 +301,9 @@ serve(async (req) => {
         "update-webhook-received",
         "update-webhook-disconnected",
         "update-webhook-connected",
-        "update-webhook-message-status"
+        "update-webhook-message-status",
+        "update-webhook-button-response",
+        "update-webhook-list-response"
       ];
       
       const results = await Promise.all(types.map(async (webhookType) => {
