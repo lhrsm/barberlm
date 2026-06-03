@@ -782,7 +782,7 @@ export async function processAutomationDispatches(
             appointment_count: apptGroup.length
           };
 
-          const rawTemplate = auto.template_multiple || `Olá {{customer_name}} 👋\n\nVocê possui {{appointment_count}} agendamentos na {{barbershop_name}}.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}\n\nO que deseja fazer?`;
+          const rawTemplate = auto.template_multiple || `Olá {{customer_name}} 👋\n\nSeus agendamentos na {{barbershop_name}} foram realizados com sucesso.\n\n📋 Resumo dos agendamentos:\n\n{{appointments_list}}O que deseja fazer?`;
           message = processAutomationTemplate(rawTemplate, templateData);
         }
 
