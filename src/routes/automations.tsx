@@ -258,26 +258,36 @@ function AutomationsComponent() {
     if (!tenantId) return;
     setLoading(true);
     try {
-      for (const template of DEFAULT_TEMPLATES) {
-        // Check if exists
-        const { data: existing } = await supabase
-          .from("automation_workflows")
-          .select("id")
-          .eq("tenant_id", tenantId)
-          .eq("name", template.name)
-          .maybeSingle();
-        
-        if (!existing) {
-          await supabase.from("automation_workflows").insert({
+      // Get current workflows to avoid duplicates
+      const { data: currentWorkflows } = await supabase
+        .from("automation_workflows")
+        .select("name, trigger_event")
+        .eq("tenant_id", tenantId);
+
+      const existingSet = new Set(
+        currentWorkflows?.map(w => `${w.name}|${w.trigger_event}`) || []
+      );
+
+      const toInsert = DEFAULT_TEMPLATES.filter(
+        t => !existingSet.has(`${t.name}|${t.trigger_event}`)
+      );
+
+      if (toInsert.length > 0) {
+        const { error } = await supabase.from("automation_workflows").insert(
+          toInsert.map(template => ({
             tenant_id: tenantId,
             name: template.name,
             trigger_event: template.trigger_event,
             active: false,
             configuration: { template: template.template }
-          });
-        }
+          }))
+        );
+        if (error) throw error;
+        toast.success(`${toInsert.length} novos modelos carregados!`);
+      } else {
+        toast.info("Todos os modelos já estão carregados.");
       }
-      toast.success("Modelos carregados com sucesso!");
+      
       fetchData();
     } catch (error: any) {
       toast.error("Erro ao carregar modelos: " + error.message);
