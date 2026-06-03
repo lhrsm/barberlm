@@ -258,14 +258,19 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
   }
 
   // Update session
-  await supabase.from("conversation_sessions").update({
+  const { error: sessionUpdateError } = await supabase.from("conversation_sessions").update({
     current_step: nextStep,
     status: nextStep === 'completed' ? 'closed' : 'active',
+    active: nextState !== 'completed',
     updated_at: new Date().toISOString()
   }).eq("id", session.id);
 
+  if (sessionUpdateError) {
+    console.error(`[Z-API Webhook] Error updating session ${session.id}:`, sessionUpdateError);
+  }
+
   // Log
-  await supabase.from("automation_logs").insert({
+  const { error: logError } = await supabase.from("automation_logs").insert({
     tenant_id: tenantId,
     session_id: session.id,
     event_name: 'whatsapp.action_executed',
@@ -275,9 +280,15 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
       option: 'main_confirm', 
       state_before: stateBefore,
       state_after: nextStep,
-      action_executed: actionExecuted
+      action_executed: actionExecuted,
+      phone: session.phone,
+      referenceMessageId: session.provider_message_id
     })
   });
+
+  if (logError) {
+    console.error(`[Z-API Webhook] Error logging action for session ${session.id}:`, logError);
+  }
 
   return { success: true };
 }
