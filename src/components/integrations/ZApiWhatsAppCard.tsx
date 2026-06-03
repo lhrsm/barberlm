@@ -46,6 +46,27 @@ interface WhatsAppInstance {
   webhook_received_last_response?: any;
 }
 
+const isZApiSuccess = (data: any) => {
+  if (!data) return false;
+  // Check top level success
+  if (data.success === true) return true;
+  // Check result object
+  const result = data.result;
+  if (result) {
+    // Some Z-API endpoints return value: true on success
+    // Others might just return a success message or the updated object
+    if (result.value === true || result.success === true || result.message?.toLowerCase().includes("sucesso")) return true;
+    
+    // If it's the set-webhook call, check individual results
+    if (Array.isArray(data.results)) {
+      return data.results.every((r: any) => r.success);
+    }
+  }
+  // Check HTTP status if available - Z-API returns 200 or 201 for most successes
+  if (data.status === 200 || data.status === 201) return true;
+  return false;
+};
+
 export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [instance, setInstance] = useState<WhatsAppInstance | null>(null);
   const [loading, setLoading] = useState(true);
