@@ -155,10 +155,17 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
 
   const message = template
     .replace('{customer_name}', customer.name || 'Cliente')
+    .replace('{barbershop_name}', appointment.tenants?.name || 'Barbearia')
     .replace('{service_name}', appointment.services?.name || 'Serviço')
+    .replace('{professional_name}', appointment.barbers?.name || 'Profissional')
     .replace('{barber_name}', appointment.barbers?.name || 'Profissional')
     .replace('{appointment_date}', formattedDate)
-    .replace('{appointment_time}', formattedTime);
+    .replace('{appointment_time}', formattedTime)
+    .replace('{service_price}', appointment.total_price?.toString() || '0')
+    .replace('{customer_phone}', phone)
+    .replace('{payment_method}', appointment.payment_method || 'Não definido')
+    .replace('{appointment_status}', appointment.status || 'Pendente');
+
 
   // 3. Create Session
   const { data: session, error: sessionError } = await supabase
