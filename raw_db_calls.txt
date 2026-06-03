@@ -1,0 +1,650 @@
+supabase/functions/zapi-webhook/index.ts:  await supabase.from("automation_logs").insert({
+supabase/functions/zapi-webhook/index.ts-    tenant_id: tenantId,
+supabase/functions/zapi-webhook/index.ts-    session_id: session?.id,
+supabase/functions/zapi-webhook/index.ts-    event_name: `whatsapp.${eventType}`,
+supabase/functions/zapi-webhook/index.ts-    status: "success",
+supabase/functions/zapi-webhook/index.ts-    message: `Webhook recebido de ${normalizedPhone}. Opção: ${selectedOptionRaw}`,
+--
+supabase/functions/zapi-webhook/index.ts:  const { error: sessionUpdateError } = await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-    current_step: nextStep,
+supabase/functions/zapi-webhook/index.ts-    status: nextStep === 'completed' ? 'closed' : 'active',
+supabase/functions/zapi-webhook/index.ts-    active: nextStep !== 'completed',
+supabase/functions/zapi-webhook/index.ts-    updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-  }).eq("id", session.id);
+--
+supabase/functions/zapi-webhook/index.ts:  const { error: logError } = await supabase.from("automation_logs").insert({
+supabase/functions/zapi-webhook/index.ts-    tenant_id: tenantId,
+supabase/functions/zapi-webhook/index.ts-    session_id: session.id,
+supabase/functions/zapi-webhook/index.ts-    event_name: 'whatsapp.action_executed',
+supabase/functions/zapi-webhook/index.ts-    status: "success",
+supabase/functions/zapi-webhook/index.ts-    message: `Ação: ${actionExecuted}`,
+--
+supabase/functions/zapi-webhook/index.ts:  await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-    current_step: 'completed',
+supabase/functions/zapi-webhook/index.ts-    status: 'closed',
+supabase/functions/zapi-webhook/index.ts-    active: false,
+supabase/functions/zapi-webhook/index.ts-    updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-  }).eq("id", session.id);
+--
+supabase/functions/zapi-webhook/index.ts:  await supabase.from("automation_logs").insert({
+supabase/functions/zapi-webhook/index.ts-    tenant_id: tenantId,
+supabase/functions/zapi-webhook/index.ts-    session_id: session.id,
+supabase/functions/zapi-webhook/index.ts-    event_name: 'whatsapp.action_executed',
+supabase/functions/zapi-webhook/index.ts-    status: "success",
+supabase/functions/zapi-webhook/index.ts-    message: "Ação: confirm_all",
+--
+supabase/functions/zapi-webhook/index.ts:  await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-    current_step: 'awaiting_confirm_single_selection',
+supabase/functions/zapi-webhook/index.ts-    updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-  }).eq("id", session.id);
+supabase/functions/zapi-webhook/index.ts-
+supabase/functions/zapi-webhook/index.ts-  await supabase.functions.invoke('automation-engine', {
+--
+supabase/functions/zapi-webhook/index.ts:    await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-      current_step: 'awaiting_remaining_action_after_confirm',
+supabase/functions/zapi-webhook/index.ts-      updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-    }).eq("id", session.id);
+supabase/functions/zapi-webhook/index.ts-
+supabase/functions/zapi-webhook/index.ts-    await supabase.functions.invoke('automation-engine', {
+--
+supabase/functions/zapi-webhook/index.ts:    await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-      current_step: 'completed',
+supabase/functions/zapi-webhook/index.ts-      status: 'closed',
+supabase/functions/zapi-webhook/index.ts-      active: false,
+supabase/functions/zapi-webhook/index.ts-      updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-    }).eq("id", session.id);
+--
+supabase/functions/zapi-webhook/index.ts:  await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-    current_step: nextStep,
+supabase/functions/zapi-webhook/index.ts-    updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-  }).eq("id", session.id);
+supabase/functions/zapi-webhook/index.ts-
+supabase/functions/zapi-webhook/index.ts-  await supabase.functions.invoke('automation-engine', {
+--
+supabase/functions/zapi-webhook/index.ts:      await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-        current_step: 'awaiting_cancel_pix_choice',
+supabase/functions/zapi-webhook/index.ts-        updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-      }).eq("id", session.id);
+supabase/functions/zapi-webhook/index.ts-
+supabase/functions/zapi-webhook/index.ts-      return { success: true };
+--
+supabase/functions/zapi-webhook/index.ts:      await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-        current_step: 'awaiting_cancel_confirmation',
+supabase/functions/zapi-webhook/index.ts-        updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-      }).eq("id", session.id);
+supabase/functions/zapi-webhook/index.ts-
+supabase/functions/zapi-webhook/index.ts-      return { success: true };
+--
+supabase/functions/zapi-webhook/index.ts:      await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-        current_step: 'awaiting_cancel_confirmation',
+supabase/functions/zapi-webhook/index.ts-        updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-      }).eq("id", session.id);
+supabase/functions/zapi-webhook/index.ts-
+supabase/functions/zapi-webhook/index.ts-      return { success: true };
+--
+supabase/functions/zapi-webhook/index.ts:    await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-      current_step: 'completed',
+supabase/functions/zapi-webhook/index.ts-      status: 'closed',
+supabase/functions/zapi-webhook/index.ts-      active: false,
+supabase/functions/zapi-webhook/index.ts-      updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-    }).eq("id", session.id);
+--
+supabase/functions/zapi-webhook/index.ts:  await supabase.from("conversation_sessions").update({
+supabase/functions/zapi-webhook/index.ts-    current_step: 'completed',
+supabase/functions/zapi-webhook/index.ts-    status: 'closed',
+supabase/functions/zapi-webhook/index.ts-    active: false,
+supabase/functions/zapi-webhook/index.ts-    updated_at: new Date().toISOString()
+supabase/functions/zapi-webhook/index.ts-  }).eq("id", session.id);
+--
+supabase/functions/zapi-catch-all/index.ts:    await supabase.from("zapi_webhook_debug").insert({
+supabase/functions/zapi-catch-all/index.ts-      method,
+supabase/functions/zapi-catch-all/index.ts-      url: req.url,
+supabase/functions/zapi-catch-all/index.ts-      content_type: contentType,
+supabase/functions/zapi-catch-all/index.ts-      headers_raw: headers,
+supabase/functions/zapi-catch-all/index.ts-      query_params: queryParams,
+--
+supabase/functions/whatsapp-cloud/index.ts:        await supabase.from("whatsapp_messages").update({ status: "failed", error_message: "No instance found" }).eq("id", msg.id);
+supabase/functions/whatsapp-cloud/index.ts-        continue;
+supabase/functions/whatsapp-cloud/index.ts-      }
+supabase/functions/whatsapp-cloud/index.ts-
+supabase/functions/whatsapp-cloud/index.ts-      try {
+supabase/functions/whatsapp-cloud/index.ts-        let response;
+--
+supabase/functions/whatsapp-cloud/index.ts:          await supabase.from("automation_logs").insert({
+supabase/functions/whatsapp-cloud/index.ts-            barber_id: msg.user_id,
+supabase/functions/whatsapp-cloud/index.ts-            status: response.ok ? 'sent' : 'error',
+supabase/functions/whatsapp-cloud/index.ts-            message_type: 'whatsapp_send',
+supabase/functions/whatsapp-cloud/index.ts-            phone: targetPhone,
+supabase/functions/whatsapp-cloud/index.ts-            response: {
+--
+supabase/functions/whatsapp-cloud/index.ts:            await supabase.from("whatsapp_messages").update({ 
+supabase/functions/whatsapp-cloud/index.ts-              status: "sent", 
+supabase/functions/whatsapp-cloud/index.ts-              wa_id: (result.messages ? result.messages[0].id : (result.id || result.messageId)),
+supabase/functions/whatsapp-cloud/index.ts-              updated_at: new Date().toISOString()
+supabase/functions/whatsapp-cloud/index.ts-            }).eq("id", msg.id);
+supabase/functions/whatsapp-cloud/index.ts-          } else {
+supabase/functions/whatsapp-cloud/index.ts:            await supabase.from("whatsapp_messages").update({ 
+supabase/functions/whatsapp-cloud/index.ts-              status: "failed", 
+supabase/functions/whatsapp-cloud/index.ts-              error_message: JSON.stringify(result.error || result),
+supabase/functions/whatsapp-cloud/index.ts-              updated_at: new Date().toISOString()
+supabase/functions/whatsapp-cloud/index.ts-            }).eq("id", msg.id);
+supabase/functions/whatsapp-cloud/index.ts-          }
+--
+supabase/functions/whatsapp-cloud/index.ts:        await supabase.from("whatsapp_messages").update({ 
+supabase/functions/whatsapp-cloud/index.ts-          status: "failed", 
+supabase/functions/whatsapp-cloud/index.ts-          error_message: err.message,
+supabase/functions/whatsapp-cloud/index.ts-          updated_at: new Date().toISOString()
+supabase/functions/whatsapp-cloud/index.ts-        }).eq("id", msg.id);
+supabase/functions/whatsapp-cloud/index.ts-      }
+--
+supabase/functions/test-automation/index.ts:    await supabase.from("automation_logs").insert({
+supabase/functions/test-automation/index.ts-      automation_id: automationId,
+supabase/functions/test-automation/index.ts-      tenant_id: tenantId,
+supabase/functions/test-automation/index.ts-      barber_id: user.id,
+supabase/functions/test-automation/index.ts-      status: ok ? "success" : "error",
+supabase/functions/test-automation/index.ts-      message_type: automationType + "_test",
+--
+supabase/functions/run-automations/index.ts:      await supabase.from("automation_status").update({
+supabase/functions/run-automations/index.ts-        status: 'executing',
+supabase/functions/run-automations/index.ts-        server_time: serverTime,
+supabase/functions/run-automations/index.ts-        updated_at: serverTime
+supabase/functions/run-automations/index.ts-      }).eq('id', globalStatusId);
+supabase/functions/run-automations/index.ts-    }
+--
+supabase/functions/run-automations/index.ts:      await supabase.from("automation_status").update({
+supabase/functions/run-automations/index.ts-        status: 'active',
+supabase/functions/run-automations/index.ts-        last_run: serverTime,
+supabase/functions/run-automations/index.ts-        last_result: results,
+supabase/functions/run-automations/index.ts-        updated_at: new Date().toISOString()
+supabase/functions/run-automations/index.ts-      }).eq('id', globalStatusId);
+--
+supabase/functions/debug-zapi-received/index.ts:    await supabase.from("zapi_webhook_logs").insert({
+supabase/functions/debug-zapi-received/index.ts-      payload: body,
+supabase/functions/debug-zapi-received/index.ts-      extracted_phone: normalizedPhone,
+supabase/functions/debug-zapi-received/index.ts-      extracted_option: option,
+supabase/functions/debug-zapi-received/index.ts-      type: type,
+supabase/functions/debug-zapi-received/index.ts-      phone: normalizedPhone,
+--
+supabase/functions/automation-engine/index.ts:        await supabase.from("automation_queue").update({ 
+supabase/functions/automation-engine/index.ts-          status: "processing", 
+supabase/functions/automation-engine/index.ts-          attempts: (item.attempts || 0) + 1,
+supabase/functions/automation-engine/index.ts-          updated_at: new Date().toISOString()
+supabase/functions/automation-engine/index.ts-        }).eq("id", item.id);
+supabase/functions/automation-engine/index.ts-
+--
+supabase/functions/automation-engine/index.ts:        await supabase.from("automation_queue").update({ 
+supabase/functions/automation-engine/index.ts-          status: "completed", 
+supabase/functions/automation-engine/index.ts-          processed_at: new Date().toISOString(),
+supabase/functions/automation-engine/index.ts-          updated_at: new Date().toISOString()
+supabase/functions/automation-engine/index.ts-        }).eq("id", item.id);
+supabase/functions/automation-engine/index.ts-
+--
+supabase/functions/automation-engine/index.ts:        await supabase.from("automation_queue").update({ 
+supabase/functions/automation-engine/index.ts-          status: "failed", 
+supabase/functions/automation-engine/index.ts-          error: error.message,
+supabase/functions/automation-engine/index.ts-          updated_at: new Date().toISOString()
+supabase/functions/automation-engine/index.ts-        }).eq("id", item.id);
+supabase/functions/automation-engine/index.ts-        
+--
+supabase/functions/automation-engine/index.ts:        await supabase.from("automation_logs").insert({
+supabase/functions/automation-engine/index.ts-          tenant_id: item.tenant_id,
+supabase/functions/automation-engine/index.ts-          workflow_id: item.workflow_id,
+supabase/functions/automation-engine/index.ts-          queue_id: item.id,
+supabase/functions/automation-engine/index.ts-          status: "error",
+supabase/functions/automation-engine/index.ts-          message: `Erro ao processar item da fila: ${error.message}`,
+--
+supabase/functions/automation-engine/index.ts:    await supabase.from("automation_logs").insert({
+supabase/functions/automation-engine/index.ts-      tenant_id: tenantId,
+supabase/functions/automation-engine/index.ts-      workflow_id: workflow.id,
+supabase/functions/automation-engine/index.ts-      queue_id: queueId,
+supabase/functions/automation-engine/index.ts-      event_name: 'blocked_initial_message_loop',
+supabase/functions/automation-engine/index.ts-      status: "skipped",
+--
+supabase/functions/automation-engine/index.ts:  await supabase.from("automation_logs").insert({
+supabase/functions/automation-engine/index.ts-    tenant_id: tenantId,
+supabase/functions/automation-engine/index.ts-    workflow_id: workflow.id,
+supabase/functions/automation-engine/index.ts-    queue_id: queueId,
+supabase/functions/automation-engine/index.ts-    session_id: session.id,
+supabase/functions/automation-engine/index.ts-    event_name: 'appointment.created',
+--
+supabase/functions/automation-engine/group-logic.ts:  await supabase.from("automation_logs").insert({
+supabase/functions/automation-engine/group-logic.ts-    tenant_id: tenantId,
+supabase/functions/automation-engine/group-logic.ts-    workflow_id: workflow.id,
+supabase/functions/automation-engine/group-logic.ts-    queue_id: queueId,
+supabase/functions/automation-engine/group-logic.ts-    session_id: session.id,
+supabase/functions/automation-engine/group-logic.ts-    event_name: 'appointment.group_created',
+--
+supabase/functions/appointment-notifications/index.ts:      await supabase.from("notifications").insert({
+supabase/functions/appointment-notifications/index.ts-        user_id: tenantId,
+supabase/functions/appointment-notifications/index.ts-        barber_id: note.target === "barber" ? barber?.id : null,
+supabase/functions/appointment-notifications/index.ts-        title: type === "appointment_cancelled" ? "Agendamento Cancelado" : "Agendamento Reagendado",
+supabase/functions/appointment-notifications/index.ts-        message: note.message,
+supabase/functions/appointment-notifications/index.ts-        type: "appointment",
+--
+src/routes/services.tsx:    const { error } = await supabase.from("services").insert({
+src/routes/services.tsx-      ...newService,
+src/routes/services.tsx-      price: parseFloat(newService.price),
+src/routes/services.tsx-      duration_minutes: parseInt(newService.duration_minutes),
+src/routes/services.tsx-      tenant_id: user.id,
+src/routes/services.tsx-      user_id: user.id,
+--
+src/routes/products.tsx:      const { error } = await supabase.from("products").insert({
+src/routes/products.tsx-        ...newProduct,
+src/routes/products.tsx-        price: parseFloat(newProduct.price),
+src/routes/products.tsx-        promotional_price: newProduct.promotional_price ? parseFloat(newProduct.promotional_price) : null,
+src/routes/products.tsx-        stock_quantity: parseInt(newProduct.stock_quantity),
+src/routes/products.tsx-        user_id: user.id,
+--
+src/routes/products.tsx:    const { error } = await supabase.from("products").insert({
+src/routes/products.tsx-      name: `${product.name} (Cópia)`,
+src/routes/products.tsx-      price: product.price,
+src/routes/products.tsx-      stock_quantity: product.stock_quantity,
+src/routes/products.tsx-      description: product.description,
+src/routes/products.tsx-      image_url: product.image_url,
+--
+src/routes/products.tsx:                            const { error: saleError } = await supabase.from("product_sales").insert([{
+src/routes/products.tsx-                              user_id: user.id,
+src/routes/products.tsx-                              barber_id: barberId,
+src/routes/products.tsx-                              items: [{ id: product.id, name: product.name, quantity: 1, price: product.price }],
+src/routes/products.tsx-                              total_amount: product.price,
+src/routes/products.tsx-                              status: 'completed' as "completed"
+--
+src/routes/products.tsx:                            await supabase.from("transactions").insert([{
+src/routes/products.tsx-                              user_id: user.id,
+src/routes/products.tsx-                              barber_id: barberId,
+src/routes/products.tsx-                              amount: product.price,
+src/routes/products.tsx-                              type: "income",
+src/routes/products.tsx-                              category: "Venda de Produto",
+--
+src/routes/integrations.tsx:      ? await supabase.from("email_settings").update(data).eq("id", email.id)
+src/routes/integrations.tsx:      : await supabase.from("email_settings").insert(data);
+src/routes/integrations.tsx-
+src/routes/integrations.tsx-    if (error) toast.error("Erro ao salvar E-mail");
+src/routes/integrations.tsx-    else {
+src/routes/integrations.tsx-      toast.success("E-mail configurado!");
+src/routes/integrations.tsx-      fetchSettings();
+--
+supabase/functions/_shared/automation-engine.ts:          await supabase.from("appointments").update({ status: 'confirmed' }).in("id", appointmentIds);
+supabase/functions/_shared/automation-engine.ts-          
+supabase/functions/_shared/automation-engine.ts-          // Use centralized formatting for success message
+supabase/functions/_shared/automation-engine.ts-          const { date: apptDate, time: apptTime } = formatAppointmentDateTimeForMessage(appointments[0]);
+supabase/functions/_shared/automation-engine.ts-          const professionalName = appointments[0].barbers?.name || "Profissional";
+supabase/functions/_shared/automation-engine.ts-          const serviceName = appointments[0].services?.name || "Serviço";
+--
+supabase/functions/_shared/automation-engine.ts:        await supabase.from("appointments").update({ status: newStatus }).eq("id", selectedId);
+supabase/functions/_shared/automation-engine.ts-        
+supabase/functions/_shared/automation-engine.ts-        const remainingIds = appointmentIds.filter(id => id !== selectedId);
+supabase/functions/_shared/automation-engine.ts-        
+supabase/functions/_shared/automation-engine.ts-        if (remainingIds.length > 0) {
+supabase/functions/_shared/automation-engine.ts-          const actionText = cancelMode ? "cancelado" : "confirmado";
+--
+supabase/functions/_shared/automation-engine.ts:        await supabase.from("appointments").update({ status: 'cancelled' }).in("id", appointmentIds);
+supabase/functions/_shared/automation-engine.ts-        messageToSend = "❌ Agendamento cancelado com sucesso.";
+supabase/functions/_shared/automation-engine.ts-        nextState = AUTOMATION_STATES.COMPLETED;
+supabase/functions/_shared/automation-engine.ts-        actionExecuted = "cancel_executed";
+supabase/functions/_shared/automation-engine.ts-        selectedOptionNormalized = "cancel_yes";
+supabase/functions/_shared/automation-engine.ts-      } else if (normalizedOption === 'cancel_no' || normalizedOption === '2' || normalizedOption.includes('nao')) {
+--
+supabase/functions/_shared/automation-engine.ts:        await supabase.from("appointments").update({ status: 'cancelled' }).in("id", appointmentIds);
+supabase/functions/_shared/automation-engine.ts-        messageToSend = "❌ Todos os seus agendamentos foram cancelados.";
+supabase/functions/_shared/automation-engine.ts-        nextState = AUTOMATION_STATES.COMPLETED;
+supabase/functions/_shared/automation-engine.ts-        actionExecuted = "cancel_all";
+supabase/functions/_shared/automation-engine.ts-        selectedOptionNormalized = "cancel_all";
+supabase/functions/_shared/automation-engine.ts-      } else if (normalizedOption === 'cancel_single' || normalizedOption === '2') {
+--
+supabase/functions/_shared/automation-engine.ts:        await supabase.from("appointments").update({ status: 'confirmed' }).in("id", remainingIds);
+supabase/functions/_shared/automation-engine.ts-        messageToSend = "✅ Todos os agendamentos restantes foram confirmados.";
+supabase/functions/_shared/automation-engine.ts-        nextState = AUTOMATION_STATES.COMPLETED;
+supabase/functions/_shared/automation-engine.ts-        actionExecuted = "confirm_remaining";
+supabase/functions/_shared/automation-engine.ts-      } else if (normalizedOption === '2' || normalizedOption.includes('reagendar')) {
+supabase/functions/_shared/automation-engine.ts-        messageToSend = "Para reagendar os demais atendimentos, por favor entre em contato conosco.";
+--
+supabase/functions/_shared/automation-engine.ts:        await supabase.from("appointments").update({ status: 'cancelled' }).in("id", remainingIds);
+supabase/functions/_shared/automation-engine.ts-        messageToSend = "❌ Agendamentos restantes foram cancelados.";
+supabase/functions/_shared/automation-engine.ts-        nextState = AUTOMATION_STATES.COMPLETED;
+supabase/functions/_shared/automation-engine.ts-        actionExecuted = "cancel_remaining";
+supabase/functions/_shared/automation-engine.ts-      } else {
+supabase/functions/_shared/automation-engine.ts-        messageToSend = "Opção inválida. O que deseja fazer com os demais agendamentos?";
+--
+supabase/functions/_shared/automation-engine.ts:    await supabase.from("automation_cron_runs").insert({
+supabase/functions/_shared/automation-engine.ts-      id: runId,
+supabase/functions/_shared/automation-engine.ts-      status: 'running',
+supabase/functions/_shared/automation-engine.ts-      tenant_id: tenantId,
+supabase/functions/_shared/automation-engine.ts-      appointment_id: appointmentId,
+supabase/functions/_shared/automation-engine.ts-      started_at: startTime
+--
+supabase/functions/_shared/automation-engine.ts:      await supabase.from("automation_cron_runs").update({ 
+supabase/functions/_shared/automation-engine.ts-        status: 'success', 
+supabase/functions/_shared/automation-engine.ts-        finished_at: new Date().toISOString(),
+supabase/functions/_shared/automation-engine.ts-        found_count: 0,
+supabase/functions/_shared/automation-engine.ts-        eligible_count: 0,
+supabase/functions/_shared/automation-engine.ts-        details: { logs: results.details, summary: "No appointments found" }
+--
+supabase/functions/_shared/automation-engine.ts:      await supabase.from("automation_cron_runs").update({ 
+supabase/functions/_shared/automation-engine.ts-        status: 'success', 
+supabase/functions/_shared/automation-engine.ts-        finished_at: new Date().toISOString(),
+supabase/functions/_shared/automation-engine.ts-        found_count: results.found_count,
+supabase/functions/_shared/automation-engine.ts-        eligible_count: 0,
+supabase/functions/_shared/automation-engine.ts-        skipped_count: results.skipped_count,
+--
+supabase/functions/_shared/automation-engine.ts:        await supabase.from("automation_logs").insert({
+supabase/functions/_shared/automation-engine.ts-          tenant_id: tenant_id,
+supabase/functions/_shared/automation-engine.ts-          barber_id: tenant_id,
+supabase/functions/_shared/automation-engine.ts-          phone: normalizedPhoneValue,
+supabase/functions/_shared/automation-engine.ts-          webhook_type: auto.type,
+supabase/functions/_shared/automation-engine.ts-          direction: 'outgoing',
+--
+supabase/functions/_shared/automation-engine.ts:            await supabase.from("whatsapp_conversations").update({ active: false, error: sendResult.error }).eq("id", newConv.id);
+supabase/functions/_shared/automation-engine.ts-          }
+supabase/functions/_shared/automation-engine.ts-        }
+supabase/functions/_shared/automation-engine.ts-
+supabase/functions/_shared/automation-engine.ts-      } catch (err: any) {
+supabase/functions/_shared/automation-engine.ts-        console.error(`[AutomationEngine] Group ${groupKey} Error:`, err);
+--
+supabase/functions/_shared/automation-engine.ts:    await supabase.from("automation_cron_runs").update({
+supabase/functions/_shared/automation-engine.ts-      status: results.error_count === 0 ? 'success' : 'error',
+supabase/functions/_shared/automation-engine.ts-      finished_at: new Date().toISOString(),
+supabase/functions/_shared/automation-engine.ts-      processed_count: results.processed_count,
+supabase/functions/_shared/automation-engine.ts-      skipped_count: results.skipped_count,
+supabase/functions/_shared/automation-engine.ts-      error_count: results.error_count,
+--
+supabase/functions/_shared/automation-engine.ts:    await supabase.from("automation_cron_runs").update({ 
+supabase/functions/_shared/automation-engine.ts-      status: 'error', 
+supabase/functions/_shared/automation-engine.ts-      finished_at: new Date().toISOString(),
+supabase/functions/_shared/automation-engine.ts-      error: error.message,
+supabase/functions/_shared/automation-engine.ts-      processed_appointments: all_details,
+supabase/functions/_shared/automation-engine.ts-      details: { logs: results.details, fatal: error.stack }
+--
+src/routes/api/public/payments/webhook.ts:  await getSupabase().from("profiles").update({ plan: newPlan }).eq("id", userId);
+src/routes/api/public/payments/webhook.ts-}
+src/routes/api/public/payments/webhook.ts-
+src/routes/api/public/payments/webhook.ts-async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
+src/routes/api/public/payments/webhook.ts-  const userId = subscription.metadata?.userId;
+src/routes/api/public/payments/webhook.ts-  if (!userId) {
+--
+src/routes/api/public/payments/webhook.ts:  await getSupabase().from("subscriptions").upsert(
+src/routes/api/public/payments/webhook.ts-    {
+src/routes/api/public/payments/webhook.ts-      user_id: userId,
+src/routes/api/public/payments/webhook.ts-      stripe_subscription_id: subscription.id,
+src/routes/api/public/payments/webhook.ts-      stripe_customer_id: subscription.customer,
+src/routes/api/public/payments/webhook.ts-      product_id: productId,
+--
+src/routes/admin.plans.tsx:        await supabase.from("audit_logs").insert({
+src/routes/admin.plans.tsx-          admin_id: user.id,
+src/routes/admin.plans.tsx-          action: 'update_plan',
+src/routes/admin.plans.tsx-          details: { plan_id: plan.id, plan_name: plan.name }
+src/routes/admin.plans.tsx-        });
+src/routes/admin.plans.tsx-      }
+--
+src/routes/admin.tenants.tsx:        await supabase.from("audit_logs").insert({
+src/routes/admin.tenants.tsx-          admin_id: user.id,
+src/routes/admin.tenants.tsx-          target_id: id,
+src/routes/admin.tenants.tsx-          action: status === 'blocked' ? 'block_tenant' : 'reactivate_tenant',
+src/routes/admin.tenants.tsx-          details: { status }
+src/routes/admin.tenants.tsx-        });
+--
+src/routes/admin.tenants.tsx:      await supabase.from("audit_logs").insert({
+src/routes/admin.tenants.tsx-        admin_id: user.id,
+src/routes/admin.tenants.tsx-        target_id: tenantId,
+src/routes/admin.tenants.tsx-        action: 'impersonate',
+src/routes/admin.tenants.tsx-        details: { impersonated_at: new Date().toISOString() }
+src/routes/admin.tenants.tsx-      });
+--
+src/routes/automations.tsx:        const { error } = await supabase.from("automation_workflows").insert(
+src/routes/automations.tsx-          toInsert.map(template => ({
+src/routes/automations.tsx-            tenant_id: tenantId,
+src/routes/automations.tsx-            name: template.name,
+src/routes/automations.tsx-            trigger_event: template.trigger_event,
+src/routes/automations.tsx-            active: false,
+--
+src/routes/automations.tsx:      const { error } = await supabase.from("automation_events").insert({
+src/routes/automations.tsx-        tenant_id: tenantId,
+src/routes/automations.tsx-        event_name: selectedWorkflow.trigger_event,
+src/routes/automations.tsx-        entity_type: 'appointment',
+src/routes/automations.tsx-        entity_id: entityId,
+src/routes/automations.tsx-        payload: { ...payload, force_phone: testPhone }
+--
+src/routes/automations.tsx:      await supabase.from("automation_events").insert({
+src/routes/automations.tsx-        tenant_id: tenantId,
+src/routes/automations.tsx-        event_name: eventName,
+src/routes/automations.tsx-        entity_type: 'appointment',
+src/routes/automations.tsx-        entity_id: appt.id,
+src/routes/automations.tsx-        payload: { simulated: true }
+--
+src/routes/customers.tsx:    const { error } = await supabase.from("customers").insert({
+src/routes/customers.tsx-      ...newCustomer,
+src/routes/customers.tsx-      tenant_id: user.id,
+src/routes/customers.tsx-      user_id: user.id,
+src/routes/customers.tsx-    });
+src/routes/customers.tsx-
+--
+src/routes/finances.tsx:    const { error } = await supabase.from("transactions").insert({
+src/routes/finances.tsx-      ...newTransaction,
+src/routes/finances.tsx-      amount: parseFloat(newTransaction.amount),
+src/routes/finances.tsx-      user_id: user.id,
+src/routes/finances.tsx-      barber_id: newTransaction.barber_id === "none" ? null : newTransaction.barber_id,
+src/routes/finances.tsx-    });
+--
+src/routes/finances.tsx:                                  await supabase.from("transactions").insert({
+src/routes/finances.tsx-                                    amount: app.total_price,
+src/routes/finances.tsx-                                    type: "income",
+src/routes/finances.tsx-                                    description: `Atendimento: ${app.services?.name} - ${app.customers?.name}`,
+src/routes/finances.tsx-                                    category: "Serviço",
+src/routes/finances.tsx-                                    barber_id: app.barber_id,
+--
+src/routes/finances.tsx:                                  await supabase.from("transactions").insert({
+src/routes/finances.tsx-                                    amount: app.total_price,
+src/routes/finances.tsx-                                    type: "expense",
+src/routes/finances.tsx-                                    description: `Cancelamento: ${app.services?.name} - ${app.customers?.name}`,
+src/routes/finances.tsx-                                    category: "Cancelamento",
+src/routes/finances.tsx-                                    barber_id: app.barber_id,
+--
+src/routes/dashboard.tsx:    await supabase.from("notifications").update({ read: true }).eq("id", id);
+src/routes/dashboard.tsx-    fetchNotifications();
+src/routes/dashboard.tsx-  }
+src/routes/dashboard.tsx-
+src/routes/dashboard.tsx-  async function completeAppointment(appointment: any) {
+src/routes/dashboard.tsx-    if (appointment.status === 'completed') return;
+--
+src/routes/dashboard.tsx:    await supabase.from("appointments").update({
+src/routes/dashboard.tsx-      payment_status: 'paid',
+src/routes/dashboard.tsx-      credit_used: usedCredits,
+src/routes/dashboard.tsx-      cashback_used: usedCashback,
+src/routes/dashboard.tsx-      cashback_earned: cashbackEarned,
+src/routes/dashboard.tsx-      final_amount: remainingToPay,
+--
+src/routes/dashboard.tsx:        await supabase.from("transactions").insert([{
+src/routes/dashboard.tsx-          amount: totalPrice,
+src/routes/dashboard.tsx-          type: "expense",
+src/routes/dashboard.tsx-          description: `Estorno (Cancelamento Pix): ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+src/routes/dashboard.tsx-          category: "Estorno",
+src/routes/dashboard.tsx-          barber_id: appointment.barber_id,
+--
+src/routes/dashboard.tsx:          await supabase.from("wallet_transactions").insert([{
+src/routes/dashboard.tsx-            wallet_id: wallet.id,
+src/routes/dashboard.tsx-            amount: totalPrice,
+src/routes/dashboard.tsx-            type: "credit",
+src/routes/dashboard.tsx-            description: `Crédito por cancelamento: ${appointment.services?.name || 'Serviço'}`,
+src/routes/dashboard.tsx-            appointment_id: appointment.id,
+--
+src/routes/dashboard.tsx:          await supabase.from("transactions").insert([{
+src/routes/dashboard.tsx-            amount: 0,
+src/routes/dashboard.tsx-            type: "income",
+src/routes/dashboard.tsx-            description: `Crédito Gerado: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'} (R$ ${totalPrice.toFixed(2)})`,
+src/routes/dashboard.tsx-            category: "Crédito Cliente",
+src/routes/dashboard.tsx-            barber_id: appointment.barber_id,
+--
+src/routes/dashboard.tsx:        await supabase.from("transactions").insert([{
+src/routes/dashboard.tsx-          amount: totalPrice,
+src/routes/dashboard.tsx-          type: "expense",
+src/routes/dashboard.tsx-          description: `Cancelamento: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
+src/routes/dashboard.tsx-          category: "Cancelamento",
+src/routes/dashboard.tsx-          barber_id: appointment.barber_id,
+--
+src/routes/dashboard.tsx:                                              await supabase.from("wallet_transactions").insert({
+src/routes/dashboard.tsx-                                                wallet_id: wallet.id,
+src/routes/dashboard.tsx-                                                amount: refundAmount,
+src/routes/dashboard.tsx-                                                type: "credit",
+src/routes/dashboard.tsx-                                                description: `Crédito por cancelamento (Estorno Real): ${app.services?.name}`,
+src/routes/dashboard.tsx-                                                appointment_id: app.id,
+--
+src/routes/dashboard.tsx:                                              await supabase.from("customers").update({ credits: restoredCredits + refundAmount }).eq("id", app.customer_id);
+src/routes/dashboard.tsx-
+src/routes/dashboard.tsx-                                              // Remove original income from transactions when converting to credits
+src/routes/dashboard.tsx:                                              await supabase.from("transactions").insert({ 
+src/routes/dashboard.tsx-                                                user_id: tenantId, 
+src/routes/dashboard.tsx-                                                barber_id: app.barber_id, 
+src/routes/dashboard.tsx-                                                appointment_id: app.id, 
+src/routes/dashboard.tsx-                                                type: "expense", 
+src/routes/dashboard.tsx-                                                category: "Estorno (Créditos)", 
+--
+src/routes/dashboard.tsx:                                          await supabase.from("appointments").update({ 
+src/routes/dashboard.tsx-                                            status: "cancelled",
+src/routes/dashboard.tsx-                                            refund_status: "completed"
+src/routes/dashboard.tsx-                                          }).eq("id", app.id);
+src/routes/dashboard.tsx-
+src/routes/dashboard.tsx-                                          toast.success("Valor convertido em créditos e agendamento cancelado!");
+--
+src/routes/dashboard.tsx:                                          await supabase.from("transactions").insert({
+src/routes/dashboard.tsx-                                            user_id: tenantId,
+src/routes/dashboard.tsx-                                            barber_id: app.barber_id,
+src/routes/dashboard.tsx-                                            appointment_id: app.id,
+src/routes/dashboard.tsx-                                            type: "expense",
+src/routes/dashboard.tsx-                                            category: "Estorno",
+--
+src/routes/$slug.tsx_new_placeholder:        const { data: newCustomer } = await supabase.from("customers").insert([{
+src/routes/$slug.tsx_new_placeholder-          user_id: shop.id, barber_id: selectedBarber.id, name: customerName, phone: normalized, cashback_balance: 0
+src/routes/$slug.tsx_new_placeholder-        }]).select("id").single();
+src/routes/$slug.tsx_new_placeholder-        finalCustId = newCustomer.id;
+src/routes/$slug.tsx_new_placeholder-      }
+src/routes/$slug.tsx_new_placeholder-      const startTime = parseISO(`${selectedDate}T${selectedTime}:00`);
+--
+src/routes/$slug.tsx_new_placeholder:      const { error: appError, data: appointment } = await supabase.from("appointments").insert([appointmentPayload]).select().single();
+src/routes/$slug.tsx_new_placeholder-      if (appError) throw appError;
+src/routes/$slug.tsx_new_placeholder-      if (appliedCoupon) {
+src/routes/$slug.tsx_new_placeholder:        await supabase.from("coupons").update({ used_count: (appliedCoupon.used_count || 0) + 1 }).eq("id", appliedCoupon.id);
+src/routes/$slug.tsx_new_placeholder-      }
+src/routes/$slug.tsx_new_placeholder-      toast.success("Agendamento concluído!");
+src/routes/$slug.tsx_new_placeholder-      setIsBookingOpen(false);
+src/routes/$slug.tsx_new_placeholder-      window.location.href = `/${slug}/portal`;
+src/routes/$slug.tsx_new_placeholder-    } catch (error: any) {
+--
+src/components/admin/support/SuperAdminTicketDetails.tsx:        await supabase.from("notifications").insert({
+src/components/admin/support/SuperAdminTicketDetails.tsx-          user_id: barbershop.owner_id,
+src/components/admin/support/SuperAdminTicketDetails.tsx-          title: "Status de Chamado Atualizado",
+src/components/admin/support/SuperAdminTicketDetails.tsx-          message: `O status do seu chamado "${ticket.title}" foi alterado para ${newStatus}.`,
+src/components/admin/support/SuperAdminTicketDetails.tsx-          type: "support_update",
+src/components/admin/support/SuperAdminTicketDetails.tsx-          link: "/support"
+--
+src/components/admin/support/SuperAdminTicketDetails.tsx:        await supabase.from("notifications").insert({
+src/components/admin/support/SuperAdminTicketDetails.tsx-          user_id: barbershop.owner_id,
+src/components/admin/support/SuperAdminTicketDetails.tsx-          title: "Nova Mensagem do Suporte",
+src/components/admin/support/SuperAdminTicketDetails.tsx-          message: `Você recebeu uma nova resposta no chamado: ${ticket.title}`,
+src/components/admin/support/SuperAdminTicketDetails.tsx-          type: "support_reply",
+src/components/admin/support/SuperAdminTicketDetails.tsx-          link: "/support"
+--
+src/routes/barbers.tsx:    const { data: barber, error: barberError } = await supabase.from("barbers").insert({
+src/routes/barbers.tsx-      ...newBarber,
+src/routes/barbers.tsx-      tenant_id: user.id,
+src/routes/barbers.tsx-      user_id: user.id,
+src/routes/barbers.tsx-      active: true,
+src/routes/barbers.tsx-    }).select().single();
+--
+src/routes/barbers.tsx:    const { data: newBarberData, error } = await supabase.from("barbers").insert({
+src/routes/barbers.tsx-      name: `${barber.name} (Cópia)`,
+src/routes/barbers.tsx-      phone: barber.phone,
+src/routes/barbers.tsx-      email: barber.email,
+src/routes/barbers.tsx-      avatar_url: barber.avatar_url,
+src/routes/barbers.tsx-      category: barber.category,
+--
+src/routes/barbers.tsx:        await supabase.from("barber_services").insert(links);
+src/routes/barbers.tsx-      }
+src/routes/barbers.tsx-
+src/routes/barbers.tsx-      toast.success("Barbeiro duplicado com sucesso!");
+src/routes/barbers.tsx-      fetchBarbers();
+src/routes/barbers.tsx-      refreshLimits();
+--
+src/components/integrations/ZApiWhatsAppCard.tsx:        ? await supabase.from("whatsapp_instances").update(upsertData).eq("id", instance.id).select().single()
+src/components/integrations/ZApiWhatsAppCard.tsx:        : await supabase.from("whatsapp_instances").insert([upsertData]).select().single();
+src/components/integrations/ZApiWhatsAppCard.tsx-
+src/components/integrations/ZApiWhatsAppCard.tsx-      if (error) throw error;
+src/components/integrations/ZApiWhatsAppCard.tsx-
+src/components/integrations/ZApiWhatsAppCard.tsx-      setInstance(saved as any);
+src/components/integrations/ZApiWhatsAppCard.tsx-      toast.success("Configurações salvas!");
+--
+src/components/calendar/AppointmentModal.tsx:      const { data, error } = await supabase.from("customers").insert([{
+src/components/calendar/AppointmentModal.tsx-        user_id: tenantId,
+src/components/calendar/AppointmentModal.tsx-        barber_id: selectedBarber,
+src/components/calendar/AppointmentModal.tsx-        name: newCustomer.name,
+src/components/calendar/AppointmentModal.tsx-        phone: newCustomer.phone,
+src/components/calendar/AppointmentModal.tsx-      }]).select().single();
+--
+src/components/calendar/AppointmentModal.tsx:        const { data, error } = await supabase.from("appointments").insert([appointmentPayload]).select().single();
+src/components/calendar/AppointmentModal.tsx-        if (error) {
+src/components/calendar/AppointmentModal.tsx-          console.error('SUPABASE ERROR (insert appointment admin):', error);
+src/components/calendar/AppointmentModal.tsx-          throw error;
+src/components/calendar/AppointmentModal.tsx-        }
+src/components/calendar/AppointmentModal.tsx-        appointmentData = data;
+--
+src/components/calendar/AppointmentModal.tsx:          await supabase.from("transactions").insert([{
+src/components/calendar/AppointmentModal.tsx-            amount: Number(appointmentData.total_price || 0),
+src/components/calendar/AppointmentModal.tsx-            type: "income",
+src/components/calendar/AppointmentModal.tsx-            description: `Agendamento Admin (${appointmentData.payment_method?.toUpperCase()}): ${service?.name || 'Serviço'} - ${customer?.name || 'Cliente'}`,
+src/components/calendar/AppointmentModal.tsx-            category: "Serviço",
+src/components/calendar/AppointmentModal.tsx-            barber_id: appointmentData.barber_id,
+--
+src/routes/$slug.tsx:          await supabase.from("customers").update({ name: customerName }).eq("id", finalCustId);
+src/routes/$slug.tsx-        } else {
+src/routes/$slug.tsx-          console.log('DEBUG: Creating new customer', { name: customerName, phone: normalized });
+src/routes/$slug.tsx-          const customerPayload = {
+src/routes/$slug.tsx-            user_id: shop.id,
+src/routes/$slug.tsx-            name: customerName,
+--
+src/routes/$slug.tsx:        const { error: updateError } = await supabase.from("customers").update({ name: customerName }).eq("id", finalCustId);
+src/routes/$slug.tsx-        if (updateError) console.error('SUPABASE ERROR (update customer name):', updateError);
+src/routes/$slug.tsx-      }
+src/routes/$slug.tsx-
+src/routes/$slug.tsx-      // Generate Group ID for multiple appointments
+src/routes/$slug.tsx-      const appointmentGroupId = crypto.randomUUID();
+--
+src/routes/$slug.tsx:        return supabase.from("appointments").insert([appointmentPayload]).select().single();
+src/routes/$slug.tsx-      });
+src/routes/$slug.tsx-
+src/routes/$slug.tsx-      const appointmentResults = await Promise.all(appointmentPromises);
+src/routes/$slug.tsx-      const createdAppointments = appointmentResults.map(res => {
+src/routes/$slug.tsx-        if (res.error) {
+--
+src/routes/$slug.tsx:            await supabase.from("transactions").insert([{
+src/routes/$slug.tsx-              amount: amount,
+src/routes/$slug.tsx-              type: "income",
+src/routes/$slug.tsx-              description: `Agendamento Online (${appt.payment_method?.toUpperCase()}): ${item?.service_name || 'Serviço'} - ${customerName}`,
+src/routes/$slug.tsx-              category: "Serviço",
+src/routes/$slug.tsx-              barber_id: appt.barber_id,
+--
+src/routes/$slug.tsx:        await supabase.from("product_sales").insert([{
+src/routes/$slug.tsx-          user_id: shop.id,
+src/routes/$slug.tsx-          customer_id: finalCustId,
+src/routes/$slug.tsx-          total_amount: totalProducts,
+src/routes/$slug.tsx-          status: 'completed',
+src/routes/$slug.tsx-          items: selectedProducts.map(p => ({
+--
+src/routes/$slug.tsx:                  const { data: saleData, error: saleError } = await supabase.from("product_sales").insert([salePayload]).select().single();
+src/routes/$slug.tsx-
+src/routes/$slug.tsx-                  if (saleError) {
+src/routes/$slug.tsx-                    console.error('SUPABASE ERROR (insert sale standalone):', saleError);
+src/routes/$slug.tsx-                    throw saleError;
+src/routes/$slug.tsx-                  }
+--
+src/routes/$slug.tsx:                  const { error: transError } = await supabase.from("transactions").insert([transPayload]);
+src/routes/$slug.tsx-
+src/routes/$slug.tsx-                  if (transError) {
+src/routes/$slug.tsx-                    console.error('SUPABASE ERROR (insert transaction standalone):', transError);
+src/routes/$slug.tsx-                    throw transError;
+src/routes/$slug.tsx-                  }
+--
+src/components/professional/ProfessionalNotifications.tsx:    const query = supabase.from("notifications").update({ is_read: true, read: true });
+src/components/professional/ProfessionalNotifications.tsx-    if (id) {
+src/components/professional/ProfessionalNotifications.tsx-      await query.eq("id", id);
+src/components/professional/ProfessionalNotifications.tsx-    } else {
+src/components/professional/ProfessionalNotifications.tsx-      await query.eq("barber_id", barberId);
+src/components/professional/ProfessionalNotifications.tsx-    }
