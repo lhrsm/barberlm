@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { formatBrazilDate, formatBrazilTime, normalizePhone } from "../_shared/utils.ts";
+import { sendMessage, getWhatsAppSettings } from "../_shared/whatsapp-settings.ts";
+import { AUTOMATION_STATES } from "../_shared/automation-engine.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,7 +58,11 @@ serve(async (req) => {
     for (const item of queueItems) {
       try {
         // Mark as processing
-        await supabase.from("automation_queue").update({ status: "processing", attempts: (item.attempts || 0) + 1 }).eq("id", item.id);
+        await supabase.from("automation_queue").update({ 
+          status: "processing", 
+          attempts: (item.attempts || 0) + 1,
+          updated_at: new Date().toISOString()
+        }).eq("id", item.id);
 
         const workflow = item.automation_workflows;
         const event = item.automation_events;
@@ -64,35 +71,34 @@ serve(async (req) => {
           throw new Error("Missing workflow or event data");
         }
 
-        // Process based on workflow type/configuration
-        // For now, let's implement the core logic for the requested automations
         const result = await processWorkflowItem(supabase, item, workflow, event);
         
         // Mark as completed
         await supabase.from("automation_queue").update({ 
           status: "completed", 
-          processed_at: new Date().toISOString() 
+          processed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }).eq("id", item.id);
 
         results.push({ id: item.id, status: "completed", result });
 
-      } catch (error) {
+      } catch (error: any) {
         console.error(`[AutomationEngine] Error processing item ${item.id}:`, error);
         await supabase.from("automation_queue").update({ 
           status: "failed", 
-          error: error.message 
+          error: error.message,
+          updated_at: new Date().toISOString()
         }).eq("id", item.id);
         
         results.push({ id: item.id, status: "failed", error: error.message });
         
-        // Log the error
         await supabase.from("automation_logs").insert({
           tenant_id: item.tenant_id,
           workflow_id: item.workflow_id,
           queue_id: item.id,
           status: "error",
           message: `Erro ao processar item da fila: ${error.message}`,
-          error_details: JSON.stringify(error)
+          error_details: JSON.stringify({ error: error.message, stack: error.stack })
         });
       }
     }
@@ -101,7 +107,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("[AutomationEngine] Fatal Error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -111,26 +117,18 @@ serve(async (req) => {
 });
 
 async function processWorkflowItem(supabase: any, item: any, workflow: any, event: any) {
-  const config = workflow.configuration || {};
   const eventName = event.event_name;
   const tenantId = item.tenant_id;
-
-  console.log(`[AutomationEngine] Processing workflow ${workflow.name} for event ${eventName}`);
-
-  // 1. Resolve Data
-  const entityType = event.entity_type;
   const entityId = event.entity_id;
   const payload = event.payload || {};
 
-  // 2. Determine Action
-  // This is a simplified engine that handles the main requested automations
+  console.log(`[AutomationEngine] Processing event ${eventName} for entity ${entityId}`);
+
   if (eventName === 'appointment.created') {
     return await handleAppointmentCreated(supabase, tenantId, entityId, payload, workflow, item.id);
   }
   
-  // TODO: Implement other event handlers
-  
-  return { message: "Event ignored or not implemented yet" };
+  return { message: "Event not implemented" };
 }
 
 async function handleAppointmentCreated(supabase: any, tenantId: string, appointmentId: string, payload: any, workflow: any, queueId: string) {
@@ -141,18 +139,21 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
     .eq("id", appointmentId)
     .single();
 
-
   if (apptError || !appointment) throw new Error("Appointment not found");
   if (!appointment.customers?.phone) throw new Error("Customer phone not found");
 
   const customer = appointment.customers;
-  const phone = payload.force_phone || customer.phone;
+  const rawPhone = payload.force_phone || customer.phone;
+  const normalizedPhoneValue = normalizePhone(rawPhone);
 
-  // 2. Generate Message (simplified for now, using workflow config or default)
+  // 2. Generate Message
   const template = workflow.configuration?.template || "Olá {customer_name}, seu agendamento para {service_name} com {barber_name} em {appointment_date} às {appointment_time} foi recebido!";
   
-  const formattedDate = new Date(appointment.start_time).toLocaleDateString('pt-BR');
-  const formattedTime = new Date(appointment.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  // Use formatBrazil utils for consistent timezone (America/Sao_Paulo)
+  const formattedDate = formatBrazilDate(appointment.start_time);
+  const formattedTime = formatBrazilTime(appointment.start_time);
+
+  console.log(`[AutomationEngine] Formatting message for appointment at ${appointment.start_time} -> ${formattedDate} ${formattedTime}`);
 
   const message = template
     .replace('{customer_name}', customer.name || 'Cliente')
@@ -163,25 +164,33 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
     .replace('{appointment_date}', formattedDate)
     .replace('{appointment_time}', formattedTime)
     .replace('{service_price}', appointment.total_price?.toString() || '0')
-    .replace('{customer_phone}', phone)
+    .replace('{customer_phone}', rawPhone)
     .replace('{payment_method}', appointment.payment_method || 'Não definido')
     .replace('{appointment_status}', appointment.status || 'Pendente');
 
+  // 3. Deactivate previous active conversations for this customer
+  await supabase.from("conversation_sessions")
+    .update({ status: 'closed', active: false })
+    .eq("tenant_id", tenantId)
+    .eq("phone", normalizedPhoneValue)
+    .eq("status", "active");
 
-  // 3. Create Session
+  // 4. Create Session (conversation_sessions)
   const { data: session, error: sessionError } = await supabase
     .from("conversation_sessions")
     .insert({
       tenant_id: tenantId,
       customer_id: customer.id,
-      phone: phone,
+      phone: normalizedPhoneValue,
       channel: 'whatsapp',
       status: 'active',
-      current_step: 'awaiting_main_action',
+      current_step: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
       appointment_id: appointmentId,
       context: { 
         appointment_id: appointmentId,
-        customer_name: customer.name
+        customer_name: customer.name,
+        raw_appointment_datetime: appointment.start_time,
+        formatted_brazil_datetime: `${formattedDate} ${formattedTime}`
       }
     })
     .select()
@@ -189,16 +198,19 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
 
   if (sessionError) throw sessionError;
 
-  // 4. Send Message via Provider
-  const result = await sendMessageViaProvider(supabase, tenantId, phone, message, {
-    buttons: [
-      { id: "main_confirm", label: "Confirmar agendamento" },
-      { id: "main_reschedule", label: "Reagendar" },
-      { id: "main_cancel", label: "Cancelar" }
-    ]
-  });
+  // 5. Send Message via Z-API
+  const connection = await getWhatsAppSettings(supabase, tenantId);
+  if (!connection) throw new Error("WhatsApp settings not found for tenant");
 
-  // 5. Update session with provider message ID
+  const buttons = [
+    { id: "main_confirm", label: "Confirmar agendamento" },
+    { id: "main_reschedule", label: "Reagendar" },
+    { id: "main_cancel", label: "Cancelar" }
+  ];
+
+  const result = await sendMessage(connection, normalizedPhoneValue, message, { buttons });
+
+  // 6. Update session and appointments after send
   if (result.success && result.response?.messageId) {
     await supabase
       .from("conversation_sessions")
@@ -207,96 +219,32 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
         last_message_id: result.response.messageId
       })
       .eq("id", session.id);
+      
+    // Mark appointment
+    await supabase.from("appointments")
+      .update({ 
+        confirmation_sent: true, 
+        confirmation_sent_at: new Date().toISOString() 
+      })
+      .eq("id", appointmentId);
   }
 
-  // 5. Log
+  // 7. Log result
   await supabase.from("automation_logs").insert({
     tenant_id: tenantId,
     workflow_id: workflow.id,
     queue_id: queueId,
     session_id: session.id,
     event_name: 'appointment.created',
-    step: 'initial_message',
     status: result.success ? "success" : "error",
     message: result.success ? "Mensagem inicial enviada" : `Erro ao enviar: ${result.error}`,
-    error_details: result.success ? null : JSON.stringify(result.response)
+    error_details: JSON.stringify({
+      result,
+      raw_appointment_datetime: appointment.start_time,
+      formatted_brazil_datetime: `${formattedDate} ${formattedTime}`,
+      message_time_sent: new Date().toISOString()
+    })
   });
 
   return result;
-}
-
-async function sendMessageViaProvider(supabase: any, tenantId: string, phone: string, message: string, options: any) {
-  // 1. Get Provider
-  const { data: provider, error: providerError } = await supabase
-    .from("messaging_providers")
-    .select("*")
-    .eq("tenant_id", tenantId)
-    .eq("active", true)
-    .maybeSingle();
-
-  // Fallback to old whatsapp_instances if no new provider configured
-  if (providerError || !provider) {
-    const { data: instance } = await supabase
-      .from("whatsapp_instances")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .eq("status", "connected")
-      .maybeSingle();
-
-    if (!instance) return { success: false, error: "No active messaging provider found" };
-    
-    // Call legacy send logic (importing would be hard here, so we copy the core fetch)
-    return await sendZApi(instance, phone, message, options);
-  }
-
-  if (provider.provider === 'zapi') {
-    return await sendZApi(provider, phone, message, options);
-  }
-  
-  // TODO: Implement other providers
-  return { success: false, error: `Provider ${provider.provider} not implemented yet` };
-}
-
-async function sendZApi(connection: any, phone: string, message: string, options: any) {
-  const instanceId = connection.instance_id;
-  const token = connection.token;
-  const clientToken = connection.client_token;
-  const baseUrl = connection.server_url || "https://api.z-api.io";
-  
-  let targetPhone = phone.replace(/\D/g, "");
-  if (targetPhone.length === 10 || targetPhone.length === 11) {
-    targetPhone = "55" + targetPhone;
-  }
-
-  const headers: any = { "Content-Type": "application/json" };
-  if (clientToken) headers["Client-Token"] = clientToken;
-
-  let sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
-  let body: any = { phone: targetPhone, message };
-
-  if (options.buttons) {
-    sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-button-list`;
-    body = {
-      phone: targetPhone,
-      message: message,
-      buttonList: {
-        buttons: options.buttons.map((b: any) => ({
-          id: b.id,
-          label: b.label
-        }))
-      }
-    };
-  }
-
-  try {
-    const response = await fetch(sendUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body)
-    });
-    const data = await response.json();
-    return { success: response.ok, response: data, error: !response.ok ? (data.message || data.error) : null };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
 }
