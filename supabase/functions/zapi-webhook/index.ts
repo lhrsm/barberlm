@@ -311,11 +311,13 @@ serve(async (req) => {
       console.error("[Z-API Webhook] Error parsing body:", e);
     }
     
-    // DEBUG: Log ALL incoming webhooks
+    // DEBUG: Log ALL incoming webhooks immediately
     try {
       const phone = extractPhoneFromZapiPayload(body);
       const normalizedPhone = normalizePhone(phone);
       const selectedOption = extractSelectedOption(body);
+      
+      console.log(`[Z-API Webhook] Received ${req.method} for tenant ${tenantId}. Body length: ${bodyText.length}`);
       
       await supabase.from("zapi_webhook_debug").insert({
         tenant_id: tenantId,
@@ -334,8 +336,9 @@ serve(async (req) => {
       console.error("[Z-API Webhook] Error logging debug:", dbErr);
     }
     
+    // Return early for messages sent by the instance itself
     if (body.fromMe === true || body.isSentByMe === true || body.fromApi === true) {
-      return new Response(JSON.stringify({ success: true, ignored: true }), {
+      return new Response(JSON.stringify({ success: true, ignored: true, reason: "sent_by_me" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

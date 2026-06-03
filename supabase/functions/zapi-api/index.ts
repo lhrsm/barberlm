@@ -360,13 +360,33 @@ serve(async (req) => {
             status: status_code, 
             endpoint: url 
           });
-          return { type: webhookType, result, status: status_code, url, success: status_code === 200 || status_code === 201 || result?.value === true || result?.success === true };
+          return { 
+            type: webhookType, 
+            result, 
+            status: status_code, 
+            url, 
+            success: status_code === 200 || status_code === 201 || result?.value === true || result?.success === true,
+            endpointUsed: url,
+            methodUsed: "PUT"
+          };
         } catch (e) {
           return { type: webhookType, error: e.message, success: false, url };
         }
       }));
 
       const allSuccessful = results.every(r => r.success);
+
+      // Save the primary one in the instance table for reference
+      if (allSuccessful) {
+        await supabase
+          .from("whatsapp_instances")
+          .update({
+            webhook_received_url: webhookUrl,
+            webhook_received_configured_at: new Date().toISOString(),
+            webhook_received_last_response: { results, summary: "All webhooks configured successfully" }
+          })
+          .eq("id", tableId);
+      }
 
       return new Response(JSON.stringify({ 
         success: allSuccessful, 
