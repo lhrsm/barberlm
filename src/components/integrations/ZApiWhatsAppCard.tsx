@@ -1224,8 +1224,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                     <Activity size={16} />
                     Resultado da Última Configuração de Webhook
                   </h3>
-                  <Badge className={lastWebhookCall.success && lastWebhookCall.result?.value === true ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
-                    {lastWebhookCall.success && lastWebhookCall.result?.value === true ? "Sucesso" : "Falha"}
+                  <Badge className={isZApiSuccess(lastWebhookCall) ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
+                    {isZApiSuccess(lastWebhookCall) ? "Sucesso" : "Falha"}
                   </Badge>
                 </div>
 
