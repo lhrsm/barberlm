@@ -214,6 +214,73 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     }
   }
 
+  async function sendTestButtonMessage() {
+    if (!instance?.id) {
+      toast.error("Salve as configurações primeiro");
+      return;
+    }
+
+    if (!formData.phone) {
+      toast.error("Telefone de destino ausente");
+      return;
+    }
+
+    const phone = formData.phone.replace(/\D/g, "");
+    setIsSendingButtonTest(true);
+    setButtonTestMessageId(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'send-test-button', 
+          instanceId: instance.id,
+          data: { phone }
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success("Mensagem com botão enviada!");
+        if (data.result?.messageId) {
+          setButtonTestMessageId(data.result.messageId);
+        }
+        
+        // Iniciar polling para ver se o webhook de resposta chega
+        toast.info("Aguardando clique no botão... (5 min)", { duration: 10000 });
+        
+        let attempts = 0;
+        const interval = setInterval(async () => {
+          attempts++;
+          const { data: webhookLogs } = await supabase
+            .from("zapi_webhook_debug")
+            .select("*")
+            .eq("tenant_id", tenantId)
+            .eq("option_id", "main_confirm")
+            .gte("created_at", new Date(Date.now() - 300000).toISOString())
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          if (webhookLogs && webhookLogs.length > 0) {
+            clearInterval(interval);
+            toast.success("WEBHOOK RECEBIDO! O clique no botão foi detectado com sucesso.", { duration: 10000 });
+            setZapiResponse(webhookLogs[0]);
+          }
+
+          if (attempts > 30) { // 5 minutos aprox
+            clearInterval(interval);
+          }
+        }, 10000);
+      } else {
+        toast.error("Erro ao enviar botão: " + (data.error || "Erro desconhecido"));
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setIsSendingButtonTest(false);
+    }
+  }
+
   async function checkWebhookDebug() {
     try {
       const { data } = await supabase
