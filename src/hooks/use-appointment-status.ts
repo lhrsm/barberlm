@@ -29,6 +29,16 @@ export function useAppointmentStatus() {
         
         if (error) throw error;
         result = data as any;
+      } else if (newStatus === 'completed') {
+        const { data, error } = await supabase.rpc('complete_appointment', {
+          p_appointment_id: appointmentId,
+          p_changed_by_type: source.includes('portal') ? 'customer' : 'admin',
+          p_changed_by_id: user?.id || undefined,
+          p_source: source
+        });
+        
+        if (error) throw error;
+        result = data as any;
       } else {
         const { data, error } = await supabase.rpc('update_appointment_status', {
           p_appointment_id: appointmentId,
