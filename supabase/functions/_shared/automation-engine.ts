@@ -335,7 +335,7 @@ Estamos te esperando na Barbearia LM.
           ];
           nextState = AUTOMATION_STATES.AWAITING_REMAINING_APPOINTMENT_ACTION;
 
-          await supabase.from("whatsapp_conversations")
+          await supabase.from("conversation_sessions")
             .update({ 
               context: { 
                 ...conversation.context, 
