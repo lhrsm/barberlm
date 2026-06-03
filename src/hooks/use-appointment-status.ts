@@ -34,7 +34,8 @@ export function useAppointmentStatus() {
           p_appointment_id: appointmentId,
           p_changed_by_type: source.includes('portal') ? 'customer' : 'admin',
           p_changed_by_id: user?.id || undefined,
-          p_source: source
+          p_source: source,
+          p_metadata: metadata
         });
         
         if (error) throw error;
