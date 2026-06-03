@@ -420,6 +420,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           api_url: data.server_url || "https://api.z-api.io",
           phone: data.phone || ""
         });
+        
+        // Se houver uma resposta salva de webhook, mostrar no diagnóstico
+        if (data.webhook_received_last_response) {
+          setLastWebhookCall({ result: data.webhook_received_last_response });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -440,6 +445,95 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (data) setLogs(data);
     } catch (error) {
       console.error("Error fetching logs:", error);
+    }
+  }
+
+  const maskTokenDisplay = (token: string | null | undefined) => {
+    if (!token) return "Não configurado";
+    if (token.length <= 8) return "********";
+    return `${token.substring(0, 4)}...${token.substring(token.length - 4)}`;
+  };
+
+  async function sendTestButtonWithCallback() {
+    if (!instance?.id) {
+      toast.error("Salve as configurações primeiro");
+      return;
+    }
+
+    if (!formData.phone) {
+      toast.error("Informe um telefone de destino para o teste");
+      return;
+    }
+
+    const phone = formData.phone.replace(/\D/g, "");
+    setIsSendingButtonTest(true);
+    setIsWaitingForCallback(true);
+    setCallbackResult(null);
+    setButtonTestMessageId(null);
+    
+    try {
+      toast.info("Enviando mensagem com botão...");
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: { 
+          action: 'send-test-button', 
+          instanceId: instance.id,
+          data: { phone }
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data.success) {
+        const messageId = data.result?.messageId;
+        setButtonTestMessageId(messageId);
+        toast.success("Mensagem enviada! Clique no botão no seu WhatsApp.");
+        
+        // Polling de 30 segundos conforme solicitado
+        let secondsPassed = 0;
+        const maxSeconds = 30;
+        
+        const checkInterval = setInterval(async () => {
+          secondsPassed += 2;
+          
+          const { data: webhookLogs } = await supabase
+            .from("zapi_webhook_debug")
+            .select("*")
+            .eq("tenant_id", tenantId)
+            .eq("source", "zapi_real")
+            .eq("option_id", "main_confirm")
+            .gte("received_at", new Date(Date.now() - 60000).toISOString())
+            .order("received_at", { ascending: false })
+            .limit(1);
+
+          if (webhookLogs && webhookLogs.length > 0) {
+            clearInterval(checkInterval);
+            setIsWaitingForCallback(false);
+            const log = webhookLogs[0];
+            setCallbackResult({
+              received: true,
+              time: log.received_at,
+              buttonId: log.option_id,
+              phone: log.phone_normalized,
+              payload: log.payload_raw
+            });
+            toast.success("Callback recebido com sucesso!");
+          } else if (secondsPassed >= maxSeconds) {
+            clearInterval(checkInterval);
+            setIsWaitingForCallback(false);
+            setCallbackResult({ received: false });
+            toast.error("A mensagem foi enviada, mas a Z-API não enviou callback de resposta. Verifique se o webhook Ao Receber está configurado para respostas de botões/listas.");
+          }
+        }, 2000);
+
+      } else {
+        setIsWaitingForCallback(false);
+        toast.error("Erro ao enviar botão: " + (data.error || "Erro desconhecido"));
+      }
+    } catch (err: any) {
+      setIsWaitingForCallback(false);
+      toast.error("Erro: " + err.message);
+    } finally {
+      setIsSendingButtonTest(false);
     }
   }
 
