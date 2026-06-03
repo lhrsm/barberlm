@@ -23,6 +23,7 @@ import { EditProfileDialog } from "@/components/professional/EditProfileDialog";
 import { EditScheduleDialog } from "@/components/professional/EditScheduleDialog";
 import { CancelAppointmentDialog } from "@/components/professional/CancelAppointmentDialog";
 import { ProfessionalNotifications } from "@/components/professional/ProfessionalNotifications";
+import { useAppointmentStatus } from "@/hooks/use-appointment-status";
 
 export const Route = createFileRoute("/$slug/profissional")({
   component: ProfessionalDashboard,
@@ -32,6 +33,7 @@ function ProfessionalDashboard() {
   const { session, loading, logout } = useProfessionalAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
   
   const [appointments, setAppointments] = useState<any[]>([]);
   const [barber, setBarber] = useState<any>(null);
@@ -117,14 +119,9 @@ function ProfessionalDashboard() {
   }, [session?.barber_id]);
 
   const handleAction = async (app: any, status: string) => {
-    try {
-      const { error } = await supabase.from("appointments").update({ status }).eq("id", app.id);
-      if (error) throw error;
-      toast.success(status === 'completed' ? "Atendimento concluído!" : "Status atualizado!");
+    const result = await centralUpdateStatus(app.id, status, {}, 'barber_panel');
+    if (result.success) {
       fetchData();
-      queryClient.invalidateQueries({ queryKey: ["appointments"] });
-    } catch (e: any) {
-      toast.error(e.message);
     }
   };
 
