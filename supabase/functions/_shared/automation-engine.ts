@@ -540,7 +540,7 @@ Estamos te esperando na Barbearia LM.
 
 export async function processAutomationDispatches(
   supabase: any,
-  { tenantId, appointmentId, forceMode }: { tenantId?: string; appointmentId?: string; forceMode?: boolean }
+  { tenantId, appointmentId, appointmentGroupId, forceMode }: { tenantId?: string; appointmentId?: string; appointmentGroupId?: string; forceMode?: boolean }
 ) {
   const runId = crypto.randomUUID();
   const startTime = new Date().toISOString();
