@@ -40,7 +40,7 @@ export async function handleAutomationWhatsappResponse(
   console.log(`[AutomationEngine] Handling response for ${phone} in state ${current_state} with option ${option_id}`);
 
   const { data: conversation, error: convError } = await supabase
-    .from("whatsapp_conversations")
+    .from("conversation_sessions")
     .select("*")
     .eq("id", conversation_id)
     .maybeSingle();
