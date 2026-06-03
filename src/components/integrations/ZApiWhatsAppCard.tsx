@@ -1265,7 +1265,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 <div className="space-y-1">
                   <p className="text-[9px] text-slate-500 uppercase font-bold">Resposta Completa da Z-API</p>
                   <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-40">
-                    {JSON.stringify(lastWebhookCall.result, null, 2)}
+                    {JSON.stringify(lastWebhookCall.result || lastWebhookCall.results, null, 2)}
                   </pre>
                 </div>
 
