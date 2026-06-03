@@ -137,9 +137,10 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
   // 1. Fetch full appointment and customer data
   const { data: appointment, error: apptError } = await supabase
     .from("appointments")
-    .select("*, customers(*), services(name), barbers(name)")
+    .select("*, customers(*), services(name), barbers(name), profiles:tenant_id(business_name)")
     .eq("id", appointmentId)
     .single();
+
 
   if (apptError || !appointment) throw new Error("Appointment not found");
   if (!appointment.customers?.phone) throw new Error("Customer phone not found");
