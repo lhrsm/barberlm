@@ -223,8 +223,18 @@ serve(async (req) => {
     const referenceMessageId = body.referenceMessageId;
 
     console.log(`[Z-API Webhook] Incoming message from ${normalizedPhone}. Option: ${selectedOption}. referenceMessageId: ${referenceMessageId}`);
-    console.log(`[Z-API Webhook] body.buttonsResponseMessage.buttonId: ${body?.buttonsResponseMessage?.buttonId}`);
-    console.log(`[Z-API Webhook] body.buttonsResponseMessage.message: ${body?.buttonsResponseMessage?.message}`);
+
+    // Direct Handler for main_confirm (Multiple appointments flow)
+    if (selectedOption === 'main_confirm') {
+      console.log(`[Z-API Webhook] Intercepting main_confirm for direct handling`);
+      const handled = await handleMainConfirmDirectly(supabase, body, tenantId);
+      if (handled) {
+        return new Response(JSON.stringify({ success: true, direct: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
 
 
     // Find active session
