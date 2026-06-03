@@ -332,15 +332,16 @@ serve(async (req) => {
     if (action === "set-webhook") {
       const webhookUrl = data.webhookUrl;
       const types = [
-        "update-webhook-received",
-        "update-webhook-disconnected",
-        "update-webhook-connected",
-        "update-webhook-message-status",
-        "update-webhook-button-response",
-        "update-webhook-list-response"
+        { id: "update-webhook-received", required: true },
+        { id: "update-webhook-disconnected", required: true },
+        { id: "update-webhook-connected", required: true },
+        { id: "update-webhook-message-status", required: true },
+        { id: "update-webhook-button-response", required: false },
+        { id: "update-webhook-list-response", required: false }
       ];
       
-      const results = await Promise.all(types.map(async (webhookType) => {
+      const results = await Promise.all(types.map(async (typeInfo) => {
+        const webhookType = typeInfo.id;
         const url = `${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`;
         try {
           const res = await fetch(url, {
@@ -360,36 +361,51 @@ serve(async (req) => {
             status: status_code, 
             endpoint: url 
           });
+
+          // Consider success if status is 2xx OR if optional and returned 404/not found
+          const isSuccess = status_code === 200 || status_code === 201 || result?.value === true || result?.success === true;
+          const notFoundOptional = !typeInfo.required && (status_code === 404 || (result?.message && result.message.toLowerCase().includes("not found")));
+
           return { 
             type: webhookType, 
             result, 
             status: status_code, 
             url, 
-            success: status_code === 200 || status_code === 201 || result?.value === true || result?.success === true,
+            success: isSuccess,
+            required: typeInfo.required,
+            isCompatible: isSuccess || notFoundOptional,
             endpointUsed: url,
             methodUsed: "PUT"
           };
         } catch (e) {
-          return { type: webhookType, error: e.message, success: false, url };
+          return { type: webhookType, error: e.message, success: false, required: typeInfo.required, isCompatible: false, url };
         }
       }));
 
-      const allSuccessful = results.every(r => r.success);
+      // Success if all REQUIRED endpoints are successful
+      const allRequiredSuccessful = results.filter(r => r.required).every(r => r.success);
+      const allCompatible = results.every(r => r.isCompatible);
+      const isOverallSuccess = allRequiredSuccessful;
 
       // Save the primary one in the instance table for reference
-      if (allSuccessful) {
+      if (isOverallSuccess) {
         await supabase
           .from("whatsapp_instances")
           .update({
             webhook_received_url: webhookUrl,
             webhook_received_configured_at: new Date().toISOString(),
-            webhook_received_last_response: { results, summary: "All webhooks configured successfully" }
+            webhook_received_last_response: { 
+              results, 
+              summary: allCompatible ? "All webhooks configured or compatible" : "Primary webhooks configured, some optional failed",
+              allCompatible
+            }
           })
           .eq("id", tableId);
       }
 
       return new Response(JSON.stringify({ 
-        success: allSuccessful, 
+        success: isOverallSuccess, 
+        allCompatible,
         results,
         endpoint: `${baseUrl}/instances/${instanceId}/token/${token}/[type]`,
         requestBody: { value: webhookUrl },
