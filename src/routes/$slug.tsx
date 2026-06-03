@@ -1061,6 +1061,7 @@ function ShopPageComponent() {
           customerId: finalCustId || undefined,
           metadata: { appointmentId: appt.id }
         });
+      }
 
       // 5. Trigger Automation System
       if (createdAppointments.length > 0) {
@@ -1073,7 +1074,7 @@ function ShopPageComponent() {
             }
           }).catch(err => console.error("Error triggering automation for group:", err));
         } else {
-          // Fallback for single appointment if groupId is missing (though we generate it above)
+          // Fallback for single appointment if groupId is missing
           const appt = createdAppointments[0];
           supabase.functions.invoke('run-automations', {
             body: { 
@@ -1082,7 +1083,6 @@ function ShopPageComponent() {
             }
           }).catch(err => console.error("Error triggering automation:", err));
         }
-      }
       }
 
       toast.success("Agendamentos realizados com sucesso!");
