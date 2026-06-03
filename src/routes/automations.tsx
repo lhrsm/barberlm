@@ -759,8 +759,15 @@ function AutomationsComponent() {
                       <Switch 
                         checked={selectedWorkflow.active} 
                         onCheckedChange={(checked) => setSelectedWorkflow({ ...selectedWorkflow, active: checked })}
+                        className="data-[state=unchecked]:bg-zinc-700 data-[state=unchecked]:border-zinc-500 data-[state=checked]:bg-amber-500"
+                        thumbClassName="data-[state=unchecked]:bg-zinc-300"
                       />
-                      <Label className="font-normal">{selectedWorkflow.active ? 'Ativo' : 'Inativo'}</Label>
+                      <Label className={cn(
+                        "font-normal",
+                        selectedWorkflow.active ? "text-amber-400" : "text-zinc-500"
+                      )}>
+                        {selectedWorkflow.active ? 'Ativo' : 'Inativo'}
+                      </Label>
                     </div>
                   </div>
                 </div>
