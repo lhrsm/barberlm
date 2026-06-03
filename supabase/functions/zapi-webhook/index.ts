@@ -98,8 +98,9 @@ serve(async (req) => {
     // Find active session
     let session = null;
     
-    // Try by reference message first
+    // 1. Try by provider_message_id = referenceMessageId
     if (referenceMessageId) {
+      console.log(`[Z-API Webhook] Searching session by referenceMessageId: ${referenceMessageId}`);
       const { data } = await supabase
         .from("conversation_sessions")
         .select("*")
@@ -109,8 +110,9 @@ serve(async (req) => {
       session = data;
     }
 
-    // Try by phone and active status
+    // 2. Try by phone_normalized = telefone normalizado and status = active
     if (!session && normalizedPhone) {
+      console.log(`[Z-API Webhook] Searching active session by phone: ${normalizedPhone}`);
       const { data } = await supabase
         .from("conversation_sessions")
         .select("*")
@@ -123,24 +125,56 @@ serve(async (req) => {
       session = data;
     }
 
+    // 3. Try by appointment_group_id if it exists in context (some webhooks might send it)
+    if (!session && body.context?.appointment_group_id) {
+       console.log(`[Z-API Webhook] Searching session by group_id: ${body.context.appointment_group_id}`);
+       const { data } = await supabase
+        .from("conversation_sessions")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("appointment_group_id", body.context.appointment_group_id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      session = data;
+    }
+
     if (!session) {
-      console.log(`[Z-API Webhook] No active session found for ${normalizedPhone}`);
+      console.log(`[Z-API Webhook] No active session found for ${normalizedPhone}. Reference: ${referenceMessageId}`);
+      
+      // Mandatory log for session not found
+      await supabase.from("automation_logs").insert({
+        tenant_id: tenantId,
+        event_name: 'whatsapp.session_not_found',
+        status: "error",
+        message: `Sessão não encontrada para o telefone ${normalizedPhone}`,
+        error_details: JSON.stringify({ 
+          referenceMessageId, 
+          phone: normalizedPhone,
+          body: JSON.stringify(body).substring(0, 500),
+          error: "session_not_found"
+        })
+      });
+
       return new Response(JSON.stringify({ success: true, message: "No active session" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Process using Engine
-    console.log(`[Z-API Webhook] Processing session ${session.id} in state ${session.current_step}`);
+    const stateBefore = session.current_step;
+    console.log(`[Z-API Webhook] Processing session ${session.id} in state ${stateBefore}`);
     
     const engineResult = await handleAutomationWhatsappResponse(supabase, {
       tenant_id: tenantId,
       phone: normalizedPhone,
       customer_id: session.customer_id,
-      current_state: session.current_step,
+      current_state: stateBefore,
       option_id: selectedOption,
       conversation_id: session.id
     });
+
+    let zapiResponse = null;
 
     if (engineResult && engineResult.message_to_send) {
       const connection = await getWhatsAppSettings(supabase, tenantId);
@@ -150,6 +184,8 @@ serve(async (req) => {
           list: engineResult.list
         });
 
+        zapiResponse = sendResult.response;
+
         if (sendResult.success && sendResult.response?.messageId) {
           await supabase.from("conversation_sessions")
             .update({ provider_message_id: sendResult.response.messageId })
@@ -158,18 +194,22 @@ serve(async (req) => {
       }
     }
 
-    // Log the interaction
+    // Log the interaction with mandatory fields
     await supabase.from("automation_logs").insert({
       tenant_id: tenantId,
       session_id: session.id,
+      appointment_group_id: session.appointment_group_id,
       event_name: 'whatsapp.webhook_processed',
       status: "success",
       message: `Opção ${selectedOption} processada. Novo estado: ${engineResult?.next_state}`,
       error_details: JSON.stringify({ 
-        selectedOption, 
-        stateBefore: session.current_step, 
-        stateAfter: engineResult?.next_state,
-        actionExecuted: engineResult?.action_executed,
+        selectedOption: selectedOption, 
+        current_step_before: stateBefore, 
+        appointments_count: engineResult?.appointments_count || 0,
+        appointment_group_id: session.appointment_group_id,
+        action: engineResult?.action_executed,
+        current_step_after: engineResult?.next_state,
+        zapi_response: zapiResponse,
         loop_blocked: true
       })
     });
