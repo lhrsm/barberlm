@@ -238,34 +238,40 @@ Estamos te esperando na Barbearia LM.
 
     case AUTOMATION_STATES.AWAITING_CONFIRMATION_SCOPE:
       if (
-        normalizedOption === 'confirm_all' || 
-        normalizedOption === '1' || 
-        normalizedOption.includes('confirmar todos')
+        mappedOption === 'confirm_all' || 
+        normalizedInput === '1' || 
+        normalizedInput.includes('confirmar todos')
       ) {
-        await supabase.from("appointments")
+        console.log('[AutomationEngine] Executing confirm_all for group:', groupId);
+        
+        // 1. Update ALL appointments in the group
+        const { data: updated, error: updateError } = await supabase.from("appointments")
           .update({ 
             status: 'confirmed',
             confirmed_at: new Date().toISOString() 
           })
           .in("id", appointmentIds);
+        
+        if (updateError) console.error('[AutomationEngine] Error confirming all:', updateError);
+
         messageToSend = "✅ Todos os seus agendamentos foram confirmados com sucesso!";
         nextState = AUTOMATION_STATES.COMPLETED;
         actionExecuted = "confirm_all";
         selectedOptionNormalized = "confirm_all";
+
+        console.log('[AutomationEngine] confirm_all completed. Loop blocked by state=completed');
       } else if (
-        normalizedOption === 'confirm_single' || 
-        normalizedOption === '2' || 
-        normalizedOption === 'choose_one' ||
-        normalizedOption.includes('especifico')
+        mappedOption === 'confirm_single' || 
+        normalizedInput === '2' || 
+        normalizedInput.includes('especifico')
       ) {
         messageToSend = "Qual atendimento você deseja confirmar?";
         const options = appointments.map((a, i) => ({
-          id: `appointment:${a.id}`,
+          id: `confirm_appt_${a.id}`,
           title: `${formatBrazilTime(a.start_time)}`,
           description: `${a.services?.name}`
         }));
 
-        
         await supabase.from("whatsapp_conversations")
           .update({ 
             context: { ...conversation.context, appt_mapping: appointmentIds }
