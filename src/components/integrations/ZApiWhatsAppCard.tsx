@@ -46,6 +46,27 @@ interface WhatsAppInstance {
   webhook_received_last_response?: any;
 }
 
+const isZApiSuccess = (data: any) => {
+  if (!data) return false;
+  // Check top level success
+  if (data.success === true) return true;
+  // Check result object
+  const result = data.result;
+  if (result) {
+    // Some Z-API endpoints return value: true on success
+    // Others might just return a success message or the updated object
+    if (result.value === true || result.success === true || result.message?.toLowerCase().includes("sucesso")) return true;
+    
+    // If it's the set-webhook call, check individual results
+    if (Array.isArray(data.results)) {
+      return data.results.every((r: any) => r.success);
+    }
+  }
+  // Check HTTP status if available - Z-API returns 200 or 201 for most successes
+  if (data.status === 200 || data.status === 201) return true;
+  return false;
+};
+
 export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [instance, setInstance] = useState<WhatsAppInstance | null>(null);
   const [loading, setLoading] = useState(true);
@@ -354,12 +375,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       setZapiResponse(res2.data.result);
 
       
-      if (res2.data.success && res2.data.result?.value === true) {
+      if (isZApiSuccess(res2.data)) {
         toast.success("Webhooks ampliados configurados! Enviando mensagem teste...");
         // Enviar mensagem teste após configurar
         await sendTestMessage();
       } else {
-        toast.error("Z-API recusou a configuração ampliada");
+        const errorMsg = res2.data?.result?.message || res2.data?.error || "Z-API recusou a configuração ampliada";
+        toast.error(`Falha: ${errorMsg}`);
       }
       
       await fetchIntegrationLogs();
@@ -514,11 +536,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       setZapiResponse(data.result);
 
       
-      if (data.success && data.result?.value === true) {
+      if (isZApiSuccess(data)) {
         toast.success("Webhook Ao Receber configurado com sucesso.");
       } else {
-        const errorMsg = data.result?.message || (data.result?.value !== true ? "Z-API não retornou value: true" : "Verifique os logs");
-        toast.error("Falha na configuração: " + errorMsg);
+        const errorMsg = data.result?.message || data.error || (isZApiSuccess(data) ? "" : "Resposta inesperada da Z-API");
+        toast.error("Falha na configuração: " + (errorMsg || "Verifique os detalhes no diagnóstico"));
       }
       
       await fetchIntegrationLogs();
@@ -565,10 +587,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         webhookApplied: tempWebhookUrl
       });
       
-      if (data.success && data.result?.value === true) {
+      if (isZApiSuccess(data)) {
         toast.success(`Webhook temporário aplicado via ${action}`);
       } else {
-        toast.error("Z-API recusou a configuração temporária");
+        const errorMsg = data.result?.message || data.error || "Z-API recusou a configuração temporária";
+        toast.error("Falha: " + errorMsg);
       }
       
       await fetchIntegrationLogs();
@@ -627,10 +650,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         webhookApplied: newWebhookUrl
       });
       
-      if (res2.data.success && res2.data.result?.value === true) {
+      if (isZApiSuccess(res2.data)) {
         toast.success("Nova URL configurada com sucesso em todos os eventos!");
       } else {
-        toast.error("Falha ao configurar nova URL na Z-API");
+        const errorMsg = res2.data?.result?.message || res2.data?.error || "Falha ao configurar nova URL na Z-API";
+        toast.error("Erro: " + errorMsg);
       }
       
       await fetchIntegrationLogs();
@@ -690,10 +714,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
         webhookApplied: webhookUrl
       });
       
-      if (res2.data.success && res2.data.result?.value === true) {
+      if (isZApiSuccess(res2.data)) {
         toast.success("Webhooks do SaaS restaurados com sucesso!");
       } else {
-        toast.error("Falha ao restaurar webhooks do SaaS");
+        const errorMsg = res2.data?.result?.message || res2.data?.error || "Falha ao restaurar webhooks do SaaS";
+        toast.error("Erro: " + errorMsg);
       }
       
       await fetchIntegrationLogs();
@@ -1199,8 +1224,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                     <Activity size={16} />
                     Resultado da Última Configuração de Webhook
                   </h3>
-                  <Badge className={lastWebhookCall.success && lastWebhookCall.result?.value === true ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
-                    {lastWebhookCall.success && lastWebhookCall.result?.value === true ? "Sucesso" : "Falha"}
+                  <Badge className={isZApiSuccess(lastWebhookCall) ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
+                    {isZApiSuccess(lastWebhookCall) ? "Sucesso" : "Falha"}
                   </Badge>
                 </div>
 
@@ -1240,14 +1265,14 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 <div className="space-y-1">
                   <p className="text-[9px] text-slate-500 uppercase font-bold">Resposta Completa da Z-API</p>
                   <pre className="text-[9px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-40">
-                    {JSON.stringify(lastWebhookCall.result, null, 2)}
+                    {JSON.stringify(lastWebhookCall.result || lastWebhookCall.results, null, 2)}
                   </pre>
                 </div>
 
-                {!lastWebhookCall.success || lastWebhookCall.result?.value !== true ? (
+                {!isZApiSuccess(lastWebhookCall) ? (
                   <div className="p-2 bg-red-500/10 border border-red-500/20 rounded text-[10px] text-red-400 flex items-center gap-2">
                     <AlertCircle size={14} />
-                    <span>A Z-API não confirmou a configuração (value: true). Verifique se o Client-Token e Instance ID estão corretos.</span>
+                    <span>A Z-API não confirmou explicitamente a configuração. Verifique se o Client-Token e Instance ID estão corretos na Z-API. Resposta: {JSON.stringify(lastWebhookCall.result)}</span>
                   </div>
                 ) : (
                   <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 flex items-center gap-2">

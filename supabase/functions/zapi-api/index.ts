@@ -342,27 +342,42 @@ serve(async (req) => {
       
       const results = await Promise.all(types.map(async (webhookType) => {
         const url = `${baseUrl}/instances/${instanceId}/token/${token}/${webhookType}`;
-        const res = await fetch(url, {
-          method: "PUT",
-          headers,
-          body: JSON.stringify({ value: webhookUrl })
-        });
-        const status_code = res.status;
-        const result = await res.json();
-        
-        await logToDb({ 
-          action: `set-webhook:${webhookType}`, 
-          method: "PUT",
-          request: { value: webhookUrl }, 
-          webhook_url: webhookUrl,
-          response: result, 
-          status: status_code, 
-          endpoint: url 
-        });
-        return result;
+        try {
+          const res = await fetch(url, {
+            method: "PUT",
+            headers,
+            body: JSON.stringify({ value: webhookUrl })
+          });
+          const status_code = res.status;
+          const result = await res.json();
+          
+          await logToDb({ 
+            action: `set-webhook:${webhookType}`, 
+            method: "PUT",
+            request: { value: webhookUrl }, 
+            webhook_url: webhookUrl,
+            response: result, 
+            status: status_code, 
+            endpoint: url 
+          });
+          return { type: webhookType, result, status: status_code, url, success: status_code === 200 || status_code === 201 || result?.value === true || result?.success === true };
+        } catch (e) {
+          return { type: webhookType, error: e.message, success: false, url };
+        }
       }));
 
-      return new Response(JSON.stringify({ success: true, results }), {
+      const allSuccessful = results.every(r => r.success);
+
+      return new Response(JSON.stringify({ 
+        success: allSuccessful, 
+        results,
+        endpoint: `${baseUrl}/instances/${instanceId}/token/${token}/[type]`,
+        requestBody: { value: webhookUrl },
+        headers: {
+          "Content-Type": "application/json",
+          "Client-Token": maskToken(clientToken)
+        }
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
