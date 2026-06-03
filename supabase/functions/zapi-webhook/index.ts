@@ -101,7 +101,7 @@ serve(async (req) => {
     // Try by reference message first
     if (referenceMessageId) {
       const { data } = await supabase
-        .from("whatsapp_conversations")
+        .from("conversation_sessions")
         .select("*")
         .eq("tenant_id", tenantId)
         .eq("provider_message_id", referenceMessageId)
@@ -112,7 +112,7 @@ serve(async (req) => {
     // Try by phone and active status
     if (!session && normalizedPhone) {
       const { data } = await supabase
-        .from("whatsapp_conversations")
+        .from("conversation_sessions")
         .select("*")
         .eq("tenant_id", tenantId)
         .eq("active", true)
@@ -131,13 +131,13 @@ serve(async (req) => {
     }
 
     // Process using Engine
-    console.log(`[Z-API Webhook] Processing session ${session.id} in state ${session.state}`);
+    console.log(`[Z-API Webhook] Processing session ${session.id} in state ${session.current_step}`);
     
     const engineResult = await handleAutomationWhatsappResponse(supabase, {
       tenant_id: tenantId,
       phone: normalizedPhone,
       customer_id: session.customer_id,
-      current_state: session.state,
+      current_state: session.current_step,
       option_id: selectedOption,
       conversation_id: session.id
     });
@@ -151,7 +151,7 @@ serve(async (req) => {
         });
 
         if (sendResult.success && sendResult.response?.messageId) {
-          await supabase.from("whatsapp_conversations")
+          await supabase.from("conversation_sessions")
             .update({ provider_message_id: sendResult.response.messageId })
             .eq("id", session.id);
         }
@@ -167,7 +167,7 @@ serve(async (req) => {
       message: `Opção ${selectedOption} processada. Novo estado: ${engineResult?.next_state}`,
       error_details: JSON.stringify({ 
         selectedOption, 
-        stateBefore: session.state, 
+        stateBefore: session.current_step, 
         stateAfter: engineResult?.next_state,
         actionExecuted: engineResult?.action_executed,
         loop_blocked: true
