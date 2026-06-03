@@ -323,9 +323,9 @@ function DashboardComponent() {
     let usedCashback = Number(appointment.cashback_used || 0);
     let remainingToPay = Number(appointment.final_amount || totalPrice);
 
-    // If credits/cashback haven't been applied yet (e.g., manual completion by admin)
-    // Priority: 1. Cashback, 2. Credits
-    if (usedCredits === 0 && usedCashback === 0 && remainingToPay === totalPrice) {
+    // Determine how much credit and cashback will be used
+    // If it's already paid (e.g. via PIX online), we don't apply automatic deductions here
+    if (appointment.payment_status !== 'paid' && usedCredits === 0 && usedCashback === 0 && remainingToPay === totalPrice) {
       if (availableCashback > 0) {
         usedCashback = Math.min(availableCashback, remainingToPay);
         remainingToPay -= usedCashback;
@@ -335,14 +335,16 @@ function DashboardComponent() {
         remainingToPay -= usedCredits;
       }
 
-      // Deduct from customer wallet
-      await supabase
-        .from("customers")
-        .update({ 
-          credits: availableCredits - usedCredits,
-          cashback_balance: availableCashback - usedCashback
-        })
-        .eq("id", appointment.customer_id);
+      // Deduct from customer wallet if anything was used
+      if (usedCredits > 0 || usedCashback > 0) {
+        await supabase
+          .from("customers")
+          .update({ 
+            credits: availableCredits - usedCredits,
+            cashback_balance: availableCashback - usedCashback
+          })
+          .eq("id", appointment.customer_id);
+      }
     }
 
     // Calculate new cashback earned (R$ 10 for every R$ 100 paid in new money)
