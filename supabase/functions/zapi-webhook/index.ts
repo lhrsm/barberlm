@@ -191,7 +191,7 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
   // Check for multiple pending appointments for this customer
   const { data: appointments } = await supabase
     .from("appointments")
-    .select("id, start_time, services(name)")
+    .select("*, services(name), barbers(name)")
     .eq("customer_id", session.customer_id)
     .eq("status", "scheduled")
     .order("start_time", { ascending: true });
@@ -201,9 +201,6 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
     nextStep = 'awaiting_confirm_scope';
     actionExecuted = "multiple_appointments_found";
     
-    // In a real scenario, we would send a button list with options:
-    // 1. Confirmar todos
-    // 2. Escolher um
     await supabase.functions.invoke('automation-engine', {
       body: { 
         tenantId, 
@@ -220,7 +217,12 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
     });
   } else if (session.appointment_id || (appointments && appointments.length === 1)) {
     const apptId = session.appointment_id || appointments?.[0]?.id;
-    
+    const { data: appointment } = await supabase
+      .from("appointments")
+      .select("*, services(name), barbers(name)")
+      .eq("id", apptId)
+      .single();
+
     // 1. Confirm the appointment
     const { error: updateError } = await supabase
       .from("appointments")
@@ -232,7 +234,20 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
       return { success: false, error: "Error updating appointment" };
     }
 
-    responseMessage = "✅ Seu agendamento foi confirmado com sucesso! Te esperamos aqui.";
+    // Use centralized formatting for the success message
+    const { date: apptDate, time: apptTime } = formatAppointmentDateTimeForMessage(appointment);
+    const professionalName = appointment?.barbers?.name || "Profissional";
+    const serviceName = appointment?.services?.name || "Serviço";
+
+    responseMessage = `✅ Agendamento confirmado com sucesso!
+
+Estamos te esperando na Barbearia LM.
+
+📅 ${apptDate}
+⏰ ${apptTime}
+💈 ${professionalName}
+✂️ ${serviceName}`;
+
     nextStep = 'completed';
     
     await supabase.functions.invoke('automation-engine', {
@@ -257,11 +272,11 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
     });
   }
 
-  // Update session
+  // Update session - Fixed nextState bug and status/active closing
   const { error: sessionUpdateError } = await supabase.from("conversation_sessions").update({
     current_step: nextStep,
     status: nextStep === 'completed' ? 'closed' : 'active',
-    active: nextState !== 'completed',
+    active: nextStep !== 'completed',
     updated_at: new Date().toISOString()
   }).eq("id", session.id);
 
@@ -269,7 +284,7 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
     console.error(`[Z-API Webhook] Error updating session ${session.id}:`, sessionUpdateError);
   }
 
-  // Log
+  // Log mandatory details
   const { error: logError } = await supabase.from("automation_logs").insert({
     tenant_id: tenantId,
     session_id: session.id,
@@ -282,7 +297,8 @@ async function handleMainConfirm(supabase: any, session: any, tenantId: string) 
       state_after: nextStep,
       action_executed: actionExecuted,
       phone: session.phone,
-      referenceMessageId: session.provider_message_id
+      appointment_id: session.appointment_id || (appointments?.[0]?.id),
+      message_sent: responseMessage.substring(0, 100) + "..."
     })
   });
 
