@@ -501,7 +501,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       
       const { data, error } = await supabase.functions.invoke('zapi-api', {
         body: { 
-          action: 'update-webhook-received', 
+          action: 'set-webhook', 
           instanceId: instance.id,
           data: { webhookUrl }
         }
