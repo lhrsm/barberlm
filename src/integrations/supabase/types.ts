@@ -140,10 +140,13 @@ export type Database = {
           barbershop_amount: number | null
           cancel_reason: string | null
           cancel_token: string | null
+          cancelled_at: string | null
           cashback_earned: number | null
           cashback_used: number | null
+          completed_at: string | null
           confirmation_sent: boolean | null
           confirmation_sent_at: string | null
+          confirmed_at: string | null
           coupon_code: string | null
           coupon_id: string | null
           created_at: string
@@ -171,6 +174,7 @@ export type Database = {
           subtotal_amount: number | null
           tenant_id: string | null
           total_price: number | null
+          updated_at: string | null
           updated_by_id: string | null
           updated_by_type: string | null
           user_id: string
@@ -181,10 +185,13 @@ export type Database = {
           barbershop_amount?: number | null
           cancel_reason?: string | null
           cancel_token?: string | null
+          cancelled_at?: string | null
           cashback_earned?: number | null
           cashback_used?: number | null
+          completed_at?: string | null
           confirmation_sent?: boolean | null
           confirmation_sent_at?: string | null
+          confirmed_at?: string | null
           coupon_code?: string | null
           coupon_id?: string | null
           created_at?: string
@@ -212,6 +219,7 @@ export type Database = {
           subtotal_amount?: number | null
           tenant_id?: string | null
           total_price?: number | null
+          updated_at?: string | null
           updated_by_id?: string | null
           updated_by_type?: string | null
           user_id: string
@@ -222,10 +230,13 @@ export type Database = {
           barbershop_amount?: number | null
           cancel_reason?: string | null
           cancel_token?: string | null
+          cancelled_at?: string | null
           cashback_earned?: number | null
           cashback_used?: number | null
+          completed_at?: string | null
           confirmation_sent?: boolean | null
           confirmation_sent_at?: string | null
+          confirmed_at?: string | null
           coupon_code?: string | null
           coupon_id?: string | null
           created_at?: string
@@ -253,6 +264,7 @@ export type Database = {
           subtotal_amount?: number | null
           tenant_id?: string | null
           total_price?: number | null
+          updated_at?: string | null
           updated_by_id?: string | null
           updated_by_type?: string | null
           user_id?: string
@@ -844,6 +856,7 @@ export type Database = {
           specialties: string[] | null
           tenant_id: string | null
           total_ratings: number | null
+          updated_at: string | null
           user_id: string
           working_hours: Json | null
         }
@@ -862,6 +875,7 @@ export type Database = {
           specialties?: string[] | null
           tenant_id?: string | null
           total_ratings?: number | null
+          updated_at?: string | null
           user_id: string
           working_hours?: Json | null
         }
@@ -880,6 +894,7 @@ export type Database = {
           specialties?: string[] | null
           tenant_id?: string | null
           total_ratings?: number | null
+          updated_at?: string | null
           user_id?: string
           working_hours?: Json | null
         }
@@ -1246,6 +1261,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           tenant_id: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -1263,6 +1279,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           tenant_id?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -1280,6 +1297,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           tenant_id?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -3316,11 +3334,11 @@ export type Database = {
       update_appointment_status: {
         Args: {
           p_appointment_id: string
-          p_changed_by_id: string
+          p_changed_by_id?: string
           p_changed_by_type: string
           p_metadata?: Json
           p_new_status: string
-          p_source: string
+          p_source?: string
         }
         Returns: undefined
       }
