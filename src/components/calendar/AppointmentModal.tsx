@@ -359,8 +359,13 @@ export function AppointmentModal({
         appointmentData = data;
       }
 
+      // Notifications
+      const customer = customers.find(c => c.id === selectedCustomer);
+      const barber = barbers.find(b => b.id === selectedBarber);
+      const notificationMessage = `${customer?.name} agendou ${service?.name} às ${selectedTime}`;
+
       // 2.5 Create Transaction if already paid
-      if (appointmentData.payment_status === 'paid' && appointmentData.total_price > 0) {
+      if (appointmentData.payment_status === 'paid' && Number(appointmentData.total_price || 0) > 0) {
         const { data: existingTrans } = await supabase
           .from("transactions")
           .select("id")
@@ -369,7 +374,7 @@ export function AppointmentModal({
 
         if (!existingTrans) {
           await supabase.from("transactions").insert([{
-            amount: appointmentData.total_price,
+            amount: Number(appointmentData.total_price || 0),
             type: "income",
             description: `Agendamento Admin (${appointmentData.payment_method?.toUpperCase()}): ${service?.name || 'Serviço'} - ${customer?.name || 'Cliente'}`,
             category: "Serviço",
@@ -381,12 +386,6 @@ export function AppointmentModal({
           }]);
         }
       }
-
-
-      // Notifications
-      const customer = customers.find(c => c.id === selectedCustomer);
-      const barber = barbers.find(b => b.id === selectedBarber);
-      const notificationMessage = `${customer?.name} agendou ${service?.name} às ${selectedTime}`;
       
       // Centralized notification for Barbershop and Barber
       await Promise.all([
