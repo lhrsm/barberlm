@@ -357,7 +357,7 @@ serve(async (req) => {
         session_id: session.id,
         provider_message_id: session.provider_message_id,
         current_step_before: stateBefore, 
-        appointments_count: engineResult?.appointments_count || (appointments?.length || 0),
+        appointments_count: engineResult?.appointments_count || 0,
         appointment_group_id: session.appointment_group_id,
         action: engineResult?.action_executed,
         current_step_after: engineResult?.next_state,
