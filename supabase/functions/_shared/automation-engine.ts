@@ -123,12 +123,22 @@ export async function handleAutomationWhatsappResponse(
     normalizedInput === '3'
   ) {
     mappedOption = 'main_cancel';
+  } else if (normalizedInput === 'confirm_all' || normalizedInput === 'confirmar_todos') {
+    mappedOption = 'confirm_all';
+  } else if (normalizedInput === 'confirm_single' || normalizedInput === 'confirmar_um' || normalizedInput === 'choose_one') {
+    mappedOption = 'confirm_single';
+  } else if (normalizedInput.startsWith('confirm_appt_')) {
+    mappedOption = 'confirm_specific';
   }
 
-  // Handle case where Z-API returns the ID directly (like "main_confirm")
+  // Handle case where Z-API returns the ID directly
   if (rawInput === 'main_confirm') mappedOption = 'main_confirm';
   if (rawInput === 'main_reschedule') mappedOption = 'main_reschedule';
   if (rawInput === 'main_cancel') mappedOption = 'main_cancel';
+  if (rawInput === 'confirm_all') mappedOption = 'confirm_all';
+  if (rawInput === 'confirm_single') mappedOption = 'confirm_single';
+  if (rawInput.startsWith('confirm_appt_')) mappedOption = 'confirm_specific';
+
 
   console.log('[AutomationEngine] MAPPED OPTION:', mappedOption);
   console.log('CONVERSATION STATE:', current_state);
