@@ -550,13 +550,19 @@ export type Database = {
       }
       automation_logs: {
         Row: {
+          action: string | null
           appointment_group_id: string | null
           created_at: string
+          current_step_after: string | null
+          current_step_before: string | null
+          error: string | null
           error_details: string | null
           event_name: string | null
+          flow_type: Database["public"]["Enums"]["automation_flow_type"] | null
           id: string
           message: string | null
           queue_id: string | null
+          selected_option: string | null
           session_id: string | null
           status: string
           step: string | null
@@ -564,13 +570,19 @@ export type Database = {
           workflow_id: string | null
         }
         Insert: {
+          action?: string | null
           appointment_group_id?: string | null
           created_at?: string
+          current_step_after?: string | null
+          current_step_before?: string | null
+          error?: string | null
           error_details?: string | null
           event_name?: string | null
+          flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
           id?: string
           message?: string | null
           queue_id?: string | null
+          selected_option?: string | null
           session_id?: string | null
           status: string
           step?: string | null
@@ -578,13 +590,19 @@ export type Database = {
           workflow_id?: string | null
         }
         Update: {
+          action?: string | null
           appointment_group_id?: string | null
           created_at?: string
+          current_step_after?: string | null
+          current_step_before?: string | null
+          error?: string | null
           error_details?: string | null
           event_name?: string | null
+          flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
           id?: string
           message?: string | null
           queue_id?: string | null
+          selected_option?: string | null
           session_id?: string | null
           status?: string
           step?: string | null
@@ -625,12 +643,17 @@ export type Database = {
       automation_queue: {
         Row: {
           appointment_group_id: string | null
+          appointment_id: string | null
           attempts: number | null
           created_at: string
+          entity_id: string | null
+          entity_type: string | null
           error: string | null
           event_id: string | null
           event_name: string | null
+          flow_type: Database["public"]["Enums"]["automation_flow_type"] | null
           id: string
+          payload: Json | null
           processed_at: string | null
           scheduled_for: string | null
           status: string
@@ -640,12 +663,17 @@ export type Database = {
         }
         Insert: {
           appointment_group_id?: string | null
+          appointment_id?: string | null
           attempts?: number | null
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
           error?: string | null
           event_id?: string | null
           event_name?: string | null
+          flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
           id?: string
+          payload?: Json | null
           processed_at?: string | null
           scheduled_for?: string | null
           status?: string
@@ -655,12 +683,17 @@ export type Database = {
         }
         Update: {
           appointment_group_id?: string | null
+          appointment_id?: string | null
           attempts?: number | null
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
           error?: string | null
           event_id?: string | null
           event_name?: string | null
+          flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
           id?: string
+          payload?: Json | null
           processed_at?: string | null
           scheduled_for?: string | null
           status?: string
@@ -1203,11 +1236,13 @@ export type Database = {
           appointment_group_id: string | null
           appointment_id: string | null
           channel: string
+          closed_at: string | null
           context: Json
           created_at: string
           current_step: string | null
           customer_id: string | null
           expires_at: string | null
+          flow_type: Database["public"]["Enums"]["automation_flow_type"] | null
           id: string
           last_message_id: string | null
           phone: string
@@ -1221,11 +1256,13 @@ export type Database = {
           appointment_group_id?: string | null
           appointment_id?: string | null
           channel?: string
+          closed_at?: string | null
           context?: Json
           created_at?: string
           current_step?: string | null
           customer_id?: string | null
           expires_at?: string | null
+          flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
           id?: string
           last_message_id?: string | null
           phone: string
@@ -1239,11 +1276,13 @@ export type Database = {
           appointment_group_id?: string | null
           appointment_id?: string | null
           channel?: string
+          closed_at?: string | null
           context?: Json
           created_at?: string
           current_step?: string | null
           customer_id?: string | null
           expires_at?: string | null
+          flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
           id?: string
           last_message_id?: string | null
           phone?: string
@@ -3392,11 +3431,13 @@ export type Database = {
       zapi_webhook_logs: {
         Row: {
           barber_id: string | null
+          button_id: string | null
           created_at: string
           error: string | null
           event_type: string | null
           extracted_option: string | null
           extracted_phone: string | null
+          flow_type: Database["public"]["Enums"]["automation_flow_type"] | null
           id: string
           ignored: boolean | null
           instance_id: string | null
@@ -3406,17 +3447,22 @@ export type Database = {
           phone_normalized_8: string | null
           phone_raw: string | null
           processed: boolean | null
+          reference_message_id: string | null
           selected_option: string | null
+          session_id: string | null
           status_code: number | null
+          tenant_id: string | null
           type: string | null
         }
         Insert: {
           barber_id?: string | null
+          button_id?: string | null
           created_at?: string
           error?: string | null
           event_type?: string | null
           extracted_option?: string | null
           extracted_phone?: string | null
+          flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
           id?: string
           ignored?: boolean | null
           instance_id?: string | null
@@ -3426,17 +3472,22 @@ export type Database = {
           phone_normalized_8?: string | null
           phone_raw?: string | null
           processed?: boolean | null
+          reference_message_id?: string | null
           selected_option?: string | null
+          session_id?: string | null
           status_code?: number | null
+          tenant_id?: string | null
           type?: string | null
         }
         Update: {
           barber_id?: string | null
+          button_id?: string | null
           created_at?: string
           error?: string | null
           event_type?: string | null
           extracted_option?: string | null
           extracted_phone?: string | null
+          flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
           id?: string
           ignored?: boolean | null
           instance_id?: string | null
@@ -3446,11 +3497,22 @@ export type Database = {
           phone_normalized_8?: string | null
           phone_raw?: string | null
           processed?: boolean | null
+          reference_message_id?: string | null
           selected_option?: string | null
+          session_id?: string | null
           status_code?: number | null
+          tenant_id?: string | null
           type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "zapi_webhook_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -3600,6 +3662,7 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "admin" | "tenant_admin" | "barber" | "client"
+      automation_flow_type: "single" | "multi"
       product_sale_status: "completed" | "cancelled" | "refunded"
     }
     CompositeTypes: {
@@ -3729,6 +3792,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "admin", "tenant_admin", "barber", "client"],
+      automation_flow_type: ["single", "multi"],
       product_sale_status: ["completed", "cancelled", "refunded"],
     },
   },
