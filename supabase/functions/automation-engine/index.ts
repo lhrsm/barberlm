@@ -137,15 +137,16 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
   // 1. Fetch full appointment and customer data
   const { data: appointment, error: apptError } = await supabase
     .from("appointments")
-    .select("*, customers(*), services(name), barbers(name)")
+    .select("*, customers(*), services(name), barbers(name), profiles:tenant_id(business_name)")
     .eq("id", appointmentId)
     .single();
+
 
   if (apptError || !appointment) throw new Error("Appointment not found");
   if (!appointment.customers?.phone) throw new Error("Customer phone not found");
 
   const customer = appointment.customers;
-  const phone = customer.phone;
+  const phone = payload.force_phone || customer.phone;
 
   // 2. Generate Message (simplified for now, using workflow config or default)
   const template = workflow.configuration?.template || "Olá {customer_name}, seu agendamento para {service_name} com {barber_name} em {appointment_date} às {appointment_time} foi recebido!";
@@ -155,10 +156,17 @@ async function handleAppointmentCreated(supabase: any, tenantId: string, appoint
 
   const message = template
     .replace('{customer_name}', customer.name || 'Cliente')
+    .replace('{barbershop_name}', appointment.profiles?.business_name || 'Barbearia')
     .replace('{service_name}', appointment.services?.name || 'Serviço')
+    .replace('{professional_name}', appointment.barbers?.name || 'Profissional')
     .replace('{barber_name}', appointment.barbers?.name || 'Profissional')
     .replace('{appointment_date}', formattedDate)
-    .replace('{appointment_time}', formattedTime);
+    .replace('{appointment_time}', formattedTime)
+    .replace('{service_price}', appointment.total_price?.toString() || '0')
+    .replace('{customer_phone}', phone)
+    .replace('{payment_method}', appointment.payment_method || 'Não definido')
+    .replace('{appointment_status}', appointment.status || 'Pendente');
+
 
   // 3. Create Session
   const { data: session, error: sessionError } = await supabase
