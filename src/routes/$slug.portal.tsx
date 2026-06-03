@@ -84,6 +84,8 @@ function ClientPortalComponent() {
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
   const [cancellingAppointment, setCancellingAppointment] = useState<any>(null);
+  const [creditTransactions, setCreditTransactions] = useState<any[]>([]);
+  const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
 
   useEffect(() => {
     if (slug) {
@@ -251,6 +253,15 @@ function ClientPortalComponent() {
       .single();
     
     setCustomerData(profile);
+
+    // Fetch transactions
+    const [creditsRes, cashbackRes] = await Promise.all([
+      supabase.from("credit_transactions").select("*").eq("customer_id", customerId).order("created_at", { ascending: false }),
+      supabase.from("cashback_transactions").select("*").eq("customer_id", customerId).order("created_at", { ascending: false })
+    ]);
+    
+    setCreditTransactions(creditsRes.data || []);
+    setCashbackTransactions(cashbackRes.data || []);
 
     // Fetch appointments
     const { data: appts } = await supabase
@@ -657,44 +668,30 @@ function ClientPortalComponent() {
   const handleCancelAppointment = async (app: any) => {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
     
+    setSubmitting(true);
     try {
-      if (app.payment_status === 'paid' && app.payment_method === 'pix' && !app.refund_requested_at) {
+      const { data, error } = await supabase.rpc('cancel_appointment', {
+        p_appointment_id: app.id,
+        p_cancelled_by: 'customer',
+        p_source: 'customer_portal',
+        p_refund_preference: 'none'
+      });
+      
+      if (error) throw error;
+      
+      const result = data as any;
+      if (result && result.pix_refund_amount > 0) {
         setCancellingAppointment(app);
         setIsRefundModalOpen(true);
         return;
       }
 
-      // Restore used credits and cashback
-      const { data: customer } = await supabase
-        .from("customers")
-        .select("credits, cashback_balance")
-        .eq("id", app.customer_id)
-        .single();
-
-      if (customer) {
-        await supabase
-          .from("customers")
-          .update({
-            credits: (customer.credits || 0) + (app.credit_used || 0),
-            cashback_balance: (customer.cashback_balance || 0) + (app.cashback_used || 0)
-          })
-          .eq("id", app.customer_id);
-      }
-
-      const { error } = await supabase
-        .from("appointments")
-        .update({ 
-          status: "cancelled",
-          credit_used: 0,
-          cashback_used: 0
-        })
-        .eq("id", app.id);
-      
-      if (error) throw error;
-      toast.success("Agendamento cancelado e saldos restaurados");
+      toast.success("Agendamento cancelado com sucesso");
       fetchClientData(client.customer_id);
-    } catch (e) {
-      toast.error("Erro ao cancelar agendamento");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao cancelar agendamento");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -703,79 +700,22 @@ function ClientPortalComponent() {
     
     setSubmitting(true);
     try {
-      // 1. Restore used credits and cashback first
-      const { data: customer } = await supabase
-        .from("customers")
-        .select("credits, cashback_balance")
-        .eq("id", cancellingAppointment.customer_id)
-        .single();
-
-      let restoredCredits = (customer?.credits || 0) + (cancellingAppointment.credit_used || 0);
-      let restoredCashback = (customer?.cashback_balance || 0) + (cancellingAppointment.cashback_used || 0);
-
-      // 2. Handle the "new money" part (final_amount)
-      const amountToRefund = Number(cancellingAppointment.final_amount || 0);
+      const { error } = await supabase.rpc('cancel_appointment', {
+        p_appointment_id: cancellingAppointment.id,
+        p_cancelled_by: 'customer',
+        p_source: 'customer_portal',
+        p_refund_preference: type
+      });
       
-      if (type === 'credits' && amountToRefund > 0) {
-        restoredCredits += amountToRefund;
+      if (error) throw error;
 
-        // Registrar saída financeira para compensar a entrada original
-        await supabase
-          .from("transactions")
-          .insert({
-            user_id: cancellingAppointment.user_id,
-            appointment_id: cancellingAppointment.id,
-            type: "expense",
-            category: "Estorno (Créditos)",
-            amount: amountToRefund,
-            description: `Cancelamento: ${cancellingAppointment.services?.name} - Convertido em Créditos`,
-            date: new Date().toISOString().split('T')[0]
-          });
-
-        await supabase
-          .from("appointments")
-          .update({ 
-            status: "cancelled",
-            refund_status: "completed",
-            refund_type: "credits",
-            credit_used: 0,
-            cashback_used: 0
-          })
-          .eq("id", cancellingAppointment.id);
-
-        toast.success(`Cancelado! R$ ${amountToRefund.toFixed(2)} foi convertido em créditos.`);
-      } else {
-        // Request actual refund for the final_amount
-        await supabase
-          .from("appointments")
-          .update({ 
-            status: "cancelled",
-            refund_requested_at: new Date().toISOString(),
-            refund_status: "pending",
-            refund_type: "refund",
-            credit_used: 0,
-            cashback_used: 0
-          })
-          .eq("id", cancellingAppointment.id);
-        
-        toast.success("Solicitação de estorno enviada!");
-      }
-
-      // Update customer with restored amounts
-      await supabase
-        .from("customers")
-        .update({ 
-          credits: restoredCredits,
-          cashback_balance: restoredCashback
-        })
-        .eq("id", cancellingAppointment.customer_id);
-      
+      toast.success(type === 'credits' ? "Valor convertido em créditos!" : "Solicitação de estorno enviada!");
       setIsRefundModalOpen(false);
       setCancellingAppointment(null);
       fetchClientData(client.customer_id);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast.error("Erro ao processar cancelamento");
+      toast.error(e.message || "Erro ao processar cancelamento");
     } finally {
       setSubmitting(false);
     }
@@ -1094,12 +1034,15 @@ function ClientPortalComponent() {
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[500px] bg-white/5 p-1 rounded-xl">
+          <TabsList className="grid w-full grid-cols-4 max-w-[600px] bg-white/5 p-1 rounded-xl">
             <TabsTrigger value="appointments" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
               <Calendar size={16} /> Agendamentos
             </TabsTrigger>
-            <TabsTrigger value="purchases" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
-              <ShoppingBag size={16} /> Compras
+            <TabsTrigger value="loyalty" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+               Fidelidade
+            </TabsTrigger>
+            <TabsTrigger value="finances" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
+               Extrato
             </TabsTrigger>
             <TabsTrigger value="profile" className="gap-2 rounded-lg data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black data-[state=active]:shadow-sm text-white">
               <UserIcon size={16} /> Perfil
@@ -1193,76 +1136,108 @@ function ClientPortalComponent() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="purchases" className="pt-6">
-            <Card className="bg-white/5 border-white/10 shadow-md">
-              <CardHeader>
-                <CardTitle className="text-white">Suas Compras</CardTitle>
-                <CardDescription className="text-gray-400">Os reembolsos podem ser solicitados em até 7 dias após a compra.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {sales.length === 0 ? (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <ShoppingBag size={48} className="mx-auto mb-4 opacity-20" />
-                      <p>Nenhuma compra encontrada.</p>
+          <TabsContent value="loyalty" className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <Card className="bg-white/5 border-white/10 shadow-lg">
+                 <CardHeader>
+                   <CardTitle className="text-white">Programa de Fidelidade</CardTitle>
+                   <CardDescription className="text-gray-400">Junte pontos em cada atendimento e troque por créditos.</CardDescription>
+                 </CardHeader>
+                 <CardContent className="flex flex-col items-center py-10">
+                    <div className="relative h-40 w-40 flex items-center justify-center">
+                       <svg className="h-full w-full rotate-[-90deg]">
+                          <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="8" className="text-white/5" />
+                          <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="440" strokeDashoffset={440 - (440 * Math.min(customerData?.loyalty_points || 0, 10)) / 10} className="text-[#D4AF37] transition-all duration-1000" />
+                       </svg>
+                       <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-4xl font-black text-white">{customerData?.loyalty_points || 0}</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">de 10 pontos</span>
+                       </div>
                     </div>
-                  ) : (
-                    sales.map((sale) => (
-                      <div key={sale.id} className="flex flex-col p-4 bg-white/5 border border-white/10 rounded-xl gap-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-muted-foreground">
-                              {format(parseISO(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                            </span>
-                            <Badge 
-                              variant={sale.status === 'completed' ? 'default' : 'secondary'}
-                              className={cn(
-                                sale.status === 'completed' && "bg-green-600 hover:bg-green-700",
-                                sale.status === 'refunded' && "bg-amber-500 hover:bg-amber-600",
-                                sale.status === 'pending' && "bg-slate-400 hover:bg-slate-500"
-                              )}
-                            >
-                              {sale.status === 'completed' ? 'Concluído' : sale.status === 'refunded' ? 'Reembolsado' : 'Pendente'}
-                            </Badge>
+                    {customerData?.loyalty_points >= 10 ? (
+                      <Button onClick={handleClaimLoyaltyReward} disabled={submitting} className="mt-8 bg-[#D4AF37] text-black font-black uppercase tracking-tighter hover:scale-105 transition-all">
+                        Resgatar R$ 50,00 Agora
+                      </Button>
+                    ) : (
+                      <p className="mt-8 text-sm text-gray-400 font-medium italic text-center px-4">Faltam {10 - (customerData?.loyalty_points || 0)} pontos para você ganhar seu próximo bônus!</p>
+                    )}
+                 </CardContent>
+               </Card>
+
+               <Card className="bg-white/5 border-white/10 shadow-lg">
+                 <CardHeader>
+                   <CardTitle className="text-white">Como Funciona?</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                    <div className="flex gap-4">
+                       <div className="h-8 w-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shrink-0">1</div>
+                       <p className="text-sm text-gray-400">Cada agendamento concluído gera 1 ponto no seu cartão fidelidade.</p>
+                    </div>
+                    <div className="flex gap-4">
+                       <div className="h-8 w-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shrink-0">2</div>
+                       <p className="text-sm text-gray-400">Ao completar 10 pontos, você pode resgatar um bônus de R$ 50,00 em créditos.</p>
+                    </div>
+                    <div className="flex gap-4">
+                       <div className="h-8 w-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shrink-0">3</div>
+                       <p className="text-sm text-gray-400">Os créditos podem ser usados para pagar qualquer serviço futuro na barbearia.</p>
+                    </div>
+                 </CardContent>
+               </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="finances" className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="bg-white/5 border-white/10 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-white">Extrato de Créditos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                   <div className="space-y-4">
+                      {creditTransactions.length === 0 ? (
+                        <p className="text-center py-10 text-gray-500 italic">Nenhuma movimentação de créditos.</p>
+                      ) : (
+                        creditTransactions.map((tx: any) => (
+                          <div key={tx.id} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                             <div>
+                                <p className="text-sm font-bold text-white">{tx.description}</p>
+                                <p className="text-[10px] text-gray-500 uppercase">{format(parseISO(tx.created_at), "dd/MM/yyyy HH:mm")}</p>
+                             </div>
+                             <span className={cn("font-black", tx.type.includes('credit') ? "text-emerald-500" : "text-red-500")}>
+                                {tx.type.includes('credit') || tx.type.includes('refund') ? "+" : "-"} R$ {Number(tx.amount).toFixed(2)}
+                             </span>
                           </div>
-                          <span className="font-bold text-lg text-[#D4AF37]">R$ {sale.total_amount.toFixed(2)}</span>
-                        </div>
-                        <div className="bg-muted/30 p-3 rounded-lg">
-                          <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Itens:</p>
-                          <ul className="space-y-1">
-                            {(sale.items as any[]).map((item, idx) => (
-                              <li key={idx} className="text-sm flex justify-between">
-                                <span>{item.name} x{item.quantity}</span>
-                                <span className="text-muted-foreground">R$ {(item.price * item.quantity).toFixed(2)}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        {sale.status === 'completed' && (
-                          <div className="flex justify-end pt-2">
-                            {canRefund(sale.created_at) ? (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="gap-2 h-8 text-amber-600 border-amber-200 hover:bg-amber-50"
-                                onClick={() => handleRequestRefund(sale.id)}
-                              >
-                                <RefreshCcw size={14} /> Pedir Reembolso
-                              </Button>
-                            ) : (
-                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <AlertTriangle size={14} />
-                                Prazo de reembolso expirado (7 dias)
-                              </div>
-                            )}
+                        ))
+                      )}
+                   </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/5 border-white/10 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-white">Extrato de Cashback</CardTitle>
+                </CardHeader>
+                <CardContent>
+                   <div className="space-y-4">
+                      {cashbackTransactions.length === 0 ? (
+                        <p className="text-center py-10 text-gray-500 italic">Nenhuma movimentação de cashback.</p>
+                      ) : (
+                        cashbackTransactions.map((tx: any) => (
+                          <div key={tx.id} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                             <div>
+                                <p className="text-sm font-bold text-white">{tx.description || (tx.type === 'cashback_earned' ? 'Ganho por Agendamento' : 'Uso em Agendamento')}</p>
+                                <p className="text-[10px] text-gray-500 uppercase">{format(parseISO(tx.created_at), "dd/MM/yyyy HH:mm")}</p>
+                             </div>
+                             <span className={cn("font-black", tx.type === 'cashback_earned' ? "text-[#D4AF37]" : "text-red-500")}>
+                                {tx.type === 'cashback_earned' ? "+" : "-"} R$ {Number(tx.amount).toFixed(2)}
+                             </span>
                           </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                        ))
+                      )}
+                   </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
           
           <TabsContent value="profile" className="pt-6">
