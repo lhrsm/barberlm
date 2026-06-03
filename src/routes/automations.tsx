@@ -414,7 +414,7 @@ function AutomationsComponent() {
           {/* ABA 1: AUTOMAÇÕES */}
           <TabsContent value="automations" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pt-4">
             {workflows.map((w) => (
-              <Card key={w.id} className="relative overflow-hidden">
+              <Card key={w.id} className="relative overflow-hidden flex flex-col justify-between">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg">{w.name}</CardTitle>
@@ -425,17 +425,23 @@ function AutomationsComponent() {
                   </div>
                   <CardDescription>Gatilho: <Badge variant="secondary">{w.trigger_event}</Badge></CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-muted-foreground line-clamp-2 italic">
+                <CardContent className="space-y-4">
+                  <div className="text-sm text-muted-foreground italic h-12 overflow-hidden">
                     "{w.configuration?.template || 'Sem template configurado'}"
                   </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-1"><History className="w-3 h-3 text-muted-foreground" /> {w.last_execution_at ? new Date(w.last_execution_at).toLocaleDateString() : 'Nunca'}</div>
+                    <div className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> {w.total_sent || 0} envios</div>
+                    <div className="flex items-center gap-1"><AlertCircle className="w-3 h-3 text-red-500" /> {w.total_failed || 0} falhas</div>
+                  </div>
                 </CardContent>
-                <div className="p-4 border-t flex gap-2">
-                  <Button variant="outline" size="sm" className="w-full">Editar</Button>
-                  <Button variant="outline" size="sm" className="w-full" onClick={() => handleSimulateEvent(w.trigger_event)}>Testar</Button>
+                <div className="p-4 border-t flex gap-2 bg-muted/20">
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => { setSelectedWorkflow(w); setIsEditModalOpen(true); }}>Editar</Button>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => { setSelectedWorkflow(w); setIsTestModalOpen(true); }}>Testar</Button>
                 </div>
               </Card>
             ))}
+
             {workflows.length === 0 && !loading && (
               <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
                 Nenhuma automação configurada.
