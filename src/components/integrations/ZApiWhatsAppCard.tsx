@@ -375,12 +375,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       setZapiResponse(res2.data.result);
 
       
-      if (res2.data.success && res2.data.result?.value === true) {
+      if (isZApiSuccess(res2.data)) {
         toast.success("Webhooks ampliados configurados! Enviando mensagem teste...");
         // Enviar mensagem teste após configurar
         await sendTestMessage();
       } else {
-        toast.error("Z-API recusou a configuração ampliada");
+        const errorMsg = res2.data?.result?.message || res2.data?.error || "Z-API recusou a configuração ampliada";
+        toast.error(`Falha: ${errorMsg}`);
       }
       
       await fetchIntegrationLogs();
