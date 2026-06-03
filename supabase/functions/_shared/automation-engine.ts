@@ -173,13 +173,13 @@ Estamos te esperando na Barbearia LM.
 
         } else {
           // Multiple: Ask scope
-          messageToSend = "Como você deseja confirmar seus agendamentos?";
+          messageToSend = "Como deseja confirmar?";
           buttons = [
             { id: "confirm_all", label: "Confirmar todos" },
             { id: "confirm_single", label: "Confirmar um específico" }
           ];
           nextState = AUTOMATION_STATES.AWAITING_CONFIRMATION_SCOPE;
-          actionExecuted = "ask_confirmation_scope";
+          actionExecuted = "send_confirm_scope_menu";
           selectedOptionNormalized = "main_confirm";
         }
       } else if (mappedOption === 'main_reschedule') {
