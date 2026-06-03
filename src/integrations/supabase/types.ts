@@ -638,8 +638,11 @@ export type Database = {
           configuration: Json
           created_at: string
           id: string
+          last_execution_at: string | null
           name: string
           tenant_id: string | null
+          total_failed: number | null
+          total_sent: number | null
           trigger_event: string
           updated_at: string
         }
@@ -648,8 +651,11 @@ export type Database = {
           configuration?: Json
           created_at?: string
           id?: string
+          last_execution_at?: string | null
           name: string
           tenant_id?: string | null
+          total_failed?: number | null
+          total_sent?: number | null
           trigger_event: string
           updated_at?: string
         }
@@ -658,8 +664,11 @@ export type Database = {
           configuration?: Json
           created_at?: string
           id?: string
+          last_execution_at?: string | null
           name?: string
           tenant_id?: string | null
+          total_failed?: number | null
+          total_sent?: number | null
           trigger_event?: string
           updated_at?: string
         }
