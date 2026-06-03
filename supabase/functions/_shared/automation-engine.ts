@@ -809,35 +809,72 @@ export async function processAutomationDispatches(
           console.log('[AutomationEngine] Warning: Could not deactivate previous conversations:', deactivateError.message);
         }
 
-        // Upsert conversation
-        const convPayload = {
-          tenant_id: tenant_id,
-          barber_id: tenant_id,
-          customer_id: customer.id,
-          phone: normalizedPhoneValue,
-          phone_fallback: fallbackPhoneValue,
-          state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
-          active: true,
-          appointment_group_id: group_id,
-          appointment_id: !isMultiple ? firstAppt.id : null,
-          context: {
-            appointment_ids: apptGroup.map(a => a.id),
-            multiple: isMultiple
-          },
-          updated_at: new Date().toISOString()
-        };
+        // Check if there is already a conversation for this group
+        let conversationId = null;
+        if (group_id) {
+          const { data: existingGroupConv } = await supabase
+            .from("whatsapp_conversations")
+            .select("id")
+            .eq("appointment_group_id", group_id)
+            .maybeSingle();
+          
+          if (existingGroupConv) {
+            console.log('[AutomationEngine] Group conversation already exists:', existingGroupConv.id);
+            conversationId = existingGroupConv.id;
+          }
+        }
 
-        // We use insert then check if we should have updated, but the user requested:
-        // "NÃO usar upsert com onConflict se não houver unique."
-        // We already deactivated previous ones, so we just insert a new one.
-        const { data: newConv, error: convError } = await supabase
-          .from("whatsapp_conversations")
-          .insert(convPayload)
-          .select()
-          .single();
+        let newConv = null;
+        if (!conversationId) {
+          // Upsert conversation
+          const convPayload = {
+            tenant_id: tenant_id,
+            barber_id: tenant_id,
+            customer_id: customer.id,
+            phone: normalizedPhoneValue,
+            phone_fallback: fallbackPhoneValue,
+            state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+            active: true,
+            appointment_group_id: group_id,
+            appointment_id: !isMultiple ? firstAppt.id : null,
+            context: {
+              appointment_ids: apptGroup.map(a => a.id),
+              multiple: isMultiple
+            },
+            updated_at: new Date().toISOString()
+          };
 
-        if (convError) {
-          console.error('CONVERSATION CREATE ERROR:', convError);
+          const { data, error: convError } = await supabase
+            .from("whatsapp_conversations")
+            .insert(convPayload)
+            .select()
+            .single();
+
+          if (convError) {
+            console.error('CONVERSATION CREATE ERROR:', convError);
+          } else {
+            console.log('CONVERSATION CREATED:', data.id);
+            newConv = data;
+          }
+        } else {
+          // Update existing group conversation to be active again
+          const { data, error: convError } = await supabase
+            .from("whatsapp_conversations")
+            .update({
+              active: true,
+              state: AUTOMATION_STATES.AWAITING_MAIN_ACTION,
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", conversationId)
+            .select()
+            .single();
+          
+          if (convError) {
+            console.error('CONVERSATION UPDATE ERROR:', convError);
+          } else {
+            newConv = data;
+          }
+        }
         } else {
           console.log('CONVERSATION CREATED:', newConv.id);
         }
