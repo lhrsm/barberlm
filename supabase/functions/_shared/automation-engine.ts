@@ -893,9 +893,6 @@ export async function processAutomationDispatches(
             newConv = data;
           }
         }
-        } else {
-          console.log('CONVERSATION CREATED:', newConv.id);
-        }
 
         let sendResult = { success: false, error: "Validation failed", response: null };
         
