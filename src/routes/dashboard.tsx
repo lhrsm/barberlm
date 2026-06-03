@@ -135,19 +135,27 @@ function DashboardComponent() {
       fetchTodayAppointments();
       fetchBirthdayCustomers();
 
-      const tables = ['appointments', 'transactions', 'notifications', 'customers', 'wallet', 'wallet_transactions', 'cashback_transactions'];
+      const tables = [
+        { name: 'appointments', filter: `tenant_id=eq.${tenantId}` },
+        { name: 'transactions', filter: `tenant_id=eq.${tenantId}` },
+        { name: 'notifications', filter: `tenant_id=eq.${tenantId}` },
+        { name: 'customers', filter: `tenant_id=eq.${tenantId}` },
+        { name: 'cashback_transactions', filter: `tenant_id=eq.${tenantId}` },
+        { name: 'credit_transactions', filter: `tenant_id=eq.${tenantId}` },
+        { name: 'subscriptions', filter: `user_id=eq.${tenantId}` }
+      ];
       const channels: any[] = [];
 
       tables.forEach(table => {
         const channel = supabase
-          .channel(`dashboard-realtime-${table}-${tenantId}`)
+          .channel(`dashboard-realtime-${table.name}-${tenantId}`)
           .on('postgres_changes', { 
             event: '*', 
             schema: 'public', 
-            table: table, 
-            filter: `tenant_id=eq.${tenantId}` 
+            table: table.name, 
+            filter: table.filter
           }, (payload: any) => {
-            console.log(`REALTIME ${table.toUpperCase()} CHANGE`, payload);
+            console.log(`REALTIME ${table.name.toUpperCase()} CHANGE`, payload);
             
             fetchTodayAppointments();
             fetchStats();
