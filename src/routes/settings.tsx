@@ -201,32 +201,33 @@ function SettingsComponent() {
       updatedData.payment_gateway_key = "";
     }
 
+    const { barbershop_logo_url: _, ...profileUpdateData } = updatedData;
     const { error: profileError } = await supabase
       .from("profiles")
       .update({
-        business_name: updatedData.business_name,
-        slug: updatedData.slug,
-        whatsapp_enabled: updatedData.whatsapp_enabled,
-        scheduling_mode: updatedData.scheduling_mode,
-        payment_gateway_provider: updatedData.payment_gateway_provider === "none" ? null : updatedData.payment_gateway_provider,
-        payment_gateway_key: updatedData.payment_gateway_key,
-        primary_color: updatedData.primary_color,
-        secondary_color: updatedData.secondary_color,
-        logo_url: updatedData.logo_url,
+        business_name: profileUpdateData.business_name,
+        slug: profileUpdateData.slug,
+        whatsapp_enabled: profileUpdateData.whatsapp_enabled,
+        scheduling_mode: profileUpdateData.scheduling_mode,
+        payment_gateway_provider: profileUpdateData.payment_gateway_provider === "none" ? null : profileUpdateData.payment_gateway_provider,
+        payment_gateway_key: profileUpdateData.payment_gateway_key,
+        primary_color: profileUpdateData.primary_color,
+        secondary_color: profileUpdateData.secondary_color,
+        logo_url: profileUpdateData.logo_url,
         barbershop_logo_url: updatedData.barbershop_logo_url,
-        cashback_enabled: updatedData.cashback_enabled,
-        cashback_percentage: updatedData.cashback_percentage,
-        free_service_threshold: updatedData.free_service_threshold,
-        address: updatedData.address,
-        google_maps_url: updatedData.google_maps_url,
-        font_family: updatedData.font_family,
-        font_size: updatedData.font_size,
-        font_color: updatedData.font_color,
-        pix_key: updatedData.pix_key,
-        pix_qr_code_url: updatedData.pix_qr_code_url,
-        whatsapp_number: updatedData.whatsapp_number,
+        cashback_enabled: profileUpdateData.cashback_enabled,
+        cashback_percentage: profileUpdateData.cashback_percentage,
+        free_service_threshold: profileUpdateData.free_service_threshold,
+        address: profileUpdateData.address,
+        google_maps_url: profileUpdateData.google_maps_url,
+        font_family: profileUpdateData.font_family,
+        font_size: profileUpdateData.font_size,
+        font_color: profileUpdateData.font_color,
+        pix_key: profileUpdateData.pix_key,
+        pix_qr_code_url: profileUpdateData.pix_qr_code_url,
+        whatsapp_number: profileUpdateData.whatsapp_number,
         updated_at: new Date().toISOString(),
-      })
+      } as any)
       .eq("id", user.id);
 
     // Save to barbershop_settings
