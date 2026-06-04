@@ -20,7 +20,7 @@ serve(async (req) => {
   try {
     const { tenant_id, appointment_id, force_resend } = await req.json().catch(() => ({}));
     
-    console.log("[ProcessQueue] Starting execution", { tenant_id, appointment_id, force_resend });
+    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, force_resend });
 
     // 1. Fetch items to process
     let query = supabase
@@ -39,7 +39,7 @@ serve(async (req) => {
       query = query.eq("appointment_id", appointment_id);
     } else {
       query = query.or("status.eq.pending,status.eq.failed");
-      query = query.lt("attempts", 3); // Max retries
+      query = query.lt("attempts", 3);
       if (tenant_id) query = query.eq("tenant_id", tenant_id);
       if (appointment_id) query = query.eq("appointment_id", appointment_id);
     }
@@ -48,7 +48,7 @@ serve(async (req) => {
 
     if (queueError) throw queueError;
     if (!queueItems || queueItems.length === 0) {
-      return new Response(JSON.stringify({ message: "No items to process", success: true }), {
+      return new Response(JSON.stringify({ success: true, message: "No items to process" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -59,57 +59,39 @@ serve(async (req) => {
       try {
         const { appointment, automation, tenant_id: itemTenantId } = item;
         
-        if (!appointment || !automation) {
-          throw new Error("Missing appointment or automation data");
-        }
+        if (!appointment || !automation) throw new Error("Data incomplete");
 
-        // Idempotency check: if not forcing resend, check if already sent
         if (!force_resend && appointment.confirmation_sent) {
-          console.log(`[ProcessQueue] Skipping appointment ${appointment.id} - already sent`);
-          await supabase.from("automation_queue").update({ 
-            status: "skipped", 
-            error_message: "Confirmation already sent",
-            updated_at: new Date().toISOString() 
-          }).eq("id", item.id);
-          
+          await supabase.from("automation_queue").update({ status: "skipped", updated_at: new Date().toISOString() }).eq("id", item.id);
           results.push({ id: item.id, success: true, skipped: true });
           continue;
         }
 
-        // 2. Resolve Barbershop Name
+        // 2. Resolve Barbershop
         let barbershopName = "Barbearia";
         const { data: tenantData } = await supabase.from("tenants").select("name").eq("id", itemTenantId).maybeSingle();
-        if (tenantData?.name && tenantData.name !== 'Barbearia') {
-          barbershopName = tenantData.name;
-        } else {
+        if (tenantData?.name && !['Barbearia', 'Barbershop'].includes(tenantData.name)) barbershopName = tenantData.name;
+        else {
           const { data: profileData } = await supabase.from("profiles").select("business_name").eq("id", itemTenantId).maybeSingle();
           if (profileData?.business_name) barbershopName = profileData.business_name;
         }
 
-        // 3. Resolve Professional Name
-        const professionalId = appointment.barber_id || appointment.professional_id;
-        let profName = "Profissional";
-        let professionalStatus = "default";
-        
-        if (professionalId) {
-          const { data: barberData } = await supabase.from("barbers").select("name").eq("id", professionalId).maybeSingle();
-          if (barberData?.name && barberData.name !== 'Profissional') {
-            profName = barberData.name;
-            professionalStatus = "resolved_barber";
-          } else {
-            const { data: profData } = await supabase.from("profiles").select("full_name").eq("id", professionalId).maybeSingle();
-            if (profData?.full_name && profData.full_name !== 'Profissional') {
-              profName = profData.full_name;
-              professionalStatus = "resolved_profile";
-            } else {
-              professionalStatus = "not_found";
+        // 3. Resolve Professional (Manual Step-by-Step for robustness)
+        const profId = appointment.barber_id || appointment.professional_id;
+        let profName = "Profissional não encontrado";
+        let resolvedTable = "none";
+
+        if (profId) {
+            // Try barbers table
+            const { data: barbData } = await supabase.from("barbers").select("name").eq("id", profId).maybeSingle();
+            if (barbData?.name) { profName = barbData.name; resolvedTable = "barbers"; }
+            else {
+              const { data: pData } = await supabase.from("profiles").select("full_name").eq("id", profId).maybeSingle();
+              if (pData?.full_name) { profName = pData.full_name; resolvedTable = "profiles"; }
             }
-          }
-        } else {
-          professionalStatus = "missing_id";
         }
 
-        // 4. Render Template
+        // 4. Build Test Data
         const testData = {
           customer_name: appointment.customer?.name || "Cliente",
           barbershop_name: barbershopName,
@@ -125,28 +107,21 @@ serve(async (req) => {
           renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
         });
 
-        const diagInfo: any = { 
-          professional_resolved: professionalStatus !== "not_found" && professionalStatus !== "missing_id",
-          professional_status: professionalStatus,
-          barbershop_name_used: barbershopName,
-          start_time_raw: appointment.start_time,
-          formatted_date: testData.appointment_date,
-          formatted_time: testData.appointment_time
+        const diagInfo = { 
+          resolved_table: resolvedTable, 
+          prof_id_used: profId,
+          prof_name_found: profName !== "Profissional não encontrado",
+          origin: force_resend ? 'test_manual' : 'automatic'
         };
 
-        // 5. Get WhatsApp Instance
-        const { data: instance } = await supabase
-          .from("whatsapp_instances")
-          .select("*")
-          .eq("tenant_id", itemTenantId)
-          .single();
-
-        if (!instance) throw new Error("WhatsApp instance not configured");
+        // 5. WhatsApp Instance
+        const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).single();
+        if (!instance) throw new Error("WhatsApp not configured");
 
         const phone = appointment.customer?.phone;
-        if (!phone) throw new Error("Customer phone missing");
+        if (!phone) throw new Error("Phone missing");
 
-        // 6. Send Message with buttons
+        // 6. Buttons
         const sendOptions: any = {};
         if (automation.key === 'appointment_confirmation') {
           sendOptions.buttons = [
@@ -157,17 +132,12 @@ serve(async (req) => {
         }
 
         const sendResult = await sendMessage(instance, phone, renderedTemplate, sendOptions);
+        const finalMessageType = (sendOptions.buttons && sendResult.response?.buttonList) ? 'buttons' : 'text_fallback';
 
         // 7. Update status and Log
         if (sendResult.success) {
-          await supabase.from("automation_queue").update({ 
-            status: "success", 
-            attempts: (item.attempts || 0) + 1,
-            updated_at: new Date().toISOString() 
-          }).eq("id", item.id);
+          await supabase.from("automation_queue").update({ status: "success", attempts: (item.attempts || 0) + 1, updated_at: new Date().toISOString() }).eq("id", item.id);
           
-          const finalMessageType = (sendOptions.buttons && sendResult.response?.buttonList) ? 'buttons' : 'text_fallback';
-
           await supabase.from("automation_logs").insert({
             automation_id: automation.id,
             tenant_id: itemTenantId,
@@ -179,50 +149,29 @@ serve(async (req) => {
             original_template: automation.template,
             provider: "zapi",
             sent_at: new Date().toISOString(),
-            payload: { 
-              data: { ...testData, customer_id: appointment.customer_id }, 
-              rendered: renderedTemplate, 
-              origin: force_resend ? 'test_manual' : 'automatic', 
-              source: force_resend ? 'test_manual' : 'automatic',
-              diagnostic: diagInfo,
-              buttons_attached: !!sendOptions.buttons 
-            },
+            payload: { data: testData, diagnostic: diagInfo, buttons_attached: !!sendOptions.buttons },
             response: sendResult.response
           });
           
-          await supabase.from("appointments").update({ 
-            confirmation_sent: true, 
-            confirmation_sent_at: new Date().toISOString() 
-          }).eq("id", appointment.id);
-
+          await supabase.from("appointments").update({ confirmation_sent: true, confirmation_sent_at: new Date().toISOString() }).eq("id", appointment.id);
+          results.push({ id: item.id, success: true });
         } else {
-          throw new Error(sendResult.error || "Z-API delivery failure");
+          throw new Error(sendResult.error || "Z-API failed");
         }
 
-        results.push({ id: item.id, success: true });
-
       } catch (err: any) {
-        console.error(`[ProcessQueue] Error on item ${item.id}:`, err.message);
-        
-        await supabase.from("automation_queue").update({ 
-          status: "failed", 
-          error_message: err.message,
-          attempts: (item.attempts || 0) + 1,
-          updated_at: new Date().toISOString() 
-        }).eq("id", item.id);
-
-        results.push({ id: item.id, success: false, error: err.message });
+        console.error(`[ProcessQueue] Fail:`, err.message);
+        await supabase.from("automation_queue").update({ status: "failed", error_message: err.message, attempts: (item.attempts || 0) + 1, updated_at: new Date().toISOString() }).eq("id", item.id);
         
         await supabase.from("automation_logs").insert({
           automation_id: item.automation_id,
           tenant_id: item.tenant_id,
           appointment_id: item.appointment_id,
-          phone: item.appointment?.customer?.phone || "N/A",
           status: "failed",
-          message_type: "error",
           error_message: err.message,
-          payload: { error: err.message, origin: force_resend ? 'test_manual' : 'automatic' }
+          payload: { error: err.message, source: force_resend ? 'test_manual' : 'automatic' }
         });
+        results.push({ id: item.id, success: false, error: err.message });
       }
     }
 
@@ -231,9 +180,9 @@ serve(async (req) => {
     });
 
   } catch (error: any) {
-    console.error("[ProcessQueue] Fatal error:", error);
-    return new Response(JSON.stringify({ success: false, error: error.message }), {
-      status: 500,
+    console.error("[ProcessQueue] Fatal:", error);
+    return new Response(JSON.stringify({ success: false, error: error.message, details: error.stack }), {
+      status: 200, // Return 200 so frontend can parse JSON and see error
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

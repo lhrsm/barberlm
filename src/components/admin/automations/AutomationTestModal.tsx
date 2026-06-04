@@ -86,11 +86,21 @@ export function AutomationTestModal({
           .eq("id", appointment.service_id)
           .maybeSingle();
 
-        const { data: professional } = await (supabase as any)
-          .from("profiles")
-          .select("full_name")
-          .eq("id", appointment.barber_id)
-          .maybeSingle();
+        // 3. Resolve Professional Name manually (Step by Step)
+        let profName = "Profissional não encontrado";
+        const profId = appointment.barber_id || appointment.professional_id;
+        
+        if (profId) {
+            // Try barbers
+            const { data: barberData } = await (supabase as any).from("barbers").select("name").eq("id", profId).maybeSingle();
+            if (barberData?.name) {
+                profName = barberData.name;
+            } else {
+                // Try profiles
+                const { data: profileData } = await (supabase as any).from("profiles").select("full_name").eq("id", profId).maybeSingle();
+                if (profileData?.full_name) profName = profileData.full_name;
+            }
+        }
 
         const { data: tenant } = await (supabase as any)
           .from("tenants")
@@ -102,7 +112,7 @@ export function AutomationTestModal({
           customer_name: appointment.customer?.name || "Cliente",
           barbershop_name: tenant?.name || "Barbearia",
           service_name: service?.name || "Serviço",
-          professional_name: professional?.full_name || "Profissional",
+          professional_name: profName,
           appointment_date: appointment.start_time ? new Date(appointment.start_time).toLocaleDateString("pt-BR") : "--/--/----",
           appointment_time: appointment.start_time ? new Date(appointment.start_time).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }) : "--:--",
           service_price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(appointment.total_price || service?.price || 0),
@@ -242,16 +252,17 @@ export function AutomationTestModal({
     }
 
     setIsTesting(true);
-    toast.loading("Processando envio de teste...");
+    const loadingToast = toast.loading("Processando envio de teste...");
 
     try {
       if (testType === "fictitious") {
          if (!phone || phone.length < 10) {
             toast.error("Informe um telefone válido para o teste fictício.");
             setIsTesting(false);
+            toast.dismiss(loadingToast);
             return;
          }
-         // Custom handling for fictitious send (calling direct zapi-api for mock data)
+         
          const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
             body: {
               action: 'send-test-message',
@@ -259,9 +270,9 @@ export function AutomationTestModal({
               data: { phone, message: renderedTemplate }
             }
           });
+          
           if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro no provedor");
           
-          // Log fictitious test manually since it doesn't go through the queue
           await (supabase as any).from("automation_logs").insert({
             automation_id: automation.id,
             tenant_id: automation.tenant_id,
@@ -277,11 +288,12 @@ export function AutomationTestModal({
           });
 
           toast.success("Teste fictício enviado!");
+          toast.dismiss(loadingToast);
           setIsTesting(false);
           return;
       }
 
-      // Use the unified logic for real appointment data
+      // Real appointment test
       const { data, error } = await supabase.functions.invoke('process-automation-queue', {
         body: { 
           tenant_id: automation.tenant_id, 
@@ -290,17 +302,33 @@ export function AutomationTestModal({
         }
       });
 
-      if (error) throw error;
+      toast.dismiss(loadingToast);
+
+      if (error) {
+        throw new Error(`Edge Function Error: ${error.message}`);
+      }
 
       if (data?.success) {
-        toast.success("Teste enviado com sucesso!");
-        fetchLastTestResult();
+        const itemResult = data.results?.[0];
+        if (itemResult?.success) {
+           toast.success("Teste enviado com sucesso!");
+           fetchLastTestResult();
+        } else {
+           throw new Error(itemResult?.error || data.message || "Falha no disparo");
+        }
       } else {
-        throw new Error(data?.error || "Falha no processamento");
+        throw new Error(data?.error || "Falha no processamento da função");
       }
     } catch (error: any) {
-      console.error("Test error:", error);
-      toast.error("Erro ao enviar teste: " + error.message);
+      console.error("Test error detail:", error);
+      toast.dismiss(loadingToast);
+      toast.error(
+        <div className="flex flex-col gap-1">
+           <p className="font-bold">Falha no Teste</p>
+           <p className="text-[10px] opacity-80">{error.message}</p>
+        </div>,
+        { duration: 6000 }
+      );
     } finally {
       setIsTesting(false);
     }
