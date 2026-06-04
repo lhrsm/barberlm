@@ -165,7 +165,49 @@ export function AutomationTestModal({
 
   const renderedTemplate = replaceVariables(automation?.template || "", testData);
 
+  const handleSimulateTrigger = async () => {
+    if (!selectedAppointmentId) {
+      toast.error("Nenhum agendamento selecionado.");
+      return;
+    }
+
+    setIsSimulating(true);
+    try {
+      // Manual trigger by inserting event
+      const { error } = await (supabase as any).from("automation_events").insert({
+        tenant_id: automation.tenant_id,
+        event_name: 'appointment.created',
+        entity_type: 'appointment',
+        entity_id: selectedAppointmentId,
+        payload: { 
+          simulation: true, 
+          triggered_by: 'manual_test',
+          appointment_id: selectedAppointmentId
+        }
+      });
+
+      if (error) {
+        // Fallback to direct queue insert if automation_events fails
+        const { error: queueError } = await (supabase as any).from("automation_queue").insert({
+          tenant_id: automation.tenant_id,
+          automation_id: automation.id,
+          appointment_id: selectedAppointmentId,
+          status: 'pending'
+        });
+        if (queueError) throw queueError;
+      }
+
+      toast.success("Evento simulado! Tarefa enfileirada com sucesso.");
+      fetchLastTestResult();
+    } catch (error: any) {
+      toast.error("Erro ao simular: " + error.message);
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
   const handleTest = async () => {
+
     if (!phone) {
       toast.error("Informe um telefone de destino");
       return;
