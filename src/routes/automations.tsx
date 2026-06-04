@@ -309,6 +309,7 @@ function AutomationsComponent() {
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Canal</th>
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Destinatário</th>
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                        <th className="px-4 py-3 text-right font-medium text-muted-foreground">Ações</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -345,6 +346,31 @@ function AutomationsComponent() {
                                 <span className="text-xs font-medium">{log.status}</span>
                               </div>
                             )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-slate-500 hover:text-slate-900"
+                                onClick={() => {
+                                  setSelectedLog(log);
+                                  setIsLogDetailOpen(true);
+                                }}
+                                title="Ver Detalhes"
+                              >
+                                <Eye size={14} />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                onClick={() => resendTest(log)}
+                                title="Reenviar"
+                              >
+                                <RotateCcw size={14} />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))}
