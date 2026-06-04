@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { AUTOMATION_V2_STATES, FLOW_TYPES } from "../_shared/automation-v2-constants.ts";
+import { AUTOMATION_V2_STATES, FLOW_TYPES } from "../../_shared/automation-v2-constants.ts";
 
 export async function processSingleFlow(supabase: any, item: any) {
     console.log(`[SingleFlow] Processing item ${item.id}`);
