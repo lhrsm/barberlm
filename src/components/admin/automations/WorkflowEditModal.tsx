@@ -121,7 +121,7 @@ export function WorkflowEditModal({ workflow, isOpen, onClose, onSuccess }: Work
       if (error) throw error;
 
       // Log success
-      await (supabase.from("automation_v2_logs") as any).insert({
+      await (supabase.from("automation_v2_logs" as any) as any).insert({
         tenant_id: workflow.tenant_id,
         event_name: workflow.event_name,
         flow_type: workflow.configuration?.flow_type || "single",
@@ -137,7 +137,7 @@ export function WorkflowEditModal({ workflow, isOpen, onClose, onSuccess }: Work
       console.error("Error updating workflow:", error);
       
       // Log error
-      await (supabase.from("automation_v2_logs") as any).insert({
+      await (supabase.from("automation_v2_logs" as any) as any).insert({
         tenant_id: workflow.tenant_id,
         event_name: workflow.event_name,
         flow_type: workflow.configuration?.flow_type || "single",
