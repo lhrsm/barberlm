@@ -929,7 +929,7 @@ function DashboardComponent() {
           </Card>
           
           <Card className={cn(
-            "col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group bg-card",
+            "col-span-1 md:col-span-2 lg:col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group bg-card",
             !isExpired 
               ? "border-emerald-500/30 shadow-2xl shadow-emerald-500/10"
               : "border-red-500/30 shadow-2xl shadow-red-500/10"
