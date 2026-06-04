@@ -63,8 +63,23 @@ serve(async (req) => {
         if (!appointment || !automation) throw new Error("Data incomplete");
 
         if (!force_resend && appointment.confirmation_sent) {
+          // Adicionando verificação de conversa ativa para evitar duplicidade
+          const { data: activeConv } = await supabase
+            .from("automation_conversations")
+            .select("id")
+            .eq("appointment_id", appointment.id)
+            .eq("status", "awaiting_response")
+            .maybeSingle();
+
+          if (activeConv) {
+            console.log(`[ProcessQueue] Skipping item ${item.id} - Active conversation already exists for appointment ${appointment.id}`);
+            await supabase.from("automation_queue").update({ status: "skipped", updated_at: new Date().toISOString() }).eq("id", item.id);
+            results.push({ id: item.id, success: true, skipped: true, reason: "active_conversation_exists" });
+            continue;
+          }
+
           await supabase.from("automation_queue").update({ status: "skipped", updated_at: new Date().toISOString() }).eq("id", item.id);
-          results.push({ id: item.id, success: true, skipped: true });
+          results.push({ id: item.id, success: true, skipped: true, reason: "confirmation_already_sent" });
           continue;
         }
 
