@@ -1316,6 +1316,50 @@ function AutomationsComponent() {
                 </div>
               </div>
 
+              {/* INFO DO CLIENTE E AGENDAMENTO */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl group cursor-pointer hover:border-amber-500/30 transition-all"
+                  onClick={() => {
+                    const customerId = selectedLog.payload?.data?.customer_id;
+                    if (customerId) {
+                      setSearchTerm(`customer:${customerId}`);
+                      setIsLogDetailOpen(false);
+                      toast.info(`Filtrando logs deste cliente`);
+                    }
+                  }}
+                >
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">CLIENTE</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-white">{selectedLog.payload?.data?.customer_name || 'N/A'}</p>
+                    <ArrowRight size={12} className="text-slate-600 group-hover:text-amber-500" />
+                  </div>
+                </div>
+
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl group cursor-pointer hover:border-amber-500/30 transition-all"
+                  onClick={() => {
+                    const aptId = selectedLog.appointment_id;
+                    if (aptId) {
+                      setSearchTerm(`appointment:${aptId}`);
+                      setIsLogDetailOpen(false);
+                      toast.info(`Filtrando logs deste agendamento`);
+                    }
+                  }}
+                >
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">AGENDAMENTO</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-mono text-amber-500/80">#{selectedLog.appointment_id?.substring(0,8).toUpperCase() || 'N/A'}</p>
+                    <ArrowRight size={12} className="text-slate-600 group-hover:text-amber-500" />
+                  </div>
+                </div>
+
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">MOTIVO DA FALHA</p>
+                  <p className="text-xs text-rose-400 font-medium truncate" title={selectedLog.error_message}>
+                    {selectedLog.status === 'failed' || selectedLog.status === 'error' ? selectedLog.error_message || 'Erro desconhecido' : 'Nenhuma falha'}
+                  </p>
+                </div>
+              </div>
+
               {/* PAYLOAD E DADOS */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-4">
