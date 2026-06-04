@@ -236,8 +236,16 @@ function AutomationsComponent() {
         .eq("tenant_id", tenantId);
         
       if (searchTerm) {
-        // Search by phone, message_id (id), or provider_message_id (inside response)
-        query = query.or(`phone.ilike.%${searchTerm}%,id.eq.${searchTerm},response->>messageId.ilike.%${searchTerm}%,response->>id.ilike.%${searchTerm}%`);
+        if (searchTerm.startsWith('appointment:')) {
+          const id = searchTerm.replace('appointment:', '');
+          query = query.eq('appointment_id', id);
+        } else if (searchTerm.startsWith('customer:')) {
+          const id = searchTerm.replace('customer:', '');
+          query = query.eq('payload->data->>customer_id', id);
+        } else {
+          // Search by phone, message_id (id), or provider_message_id (inside response)
+          query = query.or(`phone.ilike.%${searchTerm}%,id.eq.${searchTerm},response->>messageId.ilike.%${searchTerm}%,response->>id.ilike.%${searchTerm}%`);
+        }
       }
         
       if (filterStatus !== "all") {
@@ -919,7 +927,7 @@ function AutomationsComponent() {
                   </div>
                   
                   {/* Barra de Filtros Única */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-[#020817] p-4 rounded-2xl border border-white/5 shadow-inner">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-[#020817] p-4 rounded-2xl border border-white/5 shadow-inner">
                     <div className="relative group">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-amber-500 transition-colors" size={14} />
                       <Input 
@@ -928,6 +936,20 @@ function AutomationsComponent() {
                         value={searchTerm}
                         onChange={(e) => {
                           setSearchTerm(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                      />
+                    </div>
+
+                    <div className="relative group">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-amber-500 transition-colors" size={14} />
+                      <Input 
+                        placeholder="Buscar ID Agendamento..." 
+                        className="pl-9 w-full bg-[#0F172A] border-slate-800 text-sm h-11 rounded-xl text-white focus:border-amber-500/50 focus:ring-amber-500/20 transition-all"
+                        value={searchTerm.startsWith('appointment:') ? searchTerm.replace('appointment:', '') : ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSearchTerm(val ? `appointment:${val}` : '');
                           setCurrentPage(1);
                         }}
                       />
@@ -1291,6 +1313,50 @@ function AutomationsComponent() {
                     <Clock size={14} className="text-slate-400" />
                     {new Date(selectedLog.created_at).toLocaleString('pt-BR')}
                   </div>
+                </div>
+              </div>
+
+              {/* INFO DO CLIENTE E AGENDAMENTO */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl group cursor-pointer hover:border-amber-500/30 transition-all"
+                  onClick={() => {
+                    const customerId = selectedLog.payload?.data?.customer_id;
+                    if (customerId) {
+                      setSearchTerm(`customer:${customerId}`);
+                      setIsLogDetailOpen(false);
+                      toast.info(`Filtrando logs deste cliente`);
+                    }
+                  }}
+                >
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">CLIENTE</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-white">{selectedLog.payload?.data?.customer_name || 'N/A'}</p>
+                    <ArrowRight size={12} className="text-slate-600 group-hover:text-amber-500" />
+                  </div>
+                </div>
+
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl group cursor-pointer hover:border-amber-500/30 transition-all"
+                  onClick={() => {
+                    const aptId = selectedLog.appointment_id;
+                    if (aptId) {
+                      setSearchTerm(`appointment:${aptId}`);
+                      setIsLogDetailOpen(false);
+                      toast.info(`Filtrando logs deste agendamento`);
+                    }
+                  }}
+                >
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">AGENDAMENTO</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-mono text-amber-500/80">#{selectedLog.appointment_id?.substring(0,8).toUpperCase() || 'N/A'}</p>
+                    <ArrowRight size={12} className="text-slate-600 group-hover:text-amber-500" />
+                  </div>
+                </div>
+
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">MOTIVO DA FALHA</p>
+                  <p className="text-xs text-rose-400 font-medium truncate" title={selectedLog.error_message}>
+                    {selectedLog.status === 'failed' || selectedLog.status === 'error' ? selectedLog.error_message || 'Erro desconhecido' : 'Nenhuma falha'}
+                  </p>
                 </div>
               </div>
 

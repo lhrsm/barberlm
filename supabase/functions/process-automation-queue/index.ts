@@ -38,7 +38,8 @@ serve(async (req) => {
     if (force_resend && appointment_id) {
       query = query.eq("appointment_id", appointment_id);
     } else {
-      query = query.eq("status", "pending");
+      query = query.or("status.eq.pending,status.eq.failed");
+      query = query.lt("attempts", 3); // Max retries
       if (tenant_id) query = query.eq("tenant_id", tenant_id);
       if (appointment_id) query = query.eq("appointment_id", appointment_id);
     }
@@ -179,7 +180,7 @@ serve(async (req) => {
             provider: "zapi",
             sent_at: new Date().toISOString(),
             payload: { 
-              data: testData, 
+              data: { ...testData, customer_id: appointment.customer_id }, 
               rendered: renderedTemplate, 
               origin: force_resend ? 'test_manual' : 'automatic', 
               source: force_resend ? 'test_manual' : 'automatic',
