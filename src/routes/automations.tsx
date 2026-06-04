@@ -73,10 +73,10 @@ function AutomationsV2Component() {
 
           const { data: lastRun } = await supabase
             .from("automation_v2_queue")
-            .select("processed_at")
+            .select("finished_at")
             .eq("workflow_key", wf.workflow_key)
             .eq("status", "completed")
-            .order("processed_at", { ascending: false })
+            .order("finished_at", { ascending: false })
             .limit(1)
             .maybeSingle();
 
@@ -85,7 +85,7 @@ function AutomationsV2Component() {
             metrics: {
               sent: sentCount || 0,
               failed: errorCount || 0,
-              lastRun: lastRun?.processed_at || null
+              lastRun: lastRun?.finished_at || null
             }
           };
         }));
