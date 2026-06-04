@@ -465,15 +465,13 @@ function AutomationsComponent() {
   const handleExportLogs = async (format: 'csv' | 'json') => {
     setLoading(true);
     try {
-      // Fetch ALL logs for export (up to 1000 for safety)
-      let query = supabase
+      const { data: exportData, error } = await supabase
         .from("automation_logs")
         .select("*")
-        .eq("tenant_id", tenantId)
+        .eq("tenant_id", tenantId || "")
         .order("created_at", { ascending: false })
         .limit(1000);
 
-      const { data: exportData, error } = await query;
       if (error) throw error;
       if (!exportData || exportData.length === 0) {
         toast.error("Nenhum registro para exportar.");
@@ -491,7 +489,7 @@ function AutomationsComponent() {
       } else {
         const headers = ["ID", "Data/Hora (SP)", "Appointment ID", "Phone", "Status", "Provider", "Message ID", "Tipo"];
         const rows = exportData.map(l => [
-          l.id,
+          l.id.toString(),
           new Date(l.created_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
           l.appointment_id || "",
           l.phone || "",
@@ -518,6 +516,7 @@ function AutomationsComponent() {
       setLoading(false);
     }
   };
+
 
   const handleExportAudit = (log: any, format: 'csv' | 'json') => {
     if (!auditLogs.length) return;
