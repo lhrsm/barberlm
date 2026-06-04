@@ -282,8 +282,8 @@ function CustomersComponent() {
           />
         </div>
 
-        <div className="border rounded-xl bg-card">
-          <Table>
+        <div className="border rounded-xl bg-card overflow-x-auto custom-scrollbar">
+          <Table className="min-w-[600px] md:min-w-0">
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
