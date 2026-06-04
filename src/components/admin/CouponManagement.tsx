@@ -247,19 +247,21 @@ export function CouponManagement() {
         </Dialog>
       </div>
 
-      <div className="border rounded-xl bg-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Código</TableHead>
-              <TableHead>Desconto</TableHead>
-              <TableHead>Uso / Limite</TableHead>
-              <TableHead>Validade</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden shadow-sm">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Código</TableHead>
+                <TableHead>Desconto</TableHead>
+                <TableHead>Uso / Limite</TableHead>
+                <TableHead>Validade</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
             {coupons?.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground italic">
@@ -325,6 +327,79 @@ export function CouponManagement() {
             )}
           </TableBody>
         </Table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {coupons?.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground italic">
+              Nenhum cupom cadastrado.
+            </div>
+          ) : (
+            coupons?.map((coupon) => (
+              <div key={coupon.id} className="p-4 space-y-4 hover:bg-slate-50 transition-colors">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Tag size={16} className="text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-slate-400">Código</p>
+                      <span className="text-base font-black text-slate-900">{coupon.code}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] uppercase font-bold text-slate-400">Desconto</p>
+                    <span className="text-lg font-black text-emerald-600 italic">
+                      {coupon.type === 'fixed' ? `R$ ${coupon.value}` : `${coupon.value}%`}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Uso / Limite</p>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                      <Hash size={12} className="text-slate-400" />
+                      {coupon.used_count || 0} / {coupon.usage_limit || "∞"}
+                    </div>
+                  </div>
+                  <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Validade</p>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                      <Calendar size={12} className="text-slate-400" />
+                      {coupon.expires_at ? format(new Date(coupon.expires_at), "dd/MM/yyyy") : "Sem expiração"}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center gap-2">
+                    <Switch 
+                      checked={!!coupon.active} 
+                      onCheckedChange={(v) => toggleCouponMutation.mutate({ id: coupon.id, active: v })}
+                    />
+                    <Badge variant={coupon.active ? "default" : "secondary"} className="text-[10px] font-black uppercase italic">
+                      {coupon.active ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-9 w-9 p-0 rounded-xl text-red-500 hover:bg-red-50"
+                    onClick={() => {
+                      if (confirm("Deseja realmente excluir este cupom?")) {
+                        deleteCouponMutation.mutate(coupon.id);
+                      }
+                    }}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
