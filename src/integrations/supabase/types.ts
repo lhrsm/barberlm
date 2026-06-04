@@ -1056,6 +1056,7 @@ export type Database = {
           id: string
           messageid: string | null
           phone: string | null
+          processed_at: string | null
           raw_payload: Json
           referencemessageid: string | null
           tenant_id: string | null
@@ -1071,6 +1072,7 @@ export type Database = {
           id?: string
           messageid?: string | null
           phone?: string | null
+          processed_at?: string | null
           raw_payload: Json
           referencemessageid?: string | null
           tenant_id?: string | null
@@ -1086,6 +1088,7 @@ export type Database = {
           id?: string
           messageid?: string | null
           phone?: string | null
+          processed_at?: string | null
           raw_payload?: Json
           referencemessageid?: string | null
           tenant_id?: string | null
