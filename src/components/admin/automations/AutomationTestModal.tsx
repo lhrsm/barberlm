@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info, Zap } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info, Zap, Play } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 
@@ -431,23 +431,34 @@ export function AutomationTestModal({
 
         </div>
 
-        <DialogFooter className="p-6 bg-slate-900/50">
-          <Button variant="ghost" onClick={onClose} disabled={isTesting} className="text-slate-400 hover:text-white">
+        <DialogFooter className="p-6 bg-[#0F172A]/80 border-t border-white/5 flex flex-col sm:flex-row gap-4 sm:gap-4 mt-auto">
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={isTesting} 
+            className="flex-1 h-14 rounded-2xl font-semibold bg-white text-[#0F172A] border-2 border-[#E5E7EB] shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] hover:-translate-y-0.5 active:translate-y-0 active:bg-[#E2E8F0] transition-all duration-250 cursor-pointer"
+          >
             Cancelar
           </Button>
           <Button 
             onClick={handleTest} 
             disabled={isTesting || (testType === "real" && !realData) || isLoadingRealData}
-            className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 rounded-xl h-11"
+            className="flex-[1.5] h-14 rounded-2xl font-bold bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white border-none shadow-[0_8px_25px_rgba(245,158,11,0.35)] hover:from-[#FBBF24] hover:to-[#F59E0B] hover:-translate-y-[3px] hover:shadow-[0_12px_30px_rgba(245,158,11,0.45)] active:translate-y-0 active:shadow-[0_4px_12px_rgba(245,158,11,0.25)] transition-all duration-250 cursor-pointer disabled:bg-[#374151] disabled:text-[#9CA3AF] disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0 disabled:bg-none"
           >
             {isTesting ? (
               <span className="flex items-center gap-2">
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={18} className="animate-spin" />
                 Enviando...
               </span>
-            ) : "Enviar Teste"}
+            ) : (
+              <span className="flex items-center gap-2">
+                <Play size={18} className="fill-current" />
+                Enviar Teste
+              </span>
+            )}
           </Button>
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );
