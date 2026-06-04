@@ -506,6 +506,17 @@ export function AutomationTestModal({
           >
             {isTesting ? (
               <span className="flex items-center gap-2">
+                <Loader2 size={20} className="animate-spin" /> Enviando...
+              </span>
+            ) : (
+              <span className="flex flex-col items-center">
+                <span>Enviar Teste</span>
+                <span className="text-[10px] opacity-60 font-normal">Ctrl + Enter</span>
+              </span>
+            )}
+          </Button>
+            {isTesting ? (
+              <span className="flex items-center gap-2">
                 <Loader2 size={18} className="animate-spin" />
                 Enviando...
               </span>
