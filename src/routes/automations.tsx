@@ -487,8 +487,14 @@ function AutomationsComponent() {
         type: 'send',
         result: log.status === 'sent' ? 'sucesso' : 'falha',
         status: log.status === 'sent' ? 'done' : 'error',
-        payload: log.response || { error: log.error_message, message_id: log.id }
+        payload: { 
+          ...log.response, 
+          message_id: log.id, 
+          provider_message_id: log.response?.messageId || log.response?.id,
+          error: log.error_message 
+        }
       });
+
 
       if (log.status === 'sent') {
         steps.push({
