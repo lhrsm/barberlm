@@ -109,7 +109,7 @@ function AutomationsComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
-  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null });
+  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0 });
   const itemsPerPage = 10;
 
   // Estados Auditoria do Fluxo (Modal)
@@ -242,11 +242,14 @@ function AutomationsComponent() {
         } else if (searchTerm.startsWith('customer:')) {
           const id = searchTerm.replace('customer:', '');
           query = query.eq('payload->data->>customer_id', id);
+        } else if (searchTerm === 'source:test_manual') {
+          query = query.or('payload->>source.eq.test_manual,message_type.eq.test_manual,payload->diagnostic->>origin.eq.test_manual');
         } else {
           // Search by phone, message_id (id), or provider_message_id (inside response)
           query = query.or(`phone.ilike.%${searchTerm}%,id.eq.${searchTerm},response->>messageId.ilike.%${searchTerm}%,response->>id.ilike.%${searchTerm}%`);
         }
       }
+
         
       if (filterStatus !== "all") {
         const mappedStatus = filterStatus === "sent" ? "success" : filterStatus === "error" ? "error" : filterStatus;
@@ -285,14 +288,21 @@ function AutomationsComponent() {
       const { count: totalSent } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
       const { count: totalSuccess } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "success");
       const { count: totalFailed } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
-      const { data: lastLog } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "success").order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const { count: totalDuplicate } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("action", "duplicate_confirmation_blocked");
+      const { count: totalNotFound } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "not_found");
+      const { data: lastLogData } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "success").order("created_at", { ascending: false }).limit(1).maybeSingle();
+
 
       setLogStats({
         sent: totalSent || 0,
         success: totalSuccess || 0,
         failed: totalFailed || 0,
-        lastSent: lastLog?.created_at || null
+        duplicateBlocked: totalDuplicate || 0,
+        notFound: totalNotFound || 0,
+        lastSent: lastLogData?.created_at || null
+
       });
+
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao carregar dados: " + error.message);
@@ -900,6 +910,21 @@ function AutomationsComponent() {
                   <CardTitle className="text-2xl font-bold text-[#EF4444]">{logStats.failed}</CardTitle>
                 </CardHeader>
               </Card>
+              
+              <Card className="bg-[#0F172A] border-amber-500/20 rounded-xl">
+                <CardHeader className="p-3">
+                  <CardDescription className="text-[9px] font-bold uppercase tracking-widest text-amber-500/60">Bloqueios (Duplicidade)</CardDescription>
+                  <CardTitle className="text-xl font-bold text-amber-500">{logStats.duplicateBlocked}</CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="bg-[#0F172A] border-sky-500/20 rounded-xl">
+                <CardHeader className="p-3">
+                  <CardDescription className="text-[9px] font-bold uppercase tracking-widest text-sky-500/60">Não Encontrados</CardDescription>
+                  <CardTitle className="text-xl font-bold text-sky-500">{logStats.notFound}</CardTitle>
+                </CardHeader>
+              </Card>
+
 
               <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -997,8 +1022,28 @@ function AutomationsComponent() {
                         <SelectItem value="pending">Pendentes</SelectItem>
                       </SelectContent>
                     </Select>
+                    </div>
                   </div>
-                </div>
+
+                  <div className="flex items-center gap-2 px-4 pb-4">
+                    <Button
+                      variant={searchTerm === 'source:test_manual' ? 'default' : 'outline'}
+                      size="sm"
+                      className={`rounded-full text-[10px] uppercase font-bold tracking-wider h-8 ${
+                        searchTerm === 'source:test_manual' 
+                        ? 'bg-amber-500 hover:bg-amber-600 text-white' 
+                        : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                      onClick={() => {
+                        setSearchTerm(searchTerm === 'source:test_manual' ? '' : 'source:test_manual');
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <Terminal size={12} className="mr-1.5" />
+                      Apenas Testes Manuais
+                    </Button>
+                  </div>
+
               </CardHeader>
               <CardContent className="p-0">
                     {/* Desktop view for logs (Table) */}

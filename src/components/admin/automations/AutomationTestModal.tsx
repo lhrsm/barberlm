@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info, Zap, Play, Calendar, Send } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info, Zap, Play, Calendar, Send, FileCode, Terminal, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -46,6 +46,10 @@ export function AutomationTestModal({
   const [lastTestResult, setLastTestResult] = useState<any>(null);
   const [isLoadingLastTest, setIsLoadingLastTest] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [debugPayload, setDebugPayload] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
+  const [isLoadingDebug, setIsLoadingDebug] = useState(false);
+
 
 
 
@@ -173,8 +177,42 @@ export function AutomationTestModal({
       if (testType === "real") {
         fetchRealData();
       }
+      setDebugPayload(null);
+      setShowDebug(false);
     }
   }, [isOpen, testType]);
+
+  const fetchDebugPayload = async () => {
+    if (!selectedAppointmentId && testType === "real") {
+      toast.error("Selecione um agendamento para ver o payload.");
+      return;
+    }
+
+    setIsLoadingDebug(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { 
+          tenant_id: automation.tenant_id, 
+          appointment_id: selectedAppointmentId || recentAppointments[0]?.id,
+          dry_run: true 
+        }
+      });
+
+      if (error) throw error;
+      if (data?.results?.[0]?.dry_run) {
+        setDebugPayload(data.results[0].payload);
+        setShowDebug(true);
+      } else {
+        throw new Error("Payload não retornado");
+      }
+    } catch (error: any) {
+      console.error("Debug payload error:", error);
+      toast.error("Erro ao carregar debug: " + error.message);
+    } finally {
+      setIsLoadingDebug(false);
+    }
+  };
+
 
 
   const getTestData = () => {
@@ -252,14 +290,12 @@ export function AutomationTestModal({
     }
 
     setIsTesting(true);
-    const loadingToast = toast.loading("Processando envio de teste...");
+    const loadingToastId = toast.loading("Processando envio de teste...");
 
     try {
       if (testType === "fictitious") {
          if (!phone || phone.length < 10) {
             toast.error("Informe um telefone válido para o teste fictício.");
-            setIsTesting(false);
-            toast.dismiss(loadingToast);
             return;
          }
          
@@ -288,8 +324,6 @@ export function AutomationTestModal({
           });
 
           toast.success("Teste fictício enviado!");
-          toast.dismiss(loadingToast);
-          setIsTesting(false);
           return;
       }
 
@@ -301,8 +335,6 @@ export function AutomationTestModal({
           force_resend: true 
         }
       });
-
-      toast.dismiss(loadingToast);
 
       if (error) {
         throw new Error(`Edge Function Error: ${error.message}`);
@@ -321,7 +353,6 @@ export function AutomationTestModal({
       }
     } catch (error: any) {
       console.error("Test error detail:", error);
-      toast.dismiss(loadingToast);
       toast.error(
         <div className="flex flex-col gap-1">
            <p className="font-bold">Falha no Teste</p>
@@ -330,9 +361,11 @@ export function AutomationTestModal({
         { duration: 6000 }
       );
     } finally {
+      toast.dismiss(loadingToastId);
       setIsTesting(false);
     }
   };
+
 
 
   return (
@@ -437,17 +470,31 @@ export function AutomationTestModal({
                       {renderedTemplate}
                     </div>
                     {testType === "real" && !isLoadingRealData && realData && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-7 text-[9px] text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-slate-900 rounded-lg shrink-0 ml-2 focus-visible:ring-2 focus-visible:ring-amber-500"
-                        onClick={handleSimulateTrigger}
-                        disabled={isSimulating}
-                      >
-                        {isSimulating ? <Loader2 size={10} className="animate-spin mr-1" /> : <Zap size={10} className="mr-1" />}
-                        Simular Gatilho
-                      </Button>
+                      <div className="flex gap-2 shrink-0 ml-2">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-7 text-[9px] text-blue-500 bg-blue-500/10 hover:bg-blue-500 hover:text-white rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500"
+                          onClick={fetchDebugPayload}
+                          disabled={isLoadingDebug}
+                        >
+                          {isLoadingDebug ? <Loader2 size={10} className="animate-spin mr-1" /> : <FileCode size={10} className="mr-1" />}
+                          Debug Payload
+                        </Button>
+
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-7 text-[9px] text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-slate-900 rounded-lg focus-visible:ring-2 focus-visible:ring-amber-500"
+                          onClick={handleSimulateTrigger}
+                          disabled={isSimulating}
+                        >
+                          {isSimulating ? <Loader2 size={10} className="animate-spin mr-1" /> : <Zap size={10} className="mr-1" />}
+                          Simular Gatilho
+                        </Button>
+                      </div>
                     )}
+
                   </div>
 
                   {isLoadingRealData && (
@@ -458,7 +505,27 @@ export function AutomationTestModal({
                 </>
               )}
             </div>
+
+            {showDebug && debugPayload && (
+              <div className="mt-4 animate-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-[10px] font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                    <Terminal size={12} />
+                    Payload JSON (Dry Run)
+                  </h4>
+                  <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => setShowDebug(false)}>
+                    <X size={10} />
+                  </Button>
+                </div>
+                <div className="bg-[#020617] rounded-xl p-4 border border-blue-500/20 max-h-[250px] overflow-auto">
+                  <pre className="text-[10px] text-blue-300 font-mono">
+                    {JSON.stringify(debugPayload, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            )}
           </div>
+
 
 
           {/* Resumo do Último Teste */}

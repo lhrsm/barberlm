@@ -18,9 +18,10 @@ serve(async (req) => {
   );
 
   try {
-    const { tenant_id, appointment_id, force_resend } = await req.json().catch(() => ({}));
+    const { tenant_id, appointment_id, force_resend, dry_run } = await req.json().catch(() => ({}));
     
-    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, force_resend });
+    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, force_resend, dry_run });
+
 
     // 1. Fetch items to process
     let query = supabase
@@ -78,8 +79,9 @@ serve(async (req) => {
 
         // 3. Resolve Professional (Manual Step-by-Step for robustness)
         const profId = appointment.barber_id || appointment.professional_id;
-        let profName = "Profissional não encontrado";
+        let profName = "Profissional";
         let resolvedTable = "none";
+
 
         if (profId) {
             // Try barbers table
@@ -110,18 +112,10 @@ serve(async (req) => {
         const diagInfo = { 
           resolved_table: resolvedTable, 
           prof_id_used: profId,
-          prof_name_found: profName !== "Profissional não encontrado",
+          prof_name_found: profName !== "Profissional",
           origin: force_resend ? 'test_manual' : 'automatic'
         };
 
-        // 5. WhatsApp Instance
-        const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).single();
-        if (!instance) throw new Error("WhatsApp not configured");
-
-        const phone = appointment.customer?.phone;
-        if (!phone) throw new Error("Phone missing");
-
-        // 6. Buttons
         const sendOptions: any = {};
         if (automation.key === 'appointment_confirmation') {
           sendOptions.buttons = [
@@ -131,8 +125,35 @@ serve(async (req) => {
           ];
         }
 
+        // 5. Dry Run exit
+
+        if (dry_run) {
+          results.push({ 
+            id: item.id, 
+            success: true, 
+            dry_run: true,
+            payload: {
+              phone: appointment.customer?.phone,
+              message: renderedTemplate,
+              buttons: sendOptions.buttons,
+              testData,
+              diagnostic: diagInfo
+            }
+          });
+          continue;
+        }
+
+        // 6. WhatsApp Instance
+        const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).single();
+        if (!instance) throw new Error("WhatsApp not configured");
+
+        const phone = appointment.customer?.phone;
+        if (!phone) throw new Error("Phone missing");
+
+        // 7. Buttons
         const sendResult = await sendMessage(instance, phone, renderedTemplate, sendOptions);
         const finalMessageType = (sendOptions.buttons && sendResult.response?.buttonList) ? 'buttons' : 'text_fallback';
+
 
         // 7. Update status and Log
         if (sendResult.success) {
