@@ -290,6 +290,7 @@ serve(async (req) => {
               tenant_id: itemTenantId,
               appointment_id: appointment.id,
               customer_phone: phone,
+              phone: phone,
               workflow_key: automation.key,
               status: "awaiting_response",
               expected_response: "confirmation_options",

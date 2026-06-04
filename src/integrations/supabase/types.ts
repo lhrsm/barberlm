@@ -1049,6 +1049,7 @@ export type Database = {
         Row: {
           appointment_id: string | null
           buttonid: string | null
+          buttonId: string | null
           buttontext: string | null
           created_at: string | null
           fromme: boolean | null
@@ -1063,6 +1064,7 @@ export type Database = {
         Insert: {
           appointment_id?: string | null
           buttonid?: string | null
+          buttonId?: string | null
           buttontext?: string | null
           created_at?: string | null
           fromme?: boolean | null
@@ -1077,6 +1079,7 @@ export type Database = {
         Update: {
           appointment_id?: string | null
           buttonid?: string | null
+          buttonId?: string | null
           buttontext?: string | null
           created_at?: string | null
           fromme?: boolean | null
