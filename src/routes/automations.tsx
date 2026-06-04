@@ -35,7 +35,6 @@ import {
 // Casting to any to bypass type errors for new table
 const anySupabase = supabase as any;
 
-
 export const Route = createFileRoute("/automations")({
   component: AutomationsComponent,
 });
@@ -164,7 +163,6 @@ function AutomationsComponent() {
 
       if (!automation) throw new Error("Automação não encontrada");
 
-      // We reuse the AutomationTestModal logic but simplified here or we can just trigger the send
       const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
         body: {
           action: 'send-test-message',
@@ -403,6 +401,56 @@ function AutomationsComponent() {
           />
         </>
       )}
+
+      <Dialog open={isLogDetailOpen} onOpenChange={setIsLogDetailOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Envio</DialogTitle>
+          </DialogHeader>
+          
+          {selectedLog && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">ID da Automação</p>
+                  <p className="font-mono text-xs">{selectedLog.automation_id}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Status</p>
+                  <Badge variant={selectedLog.status === 'sent' ? 'default' : 'destructive'}>
+                    {selectedLog.status}
+                  </Badge>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium mb-1">Mensagem Processada</p>
+                <div className="bg-slate-50 p-3 rounded-md border text-xs whitespace-pre-wrap italic">
+                  {selectedLog.processed_template || selectedLog.payload?.rendered}
+                </div>
+              </div>
+
+              {selectedLog.error_message && (
+                <div>
+                  <p className="text-sm font-medium text-red-600 mb-1">Erro Completo</p>
+                  <div className="bg-red-50 p-3 rounded-md border border-red-100 text-xs text-red-700 font-mono overflow-x-auto">
+                    {selectedLog.error_message}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className="text-sm font-medium mb-1">Payload / Dados Técnicos</p>
+                <div className="bg-slate-900 p-3 rounded-md text-[10px] text-amber-400 font-mono overflow-x-auto">
+                  <pre>{JSON.stringify(selectedLog.payload || {}, null, 2)}</pre>
+                  <p className="text-slate-400 mt-2">// Resposta da API</p>
+                  <pre>{JSON.stringify(selectedLog.response || {}, null, 2)}</pre>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
