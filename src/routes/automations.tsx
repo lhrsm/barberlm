@@ -270,6 +270,19 @@ function AutomationsComponent() {
 
       setLogs(logsData || []);
       setTotalLogs(count || 0);
+
+      // Fetch global stats for logs
+      const { count: totalSent } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
+      const { count: totalSuccess } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "sent");
+      const { count: totalFailed } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
+      const { data: lastLog } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
+
+      setLogStats({
+        sent: totalSent || 0,
+        success: totalSuccess || 0,
+        failed: totalFailed || 0,
+        lastSent: lastLog?.created_at || null
+      });
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao carregar dados: " + error.message);
