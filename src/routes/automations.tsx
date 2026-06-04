@@ -109,7 +109,7 @@ function AutomationsComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
-  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0, lastUpdate: new Date() });
+  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0, lastUpdate: new Date(), pendingCallbacks: 0 });
   const itemsPerPage = 10;
 
   // Estados Auditoria do Fluxo (Modal)
@@ -296,6 +296,28 @@ function AutomationsComponent() {
       const { data: lastLogData } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "success").order("created_at", { ascending: false }).limit(1).maybeSingle();
 
 
+      // Pending callbacks are 'success' sent messages in the last 24h that don't have a 'button_clicked' action in the same appointment
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: recentSentLogs } = await supabase
+        .from("automation_logs")
+        .select("appointment_id")
+        .eq("tenant_id", tenantId)
+        .eq("status", "success")
+        .eq("message_type", "buttons")
+        .gte("created_at", twentyFourHoursAgo);
+      
+      const { data: recentClickLogs } = await supabase
+        .from("automation_logs")
+        .select("appointment_id")
+        .eq("tenant_id", tenantId)
+        .eq("action", "button_clicked")
+        .gte("created_at", twentyFourHoursAgo);
+
+      const sentIds = new Set(recentSentLogs?.map(l => l.appointment_id) || []);
+      const clickIds = new Set(recentClickLogs?.map(l => l.appointment_id) || []);
+      let pendingCount = 0;
+      sentIds.forEach(id => { if (id && !clickIds.has(id)) pendingCount++; });
+
       setLogStats({
         sent: totalSent || 0,
         success: totalSuccess || 0,
@@ -303,8 +325,10 @@ function AutomationsComponent() {
         duplicateBlocked: totalDuplicate || 0,
         notFound: totalNotFound || 0,
         lastSent: lastLogData?.created_at || null,
-        lastUpdate: new Date()
+        lastUpdate: new Date(),
+        pendingCallbacks: pendingCount
       });
+
 
 
     } catch (error: any) {
@@ -438,6 +462,62 @@ function AutomationsComponent() {
     }
   }, [isLogDetailOpen, selectedLog, auditPage, auditFilterType, auditSearchTerm]);
 
+  const handleExportLogs = async (format: 'csv' | 'json') => {
+    setLoading(true);
+    try {
+      const { data: exportData, error } = await supabase
+        .from("automation_logs")
+        .select("*")
+        .eq("tenant_id", tenantId || "")
+        .order("created_at", { ascending: false })
+        .limit(1000);
+
+      if (error) throw error;
+      if (!exportData || exportData.length === 0) {
+        toast.error("Nenhum registro para exportar.");
+        return;
+      }
+
+      if (format === 'json') {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `automations_export_${new Date().toISOString()}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      } else {
+        const headers = ["ID", "Data/Hora (SP)", "Appointment ID", "Phone", "Status", "Provider", "Message ID", "Tipo"];
+        const rows = exportData.map(l => [
+          l.id.toString(),
+          new Date(l.created_at || Date.now()).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+          l.appointment_id || "",
+          l.phone || "",
+          l.status || "",
+          l.provider || "",
+          l.provider_message_id || "",
+          l.message_type || ""
+        ]);
+        
+        const csvContent = "\uFEFF" + headers.join(",") + "\n" + rows.map(e => e.map(cell => `"${cell}"`).join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `automations_export_${new Date().toISOString()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+      toast.success(`Exportação concluída em ${format.toUpperCase()}`);
+    } catch (error: any) {
+      toast.error("Erro ao exportar: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const handleExportAudit = (log: any, format: 'csv' | 'json') => {
     if (!auditLogs.length) return;
     
@@ -449,6 +529,7 @@ function AutomationsComponent() {
       document.body.appendChild(downloadAnchorNode);
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
+
     } else {
       const headers = ["ID", "Data", "Status", "Tipo", "Telefone", "Erro"];
       const rows = auditLogs.map(l => [
@@ -1035,24 +1116,50 @@ function AutomationsComponent() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 px-4 pb-4">
-                    <Button
-                      variant={searchTerm === 'source:test_manual' ? 'default' : 'outline'}
-                      size="sm"
-                      className={`rounded-full text-[10px] uppercase font-bold tracking-wider h-8 ${
-                        searchTerm === 'source:test_manual' 
-                        ? 'bg-amber-500 hover:bg-amber-600 text-white' 
-                        : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
-                      }`}
-                      onClick={() => {
-                        setSearchTerm(searchTerm === 'source:test_manual' ? '' : 'source:test_manual');
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <Terminal size={12} className="mr-1.5" />
-                      Apenas Testes Manuais
-                    </Button>
+                  <div className="flex items-center justify-between px-4 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant={searchTerm === 'source:test_manual' ? 'default' : 'outline'}
+                        size="sm"
+                        className={`rounded-full text-[10px] uppercase font-bold tracking-wider h-8 ${
+                          searchTerm === 'source:test_manual' 
+                          ? 'bg-amber-500 hover:bg-amber-600 text-white' 
+                          : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                        }`}
+                        onClick={() => {
+                          setSearchTerm(searchTerm === 'source:test_manual' ? '' : 'source:test_manual');
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <Terminal size={12} className="mr-1.5" />
+                        Apenas Testes Manuais
+                      </Button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full text-[10px] uppercase font-bold tracking-wider h-8 border-white/5 hover:bg-white/5 text-slate-400 hover:text-white"
+                        onClick={() => handleExportLogs('csv')}
+                        disabled={loading}
+                      >
+                        <FileCode size={12} className="mr-1.5" />
+                        Exportar CSV
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full text-[10px] uppercase font-bold tracking-wider h-8 border-white/5 hover:bg-white/5 text-slate-400 hover:text-white"
+                        onClick={() => handleExportLogs('json')}
+                        disabled={loading}
+                      >
+                        <Copy size={12} className="mr-1.5" />
+                        Exportar JSON
+                      </Button>
+                    </div>
                   </div>
+
 
               </CardHeader>
               <CardContent className="p-0">
