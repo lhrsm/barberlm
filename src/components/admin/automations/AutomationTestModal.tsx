@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info, Zap, Play, Calendar, Send } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info, Zap, Play, Calendar, Send, FileCode, Terminal, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
