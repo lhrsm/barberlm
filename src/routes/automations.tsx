@@ -829,17 +829,27 @@ function AutomationsComponent() {
                     <div className="absolute top-4 left-0 right-0 h-[2px] bg-slate-800 -z-0" />
                     
                     {[
-                      { label: "Evento Criado", status: "done" },
-                      { label: "Inserido na Fila", status: "done" },
-                      { label: "Processado", status: "done" },
-                      { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error" },
-                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending" },
-                      { label: "Lida", status: "pending" },
-                      { label: "Resposta", status: "pending" },
-                      { label: "Ação", status: "pending" },
-                      { label: "Finalizado", status: "pending" }
+                      { label: "Evento Criado", status: "done", id: 1 },
+                      { label: "Inserido na Fila", status: "done", id: 2 },
+                      { label: "Processado", status: "done", id: 3 },
+                      { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error", id: 4 },
+                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending", id: 5 },
+                      { label: "Lida", status: "pending", id: 6 },
+                      { label: "Resposta", status: "pending", id: 7 },
+                      { label: "Ação", status: "pending", id: 8 },
+                      { label: "Finalizado", status: "pending", id: 9 }
                     ].map((step, idx) => (
-                      <div key={idx} className="flex flex-col items-center gap-3 relative z-10 px-2 text-center max-w-[100px]">
+                      <button 
+                        key={idx} 
+                        onClick={() => {
+                          if (step.id <= 5) {
+                            setExpandedStep(step.id);
+                            const element = document.getElementById('audit-section');
+                            element?.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                        className={`flex flex-col items-center gap-3 relative z-10 px-2 text-center max-w-[100px] transition-transform hover:scale-110 focus:outline-none ${step.id <= 5 ? 'cursor-pointer' : 'cursor-default'}`}
+                      >
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center border-4 border-[#0F172A] shadow-lg ${
                           step.status === 'done' ? 'bg-[#10B981]' : 
                           step.status === 'current' ? 'bg-amber-500' : 
@@ -857,21 +867,29 @@ function AutomationsComponent() {
                         }`}>
                           {step.label}
                         </span>
-                      </div>
+                      </button>
                     ))}
                   </div>
 
                   {/* Mobile Vertical Timeline */}
                   <div className="lg:hidden space-y-4">
                     {[
-                      { label: "Evento Criado", status: "done", time: "10:30:05" },
-                      { label: "Inserido na Fila", status: "done", time: "10:30:06" },
-                      { label: "Processado", status: "done", time: "10:30:07" },
-                      { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error", time: "10:30:08" },
-                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending" },
+                      { label: "Evento Criado", status: "done", time: "10:30:05", id: 1 },
+                      { label: "Inserido na Fila", status: "done", time: "10:30:06", id: 2 },
+                      { label: "Processado", status: "done", time: "10:30:07", id: 3 },
+                      { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error", time: "10:30:08", id: 4 },
+                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending", id: 5 },
                     ].map((step, idx) => (
-                      <div key={idx} className="flex items-center gap-4">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      <button 
+                        key={idx} 
+                        onClick={() => {
+                          setExpandedStep(step.id);
+                          const element = document.getElementById('audit-section');
+                          element?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="flex items-center gap-4 w-full text-left transition-colors hover:bg-white/5 p-2 rounded-xl focus:outline-none"
+                      >
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
                           step.status === 'done' ? 'bg-[#10B981]' : 
                           step.status === 'current' ? 'bg-amber-500' : 
                           step.status === 'error' ? 'bg-rose-500' : 'bg-slate-700'
@@ -882,9 +900,11 @@ function AutomationsComponent() {
                           {step.status === 'pending' && <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />}
                         </div>
                         <div className="flex-1">
-                          <p className={`text-xs font-bold ${step.status === 'done' ? 'text-[#10B981]' : 'text-slate-400'}`}>{step.label}</p>
+                          <p className={`text-xs font-bold ${step.status === 'done' ? 'text-[#10B981]' : step.status === 'current' ? 'text-amber-500' : 'text-slate-400'}`}>{step.label}</p>
+                          {step.time && <p className="text-[10px] text-slate-500">{step.time}</p>}
                         </div>
-                      </div>
+                        <ChevronRight size={14} className="text-slate-600" />
+                      </button>
                     ))}
                   </div>
                 </div>
