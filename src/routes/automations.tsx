@@ -129,13 +129,19 @@ function AutomationsComponent() {
 
       setAutomations(automationsData || []);
 
-      // 3. Fetch logs
-      const { data: logsData } = await supabase
+      // 3. Fetch logs with filtering
+      let query = supabase
         .from("automation_logs")
         .select("*")
-        .eq("tenant_id", tenantId)
+        .eq("tenant_id", tenantId);
+        
+      if (filterStatus !== "all") {
+        query = query.eq("status", filterStatus);
+      }
+      
+      const { data: logsData } = await query
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
 
       setLogs(logsData || []);
     } catch (error: any) {
