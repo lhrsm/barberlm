@@ -84,7 +84,7 @@ serve(async (req) => {
           .from("automation_logs")
           .select(`
             *,
-            appointment:appointments(*)
+            appointment:appointments(*, service:services(name))
           `)
           .eq("provider_message_id", referenceId)
           .order('created_at', { ascending: false })
