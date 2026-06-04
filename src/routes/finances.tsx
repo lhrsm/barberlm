@@ -242,12 +242,12 @@ function FinancesComponent() {
         let creditedAmount = 0;
         let cashbackUsedAmount = 0;
         
-        if (t.description?.includes("Abatimento Créditos: R$")) {
-          const match = t.description?.match(/Abatimento Créditos: R\$\s*([\d.]+)/);
+        if (t.description?.includes("Créditos: R$")) {
+          const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
           creditedAmount = match ? parseFloat(match[1]) : 0;
         }
-        if (t.description?.includes("Abatimento Cashback: R$")) {
-          const match = t.description?.match(/Abatimento Cashback: R\$\s*([\d.]+)/);
+        if (t.description?.includes("Cashback: R$")) {
+          const match = t.description?.match(/Cashback: R\$\s*([\d.]+)/);
           cashbackUsedAmount = match ? parseFloat(match[1]) : 0;
         }
         return tAcc + val + creditedAmount + cashbackUsedAmount;
