@@ -141,12 +141,20 @@ serve(async (req) => {
     }
 
     // NORMALIZAÇÃO DO TEXTO PARA TRATAMENTO SEM BOTÕES
-    const normalizedText = buttonText.toLowerCase().trim();
-    const isConfirm = buttonId === "main_confirm" || 
-                      ["1", "confirmar", "confirmar agendamento"].includes(normalizedText);
+    const normalizedText = buttonText.toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+      .trim();
 
-    if (isConfirm) {
-      console.log(`[Webhook] Confirmation action detected`);
+    const isConfirm = buttonId === "main_confirm" || 
+                      ["1", "confirmar", "confirmar agendamento", "1 confirmo", "confirmo"].includes(normalizedText);
+    const isReschedule = buttonId === "main_reschedule" || 
+                         ["2", "reagendar", "2 reagendar"].includes(normalizedText);
+    const isCancel = buttonId === "main_cancel" || 
+                     ["3", "cancelar", "3 cancelar"].includes(normalizedText);
+
+    if (isConfirm || isReschedule || isCancel) {
+      console.log(`[Webhook] Action detected: ${isConfirm ? 'confirm' : isReschedule ? 'reschedule' : 'cancel'}`);
       
       let appointmentId = null;
       let tenantId = null;
