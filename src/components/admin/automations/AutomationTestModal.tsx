@@ -258,16 +258,17 @@ export function AutomationTestModal({
     }
 
     setIsTesting(true);
-    toast.loading("Processando envio de teste...");
+    const loadingToast = toast.loading("Processando envio de teste...");
 
     try {
       if (testType === "fictitious") {
          if (!phone || phone.length < 10) {
             toast.error("Informe um telefone válido para o teste fictício.");
             setIsTesting(false);
+            toast.dismiss(loadingToast);
             return;
          }
-         // Custom handling for fictitious send (calling direct zapi-api for mock data)
+         
          const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
             body: {
               action: 'send-test-message',
@@ -275,9 +276,9 @@ export function AutomationTestModal({
               data: { phone, message: renderedTemplate }
             }
           });
+          
           if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro no provedor");
           
-          // Log fictitious test manually since it doesn't go through the queue
           await (supabase as any).from("automation_logs").insert({
             automation_id: automation.id,
             tenant_id: automation.tenant_id,
@@ -293,11 +294,12 @@ export function AutomationTestModal({
           });
 
           toast.success("Teste fictício enviado!");
+          toast.dismiss(loadingToast);
           setIsTesting(false);
           return;
       }
 
-      // Use the unified logic for real appointment data
+      // Real appointment test
       const { data, error } = await supabase.functions.invoke('process-automation-queue', {
         body: { 
           tenant_id: automation.tenant_id, 
@@ -306,17 +308,33 @@ export function AutomationTestModal({
         }
       });
 
-      if (error) throw error;
+      toast.dismiss(loadingToast);
+
+      if (error) {
+        throw new Error(`Edge Function Error: ${error.message}`);
+      }
 
       if (data?.success) {
-        toast.success("Teste enviado com sucesso!");
-        fetchLastTestResult();
+        const itemResult = data.results?.[0];
+        if (itemResult?.success) {
+           toast.success("Teste enviado com sucesso!");
+           fetchLastTestResult();
+        } else {
+           throw new Error(itemResult?.error || data.message || "Falha no disparo");
+        }
       } else {
-        throw new Error(data?.error || "Falha no processamento");
+        throw new Error(data?.error || "Falha no processamento da função");
       }
     } catch (error: any) {
-      console.error("Test error:", error);
-      toast.error("Erro ao enviar teste: " + error.message);
+      console.error("Test error detail:", error);
+      toast.dismiss(loadingToast);
+      toast.error(
+        <div className="flex flex-col gap-1">
+           <p className="font-bold">Falha no Teste</p>
+           <p className="text-[10px] opacity-80">{error.message}</p>
+        </div>,
+        { duration: 6000 }
+      );
     } finally {
       setIsTesting(false);
     }
