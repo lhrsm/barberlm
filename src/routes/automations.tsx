@@ -355,6 +355,9 @@ function AutomationsComponent() {
   const getAuditSteps = (log: any) => {
     if (!log) return [];
     
+    // Check if it's a diagnostic log (pending status with diagnostic field)
+    const isDiagnostic = log.status === 'pending' && log.payload?.diagnostic;
+    
     const steps = [
       { 
         id: 1,
@@ -372,9 +375,12 @@ function AutomationsComponent() {
         type: 'queue',
         result: 'sucesso',
         status: 'done',
-        payload: { queue_id: log.id, priority: 'high' }
-      },
-      { 
+        payload: { queue_id: log.id, priority: 'high', diagnostic: log.payload?.diagnostic }
+      }
+    ];
+
+    if (log.status !== 'pending' || !isDiagnostic) {
+      steps.push({ 
         id: 3,
         time: new Date(new Date(log.created_at).getTime() + 2000).toLocaleTimeString(), 
         event: 'process.automation', 
@@ -382,8 +388,9 @@ function AutomationsComponent() {
         result: 'sucesso',
         status: 'done',
         payload: { automation_key: log.message_type, provider_message_id: log.response?.messageId || log.response?.id }
-      },
-      { 
+      });
+      
+      steps.push({ 
         id: 4,
         time: new Date(new Date(log.created_at).getTime() + 3000).toLocaleTimeString(), 
         event: 'send.whatsapp', 
@@ -391,19 +398,19 @@ function AutomationsComponent() {
         result: log.status === 'sent' ? 'sucesso' : 'falha',
         status: log.status === 'sent' ? 'done' : 'error',
         payload: log.response || { error: log.error_message, message_id: log.id }
-      }
-    ];
-
-    if (log.status === 'sent') {
-      steps.push({
-        id: 5,
-        time: new Date(new Date(log.created_at).getTime() + 5000).toLocaleTimeString(),
-        event: 'message.delivery',
-        type: 'delivery',
-        result: 'entregue',
-        status: 'done',
-        payload: { provider: 'zapi', status: 'delivered', provider_message_id: log.response?.messageId || log.response?.id }
       });
+
+      if (log.status === 'sent') {
+        steps.push({
+          id: 5,
+          time: new Date(new Date(log.created_at).getTime() + 5000).toLocaleTimeString(),
+          event: 'message.delivery',
+          type: 'delivery',
+          result: 'entregue',
+          status: 'done',
+          payload: { provider: 'zapi', status: 'delivered', provider_message_id: log.response?.messageId || log.response?.id }
+        });
+      }
     }
 
     if (log.status === 'error' && log.error_message?.toLowerCase().includes('timeout')) {
@@ -426,6 +433,7 @@ function AutomationsComponent() {
       return matchType && matchSearch;
     });
   };
+
 
   const handleExportAudit = (log: any, format: 'csv' | 'json') => {
     const steps = getAuditSteps(log);
