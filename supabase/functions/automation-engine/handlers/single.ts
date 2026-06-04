@@ -117,7 +117,7 @@ Seu agendamento na {barbershop_name} foi realizado com sucesso.
     queue_id: item.id,
     flow_type: FLOW_TYPES.SINGLE,
     current_step_after: AUTOMATION_STATES.SINGLE_AWAITING_MAIN_ACTION,
-    action: "initial_message_sent",
+    action: "initial_single_message_sent",
     status: result.success ? "success" : "error",
     message: result.success ? "Mensagem inicial enviada (Single)" : `Erro Z-API: ${result.error}`,
     appointments_found: 1,

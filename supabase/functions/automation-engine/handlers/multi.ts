@@ -39,8 +39,8 @@ export async function processMultiAppointmentAutomation(supabase: any, item: any
     message: `Fluxo Múltiplo ignorado (Desabilitado Temporariamente). Encontrados ${appointmentsCount} agendamentos.`,
     appointments_found: appointmentsCount,
     appointment_group_id: groupId,
-    flow_type_selected: 'multi',
-    reason_selected: 'group_contains_multiple_appointments'
+    flow_type_selected: appointmentsCount > 1 ? 'multi' : 'single',
+    reason_selected: appointmentsCount > 1 ? 'group_contains_multiple_appointments' : 'group_contains_one_appointment'
   });
 
   // Retornar sucesso para não deixar o item travado na fila como erro,

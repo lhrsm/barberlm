@@ -61,6 +61,35 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         }).eq("id", item.id);
 
+        // 2. Flow Detection Logic (Mandatory override)
+        // Rule: Only use the count of appointments in the group_id
+        const groupId = item.appointment_group_id;
+        let appointmentsFound = 0;
+        
+        if (groupId) {
+          const { count, error: countError } = await supabase
+            .from("appointments")
+            .select("*", { count: "exact", head: true })
+            .eq("appointment_group_id", groupId);
+          
+          if (!countError) {
+            appointmentsFound = count || 0;
+          }
+        } else if (item.appointment_id) {
+          appointmentsFound = 1;
+        }
+
+        const flowTypeSelected = appointmentsFound > 1 ? FLOW_TYPES.MULTI : FLOW_TYPES.SINGLE;
+        const reasonSelected = appointmentsFound > 1 ? 'group_contains_multiple_appointments' : 'group_contains_one_appointment';
+
+        console.log(`[AutomationEngine] Item ${item.id}: Group ${groupId}, Found ${appointmentsFound}, Selected ${flowTypeSelected}`);
+
+        // Update item in memory and in DB for UI consistency
+        item.flow_type = flowTypeSelected;
+        await supabase.from("automation_queue")
+          .update({ flow_type: flowTypeSelected })
+          .eq("id", item.id);
+
         let result;
         if (item.flow_type === FLOW_TYPES.MULTI) {
           result = await processMultiAppointmentAutomation(supabase, item, item.automation_workflows);
