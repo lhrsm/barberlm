@@ -127,8 +127,8 @@ export function AutomationTestModal({
           <Button variant="outline" onClick={onClose} disabled={isTesting}>
             Cancelar
           </Button>
-          <Button onClick={handleTest} loading={isTesting}>
-            Enviar Teste
+          <Button onClick={handleTest} disabled={isTesting}>
+            {isTesting ? "Enviando..." : "Enviar Teste"}
           </Button>
         </DialogFooter>
       </DialogContent>
