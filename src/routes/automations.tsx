@@ -589,6 +589,33 @@ function AutomationsComponent() {
                     </div>
                   )}
                 </div>
+                {totalLogs > itemsPerPage && (
+                  <div className="flex items-center justify-between mt-4 px-1">
+                    <p className="text-xs text-slate-400">
+                      Mostrando <span className="text-white font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="text-white font-medium">{Math.min(currentPage * itemsPerPage, totalLogs)}</span> de <span className="text-white font-medium">{totalLogs}</span> registros
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-8 px-3"
+                      >
+                        <ChevronLeft size={14} className="mr-1" /> Anterior
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage * itemsPerPage >= totalLogs}
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-8 px-3"
+                      >
+                        Próximo <ChevronRight size={14} className="ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
