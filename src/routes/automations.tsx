@@ -1001,9 +1001,15 @@ function AutomationsComponent() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-sm font-semibold text-slate-300">
-                              {log.message_type === 'appointment_confirmation' ? 'Confirmação' : 'Automação'}
-                            </span>
+                            <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border-white/10 ${
+                              log.message_type === 'buttons' ? 'text-sky-400 bg-sky-500/5' : 
+                              log.message_type === 'text_fallback' ? 'text-amber-400 bg-amber-500/5' : 
+                              'text-slate-300 bg-white/5'
+                            }`}>
+                              {log.message_type === 'buttons' ? 'Botões' : 
+                               log.message_type === 'text_fallback' ? 'Texto' : 
+                               'Confirmação'}
+                            </Badge>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
