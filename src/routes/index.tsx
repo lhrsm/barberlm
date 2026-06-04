@@ -28,7 +28,8 @@ import {
   LayoutDashboard,
   Megaphone,
   CreditCard,
-  Briefcase
+  Briefcase,
+  Menu
 } from "lucide-react";
 import {
   Accordion,
