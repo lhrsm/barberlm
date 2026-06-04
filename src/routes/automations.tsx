@@ -29,7 +29,16 @@ import {
   Filter,
   Calendar as CalendarIcon,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Send,
+  Smartphone,
+  Check,
+  CheckCheck,
+  FileCode,
+  Terminal,
+  Activity,
+  ArrowRight,
+  X
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
