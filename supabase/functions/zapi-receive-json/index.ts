@@ -77,6 +77,10 @@ serve(async (req) => {
 
   if (webhookLogError) console.error("[Webhook] Error saving webhook log:", webhookLogError);
 
+  // PROCESS CALLBACK
+  if (type === "ReceivedCallback" && !fromMe) {
+    console.log(`[Webhook] Processing callback for ${phone}. ButtonId: ${buttonId}, Ref: ${referenceId}`);
+
     // REGISTRAR CLIQUE (Geral)
     if (buttonId || buttonText) {
       // Find appointment context first to enrich the click log if possible
