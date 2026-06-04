@@ -241,7 +241,7 @@ serve(async (req) => {
           }
         }
 
-        const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appointment?.start_time)}\n⏰ ${formatBrazilTime(appointment?.start_time)}\n💈 ${profName}\n✂️ ${appointment?.service_name || "Serviço"}`;
+        const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appointment?.start_time)}\n⏰ ${formatBrazilTime(appointment?.start_time)}\n💈 ${profName}\n✂️ ${appointment?.service?.name || "Serviço"}`;
         
         let zapiResponse = null;
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
