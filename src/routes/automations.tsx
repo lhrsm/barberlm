@@ -1123,6 +1123,46 @@ function AutomationsComponent() {
                   </CardTitle>
                 </CardHeader>
               </Card>
+
+              <Card className={`bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative ${logStats.pendingCallbacks > (reconciliationSettings?.pending_callback_alert_threshold || 10) ? 'border-rose-500/50 animate-pulse' : ''}`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <AlertTriangle size={40} className="text-amber-500" />
+                </div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Callbacks Pendentes</CardDescription>
+                    {logStats.pendingCallbacks > (reconciliationSettings?.pending_callback_alert_threshold || 10) && (
+                      <Badge className="bg-rose-500 text-white text-[8px] h-4">ALERTA</Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-2xl font-bold text-amber-500">{logStats.pendingCallbacks}</CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className={`bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative ${logStats.notFound > (reconciliationSettings?.not_found_alert_threshold || 5) ? 'border-rose-500/50 animate-pulse' : ''}`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Search size={40} className="text-sky-500" />
+                </div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Agendamentos N/F</CardDescription>
+                    {logStats.notFound > (reconciliationSettings?.not_found_alert_threshold || 5) && (
+                      <Badge className="bg-rose-500 text-white text-[8px] h-4">ALERTA</Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-2xl font-bold text-sky-500">{logStats.notFound}</CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative cursor-pointer hover:border-emerald-500/30 transition-all" onClick={() => { setIsWebhookLogsOpen(true); fetchWebhookLogs(); }}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Terminal size={40} className="text-emerald-500" />
+                </div>
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Logs Webhook</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-emerald-500">{webhookLogs.length || 0}</CardTitle>
+                </CardHeader>
+              </Card>
             </div>
 
             <Card className="bg-[#020817] border-white/5 shadow-2xl rounded-[24px] overflow-hidden">
