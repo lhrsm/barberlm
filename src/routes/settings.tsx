@@ -148,6 +148,7 @@ function SettingsComponent() {
           primary_color: profile.primary_color || "#7c3aed",
           secondary_color: profile.secondary_color || "#f4f4f5",
           logo_url: profile.logo_url || "",
+          barbershop_logo_url: profile.barbershop_logo_url || "",
           cashback_enabled: profile.cashback_enabled || false,
           cashback_percentage: profile.cashback_percentage || 0,
           free_service_threshold: profile.free_service_threshold || 10,
@@ -210,6 +211,7 @@ function SettingsComponent() {
         primary_color: updatedData.primary_color,
         secondary_color: updatedData.secondary_color,
         logo_url: updatedData.logo_url,
+        barbershop_logo_url: updatedData.barbershop_logo_url,
         cashback_enabled: updatedData.cashback_enabled,
         cashback_percentage: updatedData.cashback_percentage,
         free_service_threshold: updatedData.free_service_threshold,
@@ -398,7 +400,45 @@ function SettingsComponent() {
                     {isSyncing ? "Sincronizando..." : "Sincronizar"}
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
+                  <div className="flex flex-col items-center gap-4 py-4 border-b border-slate-100 mb-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Logo da Barbearia</p>
+                    <div className="h-32 w-full max-w-[200px] rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group">
+                      {formData.barbershop_logo_url ? (
+                        <img src={formData.barbershop_logo_url} alt="Logo" className="h-full w-full object-contain p-2" />
+                      ) : (
+                        <div className="text-center p-4">
+                          <ImageIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                          <p className="text-[10px] text-slate-400 font-bold">SEM LOGO</p>
+                        </div>
+                      )}
+                      <Input 
+                        type="file" 
+                        accept="image/*"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !user) return;
+                          try {
+                            setSaving(true);
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `${user.id}-logo-${Date.now()}.${fileExt}`;
+                            const { error: uploadError } = await supabase.storage.from('barber-avatars').upload(fileName, file);
+                            if (uploadError) throw uploadError;
+                            const { data: { publicUrl } } = supabase.storage.from('barber-avatars').getPublicUrl(fileName);
+                            setFormData({ ...formData, barbershop_logo_url: publicUrl });
+                            toast.success("Logo atualizada!");
+                          } catch (error: any) {
+                            toast.error("Erro: " + error.message);
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground text-center max-w-[250px]">Recomendamos uma imagem com fundo transparente (PNG) ou fundo sólido contrastante.</p>
+                  </div>
+
                   <div className="grid gap-2">
                     <Label htmlFor="business_name">Nome da Barbearia</Label>
                     <Input 
