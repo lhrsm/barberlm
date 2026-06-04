@@ -28,7 +28,6 @@ serve(async (req) => {
         appointment:appointments(
           *,
           customer:customers(name, phone),
-          barber:profiles!appointments_barber_id_fkey(full_name),
           service:services(name, price)
         )
       `)
