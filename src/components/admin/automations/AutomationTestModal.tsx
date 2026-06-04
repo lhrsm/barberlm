@@ -245,7 +245,27 @@ export function AutomationTestModal({
     toast.loading("Processando envio de teste...");
 
     try {
-      // Use the same unified function (edge function) for both manual and automatic tests
+      if (testType === "fictitious") {
+         if (!phone || phone.length < 10) {
+            toast.error("Informe um telefone válido para o teste fictício.");
+            setIsTesting(false);
+            return;
+         }
+         // Custom handling for fictitious send (calling direct zapi-api for mock data)
+         const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
+            body: {
+              action: 'send-test-message',
+              instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', automation.tenant_id).single()).data?.id,
+              data: { phone, message: renderedTemplate }
+            }
+          });
+          if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro no provedor");
+          toast.success("Teste fictício enviado!");
+          setIsTesting(false);
+          return;
+      }
+
+      // Use the unified logic for real appointment data
       const { data, error } = await supabase.functions.invoke('process-automation-queue', {
         body: { 
           tenant_id: automation.tenant_id, 
