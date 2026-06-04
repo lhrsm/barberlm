@@ -594,7 +594,7 @@ function DashboardComponent() {
 
     // Cálculos Mensais
     const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.total_price || curr.original_total || 0), 0) || 0;
-    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + (Number(curr.credit_used || 0) + Number(curr.credits_used || 0)), 0) || 0;
     const monthlyCashbackUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_used || 0), 0) || 0;
     const monthlyCashbackEarned = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const monthlyCashInflow = calculateCashInflow(monthlyTrans.data);
