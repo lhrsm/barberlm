@@ -17,7 +17,9 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
+import { triggerAutomation } from "@/utils/automation";
 import { normalizePhone } from "@/utils/phone";
+
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
 
@@ -1071,27 +1073,17 @@ function ShopPageComponent() {
         });
       }
 
-      // 5. Trigger Automation System
+      // 5. Trigger Automation System (New V2)
       if (createdAppointments.length > 0) {
-        if (appointmentGroupId) {
-          // If multiple appointments, trigger once for the group
-          supabase.functions.invoke('run-automations', {
-            body: { 
-              tenantId: shop.id, 
-              appointmentGroupId: appointmentGroupId 
-            }
-          }).catch(err => console.error("Error triggering automation for group:", err));
-        } else {
-          // Fallback for single appointment if groupId is missing
-          const appt = createdAppointments[0];
-          supabase.functions.invoke('run-automations', {
-            body: { 
-              tenantId: shop.id, 
-              appointmentId: appt.id 
-            }
+        for (const appt of createdAppointments) {
+          triggerAutomation({
+            tenant_id: shop.id,
+            event_name: 'appointment.created',
+            appointment_id: appt.id
           }).catch(err => console.error("Error triggering automation:", err));
         }
       }
+
 
       toast.success("Agendamentos realizados com sucesso!");
       
