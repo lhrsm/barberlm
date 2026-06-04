@@ -860,6 +860,76 @@ export type Database = {
           },
         ]
       }
+      automation_send_history: {
+        Row: {
+          appointment_id: string | null
+          automation_name: string | null
+          channel: string | null
+          created_at: string
+          event_name: string | null
+          id: string
+          payload: Json | null
+          phone: string | null
+          provider_message_id: string | null
+          source: string | null
+          status: string | null
+          tenant_id: string | null
+          zapi_response: Json | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          automation_name?: string | null
+          channel?: string | null
+          created_at?: string
+          event_name?: string | null
+          id?: string
+          payload?: Json | null
+          phone?: string | null
+          provider_message_id?: string | null
+          source?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          zapi_response?: Json | null
+        }
+        Update: {
+          appointment_id?: string | null
+          automation_name?: string | null
+          channel?: string | null
+          created_at?: string
+          event_name?: string | null
+          id?: string
+          payload?: Json | null
+          phone?: string | null
+          provider_message_id?: string | null
+          source?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          zapi_response?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_send_history_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_send_history_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "automation_send_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_status: {
         Row: {
           id: string

@@ -64,7 +64,29 @@ serve(async (req) => {
   });
 
   // NEW: Save to automation_webhook_logs as requested
+  // We try to find tenant_id by phone if not explicitly provided
+  let resolvedTenantId = null;
+  let resolvedAppointmentId = null;
+
+  if (phone) {
+    // Search in instances to find which tenant owns this phone's target (if applicable) or just use latest log
+    const { data: latestLog } = await supabase
+      .from("automation_logs")
+      .select("tenant_id, appointment_id")
+      .eq("phone", phone)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (latestLog) {
+      resolvedTenantId = latestLog.tenant_id;
+      resolvedAppointmentId = latestLog.appointment_id;
+    }
+  }
+
   const { data: webhookLog, error: webhookLogError } = await supabase.from("automation_webhook_logs").insert({
+    tenant_id: resolvedTenantId,
+    appointment_id: resolvedAppointmentId,
     raw_payload: body,
     type,
     fromMe,

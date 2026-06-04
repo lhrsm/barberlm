@@ -309,6 +309,18 @@ export function AutomationTestModal({
           
           if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro no provedor");
           
+          await (supabase as any).from("automation_send_history").insert({
+            tenant_id: automation.tenant_id,
+            automation_name: automation.name,
+            event_name: 'test_manual',
+            source: 'test_manual',
+            channel: 'whatsapp',
+            phone: phone,
+            status: "sent",
+            payload: { test_data: testData, rendered: renderedTemplate, test_type: "fictitious" },
+            zapi_response: zapiData?.result
+          });
+
           await (supabase as any).from("automation_logs").insert({
             automation_id: automation.id,
             tenant_id: automation.tenant_id,

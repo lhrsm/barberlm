@@ -163,14 +163,33 @@ serve(async (req) => {
 
         // 7. Update status and Log
         if (sendResult.success) {
-          await supabase.from("automation_queue").update({ status: "success", attempts: (item.attempts || 0) + 1, updated_at: new Date().toISOString() }).eq("id", item.id);
-          
           const providerMessageId = sendResult.response?.messageId || sendResult.response?.id;
           const zaapId = sendResult.response?.zaapId;
 
+          // REGISTRO IMEDIATO DO ENVIO (Tabela nova conforme pedido)
+          await supabase.from("automation_send_history").insert({
+            tenant_id: itemTenantId,
+            appointment_id: appointment.id,
+            automation_name: automation.name,
+            event_name: automation.trigger_event,
+            source: force_resend ? 'test_manual' : 'automatic',
+            channel: 'whatsapp',
+            phone: phone,
+            status: "sent",
+            provider_message_id: providerMessageId,
+            payload: { 
+              data: testData, 
+              diagnostic: diagInfo, 
+              buttons_attached: !!sendOptions.buttons,
+              rendered_message: renderedTemplate
+            },
+            zapi_response: sendResult.response
+          });
+
+          await supabase.from("automation_queue").update({ status: "success", attempts: (item.attempts || 0) + 1, updated_at: new Date().toISOString() }).eq("id", item.id);
+          
           if (!providerMessageId) {
              console.error(`[ProcessQueue] CRITICAL: Z-API returned success but no messageId for item ${item.id}`, sendResult.response);
-             // Still record log but mark with error about missing ID
              await supabase.from("automation_logs").insert({
                automation_id: automation.id,
                tenant_id: itemTenantId,
@@ -183,7 +202,7 @@ serve(async (req) => {
              continue;
           }
 
-          // REGISTRO IMEDIATO DO ENVIO
+          // REGISTRO NO LOG DE FLUXO (Mantendo compatibilidade)
           await supabase.from("automation_logs").insert({
             automation_id: automation.id,
             tenant_id: itemTenantId,
