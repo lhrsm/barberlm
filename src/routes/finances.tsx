@@ -703,12 +703,18 @@ function FinancesComponent() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <span className="text-xs font-medium uppercase">
-                            {t.appointment?.payment_method === 'pix' ? 'PIX' : 
-                             t.appointment?.payment_method === 'credits' ? 'Créditos' : 
-                             t.appointment?.payment_method === 'cashback' ? 'Cashback' : 
-                             t.appointment?.payment_method || '-'}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="w-fit">PIX</Badge>}
+                            {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="w-fit">Créditos</Badge>}
+                            {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="w-fit">Cashback</Badge>}
+                            {(t.appointment?.credit_used > 0 || t.appointment?.credits_used > 0) && (
+                              <span className="text-[10px] text-purple-600 font-bold">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)).toFixed(2)}</span>
+                            )}
+                            {t.appointment?.cashback_used > 0 && (
+                              <span className="text-[10px] text-orange-600 font-bold">Cashback: R$ {Number(t.appointment?.cashback_used).toFixed(2)}</span>
+                            )}
+                            {!t.appointment && <span className="text-xs uppercase font-medium">{t.payment_method || '-'}</span>}
+                          </div>
                         </TableCell>
                         <TableCell>{t.category || "-"}</TableCell>
                         <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>
