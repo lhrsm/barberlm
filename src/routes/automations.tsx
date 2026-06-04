@@ -94,6 +94,8 @@ function AutomationsComponent() {
   const [isLogDetailOpen, setIsLogDetailOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [selectedPreviewTemplate, setSelectedPreviewTemplate] = useState("");
+  const [isPreviewEditMode, setIsPreviewEditMode] = useState(false);
+  const [previewSearchTerm, setPreviewSearchTerm] = useState("");
   
   // Filtros Log Principal
   const [filterStatus, setFilterStatus] = useState("all");
