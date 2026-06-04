@@ -311,9 +311,27 @@ function AutomationsComponent() {
   };
 
   const handleCopyTemplate = (template: string) => {
-    const rendered = replaceVariables(template, false) as string;
-    navigator.clipboard.writeText(rendered);
-    toast.success("Mensagem copiada para a área de transferência!");
+    const rendered = replaceVariables(template, false, "") as string;
+    try {
+      navigator.clipboard.writeText(rendered).then(() => {
+        toast.success("Mensagem copiada para a área de transferência!");
+      }).catch(() => {
+        // Fallback para quando o clipboard API falha/bloqueia
+        const textArea = document.createElement("textarea");
+        textArea.value = rendered;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          toast.success("Mensagem copiada (via fallback)!");
+        } catch (err) {
+          toast.error("Não foi possível copiar automaticamente.");
+        }
+        document.body.removeChild(textArea);
+      });
+    } catch (e) {
+      toast.error("Erro ao tentar copiar.");
+    }
   };
 
   const handleCopyText = (text: string, label: string) => {
