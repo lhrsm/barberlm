@@ -921,7 +921,9 @@ function AutomationsComponent() {
                         <th className="px-4 py-3 text-left font-medium text-slate-400">Automação</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-400">Canal</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-400">Destinatário</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-400">ID Agendamento</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-400">Status</th>
+
                         <th className="px-4 py-3 text-right font-medium text-slate-400">Ações</th>
                       </tr>
                     </thead>
