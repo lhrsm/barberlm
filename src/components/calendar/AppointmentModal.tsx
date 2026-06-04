@@ -324,6 +324,7 @@ export function AppointmentModal({
         credit_used: paymentMethod === 'wallet' ? (service?.price || 0) : 0,
         final_amount: paymentMethod === 'wallet' ? 0 : (paymentStatus === 'paid' ? 0 : (service?.price || 0)),
         source: 'admin',
+        confirmation_sent: false, // Ensure confirmation is false by default
         items: [{
           id: selectedService,
           name: service?.name,
