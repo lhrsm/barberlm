@@ -805,6 +805,23 @@ function AutomationsComponent() {
 
                   </CardContent>
 
+                  {auto.stats?.lastError && (
+                    <div className="px-5 mb-3">
+                      <div className="bg-rose-500/5 border border-rose-500/20 rounded-xl p-2.5 flex items-start gap-2 animate-pulse">
+                        <AlertTriangle size={14} className="text-rose-400 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider mb-0.5">Última Falha</p>
+                          <p className="text-[10px] text-rose-300/80 italic line-clamp-1 mb-1">
+                            {auto.stats.lastError.error_message || 'Erro desconhecido'}
+                          </p>
+                          <p className="text-[8px] text-slate-500">
+                            {new Date(auto.stats.lastError.created_at).toLocaleString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="p-5 pt-1 flex gap-2 mt-auto">
                     <Button 
                       className="flex-1 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-lg h-9 text-xs shadow-lg focus-visible:ring-2 focus-visible:ring-amber-500"
@@ -819,6 +836,7 @@ function AutomationsComponent() {
                       <Play size={14} className="mr-1.5 fill-current" /> Testar
                     </Button>
                   </div>
+
                 </Card>
               ))}
             </div>
