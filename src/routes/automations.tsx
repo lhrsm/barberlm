@@ -1133,14 +1133,18 @@ function AutomationsComponent() {
             <X size={20} />
           </button>
 
-          <DialogHeader className="p-8 pb-4">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 text-2xl">
+          <DialogHeader className="p-8 pb-4 bg-[#0F172A]/50 border-b border-white/5">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 flex items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 text-3xl">
                 📨
               </div>
               <div>
-                <DialogTitle className="text-2xl font-bold text-white">Detalhes do Envio</DialogTitle>
-                <p className="text-slate-400 text-sm">Informações completas da execução da automação.</p>
+                <DialogTitle className="text-2xl font-bold text-white tracking-tight">Detalhes do Envio</DialogTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-slate-400 text-sm">Informações completas do processamento</span>
+                  <div className="w-1 h-1 rounded-full bg-slate-600" />
+                  <span className="text-slate-500 text-xs font-mono uppercase">ID: {selectedLog?.id?.substring(0,8)}</span>
+                </div>
               </div>
             </div>
           </DialogHeader>
