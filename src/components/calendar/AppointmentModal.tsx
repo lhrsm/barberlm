@@ -411,10 +411,10 @@ export function AppointmentModal({
         })
       ]);
 
-      const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled, business_name").eq("id", tenantId).single();
+      const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", tenantId).single();
 
       if (profile?.whatsapp_enabled) {
-        console.log("Triggering functional WhatsApp confirmation...");
+        console.log("Triggering automatic WhatsApp confirmation via frontend trigger...");
         triggerAutomation({
           tenant_id: tenantId,
           event_name: 'appointment.created',
