@@ -71,13 +71,14 @@ function LandingPageComponent() {
         animate={{ y: 0 }}
         className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-white/5"
       >
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer">
             <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
-              <Scissors className="text-primary h-6 w-6" />
+              <Scissors className="text-primary h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <span className="text-2xl font-black tracking-tighter text-white">Barbex</span>
+            <span className="text-xl sm:text-2xl font-black tracking-tighter text-white">Barbex</span>
           </div>
+          
           <div className="hidden lg:flex items-center gap-8">
             {["Recursos", "Automações", "Demonstração", "Planos", "FAQ"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} className="text-sm font-bold text-white/60 hover:text-primary transition-colors">
@@ -85,18 +86,69 @@ function LandingPageComponent() {
               </a>
             ))}
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" className="text-white font-bold hover:bg-white/5" asChild>
-              <Link to="/auth">Entrar</Link>
-            </Button>
+
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="hidden xs:flex items-center gap-2 sm:gap-4">
+              <Button variant="ghost" className="text-white font-bold hover:bg-white/5 px-3 sm:px-4" asChild>
+                <Link to="/auth">Entrar</Link>
+              </Button>
+              <Button 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-black px-4 sm:px-6 rounded-xl hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all text-sm sm:text-base" 
+                onClick={() => setShowSignupModal(true)}
+              >
+                Teste grátis
+              </Button>
+            </div>
+            
             <Button 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-black px-6 rounded-xl hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all" 
-              onClick={() => setShowSignupModal(true)}
+              variant="ghost" 
+              size="icon" 
+              className="lg:hidden text-white" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              Teste grátis
+              <Menu className="h-6 w-6" />
             </Button>
           </div>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="lg:hidden bg-zinc-950 border-b border-white/5 overflow-hidden"
+            >
+              <div className="flex flex-col p-6 gap-4">
+                {["Recursos", "Automações", "Demonstração", "Planos", "FAQ"].map((item) => (
+                  <a 
+                    key={item} 
+                    href={`#${item.toLowerCase()}`} 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-lg font-bold text-white/60 hover:text-primary transition-colors py-2"
+                  >
+                    {item}
+                  </a>
+                ))}
+                <div className="xs:hidden flex flex-col gap-3 pt-4 border-t border-white/5">
+                  <Button variant="ghost" className="text-white font-bold justify-start px-0" asChild>
+                    <Link to="/auth">Entrar</Link>
+                  </Button>
+                  <Button 
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-black w-full rounded-xl" 
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setShowSignupModal(true);
+                    }}
+                  >
+                    Teste grátis
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.nav>
 
       {/* Hero Section */}
