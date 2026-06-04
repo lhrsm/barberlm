@@ -18,15 +18,22 @@ import {
   History,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  Eye,
+  RotateCcw
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
 import { AutomationTestModal } from "@/components/admin/automations/AutomationTestModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Casting to any to bypass type errors for new table
 const anySupabase = supabase as any;
-
 
 export const Route = createFileRoute("/automations")({
   component: AutomationsComponent,
@@ -51,8 +58,10 @@ function AutomationsComponent() {
   const [automations, setAutomations] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
+  const [selectedLog, setSelectedLog] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isTestOpen, setIsTestOpen] = useState(false);
+  const [isLogDetailOpen, setIsLogDetailOpen] = useState(false);
 
   useEffect(() => {
     if (tenantId) {
@@ -141,6 +150,58 @@ function AutomationsComponent() {
   const openTest = (automation: any) => {
     setSelectedAutomation(automation);
     setIsTestOpen(true);
+  };
+
+  const resendTest = async (log: any) => {
+    try {
+      setLoading(true);
+      const { data: automation } = await anySupabase
+        .from("automation_templates")
+        .select("*")
+        .eq("id", log.automation_id)
+        .single();
+
+      if (!automation) throw new Error("Automação não encontrada");
+
+      const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
+        body: {
+          action: 'send-test-message',
+          instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', tenantId || "").single()).data?.id,
+          data: {
+            phone: log.phone,
+            message: log.processed_template || log.payload?.rendered || "Mensagem de reenvio"
+          }
+        }
+      });
+
+      if (zapiError) throw zapiError;
+
+      const isSuccess = zapiData?.success === true;
+
+      await (supabase as any).from("automation_logs").insert({
+        automation_id: automation.id,
+        tenant_id: tenantId,
+        phone: log.phone,
+        status: isSuccess ? "sent" : "error",
+        message_type: automation.key,
+        processed_template: log.processed_template || log.payload?.rendered,
+        original_template: automation.template,
+        provider: "zapi",
+        sent_at: new Date().toISOString(),
+        payload: { ...log.payload, resent: true },
+        error_message: isSuccess ? null : (zapiData?.error || "Erro no reenvio"),
+        response: zapiData?.result
+      });
+
+      if (isSuccess) toast.success("Reenviado com sucesso!");
+      else toast.error("Falha ao reenviar: " + (zapiData?.error || "Erro desconhecido"));
+      
+      fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao reenviar: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -246,6 +307,7 @@ function AutomationsComponent() {
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Canal</th>
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Destinatário</th>
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                        <th className="px-4 py-3 text-right font-medium text-muted-foreground">Ações</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -283,6 +345,31 @@ function AutomationsComponent() {
                               </div>
                             )}
                           </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-slate-500 hover:text-slate-900"
+                                onClick={() => {
+                                  setSelectedLog(log);
+                                  setIsLogDetailOpen(true);
+                                }}
+                                title="Ver Detalhes"
+                              >
+                                <Eye size={14} />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                onClick={() => resendTest(log)}
+                                title="Reenviar"
+                              >
+                                <RotateCcw size={14} />
+                              </Button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -314,6 +401,56 @@ function AutomationsComponent() {
           />
         </>
       )}
+
+      <Dialog open={isLogDetailOpen} onOpenChange={setIsLogDetailOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Envio</DialogTitle>
+          </DialogHeader>
+          
+          {selectedLog && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">ID da Automação</p>
+                  <p className="font-mono text-xs">{selectedLog.automation_id}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Status</p>
+                  <Badge variant={selectedLog.status === 'sent' ? 'default' : 'destructive'}>
+                    {selectedLog.status}
+                  </Badge>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium mb-1">Mensagem Processada</p>
+                <div className="bg-slate-50 p-3 rounded-md border text-xs whitespace-pre-wrap italic">
+                  {selectedLog.processed_template || selectedLog.payload?.rendered}
+                </div>
+              </div>
+
+              {selectedLog.error_message && (
+                <div>
+                  <p className="text-sm font-medium text-red-600 mb-1">Erro Completo</p>
+                  <div className="bg-red-50 p-3 rounded-md border border-red-100 text-xs text-red-700 font-mono overflow-x-auto">
+                    {selectedLog.error_message}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className="text-sm font-medium mb-1">Payload / Dados Técnicos</p>
+                <div className="bg-slate-900 p-3 rounded-md text-[10px] text-amber-400 font-mono overflow-x-auto">
+                  <pre>{JSON.stringify(selectedLog.payload || {}, null, 2)}</pre>
+                  <p className="text-slate-400 mt-2">// Resposta da API</p>
+                  <pre>{JSON.stringify(selectedLog.response || {}, null, 2)}</pre>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
