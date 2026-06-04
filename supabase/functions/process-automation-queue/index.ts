@@ -162,6 +162,21 @@ serve(async (req) => {
           const providerMessageId = sendResult.response?.messageId || sendResult.response?.id;
           const zaapId = sendResult.response?.zaapId;
 
+          if (!providerMessageId) {
+             console.error(`[ProcessQueue] CRITICAL: Z-API returned success but no messageId for item ${item.id}`, sendResult.response);
+             // Still record log but mark with error about missing ID
+             await supabase.from("automation_logs").insert({
+               automation_id: automation.id,
+               tenant_id: itemTenantId,
+               appointment_id: appointment.id,
+               status: "error",
+               error_message: "Z-API success without messageId/provider_message_id",
+               payload: { response: sendResult.response, diagnostic: diagInfo, origin: 'provider_no_id' }
+             });
+             results.push({ id: item.id, success: false, error: "Missing providerMessageId" });
+             continue;
+          }
+
           // REGISTRO IMEDIATO DO ENVIO
           await supabase.from("automation_logs").insert({
             automation_id: automation.id,

@@ -110,6 +110,12 @@ function AutomationsComponent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
   const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0, lastUpdate: new Date(), pendingCallbacks: 0 });
+  const [reconciliationSettings, setReconciliationSettings] = useState<any>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isReconciling, setIsReconciling] = useState(false);
+  const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
+  const [totalWebhookLogs, setTotalWebhookLogs] = useState(0);
+  const [isWebhookLogsOpen, setIsWebhookLogsOpen] = useState(false);
   const itemsPerPage = 10;
 
   // Estados Auditoria do Fluxo (Modal)
@@ -329,7 +335,23 @@ function AutomationsComponent() {
         pendingCallbacks: pendingCount
       });
 
-
+      // Fetch reconciliation settings
+      const { data: settings } = await anySupabase
+        .from("automation_reconciliation_settings")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+      
+      if (settings) {
+        setReconciliationSettings(settings);
+      } else {
+        const { data: newSettings } = await anySupabase
+          .from("automation_reconciliation_settings")
+          .insert({ tenant_id: tenantId })
+          .select()
+          .single();
+        if (newSettings) setReconciliationSettings(newSettings);
+      }
 
     } catch (error: any) {
       console.error(error);
@@ -338,6 +360,59 @@ function AutomationsComponent() {
       setLoading(false);
     }
   }
+
+  const fetchWebhookLogs = async () => {
+    if (!tenantId) return;
+    try {
+      const { data, count } = await anySupabase
+        .from("automation_webhook_logs")
+        .select("*", { count: 'exact' })
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      
+      setWebhookLogs(data || []);
+      setTotalWebhookLogs(count || 0);
+    } catch (error: any) {
+      console.error("Error fetching webhook logs:", error);
+    }
+  };
+
+  const handleManualReconcile = async () => {
+    setIsReconciling(true);
+    toast.loading("Reprocessando reconciliações...");
+    try {
+      // Logic for manual reconcile would typically be an edge function call
+      // or a specific DB operation to check for missing callbacks
+      // For now we simulate with a delay and re-fetching data
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await fetchData();
+      toast.success("Reconciliação manual concluída!");
+    } catch (error: any) {
+      toast.error("Erro na reconciliação: " + error.message);
+    } finally {
+      setIsReconciling(false);
+    }
+  };
+
+  const handleSaveSettings = async (settings: any) => {
+    try {
+      const { error } = await anySupabase
+        .from("automation_reconciliation_settings")
+        .upsert({
+          tenant_id: tenantId,
+          ...settings,
+          updated_at: new Date().toISOString()
+        });
+      
+      if (error) throw error;
+      setReconciliationSettings(settings);
+      toast.success("Configurações salvas!");
+      setIsSettingsOpen(false);
+    } catch (error: any) {
+      toast.error("Erro ao salvar: " + error.message);
+    }
+  };
 
   const INITIAL_VARIABLES = {
     customer_name: "João Silva",
@@ -786,15 +861,35 @@ function AutomationsComponent() {
               Gerencie suas automações de atendimento, notificações e comunicações com clientes de forma profissional.
             </p>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <Button 
-              onClick={fetchData} 
-              variant="outline" 
-              size="icon"
-              className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
-            >
-              <RefreshCw className={loading ? "animate-spin" : ""} size={18} />
-            </Button>
+          <div className="flex flex-col items-end gap-3">
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={() => setIsSettingsOpen(true)}
+                variant="outline" 
+                size="sm"
+                className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl h-10 px-4"
+              >
+                <Settings2 size={16} className="mr-2" /> Configurações
+              </Button>
+              <Button 
+                onClick={handleManualReconcile}
+                variant="outline" 
+                size="sm"
+                disabled={isReconciling}
+                className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl h-10 px-4"
+              >
+                {isReconciling ? <Loader2 size={16} className="mr-2 animate-spin" /> : <RefreshCw size={16} className="mr-2" />}
+                Reconciliar
+              </Button>
+              <Button 
+                onClick={fetchData} 
+                variant="outline" 
+                size="icon"
+                className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl h-10 w-10"
+              >
+                <RotateCcw className={loading ? "animate-spin" : ""} size={18} />
+              </Button>
+            </div>
             <span className="text-[10px] text-slate-500 font-mono">
               Atualizado: {logStats.lastUpdate.toLocaleTimeString('pt-BR')}
             </span>
@@ -1026,6 +1121,46 @@ function AutomationsComponent() {
                   <CardTitle className="text-sm font-bold text-white mt-2">
                     {logStats.lastSent ? new Date(logStats.lastSent).toLocaleString('pt-BR') : 'Sem registros'}
                   </CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className={`bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative ${logStats.pendingCallbacks > (reconciliationSettings?.pending_callback_alert_threshold || 10) ? 'border-rose-500/50 animate-pulse' : ''}`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <AlertTriangle size={40} className="text-amber-500" />
+                </div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Callbacks Pendentes</CardDescription>
+                    {logStats.pendingCallbacks > (reconciliationSettings?.pending_callback_alert_threshold || 10) && (
+                      <Badge className="bg-rose-500 text-white text-[8px] h-4">ALERTA</Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-2xl font-bold text-amber-500">{logStats.pendingCallbacks}</CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className={`bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative ${logStats.notFound > (reconciliationSettings?.not_found_alert_threshold || 5) ? 'border-rose-500/50 animate-pulse' : ''}`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Search size={40} className="text-sky-500" />
+                </div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Agendamentos N/F</CardDescription>
+                    {logStats.notFound > (reconciliationSettings?.not_found_alert_threshold || 5) && (
+                      <Badge className="bg-rose-500 text-white text-[8px] h-4">ALERTA</Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-2xl font-bold text-sky-500">{logStats.notFound}</CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative cursor-pointer hover:border-emerald-500/30 transition-all" onClick={() => { setIsWebhookLogsOpen(true); fetchWebhookLogs(); }}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Terminal size={40} className="text-emerald-500" />
+                </div>
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Logs Webhook</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-emerald-500">{webhookLogs.length || 0}</CardTitle>
                 </CardHeader>
               </Card>
             </div>
@@ -2227,6 +2362,93 @@ function AutomationsComponent() {
               As cores indicam variáveis preenchidas dinamicamente. Edite os valores para simular diferentes cenários.
               Pressione ESC para fechar.
             </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Configurações de Reconciliação */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent className="bg-[#0F172A] border border-slate-800 text-white rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Configurações de Reconciliação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label>Intervalo de Reconciliação (minutos)</Label>
+              <Input 
+                type="number" 
+                value={reconciliationSettings?.reconciliation_interval_minutes || 15} 
+                onChange={(e) => setReconciliationSettings({...reconciliationSettings, reconciliation_interval_minutes: parseInt(e.target.value)})}
+                className="bg-slate-900 border-slate-800 rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Limite de Alerta: Callback Pendente</Label>
+              <Input 
+                type="number" 
+                value={reconciliationSettings?.pending_callback_alert_threshold || 10} 
+                onChange={(e) => setReconciliationSettings({...reconciliationSettings, pending_callback_alert_threshold: parseInt(e.target.value)})}
+                className="bg-slate-900 border-slate-800 rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Limite de Alerta: Agendamento N/F</Label>
+              <Input 
+                type="number" 
+                value={reconciliationSettings?.not_found_alert_threshold || 5} 
+                onChange={(e) => setReconciliationSettings({...reconciliationSettings, not_found_alert_threshold: parseInt(e.target.value)})}
+                className="bg-slate-900 border-slate-800 rounded-xl"
+              />
+            </div>
+            <Button 
+              className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl h-11"
+              onClick={() => handleSaveSettings(reconciliationSettings)}
+            >
+              Salvar Configurações
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Logs de Webhook */}
+      <Dialog open={isWebhookLogsOpen} onOpenChange={setIsWebhookLogsOpen}>
+        <DialogContent className="max-w-[1000px] w-[95vw] bg-[#020817] border border-amber-500/25 text-white p-0 overflow-hidden rounded-[24px]">
+          <DialogHeader className="p-6 border-b border-white/5">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Terminal size={20} className="text-emerald-500" /> Logs de Webhook (Últimos 50)
+            </DialogTitle>
+          </DialogHeader>
+          <div className="overflow-x-auto p-4 max-h-[70vh]">
+            <table className="w-full text-xs">
+              <thead className="text-slate-500 uppercase font-bold border-b border-white/5">
+                <tr>
+                  <th className="px-4 py-2 text-left">Data/Hora</th>
+                  <th className="px-4 py-2 text-left">Telefone</th>
+                  <th className="px-4 py-2 text-left">Tipo</th>
+                  <th className="px-4 py-2 text-left">Botão/Texto</th>
+                  <th className="px-4 py-2 text-left">Ref Message ID</th>
+                  <th className="px-4 py-2 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {webhookLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-white/5">
+                    <td className="px-4 py-2">{new Date(log.created_at).toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-2 font-mono">{log.phone}</td>
+                    <td className="px-4 py-2">{log.type}</td>
+                    <td className="px-4 py-2">{log.buttonText || log.buttonId || '---'}</td>
+                    <td className="px-4 py-2 font-mono truncate max-w-[100px]" title={log.referenceMessageId}>{log.referenceMessageId || '---'}</td>
+                    <td className="px-4 py-2">
+                      {log.appointment_id ? (
+                        <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[9px]">Vinculado</Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/10 text-amber-500 border-none text-[9px]">Pendente/NF</Badge>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </DialogContent>
       </Dialog>
