@@ -61,13 +61,27 @@ serve(async (req) => {
           console.log(`[Z-API] Sending via ${baseUrl} to ${targetPhone}`);
 
           const startTime = Date.now();
-          response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/send-text`, {
+          const options = msg.metadata?.options || {};
+          
+          // logic to use send-button-list or send-option-list if provided in metadata
+          let endpoint = "send-text";
+          let bodyPayload: any = { phone: targetPhone, message: msg.content };
+
+          if (options.buttons) {
+            endpoint = "send-button-list";
+            bodyPayload = {
+              phone: targetPhone,
+              message: msg.content,
+              buttonList: {
+                buttons: options.buttons
+              }
+            };
+          }
+
+          response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/${endpoint}`, {
             method: "POST",
             headers,
-            body: JSON.stringify({
-              phone: targetPhone,
-              message: msg.content
-            }),
+            body: JSON.stringify(bodyPayload),
           });
           const endTime = Date.now();
 
@@ -75,7 +89,7 @@ serve(async (req) => {
           const executionTime = endTime - startTime;
 
           await supabase.from("automation_logs").insert({
-            barber_id: msg.user_id,
+            tenant_id: msg.user_id,
             status: response.ok ? 'sent' : 'error',
             message_type: 'whatsapp_send',
             phone: targetPhone,
@@ -83,7 +97,8 @@ serve(async (req) => {
               status: response.status,
               body: result,
               execution_time_ms: executionTime,
-              instance_id: instanceId
+              instance_id: instanceId,
+              endpoint
             }
           });
 
