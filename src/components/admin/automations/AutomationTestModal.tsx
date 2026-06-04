@@ -601,68 +601,67 @@ export function AutomationTestModal({
 
         </div>
 
-        <DialogFooter className="p-6 bg-[#0F172A]/80 border-t border-white/5 flex flex-col-reverse sm:flex-row gap-4 sm:gap-4 mt-auto">
-          {/* Seção de Testes de Resposta (Fim-a-Fim) movida para o footer ou antes dele */}
-          <div className="w-full mb-4 px-6 space-y-3">
-             <div className="bg-blue-500/5 border border-blue-500/15 rounded-xl p-4 space-y-3 w-full">
-                <div className="flex items-center gap-2">
-                  <ClipboardList size={14} className="text-blue-400" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">Teste Fim-a-Fim (Simular Respostas)</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="h-8 text-[10px] border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-500 rounded-lg flex-1"
-                    onClick={() => handleTestCallback("1")}
-                  >
-                    Simular "1"
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="h-8 text-[10px] border-amber-500/30 hover:bg-amber-500/10 text-amber-500 rounded-lg flex-1"
-                    onClick={() => handleTestCallback("2")}
-                  >
-                    Simular "2"
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="h-8 text-[10px] border-rose-500/30 hover:bg-rose-500/10 text-rose-500 rounded-lg flex-1"
-                    onClick={() => handleTestCallback("3")}
-                  >
-                    Simular "3"
-                  </Button>
-                </div>
-             </div>
+        <div className="px-6 pb-6 space-y-4">
+          <div className="bg-blue-500/5 border border-blue-500/15 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <ClipboardList size={14} className="text-blue-400" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">Teste Fim-a-Fim (Simular Respostas)</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-8 text-[10px] border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-500 rounded-lg flex-1"
+                onClick={() => handleTestCallback("1")}
+              >
+                Simular "1"
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-8 text-[10px] border-amber-500/30 hover:bg-amber-500/10 text-amber-500 rounded-lg flex-1"
+                onClick={() => handleTestCallback("2")}
+              >
+                Simular "2"
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-8 text-[10px] border-rose-500/30 hover:bg-rose-500/10 text-rose-500 rounded-lg flex-1"
+                onClick={() => handleTestCallback("3")}
+              >
+                Simular "3"
+              </Button>
+            </div>
           </div>
-        </DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={onClose} 
-            disabled={isTesting} 
-            className="w-full sm:flex-1 h-14 rounded-2xl font-semibold bg-white text-[#0F172A] border-2 border-[#E5E7EB] shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] hover:-translate-y-0.5 active:translate-y-0 active:bg-[#E2E8F0] transition-all duration-250 cursor-pointer focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
-          >
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleTest} 
-            disabled={isTesting || (testType === "real" && !realData) || isLoadingRealData}
-            className="w-full sm:flex-[1.5] h-14 rounded-2xl font-bold bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white border-none shadow-[0_8px_25px_rgba(245,158,11,0.35)] hover:from-[#FBBF24] hover:to-[#F59E0B] hover:-translate-y-[3px] hover:shadow-[0_12px_30px_rgba(245,158,11,0.45)] active:translate-y-0 active:shadow-[0_4px_12px_rgba(245,158,11,0.25)] transition-all duration-250 cursor-pointer disabled:bg-[#374151] disabled:text-[#9CA3AF] disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0 disabled:bg-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-          >
-            {isTesting ? (
-              <span className="flex items-center gap-2">
-                <Loader2 size={20} className="animate-spin" /> Enviando...
-              </span>
-            ) : (
-              <span className="flex flex-col items-center">
-                <span>Enviar Teste</span>
-                <span className="text-[10px] opacity-60 font-normal">Ctrl + Enter</span>
-              </span>
-            )}
-          </Button>
-        </DialogFooter>
+
+          <div className="flex flex-col-reverse sm:flex-row gap-4">
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              disabled={isTesting} 
+              className="w-full sm:flex-1 h-12 rounded-xl font-semibold bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 transition-all"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleTest} 
+              disabled={isTesting || (testType === "real" && !realData) || isLoadingRealData}
+              className="w-full sm:flex-[1.5] h-12 rounded-xl font-bold bg-amber-500 text-slate-900 hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20"
+            >
+              {isTesting ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin" /> Enviando...
+                </span>
+              ) : (
+                <span className="flex flex-col items-center leading-tight">
+                  <span>Enviar Teste Inicial</span>
+                  <span className="text-[9px] opacity-70 font-normal">Ctrl + Enter</span>
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
