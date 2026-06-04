@@ -336,6 +336,9 @@ export function AutomationTestModal({
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             Testar Automação
+            <Badge variant="outline" className="text-[10px] ml-auto font-normal text-slate-500 border-slate-800">
+              Esc para fechar
+            </Badge>
           </DialogTitle>
         </DialogHeader>
 
