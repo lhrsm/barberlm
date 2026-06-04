@@ -150,7 +150,7 @@ function SettingsComponent() {
           primary_color: profile.primary_color || "#7c3aed",
           secondary_color: profile.secondary_color || "#f4f4f5",
           logo_url: profile.logo_url || "",
-          barbershop_logo_url: profile.barbershop_logo_url || "",
+          barbershop_logo_url: (profile as any).barbershop_logo_url || "",
           cashback_enabled: profile.cashback_enabled || false,
           cashback_percentage: profile.cashback_percentage || 0,
           free_service_threshold: profile.free_service_threshold || 10,
