@@ -662,9 +662,11 @@ export type Database = {
           event_name: string | null
           flow_type: Database["public"]["Enums"]["automation_flow_type"] | null
           id: string
+          metadata: Json | null
           payload: Json | null
           processed_at: string | null
           scheduled_for: string | null
+          started_at: string | null
           status: string
           tenant_id: string | null
           updated_at: string | null
@@ -682,9 +684,11 @@ export type Database = {
           event_name?: string | null
           flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
           id?: string
+          metadata?: Json | null
           payload?: Json | null
           processed_at?: string | null
           scheduled_for?: string | null
+          started_at?: string | null
           status?: string
           tenant_id?: string | null
           updated_at?: string | null
@@ -702,9 +706,11 @@ export type Database = {
           event_name?: string | null
           flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
           id?: string
+          metadata?: Json | null
           payload?: Json | null
           processed_at?: string | null
           scheduled_for?: string | null
+          started_at?: string | null
           status?: string
           tenant_id?: string | null
           updated_at?: string | null
