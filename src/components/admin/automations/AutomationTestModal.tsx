@@ -74,7 +74,7 @@ export function AutomationTestModal({
         
         // Use provided ID or the latest one
         const targetId = appointmentId || appointments[0].id;
-        const appointment = appointments.find(a => a.id === targetId) || appointments[0];
+        const appointment = appointments.find((a: any) => a.id === targetId) || appointments[0];
         
         setSelectedAppointmentId(appointment.id);
 
