@@ -3370,6 +3370,7 @@ export type Database = {
         }
         Returns: string
       }
+      reconcile_automation_logs: { Args: never; Returns: undefined }
       seed_default_workflows_v2: { Args: never; Returns: undefined }
       update_appointment_status: {
         Args: {
