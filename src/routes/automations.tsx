@@ -138,21 +138,42 @@ function AutomationsComponent() {
 
       setAutomations(automationsData || []);
 
-      // 3. Fetch logs with filtering
+      // 3. Fetch logs with filtering and pagination
       let query = supabase
         .from("automation_logs")
-        .select("*")
+        .select("*", { count: 'exact' })
         .eq("tenant_id", tenantId);
         
       if (filterStatus !== "all") {
         query = query.eq("status", filterStatus);
       }
       
-      const { data: logsData } = await query
+      if (filterAutomation !== "all") {
+        query = query.eq("message_type", filterAutomation);
+      }
+      
+      if (filterPeriod !== "all") {
+        const now = new Date();
+        let startDate = new Date();
+        if (filterPeriod === "today") {
+          startDate.setHours(0, 0, 0, 0);
+        } else if (filterPeriod === "7days") {
+          startDate.setDate(now.getDate() - 7);
+        } else if (filterPeriod === "30days") {
+          startDate.setDate(now.getDate() - 30);
+        }
+        query = query.gte("created_at", startDate.toISOString());
+      }
+      
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      
+      const { data: logsData, count } = await query
         .order("created_at", { ascending: false })
-        .limit(100);
+        .range(from, to);
 
       setLogs(logsData || []);
+      setTotalLogs(count || 0);
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao carregar dados: " + error.message);
