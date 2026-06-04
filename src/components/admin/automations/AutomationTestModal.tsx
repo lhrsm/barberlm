@@ -367,9 +367,24 @@ export function AutomationTestModal({
                 </div>
               ) : (
                 <>
-                  <p className={`text-sm whitespace-pre-wrap leading-relaxed ${isLoadingRealData ? "opacity-20" : "text-slate-200"}`}>
-                    {renderedTemplate}
-                  </p>
+                  <div className="flex justify-between items-start mb-2">
+                    <p className={`text-sm whitespace-pre-wrap leading-relaxed flex-1 ${isLoadingRealData ? "opacity-20" : "text-slate-200"}`}>
+                      {renderedTemplate}
+                    </p>
+                    {testType === "real" && !isLoadingRealData && realData && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-7 text-[9px] text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-slate-900 rounded-lg shrink-0 ml-2"
+                        onClick={handleSimulateTrigger}
+                        disabled={isSimulating}
+                      >
+                        {isSimulating ? <Loader2 size={10} className="animate-spin mr-1" /> : <Zap size={10} className="mr-1" />}
+                        Simular Gatilho
+                      </Button>
+                    )}
+                  </div>
+
                   {isLoadingRealData && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Loader2 className="animate-spin text-amber-500" size={24} />
