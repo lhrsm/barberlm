@@ -240,6 +240,17 @@ serve(async (req) => {
         }
       }
 
+      // 4. Fetch appointment details if found via conversation but not yet via logs
+      let appointment = foundLog?.appointment;
+      if (appointmentId && !appointment) {
+        const { data: apptData } = await supabase
+          .from("appointments")
+          .select("*, service:services(name)")
+          .eq("id", appointmentId)
+          .maybeSingle();
+        appointment = apptData;
+      }
+
       // IF NOT FOUND
       if (!appointmentId || !tenantId) {
         console.warn(`[Webhook] Link not found for message ${referenceId} from ${phone}`);
