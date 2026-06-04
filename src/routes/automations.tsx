@@ -18,11 +18,19 @@ import {
   History,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  Eye,
+  RotateCcw
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
 import { AutomationTestModal } from "@/components/admin/automations/AutomationTestModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Casting to any to bypass type errors for new table
 const anySupabase = supabase as any;
