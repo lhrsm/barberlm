@@ -261,6 +261,33 @@ serve(async (req) => {
             },
             response: sendResult.response
           });
+
+          // REGISTRO DE SESSÃO DE CONVERSA (automation_conversations)
+          if (automation.key === 'appointment_confirmation') {
+            const expiresAt = new Date();
+            expiresAt.setHours(expiresAt.getHours() + 2);
+
+            const { data: conversation, error: convError } = await supabase.from("automation_conversations").insert({
+              tenant_id: itemTenantId,
+              appointment_id: appointment.id,
+              customer_phone: phone,
+              workflow_key: automation.key,
+              status: "awaiting_response",
+              expected_response: "confirmation_options",
+              expires_at: expiresAt.toISOString(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }).select().single();
+
+            if (convError) {
+              console.error(`[ProcessQueue] Error creating conversation session:`, convError);
+            } else {
+              // Vincular conversation_id ao log de envio
+              await supabase.from("automation_logs").update({ 
+                conversation_id: conversation.id 
+              }).eq("provider_message_id", providerMessageId);
+            }
+          }
           
           await supabase.from("appointments").update({ confirmation_sent: true, confirmation_sent_at: new Date().toISOString() }).eq("id", appointment.id);
           results.push({ id: item.id, success: true });
