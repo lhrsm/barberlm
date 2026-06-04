@@ -1051,14 +1051,25 @@ export type Database = {
           buttonid: string | null
           buttonId: string | null
           buttontext: string | null
+          conversation_found: boolean | null
+          conversation_id: string | null
           created_at: string | null
+          error: string | null
           fromme: boolean | null
           id: string
+          incoming_text: string | null
+          matched_action: string | null
           messageid: string | null
+          normalized_text: string | null
           phone: string | null
+          phone_normalized: string | null
+          phone_raw: string | null
           processed_at: string | null
           raw_payload: Json
           referencemessageid: string | null
+          response_sent: boolean | null
+          status_after: string | null
+          status_before: string | null
           tenant_id: string | null
           type: string | null
         }
@@ -1067,14 +1078,25 @@ export type Database = {
           buttonid?: string | null
           buttonId?: string | null
           buttontext?: string | null
+          conversation_found?: boolean | null
+          conversation_id?: string | null
           created_at?: string | null
+          error?: string | null
           fromme?: boolean | null
           id?: string
+          incoming_text?: string | null
+          matched_action?: string | null
           messageid?: string | null
+          normalized_text?: string | null
           phone?: string | null
+          phone_normalized?: string | null
+          phone_raw?: string | null
           processed_at?: string | null
           raw_payload: Json
           referencemessageid?: string | null
+          response_sent?: boolean | null
+          status_after?: string | null
+          status_before?: string | null
           tenant_id?: string | null
           type?: string | null
         }
@@ -1083,14 +1105,25 @@ export type Database = {
           buttonid?: string | null
           buttonId?: string | null
           buttontext?: string | null
+          conversation_found?: boolean | null
+          conversation_id?: string | null
           created_at?: string | null
+          error?: string | null
           fromme?: boolean | null
           id?: string
+          incoming_text?: string | null
+          matched_action?: string | null
           messageid?: string | null
+          normalized_text?: string | null
           phone?: string | null
+          phone_normalized?: string | null
+          phone_raw?: string | null
           processed_at?: string | null
           raw_payload?: Json
           referencemessageid?: string | null
+          response_sent?: boolean | null
+          status_after?: string | null
+          status_before?: string | null
           tenant_id?: string | null
           type?: string | null
         }
