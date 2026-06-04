@@ -271,7 +271,8 @@ function SettingsComponent() {
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 md:grid-cols-9 max-w-[1100px] bg-white border border-slate-200 text-black">
+            <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
+              <TabsList className="flex w-max min-w-full md:grid md:grid-cols-9 md:w-full bg-white border border-slate-200 text-black">
               <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
                 <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
               </TabsTrigger>
