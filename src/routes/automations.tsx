@@ -24,7 +24,10 @@ import {
   ExternalLink,
   MessageCircle,
   AlertTriangle,
-  SendHorizontal
+  SendHorizontal,
+  Search,
+  Filter,
+  Calendar as CalendarIcon
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
@@ -35,6 +38,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Casting to any to bypass type errors for new table
 const anySupabase = supabase as any;
