@@ -37,6 +37,20 @@ serve(async (req) => {
     
     console.log(`[AutomationEngine] Start. Tenant: ${tenantId || 'ALL'}, Action: ${action || 'process_queue'}`);
 
+    // 0. Timeout Cleanup: Mark items stuck in 'processing' for more than 2 minutes as failed
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const { error: cleanupError } = await supabase
+      .from("automation_queue")
+      .update({ 
+        status: "failed", 
+        error: "processing_timeout",
+        updated_at: new Date().toISOString()
+      })
+      .eq("status", "processing")
+      .lt("updated_at", twoMinutesAgo);
+    
+    if (cleanupError) console.error("[AutomationEngine] Cleanup error:", cleanupError);
+
     // 1. Fetch pending items from queue
     let query = supabase
       .from("automation_queue")
@@ -64,14 +78,17 @@ serve(async (req) => {
 
     const results = [];
     for (const item of queueItems) {
+      let lastStep = "init";
       try {
         // Mark as processing
         await supabase.from("automation_queue").update({ 
           status: "processing", 
+          started_at: new Date().toISOString(),
           attempts: (item.attempts || 0) + 1,
           updated_at: new Date().toISOString()
         }).eq("id", item.id);
 
+        lastStep = "detecting_flow";
         // 2. Flow Detection Logic (Mandatory override)
         // Rule: Only use the count of appointments in the group_id
         const groupId = item.appointment_group_id;
@@ -86,7 +103,7 @@ serve(async (req) => {
           if (!countError) {
             appointmentsFound = count || 0;
           }
-        } else if (item.appointment_id) {
+        } else if (item.appointment_id || item.entity_id) {
           appointmentsFound = 1;
         }
 
@@ -104,26 +121,35 @@ serve(async (req) => {
               ...(item.metadata || {}),
               appointments_found: appointmentsFound,
               flow_type_selected: flowTypeSelected,
-              reason_selected: reasonSelected
+              reason_selected: reasonSelected,
+              last_step: lastStep
             }
           })
           .eq("id", item.id);
 
         let result;
+        lastStep = "executing_handler";
         if (item.flow_type === FLOW_TYPES.MULTI) {
           result = await processMultiAppointmentAutomation(supabase, item, item.automation_workflows);
         } else {
           result = await processSingleAppointmentAutomation(supabase, item, item.automation_workflows);
         }
         
+        lastStep = "finalizing";
         // Mark as completed
         await supabase.from("automation_queue").update({ 
           status: "completed", 
           processed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          // Ensure these fields reflect successful processing
-          confirmation_sent: result?.success === true,
-          confirmation_sent_at: result?.success === true ? new Date().toISOString() : null
+          metadata: {
+            ...(item.metadata || {}),
+            appointments_found: appointmentsFound,
+            flow_type_selected: flowTypeSelected,
+            reason_selected: reasonSelected,
+            last_step: lastStep,
+            zapi_response: result?.response || null,
+            provider_message_id: result?.response?.messageId || null
+          }
         }).eq("id", item.id);
 
         results.push({ id: item.id, status: "completed", result });
@@ -133,7 +159,11 @@ serve(async (req) => {
           status: "failed", 
           error: error.message,
           updated_at: new Date().toISOString(),
-          confirmation_sent: false
+          metadata: {
+            ...(item.metadata || {}),
+            last_step: lastStep,
+            error: error.message
+          }
         }).eq("id", item.id);
         
         results.push({ id: item.id, status: "failed", error: error.message });
