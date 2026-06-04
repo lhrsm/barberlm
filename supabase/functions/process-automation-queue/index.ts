@@ -48,8 +48,6 @@ serve(async (req) => {
 
     if (queueError) throw queueError;
     if (!queueItems || queueItems.length === 0) {
-      // If no queue item found but we have appointment_id, maybe we should create one?
-      // Actually, if it's a manual resend from logs, we might just want to trigger it.
       return new Response(JSON.stringify({ message: "No items to process", success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -81,16 +79,25 @@ serve(async (req) => {
         // 2. Resolve Professional Name
         const professionalId = appointment.barber_id || appointment.professional_id;
         let profName = "Profissional";
+        let professionalStatus = "default";
         
         if (professionalId) {
           const { data: profData } = await supabase.from("profiles").select("full_name").eq("id", professionalId).maybeSingle();
           if (profData?.full_name && profData.full_name !== 'Profissional') {
             profName = profData.full_name;
+            professionalStatus = "resolved_profile";
           } else {
             // Check barbers table
             const { data: barberData } = await supabase.from("barbers").select("name").eq("id", professionalId).maybeSingle();
-            if (barberData?.name) profName = barberData.name;
+            if (barberData?.name) {
+              profName = barberData.name;
+              professionalStatus = "resolved_barber";
+            } else {
+              professionalStatus = "not_found";
+            }
           }
+        } else {
+          professionalStatus = "missing_id";
         }
 
         // 3. Render Template with Brazil Timezone
@@ -110,6 +117,19 @@ serve(async (req) => {
         Object.entries(testData).forEach(([key, value]) => {
           renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
         });
+
+        // Diagnostic validation for professional_name
+        const diagInfo: any = { 
+          professional_resolved: professionalStatus !== "not_found" && professionalStatus !== "missing_id",
+          professional_status: professionalStatus,
+          start_time_raw: appointment.start_time,
+          formatted_date: testData.appointment_date,
+          formatted_time: testData.appointment_time
+        };
+        
+        if (professionalStatus === "not_found" || professionalStatus === "missing_id") {
+          console.warn(`[ProcessQueue] Professional name warning for appointment ${appointment.id}: ${professionalStatus}`);
+        }
 
         // 4. Get WhatsApp Instance
         const { data: instance } = await supabase
