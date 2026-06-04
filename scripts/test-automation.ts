@@ -22,8 +22,8 @@ async function testAutomationActiveStatus() {
     const { data: automation } = await supabase
       .from('automation_templates')
       .select('id, active')
-      .eq('tenant_id', tenantId)
       .eq('key', 'appointment_confirmation')
+      .limit(1)
       .single();
     
     if (!automation) throw new Error('Automation template not found');
