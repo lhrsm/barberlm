@@ -1588,22 +1588,39 @@ function AutomationsComponent() {
       }}>
         <DialogContent className="max-w-2xl bg-[#0F172A] border-slate-800 text-white p-0 overflow-hidden rounded-[24px] focus:outline-none">
           <DialogHeader className="p-6 pb-2">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <DialogTitle className="text-xl font-bold flex items-center gap-2">
                 <Eye className="text-amber-500" size={20} />
                 Visualização da Mensagem
               </DialogTitle>
               
               <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
-                  <Input 
-                    placeholder="Buscar na mensagem..."
-                    value={previewSearchTerm}
-                    onChange={(e) => setPreviewSearchTerm(e.target.value)}
-                    className="h-8 pl-8 text-xs bg-slate-900 border-slate-700 w-[180px] rounded-lg focus:border-amber-500/50"
-                  />
+                <div className="flex items-center gap-1">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
+                    <Input 
+                      placeholder="Buscar na mensagem..."
+                      value={previewSearchTerm}
+                      onChange={(e) => setPreviewSearchTerm(e.target.value)}
+                      onKeyDown={handlePreviewSearchKeydown}
+                      className="h-8 pl-8 text-xs bg-slate-900 border-slate-700 w-[160px] rounded-lg focus:border-amber-500/50"
+                    />
+                  </div>
+                  {previewTotalResults > 0 && (
+                    <div className="flex items-center gap-1 bg-slate-800 rounded-lg px-2 h-8 border border-slate-700">
+                      <span className="text-[10px] text-slate-400">{previewSearchResultIndex}/{previewTotalResults}</span>
+                      <div className="flex flex-col">
+                        <button onClick={() => setPreviewSearchResultIndex(prev => prev > 1 ? prev - 1 : previewTotalResults)} className="hover:text-amber-500 h-3 flex items-center">
+                          <ChevronUp size={10} />
+                        </button>
+                        <button onClick={() => setPreviewSearchResultIndex(prev => prev < previewTotalResults ? prev + 1 : 1)} className="hover:text-amber-500 h-3 flex items-center">
+                          <ChevronDown size={10} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -1615,6 +1632,7 @@ function AutomationsComponent() {
                 </Button>
               </div>
             </div>
+
           </DialogHeader>
           
           <div className="p-6 pt-2 space-y-4">
