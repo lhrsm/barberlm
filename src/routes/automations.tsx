@@ -664,26 +664,39 @@ function AutomationsComponent() {
                         <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
                           <SendHorizontal size={9} /> Enviados
                         </p>
-                        <p className="text-base font-bold text-white leading-none">{auto.stats?.sent || 0}</p>
+                        {statsLoading ? (
+                          <div className="h-4 w-8 bg-white/5 animate-pulse mx-auto rounded mt-1" />
+                        ) : (
+                          <p className="text-base font-bold text-white leading-none">{auto.stats?.sent || 0}</p>
+                        )}
                       </div>
                       <div className="text-center">
                         <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
                           <AlertTriangle size={9} /> Falhas
                         </p>
-                        <p className="text-base font-bold text-rose-400 leading-none">{auto.stats?.errors || 0}</p>
+                        {statsLoading ? (
+                          <div className="h-4 w-8 bg-rose-500/5 animate-pulse mx-auto rounded mt-1" />
+                        ) : (
+                          <p className="text-base font-bold text-rose-400 leading-none">{auto.stats?.errors || 0}</p>
+                        )}
                       </div>
                       <div className="text-center">
                         <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
                           <Clock size={9} /> Último Envio
                         </p>
-                        <p className="text-[9px] font-medium text-slate-300 leading-tight">
-                          {auto.stats?.lastSent 
-                            ? new Date(auto.stats.lastSent).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + 
-                              new Date(auto.stats.lastSent).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                            : 'Nunca'}
-                        </p>
+                        {statsLoading ? (
+                          <div className="h-4 w-12 bg-white/5 animate-pulse mx-auto rounded mt-1" />
+                        ) : (
+                          <p className="text-[9px] font-medium text-slate-300 leading-tight">
+                            {auto.stats?.lastSent 
+                              ? new Date(auto.stats.lastSent).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + 
+                                new Date(auto.stats.lastSent).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                              : 'Nunca'}
+                          </p>
+                        )}
                       </div>
                     </div>
+
                   </CardContent>
 
                   <div className="p-5 pt-1 flex gap-2 mt-auto">
