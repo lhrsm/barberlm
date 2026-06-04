@@ -2545,45 +2545,163 @@ function AutomationsComponent() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Logs de Webhook */}
       <Dialog open={isWebhookLogsOpen} onOpenChange={setIsWebhookLogsOpen}>
-        <DialogContent className="max-w-[1000px] w-[95vw] bg-[#020817] border border-amber-500/25 text-white p-0 overflow-hidden rounded-[24px]">
-          <DialogHeader className="p-6 border-b border-white/5">
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <Terminal size={20} className="text-emerald-500" /> Logs de Webhook (Últimos 50)
-            </DialogTitle>
+        <DialogContent className="max-w-[1100px] w-[95vw] bg-[#020817] border border-emerald-500/25 text-white p-0 overflow-hidden rounded-[24px]">
+          <DialogHeader className="p-6 border-b border-white/5 bg-[#0F172A]/30">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                <Terminal size={20} className="text-emerald-500" /> Logs de Webhook (Auditoria de Respostas)
+              </DialogTitle>
+              <Button variant="ghost" size="sm" onClick={() => fetchWebhookLogs()}>
+                <RefreshCw size={14} className="mr-2" /> Atualizar
+              </Button>
+            </div>
           </DialogHeader>
-          <div className="overflow-x-auto p-4 max-h-[70vh]">
-            <table className="w-full text-xs">
-              <thead className="text-slate-500 uppercase font-bold border-b border-white/5">
+          <div className="overflow-x-auto p-4 max-h-[70vh] custom-scrollbar">
+            <table className="w-full text-[11px] border-collapse">
+              <thead className="text-slate-500 uppercase font-bold border-b border-white/5 sticky top-0 bg-[#020817] z-10">
                 <tr>
-                  <th className="px-4 py-2 text-left">Data/Hora</th>
-                  <th className="px-4 py-2 text-left">Telefone</th>
-                  <th className="px-4 py-2 text-left">Tipo</th>
-                  <th className="px-4 py-2 text-left">Botão/Texto</th>
-                  <th className="px-4 py-2 text-left">Ref Message ID</th>
-                  <th className="px-4 py-2 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">Data/Hora</th>
+                  <th className="px-4 py-3 text-left">Telefone</th>
+                  <th className="px-4 py-3 text-left">Mensagem Recebida</th>
+                  <th className="px-4 py-3 text-left">Normalizado</th>
+                  <th className="px-4 py-3 text-left">Sessão/Agendamento</th>
+                  <th className="px-4 py-3 text-left">Ação</th>
+                  <th className="px-4 py-3 text-right">Detalhes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {webhookLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-white/5">
-                    <td className="px-4 py-2">{new Date(log.created_at).toLocaleString('pt-BR')}</td>
-                    <td className="px-4 py-2 font-mono">{log.phone}</td>
-                    <td className="px-4 py-2">{log.type}</td>
-                    <td className="px-4 py-2">{log.buttonText || log.buttonId || '---'}</td>
-                    <td className="px-4 py-2 font-mono truncate max-w-[100px]" title={log.referenceMessageId}>{log.referenceMessageId || '---'}</td>
-                    <td className="px-4 py-2">
-                      {log.appointment_id ? (
-                        <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[9px]">Vinculado</Badge>
+                {webhookLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-10 text-center text-slate-500 italic">Nenhum webhook registrado recentemente.</td>
+                  </tr>
+                ) : webhookLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-white/[0.03] transition-colors group">
+                    <td className="px-4 py-3 whitespace-nowrap text-slate-400">
+                      {new Date(log.created_at).toLocaleString('pt-BR')}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-sky-400">{log.phone_raw || log.phone}</td>
+                    <td className="px-4 py-3 font-medium text-white max-w-[150px] truncate" title={log.incoming_text || log.buttonText}>
+                      {log.incoming_text || log.buttonText || '---'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <code className="bg-white/5 px-1.5 py-0.5 rounded text-amber-500">{log.normalized_text || '---'}</code>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1">
+                        {log.conversation_found ? (
+                          <div className="flex items-center gap-1.5 text-emerald-400">
+                            <Check size={10} />
+                            <span>Sessão: {log.conversation_selected_id?.substring(0,8)}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-rose-400">
+                            <X size={10} />
+                            <span>Sessão N/F</span>
+                          </div>
+                        )}
+                        {log.appointment_id_found && (
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            Appt: #{log.appointment_id_found.substring(0,8).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {log.matched_action ? (
+                        <Badge className={`bg-emerald-500/10 text-emerald-500 border-none text-[9px] uppercase font-bold`}>
+                          {log.matched_action}
+                        </Badge>
                       ) : (
-                        <Badge className="bg-amber-500/10 text-amber-500 border-none text-[9px]">Pendente/NF</Badge>
+                        <span className="text-slate-600">---</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 w-7 p-0 rounded-full hover:bg-emerald-500/10 text-emerald-500"
+                        onClick={() => {
+                          setSelectedWebhookLog(log);
+                          setIsWebhookDetailOpen(true);
+                        }}
+                      >
+                        <Eye size={14} />
+                      </Button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Detalhe Webhook (O "Botão de Diagnóstico") */}
+      <Dialog open={isWebhookDetailOpen} onOpenChange={setIsWebhookDetailOpen}>
+        <DialogContent className="max-w-[700px] bg-[#081229] border border-amber-500/20 text-white p-0 rounded-[24px]">
+          <DialogHeader className="p-6 border-b border-white/5 bg-[#0F172A]/50">
+            <DialogTitle className="flex items-center gap-2">
+              <Terminal size={18} className="text-amber-500" /> Detalhes do Diagnóstico de Webhook
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-black/30 p-4 rounded-2xl border border-white/5">
+                <p className="text-[10px] uppercase font-bold text-slate-500 mb-2">Entrada do Cliente</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs"><span>Bruto:</span> <span className="text-white">"{selectedWebhookLog?.incoming_text}"</span></div>
+                  <div className="flex justify-between text-xs"><span>Normalizado:</span> <span className="text-amber-400">"{selectedWebhookLog?.normalized_text}"</span></div>
+                  <div className="flex justify-between text-xs"><span>Telefone:</span> <span className="text-sky-400">{selectedWebhookLog?.phone_raw}</span></div>
+                </div>
+              </div>
+              <div className="bg-black/30 p-4 rounded-2xl border border-white/5">
+                <p className="text-[10px] uppercase font-bold text-slate-500 mb-2">Resultado da Busca</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs"><span>Sessão Encontrada:</span> <span className={selectedWebhookLog?.conversation_found ? "text-emerald-400" : "text-rose-400"}>{String(selectedWebhookLog?.conversation_found)}</span></div>
+                  <div className="flex justify-between text-xs"><span>Ação Mapeada:</span> <Badge className="h-4 text-[9px] bg-emerald-500/20 text-emerald-400 border-none">{selectedWebhookLog?.matched_action || 'NENHUMA'}</Badge></div>
+                  <div className="flex justify-between text-xs"><span>Resposta Enviada:</span> <span className="text-white">{selectedWebhookLog?.response_sent ? "Sim" : "Não"}</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-2">
+                <Terminal size={12} /> Filtros de Busca Utilizados
+              </p>
+              <pre className="bg-black/50 p-4 rounded-2xl border border-white/5 font-mono text-[10px] text-sky-400 overflow-x-auto">
+                {JSON.stringify(selectedWebhookLog?.query_filters_used, null, 2)}
+              </pre>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase font-bold text-slate-500">Payload Completo (Z-API)</p>
+              <div className="bg-black/50 p-4 rounded-2xl border border-white/5 max-h-[200px] overflow-y-auto custom-scrollbar">
+                <pre className="font-mono text-[10px] text-slate-400">
+                  {JSON.stringify(selectedWebhookLog?.raw_payload, null, 2)}
+                </pre>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+               {selectedWebhookLog?.appointment_id_found && (
+                 <Button 
+                   variant="outline" 
+                   size="sm"
+                   className="rounded-xl border-amber-500/30 text-amber-500 hover:bg-amber-500/10"
+                   onClick={() => {
+                     setSearchTerm(`appointment:${selectedWebhookLog.appointment_id_found}`);
+                     setIsWebhookDetailOpen(false);
+                     setIsWebhookLogsOpen(false);
+                   }}
+                 >
+                   Ver Agendamento
+                 </Button>
+               )}
+               <Button className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl" onClick={() => setIsWebhookDetailOpen(false)}>
+                 Fechar Diagnóstico
+               </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
