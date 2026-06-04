@@ -29,8 +29,10 @@ Deno.test("Regression: process-automation-queue dry_run returns payload", async 
     body: JSON.stringify({
       tenant_id: appointment.tenant_id,
       appointment_id: appointment.id,
-      dry_run: true
+      dry_run: true,
+      force_resend: true
     })
+
   });
 
   const data = await response.json();
