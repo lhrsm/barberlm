@@ -370,7 +370,8 @@ function AutomationsComponent() {
       let query = supabase
         .from("automation_logs")
         .select("*", { count: 'exact' })
-        .eq("appointment_id", log.appointment_id);
+        .eq("appointment_id", log.appointment_id)
+        .eq("tenant_id", tenantId); // Filter by tenant_id for security and context
 
       if (auditSearchTerm) {
         query = query.or(`id.eq.${auditSearchTerm},payload->>diagnostic.ilike.%${auditSearchTerm}%,error_message.ilike.%${auditSearchTerm}%`);
