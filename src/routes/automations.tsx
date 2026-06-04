@@ -183,6 +183,12 @@ function AutomationsComponent() {
 
   const resendTest = async (log: any) => {
     try {
+      // Reenvio exclusivo para testes de Confirmação de Agendamento
+      if (log.message_type !== 'appointment_confirmation') {
+        toast.error("Reenvio disponível apenas para Confirmação de Agendamento");
+        return;
+      }
+
       setLoading(true);
       const { data: automation } = await anySupabase
         .from("automation_templates")
