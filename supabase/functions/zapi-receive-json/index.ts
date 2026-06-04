@@ -64,9 +64,46 @@ serve(async (req) => {
 
     console.log(`[Webhook] Processing callback for ${phone}. ButtonId: ${buttonId}, Text: ${text}, Ref: ${referenceId}`);
 
+    // REGISTRAR CLIQUE (Geral)
+    if (buttonId || text) {
+      // Find appointment context first to enrich the click log if possible
+      let enrichedAppointmentId = null;
+      let enrichedTenantId = null;
+
+      if (referenceId) {
+        const { data: logCtx } = await supabase
+          .from("automation_logs")
+          .select("appointment_id, tenant_id")
+          .eq("provider_message_id", referenceId)
+          .maybeSingle();
+        
+        if (logCtx) {
+          enrichedAppointmentId = logCtx.appointment_id;
+          enrichedTenantId = logCtx.tenant_id;
+        }
+      }
+
+      await supabase.from("automation_logs").insert({
+        tenant_id: enrichedTenantId,
+        appointment_id: enrichedAppointmentId,
+        phone,
+        status: "info",
+        action: "button_clicked",
+        payload: {
+          event_name: "button_clicked",
+          button_id: buttonId,
+          button_text: body.buttonsResponseMessage?.selectedButtonId || text,
+          referenceMessageId: referenceId,
+          webhook_received: true,
+          phone
+        }
+      });
+    }
+
     // Is it a confirmation?
     const isConfirm = buttonId === "main_confirm" || 
                       ["confirmar agendamento", "confirmar", "1"].includes(text);
+
 
     if (isConfirm) {
       console.log(`[Webhook] Confirmation action detected`);
