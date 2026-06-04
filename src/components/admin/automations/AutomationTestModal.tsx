@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -13,8 +12,16 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info, Zap, Play } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info, Zap, Play, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 
 interface AutomationTestModalProps {
