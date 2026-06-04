@@ -138,10 +138,13 @@ serve(async (req) => {
         if (sendResult.success) {
           await supabase.from("automation_queue").update({ status: "success", attempts: (item.attempts || 0) + 1, updated_at: new Date().toISOString() }).eq("id", item.id);
           
+          const providerMessageId = sendResult.response?.messageId;
+
           await supabase.from("automation_logs").insert({
             automation_id: automation.id,
             tenant_id: itemTenantId,
             appointment_id: appointment.id,
+            customer_id: appointment.customer_id,
             phone: phone,
             status: "success",
             message_type: finalMessageType,
@@ -149,6 +152,7 @@ serve(async (req) => {
             original_template: automation.template,
             provider: "zapi",
             sent_at: new Date().toISOString(),
+            provider_message_id: providerMessageId,
             payload: { data: testData, diagnostic: diagInfo, buttons_attached: !!sendOptions.buttons },
             response: sendResult.response
           });
