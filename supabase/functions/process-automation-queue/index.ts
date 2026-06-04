@@ -118,11 +118,17 @@ serve(async (req) => {
 
         const sendOptions: any = {};
         if (automation.key === 'appointment_confirmation') {
+          // Desativando botões interativos temporariamente conforme pedido
+          /*
           sendOptions.buttons = [
             { id: 'main_confirm', label: 'Confirmar agendamento' },
             { id: 'main_reschedule', label: 'Reagendar' },
             { id: 'main_cancel', label: 'Cancelar' }
           ];
+          */
+          
+          // Adicionando menu de texto
+          renderedTemplate += "\n\nO que deseja fazer?\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar";
         }
 
         // 5. Dry Run exit
