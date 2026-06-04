@@ -117,6 +117,8 @@ function AutomationsComponent() {
   const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
   const [totalWebhookLogs, setTotalWebhookLogs] = useState(0);
   const [isWebhookLogsOpen, setIsWebhookLogsOpen] = useState(false);
+  const [selectedWebhookLog, setSelectedWebhookLog] = useState<any>(null);
+  const [isWebhookDetailOpen, setIsWebhookDetailOpen] = useState(false);
   const itemsPerPage = 10;
 
   // Estados Auditoria do Fluxo (Modal)
@@ -911,6 +913,7 @@ function AutomationsComponent() {
       else toast.error("Falha ao reenviar: " + (zapiData?.error || "Erro desconhecido"));
       
       fetchData();
+      fetchWebhookLogs();
     } catch (error: any) {
       toast.error("Erro ao reenviar: " + error.message);
     } finally {
@@ -1703,17 +1706,22 @@ function AutomationsComponent() {
                 </div>
                 
                 <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl relative">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">STATUS DO PROFISSIONAL</p>
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">CONVERSA VINCULADA</p>
                   <div className="flex items-center gap-1.5 text-xs font-bold">
-                    {selectedLog.payload?.diagnostic?.professional_resolved ? (
+                    {selectedLog.conversation_id ? (
                       <>
                         <CheckCircle2 size={14} className="text-[#10B981]" />
-                        <span className="text-[#10B981]">OK: {selectedLog.payload?.data?.professional_name}</span>
+                        <span className="text-[#10B981]">OK: {selectedLog.conversation_id.substring(0, 8)}</span>
+                      </>
+                    ) : selectedLog.conversation_created ? (
+                      <>
+                        <CheckCircle2 size={14} className="text-[#10B981]" />
+                        <span className="text-[#10B981]">Criada</span>
                       </>
                     ) : (
                       <>
-                        <AlertTriangle size={14} className="text-amber-500 animate-pulse" />
-                        <span className="text-amber-500" title="Relacionamento ausente ou nome genérico">AVISO: Ausente</span>
+                        <AlertTriangle size={14} className="text-rose-500 animate-pulse" />
+                        <span className="text-rose-500">Erro na Sessão</span>
                       </>
                     )}
                   </div>
@@ -2066,8 +2074,31 @@ function AutomationsComponent() {
                                         <Copy size={12} className="mr-1.5" /> Copiar JSON
                                       </Button>
                                     </div>
-                                    <div className="bg-[#081229] p-4 rounded-xl border border-white/5 font-mono text-[11px] text-sky-400 overflow-x-auto max-h-[200px] custom-scrollbar">
-                                      <pre>{JSON.stringify(step.payload || {}, null, 2)}</pre>
+                                    <div className="bg-[#081229] p-4 rounded-xl border border-white/5 font-mono text-[11px] text-sky-400 overflow-x-auto max-h-[300px] custom-scrollbar">
+                                      {step.action === 'button_clicked' || step.action === 'confirmed_via_webhook' || step.action === 'resposta_recebida' ? (
+                                        <div className="space-y-4">
+                                          <div className="grid grid-cols-1 gap-2 bg-black/30 p-3 rounded-lg border border-white/5">
+                                            <p className="text-amber-500 font-bold border-b border-white/10 pb-1 mb-1">// Dados da Resposta</p>
+                                            <div className="flex justify-between"><span>incoming_text:</span> <span className="text-white">"{step.payload?.text || step.payload?.button_text}"</span></div>
+                                            <div className="flex justify-between"><span>normalized:</span> <span className="text-sky-400">"{step.payload?.normalized}"</span></div>
+                                            <div className="flex justify-between"><span>matched_action:</span> <span className="text-emerald-400 font-bold">{step.payload?.match || step.payload?.matched_action}</span></div>
+                                          </div>
+                                          
+                                          {step.payload?.webhook_received && (
+                                            <div className="grid grid-cols-1 gap-2 bg-black/30 p-3 rounded-lg border border-white/5">
+                                              <p className="text-sky-400 font-bold border-b border-white/10 pb-1 mb-1">// Diagnóstico de Busca</p>
+                                              <div className="flex justify-between"><span>conversation_found:</span> <span className={step.payload?.conversation_found ? "text-emerald-400" : "text-rose-400"}>{String(!!step.payload?.conversation_id_found || step.payload?.conversation_found)}</span></div>
+                                              <div className="flex justify-between"><span>conversation_id:</span> <span className="text-white">"{step.payload?.conversation_id_found || 'null'}"</span></div>
+                                              <div className="flex justify-between"><span>appointment_id:</span> <span className="text-white">"{step.payload?.appointment_id_found || 'null'}"</span></div>
+                                            </div>
+                                          )}
+
+                                          <p className="text-slate-500 mt-2">// JSON Completo</p>
+                                          <pre className="text-[10px]">{JSON.stringify(step.payload || {}, null, 2)}</pre>
+                                        </div>
+                                      ) : (
+                                        <pre>{JSON.stringify(step.payload || {}, null, 2)}</pre>
+                                      )}
                                     </div>
                                     {step.error_message && (
                                       <div className="mt-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg">
@@ -2241,8 +2272,35 @@ function AutomationsComponent() {
                         </div>
 
                         <div className="pt-4 mt-4 border-t border-amber-500/20">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-slate-500">// Diagnóstico da Sessão</p>
+                            {selectedLog.conversation_id && (
+                              <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-400">
+                                SESSÃO ATIVA
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 gap-1 mb-4">
+                             <div className="flex justify-between border-b border-white/5 py-1">
+                               <span className="text-slate-500">conversation_created:</span>
+                               <span className={selectedLog.conversation_created ? "text-emerald-400" : "text-rose-400"}>
+                                 {String(selectedLog.conversation_created)}
+                               </span>
+                             </div>
+                             <div className="flex justify-between border-b border-white/5 py-1">
+                               <span className="text-slate-500">conversation_id:</span>
+                               <span className="text-sky-400">"{selectedLog.conversation_id || 'null'}"</span>
+                             </div>
+                             {selectedLog.conversation_error && (
+                               <div className="flex flex-col border-b border-white/5 py-1">
+                                 <span className="text-rose-500">conversation_error:</span>
+                                 <span className="text-rose-400 italic">"{selectedLog.conversation_error}"</span>
+                               </div>
+                             )}
+                          </div>
+
                           <p className="text-slate-500 mb-2">// Payload Bruto</p>
-                          <pre className="text-amber-500/80 whitespace-pre-wrap">
+                          <pre className="text-amber-500/80 whitespace-pre-wrap bg-black/40 p-3 rounded-lg border border-white/5">
                             {JSON.stringify(selectedLog.payload || {}, null, 2)}
                           </pre>
                         </div>
