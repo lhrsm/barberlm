@@ -2088,7 +2088,7 @@ function AutomationsComponent() {
                     
                     <div className="p-6 bg-[#0B141A] min-h-[300px] relative">
                       <div className="bg-[#054740] text-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[90%] text-sm whitespace-pre-wrap leading-relaxed relative border border-white/5">
-                        {selectedLog.processed_template || selectedLog.payload?.rendered}
+                        {selectedLog.payload?.rendered_message || selectedLog.processed_template || selectedLog.payload?.rendered || "Mensagem não disponível"}
                         <div className="text-[10px] text-white/50 text-right mt-2 flex items-center justify-end gap-1">
                           {new Date(selectedLog.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           <CheckCheck size={14} className="text-sky-400" />
