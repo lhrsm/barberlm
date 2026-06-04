@@ -932,6 +932,20 @@ function AutomationsComponent() {
                         }}
                       />
                     </div>
+
+                    <div className="relative group">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-amber-500 transition-colors" size={14} />
+                      <Input 
+                        placeholder="Buscar ID Agendamento..." 
+                        className="pl-9 w-full bg-[#0F172A] border-slate-800 text-sm h-11 rounded-xl text-white focus:border-amber-500/50 focus:ring-amber-500/20 transition-all"
+                        value={searchTerm.startsWith('appointment:') ? searchTerm.replace('appointment:', '') : ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSearchTerm(val ? `appointment:${val}` : '');
+                          setCurrentPage(1);
+                        }}
+                      />
+                    </div>
                     
                     <Select value={filterAutomation} onValueChange={setFilterAutomation}>
                       <SelectTrigger className="w-full bg-[#0F172A] border-slate-800 text-sm h-11 rounded-xl text-white focus:ring-amber-500/20">
