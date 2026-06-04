@@ -15,7 +15,6 @@ import {
   RefreshCw,
   Loader2,
   Play,
-
   Settings2,
   History,
   CheckCircle2,
@@ -44,7 +43,8 @@ import {
   Copy,
   ChevronDown,
   ChevronUp,
-  Code2
+  Code2,
+  Info
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
