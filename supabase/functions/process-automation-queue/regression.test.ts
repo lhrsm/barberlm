@@ -20,6 +20,21 @@ Deno.test("Regression: process-automation-queue dry_run returns payload", async 
     return;
   }
 
+  // Ensure there's an automation template first
+  const { data: template } = await supabase.from("automation_templates").select("id").eq("tenant_id", appointment.tenant_id).limit(1).maybeSingle();
+  if (!template) {
+    console.log("No template found, skipping regression test");
+    return;
+  }
+
+  // Ensure there's a row in automation_queue
+  await supabase.from("automation_queue").upsert({
+    tenant_id: appointment.tenant_id,
+    appointment_id: appointment.id,
+    automation_id: template.id,
+    status: 'pending'
+  });
+
   const response = await fetch(`${SUPABASE_URL}/functions/v1/process-automation-queue`, {
     method: 'POST',
     headers: {
@@ -32,7 +47,6 @@ Deno.test("Regression: process-automation-queue dry_run returns payload", async 
       dry_run: true,
       force_resend: true
     })
-
   });
 
   const data = await response.json();
