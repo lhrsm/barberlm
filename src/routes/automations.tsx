@@ -911,40 +911,135 @@ function AutomationsComponent() {
               </div>
 
               {/* AUDITORIA DO FLUXO TÉCNICA */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Terminal size={18} className="text-amber-500" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Auditoria do Fluxo</h3>
+              <div id="audit-section" className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <Terminal size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Auditoria do Fluxo</h3>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Select value={auditFilterType} onValueChange={(val) => { setAuditFilterType(val); setAuditPage(1); }}>
+                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-xs h-8 rounded-lg text-white focus:ring-amber-500/50">
+                        <Filter size={12} className="mr-2 text-slate-500" />
+                        <SelectValue placeholder="Tipo de Evento" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
+                        <SelectItem value="all">Todos Eventos</SelectItem>
+                        <SelectItem value="webhook">Webhook</SelectItem>
+                        <SelectItem value="queue">Fila</SelectItem>
+                        <SelectItem value="send">Envio</SelectItem>
+                        <SelectItem value="delivery">Entrega</SelectItem>
+                        <SelectItem value="action">Ação</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-white/5 text-slate-500">
-                      <tr>
-                        <th className="px-6 py-3 font-bold">HORÁRIO</th>
-                        <th className="px-6 py-3 font-bold">EVENTO</th>
-                        <th className="px-6 py-3 font-bold">RESULTADO</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      <tr>
-                        <td className="px-6 py-3 text-slate-400">{new Date(selectedLog.created_at).toLocaleTimeString()}</td>
-                        <td className="px-6 py-3 font-mono text-amber-500/70">{selectedLog.message_type || 'appointment.created'}</td>
-                        <td className="px-6 py-3 font-bold text-[#10B981]">✓ sucesso</td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-3 text-slate-400">{new Date(new Date(selectedLog.created_at).getTime() + 1000).toLocaleTimeString()}</td>
-                        <td className="px-6 py-3 font-mono text-amber-500/70">queue.insert</td>
-                        <td className="px-6 py-3 font-bold text-[#10B981]">✓ sucesso</td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-3 text-slate-400">{new Date(new Date(selectedLog.created_at).getTime() + 2000).toLocaleTimeString()}</td>
-                        <td className="px-6 py-3 font-mono text-amber-500/70">send.whatsapp</td>
-                        <td className={`px-6 py-3 font-bold ${selectedLog.status === 'sent' ? 'text-[#10B981]' : 'text-rose-500'}`}>
-                          {selectedLog.status === 'sent' ? '✓ sucesso' : '✕ falha'}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+
+                <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden shadow-lg">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-white/5 text-slate-500">
+                        <tr>
+                          <th className="px-6 py-4 font-bold uppercase tracking-wider">Horário</th>
+                          <th className="px-6 py-4 font-bold uppercase tracking-wider">Evento</th>
+                          <th className="px-6 py-4 font-bold uppercase tracking-wider">Resultado</th>
+                          <th className="px-6 py-4 font-bold uppercase tracking-wider text-right">Detalhes</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {getAuditSteps(selectedLog)
+                          .slice((auditPage - 1) * auditItemsPerPage, auditPage * auditItemsPerPage)
+                          .map((step) => (
+                          <React.Fragment key={step.id}>
+                            <tr 
+                              className={`transition-colors hover:bg-white/5 cursor-pointer ${expandedStep === step.id ? 'bg-amber-500/5' : ''}`}
+                              onClick={() => setExpandedStep(expandedStep === step.id ? null : step.id)}
+                            >
+                              <td className="px-6 py-4 text-slate-400 whitespace-nowrap">{step.time}</td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className={`text-[10px] py-0 px-2 h-5 border-none ${
+                                    step.type === 'webhook' ? 'bg-blue-500/10 text-blue-400' :
+                                    step.type === 'queue' ? 'bg-purple-500/10 text-purple-400' :
+                                    step.type === 'send' ? 'bg-amber-500/10 text-amber-400' :
+                                    step.type === 'delivery' ? 'bg-emerald-500/10 text-emerald-400' :
+                                    'bg-slate-500/10 text-slate-400'
+                                  }`}>
+                                    {step.type}
+                                  </Badge>
+                                  <span className="font-mono text-white/90">{step.event}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className={`flex items-center gap-1.5 font-bold ${step.status === 'done' ? 'text-[#10B981]' : 'text-rose-500'}`}>
+                                  {step.status === 'done' ? <Check size={14} /> : <X size={14} />}
+                                  {step.result}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                {expandedStep === step.id ? <ChevronUp size={16} className="ml-auto text-amber-500" /> : <ChevronDown size={16} className="ml-auto text-slate-600" />}
+                              </td>
+                            </tr>
+                            {expandedStep === step.id && (
+                              <tr className="bg-amber-500/[0.02]">
+                                <td colSpan={4} className="px-6 py-4 border-l-2 border-amber-500/50">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                      <p className="text-[10px] font-bold uppercase text-slate-500">Payload do Evento</p>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="h-7 text-[10px] text-amber-500 hover:bg-amber-500/10"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleCopyText(JSON.stringify(step.payload, null, 2), "Payload");
+                                        }}
+                                      >
+                                        <Copy size={12} className="mr-1.5" /> Copiar JSON
+                                      </Button>
+                                    </div>
+                                    <div className="bg-[#081229] p-4 rounded-xl border border-white/5 font-mono text-[11px] text-sky-400 overflow-x-auto max-h-[200px] custom-scrollbar">
+                                      <pre>{JSON.stringify(step.payload, null, 2)}</pre>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Audit Pagination */}
+                  {getAuditSteps(selectedLog).length > auditItemsPerPage && (
+                    <div className="px-6 py-4 bg-white/5 flex items-center justify-between border-t border-white/5">
+                      <p className="text-[10px] text-slate-500">
+                        Página {auditPage} de {Math.ceil(getAuditSteps(selectedLog).length / auditItemsPerPage)}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          disabled={auditPage === 1}
+                          onClick={() => setAuditPage(prev => prev - 1)}
+                          className="h-8 w-8 p-0 rounded-lg border border-white/5 text-slate-400"
+                        >
+                          <ChevronLeft size={14} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          disabled={auditPage >= Math.ceil(getAuditSteps(selectedLog).length / auditItemsPerPage)}
+                          onClick={() => setAuditPage(prev => prev + 1)}
+                          className="h-8 w-8 p-0 rounded-lg border border-white/5 text-slate-400"
+                        >
+                          <ChevronRight size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
