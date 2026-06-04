@@ -24,6 +24,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
 import { AutomationTestModal } from "@/components/admin/automations/AutomationTestModal";
 
+// Casting to any to bypass type errors for new table
+const anySupabase = supabase as any;
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
+import { AutomationTestModal } from "@/components/admin/automations/AutomationTestModal";
+
 export const Route = createFileRoute("/automations")({
   component: AutomationsComponent,
 });
