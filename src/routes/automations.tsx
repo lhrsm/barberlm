@@ -1066,7 +1066,24 @@ function AutomationsComponent() {
                                 variant="ghost" 
                                 size="sm" 
                                 className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-white/5 hover:bg-sky-500 hover:text-white rounded-lg focus-visible:ring-2 focus-visible:ring-sky-500 transition-all"
-                                onClick={() => resendTest(log)}
+                                onClick={async () => {
+                                  toast.loading("Reenviando...");
+                                  try {
+                                    const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+                                      body: { 
+                                        tenant_id: tenantId, 
+                                        appointment_id: log.appointment_id,
+                                        force_resend: true 
+                                      }
+                                    });
+                                    
+                                    if (error) throw error;
+                                    toast.success("Solicitação de reenvio processada!");
+                                    fetchData();
+                                  } catch (err: any) {
+                                    toast.error("Erro ao reenviar: " + err.message);
+                                  }
+                                }}
                                 title="Reprocessar"
                               >
                                 <RotateCcw size={12} className="mr-1.5" /> Reenviar
