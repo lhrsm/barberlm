@@ -13,8 +13,17 @@ Deno.test({
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     
     // 1. Setup Data: Find or create a tenant and appointment
-    const { data: tenant } = await supabase.from("tenants").select("id").limit(1).single();
-    if (!tenant) throw new Error("No tenant found for testing");
+    let { data: tenant } = await supabase.from("tenants").select("id").limit(1).maybeSingle();
+    
+    if (!tenant) {
+      console.log("No tenant found, creating one for test...");
+      const { data: newTenant } = await supabase.from("tenants").insert({
+        name: "Test Tenant E2E"
+      }).select().single();
+      tenant = newTenant;
+    }
+    
+    if (!tenant) throw new Error("No tenant found or created for testing");
 
     // Get or create a customer
     let { data: customer } = await supabase.from("customers").select("id").eq("tenant_id", tenant.id).limit(1).maybeSingle();
