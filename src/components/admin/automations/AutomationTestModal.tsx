@@ -40,18 +40,10 @@ export function AutomationTestModal({
   const fetchRealData = async () => {
     setIsLoadingRealData(true);
     try {
-      // 1. Fetch the last appointment for this tenant using any casting for flexible querying
+      // 1. Fetch the last appointment for this tenant
       const { data: appointment, error: appError } = await (supabase as any)
         .from("appointments")
-        .select(`
-          id,
-          appointment_date,
-          appointment_time,
-          customer:profiles!appointments_customer_id_fkey(full_name),
-          professional:profiles!appointments_professional_id_fkey(full_name),
-          service:services(name, price),
-          barbershop:tenants(name)
-        `)
+        .select("*")
         .eq("tenant_id", automation.tenant_id)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -60,25 +52,54 @@ export function AutomationTestModal({
       if (appError) throw appError;
 
       if (appointment) {
+        // 2. Fetch Customer
+        const { data: customer } = await (supabase as any)
+          .from("customers")
+          .select("name, phone")
+          .eq("id", appointment.customer_id)
+          .maybeSingle();
+
+        // 3. Fetch Service
+        const { data: service } = await (supabase as any)
+          .from("services")
+          .select("name, price")
+          .eq("id", appointment.service_id)
+          .maybeSingle();
+
+        // 4. Fetch Professional (from profiles)
+        const { data: professional } = await (supabase as any)
+          .from("profiles")
+          .select("full_name")
+          .eq("id", appointment.barber_id)
+          .maybeSingle();
+
+        // 5. Fetch Barbershop (Tenant)
+        const { data: tenant } = await (supabase as any)
+          .from("tenants")
+          .select("name")
+          .eq("id", automation.tenant_id)
+          .maybeSingle();
+
         setRealData({
-          customer_name: (appointment.customer as any)?.full_name || "Cliente",
-          barbershop_name: (appointment.barbershop as any)?.name || "Barbearia",
-          service_name: (appointment.service as any)?.name || "Serviço",
-          professional_name: (appointment.professional as any)?.full_name || "Profissional",
-          appointment_date: appointment.appointment_date ? new Date(appointment.appointment_date).toLocaleDateString("pt-BR") : "--/--/----",
-          appointment_time: appointment.appointment_time?.substring(0, 5) || "--:--",
-          service_price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((appointment.service as any)?.price || 0),
+          customer_name: customer?.name || "Cliente",
+          barbershop_name: tenant?.name || "Barbearia",
+          service_name: service?.name || "Serviço",
+          professional_name: professional?.full_name || "Profissional",
+          appointment_date: appointment.start_time ? new Date(appointment.start_time).toLocaleDateString("pt-BR") : "--/--/----",
+          appointment_time: appointment.start_time ? new Date(appointment.start_time).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }) : "--:--",
+          service_price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(appointment.total_price || service?.price || 0),
         });
       } else {
         setRealData(null);
       }
     } catch (error: any) {
       console.error("Error fetching real data:", error);
-      toast.error("Erro ao carregar último agendamento: " + error.message);
+      toast.error("Erro ao carregar agendamento: " + error.message);
     } finally {
       setIsLoadingRealData(false);
     }
   };
+
 
   const fetchLastTestResult = async () => {
     setIsLoadingLastTest(true);
