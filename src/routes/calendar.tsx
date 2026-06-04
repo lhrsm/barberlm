@@ -328,8 +328,8 @@ function CalendarComponent() {
             <Button variant="ghost" size="sm" className="font-semibold text-sky-600 hover:bg-sky-50 rounded-xl" onClick={() => setCurrentDate(new Date())}>Hoje</Button>
           </div>
 
-          <ScrollArea className="flex-1">
-            <div className="min-w-[800px] md:min-w-0">
+          <ScrollArea className="flex-1 custom-scrollbar">
+            <div className="min-w-[700px] lg:min-w-0">
               {view === 'day' ? (
                 <div className="flex flex-col divide-y divide-zinc-100">
                   {HOURS.map(hour => (
