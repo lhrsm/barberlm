@@ -601,6 +601,57 @@ function AutomationsComponent() {
           )}
         </DialogContent>
       </Dialog>
+      
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-md bg-[#0F172A] border-slate-800 text-white p-0 overflow-hidden rounded-[24px]">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Eye className="text-amber-500" size={20} />
+              Visualização da Mensagem
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="p-6 pt-2 space-y-4">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 relative">
+              <div className="absolute top-0 right-4 -translate-y-1/2 bg-amber-500 text-[10px] font-bold px-2 py-0.5 rounded-full text-slate-900 uppercase">
+                WhatsApp Preview
+              </div>
+              
+              <div className="mt-2 space-y-3">
+                <div className="bg-[#075E54] text-white p-3 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] text-sm whitespace-pre-wrap leading-relaxed relative">
+                  {replaceVariables(selectedPreviewTemplate)}
+                  <div className="text-[10px] text-white/60 text-right mt-1">
+                    14:30 ✓✓
+                  </div>
+                </div>
+                
+                <div className="space-y-2 pt-2">
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                    Confirmar agendamento
+                  </div>
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                    Reagendar
+                  </div>
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                    Cancelar
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <p className="text-[10px] text-slate-500 text-center px-4">
+              As variáveis foram preenchidas com dados de exemplo para esta visualização.
+            </p>
+            
+            <Button 
+              className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl h-11"
+              onClick={() => setIsPreviewOpen(false)}
+            >
+              Fechar Visualização
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
