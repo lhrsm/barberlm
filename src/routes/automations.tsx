@@ -155,9 +155,42 @@ function AutomationsComponent() {
         }
       }
 
-      setAutomations(automationsData || []);
+      // 3. Fetch stats for each automation
+      const enrichedAutomations = await Promise.all((automationsData || []).map(async (auto: any) => {
+        const { count: sentCount } = await supabase
+          .from("automation_logs")
+          .select("*", { count: 'exact', head: true })
+          .eq("automation_id", auto.id)
+          .eq("status", "sent");
 
-      // 3. Fetch logs with filtering and pagination
+        const { count: errorCount } = await supabase
+          .from("automation_logs")
+          .select("*", { count: 'exact', head: true })
+          .eq("automation_id", auto.id)
+          .eq("status", "error");
+
+        const { data: lastLog } = await supabase
+          .from("automation_logs")
+          .select("created_at")
+          .eq("automation_id", auto.id)
+          .eq("status", "sent")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        return {
+          ...auto,
+          stats: {
+            sent: sentCount || 0,
+            errors: errorCount || 0,
+            lastSent: lastLog?.created_at || null
+          }
+        };
+      }));
+
+      setAutomations(enrichedAutomations);
+
+      // 4. Fetch logs with filtering and pagination
       let query = supabase
         .from("automation_logs")
         .select("*", { count: 'exact' })
@@ -453,28 +486,29 @@ function AutomationsComponent() {
                   key={auto.id} 
                   className="group relative flex flex-col bg-[#0F172A] border-[1px] border-amber-500/30 rounded-[20px] shadow-[0_10px_35px_rgba(0,0,0,0.35)] hover:border-amber-500/60 hover:shadow-[0_20px_45px_rgba(0,0,0,0.45)] transition-all duration-300 overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/50"
                 >
-                  <CardHeader className="p-6 pb-4">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg shadow-amber-600/20">
-                          <Zap className="text-white" size={24} />
+                  <CardHeader className="p-5 pb-3">
+                    <div className="flex justify-between items-start mb-3 gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg shadow-amber-600/20">
+                          <Zap className="text-white" size={20} />
                         </div>
                         <div className="min-w-0">
-                          <CardTitle className="text-xl md:text-[22px] font-bold text-white leading-tight truncate">
+                          <CardTitle className="text-lg md:text-xl font-bold text-white leading-tight break-words">
                             {auto.name}
                           </CardTitle>
-                          <div className="flex flex-wrap gap-2 mt-2">
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
                             <Badge 
-                              className={`text-[10px] font-bold uppercase tracking-wider py-0 px-2 h-5 border-none ${
+                              className={`text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 h-4.5 border-none flex items-center gap-1 ${
                                 auto.active 
                                   ? 'bg-emerald-500/15 text-emerald-400' 
                                   : 'bg-slate-500/15 text-slate-400'
                               }`}
                             >
+                              <div className={`w-1 h-1 rounded-full ${auto.active ? 'bg-emerald-400' : 'bg-slate-400'}`} />
                               {auto.active ? 'Ativa' : 'Inativa'}
                             </Badge>
-                            <Badge className="bg-amber-500/15 text-amber-500 text-[10px] font-bold uppercase tracking-wider py-0 px-2 h-5 border-none">
-                              <MessageCircle size={10} className="mr-1" /> WhatsApp
+                            <Badge className="bg-amber-500/15 text-amber-500 text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 h-4.5 border-none flex items-center gap-1">
+                              <MessageCircle size={9} /> WhatsApp
                             </Badge>
                           </div>
                         </div>
@@ -483,72 +517,77 @@ function AutomationsComponent() {
                       <Switch 
                         checked={auto.active || false} 
                         onCheckedChange={() => toggleStatus(auto)}
-                        className="data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-slate-700 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A]"
+                        className="data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-slate-700 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A] scale-90"
                         thumbClassName="data-[state=checked]:bg-slate-900"
                         aria-label={`Alternar status da automação ${auto.name}`}
                       />
                     </div>
 
-                    <CardDescription className="text-slate-400 text-sm leading-relaxed mb-4 line-clamp-2">
+                    <CardDescription className="text-slate-400 text-xs leading-relaxed mb-3 line-clamp-2">
                       Envia automaticamente uma mensagem para o cliente após a criação de um agendamento.
                     </CardDescription>
 
-                    <div className="flex items-center gap-2 mb-4">
-                      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-none text-[10px] font-mono py-0 px-2 h-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-none text-[9px] font-mono py-0 px-1.5 h-4.5">
                         {auto.trigger_event}
                       </Badge>
                     </div>
                   </CardHeader>
 
-                  <CardContent className="px-6 flex-1 flex flex-col gap-4">
+                  <CardContent className="px-5 flex-1 flex flex-col gap-3">
                     <button 
                       onClick={() => openPreview(auto.template)}
-                      className="w-full text-left bg-white/5 border border-white/10 rounded-[14px] p-4 relative group/preview hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                      className="w-full text-left bg-white/5 border border-white/10 rounded-xl p-3 relative group/preview hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                       aria-label="Visualizar mensagem completa"
                     >
-                      <p className="text-xs text-slate-300 italic whitespace-pre-wrap line-clamp-4 leading-relaxed">
+                      <p className="text-[11px] text-slate-300 italic whitespace-pre-wrap line-clamp-2 leading-snug">
                         {auto.template}
                       </p>
-                      <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-500 font-medium group-hover/preview:text-slate-300 transition-colors">Visualizar mensagem completa</span>
-                        <ExternalLink size={10} className="text-slate-500 group-hover/preview:text-slate-300 transition-colors" />
+                      <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
+                        <span className="text-[9px] text-slate-500 font-medium group-hover/preview:text-slate-300 transition-colors">Visualizar mensagem completa</span>
+                        <ExternalLink size={9} className="text-slate-500 group-hover/preview:text-slate-300 transition-colors" />
                       </div>
                     </button>
 
-                    <div className="grid grid-cols-3 gap-2 mt-auto border-t border-white/5 pt-4">
+                    <div className="grid grid-cols-3 gap-1 mt-auto border-t border-white/5 pt-3">
                       <div className="text-center">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-center gap-1">
-                          <SendHorizontal size={10} /> Enviados
+                        <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
+                          <SendHorizontal size={9} /> Enviados
                         </p>
-                        <p className="text-lg font-bold text-white leading-none">127</p>
+                        <p className="text-base font-bold text-white leading-none">{auto.stats?.sent || 0}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-center gap-1">
-                          <AlertTriangle size={10} /> Falhas
+                        <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
+                          <AlertTriangle size={9} /> Falhas
                         </p>
-                        <p className="text-lg font-bold text-rose-400 leading-none">2</p>
+                        <p className="text-base font-bold text-rose-400 leading-none">{auto.stats?.errors || 0}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-center gap-1">
-                          <Clock size={10} /> Último Envio
+                        <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
+                          <Clock size={9} /> Último Envio
                         </p>
-                        <p className="text-[10px] font-medium text-slate-300 leading-tight">Hoje às 14:30</p>
+                        <p className="text-[9px] font-medium text-slate-300 leading-tight">
+                          {auto.stats?.lastSent 
+                            ? new Date(auto.stats.lastSent).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + 
+                              new Date(auto.stats.lastSent).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                            : 'Nunca'}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
 
-                  <div className="p-6 pt-2 flex flex-col sm:flex-row gap-3 mt-auto">
+                  <div className="p-5 pt-1 flex gap-2 mt-auto">
                     <Button 
-                      className="flex-1 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl h-11 shadow-lg focus-visible:ring-2 focus-visible:ring-amber-500"
+                      className="flex-1 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-lg h-9 text-xs shadow-lg focus-visible:ring-2 focus-visible:ring-amber-500"
                       onClick={() => openEdit(auto)}
                     >
-                      <Settings2 size={16} className="mr-2" /> Editar
+                      <Settings2 size={14} className="mr-1.5" /> Editar
                     </Button>
                     <Button 
-                      className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl h-11 shadow-lg shadow-amber-600/20 transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-amber-500"
+                      className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-lg h-9 text-xs shadow-lg shadow-amber-600/20 transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-amber-500"
                       onClick={() => openTest(auto)}
                     >
-                      <Play size={16} className="mr-2 fill-current" /> Testar
+                      <Play size={14} className="mr-1.5 fill-current" /> Testar
                     </Button>
                   </div>
                 </Card>
@@ -1219,23 +1258,23 @@ function AutomationsComponent() {
               </div>
               
               <div className="mt-2 space-y-3">
-                <div className="bg-[#075E54] text-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[95%] text-sm whitespace-pre-wrap leading-relaxed relative">
+                <div className="bg-[#0F172A] border border-amber-500/25 text-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[95%] text-sm whitespace-pre-wrap leading-relaxed relative">
                   <div className="mb-2">
                     {replaceVariables(selectedPreviewTemplate, true)}
                   </div>
-                  <div className="text-[10px] text-white/60 text-right mt-1">
+                  <div className="text-[10px] text-slate-400 text-right mt-1">
                     14:30 ✓✓
                   </div>
                 </div>
                 
                 <div className="space-y-2 pt-2">
-                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                  <div className="bg-[#0F172A] hover:bg-white/5 transition-colors border border-amber-500/15 p-2.5 rounded-xl text-center text-sm font-semibold text-sky-400">
                     Confirmar agendamento
                   </div>
-                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                  <div className="bg-[#0F172A] hover:bg-white/5 transition-colors border border-amber-500/15 p-2.5 rounded-xl text-center text-sm font-semibold text-sky-400">
                     Reagendar
                   </div>
-                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                  <div className="bg-[#0F172A] hover:bg-white/5 transition-colors border border-amber-500/15 p-2.5 rounded-xl text-center text-sm font-semibold text-sky-400">
                     Cancelar
                   </div>
                 </div>
