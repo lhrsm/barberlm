@@ -1044,14 +1044,14 @@ function DashboardComponent() {
 
 
           <TabsContent value="daily" className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+            <div className="flex flex-col gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <h3 className="text-lg font-semibold">
                   {isSameDay(selectedDate, new Date()) ? "Agendamentos de Hoje" : `Agendamentos de ${format(selectedDate, "dd/MM")}`}
                 </h3>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2">
+                    <Button variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
                       <Calendar size={14} />
                       Filtrar Data
                     </Button>
@@ -1066,43 +1066,44 @@ function DashboardComponent() {
                     />
                   </PopoverContent>
                 </Popover>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2"
-                  onClick={async () => {
-                    const today = new Date().toISOString().split('T')[0];
-                    const { data: apps } = await supabase
-                      .from("appointments")
-                      .select("id, status, total_price, final_amount, credit_used, credits_used, cashback_used, payment_method, payment_status")
-                      .gte("start_time", today + "T00:00:00")
-                      .lte("start_time", today + "T23:59:59")
-                      .neq("status", "cancelled");
-
-                    const details = apps?.map(a => ({
-                      id: a.id.substring(0,8),
-                      status: a.status,
-                      total: a.total_price,
-                      cash: a.final_amount,
-                      credits: Number(a.credit_used || 0) + Number(a.credits_used || 0),
-                      cashback: a.cashback_used,
-                      pay: a.payment_method,
-                      included: ["scheduled", "confirmed", "completed"].includes(a.status || "")
-                    }));
-                    
-                    console.table(details);
-                    
-                    fetchStats();
-                    fetchTodayAppointments();
-                    fetchNotifications();
-                    fetchBirthdayCustomers();
-                    toast.success(`${apps?.length || 0} agendamentos encontrados. Verifique o console para detalhes.`);
-                  }}
-                >
-                  <RefreshCcw size={14} />
-                  Recalcular Dashboard
-                </Button>
               </div>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2 w-full"
+                onClick={async () => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const { data: apps } = await supabase
+                    .from("appointments")
+                    .select("id, status, total_price, final_amount, credit_used, credits_used, cashback_used, payment_method, payment_status")
+                    .gte("start_time", today + "T00:00:00")
+                    .lte("start_time", today + "T23:59:59")
+                    .neq("status", "cancelled");
+
+                  const details = apps?.map(a => ({
+                    id: a.id.substring(0,8),
+                    status: a.status,
+                    total: a.total_price,
+                    cash: a.final_amount,
+                    credits: Number(a.credit_used || 0) + Number(a.credits_used || 0),
+                    cashback: a.cashback_used,
+                    pay: a.payment_method,
+                    included: ["scheduled", "confirmed", "completed"].includes(a.status || "")
+                  }));
+                  
+                  console.table(details);
+                  
+                  fetchStats();
+                  fetchTodayAppointments();
+                  fetchNotifications();
+                  fetchBirthdayCustomers();
+                  toast.success(`${apps?.length || 0} agendamentos encontrados. Verifique o console para detalhes.`);
+                }}
+              >
+                <RefreshCcw size={14} />
+                Recalcular Dashboard
+              </Button>
               <div className="flex gap-2">
                 <Button 
                   variant={statusFilter === "all" ? "default" : "outline"} 
