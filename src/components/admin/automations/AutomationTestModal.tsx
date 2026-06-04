@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 
@@ -33,8 +33,11 @@ export function AutomationTestModal({
   const [isTesting, setIsTesting] = useState(false);
   const [isLoadingRealData, setIsLoadingRealData] = useState(false);
   const [realData, setRealData] = useState<any>(null);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>("");
   const [lastTestResult, setLastTestResult] = useState<any>(null);
   const [isLoadingLastTest, setIsLoadingLastTest] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
+
 
 
   const fetchRealData = async () => {
@@ -89,9 +92,12 @@ export function AutomationTestModal({
           appointment_time: appointment.start_time ? new Date(appointment.start_time).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }) : "--:--",
           service_price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(appointment.total_price || service?.price || 0),
         });
+        setSelectedAppointmentId(appointment.id);
       } else {
         setRealData(null);
+        setSelectedAppointmentId("");
       }
+
     } catch (error: any) {
       console.error("Error fetching real data:", error);
       toast.error("Erro ao carregar agendamento: " + error.message);
@@ -159,7 +165,49 @@ export function AutomationTestModal({
 
   const renderedTemplate = replaceVariables(automation?.template || "", testData);
 
+  const handleSimulateTrigger = async () => {
+    if (!selectedAppointmentId) {
+      toast.error("Nenhum agendamento selecionado.");
+      return;
+    }
+
+    setIsSimulating(true);
+    try {
+      // Manual trigger by inserting event
+      const { error } = await (supabase as any).from("automation_events").insert({
+        tenant_id: automation.tenant_id,
+        event_name: 'appointment.created',
+        entity_type: 'appointment',
+        entity_id: selectedAppointmentId,
+        payload: { 
+          simulation: true, 
+          triggered_by: 'manual_test',
+          appointment_id: selectedAppointmentId
+        }
+      });
+
+      if (error) {
+        // Fallback to direct queue insert if automation_events fails
+        const { error: queueError } = await (supabase as any).from("automation_queue").insert({
+          tenant_id: automation.tenant_id,
+          automation_id: automation.id,
+          appointment_id: selectedAppointmentId,
+          status: 'pending'
+        });
+        if (queueError) throw queueError;
+      }
+
+      toast.success("Evento simulado! Tarefa enfileirada com sucesso.");
+      fetchLastTestResult();
+    } catch (error: any) {
+      toast.error("Erro ao simular: " + error.message);
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
   const handleTest = async () => {
+
     if (!phone) {
       toast.error("Informe um telefone de destino");
       return;
@@ -319,9 +367,24 @@ export function AutomationTestModal({
                 </div>
               ) : (
                 <>
-                  <p className={`text-sm whitespace-pre-wrap leading-relaxed ${isLoadingRealData ? "opacity-20" : "text-slate-200"}`}>
-                    {renderedTemplate}
-                  </p>
+                  <div className="flex justify-between items-start mb-2">
+                    <p className={`text-sm whitespace-pre-wrap leading-relaxed flex-1 ${isLoadingRealData ? "opacity-20" : "text-slate-200"}`}>
+                      {renderedTemplate}
+                    </p>
+                    {testType === "real" && !isLoadingRealData && realData && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-7 text-[9px] text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-slate-900 rounded-lg shrink-0 ml-2"
+                        onClick={handleSimulateTrigger}
+                        disabled={isSimulating}
+                      >
+                        {isSimulating ? <Loader2 size={10} className="animate-spin mr-1" /> : <Zap size={10} className="mr-1" />}
+                        Simular Gatilho
+                      </Button>
+                    )}
+                  </div>
+
                   {isLoadingRealData && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Loader2 className="animate-spin text-amber-500" size={24} />

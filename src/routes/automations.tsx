@@ -13,7 +13,9 @@ import {
   MessageSquare, 
   Zap, 
   RefreshCw,
+  Loader2,
   Play,
+
   Settings2,
   History,
   CheckCircle2,
@@ -97,6 +99,8 @@ function AutomationsComponent() {
   const [selectedPreviewTemplate, setSelectedPreviewTemplate] = useState("");
   const [isPreviewEditMode, setIsPreviewEditMode] = useState(false);
   const [previewSearchTerm, setPreviewSearchTerm] = useState("");
+  const [previewSearchResultIndex, setPreviewSearchResultIndex] = useState(0);
+  const [previewTotalResults, setPreviewTotalResults] = useState(0);
   
   // Filtros Log Principal
   const [filterStatus, setFilterStatus] = useState("all");
@@ -108,12 +112,23 @@ function AutomationsComponent() {
   const itemsPerPage = 10;
 
   // Estados Auditoria do Fluxo (Modal)
-  const [auditFilterType, setAuditFilterType] = useState("all");
-  const [auditSearchTerm, setAuditSearchTerm] = useState("");
+  const [auditFilterType, setAuditFilterType] = useState(() => {
+    return localStorage.getItem(`auditFilterType_${tenantId}`) || "all";
+  });
+  const [auditSearchTerm, setAuditSearchTerm] = useState(() => {
+    return localStorage.getItem(`auditSearchTerm_${tenantId}`) || "";
+  });
   const [auditPage, setAuditPage] = useState(1);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const auditItemsPerPage = 5;
   const [statsLoading, setStatsLoading] = useState(false);
+  const [isAuditLoading, setIsAuditLoading] = useState(false);
+
+  const [savedScenarios, setSavedScenarios] = useState<any[]>(() => {
+    const saved = localStorage.getItem(`automation_scenarios_${tenantId}`);
+    return saved ? JSON.parse(saved) : [];
+  });
+
 
 
   useEffect(() => {
@@ -163,7 +178,7 @@ function AutomationsComponent() {
         }
       }
 
-      // 3. Fetch stats for each automation
+      // 3. Fetch stats and failure reasons for each automation
       const enrichedAutomations = await Promise.all((automationsData || []).map(async (auto: any) => {
         const { count: sentCount } = await supabase
           .from("automation_logs")
@@ -186,18 +201,29 @@ function AutomationsComponent() {
           .limit(1)
           .maybeSingle();
 
+        const { data: lastError } = await supabase
+          .from("automation_logs")
+          .select("created_at, error_message")
+          .eq("automation_id", auto.id)
+          .eq("status", "error")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
         return {
           ...auto,
           stats: {
             sent: sentCount || 0,
             errors: errorCount || 0,
-            lastSent: lastLog?.created_at || null
+            lastSent: lastLog?.created_at || null,
+            lastError: lastError || null
           }
         };
       }));
 
       setAutomations(enrichedAutomations);
       setStatsLoading(false);
+
 
       // 4. Fetch logs with filtering and pagination
 
@@ -248,14 +274,78 @@ function AutomationsComponent() {
     }
   }
 
-  const [customVariables, setCustomVariables] = useState({
+  const INITIAL_VARIABLES = {
     customer_name: "João Silva",
     barbershop_name: "Barbex Premium",
     service_name: "Corte + Barba",
     professional_name: "Carlos (Mestre Barbeiro)",
     appointment_date: "15/06/2026",
     appointment_time: "14:30"
-  });
+  };
+
+  const [customVariables, setCustomVariables] = useState(INITIAL_VARIABLES);
+
+  useEffect(() => {
+    if (tenantId) {
+      localStorage.setItem(`auditFilterType_${tenantId}`, auditFilterType);
+    }
+  }, [auditFilterType, tenantId]);
+
+  useEffect(() => {
+    if (tenantId) {
+      localStorage.setItem(`auditSearchTerm_${tenantId}`, auditSearchTerm);
+    }
+  }, [auditSearchTerm, tenantId]);
+
+  const saveScenario = () => {
+    const scenarioName = prompt("Nome do cenário:");
+    if (!scenarioName) return;
+    const newScenarios = [...savedScenarios, { name: scenarioName, variables: { ...customVariables } }];
+    setSavedScenarios(newScenarios);
+    localStorage.setItem(`automation_scenarios_${tenantId}`, JSON.stringify(newScenarios));
+    toast.success("Cenário salvo!");
+  };
+
+  const loadScenario = (scenario: any) => {
+    setCustomVariables(scenario.variables);
+    toast.success(`Cenário "${scenario.name}" aplicado!`);
+  };
+
+  const deleteScenario = (idx: number) => {
+    const newScenarios = savedScenarios.filter((_, i) => i !== idx);
+    setSavedScenarios(newScenarios);
+    localStorage.setItem(`automation_scenarios_${tenantId}`, JSON.stringify(newScenarios));
+    toast.success("Cenário removido.");
+  };
+
+  const countSearchResults = (text: string, term: string) => {
+    if (!term) return 0;
+    const regex = new RegExp(term, 'gi');
+    return (text.match(regex) || []).length;
+  };
+
+  useEffect(() => {
+    if (selectedPreviewTemplate && previewSearchTerm) {
+      const rendered = replaceVariables(selectedPreviewTemplate, false, "") as string;
+      const total = countSearchResults(rendered, previewSearchTerm);
+      setPreviewTotalResults(total);
+      setPreviewSearchResultIndex(total > 0 ? 1 : 0);
+    } else {
+      setPreviewTotalResults(0);
+      setPreviewSearchResultIndex(0);
+    }
+  }, [previewSearchTerm, selectedPreviewTemplate]);
+
+  const handlePreviewSearchKeydown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        setPreviewSearchResultIndex(prev => prev > 1 ? prev - 1 : previewTotalResults);
+      } else {
+        setPreviewSearchResultIndex(prev => prev < previewTotalResults ? prev + 1 : 1);
+      }
+    }
+  };
+
 
   const replaceVariables = (template: string, highlight: boolean = false, searchTerm: string = "") => {
     if (!template) return "";
@@ -397,8 +487,14 @@ function AutomationsComponent() {
         type: 'send',
         result: log.status === 'sent' ? 'sucesso' : 'falha',
         status: log.status === 'sent' ? 'done' : 'error',
-        payload: log.response || { error: log.error_message, message_id: log.id }
+        payload: { 
+          ...log.response, 
+          message_id: log.id, 
+          provider_message_id: log.response?.messageId || log.response?.id,
+          error: log.error_message 
+        }
       });
+
 
       if (log.status === 'sent') {
         steps.push({
@@ -491,7 +587,17 @@ function AutomationsComponent() {
     }
   };
 
+  const openLogDetail = async (log: any) => {
+    setIsAuditLoading(true);
+    setSelectedLog(log);
+    setAuditPage(1);
+    setIsLogDetailOpen(true);
+    // Simulate loading for better UI experience
+    setTimeout(() => setIsAuditLoading(false), 400);
+  };
+
   const openEdit = (automation: any) => {
+
     setSelectedAutomation(automation);
     setIsEditOpen(true);
   };
@@ -707,6 +813,23 @@ function AutomationsComponent() {
 
                   </CardContent>
 
+                  {auto.stats?.lastError && (
+                    <div className="px-5 mb-3">
+                      <div className="bg-rose-500/5 border border-rose-500/20 rounded-xl p-2.5 flex items-start gap-2 animate-pulse">
+                        <AlertTriangle size={14} className="text-rose-400 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider mb-0.5">Última Falha</p>
+                          <p className="text-[10px] text-rose-300/80 italic line-clamp-1 mb-1">
+                            {auto.stats.lastError.error_message || 'Erro desconhecido'}
+                          </p>
+                          <p className="text-[8px] text-slate-500">
+                            {new Date(auto.stats.lastError.created_at).toLocaleString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="p-5 pt-1 flex gap-2 mt-auto">
                     <Button 
                       className="flex-1 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-lg h-9 text-xs shadow-lg focus-visible:ring-2 focus-visible:ring-amber-500"
@@ -721,6 +844,7 @@ function AutomationsComponent() {
                       <Play size={14} className="mr-1.5 fill-current" /> Testar
                     </Button>
                   </div>
+
                 </Card>
               ))}
             </div>
@@ -805,7 +929,9 @@ function AutomationsComponent() {
                         <th className="px-4 py-3 text-left font-medium text-slate-400">Automação</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-400">Canal</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-400">Destinatário</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-400">ID Agendamento</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-400">Status</th>
+
                         <th className="px-4 py-3 text-right font-medium text-slate-400">Ações</th>
                       </tr>
                     </thead>
@@ -818,7 +944,22 @@ function AutomationsComponent() {
                           <td className="px-4 py-3 font-medium">
                             {log.message_type === 'appointment_confirmation' ? 'Confirmação de Agendamento' : log.message_type}
                           </td>
+                          <td className="px-4 py-3 text-xs font-mono text-slate-500">
+                            {log.appointment_id ? (
+                              <button 
+                                onClick={() => {
+                                  setSearchTerm(log.appointment_id);
+                                  setCurrentPage(1);
+                                  toast.info(`Filtrando por agendamento: ${log.appointment_id.substring(0,8)}`);
+                                }}
+                                className="hover:text-amber-500 transition-colors flex items-center gap-1"
+                              >
+                                <Code2 size={12} /> {log.appointment_id.substring(0, 8)}...
+                              </button>
+                            ) : '-'}
+                          </td>
                           <td className="px-4 py-3">
+
                             <Badge variant="outline" className="text-[10px] capitalize">
                               {log.provider === 'zapi' ? 'WhatsApp' : log.provider}
                             </Badge>
@@ -849,12 +990,12 @@ function AutomationsComponent() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8 text-slate-500 hover:text-slate-900"
+                                className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10"
                                 onClick={() => {
-                                  setSelectedLog(log);
-                                  setIsLogDetailOpen(true);
+                                  openLogDetail(log);
                                 }}
-                                title="Ver Detalhes"
+                                title="Ver Detalhes (Auditoria)"
+
                               >
                                 <Eye size={14} />
                               </Button>
@@ -1139,19 +1280,34 @@ function AutomationsComponent() {
 
                 </div>
 
-                <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden shadow-lg">
+                <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden shadow-lg min-h-[300px] relative">
+                  {isAuditLoading && (
+                    <div className="absolute inset-0 bg-[#0F172A]/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-4">
+                        <Loader2 className="animate-spin text-amber-500" size={32} />
+                        <p className="text-sm font-bold text-amber-500 uppercase tracking-widest animate-pulse">Carregando Auditoria...</p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs text-left">
                       <thead className="bg-white/5 text-slate-500">
                         <tr>
                           <th className="px-6 py-4 font-bold uppercase tracking-wider">Horário</th>
-                          <th className="px-6 py-4 font-bold uppercase tracking-wider">Evento</th>
+                          <th className="px-6 py-4 font-bold uppercase tracking-wider">Evento / IDs</th>
                           <th className="px-6 py-4 font-bold uppercase tracking-wider">Resultado</th>
                           <th className="px-6 py-4 font-bold uppercase tracking-wider text-right">Detalhes</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {getAuditSteps(selectedLog)
+                        {getAuditSteps(selectedLog).length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-6 py-12 text-center text-slate-500 italic">
+                              Nenhum evento encontrado para os filtros selecionados.
+                            </td>
+                          </tr>
+                        ) : getAuditSteps(selectedLog)
                           .slice((auditPage - 1) * auditItemsPerPage, auditPage * auditItemsPerPage)
                           .map((step) => (
                           <React.Fragment key={step.id}>
@@ -1161,19 +1317,42 @@ function AutomationsComponent() {
                             >
                               <td className="px-6 py-4 text-slate-400 whitespace-nowrap">{step.time}</td>
                               <td className="px-6 py-4">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className={`text-[10px] py-0 px-2 h-5 border-none ${
-                                    step.type === 'webhook' ? 'bg-blue-500/10 text-blue-400' :
-                                    step.type === 'queue' ? 'bg-purple-500/10 text-purple-400' :
-                                    step.type === 'send' ? 'bg-amber-500/10 text-amber-400' :
-                                    step.type === 'delivery' ? 'bg-emerald-500/10 text-emerald-400' :
-                                    'bg-slate-500/10 text-slate-400'
-                                  }`}>
-                                    {step.type}
-                                  </Badge>
-                                  <span className="font-mono text-white/90">{step.event}</span>
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className={`text-[10px] py-0 px-2 h-5 border-none ${
+                                      step.type === 'webhook' ? 'bg-blue-500/10 text-blue-400' :
+                                      step.type === 'queue' ? 'bg-purple-500/10 text-purple-400' :
+                                      step.type === 'send' ? 'bg-amber-500/10 text-amber-400' :
+                                      step.type === 'delivery' ? 'bg-emerald-500/10 text-emerald-400' :
+                                      'bg-slate-500/10 text-slate-400'
+                                    }`}>
+                                      {step.type}
+                                    </Badge>
+                                    <span className="font-mono text-white/90">{step.event}</span>
+                                  </div>
+                                  
+                                  {/* IDs Quick Copy */}
+                                  <div className="flex gap-2">
+                                    {step.payload?.provider_message_id && (
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleCopyText(step.payload.provider_message_id, "ID Provedor"); }}
+                                        className="text-[9px] bg-white/5 hover:bg-white/10 text-slate-500 hover:text-amber-500 px-1.5 py-0.5 rounded flex items-center gap-1 transition-colors"
+                                      >
+                                        <Copy size={8} /> Prov: {step.payload.provider_message_id.substring(0, 10)}...
+                                      </button>
+                                    )}
+                                    {step.payload?.message_id && (
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleCopyText(step.payload.message_id, "ID Mensagem"); }}
+                                        className="text-[9px] bg-white/5 hover:bg-white/10 text-slate-500 hover:text-amber-500 px-1.5 py-0.5 rounded flex items-center gap-1 transition-colors"
+                                      >
+                                        <Copy size={8} /> Msg: {step.payload.message_id.substring(0, 8)}...
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               </td>
+
                               <td className="px-6 py-4">
                                 <div className={`flex items-center gap-1.5 font-bold ${step.status === 'done' ? 'text-[#10B981]' : 'text-rose-500'}`}>
                                   {step.status === 'done' ? <Check size={14} /> : <X size={14} />}
@@ -1415,22 +1594,39 @@ function AutomationsComponent() {
       }}>
         <DialogContent className="max-w-2xl bg-[#0F172A] border-slate-800 text-white p-0 overflow-hidden rounded-[24px] focus:outline-none">
           <DialogHeader className="p-6 pb-2">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <DialogTitle className="text-xl font-bold flex items-center gap-2">
                 <Eye className="text-amber-500" size={20} />
                 Visualização da Mensagem
               </DialogTitle>
               
               <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
-                  <Input 
-                    placeholder="Buscar na mensagem..."
-                    value={previewSearchTerm}
-                    onChange={(e) => setPreviewSearchTerm(e.target.value)}
-                    className="h-8 pl-8 text-xs bg-slate-900 border-slate-700 w-[180px] rounded-lg focus:border-amber-500/50"
-                  />
+                <div className="flex items-center gap-1">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
+                    <Input 
+                      placeholder="Buscar na mensagem..."
+                      value={previewSearchTerm}
+                      onChange={(e) => setPreviewSearchTerm(e.target.value)}
+                      onKeyDown={handlePreviewSearchKeydown}
+                      className="h-8 pl-8 text-xs bg-slate-900 border-slate-700 w-[160px] rounded-lg focus:border-amber-500/50"
+                    />
+                  </div>
+                  {previewTotalResults > 0 && (
+                    <div className="flex items-center gap-1 bg-slate-800 rounded-lg px-2 h-8 border border-slate-700">
+                      <span className="text-[10px] text-slate-400">{previewSearchResultIndex}/{previewTotalResults}</span>
+                      <div className="flex flex-col">
+                        <button onClick={() => setPreviewSearchResultIndex(prev => prev > 1 ? prev - 1 : previewTotalResults)} className="hover:text-amber-500 h-3 flex items-center">
+                          <ChevronUp size={10} />
+                        </button>
+                        <button onClick={() => setPreviewSearchResultIndex(prev => prev < previewTotalResults ? prev + 1 : 1)} className="hover:text-amber-500 h-3 flex items-center">
+                          <ChevronDown size={10} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -1442,6 +1638,7 @@ function AutomationsComponent() {
                 </Button>
               </div>
             </div>
+
           </DialogHeader>
           
           <div className="p-6 pt-2 space-y-4">
@@ -1470,22 +1667,63 @@ function AutomationsComponent() {
               </div>
 
               {isPreviewEditMode && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Testar Variáveis</p>
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300 overflow-y-auto max-h-[500px] pr-2 custom-scrollbar">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Testar Variáveis</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[9px] hover:text-amber-500" 
+                      onClick={() => setCustomVariables(INITIAL_VARIABLES)}
+                    >
+                      <RotateCcw size={10} className="mr-1" /> Resetar
+                    </Button>
+                  </div>
+                  
                   <div className="space-y-3">
                     {Object.entries(customVariables).map(([key, value]) => (
                       <div key={key} className="space-y-1">
                         <Label className="text-[10px] text-slate-400">{key}</Label>
                         <Input 
-                          value={value} 
+                          value={value as string} 
                           onChange={(e) => setCustomVariables({...customVariables, [key]: e.target.value})}
                           className="h-8 text-xs bg-slate-900 border-slate-800 rounded-lg focus:border-amber-500/50"
                         />
                       </div>
                     ))}
                   </div>
+
+                  <div className="pt-4 space-y-3 border-t border-white/5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Cenários Salvos</p>
+                      <Button variant="ghost" size="sm" className="h-6 text-[9px] hover:text-amber-500" onClick={saveScenario}>
+                        <Check size={10} className="mr-1" /> Salvar Atual
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {savedScenarios.length === 0 ? (
+                        <p className="text-[9px] text-slate-600 italic">Nenhum cenário salvo.</p>
+                      ) : (
+                        savedScenarios.map((scenario, idx) => (
+                          <div key={idx} className="flex items-center gap-2 group">
+                            <button 
+                              onClick={() => loadScenario(scenario)}
+                              className="flex-1 text-left bg-white/5 hover:bg-white/10 p-2 rounded-lg text-[10px] truncate transition-colors"
+                            >
+                              {scenario.name}
+                            </button>
+                            <button onClick={() => deleteScenario(idx)} className="opacity-0 group-hover:opacity-100 p-1 hover:text-rose-500 transition-all">
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
+
             </div>
             
             <div className="flex flex-col gap-3">
