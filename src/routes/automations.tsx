@@ -490,7 +490,7 @@ function AutomationsComponent() {
         const headers = ["ID", "Data/Hora (SP)", "Appointment ID", "Phone", "Status", "Provider", "Message ID", "Tipo"];
         const rows = exportData.map(l => [
           l.id.toString(),
-          new Date(l.created_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+          new Date(l.created_at || Date.now()).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
           l.appointment_id || "",
           l.phone || "",
           l.status || "",
