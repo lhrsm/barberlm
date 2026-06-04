@@ -586,7 +586,7 @@ function DashboardComponent() {
     };
 
     // Cálculos Diários
-    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
+    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.total_price || curr.original_total || 0), 0) || 0;
     const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.credit_used || 0), 0) || 0;
     const dailyCashbackUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_used || 0), 0) || 0;
     const dailyCashbackEarned = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
