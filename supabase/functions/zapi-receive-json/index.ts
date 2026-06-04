@@ -78,7 +78,7 @@ serve(async (req) => {
   if (webhookLogError) console.error("[Webhook] Error saving webhook log:", webhookLogError);
 
     // REGISTRAR CLIQUE (Geral)
-    if (buttonId || text) {
+    if (buttonId || buttonText) {
       // Find appointment context first to enrich the click log if possible
       let enrichedAppointmentId = null;
       let enrichedTenantId = null;
