@@ -154,7 +154,7 @@ serve(async (req) => {
             original_template: automation.template,
             provider: "zapi",
             sent_at: new Date().toISOString(),
-            payload: { data: testData, rendered: renderedTemplate, origin: force_resend ? 'manual_resend' : 'automatic' },
+            payload: { data: testData, rendered: renderedTemplate, origin: force_resend ? 'manual_resend' : 'automatic', diagnostic: diagInfo },
             response: sendResult.response
           });
           
