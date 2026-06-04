@@ -386,6 +386,8 @@ function AutomationsComponent() {
           query = query.eq("status", "sent");
         } else if (auditFilterType === "delivery") {
           query = query.filter("payload->>diagnostic", "eq", "delivery_detected");
+        } else if (auditFilterType === "by_template") {
+          query = query.eq("automation_id", log.automation_id);
         }
       }
 
