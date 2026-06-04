@@ -83,12 +83,14 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isSendingButtonTest, setIsSendingButtonTest] = useState(false);
   const [buttonTestMessageId, setButtonTestMessageId] = useState<string | null>(null);
   const [isWaitingForCallback, setIsWaitingForCallback] = useState(false);
+  const [webhookDebugLogs, setWebhookDebugLogs] = useState<any[]>([]);
   const [callbackResult, setCallbackResult] = useState<{
     received: boolean;
     time?: string | null;
     buttonId?: string | null;
     phone?: string | null;
     payload?: any;
+    error?: string;
   } | null>(null);
 
   const [formData, setFormData] = useState({
