@@ -282,13 +282,13 @@ function AutomationsComponent() {
           <TabsList className="bg-[#0F172A] border border-slate-800 p-1 rounded-2xl w-fit">
             <TabsTrigger 
               value="templates" 
-              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all"
+              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A]"
             >
               Modelos de Mensagem
             </TabsTrigger>
             <TabsTrigger 
               value="logs"
-              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all"
+              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A]"
             >
               Histórico de Envios
             </TabsTrigger>
