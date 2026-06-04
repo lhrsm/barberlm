@@ -46,6 +46,7 @@ function LandingPageComponent() {
   const { user, loading, role } = useAuth();
   const navigate = useNavigate();
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && user && role) {
