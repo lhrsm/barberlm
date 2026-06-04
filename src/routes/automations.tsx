@@ -530,124 +530,22 @@ function AutomationsComponent() {
     setIsPreviewOpen(true);
   };
 
-  const getAuditSteps = (log: any) => {
-    if (!log) return [];
-    
-    // Check if it's a diagnostic log (pending status with diagnostic field)
-    const isDiagnostic = log.status === 'pending' && log.payload?.diagnostic;
-    
-    const steps = [
-      { 
-        id: 1,
-        time: new Date(log.created_at).toLocaleTimeString(), 
-        event: log.payload?.event || 'appointment.created', 
-        type: 'webhook',
-        result: log.payload?.appointment_created_detected ? 'detectado' : 'sucesso',
-        status: 'done',
-        payload: log.payload
-      },
-
-      { 
-        id: 2,
-        time: new Date(new Date(log.created_at).getTime() + 1000).toLocaleTimeString(), 
-        event: 'queue.insert', 
-        type: 'queue',
-        result: 'sucesso',
-        status: 'done',
-        payload: { queue_id: log.id, priority: 'high', diagnostic: log.payload?.diagnostic }
-      }
-    ];
-
-    if (log.status !== 'pending' || !isDiagnostic) {
-      steps.push({ 
-        id: 3,
-        time: new Date(new Date(log.created_at).getTime() + 2000).toLocaleTimeString(), 
-        event: 'process.automation', 
-        type: 'action',
-        result: 'sucesso',
-        status: 'done',
-        payload: { automation_key: log.message_type, provider_message_id: log.response?.messageId || log.response?.id }
-      });
-      
-      steps.push({ 
-        id: 4,
-        time: new Date(new Date(log.created_at).getTime() + 3000).toLocaleTimeString(), 
-        event: 'send.whatsapp', 
-        type: 'send',
-        result: log.status === 'sent' ? 'sucesso' : 'falha',
-        status: log.status === 'sent' ? 'done' : 'error',
-        payload: { 
-          ...log.response, 
-          message_id: log.id, 
-          provider_message_id: log.response?.messageId || log.response?.id,
-          error: log.error_message 
-        }
-      });
-
-
-      if (log.status === 'sent') {
-        steps.push({
-          id: 5,
-          time: new Date(new Date(log.created_at).getTime() + 5000).toLocaleTimeString(),
-          event: 'message.delivery',
-          type: 'delivery',
-          result: 'entregue',
-          status: 'done',
-          payload: { provider: 'zapi', status: 'delivered', provider_message_id: log.response?.messageId || log.response?.id }
-        });
-      }
-    }
-
-    if (log.status === 'error' && log.error_message?.toLowerCase().includes('timeout')) {
-      steps.push({
-        id: 6,
-        time: new Date(new Date(log.created_at).getTime() + 4000).toLocaleTimeString(),
-        event: 'request.timeout',
-        type: 'error',
-        result: 'timeout',
-        status: 'error',
-        payload: { error: log.error_message, retry_count: 3 }
-      });
-    }
-
-    return steps.filter(step => {
-      const matchType = auditFilterType === 'all' || step.type === auditFilterType;
-      const matchSearch = !auditSearchTerm || 
-        JSON.stringify(step.payload).toLowerCase().includes(auditSearchTerm.toLowerCase()) ||
-        step.event.toLowerCase().includes(auditSearchTerm.toLowerCase());
-      return matchType && matchSearch;
-    });
+  const getLogIcon = (log: any) => {
+    if (log.status === 'sent') return <CheckCircle2 className="text-emerald-500" size={16} />;
+    if (log.status === 'error') return <XCircle className="text-rose-500" size={16} />;
+    if (log.payload?.diagnostic === 'trigger_executed') return <Zap className="text-amber-500" size={16} />;
+    if (log.status === 'pending') return <Clock className="text-sky-500" size={16} />;
+    return <Info className="text-slate-500" size={16} />;
   };
 
-
-  const handleExportAudit = (log: any, format: 'csv' | 'json') => {
-    const steps = getAuditSteps(log);
-    if (format === 'json') {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(steps, null, 2));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href",     dataStr);
-      downloadAnchorNode.setAttribute("download", `auditoria_fluxo_${log.id}.json`);
-      document.body.appendChild(downloadAnchorNode);
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
-    } else {
-      const headers = ['ID', 'Horário', 'Evento', 'Tipo', 'Resultado', 'Status'];
-      const csvRows = [
-        headers.join(','),
-        ...steps.map(s => [s.id, s.time, s.event, s.type, s.result, s.status].join(','))
-      ].join('\n');
-      
-      const blob = new Blob([csvRows], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `auditoria_fluxo_${log.id}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.remove();
-    }
-    toast.success(`Auditoria exportada em ${format.toUpperCase()}`);
+  const getLogLabel = (log: any) => {
+    if (log.payload?.diagnostic === 'trigger_executed') return "Gatilho Detectado";
+    if (log.status === 'sent') return "Mensagem Enviada";
+    if (log.status === 'error') return "Erro no Processamento";
+    if (log.status === 'pending') return "Na Fila";
+    return "Evento Desconhecido";
   };
+
 
 
   useEffect(() => {
