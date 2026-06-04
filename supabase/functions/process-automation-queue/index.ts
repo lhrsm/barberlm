@@ -108,6 +108,13 @@ serve(async (req) => {
             }
         }
 
+        const diagInfo = { 
+          resolved_table: resolvedTable, 
+          prof_id_used: profId,
+          prof_name_found: profName !== "Profissional",
+          origin: force_resend ? 'test_manual' : 'automatic'
+        };
+
         // 4. Build Message
         const buildAppointmentConfirmationMessage = (data: any, options: { buttons_attached: boolean }) => {
           let body = `Olá ${data.customer_name} 👋\n\nSeu agendamento na ${data.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${data.service_name}\n💈 Profissional: ${data.professional_name}\n📅 Data: ${data.appointment_date}\n⏰ Horário: ${data.appointment_time}`;
