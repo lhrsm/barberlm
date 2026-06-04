@@ -109,7 +109,7 @@ function AutomationsComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
-  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null });
+  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0 });
   const itemsPerPage = 10;
 
   // Estados Auditoria do Fluxo (Modal)
@@ -242,11 +242,14 @@ function AutomationsComponent() {
         } else if (searchTerm.startsWith('customer:')) {
           const id = searchTerm.replace('customer:', '');
           query = query.eq('payload->data->>customer_id', id);
+        } else if (searchTerm === 'source:test_manual') {
+          query = query.or('payload->>source.eq.test_manual,message_type.eq.test_manual,payload->diagnostic->>origin.eq.test_manual');
         } else {
           // Search by phone, message_id (id), or provider_message_id (inside response)
           query = query.or(`phone.ilike.%${searchTerm}%,id.eq.${searchTerm},response->>messageId.ilike.%${searchTerm}%,response->>id.ilike.%${searchTerm}%`);
         }
       }
+
         
       if (filterStatus !== "all") {
         const mappedStatus = filterStatus === "sent" ? "success" : filterStatus === "error" ? "error" : filterStatus;
@@ -287,12 +290,22 @@ function AutomationsComponent() {
       const { count: totalFailed } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
       const { data: lastLog } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "success").order("created_at", { ascending: false }).limit(1).maybeSingle();
 
+      const { count: totalSent } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
+      const { count: totalSuccess } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "success");
+      const { count: totalFailed } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
+      const { count: totalDuplicate } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("action", "duplicate_confirmation_blocked");
+      const { count: totalNotFound } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "not_found");
+      const { data: lastLog } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "success").order("created_at", { ascending: false }).limit(1).maybeSingle();
+
       setLogStats({
         sent: totalSent || 0,
         success: totalSuccess || 0,
         failed: totalFailed || 0,
+        duplicateBlocked: totalDuplicate || 0,
+        notFound: totalNotFound || 0,
         lastSent: lastLog?.created_at || null
       });
+
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao carregar dados: " + error.message);
