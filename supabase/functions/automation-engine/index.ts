@@ -114,16 +114,18 @@ serve(async (req) => {
 
         // Update item in memory and in DB for UI consistency
         item.flow_type = flowTypeSelected;
+        item.metadata = {
+          ...(item.metadata || {}),
+          appointments_found: appointmentsFound,
+          flow_type_selected: flowTypeSelected,
+          reason_selected: reasonSelected,
+          last_step: lastStep
+        };
+
         await supabase.from("automation_queue")
           .update({ 
             flow_type: flowTypeSelected,
-            metadata: {
-              ...(item.metadata || {}),
-              appointments_found: appointmentsFound,
-              flow_type_selected: flowTypeSelected,
-              reason_selected: reasonSelected,
-              last_step: lastStep
-            }
+            metadata: item.metadata
           })
           .eq("id", item.id);
 
