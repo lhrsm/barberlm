@@ -13,21 +13,23 @@ export const triggerAutomation = async ({
 }: AutomationTriggerParams) => {
   console.log(`[Automation] Triggering ${event_name} for appointment ${appointment_id}`);
   
+  const anySupabase = supabase as any;
+  
   try {
     // 1. Find the relevant automation template
-    const { data: template } = await supabase
-      .from("automation_templates" as any)
+    const { data: template } = await anySupabase
+      .from("automation_templates")
       .select("id, active")
       .eq("tenant_id", tenant_id)
       .eq("trigger_event", event_name)
-      .eq("key", "appointment_confirmation") // specifically for this request
+      .eq("key", "appointment_confirmation")
       .maybeSingle();
 
     const automationId = template?.id;
 
     // 2. Diagnostic log: start
     if (automationId) {
-      await (supabase as any).from("automation_logs").insert({
+      await anySupabase.from("automation_logs").insert({
         tenant_id,
         automation_id: automationId,
         appointment_id,
@@ -43,11 +45,9 @@ export const triggerAutomation = async ({
       });
     } else {
       console.warn("[Automation] No template found for", event_name);
-      // We can't log to automation_logs without automation_id, so we skip or log elsewhere
     }
 
     // 3. Invoke the processing edge function to handle the queue immediately
-    // Note: The DB trigger should have already added it to automation_queue
     const { data, error } = await supabase.functions.invoke('process-automation-queue', {
       body: { 
         tenant_id, 
@@ -59,7 +59,7 @@ export const triggerAutomation = async ({
     if (error) {
       console.error("[Automation] Error invoking process-automation-queue:", error);
       if (automationId) {
-        await (supabase as any).from("automation_logs").insert({
+        await anySupabase.from("automation_logs").insert({
           tenant_id,
           automation_id: automationId,
           appointment_id,
