@@ -602,6 +602,42 @@ export function AutomationTestModal({
         </div>
 
         <DialogFooter className="p-6 bg-[#0F172A]/80 border-t border-white/5 flex flex-col-reverse sm:flex-row gap-4 sm:gap-4 mt-auto">
+          {/* Seção de Testes de Resposta (Fim-a-Fim) movida para o footer ou antes dele */}
+          <div className="w-full mb-4 px-6 space-y-3">
+             <div className="bg-blue-500/5 border border-blue-500/15 rounded-xl p-4 space-y-3 w-full">
+                <div className="flex items-center gap-2">
+                  <ClipboardList size={14} className="text-blue-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">Teste Fim-a-Fim (Simular Respostas)</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="h-8 text-[10px] border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-500 rounded-lg flex-1"
+                    onClick={() => handleTestCallback("1")}
+                  >
+                    Simular "1"
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="h-8 text-[10px] border-amber-500/30 hover:bg-amber-500/10 text-amber-500 rounded-lg flex-1"
+                    onClick={() => handleTestCallback("2")}
+                  >
+                    Simular "2"
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="h-8 text-[10px] border-rose-500/30 hover:bg-rose-500/10 text-rose-500 rounded-lg flex-1"
+                    onClick={() => handleTestCallback("3")}
+                  >
+                    Simular "3"
+                  </Button>
+                </div>
+             </div>
+          </div>
+        </DialogFooter>
           <Button 
             variant="outline" 
             onClick={onClose} 
