@@ -575,17 +575,11 @@ function DashboardComponent() {
             return acc;
           }
           // Ignorar transações de créditos/cashback que não representam dinheiro novo real em caixa (PIX/Dinheiro/Cartão)
-          if (curr.category === 'Crédito Cliente' || curr.description?.includes('Crédito Gerado') || curr.description?.includes('Cashback Gerado')) {
-            return acc;
-          }
+          // Mas se o valor for > 0, ele representa a parte em dinheiro de um pagamento misto ou integral.
           
-          // Se for uma transação de serviço, abater o valor que foi pago com crédito/cashback se estiver no description
-          // No dashboard, as transações financeiras salvam em 'amount' o valor REAL recebido (final_amount).
-          // Então não precisamos abater nada aqui, o amount já é o líquido.
-          return acc + Number(curr.amount);
+          return acc + Number(curr.amount || 0);
         } else if (curr.type === 'expense') {
-            // Deduzir estornos da entrada em caixa se necessário para refletir saldo real
-            return acc - Number(curr.amount);
+            return acc - Number(curr.amount || 0);
         }
         return acc;
       }, 0) || 0;
