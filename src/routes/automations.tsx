@@ -236,8 +236,8 @@ function AutomationsComponent() {
 
       // 4. Fetch logs with filtering and pagination
 
-      let query = supabase
-        .from("automation_logs")
+      let query = anySupabase
+        .from("automation_send_history")
         .select("*", { count: 'exact' })
         .eq("tenant_id", tenantId);
         
@@ -245,14 +245,11 @@ function AutomationsComponent() {
         if (searchTerm.startsWith('appointment:')) {
           const id = searchTerm.replace('appointment:', '');
           query = query.eq('appointment_id', id);
-        } else if (searchTerm.startsWith('customer:')) {
-          const id = searchTerm.replace('customer:', '');
-          query = query.eq('payload->data->>customer_id', id);
         } else if (searchTerm === 'source:test_manual') {
-          query = query.or('payload->>source.eq.test_manual,message_type.eq.test_manual,payload->diagnostic->>origin.eq.test_manual');
+          query = query.eq('source', 'test_manual');
         } else {
-          // Search by phone, message_id (id), or provider_message_id (inside response)
-          query = query.or(`phone.ilike.%${searchTerm}%,id.eq.${searchTerm},response->>messageId.ilike.%${searchTerm}%,response->>id.ilike.%${searchTerm}%`);
+          // Search by phone, status, or provider_message_id
+          query = query.or(`phone.ilike.%${searchTerm}%,provider_message_id.ilike.%${searchTerm}%`);
         }
       }
 
