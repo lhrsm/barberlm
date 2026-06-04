@@ -15,7 +15,6 @@ import {
   RefreshCw,
   Loader2,
   Play,
-
   Settings2,
   History,
   CheckCircle2,
@@ -44,7 +43,8 @@ import {
   Copy,
   ChevronDown,
   ChevronUp,
-  Code2
+  Code2,
+  Info
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
@@ -119,6 +119,8 @@ function AutomationsComponent() {
     return localStorage.getItem(`auditSearchTerm_${tenantId}`) || "";
   });
   const [auditPage, setAuditPage] = useState(1);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [totalAuditLogs, setTotalAuditLogs] = useState(0);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const auditItemsPerPage = 5;
   const [statsLoading, setStatsLoading] = useState(false);
@@ -233,7 +235,8 @@ function AutomationsComponent() {
         .eq("tenant_id", tenantId);
         
       if (searchTerm) {
-        query = query.ilike("phone", `%${searchTerm}%`);
+        // Search by phone, message_id (id), or provider_message_id (inside response)
+        query = query.or(`phone.ilike.%${searchTerm}%,id.eq.${searchTerm},response->>messageId.ilike.%${searchTerm}%,response->>id.ilike.%${searchTerm}%`);
       }
         
       if (filterStatus !== "all") {
@@ -346,6 +349,91 @@ function AutomationsComponent() {
     }
   };
 
+  const fetchAuditLogs = async (log: any) => {
+    if (!log || !log.appointment_id) return;
+    setIsAuditLoading(true);
+    try {
+      let query = supabase
+        .from("automation_logs")
+        .select("*", { count: 'exact' })
+        .eq("appointment_id", log.appointment_id);
+
+      if (auditSearchTerm) {
+        query = query.or(`id.eq.${auditSearchTerm},payload->>diagnostic.ilike.%${auditSearchTerm}%,error_message.ilike.%${auditSearchTerm}%`);
+      }
+
+      if (auditFilterType !== "all") {
+        if (auditFilterType === "webhook") {
+          query = query.filter("payload->>diagnostic", "eq", "trigger_executed");
+        } else if (auditFilterType === "queue") {
+          query = query.filter("payload->>diagnostic", "eq", "queue_insert");
+        } else if (auditFilterType === "send") {
+          query = query.eq("status", "sent");
+        } else if (auditFilterType === "delivery") {
+          query = query.filter("payload->>diagnostic", "eq", "delivery_detected");
+        }
+      }
+
+      const from = (auditPage - 1) * auditItemsPerPage;
+      const to = from + auditItemsPerPage - 1;
+
+      const { data, count, error } = await query
+        .order("created_at", { ascending: true })
+        .range(from, to);
+
+      if (error) throw error;
+      setAuditLogs(data || []);
+      setTotalAuditLogs(count || 0);
+    } catch (error: any) {
+      console.error("Error fetching audit logs:", error);
+    } finally {
+      setIsAuditLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isLogDetailOpen && selectedLog) {
+      fetchAuditLogs(selectedLog);
+    }
+  }, [isLogDetailOpen, selectedLog, auditPage, auditFilterType, auditSearchTerm]);
+
+  const handleExportAudit = (log: any, format: 'csv' | 'json') => {
+    if (!auditLogs.length) return;
+    
+    if (format === 'json') {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(auditLogs, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", `audit_${log.appointment_id}.json`);
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    } else {
+      const headers = ["ID", "Data", "Status", "Tipo", "Telefone", "Erro"];
+      const rows = auditLogs.map(l => [
+        l.id,
+        new Date(l.created_at).toLocaleString('pt-BR'),
+        l.status,
+        l.message_type,
+        l.phone,
+        l.error_message || ""
+      ]);
+      
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + headers.join(",") + "\n"
+        + rows.map(e => e.join(",")).join("\n");
+        
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `audit_${log.appointment_id}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+    toast.success(`Auditoria exportada em ${format.toUpperCase()}`);
+  };
+
 
   const replaceVariables = (template: string, highlight: boolean = false, searchTerm: string = "") => {
     if (!template) return "";
@@ -442,124 +530,22 @@ function AutomationsComponent() {
     setIsPreviewOpen(true);
   };
 
-  const getAuditSteps = (log: any) => {
-    if (!log) return [];
-    
-    // Check if it's a diagnostic log (pending status with diagnostic field)
-    const isDiagnostic = log.status === 'pending' && log.payload?.diagnostic;
-    
-    const steps = [
-      { 
-        id: 1,
-        time: new Date(log.created_at).toLocaleTimeString(), 
-        event: log.payload?.event || 'appointment.created', 
-        type: 'webhook',
-        result: log.payload?.appointment_created_detected ? 'detectado' : 'sucesso',
-        status: 'done',
-        payload: log.payload
-      },
-
-      { 
-        id: 2,
-        time: new Date(new Date(log.created_at).getTime() + 1000).toLocaleTimeString(), 
-        event: 'queue.insert', 
-        type: 'queue',
-        result: 'sucesso',
-        status: 'done',
-        payload: { queue_id: log.id, priority: 'high', diagnostic: log.payload?.diagnostic }
-      }
-    ];
-
-    if (log.status !== 'pending' || !isDiagnostic) {
-      steps.push({ 
-        id: 3,
-        time: new Date(new Date(log.created_at).getTime() + 2000).toLocaleTimeString(), 
-        event: 'process.automation', 
-        type: 'action',
-        result: 'sucesso',
-        status: 'done',
-        payload: { automation_key: log.message_type, provider_message_id: log.response?.messageId || log.response?.id }
-      });
-      
-      steps.push({ 
-        id: 4,
-        time: new Date(new Date(log.created_at).getTime() + 3000).toLocaleTimeString(), 
-        event: 'send.whatsapp', 
-        type: 'send',
-        result: log.status === 'sent' ? 'sucesso' : 'falha',
-        status: log.status === 'sent' ? 'done' : 'error',
-        payload: { 
-          ...log.response, 
-          message_id: log.id, 
-          provider_message_id: log.response?.messageId || log.response?.id,
-          error: log.error_message 
-        }
-      });
-
-
-      if (log.status === 'sent') {
-        steps.push({
-          id: 5,
-          time: new Date(new Date(log.created_at).getTime() + 5000).toLocaleTimeString(),
-          event: 'message.delivery',
-          type: 'delivery',
-          result: 'entregue',
-          status: 'done',
-          payload: { provider: 'zapi', status: 'delivered', provider_message_id: log.response?.messageId || log.response?.id }
-        });
-      }
-    }
-
-    if (log.status === 'error' && log.error_message?.toLowerCase().includes('timeout')) {
-      steps.push({
-        id: 6,
-        time: new Date(new Date(log.created_at).getTime() + 4000).toLocaleTimeString(),
-        event: 'request.timeout',
-        type: 'error',
-        result: 'timeout',
-        status: 'error',
-        payload: { error: log.error_message, retry_count: 3 }
-      });
-    }
-
-    return steps.filter(step => {
-      const matchType = auditFilterType === 'all' || step.type === auditFilterType;
-      const matchSearch = !auditSearchTerm || 
-        JSON.stringify(step.payload).toLowerCase().includes(auditSearchTerm.toLowerCase()) ||
-        step.event.toLowerCase().includes(auditSearchTerm.toLowerCase());
-      return matchType && matchSearch;
-    });
+  const getLogIcon = (log: any) => {
+    if (log.status === 'sent') return <CheckCircle2 className="text-emerald-500" size={16} />;
+    if (log.status === 'error') return <XCircle className="text-rose-500" size={16} />;
+    if (log.payload?.diagnostic === 'trigger_executed') return <Zap className="text-amber-500" size={16} />;
+    if (log.status === 'pending') return <Clock className="text-sky-500" size={16} />;
+    return <Info className="text-slate-500" size={16} />;
   };
 
-
-  const handleExportAudit = (log: any, format: 'csv' | 'json') => {
-    const steps = getAuditSteps(log);
-    if (format === 'json') {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(steps, null, 2));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href",     dataStr);
-      downloadAnchorNode.setAttribute("download", `auditoria_fluxo_${log.id}.json`);
-      document.body.appendChild(downloadAnchorNode);
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
-    } else {
-      const headers = ['ID', 'Horário', 'Evento', 'Tipo', 'Resultado', 'Status'];
-      const csvRows = [
-        headers.join(','),
-        ...steps.map(s => [s.id, s.time, s.event, s.type, s.result, s.status].join(','))
-      ].join('\n');
-      
-      const blob = new Blob([csvRows], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `auditoria_fluxo_${log.id}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.remove();
-    }
-    toast.success(`Auditoria exportada em ${format.toUpperCase()}`);
+  const getLogLabel = (log: any) => {
+    if (log.payload?.diagnostic === 'trigger_executed') return "Gatilho Detectado";
+    if (log.status === 'sent') return "Mensagem Enviada";
+    if (log.status === 'error') return "Erro no Processamento";
+    if (log.status === 'pending') return "Na Fila";
+    return "Evento Desconhecido";
   };
+
 
 
   useEffect(() => {
@@ -991,12 +977,20 @@ function AutomationsComponent() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10"
+                                 className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 focus-visible:ring-2 focus-visible:ring-amber-500"
                                 onClick={() => {
                                   openLogDetail(log);
                                 }}
-                                title="Ver Detalhes (Auditoria)"
-
+                                title="Ver Auditoria do Fluxo"
+                              >
+                                <Terminal size={14} />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-slate-500 hover:text-sky-500 hover:bg-sky-500/10 focus-visible:ring-2 focus-visible:ring-sky-500"
+                                onClick={() => openPreview(log.processed_template || log.payload?.rendered)}
+                                title="Ver Preview da Mensagem"
                               >
                                 <Eye size={14} />
                               </Button>
@@ -1302,62 +1296,52 @@ function AutomationsComponent() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {getAuditSteps(selectedLog).length === 0 ? (
+                        {auditLogs.length === 0 ? (
                           <tr>
                             <td colSpan={4} className="px-6 py-12 text-center text-slate-500 italic">
-                              Nenhum evento encontrado para os filtros selecionados.
+                              Nenhum evento encontrado para esta auditoria.
                             </td>
                           </tr>
-                        ) : getAuditSteps(selectedLog)
-                          .slice((auditPage - 1) * auditItemsPerPage, auditPage * auditItemsPerPage)
-                          .map((step) => (
+                        ) : auditLogs.map((step) => (
                           <React.Fragment key={step.id}>
                             <tr 
                               className={`transition-colors hover:bg-white/5 cursor-pointer ${expandedStep === step.id ? 'bg-amber-500/5' : ''}`}
                               onClick={() => setExpandedStep(expandedStep === step.id ? null : step.id)}
                             >
-                              <td className="px-6 py-4 text-slate-400 whitespace-nowrap">{step.time}</td>
+                              <td className="px-6 py-4 text-slate-400 whitespace-nowrap">
+                                {new Date(step.created_at).toLocaleTimeString('pt-BR')}
+                              </td>
                               <td className="px-6 py-4">
                                 <div className="space-y-1.5">
                                   <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className={`text-[10px] py-0 px-2 h-5 border-none ${
-                                      step.type === 'webhook' ? 'bg-blue-500/10 text-blue-400' :
-                                      step.type === 'queue' ? 'bg-purple-500/10 text-purple-400' :
-                                      step.type === 'send' ? 'bg-amber-500/10 text-amber-400' :
-                                      step.type === 'delivery' ? 'bg-emerald-500/10 text-emerald-400' :
-                                      'bg-slate-500/10 text-slate-400'
-                                    }`}>
-                                      {step.type}
-                                    </Badge>
-                                    <span className="font-mono text-white/90">{step.event}</span>
+                                    {getLogIcon(step)}
+                                    <span className="font-mono text-white/90">{getLogLabel(step)}</span>
                                   </div>
                                   
                                   {/* IDs Quick Copy */}
                                   <div className="flex gap-2">
-                                    {step.payload?.provider_message_id && (
+                                    {(step.response?.messageId || step.response?.id) && (
                                       <button 
-                                        onClick={(e) => { e.stopPropagation(); handleCopyText(step.payload.provider_message_id, "ID Provedor"); }}
+                                        onClick={(e) => { e.stopPropagation(); handleCopyText(step.response.messageId || step.response.id, "ID Provedor"); }}
                                         className="text-[9px] bg-white/5 hover:bg-white/10 text-slate-500 hover:text-amber-500 px-1.5 py-0.5 rounded flex items-center gap-1 transition-colors"
                                       >
-                                        <Copy size={8} /> Prov: {step.payload.provider_message_id.substring(0, 10)}...
+                                        <Copy size={8} /> Prov: {(step.response.messageId || step.response.id).substring(0, 10)}...
                                       </button>
                                     )}
-                                    {step.payload?.message_id && (
-                                      <button 
-                                        onClick={(e) => { e.stopPropagation(); handleCopyText(step.payload.message_id, "ID Mensagem"); }}
-                                        className="text-[9px] bg-white/5 hover:bg-white/10 text-slate-500 hover:text-amber-500 px-1.5 py-0.5 rounded flex items-center gap-1 transition-colors"
-                                      >
-                                        <Copy size={8} /> Msg: {step.payload.message_id.substring(0, 8)}...
-                                      </button>
-                                    )}
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleCopyText(step.id, "ID Mensagem"); }}
+                                      className="text-[9px] bg-white/5 hover:bg-white/10 text-slate-500 hover:text-amber-500 px-1.5 py-0.5 rounded flex items-center gap-1 transition-colors"
+                                    >
+                                      <Copy size={8} /> Msg: {step.id.substring(0, 8)}...
+                                    </button>
                                   </div>
                                 </div>
                               </td>
 
                               <td className="px-6 py-4">
-                                <div className={`flex items-center gap-1.5 font-bold ${step.status === 'done' ? 'text-[#10B981]' : 'text-rose-500'}`}>
-                                  {step.status === 'done' ? <Check size={14} /> : <X size={14} />}
-                                  {step.result}
+                                <div className={`flex items-center gap-1.5 font-bold ${step.status === 'sent' ? 'text-[#10B981]' : step.status === 'error' ? 'text-rose-500' : 'text-amber-500'}`}>
+                                  {step.status === 'sent' ? <Check size={14} /> : step.status === 'error' ? <X size={14} /> : <Clock size={14} />}
+                                  {step.status === 'sent' ? 'Sucesso' : step.status === 'error' ? 'Falha' : 'Pendente'}
                                 </div>
                               </td>
                               <td className="px-6 py-4 text-right">
@@ -1383,8 +1367,14 @@ function AutomationsComponent() {
                                       </Button>
                                     </div>
                                     <div className="bg-[#081229] p-4 rounded-xl border border-white/5 font-mono text-[11px] text-sky-400 overflow-x-auto max-h-[200px] custom-scrollbar">
-                                      <pre>{JSON.stringify(step.payload, null, 2)}</pre>
+                                      <pre>{JSON.stringify(step.payload || {}, null, 2)}</pre>
                                     </div>
+                                    {step.error_message && (
+                                      <div className="mt-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg">
+                                        <p className="text-[10px] font-bold text-rose-500 uppercase mb-1">Motivo do Erro</p>
+                                        <p className="text-xs text-rose-400 font-mono">{step.error_message}</p>
+                                      </div>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -1396,17 +1386,17 @@ function AutomationsComponent() {
                   </div>
 
                   {/* Audit Pagination */}
-                  {getAuditSteps(selectedLog).length > auditItemsPerPage && (
+                  {totalAuditLogs > auditItemsPerPage && (
                     <div className="px-6 py-4 bg-white/5 flex items-center justify-between border-t border-white/5">
                       <p className="text-[10px] text-slate-500">
-                        Página {auditPage} de {Math.ceil(getAuditSteps(selectedLog).length / auditItemsPerPage)}
+                        Página {auditPage} de {Math.ceil(totalAuditLogs / auditItemsPerPage)}
                       </p>
                       <div className="flex gap-2">
                         <Button 
                           variant="ghost" 
                           size="sm" 
                           disabled={auditPage === 1}
-                          onClick={() => setAuditPage(prev => prev - 1)}
+                          onClick={() => setAuditPage(prev => Math.max(1, prev - 1))}
                           className="h-8 w-8 p-0 rounded-lg border border-white/5 text-slate-400"
                         >
                           <ChevronLeft size={14} />
@@ -1414,7 +1404,7 @@ function AutomationsComponent() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          disabled={auditPage >= Math.ceil(getAuditSteps(selectedLog).length / auditItemsPerPage)}
+                          disabled={auditPage >= Math.ceil(totalAuditLogs / auditItemsPerPage)}
                           onClick={() => setAuditPage(prev => prev + 1)}
                           className="h-8 w-8 p-0 rounded-lg border border-white/5 text-slate-400"
                         >
@@ -1423,6 +1413,7 @@ function AutomationsComponent() {
                       </div>
                     </div>
                   )}
+
                 </div>
               </div>
 
