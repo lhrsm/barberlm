@@ -579,7 +579,17 @@ function AutomationsComponent() {
     }
   };
 
+  const openLogDetail = async (log: any) => {
+    setIsAuditLoading(true);
+    setSelectedLog(log);
+    setAuditPage(1);
+    setIsLogDetailOpen(true);
+    // Simulate loading for better UI experience
+    setTimeout(() => setIsAuditLoading(false), 400);
+  };
+
   const openEdit = (automation: any) => {
+
     setSelectedAutomation(automation);
     setIsEditOpen(true);
   };
