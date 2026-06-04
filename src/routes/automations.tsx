@@ -462,6 +462,63 @@ function AutomationsComponent() {
     }
   }, [isLogDetailOpen, selectedLog, auditPage, auditFilterType, auditSearchTerm]);
 
+  const handleExportLogs = async (format: 'csv' | 'json') => {
+    setLoading(true);
+    try {
+      // Fetch ALL logs for export (up to 1000 for safety)
+      let query = supabase
+        .from("automation_logs")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false })
+        .limit(1000);
+
+      const { data: exportData, error } = await query;
+      if (error) throw error;
+      if (!exportData || exportData.length === 0) {
+        toast.error("Nenhum registro para exportar.");
+        return;
+      }
+
+      if (format === 'json') {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `automations_export_${new Date().toISOString()}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      } else {
+        const headers = ["ID", "Data/Hora (SP)", "Appointment ID", "Phone", "Status", "Provider", "Message ID", "Tipo"];
+        const rows = exportData.map(l => [
+          l.id,
+          new Date(l.created_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+          l.appointment_id || "",
+          l.phone || "",
+          l.status || "",
+          l.provider || "",
+          l.provider_message_id || "",
+          l.message_type || ""
+        ]);
+        
+        const csvContent = "\uFEFF" + headers.join(",") + "\n" + rows.map(e => e.map(cell => `"${cell}"`).join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `automations_export_${new Date().toISOString()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+      toast.success(`Exportação concluída em ${format.toUpperCase()}`);
+    } catch (error: any) {
+      toast.error("Erro ao exportar: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleExportAudit = (log: any, format: 'csv' | 'json') => {
     if (!auditLogs.length) return;
     
@@ -473,6 +530,7 @@ function AutomationsComponent() {
       document.body.appendChild(downloadAnchorNode);
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
+
     } else {
       const headers = ["ID", "Data", "Status", "Tipo", "Telefone", "Erro"];
       const rows = auditLogs.map(l => [
