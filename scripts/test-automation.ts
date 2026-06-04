@@ -78,8 +78,8 @@ async function testAutomationActiveStatus() {
     const endTime2 = new Date(startTime2);
     endTime2.setMinutes(endTime2.getMinutes() + 30);
 
-    const { data: activeAppointment, error: activeError } = await supabase.from('appointments').insert({
-      tenant_id: tenantId,
+    const { data: activeAppointment, error: activeError } = await (supabase as any).from('appointments').insert({
+      barbershop_id: tenantId,
       customer_id: customer.id,
       barber_id: barber.id,
       service_id: service.id,
