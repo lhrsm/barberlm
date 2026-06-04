@@ -463,7 +463,10 @@ function AutomationsComponent() {
                         placeholder="Buscar destinatário..." 
                         className="pl-9 w-[200px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white focus:border-amber-500/50"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1); // Reset to first page when searching
+                        }}
                       />
                     </div>
                     
