@@ -77,6 +77,10 @@ function AutomationsComponent() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isTestOpen, setIsTestOpen] = useState(false);
   const [isLogDetailOpen, setIsLogDetailOpen] = useState(false);
+  
+  // Filtros
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (tenantId) {
