@@ -483,10 +483,3 @@ serve(async (req) => {
     status: 200,
   });
 });
-
-
-  return new Response(JSON.stringify({ ok: true }), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-    status: 200,
-  });
-});
