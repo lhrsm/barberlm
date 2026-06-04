@@ -138,20 +138,19 @@ serve(async (req) => {
         }
         
         lastStep = "finalizing";
+        item.metadata = {
+          ...(item.metadata || {}),
+          last_step: lastStep,
+          zapi_response: result?.response || null,
+          provider_message_id: result?.response?.messageId || null
+        };
+
         // Mark as completed
         await supabase.from("automation_queue").update({ 
           status: "completed", 
           processed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          metadata: {
-            ...(item.metadata || {}),
-            appointments_found: appointmentsFound,
-            flow_type_selected: flowTypeSelected,
-            reason_selected: reasonSelected,
-            last_step: lastStep,
-            zapi_response: result?.response || null,
-            provider_message_id: result?.response?.messageId || null
-          }
+          metadata: item.metadata
         }).eq("id", item.id);
 
         results.push({ id: item.id, status: "completed", result });
