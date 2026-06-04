@@ -372,10 +372,15 @@ serve(async (req) => {
         zapiResponse = await sendMessage(instance, phone, successMsg);
       }
 
-      // Close session
+      // Close session (automation_conversations)
       if (sessionId) {
         await supabase.from("automation_conversations")
-          .update({ status: "closed", current_state: "completed", updated_at: new Date().toISOString() })
+          .update({ 
+            status: "completed", 
+            current_state: "completed", 
+            confirmed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString() 
+          })
           .eq("id", sessionId);
       }
 
