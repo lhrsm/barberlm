@@ -84,7 +84,12 @@ function AutomationsComponent() {
   
   // Filtros
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterAutomation, setFilterAutomation] = useState("all");
+  const [filterPeriod, setFilterPeriod] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalLogs, setTotalLogs] = useState(0);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (tenantId) {
