@@ -1661,22 +1661,63 @@ function AutomationsComponent() {
               </div>
 
               {isPreviewEditMode && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Testar Variáveis</p>
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300 overflow-y-auto max-h-[500px] pr-2 custom-scrollbar">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Testar Variáveis</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[9px] hover:text-amber-500" 
+                      onClick={() => setCustomVariables(INITIAL_VARIABLES)}
+                    >
+                      <RotateCcw size={10} className="mr-1" /> Resetar
+                    </Button>
+                  </div>
+                  
                   <div className="space-y-3">
                     {Object.entries(customVariables).map(([key, value]) => (
                       <div key={key} className="space-y-1">
                         <Label className="text-[10px] text-slate-400">{key}</Label>
                         <Input 
-                          value={value} 
+                          value={value as string} 
                           onChange={(e) => setCustomVariables({...customVariables, [key]: e.target.value})}
                           className="h-8 text-xs bg-slate-900 border-slate-800 rounded-lg focus:border-amber-500/50"
                         />
                       </div>
                     ))}
                   </div>
+
+                  <div className="pt-4 space-y-3 border-t border-white/5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Cenários Salvos</p>
+                      <Button variant="ghost" size="sm" className="h-6 text-[9px] hover:text-amber-500" onClick={saveScenario}>
+                        <Check size={10} className="mr-1" /> Salvar Atual
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {savedScenarios.length === 0 ? (
+                        <p className="text-[9px] text-slate-600 italic">Nenhum cenário salvo.</p>
+                      ) : (
+                        savedScenarios.map((scenario, idx) => (
+                          <div key={idx} className="flex items-center gap-2 group">
+                            <button 
+                              onClick={() => loadScenario(scenario)}
+                              className="flex-1 text-left bg-white/5 hover:bg-white/10 p-2 rounded-lg text-[10px] truncate transition-colors"
+                            >
+                              {scenario.name}
+                            </button>
+                            <button onClick={() => deleteScenario(idx)} className="opacity-0 group-hover:opacity-100 p-1 hover:text-rose-500 transition-all">
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
+
             </div>
             
             <div className="flex flex-col gap-3">
