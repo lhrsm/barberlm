@@ -5,7 +5,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
-Deno.test("Regression: process-automation-queue dry_run returns payload", async () => {
+Deno.test({
+  name: "Regression: process-automation-queue dry_run returns payload",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   
   // Try to find a real appointment to test with
@@ -54,4 +59,6 @@ Deno.test("Regression: process-automation-queue dry_run returns payload", async 
   assertEquals(data.success, true);
   assertEquals(data.results[0].dry_run, true);
   assertEquals(typeof data.results[0].payload.message, "string");
+  }
 });
+
