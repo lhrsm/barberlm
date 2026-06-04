@@ -356,7 +356,7 @@ function AutomationsComponent() {
 
     } catch (error: any) {
       console.error(error);
-      toast.error("Erro ao carregar dados: " + error.message);
+      toast.error("Erro ao carregar dados", { description: error.message });
     } finally {
       setLoading(false);
     }
@@ -402,7 +402,10 @@ function AutomationsComponent() {
       }
     } catch (error: any) {
       console.error("Reconciliation error:", error);
-      toast.error("Erro na reconciliação: " + error.message, { id: toastId });
+      toast.error("Erro na reconciliação", { 
+        id: toastId,
+        description: error.message || "Erro desconhecido"
+      });
     } finally {
       setIsReconciling(false);
     }

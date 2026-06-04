@@ -141,12 +141,20 @@ serve(async (req) => {
     }
 
     // NORMALIZAÇÃO DO TEXTO PARA TRATAMENTO SEM BOTÕES
-    const normalizedText = buttonText.toLowerCase().trim();
-    const isConfirm = buttonId === "main_confirm" || 
-                      ["1", "confirmar", "confirmar agendamento"].includes(normalizedText);
+    const normalizedText = buttonText.toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+      .trim();
 
-    if (isConfirm) {
-      console.log(`[Webhook] Confirmation action detected`);
+    const isConfirm = buttonId === "main_confirm" || 
+                      ["1", "confirmar", "confirmar agendamento", "1 confirmo", "confirmo"].includes(normalizedText);
+    const isReschedule = buttonId === "main_reschedule" || 
+                         ["2", "reagendar", "2 reagendar"].includes(normalizedText);
+    const isCancel = buttonId === "main_cancel" || 
+                     ["3", "cancelar", "3 cancelar"].includes(normalizedText);
+
+    if (isConfirm || isReschedule || isCancel) {
+      console.log(`[Webhook] Action detected: ${isConfirm ? 'confirm' : isReschedule ? 'reschedule' : 'cancel'}`);
       
       let appointmentId = null;
       let tenantId = null;
@@ -232,161 +240,185 @@ serve(async (req) => {
       const appointment = foundLog?.appointment;
       const statusBefore = appointment?.status;
 
-      // IDEMPOTENCY CHECK
-      if (statusBefore === "confirmed") {
-        console.log(`[Webhook] Appointment ${appointmentId} already confirmed.`);
-        
-        await supabase.from("automation_logs").insert({
-          automation_id: automationId,
-          tenant_id: tenantId,
-          appointment_id: appointmentId,
-          phone,
-          status: "info",
-          action: "duplicate_confirmation_blocked",
-          payload: { 
-            clicked_referenceMessageId: referenceId,
-            appointment_id_found: appointmentId,
-            duplicate_blocked: true,
-            status_before: statusBefore
-          }
-        });
+      // IDEMPOTENCY CHECK (using messageId from provider)
+      const { data: existingProcess } = await supabase
+        .from("automation_logs")
+        .select("id")
+        .eq("idempotency_key", messageId)
+        .maybeSingle();
 
+      if (existingProcess) {
+        console.log(`[Webhook] Webhook ${messageId} already processed.`);
+        return new Response(JSON.stringify({ ok: true, status: "already_processed" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      const appointment = foundLog?.appointment;
+      const statusBefore = appointment?.status;
+
+      // 5. Etapa Resposta (Log de Auditoria)
+      await supabase.from("automation_logs").insert({
+        automation_id: automationId,
+        tenant_id: tenantId,
+        appointment_id: appointmentId,
+        status: "info",
+        action: "resposta_recebida",
+        idempotency_key: messageId,
+        payload: { 
+          text: buttonText, 
+          normalized: normalizedText, 
+          match: isConfirm ? "confirm" : isReschedule ? "reschedule" : isCancel ? "cancel" : "unknown" 
+        }
+      });
+
+      // BLOCKED STATE CHECK
+      if (statusBefore === "confirmed" && isConfirm) {
+        console.log(`[Webhook] Appointment ${appointmentId} already confirmed.`);
         return new Response(JSON.stringify({ ok: true, status: "already_confirmed" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
       }
 
-      // UPDATE APPOINTMENT
-      console.log(`[Webhook] Updating appointment ${appointmentId} to confirmed`);
+      // ACTION EXECUTION
+      let targetStatus = "";
+      let actionLabel = "";
+      let successMsg = "";
+
+      if (isConfirm) {
+        targetStatus = "confirmed";
+        actionLabel = "confirm_appointment";
+      } else if (isReschedule) {
+        targetStatus = "pending";
+        actionLabel = "reschedule_appointment";
+      } else if (isCancel) {
+        targetStatus = "cancelled";
+        actionLabel = "cancel_appointment";
+      }
+
+      console.log(`[Webhook] Executing action ${actionLabel} for appointment ${appointmentId}`);
+
       const { error: updateError } = await supabase
         .from("appointments")
         .update({ 
-          status: "confirmed",
-          confirmed_at: new Date().toISOString(),
-          confirmation_response_sent_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          status: targetStatus,
+          updated_at: new Date().toISOString(),
+          ...(isConfirm ? { confirmed_at: new Date().toISOString(), confirmation_response_sent_at: new Date().toISOString() } : {})
         })
         .eq("id", appointmentId);
 
       if (updateError) {
         console.error(`[Webhook] Update error:`, updateError);
-      } else {
-        // Resolve names for success message
-        let businessName = "Barbearia";
-        const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", tenantId).maybeSingle();
-        if (profile?.business_name) businessName = profile.business_name;
-
-        const profId = appointment?.barber_id || appointment?.professional_id;
-        let profName = "Profissional";
-        if (profId) {
-          const { data: barb } = await supabase.from("barbers").select("name").eq("id", profId).maybeSingle();
-          if (barb?.name) profName = barb.name;
-          else {
-            const { data: p } = await supabase.from("profiles").select("full_name").eq("id", profId).maybeSingle();
-            if (p?.full_name) profName = p.full_name;
-          }
-        }
-
-        const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appointment?.start_time)}\n⏰ ${formatBrazilTime(appointment?.start_time)}\n💈 ${profName}\n✂️ ${appointment?.service?.name || "Serviço"}`;
-        
-        let zapiResponse = null;
-        const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
-        if (instance) {
-          zapiResponse = await sendMessage(instance, phone, successMsg);
-        }
-
-        // Close session
-        if (sessionId) {
-          await supabase.from("automation_conversations")
-            .update({ status: "closed", current_state: "completed", updated_at: new Date().toISOString() })
-            .eq("id", sessionId);
-        }
-
-        // Update original log with callback info
-        if (foundLog) {
-            await supabase.from("automation_logs").update({
-                callback_received: true,
-                callback_received_at: new Date().toISOString(),
-                button_id: buttonId || (normalizedText === '1' ? "main_confirm" : normalizedText),
-                final_status: "confirmed",
-                status: "success" // Atualiza de aguardando_resposta para success após o fluxo
-            }).eq("id", foundLog.id);
-        }
-
-        // 5. Etapa Resposta (Log de Auditoria)
-        await supabase.from("automation_logs").insert({
-          automation_id: automationId,
-          tenant_id: tenantId,
-          appointment_id: appointmentId,
-          status: "info",
-          action: "resposta_recebida",
-          payload: { 
-            text: buttonText, 
-            normalized: normalizedText, 
-            match: isConfirm ? "confirm" : "unknown" 
-          }
+        return new Response(JSON.stringify({ ok: false, error: updateError.message }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
         });
+      }
 
-        // 6. Etapa Ação (Log de Auditoria)
-        await supabase.from("automation_logs").insert({
-          automation_id: automationId,
-          tenant_id: tenantId,
-          appointment_id: appointmentId,
-          status: "info",
-          action: "acao_executada",
-          payload: { 
-            action: "confirm_appointment", 
-            result: "success",
-            appointment_id: appointmentId
-          }
-        });
+      // Resolve business names for success message
+      let businessName = "Barbearia";
+      const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", tenantId).maybeSingle();
+      if (profile?.business_name) businessName = profile.business_name;
 
-        // Detailed Audit Log (7. Finalizado)
-        await supabase.from("automation_logs").insert({
-          automation_id: automationId,
-          tenant_id: tenantId,
-          appointment_id: appointmentId,
-          conversation_id: sessionId,
-          phone,
-          status: "success",
-          action: "finalizado",
-          message_sent: successMsg,
-          state_before: statusBefore || "pending",
-          state_after: "confirmed",
-          idempotency_key: messageId,
-          zapi_response: zapiResponse,
-          payload: { 
-            clicked_referenceMessageId: referenceId,
-            provider_message_id_found: !!foundLog?.provider_message_id,
-            appointment_id_found: appointmentId,
-            appointment_date: appointment ? formatBrazilDate(appointment.start_time) : null,
-            appointment_time: appointment ? formatBrazilTime(appointment.start_time) : null,
-            status_before: statusBefore,
-            status_after: "confirmed",
-            duplicate_blocked: false,
-            success_message_sent: !!zapiResponse,
-            webhook_received: true, 
-            button_id: buttonId || (normalizedText === '1' ? "main_confirm" : normalizedText),
-            session_closed: true,
-            fallback_used,
-            input_text: buttonText,
-            incoming_text: buttonText,
-            normalized_text: normalizedText,
-            matched_action: "confirmar",
-            appointment_status_before: statusBefore,
-            appointment_status_after: "confirmed",
-            flow_finished: true
-          }
-        });
-
-        // Update the webhook log with the found appointment_id
-        if (webhookLog) {
-            await supabase.from("automation_webhook_logs").update({
-                appointment_id: appointmentId,
-                tenant_id: tenantId
-            }).eq("id", webhookLog.id);
+      const profId = appointment?.barber_id || appointment?.professional_id;
+      let profName = "Profissional";
+      if (profId) {
+        const { data: barb } = await supabase.from("barbers").select("name").eq("id", profId).maybeSingle();
+        if (barb?.name) profName = barb.name;
+        else {
+          const { data: p } = await supabase.from("profiles").select("full_name").eq("id", profId).maybeSingle();
+          if (p?.full_name) profName = p.full_name;
         }
+      }
+
+      const dateStr = formatBrazilDate(appointment?.start_time);
+      const timeStr = formatBrazilTime(appointment?.start_time);
+
+      if (isConfirm) {
+        successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${dateStr}\n⏰ ${timeStr}\n💈 ${profName}\n✂️ ${appointment?.service?.name || "Serviço"}`;
+      } else if (isReschedule) {
+        successMsg = `🔄 Entendido! Vamos reagendar seu horário.\n\nPor favor, entre em contato com a ${businessName} pelo número do WhatsApp ou utilize nosso link de agendamento online para escolher um novo horário.`;
+      } else if (isCancel) {
+        successMsg = `❌ Agendamento cancelado com sucesso.\n\nSentiremos sua falta na ${businessName}! Se desejar agendar novamente no futuro, estaremos à disposição.`;
+      }
+
+      let zapiResponse = null;
+      const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
+      if (instance && successMsg) {
+        zapiResponse = await sendMessage(instance, phone, successMsg);
+      }
+
+      // Close session
+      if (sessionId) {
+        await supabase.from("automation_conversations")
+          .update({ status: "closed", current_state: "completed", updated_at: new Date().toISOString() })
+          .eq("id", sessionId);
+      }
+
+      // Update original log with callback info
+      if (foundLog) {
+          await supabase.from("automation_logs").update({
+              callback_received: true,
+              callback_received_at: new Date().toISOString(),
+              button_id: buttonId || normalizedText,
+              final_status: targetStatus,
+              status: "success"
+          }).eq("id", foundLog.id);
+      }
+
+      // 6. Etapa Ação (Log de Auditoria)
+      await supabase.from("automation_logs").insert({
+        automation_id: automationId,
+        tenant_id: tenantId,
+        appointment_id: appointmentId,
+        status: "info",
+        action: "acao_executada",
+        payload: { 
+          action: actionLabel, 
+          result: "success",
+          target_status: targetStatus
+        }
+      });
+
+      // Detailed Audit Log (7. Finalizado)
+      await supabase.from("automation_logs").insert({
+        automation_id: automationId,
+        tenant_id: tenantId,
+        appointment_id: appointmentId,
+        conversation_id: sessionId,
+        phone,
+        status: "success",
+        action: "finalizado",
+        message_sent: successMsg,
+        state_before: statusBefore || "pending",
+        state_after: targetStatus,
+        idempotency_key: `${messageId}_final`,
+        zapi_response: zapiResponse,
+        payload: { 
+          clicked_referenceMessageId: referenceId,
+          appointment_id_found: appointmentId,
+          status_before: statusBefore,
+          status_after: targetStatus,
+          success_message_sent: !!zapiResponse,
+          webhook_received: true, 
+          button_id: buttonId || normalizedText,
+          session_closed: true,
+          fallback_used,
+          input_text: buttonText,
+          normalized_text: normalizedText,
+          matched_action: isConfirm ? "confirmar" : isReschedule ? "reagendar" : "cancelar",
+          flow_finished: true
+        }
+      });
+
+      // Update the webhook log with the found appointment_id
+      if (webhookLog) {
+          await supabase.from("automation_webhook_logs").update({
+              appointment_id: appointmentId,
+              tenant_id: tenantId
+          }).eq("id", webhookLog.id);
       }
     }
   }
