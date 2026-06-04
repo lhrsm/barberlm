@@ -314,7 +314,35 @@ serve(async (req) => {
             }).eq("id", foundLog.id);
         }
 
-        // Detailed Audit Log
+        // 5. Etapa Resposta (Log de Auditoria)
+        await supabase.from("automation_logs").insert({
+          automation_id: automationId,
+          tenant_id: tenantId,
+          appointment_id: appointmentId,
+          status: "info",
+          action: "resposta_recebida",
+          payload: { 
+            text: buttonText, 
+            normalized: normalizedText, 
+            match: isConfirm ? "confirm" : "unknown" 
+          }
+        });
+
+        // 6. Etapa Ação (Log de Auditoria)
+        await supabase.from("automation_logs").insert({
+          automation_id: automationId,
+          tenant_id: tenantId,
+          appointment_id: appointmentId,
+          status: "info",
+          action: "acao_executada",
+          payload: { 
+            action: "confirm_appointment", 
+            result: "success",
+            appointment_id: appointmentId
+          }
+        });
+
+        // Detailed Audit Log (7. Finalizado)
         await supabase.from("automation_logs").insert({
           automation_id: automationId,
           tenant_id: tenantId,
@@ -322,7 +350,7 @@ serve(async (req) => {
           conversation_id: sessionId,
           phone,
           status: "success",
-          action: "confirmed_via_webhook",
+          action: "finalizado",
           message_sent: successMsg,
           state_before: statusBefore || "pending",
           state_after: "confirmed",
@@ -342,7 +370,13 @@ serve(async (req) => {
             button_id: buttonId || (normalizedText === '1' ? "main_confirm" : normalizedText),
             session_closed: true,
             fallback_used,
-            input_text: buttonText
+            input_text: buttonText,
+            incoming_text: buttonText,
+            normalized_text: normalizedText,
+            matched_action: "confirmar",
+            appointment_status_before: statusBefore,
+            appointment_status_after: "confirmed",
+            flow_finished: true
           }
         });
 
