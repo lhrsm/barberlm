@@ -121,9 +121,10 @@ export function WorkflowEditModal({ workflow, isOpen, onClose, onSuccess }: Work
       if (error) throw error;
 
       // Log success
-      await supabase.from("automation_v2_logs").insert({
+      await (supabase.from("automation_v2_logs") as any).insert({
         tenant_id: workflow.tenant_id,
-        workflow_key: workflow.workflow_key,
+        event_name: workflow.event_name,
+        flow_type: workflow.configuration?.flow_type || "single",
         action: "workflow_updated",
         status: "success",
         message: `Workflow ${workflow.name} atualizado manualmente.`
