@@ -296,6 +296,28 @@ function AutomationsComponent() {
       const { data: lastLogData } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "success").order("created_at", { ascending: false }).limit(1).maybeSingle();
 
 
+      // Pending callbacks are 'success' sent messages in the last 24h that don't have a 'button_clicked' action in the same appointment
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: recentSentLogs } = await supabase
+        .from("automation_logs")
+        .select("appointment_id")
+        .eq("tenant_id", tenantId)
+        .eq("status", "success")
+        .eq("message_type", "buttons")
+        .gte("created_at", twentyFourHoursAgo);
+      
+      const { data: recentClickLogs } = await supabase
+        .from("automation_logs")
+        .select("appointment_id")
+        .eq("tenant_id", tenantId)
+        .eq("action", "button_clicked")
+        .gte("created_at", twentyFourHoursAgo);
+
+      const sentIds = new Set(recentSentLogs?.map(l => l.appointment_id) || []);
+      const clickIds = new Set(recentClickLogs?.map(l => l.appointment_id) || []);
+      let pendingCount = 0;
+      sentIds.forEach(id => { if (id && !clickIds.has(id)) pendingCount++; });
+
       setLogStats({
         sent: totalSent || 0,
         success: totalSuccess || 0,
@@ -303,8 +325,10 @@ function AutomationsComponent() {
         duplicateBlocked: totalDuplicate || 0,
         notFound: totalNotFound || 0,
         lastSent: lastLogData?.created_at || null,
-        lastUpdate: new Date()
+        lastUpdate: new Date(),
+        pendingCallbacks: pendingCount
       });
+
 
 
     } catch (error: any) {
