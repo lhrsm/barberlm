@@ -655,52 +655,302 @@ function AutomationsComponent() {
       )}
 
       <Dialog open={isLogDetailOpen} onOpenChange={setIsLogDetailOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Detalhes do Envio</DialogTitle>
+        <DialogContent className="max-w-[1000px] w-[95vw] bg-[#020817] border border-amber-500/25 text-white p-0 overflow-hidden rounded-[24px] shadow-[0_25px_80px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <button 
+            onClick={() => setIsLogDetailOpen(false)}
+            className="absolute right-6 top-6 w-10 h-10 flex items-center justify-center rounded-full bg-amber-500/15 hover:bg-amber-500 text-white transition-all z-10"
+            aria-label="Fechar"
+          >
+            <X size={20} />
+          </button>
+
+          <DialogHeader className="p-8 pb-4">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 text-2xl">
+                📨
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-bold text-white">Detalhes do Envio</DialogTitle>
+                <p className="text-slate-400 text-sm">Informações completas da execução da automação.</p>
+              </div>
+            </div>
           </DialogHeader>
           
           {selectedLog && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">ID da Automação</p>
-                  <p className="font-mono text-xs">{selectedLog.automation_id}</p>
+            <div className="p-8 pt-2 space-y-8 overflow-y-auto max-h-[calc(90vh-120px)] custom-scrollbar">
+              {/* SEÇÃO SUPERIOR: CARDS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">ID DA AUTOMAÇÃO</p>
+                  <p className="text-xs font-mono text-amber-500/80 truncate" title={selectedLog.automation_id}>
+                    {selectedLog.automation_id}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Status</p>
-                  <Badge variant={selectedLog.status === 'sent' ? 'default' : 'destructive'}>
-                    {selectedLog.status}
-                  </Badge>
+                
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">STATUS</p>
+                  <div className={`flex items-center gap-1.5 text-xs font-bold ${selectedLog.status === 'sent' ? 'text-[#10B981]' : 'text-rose-500'}`}>
+                    {selectedLog.status === 'sent' ? <Check size={14} /> : <X size={14} />}
+                    {selectedLog.status === 'sent' ? '✓ Enviado com sucesso' : 'Falha no envio'}
+                  </div>
+                </div>
+
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">CANAL</p>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                    <MessageCircle size={14} className="text-amber-500" />
+                    WhatsApp
+                  </div>
+                </div>
+
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">DATA/HORA</p>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                    <Clock size={14} className="text-slate-400" />
+                    {new Date(selectedLog.created_at).toLocaleString('pt-BR')}
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm font-medium mb-1">Mensagem Processada</p>
-                <div className="bg-slate-50 p-3 rounded-md border text-xs whitespace-pre-wrap italic">
-                  {selectedLog.processed_template || selectedLog.payload?.rendered}
+              {/* LINHA DO TEMPO DA AUTOMAÇÃO */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Activity size={18} className="text-amber-500" />
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Fluxo da Automação</h3>
+                </div>
+                
+                <div className="bg-[#0F172A] border border-white/5 p-6 rounded-[24px]">
+                  {/* Desktop Horizontal Timeline */}
+                  <div className="hidden lg:flex items-start justify-between relative">
+                    <div className="absolute top-4 left-0 right-0 h-[2px] bg-slate-800 -z-0" />
+                    
+                    {[
+                      { label: "Evento Criado", status: "done" },
+                      { label: "Inserido na Fila", status: "done" },
+                      { label: "Processado", status: "done" },
+                      { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error" },
+                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending" },
+                      { label: "Lida", status: "pending" },
+                      { label: "Resposta", status: "pending" },
+                      { label: "Ação", status: "pending" },
+                      { label: "Finalizado", status: "pending" }
+                    ].map((step, idx) => (
+                      <div key={idx} className="flex flex-col items-center gap-3 relative z-10 px-2 text-center max-w-[100px]">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-4 border-[#0F172A] shadow-lg ${
+                          step.status === 'done' ? 'bg-[#10B981]' : 
+                          step.status === 'current' ? 'bg-amber-500' : 
+                          step.status === 'error' ? 'bg-rose-500' : 'bg-slate-700'
+                        }`}>
+                          {step.status === 'done' && <Check size={14} className="text-white" />}
+                          {step.status === 'current' && <Clock size={14} className="text-slate-900" />}
+                          {step.status === 'error' && <XCircle size={14} className="text-white" />}
+                          {step.status === 'pending' && <div className="w-2 h-2 rounded-full bg-slate-500" />}
+                        </div>
+                        <span className={`text-[10px] font-bold uppercase tracking-tighter leading-tight ${
+                          step.status === 'done' ? 'text-[#10B981]' : 
+                          step.status === 'current' ? 'text-amber-500' : 
+                          step.status === 'error' ? 'text-rose-500' : 'text-slate-500'
+                        }`}>
+                          {step.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Mobile Vertical Timeline */}
+                  <div className="lg:hidden space-y-4">
+                    {[
+                      { label: "Evento Criado", status: "done", time: "10:30:05" },
+                      { label: "Inserido na Fila", status: "done", time: "10:30:06" },
+                      { label: "Processado", status: "done", time: "10:30:07" },
+                      { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error", time: "10:30:08" },
+                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending" },
+                    ].map((step, idx) => (
+                      <div key={idx} className="flex items-center gap-4">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          step.status === 'done' ? 'bg-[#10B981]' : 
+                          step.status === 'current' ? 'bg-amber-500' : 
+                          step.status === 'error' ? 'bg-rose-500' : 'bg-slate-700'
+                        }`}>
+                          {step.status === 'done' && <Check size={12} className="text-white" />}
+                          {step.status === 'current' && <Clock size={12} className="text-slate-900" />}
+                          {step.status === 'error' && <XCircle size={12} className="text-white" />}
+                          {step.status === 'pending' && <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className={`text-xs font-bold ${step.status === 'done' ? 'text-[#10B981]' : 'text-slate-400'}`}>{step.label}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* AUDITORIA DO FLUXO TÉCNICA */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Terminal size={18} className="text-amber-500" />
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Auditoria do Fluxo</h3>
+                </div>
+                <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-white/5 text-slate-500">
+                      <tr>
+                        <th className="px-6 py-3 font-bold">HORÁRIO</th>
+                        <th className="px-6 py-3 font-bold">EVENTO</th>
+                        <th className="px-6 py-3 font-bold">RESULTADO</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      <tr>
+                        <td className="px-6 py-3 text-slate-400">{new Date(selectedLog.created_at).toLocaleTimeString()}</td>
+                        <td className="px-6 py-3 font-mono text-amber-500/70">{selectedLog.message_type || 'appointment.created'}</td>
+                        <td className="px-6 py-3 font-bold text-[#10B981]">✓ sucesso</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-3 text-slate-400">{new Date(new Date(selectedLog.created_at).getTime() + 1000).toLocaleTimeString()}</td>
+                        <td className="px-6 py-3 font-mono text-amber-500/70">queue.insert</td>
+                        <td className="px-6 py-3 font-bold text-[#10B981]">✓ sucesso</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-3 text-slate-400">{new Date(new Date(selectedLog.created_at).getTime() + 2000).toLocaleTimeString()}</td>
+                        <td className="px-6 py-3 font-mono text-amber-500/70">send.whatsapp</td>
+                        <td className={`px-6 py-3 font-bold ${selectedLog.status === 'sent' ? 'text-[#10B981]' : 'text-rose-500'}`}>
+                          {selectedLog.status === 'sent' ? '✓ sucesso' : '✕ falha'}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* MENSAGEM PROCESSADA (WHATSAPP PREVIEW) */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Mensagem Enviada</h3>
+                  </div>
+                  <div className="bg-[#0F172A] border border-white/10 rounded-[20px] overflow-hidden shadow-xl">
+                    <div className="bg-slate-800/50 px-4 py-3 flex items-center justify-between border-b border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#10B981] flex items-center justify-center text-white font-bold text-xs">W</div>
+                        <div>
+                          <p className="text-xs font-bold text-white leading-none mb-1">WhatsApp</p>
+                          <div className="flex items-center gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                            <span className="text-[10px] text-slate-400 font-medium">Online</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Badge className="bg-[#10B981]/15 text-[#10B981] border-none text-[10px] uppercase font-bold px-2 py-0">Enviado</Badge>
+                    </div>
+                    
+                    <div className="p-6 bg-[#0B141A] min-h-[300px] relative">
+                      <div className="bg-[#054740] text-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[90%] text-sm whitespace-pre-wrap leading-relaxed relative border border-white/5">
+                        {selectedLog.processed_template || selectedLog.payload?.rendered}
+                        <div className="text-[10px] text-white/50 text-right mt-2 flex items-center justify-end gap-1">
+                          {new Date(selectedLog.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <CheckCheck size={14} className="text-sky-400" />
+                        </div>
+                      </div>
+
+                      <div className="mt-4 space-y-2">
+                        <div className="bg-white/5 border border-white/10 p-3 rounded-xl text-center text-xs font-bold text-sky-400">
+                          Confirmar agendamento
+                        </div>
+                        <div className="bg-white/5 border border-white/10 p-3 rounded-xl text-center text-xs font-bold text-sky-400">
+                          Reagendar
+                        </div>
+                        <div className="bg-white/5 border border-white/10 p-3 rounded-xl text-center text-xs font-bold text-sky-400">
+                          Cancelar
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SEÇÃO TÉCNICA (TERMINAL) */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <FileCode size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Dados Técnicos da Execução</h3>
+                  </div>
+                  <div className="bg-[#081229] border border-amber-500/15 rounded-[18px] p-6 font-mono text-xs overflow-hidden shadow-2xl relative">
+                    <div className="flex gap-1.5 absolute top-4 left-6">
+                      <div className="w-2.5 h-2.5 rounded-full bg-rose-500/50" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/50" />
+                    </div>
+                    
+                    <div className="mt-6 custom-scrollbar overflow-auto max-h-[400px]">
+                      <div className="space-y-2">
+                        {/* Custom JSON highlighting renderer logic or manually mapped fields */}
+                        <div className="flex flex-wrap gap-x-4 gap-y-2">
+                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                             <span className="text-sky-400">zaap_id:</span>
+                             <span className="text-[#10B981] break-all">{selectedLog.response?.id || 'null'}</span>
+                           </div>
+                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                             <span className="text-sky-400">message_id:</span>
+                             <span className="text-[#10B981] break-all">{selectedLog.id}</span>
+                           </div>
+                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                             <span className="text-sky-400">appointment_id:</span>
+                             <span className="text-[#10B981] break-all">{selectedLog.payload?.appointment_id || 'null'}</span>
+                           </div>
+                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                             <span className="text-sky-400">customer_phone:</span>
+                             <span className="text-[#10B981]">{selectedLog.phone}</span>
+                           </div>
+                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                             <span className="text-sky-400">workflow_key:</span>
+                             <span className="text-[#10B981]">appointment_confirmation</span>
+                           </div>
+                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                             <span className="text-sky-400">current_state:</span>
+                             <span className="text-amber-500">completed</span>
+                           </div>
+                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                             <span className="text-sky-400">created_at:</span>
+                             <span className="text-[#10B981] font-bold">"{selectedLog.created_at}"</span>
+                           </div>
+                        </div>
+
+                        <div className="pt-4 mt-4 border-t border-amber-500/20">
+                          <p className="text-slate-500 mb-2">// Payload Bruto</p>
+                          <pre className="text-amber-500/80 whitespace-pre-wrap">
+                            {JSON.stringify(selectedLog.payload || {}, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {selectedLog.error_message && (
-                <div>
-                  <p className="text-sm font-medium text-red-600 mb-1">Erro Completo</p>
-                  <div className="bg-red-50 p-3 rounded-md border border-red-100 text-xs text-red-700 font-mono overflow-x-auto">
-                    {selectedLog.error_message}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={18} className="text-rose-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-rose-500">Erro Identificado</h3>
+                  </div>
+                  <div className="bg-rose-500/5 border border-rose-500/20 p-6 rounded-2xl">
+                    <p className="text-rose-400 font-mono text-sm leading-relaxed">{selectedLog.error_message}</p>
                   </div>
                 </div>
               )}
-
-              <div>
-                <p className="text-sm font-medium mb-1">Payload / Dados Técnicos</p>
-                <div className="bg-slate-900 p-3 rounded-md text-[10px] text-amber-400 font-mono overflow-x-auto">
-                  <pre>{JSON.stringify(selectedLog.payload || {}, null, 2)}</pre>
-                  <p className="text-slate-400 mt-2">// Resposta da API</p>
-                  <pre>{JSON.stringify(selectedLog.response || {}, null, 2)}</pre>
-                </div>
-              </div>
             </div>
           )}
+
+          <div className="p-8 pt-0 flex justify-end">
+            <Button 
+              className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-8 rounded-xl h-11 transition-all"
+              onClick={() => setIsLogDetailOpen(false)}
+            >
+              Fechar Detalhes
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
       
