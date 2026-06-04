@@ -409,25 +409,24 @@ export function AppointmentModal({
         })
       ]);
 
-      const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", tenantId).single();
+      const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled, business_name").eq("id", tenantId).single();
 
       if (profile?.whatsapp_enabled && customer?.phone) {
-        // Automação V2 desativada temporariamente para estabilidade
-        console.log("Automation V2 is temporarily disabled during rollback stabilization");
-        /*
-        supabase.from("automation_v2_queue").insert([{
-          tenant_id: tenantId,
-          workflow_key: 'confirmation_single',
-          event_name: 'appointment.created',
-          flow_type: 'single',
-          appointment_id: appointmentData.id,
-          payload: { source: 'admin_modal' }
-        }]).then(() => {
-          supabase.functions.invoke('automation-v2-runner', {
-            body: { tenantId: tenantId }
-          }).catch(err => console.error("Error triggering v2 runner:", err));
+        console.log("Triggering functional WhatsApp confirmation...");
+        triggerWhatsAppMessage({
+          userId: tenantId,
+          eventType: 'appointment_confirmation',
+          phone: customer.phone,
+          appointmentId: appointmentData.id,
+          placeholders: {
+            cliente_nome: customer.name,
+            data: format(startTime, "dd/MM/yyyy"),
+            horario: selectedTime,
+            servico: service?.name,
+            barbeiro_nome: barbers.find(b => b.id === selectedBarber)?.name,
+            barbearia_nome: profile.business_name
+          }
         });
-        */
       }
 
 
