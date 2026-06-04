@@ -116,16 +116,8 @@ serve(async (req) => {
         };
 
         // 4. Build Message
-        const buildAppointmentConfirmationMessage = (data: any, options: { buttons_attached: boolean }) => {
-          let body = `Olá ${data.customer_name} 👋\n\nSeu agendamento na ${data.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${data.service_name}\n💈 Profissional: ${data.professional_name}\n📅 Data: ${data.appointment_date}\n⏰ Horário: ${data.appointment_time}`;
-          
-          const question = "\n\nO que deseja fazer?";
-          
-          if (options.buttons_attached) {
-            return body + question;
-          } else {
-            return body + question + "\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar";
-          }
+        const buildAppointmentConfirmationMessage = (data: any) => {
+          return `Olá ${data.customer_name} 👋\n\nSeu agendamento na ${data.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${data.service_name}\n💈 Profissional: ${data.professional_name}\n📅 Data: ${data.appointment_date}\n⏰ Horário: ${data.appointment_time}\n\nO que deseja fazer?\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar`;
         };
 
         const testData = {
@@ -144,7 +136,7 @@ serve(async (req) => {
         if (automation.key === 'appointment_confirmation') {
           // Desativando botões interativos temporariamente conforme pedido
           sendOptions.buttons = null; 
-          renderedTemplate = buildAppointmentConfirmationMessage(testData, { buttons_attached: !!sendOptions.buttons });
+          renderedTemplate = buildAppointmentConfirmationMessage(testData);
         } else {
           renderedTemplate = automation.template;
           Object.entries(testData).forEach(([key, value]) => {
@@ -291,9 +283,9 @@ serve(async (req) => {
               appointment_id: appointment.id,
               customer_phone: phone,
               phone: phone,
-              workflow_key: automation.key,
+              workflow_key: 'appointment_confirmation',
               status: "awaiting_response",
-              expected_response: "confirmation_options",
+              expected_response: "confirmation_menu",
               expires_at: expiresAt.toISOString(),
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()

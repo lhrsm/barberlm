@@ -50,11 +50,18 @@ serve(async (req) => {
   if (!body) body = { raw: rawBody };
 
   // 1. SALVAR TODO WEBHOOK RECEBIDO
-  const phone = body.phone || body.from;
+  const phone = body.phone || body.from || body.body?.phone;
   const messageId = body.messageId || body.id;
   const referenceId = body.referenceMessageId;
   const buttonId = body.buttonsResponseMessage?.buttonId;
-  const buttonText = body.buttonsResponseMessage?.selectedButtonId || body.text?.message || "";
+  
+  // Extrair texto de múltiplos campos conforme especificado
+  const incomingText = body.text?.message || 
+                      body.message || 
+                      body.body || 
+                      body.chatMessage || 
+                      body.buttonsResponseMessage?.message || 
+                      "";
   const type = body.type;
   const fromMe = body.fromMe;
 
@@ -91,20 +98,22 @@ serve(async (req) => {
     type,
     fromMe,
     phone,
+    phone_raw: phone,
     messageId,
     referenceMessageId: referenceId,
     buttonId,
-    buttonText
+    buttonText: incomingText,
+    incoming_text: incomingText
   }).select().single();
 
   if (webhookLogError) console.error("[Webhook] Error saving webhook log:", webhookLogError);
 
   // PROCESS CALLBACK
   if (type === "ReceivedCallback" && !fromMe) {
-    console.log(`[Webhook] Processing callback for ${phone}. ButtonId: ${buttonId}, Text: ${buttonText}`);
+    console.log(`[Webhook] Processing callback for ${phone}. Text: ${incomingText}`);
 
     // REGISTRAR CLIQUE (Geral)
-    if (buttonId || buttonText) {
+    if (incomingText) {
       // Find appointment context first to enrich the click log if possible
       let enrichedAppointmentId = null;
       let enrichedTenantId = null;
@@ -131,7 +140,7 @@ serve(async (req) => {
         payload: {
           event_name: "button_clicked",
           button_id: buttonId,
-          button_text: body.buttonsResponseMessage?.selectedButtonId || buttonText,
+          button_text: incomingText,
           referenceMessageId: referenceId,
           webhook_received: true,
           phone,
@@ -141,17 +150,14 @@ serve(async (req) => {
     }
 
     // NORMALIZAÇÃO DO TEXTO PARA TRATAMENTO SEM BOTÕES
-    const normalizedText = buttonText.toLowerCase()
+    const normalizedText = incomingText.toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "") // Remove acentos
       .trim();
 
-    const isConfirm = buttonId === "main_confirm" || 
-                      ["1", "confirmar", "confirmar agendamento", "1 confirmo", "confirmo"].includes(normalizedText);
-    const isReschedule = buttonId === "main_reschedule" || 
-                         ["2", "reagendar", "2 reagendar"].includes(normalizedText);
-    const isCancel = buttonId === "main_cancel" || 
-                     ["3", "cancelar", "3 cancelar"].includes(normalizedText);
+    const isConfirm = ["1", "confirmar", "confirmar agendamento", "1 confirmo", "confirmo"].includes(normalizedText);
+    const isReschedule = ["2", "reagendar", "2 reagendar"].includes(normalizedText);
+    const isCancel = ["3", "cancelar", "3 cancelar"].includes(normalizedText);
 
     if (isConfirm || isReschedule || isCancel) {
       console.log(`[Webhook] Action detected: ${isConfirm ? 'confirm' : isReschedule ? 'reschedule' : 'cancel'}`);
@@ -190,7 +196,7 @@ serve(async (req) => {
         const { data: conversation } = await supabase
           .from("automation_conversations")
           .select("*")
-          .eq("customer_phone", phone)
+          .or(`phone.eq.${phone},customer_phone.eq.${phone}`)
           .eq("status", "awaiting_response")
           .eq("workflow_key", "appointment_confirmation")
           .gt("expires_at", new Date().toISOString())
@@ -316,7 +322,8 @@ serve(async (req) => {
         action: "resposta_recebida",
         idempotency_key: messageId,
         payload: { 
-          text: buttonText, 
+          text: incomingText, 
+
           normalized: normalizedText, 
           match: isConfirm ? "confirm" : isReschedule ? "reschedule" : isCancel ? "cancel" : "unknown" 
         }
@@ -388,9 +395,9 @@ serve(async (req) => {
       if (isConfirm) {
         successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${dateStr}\n⏰ ${timeStr}\n💈 ${profName}\n✂️ ${appointment?.service?.name || "Serviço"}`;
       } else if (isReschedule) {
-        successMsg = `🔄 Entendido! Vamos reagendar seu horário.\n\nPor favor, entre em contato com a ${businessName} pelo número do WhatsApp ou utilize nosso link de agendamento online para escolher um novo horário.`;
+        successMsg = `Recebemos sua solicitação de reagendamento. Em breve a barbearia dará continuidade.`;
       } else if (isCancel) {
-        successMsg = `❌ Agendamento cancelado com sucesso.\n\nSentiremos sua falta na ${businessName}! Se desejar agendar novamente no futuro, estaremos à disposição.`;
+        successMsg = `Recebemos sua solicitação de cancelamento. Em breve a barbearia dará continuidade.`;
       }
 
       let zapiResponse = null;
@@ -460,19 +467,28 @@ serve(async (req) => {
           button_id: buttonId || normalizedText,
           session_closed: true,
           fallback_used,
-          input_text: buttonText,
+          input_text: incomingText,
           normalized_text: normalizedText,
-          matched_action: isConfirm ? "confirmar" : isReschedule ? "reagendar" : "cancelar",
+          matched_action: isConfirm ? "confirm" : isReschedule ? "reschedule" : "cancel",
           flow_finished: true
         }
       });
 
-      // Update the webhook log with the found appointment_id
+      // Update the webhook log with the found appointment_id and results
       if (webhookLog) {
           await supabase.from("automation_webhook_logs").update({
               appointment_id: appointmentId,
               tenant_id: tenantId,
-              processed_at: new Date().toISOString()
+              processed_at: new Date().toISOString(),
+              phone_normalized: phone,
+              normalized_text: normalizedText,
+              matched_action: isConfirm ? 'confirm' : isReschedule ? 'reschedule' : 'cancel',
+              conversation_found: !!sessionId,
+              conversation_id: sessionId,
+              status_before: statusBefore,
+              status_after: targetStatus,
+              response_sent: !!zapiResponse,
+              error: null
           }).eq("id", webhookLog.id);
       }
     }
