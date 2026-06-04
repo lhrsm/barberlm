@@ -299,16 +299,16 @@ function AutomationsComponent() {
               {automations.map((auto) => (
                 <Card 
                   key={auto.id} 
-                  className="group relative flex flex-col bg-[#0F172A] border-[1px] border-amber-500/30 rounded-[20px] shadow-[0_10px_35px_rgba(0,0,0,0.35)] hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-[0_20px_45px_rgba(0,0,0,0.45)] transition-all duration-300 overflow-hidden"
+                  className="group relative flex flex-col bg-[#0F172A] border-[1px] border-amber-500/30 rounded-[20px] shadow-[0_10px_35px_rgba(0,0,0,0.35)] hover:border-amber-500/60 hover:shadow-[0_20px_45px_rgba(0,0,0,0.45)] transition-all duration-300 overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/50"
                 >
                   <CardHeader className="p-6 pb-4">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 flex items-center justify-center rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg shadow-amber-600/20">
-                          <Zap className="text-white" size={28} />
+                        <div className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg shadow-amber-600/20">
+                          <Zap className="text-white" size={24} />
                         </div>
-                        <div>
-                          <CardTitle className="text-[22px] font-bold text-white leading-tight">
+                        <div className="min-w-0">
+                          <CardTitle className="text-xl md:text-[22px] font-bold text-white leading-tight truncate">
                             {auto.name}
                           </CardTitle>
                           <div className="flex flex-wrap gap-2 mt-2">
@@ -331,12 +331,13 @@ function AutomationsComponent() {
                       <Switch 
                         checked={auto.active || false} 
                         onCheckedChange={() => toggleStatus(auto)}
-                        className="data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-slate-700"
+                        className="data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-slate-700 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A]"
                         thumbClassName="data-[state=checked]:bg-slate-900"
+                        aria-label={`Alternar status da automação ${auto.name}`}
                       />
                     </div>
 
-                    <CardDescription className="text-slate-400 text-sm leading-relaxed mb-4">
+                    <CardDescription className="text-slate-400 text-sm leading-relaxed mb-4 line-clamp-2">
                       Envia automaticamente uma mensagem para o cliente após a criação de um agendamento.
                     </CardDescription>
 
@@ -348,17 +349,21 @@ function AutomationsComponent() {
                   </CardHeader>
 
                   <CardContent className="px-6 flex-1 flex flex-col gap-4">
-                    <div className="bg-white/5 border border-white/10 rounded-[14px] p-4 relative group/preview">
+                    <button 
+                      onClick={() => openPreview(auto.template)}
+                      className="w-full text-left bg-white/5 border border-white/10 rounded-[14px] p-4 relative group/preview hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                      aria-label="Visualizar mensagem completa"
+                    >
                       <p className="text-xs text-slate-300 italic whitespace-pre-wrap line-clamp-4 leading-relaxed">
                         {auto.template}
                       </p>
-                      <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-500 font-medium">Visualizar mensagem completa</span>
-                        <ExternalLink size={10} className="text-slate-500" />
+                      <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500 font-medium group-hover/preview:text-slate-300 transition-colors">Visualizar mensagem completa</span>
+                        <ExternalLink size={10} className="text-slate-500 group-hover/preview:text-slate-300 transition-colors" />
                       </div>
-                    </div>
+                    </button>
 
-                    <div className="grid grid-cols-3 gap-2 mt-2 border-t border-white/5 pt-4">
+                    <div className="grid grid-cols-3 gap-2 mt-auto border-t border-white/5 pt-4">
                       <div className="text-center">
                         <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-center gap-1">
                           <SendHorizontal size={10} /> Enviados
@@ -380,15 +385,15 @@ function AutomationsComponent() {
                     </div>
                   </CardContent>
 
-                  <div className="p-6 pt-2 flex gap-3">
+                  <div className="p-6 pt-2 flex flex-col sm:flex-row gap-3 mt-auto">
                     <Button 
-                      className="flex-1 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl h-11 shadow-lg"
+                      className="flex-1 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl h-11 shadow-lg focus-visible:ring-2 focus-visible:ring-amber-500"
                       onClick={() => openEdit(auto)}
                     >
                       <Settings2 size={16} className="mr-2" /> Editar
                     </Button>
                     <Button 
-                      className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl h-11 shadow-lg shadow-amber-600/20 transition-all hover:scale-[1.02]"
+                      className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl h-11 shadow-lg shadow-amber-600/20 transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-amber-500"
                       onClick={() => openTest(auto)}
                     >
                       <Play size={16} className="mr-2 fill-current" /> Testar
