@@ -734,22 +734,23 @@ function BarbersComponent() {
                       variant="ghost" 
                       size="sm" 
                       className="flex-1 sm:flex-none h-10 hover:bg-slate-100"
-                    onClick={() => {
-                      setEditingBarber(barber);
-                      setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
-                      setIsEditDialogOpen(true);
-                    }}
-                  >
-                    Editar
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-slate-400 hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => handleDeleteBarber(barber.id)}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
+                      onClick={() => {
+                        setEditingBarber(barber);
+                        setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
+                        setIsEditDialogOpen(true);
+                      }}
+                    >
+                      Editar
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-slate-400 hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeleteBarber(barber.id)}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))
