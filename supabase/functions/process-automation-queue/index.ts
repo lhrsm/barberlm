@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { sendMessage } from "../_shared/whatsapp-settings.ts";
+import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -59,15 +60,30 @@ serve(async (req) => {
 
         // 2. Render Template
         const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", itemTenantId).single();
-        const { data: barber } = await supabase.from("profiles").select("full_name").eq("id", appointment.barber_id).maybeSingle();
+        
+        // Use barber_id first, then fallback to professional_id if exists
+        const professionalId = appointment.barber_id || appointment.professional_id;
+        
+        // Try fetching professional name from profiles (which stores full_name)
+        let profName = "Profissional";
+        if (professionalId) {
+          const { data: profData } = await supabase.from("profiles").select("full_name").eq("id", professionalId).maybeSingle();
+          if (profData?.full_name) {
+            profName = profData.full_name;
+          } else {
+            // Fallback: search in barbers or professionals table if they exist
+            const { data: barberData } = await supabase.from("barbers").select("name").eq("id", professionalId).maybeSingle();
+            if (barberData?.name) profName = barberData.name;
+          }
+        }
 
         const testData = {
           customer_name: appointment.customer?.name || "Cliente",
           barbershop_name: profile?.business_name || "Nossa Barbearia",
           service_name: appointment.service?.name || "Serviço",
-          professional_name: barber?.full_name || "Profissional",
-          appointment_date: new Date(appointment.start_time).toLocaleDateString("pt-BR"),
-          appointment_time: new Date(appointment.start_time).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }),
+          professional_name: profName,
+          appointment_date: formatBrazilDate(appointment.start_time),
+          appointment_time: formatBrazilTime(appointment.start_time),
           service_price: `R$ ${appointment.total_price || appointment.service?.price || 0}`,
         };
 
@@ -89,7 +105,20 @@ serve(async (req) => {
         const phone = appointment.customer?.phone;
         if (!phone) throw new Error("Customer phone not found");
 
-        const sendResult = await sendMessage(instance, phone, renderedTemplate);
+        // 4. Send Message with buttons for confirmation
+        const phone = appointment.customer?.phone;
+        if (!phone) throw new Error("Customer phone not found");
+
+        const sendOptions: any = {};
+        if (automation.key === 'appointment_confirmation') {
+          sendOptions.buttons = [
+            { id: 'main_confirm', label: 'Confirmar agendamento' },
+            { id: 'main_reschedule', label: 'Reagendar' },
+            { id: 'main_cancel', label: 'Cancelar' }
+          ];
+        }
+
+        const sendResult = await sendMessage(instance, phone, renderedTemplate, sendOptions);
 
         // 5. Update Queue and Log
         if (sendResult.success) {
