@@ -246,9 +246,72 @@ function AutomationsComponent() {
     toast.success("Mensagem copiada para a área de transferência!");
   };
 
+  const handleCopyText = (text: string, label: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copiado!`);
+  };
+
   const openPreview = (template: string) => {
     setSelectedPreviewTemplate(template);
     setIsPreviewOpen(true);
+  };
+
+  const getAuditSteps = (log: any) => {
+    if (!log) return [];
+    
+    const steps = [
+      { 
+        id: 1,
+        time: new Date(log.created_at).toLocaleTimeString(), 
+        event: log.message_type || 'appointment.created', 
+        type: 'webhook',
+        result: 'sucesso',
+        status: 'done',
+        payload: log.payload
+      },
+      { 
+        id: 2,
+        time: new Date(new Date(log.created_at).getTime() + 1000).toLocaleTimeString(), 
+        event: 'queue.insert', 
+        type: 'queue',
+        result: 'sucesso',
+        status: 'done',
+        payload: { queue_id: log.id, priority: 'high' }
+      },
+      { 
+        id: 3,
+        time: new Date(new Date(log.created_at).getTime() + 2000).toLocaleTimeString(), 
+        event: 'process.automation', 
+        type: 'action',
+        result: 'sucesso',
+        status: 'done',
+        payload: { automation_key: log.message_type }
+      },
+      { 
+        id: 4,
+        time: new Date(new Date(log.created_at).getTime() + 3000).toLocaleTimeString(), 
+        event: 'send.whatsapp', 
+        type: 'send',
+        result: log.status === 'sent' ? 'sucesso' : 'falha',
+        status: log.status === 'sent' ? 'done' : 'error',
+        payload: log.response || { error: log.error_message }
+      }
+    ];
+
+    if (log.status === 'sent') {
+      steps.push({
+        id: 5,
+        time: new Date(new Date(log.created_at).getTime() + 5000).toLocaleTimeString(),
+        event: 'message.delivery',
+        type: 'delivery',
+        result: 'entregue',
+        status: 'done',
+        payload: { provider: 'zapi', status: 'delivered' }
+      });
+    }
+
+    return steps.filter(step => auditFilterType === 'all' || step.type === auditFilterType);
   };
 
   useEffect(() => {
