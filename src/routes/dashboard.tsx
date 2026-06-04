@@ -1087,7 +1087,7 @@ function DashboardComponent() {
                       credits: Number(a.credit_used || 0) + Number(a.credits_used || 0),
                       cashback: a.cashback_used,
                       pay: a.payment_method,
-                      included: ["scheduled", "confirmed", "completed"].includes(a.status)
+                      included: ["scheduled", "confirmed", "completed"].includes(a.status || "")
                     }));
                     
                     console.table(details);
