@@ -236,8 +236,16 @@ function AutomationsComponent() {
         .eq("tenant_id", tenantId);
         
       if (searchTerm) {
-        // Search by phone, message_id (id), or provider_message_id (inside response)
-        query = query.or(`phone.ilike.%${searchTerm}%,id.eq.${searchTerm},response->>messageId.ilike.%${searchTerm}%,response->>id.ilike.%${searchTerm}%`);
+        if (searchTerm.startsWith('appointment:')) {
+          const id = searchTerm.replace('appointment:', '');
+          query = query.eq('appointment_id', id);
+        } else if (searchTerm.startsWith('customer:')) {
+          const id = searchTerm.replace('customer:', '');
+          query = query.eq('payload->data->>customer_id', id);
+        } else {
+          // Search by phone, message_id (id), or provider_message_id (inside response)
+          query = query.or(`phone.ilike.%${searchTerm}%,id.eq.${searchTerm},response->>messageId.ilike.%${searchTerm}%,response->>id.ilike.%${searchTerm}%`);
+        }
       }
         
       if (filterStatus !== "all") {
