@@ -1113,7 +1113,10 @@ function AutomationsComponent() {
                         variant="outline"
                         size="sm"
                         disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        onClick={() => {
+                           setCurrentPage(prev => Math.max(1, prev - 1));
+                           window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-9 px-4"
                       >
                         <ChevronLeft size={16} className="mr-1" /> Anterior
