@@ -264,7 +264,9 @@ function AutomationsComponent() {
     if (!highlight && !searchTerm) {
       let result = template;
       variables.forEach(v => {
-        result = result.replace(new RegExp(v.key.replace(/[.*+?^${}()|[\]\]/g, '\\$&'), 'g'), v.value);
+        // Escape braces for regex
+        const escapedKey = v.key.replace(/\{/g, '\\{').replace(/\}/g, '\\}');
+        result = result.replace(new RegExp(escapedKey, 'g'), v.value);
       });
       return result;
     }
