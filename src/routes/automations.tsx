@@ -1044,17 +1044,17 @@ function AutomationsComponent() {
                             </Badge>
                           </td>
                           <td className="px-6 py-4">
-                            {log.status === 'sent' ? (
+                            {log.status === 'success' || log.status === 'sent' ? (
                               <Badge className="bg-[#10B981]/10 text-[#10B981] border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit">
                                 <Check size={12} strokeWidth={3} /> Enviado
                               </Badge>
-                            ) : log.status === 'error' ? (
+                            ) : log.status === 'failed' || log.status === 'error' ? (
                               <Badge className="bg-[#EF4444]/10 text-[#EF4444] border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit">
                                 <X size={12} strokeWidth={3} /> Falhou
                               </Badge>
                             ) : (
                               <Badge className="bg-amber-500/10 text-amber-500 border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit">
-                                <Clock size={12} /> Pendente
+                                <Clock size={12} /> {log.status === 'processing' ? 'Processando' : 'Pendente'}
                               </Badge>
                             )}
                           </td>
