@@ -50,7 +50,6 @@ export async function processSingleFlow(supabase: any, item: any) {
         .single();
 
     // 4. Send Message via Z-API (Mocked/Simplified for now)
-    // In real implementation, fetch provider from messaging_v2_providers
     const providerMessageId = `msg_${Math.random().toString(36).substr(2, 9)}`;
 
     await supabase.from("automation_v2_sessions").update({ provider_message_id: providerMessageId }).eq("id", session.id);
