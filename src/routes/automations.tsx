@@ -1059,24 +1059,50 @@ function AutomationsComponent() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 px-4 pb-4">
-                    <Button
-                      variant={searchTerm === 'source:test_manual' ? 'default' : 'outline'}
-                      size="sm"
-                      className={`rounded-full text-[10px] uppercase font-bold tracking-wider h-8 ${
-                        searchTerm === 'source:test_manual' 
-                        ? 'bg-amber-500 hover:bg-amber-600 text-white' 
-                        : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
-                      }`}
-                      onClick={() => {
-                        setSearchTerm(searchTerm === 'source:test_manual' ? '' : 'source:test_manual');
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <Terminal size={12} className="mr-1.5" />
-                      Apenas Testes Manuais
-                    </Button>
+                  <div className="flex items-center justify-between px-4 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant={searchTerm === 'source:test_manual' ? 'default' : 'outline'}
+                        size="sm"
+                        className={`rounded-full text-[10px] uppercase font-bold tracking-wider h-8 ${
+                          searchTerm === 'source:test_manual' 
+                          ? 'bg-amber-500 hover:bg-amber-600 text-white' 
+                          : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                        }`}
+                        onClick={() => {
+                          setSearchTerm(searchTerm === 'source:test_manual' ? '' : 'source:test_manual');
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <Terminal size={12} className="mr-1.5" />
+                        Apenas Testes Manuais
+                      </Button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full text-[10px] uppercase font-bold tracking-wider h-8 border-white/5 hover:bg-white/5 text-slate-400 hover:text-white"
+                        onClick={() => handleExportLogs('csv')}
+                        disabled={loading}
+                      >
+                        <FileCode size={12} className="mr-1.5" />
+                        Exportar CSV
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full text-[10px] uppercase font-bold tracking-wider h-8 border-white/5 hover:bg-white/5 text-slate-400 hover:text-white"
+                        onClick={() => handleExportLogs('json')}
+                        disabled={loading}
+                      >
+                        <Copy size={12} className="mr-1.5" />
+                        Exportar JSON
+                      </Button>
+                    </div>
                   </div>
+
 
               </CardHeader>
               <CardContent className="p-0">
