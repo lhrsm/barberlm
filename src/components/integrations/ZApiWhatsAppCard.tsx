@@ -114,25 +114,37 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
 
   async function fetchIntegrationLogs() {
     try {
-      const { data } = await supabase
+      const { data: logs } = await supabase
         .from("zapi_integration_logs")
         .select("*")
         .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(10);
       
-      if (data) {
-        setIntegrationLogs(data);
-        if (data.length > 0) {
-          setLastCheckTime(data[0].created_at);
+      if (logs) {
+        setIntegrationLogs(logs);
+        if (logs.length > 0) {
+          setLastCheckTime(logs[0].created_at);
         }
-        const lastSent = data.find(l => l.action === 'send-test-message' && l.status_code === 200);
+        const lastSent = logs.find(l => l.action === 'send-test-message' && l.status_code === 200);
         if (lastSent && (lastSent.response_payload as any)?.messageId) {
           setLastSentMessageInfo({
             id: (lastSent.response_payload as any).messageId,
             time: lastSent.created_at
           });
         }
+      }
+
+      // Fetch webhook debug logs
+      const { data: debugLogs } = await supabase
+        .from("zapi_webhook_debug")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .order("received_at", { ascending: false })
+        .limit(10);
+      
+      if (debugLogs) {
+        setWebhookDebugLogs(debugLogs);
       }
     } catch (error) {
       console.error("Error fetching integration logs:", error);
