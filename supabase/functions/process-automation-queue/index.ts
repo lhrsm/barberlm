@@ -38,7 +38,8 @@ serve(async (req) => {
     if (force_resend && appointment_id) {
       query = query.eq("appointment_id", appointment_id);
     } else {
-      query = query.eq("status", "pending");
+      query = query.or("status.eq.pending,status.eq.failed");
+      query = query.lt("attempts", 3); // Max retries
       if (tenant_id) query = query.eq("tenant_id", tenant_id);
       if (appointment_id) query = query.eq("appointment_id", appointment_id);
     }
