@@ -109,9 +109,12 @@ function AutomationsComponent() {
 
   // Estados Auditoria do Fluxo (Modal)
   const [auditFilterType, setAuditFilterType] = useState("all");
+  const [auditSearchTerm, setAuditSearchTerm] = useState("");
   const [auditPage, setAuditPage] = useState(1);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const auditItemsPerPage = 5;
+  const [statsLoading, setStatsLoading] = useState(false);
+
 
   useEffect(() => {
     if (tenantId) {
@@ -122,7 +125,9 @@ function AutomationsComponent() {
   async function fetchData() {
     if (!tenantId) return;
     setLoading(true);
+    setStatsLoading(true);
     try {
+
       // 1. Fetch automations from the new table
       const { data: automationsData, error: autoError } = await anySupabase
         .from("automation_templates")
@@ -192,8 +197,10 @@ function AutomationsComponent() {
       }));
 
       setAutomations(enrichedAutomations);
+      setStatsLoading(false);
 
       // 4. Fetch logs with filtering and pagination
+
       let query = supabase
         .from("automation_logs")
         .select("*", { count: 'exact' })
