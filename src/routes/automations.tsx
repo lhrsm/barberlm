@@ -977,7 +977,7 @@ function AutomationsComponent() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                 className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 focus-visible:ring-2 focus-visible:ring-amber-500"
+                                className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 focus-visible:ring-2 focus-visible:ring-amber-500"
                                 onClick={() => {
                                   openLogDetail(log);
                                 }}
@@ -998,10 +998,47 @@ function AutomationsComponent() {
                                 variant="ghost" 
                                 size="icon" 
                                 className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                                onClick={() => resendTest(log)}
+                                onClick={async () => {
+                                  if (log.status === 'error' || log.error_message) {
+                                    const confirmResend = confirm("Deseja reenviar esta automação?");
+                                    if (!confirmResend) return;
+                                    
+                                    toast.loading("Reenviando...");
+                                    try {
+                                      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+                                        body: { 
+                                          tenant_id: tenantId, 
+                                          appointment_id: log.appointment_id,
+                                          force_resend: true 
+                                        }
+                                      });
+                                      
+                                      if (error) throw error;
+                                      toast.success("Solicitação de reenvio processada!");
+                                      fetchData();
+                                    } catch (err: any) {
+                                      toast.error("Erro ao reenviar: " + err.message);
+                                    }
+                                  } else {
+                                    resendTest(log);
+                                  }
+                                }}
                                 title="Reenviar"
                               >
                                 <RotateCcw size={14} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-slate-500 hover:text-white hover:bg-white/10"
+                                onClick={() => {
+                                  // Open a detailed log view or similar
+                                  setSelectedLog(log);
+                                  setIsLogDetailOpen(true);
+                                }}
+                                title="Logs Detalhados"
+                              >
+                                <ExternalLink size={14} />
                               </Button>
                             </div>
                           </td>
