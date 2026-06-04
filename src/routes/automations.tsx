@@ -977,7 +977,7 @@ function AutomationsComponent() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                 className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 focus-visible:ring-2 focus-visible:ring-amber-500"
+                                className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 focus-visible:ring-2 focus-visible:ring-amber-500"
                                 onClick={() => {
                                   openLogDetail(log);
                                 }}
@@ -998,10 +998,47 @@ function AutomationsComponent() {
                                 variant="ghost" 
                                 size="icon" 
                                 className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                                onClick={() => resendTest(log)}
+                                onClick={async () => {
+                                  if (log.status === 'error' || log.error_message) {
+                                    const confirmResend = confirm("Deseja reenviar esta automação?");
+                                    if (!confirmResend) return;
+                                    
+                                    toast.loading("Reenviando...");
+                                    try {
+                                      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+                                        body: { 
+                                          tenant_id: tenantId, 
+                                          appointment_id: log.appointment_id,
+                                          force_resend: true 
+                                        }
+                                      });
+                                      
+                                      if (error) throw error;
+                                      toast.success("Solicitação de reenvio processada!");
+                                      fetchData();
+                                    } catch (err: any) {
+                                      toast.error("Erro ao reenviar: " + err.message);
+                                    }
+                                  } else {
+                                    resendTest(log);
+                                  }
+                                }}
                                 title="Reenviar"
                               >
                                 <RotateCcw size={14} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-slate-500 hover:text-white hover:bg-white/10"
+                                onClick={() => {
+                                  // Open a detailed log view or similar
+                                  setSelectedLog(log);
+                                  setIsLogDetailOpen(true);
+                                }}
+                                title="Logs Detalhados"
+                              >
+                                <ExternalLink size={14} />
                               </Button>
                             </div>
                           </td>
@@ -1122,8 +1159,49 @@ function AutomationsComponent() {
                 </div>
               </div>
 
+              {/* PAYLOAD E DADOS */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Terminal size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Payload da Mensagem</h3>
+                  </div>
+                  <div className="bg-[#0F172A] border border-white/5 p-6 rounded-[24px] h-[300px] overflow-hidden flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">JSON Bruto</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 text-[10px] text-slate-400 hover:text-white"
+                        onClick={() => {
+                          navigator.clipboard.writeText(JSON.stringify(selectedLog.payload, null, 2));
+                          toast.success("Copiado!");
+                        }}
+                      >
+                        <Copy size={10} className="mr-1" /> Copiar
+                      </Button>
+                    </div>
+                    <pre className="text-[10px] font-mono text-amber-500/80 overflow-y-auto custom-scrollbar flex-1 bg-black/20 p-4 rounded-xl">
+                      {JSON.stringify(selectedLog.payload, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Mensagem Processada</h3>
+                  </div>
+                  <div className="bg-[#0F172A] border border-white/5 p-6 rounded-[24px] h-[300px] overflow-y-auto custom-scrollbar">
+                    <div className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
+                      {selectedLog.processed_template || "Mensagem não disponível"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* LINHA DO TEMPO DA AUTOMAÇÃO */}
-              <div className="space-y-4">
+              <div className="space-y-4 pt-4">
                 <div className="flex items-center gap-2">
                   <Activity size={18} className="text-amber-500" />
                   <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Fluxo da Automação</h3>

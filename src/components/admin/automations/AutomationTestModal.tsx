@@ -144,6 +144,20 @@ export function AutomationTestModal({
 
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+      if (e.key === 'Enter' && e.ctrlKey && isOpen && !isTesting && !isSimulating) {
+        handleTest();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isTesting, isSimulating, phone, testType, realData]);
+
+  useEffect(() => {
     if (isOpen) {
       fetchLastTestResult();
       if (testType === "real") {
@@ -322,6 +336,9 @@ export function AutomationTestModal({
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             Testar Automação
+            <Badge variant="outline" className="text-[10px] ml-auto font-normal text-slate-500 border-slate-800">
+              Esc para fechar
+            </Badge>
           </DialogTitle>
         </DialogHeader>
 
@@ -489,13 +506,12 @@ export function AutomationTestModal({
           >
             {isTesting ? (
               <span className="flex items-center gap-2">
-                <Loader2 size={18} className="animate-spin" />
-                Enviando...
+                <Loader2 size={20} className="animate-spin" /> Enviando...
               </span>
             ) : (
-              <span className="flex items-center gap-2">
-                <Send size={18} />
-                Enviar Teste
+              <span className="flex flex-col items-center">
+                <span>Enviar Teste</span>
+                <span className="text-[10px] opacity-60 font-normal">Ctrl + Enter</span>
               </span>
             )}
           </Button>
