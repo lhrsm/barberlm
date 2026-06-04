@@ -105,7 +105,7 @@ serve(async (req) => {
             .from("automation_logs")
             .select(`
               *,
-              appointment:appointments(*)
+              appointment:appointments(*, service:services(name))
             `)
             .or(`response->>messageId.eq.${referenceId},zapi_response->response->>messageId.eq.${referenceId},zapi_response->>messageId.eq.${referenceId}`)
             .order('created_at', { ascending: false })
