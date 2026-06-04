@@ -810,8 +810,8 @@ function DashboardComponent() {
           </Card>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mb-6">
-          <Card className="col-span-4 bg-card border-2 border-amber-500/20 shadow-lg shadow-amber-500/5 relative overflow-hidden group">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7 mb-6">
+          <Card className="col-span-1 md:col-span-2 lg:col-span-4 bg-card border-2 border-amber-500/20 shadow-lg shadow-amber-500/5 relative overflow-hidden group">
             {/* Glow sutil no fundo */}
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-500" />
             
@@ -929,7 +929,7 @@ function DashboardComponent() {
           </Card>
           
           <Card className={cn(
-            "col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group bg-card",
+            "col-span-1 md:col-span-2 lg:col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group bg-card",
             !isExpired 
               ? "border-emerald-500/30 shadow-2xl shadow-emerald-500/10"
               : "border-red-500/30 shadow-2xl shadow-red-500/10"

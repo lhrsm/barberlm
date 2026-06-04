@@ -255,13 +255,13 @@ function CalendarComponent() {
           </Alert>
         )}
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-black flex items-center gap-3 text-zinc-900">
-              <CalendarIcon className="text-sky-500 h-8 w-8" />
+            <h2 className="text-2xl sm:text-3xl font-black flex items-center gap-3 text-zinc-900">
+              <CalendarIcon className="text-sky-500 h-6 w-6 sm:h-8 sm:w-8" />
               Agenda
             </h2>
-            <p className="text-zinc-500 font-medium mt-1">Gerencie os agendamentos da barbearia</p>
+            <p className="text-zinc-500 text-sm font-medium mt-1">Gerencie os agendamentos da barbearia</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -328,8 +328,8 @@ function CalendarComponent() {
             <Button variant="ghost" size="sm" className="font-semibold text-sky-600 hover:bg-sky-50 rounded-xl" onClick={() => setCurrentDate(new Date())}>Hoje</Button>
           </div>
 
-          <ScrollArea className="flex-1">
-            <div className="min-w-[800px] md:min-w-0">
+          <ScrollArea className="flex-1 custom-scrollbar">
+            <div className="min-w-[700px] lg:min-w-0">
               {view === 'day' ? (
                 <div className="flex flex-col divide-y divide-zinc-100">
                   {HOURS.map(hour => (

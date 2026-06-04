@@ -472,7 +472,7 @@ function FinancesComponent() {
 
         <div className={cn(
           "grid gap-4",
-          role === 'barber' ? "md:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+          role === 'barber' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
         )}>
           <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -640,8 +640,8 @@ function FinancesComponent() {
               </Button>
             </div>
 
-            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden">
-              <Table>
+            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-x-auto custom-scrollbar">
+              <Table className="min-w-[800px] md:min-w-0">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[100px]">Data</TableHead>
@@ -864,8 +864,8 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="pending" className="pt-4">
-            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden">
-              <Table>
+            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-x-auto custom-scrollbar">
+              <Table className="min-w-[800px] md:min-w-0">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[100px]">Data</TableHead>
