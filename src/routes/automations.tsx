@@ -919,7 +919,7 @@ function AutomationsComponent() {
                   </div>
                   
                   {/* Barra de Filtros Única */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-[#020817] p-4 rounded-2xl border border-white/5 shadow-inner">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-[#020817] p-4 rounded-2xl border border-white/5 shadow-inner">
                     <div className="relative group">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-amber-500 transition-colors" size={14} />
                       <Input 
