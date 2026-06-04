@@ -602,6 +602,7 @@ export type Database = {
           direction: string | null
           error_message: string | null
           id: string
+          idempotency_key: string | null
           message_sent: string | null
           message_type: string | null
           metadata: Json | null
@@ -635,6 +636,7 @@ export type Database = {
           direction?: string | null
           error_message?: string | null
           id?: string
+          idempotency_key?: string | null
           message_sent?: string | null
           message_type?: string | null
           metadata?: Json | null
@@ -668,6 +670,7 @@ export type Database = {
           direction?: string | null
           error_message?: string | null
           id?: string
+          idempotency_key?: string | null
           message_sent?: string | null
           message_type?: string | null
           metadata?: Json | null
@@ -735,6 +738,7 @@ export type Database = {
           created_at: string | null
           error_message: string | null
           id: string
+          idempotency_key: string | null
           payload: Json | null
           status: string
           tenant_id: string
@@ -747,6 +751,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
+          idempotency_key?: string | null
           payload?: Json | null
           status?: string
           tenant_id: string
@@ -759,6 +764,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
+          idempotency_key?: string | null
           payload?: Json | null
           status?: string
           tenant_id?: string
