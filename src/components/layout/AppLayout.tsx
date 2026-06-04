@@ -182,14 +182,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Top Header */}
       <header className="md:hidden flex items-center justify-between p-4 border-b bg-card sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-primary truncate max-w-[150px]">{businessName}</h1>
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="p-1.5 bg-primary/10 rounded-lg shrink-0">
+            <Scissors className="text-primary h-5 w-5" />
+          </div>
+          <h1 className="text-lg font-bold text-white truncate">{businessName}</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <NotificationsCenter />
           {role === 'super_admin' && <AdminNotifications />}
-          <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            {isMobileMenuOpen ? <X /> : <Menu />}
+          <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white">
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </Button>
         </div>
       </header>
