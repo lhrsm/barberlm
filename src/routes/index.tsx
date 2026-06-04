@@ -175,7 +175,7 @@ function LandingPageComponent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-6xl lg:text-9xl font-black tracking-tightest mb-8 text-white leading-[0.9] max-w-5xl"
+              className="text-4xl sm:text-6xl lg:text-9xl font-black tracking-tightest mb-8 text-white leading-[0.9] max-w-5xl px-4"
             >
               Sua barbearia no <br />
               <span className="text-primary italic">piloto automático.</span>
