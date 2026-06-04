@@ -1427,9 +1427,10 @@ function AutomationsComponent() {
                     </div>
                   )}
 
-                  {/* Desktop view for logs (Table) */}
-                  <div className="hidden lg:block overflow-x-auto mt-6">
-
+                  {/* Table / Cards Container */}
+                  <div className="mt-6 border-t border-white/5">
+                    {/* Desktop Table */}
+                    <div className="hidden lg:block overflow-x-auto">
                       <table className="w-full border-collapse">
                     <thead className="bg-[#0F172A]/80 sticky top-0 z-10">
                       <tr className="border-b border-white/5">
