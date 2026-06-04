@@ -152,6 +152,10 @@ function AutomationsComponent() {
     }
   }
 
+  useEffect(() => {
+    if (tenantId) fetchData();
+  }, [filterStatus]);
+
   const toggleStatus = async (automation: any) => {
     try {
       const { error } = await anySupabase
