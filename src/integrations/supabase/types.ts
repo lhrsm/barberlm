@@ -599,11 +599,15 @@ export type Database = {
           appointment_id: string | null
           automation_id: string
           barber_id: string | null
+          button_id: string | null
+          callback_received: boolean | null
+          callback_received_at: string | null
           conversation_id: string | null
           created_at: string | null
           customer_id: string | null
           direction: string | null
           error_message: string | null
+          final_status: string | null
           id: string
           idempotency_key: string | null
           message_sent: string | null
@@ -634,11 +638,15 @@ export type Database = {
           appointment_id?: string | null
           automation_id: string
           barber_id?: string | null
+          button_id?: string | null
+          callback_received?: boolean | null
+          callback_received_at?: string | null
           conversation_id?: string | null
           created_at?: string | null
           customer_id?: string | null
           direction?: string | null
           error_message?: string | null
+          final_status?: string | null
           id?: string
           idempotency_key?: string | null
           message_sent?: string | null
@@ -669,11 +677,15 @@ export type Database = {
           appointment_id?: string | null
           automation_id?: string
           barber_id?: string | null
+          button_id?: string | null
+          callback_received?: boolean | null
+          callback_received_at?: string | null
           conversation_id?: string | null
           created_at?: string | null
           customer_id?: string | null
           direction?: string | null
           error_message?: string | null
+          final_status?: string | null
           id?: string
           idempotency_key?: string | null
           message_sent?: string | null
@@ -886,6 +898,73 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "automation_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_webhook_logs: {
+        Row: {
+          appointment_id: string | null
+          buttonid: string | null
+          buttontext: string | null
+          created_at: string | null
+          fromme: boolean | null
+          id: string
+          messageid: string | null
+          phone: string | null
+          raw_payload: Json
+          referencemessageid: string | null
+          tenant_id: string | null
+          type: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          buttonid?: string | null
+          buttontext?: string | null
+          created_at?: string | null
+          fromme?: boolean | null
+          id?: string
+          messageid?: string | null
+          phone?: string | null
+          raw_payload: Json
+          referencemessageid?: string | null
+          tenant_id?: string | null
+          type?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          buttonid?: string | null
+          buttontext?: string | null
+          created_at?: string | null
+          fromme?: boolean | null
+          id?: string
+          messageid?: string | null
+          phone?: string | null
+          raw_payload?: Json
+          referencemessageid?: string | null
+          tenant_id?: string | null
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_webhook_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_webhook_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "automation_webhook_logs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "profiles"
