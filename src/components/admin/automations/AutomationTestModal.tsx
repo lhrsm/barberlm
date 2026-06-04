@@ -472,23 +472,33 @@ export function AutomationTestModal({
 
         </div>
 
-        <DialogFooter className="p-6 bg-[#0F172A]/80 border-t border-white/5 flex flex-col sm:flex-row gap-4 sm:gap-4 mt-auto">
+        <DialogFooter className="p-6 bg-[#0F172A]/80 border-t border-white/5 flex flex-col-reverse sm:flex-row gap-4 sm:gap-4 mt-auto">
           <Button 
             variant="outline" 
             onClick={onClose} 
             disabled={isTesting} 
-            className="flex-1 h-14 rounded-2xl font-semibold bg-white text-[#0F172A] border-2 border-[#E5E7EB] shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] hover:-translate-y-0.5 active:translate-y-0 active:bg-[#E2E8F0] transition-all duration-250 cursor-pointer"
+            className="w-full sm:flex-1 h-14 rounded-2xl font-semibold bg-white text-[#0F172A] border-2 border-[#E5E7EB] shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] hover:-translate-y-0.5 active:translate-y-0 active:bg-[#E2E8F0] transition-all duration-250 cursor-pointer focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
           >
             Cancelar
           </Button>
           <Button 
             onClick={handleTest} 
             disabled={isTesting || (testType === "real" && !realData) || isLoadingRealData}
-            className="flex-[1.5] h-14 rounded-2xl font-bold bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white border-none shadow-[0_8px_25px_rgba(245,158,11,0.35)] hover:from-[#FBBF24] hover:to-[#F59E0B] hover:-translate-y-[3px] hover:shadow-[0_12px_30px_rgba(245,158,11,0.45)] active:translate-y-0 active:shadow-[0_4px_12px_rgba(245,158,11,0.25)] transition-all duration-250 cursor-pointer disabled:bg-[#374151] disabled:text-[#9CA3AF] disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0 disabled:bg-none"
+            className="w-full sm:flex-[1.5] h-14 rounded-2xl font-bold bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white border-none shadow-[0_8px_25px_rgba(245,158,11,0.35)] hover:from-[#FBBF24] hover:to-[#F59E0B] hover:-translate-y-[3px] hover:shadow-[0_12px_30px_rgba(245,158,11,0.45)] active:translate-y-0 active:shadow-[0_4px_12px_rgba(245,158,11,0.25)] transition-all duration-250 cursor-pointer disabled:bg-[#374151] disabled:text-[#9CA3AF] disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0 disabled:bg-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
           >
             {isTesting ? (
               <span className="flex items-center gap-2">
                 <Loader2 size={18} className="animate-spin" />
+                Enviando...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Send size={18} />
+                Enviar Teste
+              </span>
+            )}
+          </Button>
+        </DialogFooter>
                 Enviando...
               </span>
             ) : (
