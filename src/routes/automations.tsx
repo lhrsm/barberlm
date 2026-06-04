@@ -240,37 +240,69 @@ function AutomationsComponent() {
     }
   }
 
-  const replaceVariables = (template: string, highlight: boolean = false) => {
+  const [customVariables, setCustomVariables] = useState({
+    customer_name: "João Silva",
+    barbershop_name: "Barbex Premium",
+    service_name: "Corte + Barba",
+    professional_name: "Carlos (Mestre Barbeiro)",
+    appointment_date: "15/06/2026",
+    appointment_time: "14:30"
+  });
+
+  const replaceVariables = (template: string, highlight: boolean = false, searchTerm: string = "") => {
     if (!template) return "";
     
     const variables = [
-      { key: "{customer_name}", value: "João Silva", color: "text-amber-400" },
-      { key: "{barbershop_name}", value: "Barbex Premium", color: "text-sky-400" },
-      { key: "{service_name}", value: "Corte + Barba", color: "text-emerald-400" },
-      { key: "{professional_name}", value: "Carlos (Mestre Barbeiro)", color: "text-rose-400" },
-      { key: "{appointment_date}", value: "15/06/2026", color: "text-purple-400" },
-      { key: "{appointment_time}", value: "14:30", color: "text-indigo-400" }
+      { key: "{customer_name}", value: customVariables.customer_name, color: "text-amber-400" },
+      { key: "{barbershop_name}", value: customVariables.barbershop_name, color: "text-sky-400" },
+      { key: "{service_name}", value: customVariables.service_name, color: "text-emerald-400" },
+      { key: "{professional_name}", value: customVariables.professional_name, color: "text-rose-400" },
+      { key: "{appointment_date}", value: customVariables.appointment_date, color: "text-purple-400" },
+      { key: "{appointment_time}", value: customVariables.appointment_time, color: "text-indigo-400" }
     ];
 
-    if (!highlight) {
+    if (!highlight && !searchTerm) {
       let result = template;
       variables.forEach(v => {
-        result = result.replace(new RegExp(v.key, 'g'), v.value);
+        result = result.replace(new RegExp(v.key.replace(/[.*+?^${}()|[\]\]/g, '\\$&'), 'g'), v.value);
       });
       return result;
     }
 
-    // Highlighting logic for React components
     const parts = template.split(/(\{[a-z_]+\})/g);
     return parts.map((part, index) => {
       const variable = variables.find(v => v.key === part);
       if (variable) {
+        let content: any = variable.value;
+        if (searchTerm && variable.value.toLowerCase().includes(searchTerm.toLowerCase())) {
+          const sParts = variable.value.split(new RegExp(`(${searchTerm})`, 'gi'));
+          content = sParts.map((p, i) => 
+            p.toLowerCase() === searchTerm.toLowerCase() 
+              ? <mark key={i} className="bg-amber-500 text-slate-900 rounded-sm">{p}</mark> 
+              : p
+          );
+        }
+
         return (
           <span key={index} className={`font-bold px-1 rounded bg-white/5 ${variable.color}`} title={variable.key}>
-            {variable.value}
+            {content}
           </span>
         );
       }
+
+      if (searchTerm && part.toLowerCase().includes(searchTerm.toLowerCase())) {
+        const sParts = part.split(new RegExp(`(${searchTerm})`, 'gi'));
+        return (
+          <span key={index}>
+            {sParts.map((p, i) => 
+              p.toLowerCase() === searchTerm.toLowerCase() 
+                ? <mark key={i} className="bg-amber-500 text-slate-900 rounded-sm">{p}</mark> 
+                : p
+            )}
+          </span>
+        );
+      }
+
       return part;
     });
   };
