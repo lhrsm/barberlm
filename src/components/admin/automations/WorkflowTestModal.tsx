@@ -70,7 +70,7 @@ export function WorkflowTestModal({ workflow, isOpen, onClose }: WorkflowTestMod
     try {
       // Create a test queue item or call the function directly
       // For testing, we'll invoke the edge function with a test payload
-      const { error } = await supabase.functions.invoke('automation-v2-runner', {
+      const { data, error } = await supabase.functions.invoke('automation-v2-runner', {
         body: {
           action: "test_send",
           workflow_id: workflow.id,
@@ -80,7 +80,13 @@ export function WorkflowTestModal({ workflow, isOpen, onClose }: WorkflowTestMod
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.success === false) {
+        throw new Error(data.error || "Erro desconhecido na Edge Function");
+      }
 
       await (supabase.from("automation_v2_logs") as any).insert({
         tenant_id: workflow.tenant_id,
@@ -96,17 +102,32 @@ export function WorkflowTestModal({ workflow, isOpen, onClose }: WorkflowTestMod
     } catch (error: any) {
       console.error("Error sending test:", error);
       
-      await (supabase.from("automation_v2_logs") as any).insert({
-        tenant_id: workflow.tenant_id,
-        event_name: workflow.event_name,
-        flow_type: workflow.configuration?.flow_type || "single",
-        action: "test_send",
-        status: "error",
-        message: `Erro ao enviar teste: ${error.message}`,
-        error: error.message
-      });
+      const errorMessage = error.message || "Erro inesperado";
+      
+      // Attempt to log failure
+      try {
+        await supabase.from("automation_v2_logs").insert({
+          tenant_id: workflow.tenant_id,
+          event_name: 'test_execution',
+          workflow_key: workflow.workflow_key,
+          action: "test_send",
+          status: "failed",
+          message: `Erro ao enviar teste: ${errorMessage}`,
+          error: errorMessage,
+          payload: { 
+            phone, 
+            testType, 
+            workflow_id: workflow.id 
+          }
+        });
+      } catch (logError) {
+        console.error("Failed to log error to database:", logError);
+      }
 
-      toast.error("Erro ao enviar teste: " + error.message);
+      toast.error(`Erro ao enviar teste: ${errorMessage}`, {
+        description: error.details || error.hint || "Verifique os logs para mais detalhes.",
+        duration: 5000
+      });
     } finally {
       setLoading(false);
     }
