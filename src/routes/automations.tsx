@@ -391,10 +391,10 @@ function AutomationsComponent() {
               <CardHeader className="pb-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <CardTitle className="text-lg flex items-center gap-2">
+                    <CardTitle className="text-lg flex items-center gap-2 text-white">
                       <History size={18} /> Histórico de Envios
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-slate-400">
                       Acompanhe as últimas mensagens enviadas pelo sistema.
                     </CardDescription>
                   </div>
@@ -404,14 +404,14 @@ function AutomationsComponent() {
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                       <Input 
                         placeholder="Buscar destinatário..." 
-                        className="pl-9 w-[200px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl"
+                        className="pl-9 w-[200px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white focus:border-amber-500/50"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
                     
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
-                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl">
+                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white">
                         <Filter size={14} className="mr-2 text-slate-500" />
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
@@ -439,7 +439,7 @@ function AutomationsComponent() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {logs.filter(l => l.phone?.includes(searchTerm)).map((log) => (
+                      {logs.filter(l => (l.phone || '').includes(searchTerm)).map((log) => (
                         <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-4 py-3 text-xs">
                             {new Date(log.created_at).toLocaleString('pt-BR')}
