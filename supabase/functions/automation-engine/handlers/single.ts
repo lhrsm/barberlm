@@ -60,14 +60,31 @@ export async function processSingleAppointmentAutomation(supabase: any, item: an
   if (sessionError) throw sessionError;
 
   // 5. Build Message
-  const template = workflow.configuration?.template || 
-    "Olá {customer_name}, seu agendamento na {barbershop_name} foi recebido!\n\n📌 *Detalhes:*\n✂️ {service_name}\n👤 {barber_name}\n📅 {appointment_date} às {appointment_time}\n\nComo podemos prosseguir?";
+  // User requested exact template:
+  // Olá {customer_name} 👋
+  // Seu agendamento na {barbershop_name} foi realizado com sucesso.
+  // 📋 Resumo do agendamento:
+  // ✅ Serviço: {service_name}
+  // 💈 Profissional: {professional_name}
+  // 📅 Data: {appointment_date}
+  // ⏰ Horário: {appointment_time}
+  
+  const template = `Olá {customer_name} 👋
+
+Seu agendamento na {barbershop_name} foi realizado com sucesso.
+
+📋 Resumo do agendamento:
+
+✅ Serviço: {service_name}
+💈 Profissional: {professional_name}
+📅 Data: {appointment_date}
+⏰ Horário: {appointment_time}`;
   
   const message = template
     .replace('{customer_name}', customer.name || 'Cliente')
     .replace('{barbershop_name}', appointment.profiles?.business_name || 'Barbearia')
     .replace('{service_name}', appointment.services?.name || 'Serviço')
-    .replace('{barber_name}', appointment.barbers?.name || 'Profissional')
+    .replace('{professional_name}', appointment.barbers?.name || 'Profissional')
     .replace('{appointment_date}', date)
     .replace('{appointment_time}', time);
 
@@ -102,7 +119,11 @@ export async function processSingleAppointmentAutomation(supabase: any, item: an
     current_step_after: AUTOMATION_STATES.SINGLE_AWAITING_MAIN_ACTION,
     action: "initial_message_sent",
     status: result.success ? "success" : "error",
-    message: result.success ? "Mensagem inicial enviada" : `Erro Z-API: ${result.error}`
+    message: result.success ? "Mensagem inicial enviada (Single)" : `Erro Z-API: ${result.error}`,
+    appointments_found: 1,
+    appointment_group_id: appointment.appointment_group_id,
+    flow_type_selected: 'single',
+    reason_selected: 'group_contains_one_appointment'
   });
 
   return result;

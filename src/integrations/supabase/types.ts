@@ -552,6 +552,7 @@ export type Database = {
         Row: {
           action: string | null
           appointment_group_id: string | null
+          appointments_found: number | null
           created_at: string
           current_step_after: string | null
           current_step_before: string | null
@@ -559,9 +560,11 @@ export type Database = {
           error_details: string | null
           event_name: string | null
           flow_type: Database["public"]["Enums"]["automation_flow_type"] | null
+          flow_type_selected: string | null
           id: string
           message: string | null
           queue_id: string | null
+          reason_selected: string | null
           selected_option: string | null
           session_id: string | null
           status: string
@@ -572,6 +575,7 @@ export type Database = {
         Insert: {
           action?: string | null
           appointment_group_id?: string | null
+          appointments_found?: number | null
           created_at?: string
           current_step_after?: string | null
           current_step_before?: string | null
@@ -579,9 +583,11 @@ export type Database = {
           error_details?: string | null
           event_name?: string | null
           flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
+          flow_type_selected?: string | null
           id?: string
           message?: string | null
           queue_id?: string | null
+          reason_selected?: string | null
           selected_option?: string | null
           session_id?: string | null
           status: string
@@ -592,6 +598,7 @@ export type Database = {
         Update: {
           action?: string | null
           appointment_group_id?: string | null
+          appointments_found?: number | null
           created_at?: string
           current_step_after?: string | null
           current_step_before?: string | null
@@ -599,9 +606,11 @@ export type Database = {
           error_details?: string | null
           event_name?: string | null
           flow_type?: Database["public"]["Enums"]["automation_flow_type"] | null
+          flow_type_selected?: string | null
           id?: string
           message?: string | null
           queue_id?: string | null
+          reason_selected?: string | null
           selected_option?: string | null
           session_id?: string | null
           status?: string
