@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ImageIcon } from "lucide-react";
 import { 
   MessageSquare, 
   CreditCard, 
@@ -58,7 +59,7 @@ function SettingsComponent() {
   const [saving, setSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     business_name: "",
     slug: "",
     whatsapp_enabled: false,
@@ -68,6 +69,7 @@ function SettingsComponent() {
     primary_color: "#7c3aed",
     secondary_color: "#f4f4f5",
     logo_url: "",
+    barbershop_logo_url: "",
     cashback_enabled: false,
     cashback_percentage: 0,
     free_service_threshold: 10,
