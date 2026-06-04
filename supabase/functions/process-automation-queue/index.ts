@@ -17,10 +17,12 @@ serve(async (req) => {
   );
 
   try {
-    console.log("[ProcessQueue] Checking for pending automations...");
+    const { tenant_id, appointment_id } = await req.json().catch(() => ({}));
+    
+    console.log("[ProcessQueue] Checking for pending automations...", { tenant_id, appointment_id });
 
     // 1. Fetch pending items from queue
-    const { data: queueItems, error: queueError } = await supabase
+    let query = supabase
       .from("automation_queue")
       .select(`
         *,
@@ -31,8 +33,12 @@ serve(async (req) => {
           service:services(name, price)
         )
       `)
-      .eq("status", "pending")
-      .limit(10);
+      .eq("status", "pending");
+
+    if (tenant_id) query = query.eq("tenant_id", tenant_id);
+    if (appointment_id) query = query.eq("appointment_id", appointment_id);
+
+    const { data: queueItems, error: queueError } = await query.limit(10);
 
     if (queueError) throw queueError;
     if (!queueItems || queueItems.length === 0) {
@@ -45,18 +51,21 @@ serve(async (req) => {
 
     for (const item of queueItems) {
       try {
-        const { appointment, automation, tenant_id } = item;
+        const { appointment, automation, tenant_id: itemTenantId } = item;
         
         if (!appointment || !automation) {
           throw new Error("Missing appointment or automation data");
         }
 
         // 2. Render Template
+        const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", itemTenantId).single();
+        const { data: barber } = await supabase.from("profiles").select("full_name").eq("id", appointment.barber_id).maybeSingle();
+
         const testData = {
           customer_name: appointment.customer?.name || "Cliente",
-          barbershop_name: (await supabase.from("profiles").select("business_name").eq("id", tenant_id).single()).data?.business_name || "Nossa Barbearia",
+          barbershop_name: profile?.business_name || "Nossa Barbearia",
           service_name: appointment.service?.name || "Serviço",
-          professional_name: (await supabase.from("profiles").select("full_name").eq("id", appointment.barber_id).single()).data?.full_name || "Profissional",
+          professional_name: barber?.full_name || "Profissional",
           appointment_date: new Date(appointment.start_time).toLocaleDateString("pt-BR"),
           appointment_time: new Date(appointment.start_time).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }),
           service_price: `R$ ${appointment.total_price || appointment.service?.price || 0}`,
@@ -71,7 +80,7 @@ serve(async (req) => {
         const { data: instance } = await supabase
           .from("whatsapp_instances")
           .select("*")
-          .eq("tenant_id", tenant_id)
+          .eq("tenant_id", itemTenantId)
           .single();
 
         if (!instance) throw new Error("WhatsApp instance not configured for this tenant");
@@ -88,7 +97,7 @@ serve(async (req) => {
           
           await supabase.from("automation_logs").insert({
             automation_id: automation.id,
-            tenant_id: tenant_id,
+            tenant_id: itemTenantId,
             appointment_id: appointment.id,
             phone: phone,
             status: "sent",
@@ -97,9 +106,16 @@ serve(async (req) => {
             original_template: automation.template,
             provider: "zapi",
             sent_at: new Date().toISOString(),
-            payload: { data: testData, rendered: renderedTemplate },
+            payload: { data: testData, rendered: renderedTemplate, origin: 'automatic' },
             response: sendResult.response
           });
+          
+          // Mark appointment as confirmation sent
+          await supabase.from("appointments").update({ 
+            confirmation_sent: true, 
+            confirmation_sent_at: new Date().toISOString() 
+          }).eq("id", appointment.id);
+
         } else {
           throw new Error(sendResult.error || "Unknown error from Z-API");
         }
@@ -116,6 +132,17 @@ serve(async (req) => {
         }).eq("id", item.id);
 
         results.push({ id: item.id, success: false, error: err.message });
+        
+        // Log the failure
+        await supabase.from("automation_logs").insert({
+          automation_id: item.automation_id,
+          tenant_id: item.tenant_id,
+          appointment_id: item.appointment_id,
+          status: "error",
+          message_type: item.automation?.key,
+          error_message: err.message,
+          payload: { error: err.message, origin: 'automatic' }
+        });
       }
     }
 
