@@ -60,15 +60,30 @@ serve(async (req) => {
 
         // 2. Render Template
         const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", itemTenantId).single();
-        const { data: barber } = await supabase.from("profiles").select("full_name").eq("id", appointment.barber_id).maybeSingle();
+        
+        // Use barber_id first, then fallback to professional_id if exists
+        const professionalId = appointment.barber_id || appointment.professional_id;
+        
+        // Try fetching professional name from profiles (which stores full_name)
+        let profName = "Profissional";
+        if (professionalId) {
+          const { data: profData } = await supabase.from("profiles").select("full_name").eq("id", professionalId).maybeSingle();
+          if (profData?.full_name) {
+            profName = profData.full_name;
+          } else {
+            // Fallback: search in barbers or professionals table if they exist
+            const { data: barberData } = await supabase.from("barbers").select("name").eq("id", professionalId).maybeSingle();
+            if (barberData?.name) profName = barberData.name;
+          }
+        }
 
         const testData = {
           customer_name: appointment.customer?.name || "Cliente",
           barbershop_name: profile?.business_name || "Nossa Barbearia",
           service_name: appointment.service?.name || "Serviço",
-          professional_name: barber?.full_name || "Profissional",
-          appointment_date: new Date(appointment.start_time).toLocaleDateString("pt-BR"),
-          appointment_time: new Date(appointment.start_time).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }),
+          professional_name: profName,
+          appointment_date: formatBrazilDate(appointment.start_time),
+          appointment_time: formatBrazilTime(appointment.start_time),
           service_price: `R$ ${appointment.total_price || appointment.service?.price || 0}`,
         };
 
