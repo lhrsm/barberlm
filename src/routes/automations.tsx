@@ -38,7 +38,8 @@ import {
   Terminal,
   Activity,
   ArrowRight,
-  X
+  X,
+  Copy
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
