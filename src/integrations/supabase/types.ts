@@ -894,6 +894,9 @@ export type Database = {
           appointment_id: string | null
           automation_name: string | null
           channel: string | null
+          conversation_created: boolean | null
+          conversation_error: string | null
+          conversation_id: string | null
           created_at: string
           event_name: string | null
           id: string
@@ -909,6 +912,9 @@ export type Database = {
           appointment_id?: string | null
           automation_name?: string | null
           channel?: string | null
+          conversation_created?: boolean | null
+          conversation_error?: string | null
+          conversation_id?: string | null
           created_at?: string
           event_name?: string | null
           id?: string
@@ -924,6 +930,9 @@ export type Database = {
           appointment_id?: string | null
           automation_name?: string | null
           channel?: string | null
+          conversation_created?: boolean | null
+          conversation_error?: string | null
+          conversation_id?: string | null
           created_at?: string
           event_name?: string | null
           id?: string
@@ -949,6 +958,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_automation_debug"
             referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "automation_send_history_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "automation_conversations"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "automation_send_history_tenant_id_fkey"
@@ -1048,11 +1064,14 @@ export type Database = {
       automation_webhook_logs: {
         Row: {
           appointment_id: string | null
+          appointment_id_found: string | null
           buttonid: string | null
           buttonId: string | null
           buttontext: string | null
           conversation_found: boolean | null
           conversation_id: string | null
+          conversation_selected_id: string | null
+          conversations_found_count: number | null
           created_at: string | null
           error: string | null
           fromme: boolean | null
@@ -1065,6 +1084,7 @@ export type Database = {
           phone_normalized: string | null
           phone_raw: string | null
           processed_at: string | null
+          query_filters_used: Json | null
           raw_payload: Json
           referencemessageid: string | null
           response_sent: boolean | null
@@ -1075,11 +1095,14 @@ export type Database = {
         }
         Insert: {
           appointment_id?: string | null
+          appointment_id_found?: string | null
           buttonid?: string | null
           buttonId?: string | null
           buttontext?: string | null
           conversation_found?: boolean | null
           conversation_id?: string | null
+          conversation_selected_id?: string | null
+          conversations_found_count?: number | null
           created_at?: string | null
           error?: string | null
           fromme?: boolean | null
@@ -1092,6 +1115,7 @@ export type Database = {
           phone_normalized?: string | null
           phone_raw?: string | null
           processed_at?: string | null
+          query_filters_used?: Json | null
           raw_payload: Json
           referencemessageid?: string | null
           response_sent?: boolean | null
@@ -1102,11 +1126,14 @@ export type Database = {
         }
         Update: {
           appointment_id?: string | null
+          appointment_id_found?: string | null
           buttonid?: string | null
           buttonId?: string | null
           buttontext?: string | null
           conversation_found?: boolean | null
           conversation_id?: string | null
+          conversation_selected_id?: string | null
+          conversations_found_count?: number | null
           created_at?: string | null
           error?: string | null
           fromme?: boolean | null
@@ -1119,6 +1146,7 @@ export type Database = {
           phone_normalized?: string | null
           phone_raw?: string | null
           processed_at?: string | null
+          query_filters_used?: Json | null
           raw_payload?: Json
           referencemessageid?: string | null
           response_sent?: boolean | null
