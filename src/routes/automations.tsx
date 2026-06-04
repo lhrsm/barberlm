@@ -95,7 +95,7 @@ function AutomationsComponent() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [selectedPreviewTemplate, setSelectedPreviewTemplate] = useState("");
   
-  // Filtros
+  // Filtros Log Principal
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterAutomation, setFilterAutomation] = useState("all");
   const [filterPeriod, setFilterPeriod] = useState("all");
@@ -103,6 +103,12 @@ function AutomationsComponent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
   const itemsPerPage = 10;
+
+  // Estados Auditoria do Fluxo (Modal)
+  const [auditFilterType, setAuditFilterType] = useState("all");
+  const [auditPage, setAuditPage] = useState(1);
+  const [expandedStep, setExpandedStep] = useState<number | null>(null);
+  const auditItemsPerPage = 5;
 
   useEffect(() => {
     if (tenantId) {
