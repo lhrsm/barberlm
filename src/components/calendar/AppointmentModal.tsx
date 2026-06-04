@@ -30,6 +30,8 @@ import { createNotification } from "@/utils/notifications";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { triggerAutomation } from "@/utils/automation";
+
 
 interface AppointmentModalProps {
   trigger?: React.ReactNode;
