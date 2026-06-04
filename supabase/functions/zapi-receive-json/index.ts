@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { sendMessage } from "../_shared/whatsapp-settings.ts";
+import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,12 +10,8 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // 1. Handle CORS OPTIONS
   if (req.method === "OPTIONS") {
-    return new Response(null, { 
-      status: 204,
-      headers: corsHeaders 
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   const supabase = createClient(
@@ -21,72 +19,160 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
 
-  const url = new URL(req.url);
   const method = req.method;
   const headers = Object.fromEntries(req.headers.entries());
   const contentType = headers["content-type"] || "";
 
-  // GET response for basic health check
   if (method === "GET") {
-    return new Response(JSON.stringify({
-      ok: true,
-      message: "Z-API receive JSON webhook is active"
-    }), {
+    return new Response(JSON.stringify({ ok: true, message: "Webhook active" }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   }
 
-  let rawBody = "";
   let body: any = null;
+  let rawBody = "";
 
-  // 2. Extract Body (Safely)
   try {
     const buffer = await req.arrayBuffer();
     rawBody = new TextDecoder().decode(buffer);
-    
-    if (contentType.includes("application/json") && rawBody) {
+    if (rawBody) {
       try {
         body = JSON.parse(rawBody);
-      } catch (e) {
-        console.error("[zapi-receive-json] JSON parse error:", e);
+      } catch {
+        console.warn("[Webhook] Body is not JSON");
       }
     }
   } catch (e) {
-    console.error("[zapi-receive-json] Error reading body:", e);
+    console.error("[Webhook] Read error:", e);
   }
 
-  // Fallback for non-JSON or empty body
   if (!body) body = { raw: rawBody };
 
-  // 3. Save RAW payload immediately
-  try {
-    const { error: debugError } = await supabase
-      .from("zapi_webhook_debug")
-      .insert({
-        method,
-        url: req.url,
-        content_type: contentType,
-        headers_raw: headers,
-        payload_raw: body,
-        raw_body: rawBody,
-        source: "zapi_real",
-        received_at: new Date().toISOString(),
-        processed: false
-      });
+  // Save debug log
+  await supabase.from("zapi_webhook_debug").insert({
+    method, url: req.url, content_type: contentType, payload_raw: body, source: "zapi_real", processed: false
+  });
 
-    if (debugError) {
-      console.error("[zapi-receive-json] Error saving debug log:", debugError);
+  // PROCESS CALLBACK
+  if (body.type === "ReceivedCallback" && !body.fromMe) {
+    const phone = body.phone;
+    const buttonId = body.buttonsResponseMessage?.buttonId;
+    const text = body.text?.message?.toLowerCase() || "";
+    const referenceId = body.referenceMessageId;
+
+    console.log(`[Webhook] Processing callback for ${phone}. ButtonId: ${buttonId}, Text: ${text}, Ref: ${referenceId}`);
+
+    // Is it a confirmation?
+    const isConfirm = buttonId === "main_confirm" || 
+                      ["confirmar agendamento", "confirmar", "1", "main_confirm"].includes(text);
+
+    if (isConfirm) {
+      console.log(`[Webhook] Confirmation action detected`);
+      
+      let appointmentId = null;
+      let tenantId = null;
+
+      if (referenceId) {
+        console.log(`[Webhook] Searching by referenceId: ${referenceId}`);
+        const { data: logs } = await supabase
+          .from("automation_logs")
+          .select("appointment_id, tenant_id, response")
+          .order('created_at', { ascending: false });
+          
+        const log = logs?.find((l: any) => l.response?.messageId === referenceId);
+        
+        if (log) {
+          appointmentId = log.appointment_id;
+          tenantId = log.tenant_id;
+          console.log(`[Webhook] Found by referenceId: ${appointmentId}`);
+        }
+      }
+
+      if (!appointmentId) {
+        console.log(`[Webhook] Searching by phone: ${phone}`);
+        const { data: session } = await supabase
+          .from("automation_conversations")
+          .select("selected_appointment_id, appointment_ids, tenant_id")
+          .eq("phone", phone)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (session) {
+          appointmentId = session.selected_appointment_id || (session.appointment_ids?.[0]);
+          tenantId = session.tenant_id;
+          console.log(`[Webhook] Found by phone session: ${appointmentId}`);
+        }
+      }
+
+      if (appointmentId && tenantId) {
+        console.log(`[Webhook] Updating appointment ${appointmentId}`);
+        const { data: appointment, error: updateError } = await supabase
+          .from("appointments")
+          .update({ 
+            status: "confirmed",
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", appointmentId)
+          .select(`
+            *,
+            customer:customers(name),
+            service:services(name)
+          `)
+          .single();
+
+        if (updateError) {
+          console.error(`[Webhook] Update error:`, updateError);
+        } else {
+          console.log(`[Webhook] Update success. Sending response...`);
+          let businessName = "Barbearia";
+          const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", tenantId).maybeSingle();
+          if (profile?.business_name) businessName = profile.business_name;
+
+          const profId = appointment.barber_id || appointment.professional_id;
+          let profName = "Profissional";
+          if (profId) {
+            const { data: barb } = await supabase.from("barbers").select("name").eq("id", profId).maybeSingle();
+            if (barb?.name) profName = barb.name;
+            else {
+              const { data: p } = await supabase.from("profiles").select("full_name").eq("id", profId).maybeSingle();
+              if (p?.full_name) profName = p.full_name;
+            }
+          }
+
+          const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appointment.start_time)}\n⏰ ${formatBrazilTime(appointment.start_time)}\n💈 ${profName}\n✂️ ${appointment.service?.name || "Serviço"}`;
+          
+          const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
+          if (instance) {
+            await sendMessage(instance, phone, successMsg);
+            console.log(`[Webhook] Message sent to ${phone}`);
+          }
+
+          await supabase.from("automation_conversations")
+            .update({ status: "closed", current_state: "completed", updated_at: new Date().toISOString() })
+            .eq("phone", phone)
+            .eq("status", "active");
+
+          await supabase.from("automation_logs").insert({
+            automation_id: appointment.automation_id || (await supabase.from("automations").select("id").limit(1).maybeSingle()).data?.id,
+            tenant_id: tenantId,
+            appointment_id: appointmentId,
+            phone,
+            status: "success",
+            action: "confirmed_via_webhook",
+            message_sent: successMsg,
+            payload: { webhook_type: "button_click", button_id: buttonId || "text_match" }
+          });
+        }
+      } else {
+        console.warn(`[Webhook] No session found for confirmation click from ${phone}`);
+      }
     }
-  } catch (e) {
-    console.error("[zapi-receive-json] Critical Error saving debug log:", e);
   }
 
-  // 4. Return success response to Z-API immediately
-  return new Response(JSON.stringify({ 
-    ok: true, 
-    received: true
-  }), {
+  return new Response(JSON.stringify({ ok: true }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
     status: 200,
   });
