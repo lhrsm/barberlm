@@ -79,7 +79,7 @@ serve(async (req) => {
 
   // PROCESS CALLBACK
   if (type === "ReceivedCallback" && !fromMe) {
-    console.log(`[Webhook] Processing callback for ${phone}. ButtonId: ${buttonId}, Ref: ${referenceId}`);
+    console.log(`[Webhook] Processing callback for ${phone}. ButtonId: ${buttonId}, Text: ${buttonText}`);
 
     // REGISTRAR CLIQUE (Geral)
     if (buttonId || buttonText) {
@@ -118,9 +118,10 @@ serve(async (req) => {
       });
     }
 
-    // Is it a confirmation?
+    // NORMALIZAÇÃO DO TEXTO PARA TRATAMENTO SEM BOTÕES
+    const normalizedText = buttonText.toLowerCase().trim();
     const isConfirm = buttonId === "main_confirm" || 
-                      ["confirmar agendamento", "confirmar", "1"].includes(buttonText.toLowerCase());
+                      ["1", "confirmar", "confirmar agendamento"].includes(normalizedText);
 
     if (isConfirm) {
       console.log(`[Webhook] Confirmation action detected`);
@@ -156,7 +157,8 @@ serve(async (req) => {
         }
       }
 
-      // 2. Fallback search (Phone + Timeframe)
+      // 2. Fallback search (Phone + Timeframe + Status aguardando_resposta)
+      // Agora priorizamos o status "aguardando_resposta" conforme pedido para fluxo de texto
       if (!appointmentId && phone) {
         console.log(`[Webhook] Fallback search by phone: ${phone}`);
         const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
@@ -169,7 +171,7 @@ serve(async (req) => {
           `)
           .eq("phone", phone)
           .eq("callback_received", false)
-          .eq("status", "success")
+          .in("status", ["success", "sent", "aguardando_resposta"])
           .gt("created_at", thirtyMinutesAgo)
           .order('created_at', { ascending: false })
           .limit(1)
@@ -199,7 +201,6 @@ serve(async (req) => {
           payload: { clicked_referenceMessageId: referenceId, webhook_received: true }
         });
 
-        // We don't have tenantId so we can't easily send a response message back here without more logic
         return new Response(JSON.stringify({ ok: true, status: "not_found" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
@@ -285,8 +286,9 @@ serve(async (req) => {
             await supabase.from("automation_logs").update({
                 callback_received: true,
                 callback_received_at: new Date().toISOString(),
-                button_id: buttonId || "main_confirm",
-                final_status: "confirmed"
+                button_id: buttonId || (normalizedText === '1' ? "main_confirm" : normalizedText),
+                final_status: "confirmed",
+                status: "success" // Atualiza de aguardando_resposta para success após o fluxo
             }).eq("id", foundLog.id);
         }
 
@@ -315,9 +317,10 @@ serve(async (req) => {
             duplicate_blocked: false,
             success_message_sent: !!zapiResponse,
             webhook_received: true, 
-            button_id: buttonId || "main_confirm",
+            button_id: buttonId || (normalizedText === '1' ? "main_confirm" : normalizedText),
             session_closed: true,
-            fallback_used
+            fallback_used,
+            input_text: buttonText
           }
         });
 
