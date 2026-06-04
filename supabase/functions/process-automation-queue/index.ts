@@ -159,7 +159,8 @@ serve(async (req) => {
         if (sendResult.success) {
           await supabase.from("automation_queue").update({ status: "success", attempts: (item.attempts || 0) + 1, updated_at: new Date().toISOString() }).eq("id", item.id);
           
-          const providerMessageId = sendResult.response?.messageId;
+          const providerMessageId = sendResult.response?.messageId || sendResult.response?.id;
+          const zaapId = sendResult.response?.zaapId;
 
           // REGISTRO IMEDIATO DO ENVIO
           await supabase.from("automation_logs").insert({
@@ -179,7 +180,8 @@ serve(async (req) => {
               data: testData, 
               diagnostic: diagInfo, 
               buttons_attached: !!sendOptions.buttons,
-              source: force_resend ? 'test_manual' : 'automatic'
+              source: force_resend ? 'test_manual' : 'automatic',
+              zaap_id: zaapId
             },
             response: sendResult.response
           });
