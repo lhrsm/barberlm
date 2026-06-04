@@ -70,7 +70,7 @@ export function WorkflowTestModal({ workflow, isOpen, onClose }: WorkflowTestMod
     try {
       // Create a test queue item or call the function directly
       // For testing, we'll invoke the edge function with a test payload
-      const { error } = await supabase.functions.invoke('automation-v2-runner', {
+      const { data, error } = await supabase.functions.invoke('automation-v2-runner', {
         body: {
           action: "test_send",
           workflow_id: workflow.id,
@@ -80,7 +80,13 @@ export function WorkflowTestModal({ workflow, isOpen, onClose }: WorkflowTestMod
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.success === false) {
+        throw new Error(data.error || "Erro desconhecido na Edge Function");
+      }
 
       await (supabase.from("automation_v2_logs") as any).insert({
         tenant_id: workflow.tenant_id,
