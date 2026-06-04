@@ -82,16 +82,13 @@ serve(async (req) => {
         let resolvedTable = "none";
 
         if (profId) {
-          const { data: prosData } = await supabase.from("professionals").select("name").eq("id", profId).maybeSingle();
-          if (prosData?.name) { profName = prosData.name; resolvedTable = "professionals"; }
-          else {
+            // Try barbers table
             const { data: barbData } = await supabase.from("barbers").select("name").eq("id", profId).maybeSingle();
             if (barbData?.name) { profName = barbData.name; resolvedTable = "barbers"; }
             else {
               const { data: pData } = await supabase.from("profiles").select("full_name").eq("id", profId).maybeSingle();
               if (pData?.full_name) { profName = pData.full_name; resolvedTable = "profiles"; }
             }
-          }
         }
 
         // 4. Build Test Data
