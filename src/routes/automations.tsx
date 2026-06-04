@@ -527,7 +527,7 @@ function AutomationsComponent() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {logs.filter(l => (l.phone || '').includes(searchTerm)).map((log) => (
+                      {logs.map((log) => (
                         <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-4 py-3 text-xs">
                             {new Date(log.created_at).toLocaleString('pt-BR')}
