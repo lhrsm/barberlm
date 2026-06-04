@@ -290,14 +290,12 @@ export function AutomationTestModal({
     }
 
     setIsTesting(true);
-    const loadingToast = toast.loading("Processando envio de teste...");
+    const loadingToastId = toast.loading("Processando envio de teste...");
 
     try {
       if (testType === "fictitious") {
          if (!phone || phone.length < 10) {
             toast.error("Informe um telefone válido para o teste fictício.");
-            setIsTesting(false);
-            toast.dismiss(loadingToast);
             return;
          }
          
@@ -326,8 +324,6 @@ export function AutomationTestModal({
           });
 
           toast.success("Teste fictício enviado!");
-          toast.dismiss(loadingToast);
-          setIsTesting(false);
           return;
       }
 
@@ -339,8 +335,6 @@ export function AutomationTestModal({
           force_resend: true 
         }
       });
-
-      toast.dismiss(loadingToast);
 
       if (error) {
         throw new Error(`Edge Function Error: ${error.message}`);
@@ -359,7 +353,6 @@ export function AutomationTestModal({
       }
     } catch (error: any) {
       console.error("Test error detail:", error);
-      toast.dismiss(loadingToast);
       toast.error(
         <div className="flex flex-col gap-1">
            <p className="font-bold">Falha no Teste</p>
@@ -368,9 +361,11 @@ export function AutomationTestModal({
         { duration: 6000 }
       );
     } finally {
+      toast.dismiss(loadingToastId);
       setIsTesting(false);
     }
   };
+
 
 
   return (
