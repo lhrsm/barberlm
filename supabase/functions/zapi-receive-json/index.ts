@@ -151,6 +151,16 @@ serve(async (req) => {
       if (!appointmentId || !tenantId) {
         console.warn(`[Webhook] Link not found for message ${referenceId} from ${phone}`);
         
+        // Log "not found" for dashboard
+        await supabase.from("automation_logs").insert({
+          tenant_id: foundLog?.tenant_id,
+          phone,
+          status: "not_found",
+          action: "confirmed_via_webhook",
+          error_message: "Agendamento não encontrado para o referenceMessageId fornecido",
+          payload: { clicked_referenceMessageId: referenceId, webhook_received: true }
+        });
+
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId || (foundLog?.tenant_id)).maybeSingle();
         if (instance) {
           await sendMessage(instance, phone, "Recebi sua confirmação, mas não encontrei o agendamento vinculado.");
@@ -160,6 +170,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
+
       }
 
       const appointment = foundLog?.appointment;
