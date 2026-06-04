@@ -15,8 +15,8 @@ async function testAutomationActiveStatus() {
 
   try {
     // 1. Get a sample tenant and automation
-    const { data: tenant } = await supabase.from('tenants').select('id').limit(1).single();
-    if (!tenant) throw new Error('No tenant found');
+    const { data: tenant } = await supabase.from('barbershops').select('id').limit(1).single();
+    if (!tenant) throw new Error('No barbershop found');
     const tenantId = tenant.id;
 
     const { data: automation } = await supabase
