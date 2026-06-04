@@ -253,6 +253,7 @@ function AutomationsComponent() {
         const now = new Date();
         let startDate = new Date();
         if (filterPeriod === "today") {
+          // Use localized approach to ensure "today" matches the user's timezone start-of-day in UTC
           startDate.setHours(0, 0, 0, 0);
         } else if (filterPeriod === "7days") {
           startDate.setDate(now.getDate() - 7);
