@@ -65,7 +65,7 @@ function AutomationsComponent() {
     setLoading(true);
     try {
       // 1. Fetch automations from the new table
-      const { data: automationsData, error: autoError } = await supabase
+      const { data: automationsData, error: autoError } = await anySupabase
         .from("automation_templates")
         .select("*")
         .eq("tenant_id", tenantId)
@@ -74,8 +74,8 @@ function AutomationsComponent() {
       if (autoError) throw autoError;
 
       // 2. If no appointment confirmation exists, create it
-      if (automationsData && !automationsData.find(a => a.key === 'appointment_confirmation')) {
-        const { data: newAuto, error: insertError } = await supabase
+      if (automationsData && !automationsData.find((a: any) => a.key === 'appointment_confirmation')) {
+        const { data: newAuto, error: insertError } = await anySupabase
           .from("automation_templates")
           .insert({
             tenant_id: tenantId,
@@ -120,7 +120,7 @@ function AutomationsComponent() {
 
   const toggleStatus = async (automation: any) => {
     try {
-      const { error } = await supabase
+      const { error } = await anySupabase
         .from("automation_templates")
         .update({ active: !automation.active })
         .eq("id", automation.id);
