@@ -130,7 +130,7 @@ serve(async (req) => {
           .from("automation_logs")
           .select(`
             *,
-            appointment:appointments(*)
+            appointment:appointments(*, service:services(name))
           `)
           .eq("conversation_id", body.session_id)
           .order('created_at', { ascending: false })
