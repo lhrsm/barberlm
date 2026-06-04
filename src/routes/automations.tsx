@@ -109,6 +109,7 @@ function AutomationsComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
+  const [logStats, setLogStats] = useState({ sent: 0, success: 0, failed: 0, lastSent: null });
   const itemsPerPage = 10;
 
   // Estados Auditoria do Fluxo (Modal)
