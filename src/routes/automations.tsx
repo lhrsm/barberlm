@@ -206,7 +206,7 @@ function AutomationsComponent() {
       setCurrentPage(1); // Reset to first page when filters change
       fetchData();
     }
-  }, [filterStatus, filterAutomation, filterPeriod]);
+  }, [filterStatus, filterAutomation, filterPeriod, searchTerm]);
 
   useEffect(() => {
     if (tenantId) fetchData();
