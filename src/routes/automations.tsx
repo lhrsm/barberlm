@@ -77,6 +77,8 @@ function AutomationsComponent() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isTestOpen, setIsTestOpen] = useState(false);
   const [isLogDetailOpen, setIsLogDetailOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [selectedPreviewTemplate, setSelectedPreviewTemplate] = useState("");
   
   // Filtros
   const [filterStatus, setFilterStatus] = useState("all");
@@ -151,6 +153,21 @@ function AutomationsComponent() {
       setLoading(false);
     }
   }
+
+  const replaceVariables = (template: string) => {
+    return template
+      .replace(/{customer_name}/g, "João Silva")
+      .replace(/{barbershop_name}/g, "Barbex Premium")
+      .replace(/{service_name}/g, "Corte + Barba")
+      .replace(/{professional_name}/g, "Carlos (Mestre Barbeiro)")
+      .replace(/{appointment_date}/g, "15/06/2026")
+      .replace(/{appointment_time}/g, "14:30");
+  };
+
+  const openPreview = (template: string) => {
+    setSelectedPreviewTemplate(template);
+    setIsPreviewOpen(true);
+  };
 
   useEffect(() => {
     if (tenantId) fetchData();
@@ -265,13 +282,13 @@ function AutomationsComponent() {
           <TabsList className="bg-[#0F172A] border border-slate-800 p-1 rounded-2xl w-fit">
             <TabsTrigger 
               value="templates" 
-              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all"
+              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A]"
             >
               Modelos de Mensagem
             </TabsTrigger>
             <TabsTrigger 
               value="logs"
-              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all"
+              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A]"
             >
               Histórico de Envios
             </TabsTrigger>
@@ -282,16 +299,16 @@ function AutomationsComponent() {
               {automations.map((auto) => (
                 <Card 
                   key={auto.id} 
-                  className="group relative flex flex-col bg-[#0F172A] border-[1px] border-amber-500/30 rounded-[20px] shadow-[0_10px_35px_rgba(0,0,0,0.35)] hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-[0_20px_45px_rgba(0,0,0,0.45)] transition-all duration-300 overflow-hidden"
+                  className="group relative flex flex-col bg-[#0F172A] border-[1px] border-amber-500/30 rounded-[20px] shadow-[0_10px_35px_rgba(0,0,0,0.35)] hover:border-amber-500/60 hover:shadow-[0_20px_45px_rgba(0,0,0,0.45)] transition-all duration-300 overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/50"
                 >
                   <CardHeader className="p-6 pb-4">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 flex items-center justify-center rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg shadow-amber-600/20">
-                          <Zap className="text-white" size={28} />
+                        <div className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg shadow-amber-600/20">
+                          <Zap className="text-white" size={24} />
                         </div>
-                        <div>
-                          <CardTitle className="text-[22px] font-bold text-white leading-tight">
+                        <div className="min-w-0">
+                          <CardTitle className="text-xl md:text-[22px] font-bold text-white leading-tight truncate">
                             {auto.name}
                           </CardTitle>
                           <div className="flex flex-wrap gap-2 mt-2">
@@ -314,12 +331,13 @@ function AutomationsComponent() {
                       <Switch 
                         checked={auto.active || false} 
                         onCheckedChange={() => toggleStatus(auto)}
-                        className="data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-slate-700"
+                        className="data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-slate-700 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A]"
                         thumbClassName="data-[state=checked]:bg-slate-900"
+                        aria-label={`Alternar status da automação ${auto.name}`}
                       />
                     </div>
 
-                    <CardDescription className="text-slate-400 text-sm leading-relaxed mb-4">
+                    <CardDescription className="text-slate-400 text-sm leading-relaxed mb-4 line-clamp-2">
                       Envia automaticamente uma mensagem para o cliente após a criação de um agendamento.
                     </CardDescription>
 
@@ -331,17 +349,21 @@ function AutomationsComponent() {
                   </CardHeader>
 
                   <CardContent className="px-6 flex-1 flex flex-col gap-4">
-                    <div className="bg-white/5 border border-white/10 rounded-[14px] p-4 relative group/preview">
+                    <button 
+                      onClick={() => openPreview(auto.template)}
+                      className="w-full text-left bg-white/5 border border-white/10 rounded-[14px] p-4 relative group/preview hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                      aria-label="Visualizar mensagem completa"
+                    >
                       <p className="text-xs text-slate-300 italic whitespace-pre-wrap line-clamp-4 leading-relaxed">
                         {auto.template}
                       </p>
-                      <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-500 font-medium">Visualizar mensagem completa</span>
-                        <ExternalLink size={10} className="text-slate-500" />
+                      <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500 font-medium group-hover/preview:text-slate-300 transition-colors">Visualizar mensagem completa</span>
+                        <ExternalLink size={10} className="text-slate-500 group-hover/preview:text-slate-300 transition-colors" />
                       </div>
-                    </div>
+                    </button>
 
-                    <div className="grid grid-cols-3 gap-2 mt-2 border-t border-white/5 pt-4">
+                    <div className="grid grid-cols-3 gap-2 mt-auto border-t border-white/5 pt-4">
                       <div className="text-center">
                         <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-center gap-1">
                           <SendHorizontal size={10} /> Enviados
@@ -363,15 +385,15 @@ function AutomationsComponent() {
                     </div>
                   </CardContent>
 
-                  <div className="p-6 pt-2 flex gap-3">
+                  <div className="p-6 pt-2 flex flex-col sm:flex-row gap-3 mt-auto">
                     <Button 
-                      className="flex-1 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl h-11 shadow-lg"
+                      className="flex-1 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl h-11 shadow-lg focus-visible:ring-2 focus-visible:ring-amber-500"
                       onClick={() => openEdit(auto)}
                     >
                       <Settings2 size={16} className="mr-2" /> Editar
                     </Button>
                     <Button 
-                      className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl h-11 shadow-lg shadow-amber-600/20 transition-all hover:scale-[1.02]"
+                      className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl h-11 shadow-lg shadow-amber-600/20 transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-amber-500"
                       onClick={() => openTest(auto)}
                     >
                       <Play size={16} className="mr-2 fill-current" /> Testar
@@ -577,6 +599,57 @@ function AutomationsComponent() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-md bg-[#0F172A] border-slate-800 text-white p-0 overflow-hidden rounded-[24px]">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Eye className="text-amber-500" size={20} />
+              Visualização da Mensagem
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="p-6 pt-2 space-y-4">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 relative">
+              <div className="absolute top-0 right-4 -translate-y-1/2 bg-amber-500 text-[10px] font-bold px-2 py-0.5 rounded-full text-slate-900 uppercase">
+                WhatsApp Preview
+              </div>
+              
+              <div className="mt-2 space-y-3">
+                <div className="bg-[#075E54] text-white p-3 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] text-sm whitespace-pre-wrap leading-relaxed relative">
+                  {replaceVariables(selectedPreviewTemplate)}
+                  <div className="text-[10px] text-white/60 text-right mt-1">
+                    14:30 ✓✓
+                  </div>
+                </div>
+                
+                <div className="space-y-2 pt-2">
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                    Confirmar agendamento
+                  </div>
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                    Reagendar
+                  </div>
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                    Cancelar
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <p className="text-[10px] text-slate-500 text-center px-4">
+              As variáveis foram preenchidas com dados de exemplo para esta visualização.
+            </p>
+            
+            <Button 
+              className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl h-11"
+              onClick={() => setIsPreviewOpen(false)}
+            >
+              Fechar Visualização
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </AppLayout>
