@@ -97,6 +97,8 @@ function AutomationsComponent() {
   const [selectedPreviewTemplate, setSelectedPreviewTemplate] = useState("");
   const [isPreviewEditMode, setIsPreviewEditMode] = useState(false);
   const [previewSearchTerm, setPreviewSearchTerm] = useState("");
+  const [previewSearchResultIndex, setPreviewSearchResultIndex] = useState(0);
+  const [previewTotalResults, setPreviewTotalResults] = useState(0);
   
   // Filtros Log Principal
   const [filterStatus, setFilterStatus] = useState("all");
@@ -108,12 +110,23 @@ function AutomationsComponent() {
   const itemsPerPage = 10;
 
   // Estados Auditoria do Fluxo (Modal)
-  const [auditFilterType, setAuditFilterType] = useState("all");
-  const [auditSearchTerm, setAuditSearchTerm] = useState("");
+  const [auditFilterType, setAuditFilterType] = useState(() => {
+    return localStorage.getItem(`auditFilterType_${tenantId}`) || "all";
+  });
+  const [auditSearchTerm, setAuditSearchTerm] = useState(() => {
+    return localStorage.getItem(`auditSearchTerm_${tenantId}`) || "";
+  });
   const [auditPage, setAuditPage] = useState(1);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const auditItemsPerPage = 5;
   const [statsLoading, setStatsLoading] = useState(false);
+  const [isAuditLoading, setIsAuditLoading] = useState(false);
+
+  const [savedScenarios, setSavedScenarios] = useState<any[]>(() => {
+    const saved = localStorage.getItem(`automation_scenarios_${tenantId}`);
+    return saved ? JSON.parse(saved) : [];
+  });
+
 
 
   useEffect(() => {
