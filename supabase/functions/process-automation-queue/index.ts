@@ -127,8 +127,8 @@ serve(async (req) => {
           ];
           */
           
-          // Adicionando menu de texto APENAS se não houver botões
-          if (!sendOptions.buttons) {
+          // Adicionando menu de texto APENAS se não houver botões e não houver duplicidade
+          if (!sendOptions.buttons && !renderedTemplate.includes("O que deseja fazer?")) {
             renderedTemplate += "\n\nO que deseja fazer?\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar";
           }
         }
