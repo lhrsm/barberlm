@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { FLOW_TYPES, AUTOMATION_V2_STATES } from "../_shared/automation-v2-constants.ts";
+import { processSingleFlow } from "./handlers/single.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
