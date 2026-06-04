@@ -982,12 +982,12 @@ function AutomationsComponent() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8 text-slate-500 hover:text-slate-900"
+                                className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10"
                                 onClick={() => {
-                                  setSelectedLog(log);
-                                  setIsLogDetailOpen(true);
+                                  openLogDetail(log);
                                 }}
-                                title="Ver Detalhes"
+                                title="Ver Detalhes (Auditoria)"
+
                               >
                                 <Eye size={14} />
                               </Button>
