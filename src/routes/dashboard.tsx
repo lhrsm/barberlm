@@ -1104,10 +1104,11 @@ function DashboardComponent() {
                 <RefreshCcw size={14} />
                 Recalcular Dashboard
               </Button>
-              <div className="flex gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar -mx-1 px-1">
                 <Button 
                   variant={statusFilter === "all" ? "default" : "outline"} 
                   size="sm"
+                  className="flex-shrink-0 w-auto"
                   onClick={() => setStatusFilter("all")}
                 >
                   Todos
@@ -1115,6 +1116,7 @@ function DashboardComponent() {
                 <Button 
                   variant={statusFilter === "scheduled" ? "default" : "outline"} 
                   size="sm"
+                  className="flex-shrink-0 w-auto"
                   onClick={() => setStatusFilter("scheduled")}
                 >
                   Agendados
@@ -1122,6 +1124,7 @@ function DashboardComponent() {
                 <Button 
                   variant={statusFilter === "completed" ? "default" : "outline"} 
                   size="sm"
+                  className="flex-shrink-0 w-auto"
                   onClick={() => setStatusFilter("completed")}
                 >
                   Concluídos
@@ -1129,6 +1132,7 @@ function DashboardComponent() {
                 <Button 
                   variant={statusFilter === "cancelled" ? "default" : "outline"} 
                   size="sm"
+                  className="flex-shrink-0 w-auto"
                   onClick={() => setStatusFilter("cancelled")}
                 >
                   Cancelados
