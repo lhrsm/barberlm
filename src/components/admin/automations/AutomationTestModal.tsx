@@ -35,8 +35,8 @@ export function AutomationTestModal({
   const fetchRealData = async () => {
     setIsLoadingRealData(true);
     try {
-      // 1. Fetch the last appointment for this tenant
-      const { data: appointment, error: appError } = await supabase
+      // 1. Fetch the last appointment for this tenant using any casting for flexible querying
+      const { data: appointment, error: appError } = await (supabase as any)
         .from("appointments")
         .select(`
           id,
@@ -60,7 +60,7 @@ export function AutomationTestModal({
           barbershop_name: (appointment.barbershop as any)?.name || "Barbearia",
           service_name: (appointment.service as any)?.name || "Serviço",
           professional_name: (appointment.professional as any)?.full_name || "Profissional",
-          appointment_date: new Date(appointment.appointment_date).toLocaleDateString("pt-BR"),
+          appointment_date: appointment.appointment_date ? new Date(appointment.appointment_date).toLocaleDateString("pt-BR") : "--/--/----",
           appointment_time: appointment.appointment_time?.substring(0, 5) || "--:--",
           service_price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((appointment.service as any)?.price || 0),
         });
