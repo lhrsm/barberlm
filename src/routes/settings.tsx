@@ -311,48 +311,51 @@ function SettingsComponent() {
                   <CardDescription>Gerencie suas informações pessoais e foto de perfil.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center gap-6">
-                    <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-primary/20">
-                      {formData.logo_url ? (
-                        <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
-                      ) : (
-                        <UserRound className="h-12 w-12 text-muted-foreground/30" />
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <Label htmlFor="profile_avatar">Alterar Foto de Perfil</Label>
-                      <Input 
-                        id="profile_avatar" 
-                        type="file" 
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file || !user) return;
-                          
-                          try {
-                            setSaving(true);
-                            const fileExt = file.name.split('.').pop();
-                            const fileName = `${user.id}-avatar-${Date.now()}.${fileExt}`;
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="flex flex-col items-center gap-4 w-full">
+                      <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-lg">
+                        {formData.logo_url ? (
+                          <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
+                        ) : (
+                          <UserRound className="h-12 w-12 text-muted-foreground/30" />
+                        )}
+                      </div>
+                      <div className="w-full space-y-2 text-center">
+                        <Label htmlFor="profile_avatar" className="text-sm font-bold text-slate-500 uppercase tracking-widest">Foto de Perfil</Label>
+                        <Input 
+                          id="profile_avatar" 
+                          type="file" 
+                          accept="image/*"
+                          className="h-12 rounded-[14px] cursor-pointer bg-slate-50/50"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || !user) return;
                             
-                            const { error: uploadError } = await supabase.storage
-                              .from('barber-avatars')
-                              .upload(fileName, file);
+                            try {
+                              setSaving(true);
+                              const fileExt = file.name.split('.').pop();
+                              const fileName = `${user.id}-avatar-${Date.now()}.${fileExt}`;
                               
-                            if (uploadError) throw uploadError;
-                            
-                            const { data: { publicUrl } } = supabase.storage
-                              .from('barber-avatars')
-                              .getPublicUrl(fileName);
+                              const { error: uploadError } = await supabase.storage
+                                .from('barber-avatars')
+                                .upload(fileName, file);
+                                
+                              if (uploadError) throw uploadError;
                               
-                            setFormData({ ...formData, logo_url: publicUrl });
-                            toast.success("Foto de perfil atualizada!");
-                          } catch (error: any) {
-                            toast.error("Erro ao carregar imagem: " + error.message);
-                          } finally {
-                            setSaving(false);
-                          }
-                        }}
-                      />
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('barber-avatars')
+                                .getPublicUrl(fileName);
+                                
+                              setFormData({ ...formData, logo_url: publicUrl });
+                              toast.success("Foto de perfil atualizada!");
+                            } catch (error: any) {
+                              toast.error("Erro ao carregar imagem: " + error.message);
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                   
@@ -919,20 +922,21 @@ function SettingsComponent() {
 
                   <div className="space-y-4 pt-4 border-t">
                     <h4 className="font-medium text-sm">QR Code do PIX</h4>
-                    <div className="flex items-center gap-4">
-                      <div className="h-24 w-24 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                    <div className="flex flex-col items-center gap-6">
+                      <div className="h-32 w-32 rounded-lg bg-muted flex items-center justify-center overflow-hidden border shadow-inner">
                         {formData.pix_qr_code_url ? (
                           <img src={formData.pix_qr_code_url} alt="PIX QR Code Preview" className="h-full w-full object-contain" />
                         ) : (
-                          <QrCode className="h-8 w-8 text-muted-foreground/30" />
+                          <QrCode className="h-12 w-12 text-muted-foreground/30" />
                         )}
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor="pix_qr_file">Upload do QR Code (Imagem)</Label>
+                      <div className="w-full space-y-3">
+                        <Label htmlFor="pix_qr_file" className="text-center block text-sm font-bold text-slate-500 uppercase tracking-widest">Upload do QR Code (Imagem)</Label>
                         <Input 
                           id="pix_qr_file" 
                           type="file" 
                           accept="image/*"
+                          className="h-12 rounded-[14px] cursor-pointer bg-slate-50/50"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file || !user) return;
@@ -961,7 +965,7 @@ function SettingsComponent() {
                             }
                           }}
                         />
-                        <p className="text-[10px] text-muted-foreground">Upload da imagem do seu QR Code gerado pelo banco.</p>
+                        <p className="text-[10px] text-muted-foreground text-center">Upload da imagem do seu QR Code gerado pelo banco para facilitar pagamentos Pix.</p>
                       </div>
                     </div>
                   </div>
