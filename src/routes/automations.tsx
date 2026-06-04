@@ -349,6 +349,8 @@ function AutomationsComponent() {
           .single();
         if (newSettings) setReconciliationSettings(newSettings);
       }
+      // Fetch webhook logs
+      await fetchWebhookLogs();
 
     } catch (error: any) {
       console.error(error);
