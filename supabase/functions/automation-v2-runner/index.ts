@@ -58,7 +58,14 @@ serve(async (req) => {
 
             await supabase.from("automation_v2_queue").update({ flow_type: flowType }).eq("id", item.id);
 
+            if (flowType === FLOW_TYPES.SINGLE) {
+                await processSingleFlow(supabase, item);
+            } else {
+                console.log("[automation-v2-runner] Multi flow not yet implemented");
+            }
+
             console.log(`[automation-v2-runner] Processing ${item.id} - Flow: ${flowType}`);
+
 
             await supabase.from("automation_v2_queue").update({ 
                 status: "completed", 

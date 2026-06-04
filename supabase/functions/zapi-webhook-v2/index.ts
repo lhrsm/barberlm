@@ -71,7 +71,12 @@ serve(async (req) => {
         // Update Webhook Log with Session ID
         await supabase.from("automation_v2_webhook_logs").update({ session_id: session.id }).eq("id", webhookLog.id);
 
+        if (session.flow_type === FLOW_TYPES.SINGLE) {
+            await handleSingleResponse(supabase, session, webhookLog);
+        }
+
         console.log(`[zapi-webhook-v2] Session found: ${session.id}, Flow: ${session.flow_type}, Step: ${session.current_step}`);
+
         
         // Mark processed
         await supabase.from("automation_v2_webhook_logs").update({ processed: true }).eq("id", webhookLog.id);
