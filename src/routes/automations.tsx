@@ -910,6 +910,21 @@ function AutomationsComponent() {
                   <CardTitle className="text-2xl font-bold text-[#EF4444]">{logStats.failed}</CardTitle>
                 </CardHeader>
               </Card>
+              
+              <Card className="bg-[#0F172A] border-amber-500/20 rounded-xl">
+                <CardHeader className="p-3">
+                  <CardDescription className="text-[9px] font-bold uppercase tracking-widest text-amber-500/60">Bloqueios (Duplicidade)</CardDescription>
+                  <CardTitle className="text-xl font-bold text-amber-500">{logStats.duplicateBlocked}</CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="bg-[#0F172A] border-sky-500/20 rounded-xl">
+                <CardHeader className="p-3">
+                  <CardDescription className="text-[9px] font-bold uppercase tracking-widest text-sky-500/60">Não Encontrados</CardDescription>
+                  <CardTitle className="text-xl font-bold text-sky-500">{logStats.notFound}</CardTitle>
+                </CardHeader>
+              </Card>
+
 
               <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
