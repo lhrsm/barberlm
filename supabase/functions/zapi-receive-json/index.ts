@@ -475,13 +475,15 @@ serve(async (req) => {
               processed_at: new Date().toISOString()
           }).eq("id", webhookLog.id);
       }
-
-              appointment_id: appointmentId,
-              tenant_id: tenantId
-          }).eq("id", webhookLog.id);
-      }
     }
   }
+
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 200,
+  });
+});
+
 
   return new Response(JSON.stringify({ ok: true }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
