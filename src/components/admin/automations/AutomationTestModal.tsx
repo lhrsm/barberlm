@@ -364,6 +364,32 @@ export function AutomationTestModal({
             </RadioGroup>
           </div>
 
+          {testType === "real" && recentAppointments.length > 0 && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <Label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Escolher Agendamento</Label>
+              <Select 
+                value={selectedAppointmentId} 
+                onValueChange={(val) => fetchRealData(val)}
+              >
+                <SelectTrigger className="bg-[#0F172A] border-slate-800 text-white rounded-xl h-11 focus:border-amber-500/50 focus:ring-amber-500/50">
+                  <SelectValue placeholder="Selecione um agendamento" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
+                  {recentAppointments.map((app) => (
+                    <SelectItem key={app.id} value={app.id}>
+                      <div className="flex flex-col">
+                        <span className="font-bold">{app.customer?.name || 'Cliente'}</span>
+                        <span className="text-[10px] text-slate-400">
+                          {new Date(app.start_time).toLocaleString('pt-BR')}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-3">
             <Label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Preview da mensagem</Label>
             <div className="bg-[#0F172A] border border-amber-500/20 p-4 rounded-2xl relative min-h-[100px]">
@@ -382,14 +408,14 @@ export function AutomationTestModal({
               ) : (
                 <>
                   <div className="flex justify-between items-start mb-2">
-                    <p className={`text-sm whitespace-pre-wrap leading-relaxed flex-1 ${isLoadingRealData ? "opacity-20" : "text-slate-200"}`}>
+                    <div className={`text-sm whitespace-pre-wrap leading-relaxed flex-1 ${isLoadingRealData ? "opacity-20" : "text-slate-200"}`}>
                       {renderedTemplate}
-                    </p>
+                    </div>
                     {testType === "real" && !isLoadingRealData && realData && (
                       <Button 
                         size="sm" 
                         variant="ghost" 
-                        className="h-7 text-[9px] text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-slate-900 rounded-lg shrink-0 ml-2"
+                        className="h-7 text-[9px] text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-slate-900 rounded-lg shrink-0 ml-2 focus-visible:ring-2 focus-visible:ring-amber-500"
                         onClick={handleSimulateTrigger}
                         disabled={isSimulating}
                       >
@@ -408,6 +434,7 @@ export function AutomationTestModal({
               )}
             </div>
           </div>
+
 
           {/* Resumo do Último Teste */}
           {lastTestResult && (
