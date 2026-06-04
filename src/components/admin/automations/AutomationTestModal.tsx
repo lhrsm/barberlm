@@ -377,6 +377,31 @@ export function AutomationTestModal({
       setIsTesting(false);
     }
   };
+  const handleTestCallback = async (text: string) => {
+    if (!phone && testType === "fictitious") {
+      toast.error("Informe o telefone usado no envio inicial.");
+      return;
+    }
+    const targetPhone = testType === "real" ? realData?.customer_phone || recentAppointments.find(a => a.id === selectedAppointmentId)?.customer?.phone : phone;
+    if (!targetPhone) {
+      toast.error("Telefone não identificado.");
+      return;
+    }
+    const loadingToastId = toast.loading(`Simulando resposta "${text}"...`);
+    try {
+      const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
+        body: {
+          action: 'test-received-callback',
+          data: { phone: targetPhone, text }
+        }
+      });
+      if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro ao simular webhook");
+      toast.success(`Resposta "${text}" simulada com sucesso!`, { id: loadingToastId });
+    } catch (error: any) {
+      console.error("Callback test error:", error);
+      toast.error("Erro ao simular resposta: " + error.message, { id: loadingToastId });
+    }
+  };
 
 
 
