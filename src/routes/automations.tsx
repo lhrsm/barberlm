@@ -1073,8 +1073,8 @@ function AutomationsComponent() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                </div>
+                    </table>
+                  </div>
                 {totalLogs > itemsPerPage && (
                   <div className="flex items-center justify-between p-6 border-t border-white/5 bg-[#0F172A]/50">
                     <p className="text-xs text-slate-500">
