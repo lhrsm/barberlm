@@ -109,7 +109,7 @@ function AutomationsComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
-  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0 });
+  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0, lastUpdate: new Date() });
   const itemsPerPage = 10;
 
   // Estados Auditoria do Fluxo (Modal)
@@ -264,8 +264,10 @@ function AutomationsComponent() {
         const now = new Date();
         let startDate = new Date();
         if (filterPeriod === "today") {
-          // Use localized approach to ensure "today" matches the user's timezone start-of-day in UTC
-          startDate.setHours(0, 0, 0, 0);
+          // Reset to beginning of today in Sao Paulo time, then to UTC for DB
+          const spOffset = -3; // UTC-3
+          startDate = new Date(now.getTime() + (spOffset * 60 * 60 * 1000));
+          startDate.setUTCHours(3, 0, 0, 0); // 00:00 SP is 03:00 UTC
         } else if (filterPeriod === "7days") {
           startDate.setDate(now.getDate() - 7);
         } else if (filterPeriod === "30days") {
@@ -273,6 +275,7 @@ function AutomationsComponent() {
         }
         query = query.gte("created_at", startDate.toISOString());
       }
+
       
       const from = (currentPage - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
@@ -701,14 +704,20 @@ function AutomationsComponent() {
               Gerencie suas automações de atendimento, notificações e comunicações com clientes de forma profissional.
             </p>
           </div>
-          <Button 
-            onClick={fetchData} 
-            variant="outline" 
-            size="icon"
-            className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
-          >
-            <RefreshCw className={loading ? "animate-spin" : ""} size={18} />
-          </Button>
+          <div className="flex flex-col items-end gap-2">
+            <Button 
+              onClick={fetchData} 
+              variant="outline" 
+              size="icon"
+              className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
+            >
+              <RefreshCw className={loading ? "animate-spin" : ""} size={18} />
+            </Button>
+            <span className="text-[10px] text-slate-500 font-mono">
+              Atualizado: {logStats.lastUpdate.toLocaleTimeString('pt-BR')}
+            </span>
+          </div>
+
         </div>
 
         <Tabs defaultValue="templates" className="w-full">

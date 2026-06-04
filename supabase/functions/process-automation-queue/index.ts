@@ -161,6 +161,7 @@ serve(async (req) => {
           
           const providerMessageId = sendResult.response?.messageId;
 
+          // REGISTRO IMEDIATO DO ENVIO
           await supabase.from("automation_logs").insert({
             automation_id: automation.id,
             tenant_id: itemTenantId,
@@ -174,12 +175,18 @@ serve(async (req) => {
             provider: "zapi",
             sent_at: new Date().toISOString(),
             provider_message_id: providerMessageId,
-            payload: { data: testData, diagnostic: diagInfo, buttons_attached: !!sendOptions.buttons },
+            payload: { 
+              data: testData, 
+              diagnostic: diagInfo, 
+              buttons_attached: !!sendOptions.buttons,
+              source: force_resend ? 'test_manual' : 'automatic'
+            },
             response: sendResult.response
           });
           
           await supabase.from("appointments").update({ confirmation_sent: true, confirmation_sent_at: new Date().toISOString() }).eq("id", appointment.id);
           results.push({ id: item.id, success: true });
+
         } else {
           throw new Error(sendResult.error || "Z-API failed");
         }
