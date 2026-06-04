@@ -581,15 +581,28 @@ function AutomationsComponent() {
                             {item.scheduled_for ? new Date(item.scheduled_for).toLocaleString('pt-BR') : '-'}
                           </td>
                           <td className="px-4 py-3">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
-                              onClick={() => setDiagnosingItem(item)}
-                            >
-                              <Activity className="w-4 h-4 mr-1" />
-                              Diagnosticar
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+                                onClick={() => setDiagnosingItem(item)}
+                              >
+                                <Activity className="w-4 h-4 mr-1" />
+                                Diagnosticar
+                              </Button>
+                              {(item.status === 'failed' || item.status === 'processing') && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10"
+                                  onClick={() => handleResetQueue(item.id)}
+                                >
+                                  <RefreshCw className="w-4 h-4 mr-1" />
+                                  Resetar
+                                </Button>
+                              )}
+                            </div>
                           </td>
                         </tr>
 
