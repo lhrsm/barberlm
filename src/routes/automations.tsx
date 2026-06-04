@@ -40,8 +40,8 @@ function AutomationsComponent() {
     setLoading(true);
     try {
       const [tplRes, logsRes] = await Promise.all([
-        supabase.from("whatsapp_templates").select("*").eq("user_id", tenantId).order("name"),
-        supabase.from("automation_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(20)
+        supabase.from("whatsapp_templates").select("*").eq("user_id", tenantId || "").order("name"),
+        supabase.from("automation_logs").select("*").eq("tenant_id", tenantId || "").order("created_at", { ascending: false }).limit(20)
       ]);
 
       if (tplRes.data) setTemplates(tplRes.data);
@@ -56,7 +56,7 @@ function AutomationsComponent() {
   const toggleTemplate = async (id: string, active: boolean) => {
     const { error } = await supabase
       .from("whatsapp_templates")
-      .update({ active: !active })
+      .update({ is_active: !active })
       .eq("id", id);
 
     if (error) toast.error("Erro ao atualizar");
@@ -95,8 +95,8 @@ function AutomationsComponent() {
                         <MessageSquare size={20} />
                       </div>
                       <Switch 
-                        checked={tpl.active} 
-                        onCheckedChange={() => toggleTemplate(tpl.id, tpl.active)}
+                        checked={tpl.is_active || false} 
+                        onCheckedChange={() => toggleTemplate(tpl.id, tpl.is_active || false)}
                       />
                     </div>
                     <CardTitle className="text-lg mt-4">{tpl.name}</CardTitle>
