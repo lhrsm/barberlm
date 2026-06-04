@@ -118,24 +118,88 @@ function AutomationsV2Component() {
           </TabsList>
 
           <TabsContent value="automations" className="space-y-4">
-             <div className="grid gap-4 md:grid-cols-3">
+             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {workflows.map(w => (
-                  <Card key={w.id} className="border-zinc-800">
+                  <Card key={w.id} className="border-zinc-800 flex flex-col">
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg">{w.name}</CardTitle>
-                        <Switch checked={w.active} />
+                        <div className="space-y-1">
+                          <CardTitle className="text-lg">{w.name}</CardTitle>
+                          <CardDescription className="font-mono text-[10px]">{w.workflow_key}</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-zinc-500">{w.active ? 'Ativo' : 'Inativo'}</span>
+                          <Switch 
+                            checked={w.active} 
+                            onCheckedChange={async (checked) => {
+                              try {
+                                const { error } = await supabase
+                                  .from("automation_v2_workflows")
+                                  .update({ active: checked })
+                                  .eq("id", w.id);
+                                if (error) throw error;
+                                toast.success(`${w.name} ${checked ? 'ativado' : 'desativado'}`);
+                                fetchData();
+                              } catch (err: any) {
+                                toast.error("Erro ao atualizar status: " + err.message);
+                              }
+                            }}
+                          />
+                        </div>
                       </div>
-                      <CardDescription>{w.workflow_key}</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                       <Badge variant="outline">{w.event_name}</Badge>
+                    <CardContent className="flex-1 space-y-4">
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="bg-zinc-900 border-zinc-700 text-zinc-400">
+                          <Zap size={10} className="mr-1" /> {w.event_name}
+                        </Badge>
+                        {w.configuration?.flow_type && (
+                          <Badge variant="outline" className={cn(
+                            "border-zinc-700 text-zinc-400",
+                            w.configuration.flow_type === 'multi' ? 'border-purple-500/50 text-purple-400' : 'border-blue-500/50 text-blue-400'
+                          )}>
+                            {w.configuration.flow_type}
+                          </Badge>
+                        )}
+                        {w.configuration?.recipient && (
+                          <Badge variant="outline" className="border-zinc-700 text-zinc-400">
+                            Destino: {w.configuration.recipient}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="bg-zinc-950 border border-zinc-900 rounded-md p-3">
+                        <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1 font-bold">Template Preview</p>
+                        <p className="text-xs text-zinc-400 whitespace-pre-wrap line-clamp-4 italic">
+                          "{w.configuration?.template || 'Sem template configurado'}"
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-[10px] text-zinc-500 pt-2 border-t border-zinc-900">
+                        <div className="flex flex-col">
+                          <span className="text-zinc-600">Total Enviado</span>
+                          <span className="font-bold text-zinc-300">0</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-zinc-600">Falhas</span>
+                          <span className="font-bold text-red-500/70">0</span>
+                        </div>
+                      </div>
                     </CardContent>
+                    <div className="p-4 pt-0 mt-auto flex gap-2">
+                       <Button variant="outline" size="sm" className="flex-1 border-zinc-800 text-zinc-400 hover:text-white h-8">
+                         Editar
+                       </Button>
+                       <Button variant="outline" size="sm" className="border-zinc-800 text-amber-500 hover:text-amber-400 h-8" title="Testar Envio">
+                         <Play size={12} />
+                       </Button>
+                    </div>
                   </Card>
                 ))}
                 {workflows.length === 0 && (
                   <Card className="col-span-full p-12 text-center border-dashed border-zinc-800">
-                    <p className="text-muted-foreground">Nenhum workflow v2 configurado.</p>
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-zinc-600" />
+                    <p className="text-muted-foreground">Carregando fluxos v2...</p>
                   </Card>
                 )}
              </div>
