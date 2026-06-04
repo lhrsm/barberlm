@@ -135,6 +135,7 @@ export type Database = {
       }
       appointments: {
         Row: {
+          amount_paid: number | null
           appointment_group_id: string | null
           barber_id: string | null
           barbershop_amount: number | null
@@ -186,6 +187,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          amount_paid?: number | null
           appointment_group_id?: string | null
           barber_id?: string | null
           barbershop_amount?: number | null
@@ -237,6 +239,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          amount_paid?: number | null
           appointment_group_id?: string | null
           barber_id?: string | null
           barbershop_amount?: number | null
@@ -779,12 +782,15 @@ export type Database = {
       automation_v2_logs: {
         Row: {
           action: string
+          appointment_id: string | null
           created_at: string | null
           error: string | null
           event_name: string | null
           flow_type: string | null
           id: string
+          level: string | null
           message: string | null
+          metadata: Json | null
           payload: Json | null
           queue_id: string | null
           session_id: string | null
@@ -792,15 +798,19 @@ export type Database = {
           step_after: string | null
           step_before: string | null
           tenant_id: string
+          workflow_key: string | null
         }
         Insert: {
           action: string
+          appointment_id?: string | null
           created_at?: string | null
           error?: string | null
           event_name?: string | null
           flow_type?: string | null
           id?: string
+          level?: string | null
           message?: string | null
+          metadata?: Json | null
           payload?: Json | null
           queue_id?: string | null
           session_id?: string | null
@@ -808,15 +818,19 @@ export type Database = {
           step_after?: string | null
           step_before?: string | null
           tenant_id: string
+          workflow_key?: string | null
         }
         Update: {
           action?: string
+          appointment_id?: string | null
           created_at?: string | null
           error?: string | null
           event_name?: string | null
           flow_type?: string | null
           id?: string
+          level?: string | null
           message?: string | null
+          metadata?: Json | null
           payload?: Json | null
           queue_id?: string | null
           session_id?: string | null
@@ -824,6 +838,7 @@ export type Database = {
           step_after?: string | null
           step_before?: string | null
           tenant_id?: string
+          workflow_key?: string | null
         }
         Relationships: [
           {
@@ -3912,26 +3927,16 @@ export type Database = {
             } & "Could not choose the best candidate function between: public.cancel_appointment_by_token(token_val => text), public.cancel_appointment_by_token(token_val => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
           }
       check_expired_trials: { Args: never; Returns: undefined }
-      complete_appointment:
-        | {
-            Args: {
-              p_appointment_id: string
-              p_changed_by_id?: string
-              p_changed_by_type?: string
-              p_source?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_appointment_id: string
-              p_changed_by_id?: string
-              p_changed_by_type?: string
-              p_metadata?: Json
-              p_source?: string
-            }
-            Returns: Json
-          }
+      complete_appointment: {
+        Args: {
+          p_appointment_id: string
+          p_changed_by_id?: string
+          p_changed_by_type?: string
+          p_metadata?: Json
+          p_source?: string
+        }
+        Returns: Json
+      }
       create_notification: {
         Args: {
           p_barber_id?: string

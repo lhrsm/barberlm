@@ -16,6 +16,8 @@ export async function handleSingleResponse(supabase: any, session: any, webhook:
         await supabase.from("automation_v2_logs").insert({
             tenant_id: session.tenant_id,
             session_id: session.id,
+            appointment_id: session.appointment_id,
+            workflow_key: session.context?.workflow_key,
             flow_type: FLOW_TYPES.SINGLE,
             step_before: session.current_step,
             step_after: AUTOMATION_V2_STATES.SINGLE_COMPLETED,
