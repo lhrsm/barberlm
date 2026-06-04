@@ -57,8 +57,13 @@ serve(async (req) => {
     const url = new URL(req.url);
     const tenantId = url.searchParams.get("tenantId");
     
-    // Read raw body for debug logging
-    const body = await req.json().catch(() => ({}));
+    const rawBody = await req.text();
+    let body: any = {};
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      console.error("[Webhook] Failed to parse JSON body:", e.message);
+    }
     
     // Immediate Debug Log (before any processing)
     const phone = extractPhoneFromZapiPayload(body);
@@ -69,6 +74,7 @@ serve(async (req) => {
       tenant_id: tenantId,
       source: "zapi_real",
       payload_raw: body,
+      raw_body: rawBody,
       phone_raw: phone,
       phone_normalized: normalizedPhone,
       option_id: buttonId,
