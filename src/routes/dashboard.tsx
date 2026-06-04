@@ -319,7 +319,7 @@ function DashboardComponent() {
 
     // 2. Update status using CENTRALIZED RPC hook
     // The RPC handled in useAppointmentStatus (complete_appointment) 
-    // already handles cashback and loyalty points calculation based on tenant settings
+    // now correctly handles financial registration and deductions.
     const result = await centralUpdateStatus(
       appointment.id,
       'completed',
@@ -327,8 +327,7 @@ function DashboardComponent() {
         payment_status: 'paid',
         credit_used: usedCredits,
         cashback_used: usedCashback,
-        final_amount: remainingToPay,
-        barbershop_amount: remainingToPay
+        final_amount: remainingToPay
       },
       'dashboard'
     );
