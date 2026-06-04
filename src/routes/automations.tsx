@@ -1582,6 +1582,8 @@ function AutomationsComponent() {
                     </div>
                   </div>
                 )}
+                    </div>
+                  </div>
               </CardContent>
             </Card>
           </TabsContent>
