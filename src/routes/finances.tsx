@@ -640,8 +640,8 @@ function FinancesComponent() {
               </Button>
             </div>
 
-            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden">
-              <Table>
+            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-x-auto custom-scrollbar">
+              <Table className="min-w-[800px] md:min-w-0">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[100px]">Data</TableHead>
