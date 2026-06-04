@@ -180,7 +180,7 @@ serve(async (req) => {
             provider: "zapi",
             sent_at: new Date().toISOString(),
             payload: { 
-              data: testData, 
+              data: { ...testData, customer_id: appointment.customer_id }, 
               rendered: renderedTemplate, 
               origin: force_resend ? 'test_manual' : 'automatic', 
               source: force_resend ? 'test_manual' : 'automatic',
