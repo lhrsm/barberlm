@@ -190,7 +190,7 @@ serve(async (req) => {
             appointment_id: appointment.id,
             customer_id: appointment.customer_id,
             phone: phone,
-            status: "success",
+            status: "aguardando_resposta",
             message_type: finalMessageType,
             processed_template: renderedTemplate,
             original_template: automation.template,
