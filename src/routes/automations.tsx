@@ -1272,19 +1272,34 @@ function AutomationsComponent() {
 
                 </div>
 
-                <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden shadow-lg">
+                <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden shadow-lg min-h-[300px] relative">
+                  {isAuditLoading && (
+                    <div className="absolute inset-0 bg-[#0F172A]/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-4">
+                        <Loader2 className="animate-spin text-amber-500" size={32} />
+                        <p className="text-sm font-bold text-amber-500 uppercase tracking-widest animate-pulse">Carregando Auditoria...</p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs text-left">
                       <thead className="bg-white/5 text-slate-500">
                         <tr>
                           <th className="px-6 py-4 font-bold uppercase tracking-wider">Horário</th>
-                          <th className="px-6 py-4 font-bold uppercase tracking-wider">Evento</th>
+                          <th className="px-6 py-4 font-bold uppercase tracking-wider">Evento / IDs</th>
                           <th className="px-6 py-4 font-bold uppercase tracking-wider">Resultado</th>
                           <th className="px-6 py-4 font-bold uppercase tracking-wider text-right">Detalhes</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {getAuditSteps(selectedLog)
+                        {getAuditSteps(selectedLog).length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-6 py-12 text-center text-slate-500 italic">
+                              Nenhum evento encontrado para os filtros selecionados.
+                            </td>
+                          </tr>
+                        ) : getAuditSteps(selectedLog)
                           .slice((auditPage - 1) * auditItemsPerPage, auditPage * auditItemsPerPage)
                           .map((step) => (
                           <React.Fragment key={step.id}>
@@ -1294,19 +1309,42 @@ function AutomationsComponent() {
                             >
                               <td className="px-6 py-4 text-slate-400 whitespace-nowrap">{step.time}</td>
                               <td className="px-6 py-4">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className={`text-[10px] py-0 px-2 h-5 border-none ${
-                                    step.type === 'webhook' ? 'bg-blue-500/10 text-blue-400' :
-                                    step.type === 'queue' ? 'bg-purple-500/10 text-purple-400' :
-                                    step.type === 'send' ? 'bg-amber-500/10 text-amber-400' :
-                                    step.type === 'delivery' ? 'bg-emerald-500/10 text-emerald-400' :
-                                    'bg-slate-500/10 text-slate-400'
-                                  }`}>
-                                    {step.type}
-                                  </Badge>
-                                  <span className="font-mono text-white/90">{step.event}</span>
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className={`text-[10px] py-0 px-2 h-5 border-none ${
+                                      step.type === 'webhook' ? 'bg-blue-500/10 text-blue-400' :
+                                      step.type === 'queue' ? 'bg-purple-500/10 text-purple-400' :
+                                      step.type === 'send' ? 'bg-amber-500/10 text-amber-400' :
+                                      step.type === 'delivery' ? 'bg-emerald-500/10 text-emerald-400' :
+                                      'bg-slate-500/10 text-slate-400'
+                                    }`}>
+                                      {step.type}
+                                    </Badge>
+                                    <span className="font-mono text-white/90">{step.event}</span>
+                                  </div>
+                                  
+                                  {/* IDs Quick Copy */}
+                                  <div className="flex gap-2">
+                                    {step.payload?.provider_message_id && (
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleCopyText(step.payload.provider_message_id, "ID Provedor"); }}
+                                        className="text-[9px] bg-white/5 hover:bg-white/10 text-slate-500 hover:text-amber-500 px-1.5 py-0.5 rounded flex items-center gap-1 transition-colors"
+                                      >
+                                        <Copy size={8} /> Prov: {step.payload.provider_message_id.substring(0, 10)}...
+                                      </button>
+                                    )}
+                                    {step.payload?.message_id && (
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleCopyText(step.payload.message_id, "ID Mensagem"); }}
+                                        className="text-[9px] bg-white/5 hover:bg-white/10 text-slate-500 hover:text-amber-500 px-1.5 py-0.5 rounded flex items-center gap-1 transition-colors"
+                                      >
+                                        <Copy size={8} /> Msg: {step.payload.message_id.substring(0, 8)}...
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               </td>
+
                               <td className="px-6 py-4">
                                 <div className={`flex items-center gap-1.5 font-bold ${step.status === 'done' ? 'text-[#10B981]' : 'text-rose-500'}`}>
                                   {step.status === 'done' ? <Check size={14} /> : <X size={14} />}
