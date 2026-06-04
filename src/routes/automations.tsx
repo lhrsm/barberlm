@@ -151,7 +151,22 @@ function AutomationsComponent() {
       toast.error("Erro ao carregar dados: " + error.message);
     } finally {
       setLoading(false);
-    }
+  }
+
+  const replaceVariables = (template: string) => {
+    return template
+      .replace(/{customer_name}/g, "João Silva")
+      .replace(/{barbershop_name}/g, "Barbex Premium")
+      .replace(/{service_name}/g, "Corte + Barba")
+      .replace(/{professional_name}/g, "Carlos (Mestre Barbeiro)")
+      .replace(/{appointment_date}/g, "15/06/2026")
+      .replace(/{appointment_time}/g, "14:30");
+  };
+
+  const openPreview = (template: string) => {
+    setSelectedPreviewTemplate(template);
+    setIsPreviewOpen(true);
+  };
   }
 
   useEffect(() => {
