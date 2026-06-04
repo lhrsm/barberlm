@@ -77,6 +77,8 @@ function AutomationsComponent() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isTestOpen, setIsTestOpen] = useState(false);
   const [isLogDetailOpen, setIsLogDetailOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [selectedPreviewTemplate, setSelectedPreviewTemplate] = useState("");
   
   // Filtros
   const [filterStatus, setFilterStatus] = useState("all");
