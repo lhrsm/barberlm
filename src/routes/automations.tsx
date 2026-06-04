@@ -1581,6 +1581,7 @@ function AutomationsComponent() {
                         Próximo <ChevronRight size={16} className="ml-1" />
                       </Button>
                     </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
