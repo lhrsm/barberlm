@@ -98,10 +98,12 @@ serve(async (req) => {
     type,
     fromMe,
     phone,
+    phone_raw: phone,
     messageId,
     referenceMessageId: referenceId,
     buttonId,
-    buttonText: incomingText
+    buttonText: incomingText,
+    incoming_text: incomingText
   }).select().single();
 
   if (webhookLogError) console.error("[Webhook] Error saving webhook log:", webhookLogError);
@@ -477,7 +479,18 @@ serve(async (req) => {
           await supabase.from("automation_webhook_logs").update({
               appointment_id: appointmentId,
               tenant_id: tenantId,
-              processed_at: new Date().toISOString()
+              processed_at: new Date().toISOString(),
+              phone_normalized: phone,
+              normalized_text: normalizedText,
+              matched_action: isConfirm ? 'confirm' : isReschedule ? 'reschedule' : 'cancel',
+              conversation_found: !!sessionId,
+              conversation_id: sessionId,
+              status_before: statusBefore,
+              status_after: targetStatus,
+              response_sent: !!zapiResponse,
+              error: null
+          }).eq("id", webhookLog.id);
+      }
           }).eq("id", webhookLog.id);
       }
     }
