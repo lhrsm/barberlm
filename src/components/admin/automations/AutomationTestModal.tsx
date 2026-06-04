@@ -86,11 +86,27 @@ export function AutomationTestModal({
           .eq("id", appointment.service_id)
           .maybeSingle();
 
-        const { data: professional } = await (supabase as any)
-          .from("profiles")
-          .select("full_name")
-          .eq("id", appointment.barber_id)
-          .maybeSingle();
+        // 3. Resolve Professional Name manually (Step by Step)
+        let profName = "Profissional não encontrado";
+        const profId = appointment.barber_id || appointment.professional_id;
+        
+        if (profId) {
+           // Try professionals first
+           const { data: professionalData } = await (supabase as any).from("professionals").select("name").eq("id", profId).maybeSingle();
+           if (professionalData?.name) {
+              profName = professionalData.name;
+           } else {
+              // Try barbers
+              const { data: barberData } = await (supabase as any).from("barbers").select("name").eq("id", profId).maybeSingle();
+              if (barberData?.name) {
+                 profName = barberData.name;
+              } else {
+                 // Try profiles
+                 const { data: profileData } = await (supabase as any).from("profiles").select("full_name").eq("id", profId).maybeSingle();
+                 if (profileData?.full_name) profName = profileData.full_name;
+              }
+           }
+        }
 
         const { data: tenant } = await (supabase as any)
           .from("tenants")
@@ -102,7 +118,7 @@ export function AutomationTestModal({
           customer_name: appointment.customer?.name || "Cliente",
           barbershop_name: tenant?.name || "Barbearia",
           service_name: service?.name || "Serviço",
-          professional_name: professional?.full_name || "Profissional",
+          professional_name: profName,
           appointment_date: appointment.start_time ? new Date(appointment.start_time).toLocaleDateString("pt-BR") : "--/--/----",
           appointment_time: appointment.start_time ? new Date(appointment.start_time).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }) : "--:--",
           service_price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(appointment.total_price || service?.price || 0),
