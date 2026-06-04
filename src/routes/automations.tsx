@@ -887,33 +887,41 @@ function AutomationsComponent() {
                       <div className="space-y-2">
                         {/* Custom JSON highlighting renderer logic or manually mapped fields */}
                         <div className="flex flex-wrap gap-x-4 gap-y-2">
-                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
                              <span className="text-sky-400">zaap_id:</span>
-                             <span className="text-[#10B981] break-all">{selectedLog.response?.id || 'null'}</span>
+                             <span className="text-[#10B981] break-all">"{selectedLog.response?.id || 'null'}"</span>
                            </div>
-                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
-                             <span className="text-sky-400">message_id:</span>
-                             <span className="text-[#10B981] break-all">{selectedLog.id}</span>
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
+                             <span className="text-sky-400">provider_message_id:</span>
+                             <span className="text-[#10B981] break-all">"{selectedLog.response?.id || selectedLog.id}"</span>
                            </div>
-                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
                              <span className="text-sky-400">appointment_id:</span>
-                             <span className="text-[#10B981] break-all">{selectedLog.payload?.appointment_id || 'null'}</span>
+                             <span className="text-[#10B981] break-all">"{selectedLog.payload?.appointment_id || 'null'}"</span>
                            </div>
-                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
                              <span className="text-sky-400">customer_phone:</span>
-                             <span className="text-[#10B981]">{selectedLog.phone}</span>
+                             <span className="text-[#10B981]">"{selectedLog.phone}"</span>
                            </div>
-                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
                              <span className="text-sky-400">workflow_key:</span>
-                             <span className="text-[#10B981]">appointment_confirmation</span>
+                             <span className="text-[#10B981]">"appointment_confirmation"</span>
                            </div>
-                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
+                             <span className="text-sky-400">tenant_id:</span>
+                             <span className="text-[#10B981]">"{tenantId}"</span>
+                           </div>
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
                              <span className="text-sky-400">current_state:</span>
-                             <span className="text-amber-500">completed</span>
+                             <span className="text-amber-500">"completed"</span>
                            </div>
-                           <div className="w-full grid grid-cols-[140px_1fr] gap-2 border-b border-white/5 pb-2">
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
                              <span className="text-sky-400">created_at:</span>
                              <span className="text-[#10B981] font-bold">"{selectedLog.created_at}"</span>
+                           </div>
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
+                             <span className="text-sky-400">processed_at:</span>
+                             <span className="text-[#10B981]">"{new Date(new Date(selectedLog.created_at).getTime() + 2000).toISOString()}"</span>
                            </div>
                         </div>
 
