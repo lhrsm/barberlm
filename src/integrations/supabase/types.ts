@@ -819,6 +819,47 @@ export type Database = {
           },
         ]
       }
+      automation_reconciliation_settings: {
+        Row: {
+          alert_period_hours: number | null
+          created_at: string | null
+          id: string
+          not_found_alert_threshold: number | null
+          pending_callback_alert_threshold: number | null
+          reconciliation_interval_minutes: number | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alert_period_hours?: number | null
+          created_at?: string | null
+          id?: string
+          not_found_alert_threshold?: number | null
+          pending_callback_alert_threshold?: number | null
+          reconciliation_interval_minutes?: number | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alert_period_hours?: number | null
+          created_at?: string | null
+          id?: string
+          not_found_alert_threshold?: number | null
+          pending_callback_alert_threshold?: number | null
+          reconciliation_interval_minutes?: number | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_reconciliation_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_status: {
         Row: {
           id: string
