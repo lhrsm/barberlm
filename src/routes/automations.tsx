@@ -452,12 +452,13 @@ function AutomationsComponent() {
       { 
         id: 1,
         time: new Date(log.created_at).toLocaleTimeString(), 
-        event: 'appointment.created', 
+        event: log.payload?.event || 'appointment.created', 
         type: 'webhook',
-        result: 'sucesso',
+        result: log.payload?.appointment_created_detected ? 'detectado' : 'sucesso',
         status: 'done',
         payload: log.payload
       },
+
       { 
         id: 2,
         time: new Date(new Date(log.created_at).getTime() + 1000).toLocaleTimeString(), 
