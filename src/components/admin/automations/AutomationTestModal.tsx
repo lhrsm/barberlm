@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 
