@@ -59,8 +59,10 @@ function AutomationsComponent() {
   const [automations, setAutomations] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
+  const [selectedLog, setSelectedLog] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isTestOpen, setIsTestOpen] = useState(false);
+  const [isLogDetailOpen, setIsLogDetailOpen] = useState(false);
 
   useEffect(() => {
     if (tenantId) {
