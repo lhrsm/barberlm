@@ -1226,11 +1226,20 @@ function AutomationsComponent() {
                   </p>
                 </div>
                 
-                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">STATUS</p>
-                  <div className={`flex items-center gap-1.5 text-xs font-bold ${selectedLog.status === 'sent' ? 'text-[#10B981]' : 'text-rose-500'}`}>
-                    {selectedLog.status === 'sent' ? <Check size={14} /> : <X size={14} />}
-                    {selectedLog.status === 'sent' ? '✓ Enviado com sucesso' : 'Falha no envio'}
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl relative">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">STATUS DO PROFISSIONAL</p>
+                  <div className="flex items-center gap-1.5 text-xs font-bold">
+                    {selectedLog.payload?.diagnostic?.professional_resolved ? (
+                      <>
+                        <CheckCircle2 size={14} className="text-[#10B981]" />
+                        <span className="text-[#10B981]">OK: {selectedLog.payload?.data?.professional_name}</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle size={14} className="text-amber-500 animate-pulse" />
+                        <span className="text-amber-500" title="Relacionamento ausente ou nome genérico">AVISO: Ausente</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
