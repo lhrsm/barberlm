@@ -198,8 +198,15 @@ function AutomationsComponent() {
   };
 
   useEffect(() => {
+    if (tenantId) {
+      setCurrentPage(1); // Reset to first page when filters change
+      fetchData();
+    }
+  }, [filterStatus, filterAutomation, filterPeriod]);
+
+  useEffect(() => {
     if (tenantId) fetchData();
-  }, [filterStatus]);
+  }, [currentPage]);
 
   const toggleStatus = async (automation: any) => {
     try {
