@@ -2325,6 +2325,93 @@ function AutomationsComponent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Configurações de Reconciliação */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent className="bg-[#0F172A] border border-slate-800 text-white rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Configurações de Reconciliação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label>Intervalo de Reconciliação (minutos)</Label>
+              <Input 
+                type="number" 
+                value={reconciliationSettings?.reconciliation_interval_minutes || 15} 
+                onChange={(e) => setReconciliationSettings({...reconciliationSettings, reconciliation_interval_minutes: parseInt(e.target.value)})}
+                className="bg-slate-900 border-slate-800 rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Limite de Alerta: Callback Pendente</Label>
+              <Input 
+                type="number" 
+                value={reconciliationSettings?.pending_callback_alert_threshold || 10} 
+                onChange={(e) => setReconciliationSettings({...reconciliationSettings, pending_callback_alert_threshold: parseInt(e.target.value)})}
+                className="bg-slate-900 border-slate-800 rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Limite de Alerta: Agendamento N/F</Label>
+              <Input 
+                type="number" 
+                value={reconciliationSettings?.not_found_alert_threshold || 5} 
+                onChange={(e) => setReconciliationSettings({...reconciliationSettings, not_found_alert_threshold: parseInt(e.target.value)})}
+                className="bg-slate-900 border-slate-800 rounded-xl"
+              />
+            </div>
+            <Button 
+              className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl h-11"
+              onClick={() => handleSaveSettings(reconciliationSettings)}
+            >
+              Salvar Configurações
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Logs de Webhook */}
+      <Dialog open={isWebhookLogsOpen} onOpenChange={setIsWebhookLogsOpen}>
+        <DialogContent className="max-w-[1000px] w-[95vw] bg-[#020817] border border-amber-500/25 text-white p-0 overflow-hidden rounded-[24px]">
+          <DialogHeader className="p-6 border-b border-white/5">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Terminal size={20} className="text-emerald-500" /> Logs de Webhook (Últimos 50)
+            </DialogTitle>
+          </DialogHeader>
+          <div className="overflow-x-auto p-4 max-h-[70vh]">
+            <table className="w-full text-xs">
+              <thead className="text-slate-500 uppercase font-bold border-b border-white/5">
+                <tr>
+                  <th className="px-4 py-2 text-left">Data/Hora</th>
+                  <th className="px-4 py-2 text-left">Telefone</th>
+                  <th className="px-4 py-2 text-left">Tipo</th>
+                  <th className="px-4 py-2 text-left">Botão/Texto</th>
+                  <th className="px-4 py-2 text-left">Ref Message ID</th>
+                  <th className="px-4 py-2 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {webhookLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-white/5">
+                    <td className="px-4 py-2">{new Date(log.created_at).toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-2 font-mono">{log.phone}</td>
+                    <td className="px-4 py-2">{log.type}</td>
+                    <td className="px-4 py-2">{log.buttonText || log.buttonId || '---'}</td>
+                    <td className="px-4 py-2 font-mono truncate max-w-[100px]" title={log.referenceMessageId}>{log.referenceMessageId || '---'}</td>
+                    <td className="px-4 py-2">
+                      {log.appointment_id ? (
+                        <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[9px]">Vinculado</Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/10 text-amber-500 border-none text-[9px]">Pendente/NF</Badge>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
