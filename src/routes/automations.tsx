@@ -290,13 +290,13 @@ function AutomationsComponent() {
       setLogs(logsData || []);
       setTotalLogs(count || 0);
 
-      // Fetch global stats for logs
-      const { count: totalSent } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
-      const { count: totalSuccess } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "success");
-      const { count: totalFailed } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
+      // Fetch global stats for logs using the new send history table
+      const { count: totalSent } = await anySupabase.from("automation_send_history").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
+      const { count: totalSuccess } = await anySupabase.from("automation_send_history").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "sent");
+      const { count: totalFailed } = await anySupabase.from("automation_send_history").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
       const { count: totalDuplicate } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("action", "duplicate_confirmation_blocked");
       const { count: totalNotFound } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "not_found");
-      const { data: lastLogData } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "success").order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const { data: lastLogData } = await anySupabase.from("automation_send_history").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
 
 
       // Pending callbacks are 'success' sent messages in the last 24h that don't have a 'button_clicked' action in the same appointment
@@ -1178,8 +1178,20 @@ function AutomationsComponent() {
               <CardHeader className="pb-6 border-b border-white/5 bg-[#0F172A]/50">
                 <div className="flex flex-col gap-6">
                   <div>
-                    <CardTitle className="text-2xl font-bold flex items-center gap-2 text-white">
-                      <History size={24} className="text-amber-500" /> Histórico de Envios
+                    <CardTitle className="text-2xl font-bold flex items-center justify-between gap-2 text-white">
+                      <div className="flex items-center gap-2">
+                        <History size={24} className="text-amber-500" /> Histórico de Envios
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-slate-400 hover:text-white"
+                        onClick={fetchData}
+                        disabled={loading}
+                      >
+                        <RefreshCw size={14} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+                        Atualizar histórico
+                      </Button>
                     </CardTitle>
                     <CardDescription className="text-slate-400 mt-1">
                       Acompanhe as mensagens automáticas enviadas pelo sistema.
@@ -1378,13 +1390,9 @@ function AutomationsComponent() {
                           </td>
                           <td className="px-6 py-4">
                             <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border-white/10 ${
-                              log.message_type === 'buttons' ? 'text-sky-400 bg-sky-500/5' : 
-                              log.message_type === 'text_fallback' ? 'text-amber-400 bg-amber-500/5' : 
-                              'text-slate-300 bg-white/5'
+                              log.source === 'test_manual' ? 'text-amber-400 bg-amber-500/5' : 'text-sky-400 bg-sky-500/5'
                             }`}>
-                              {log.message_type === 'buttons' ? 'Botões' : 
-                               log.message_type === 'text_fallback' ? 'Texto' : 
-                               'Confirmação'}
+                              {log.automation_name || (log.source === 'test_manual' ? 'Teste Manual' : 'Automático')}
                             </Badge>
                           </td>
                           <td className="px-6 py-4">
