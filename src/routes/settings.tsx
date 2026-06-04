@@ -302,6 +302,7 @@ function SettingsComponent() {
                 <QrCode size={16} /> <span className="hidden sm:inline">Chave PIX</span>
               </TabsTrigger>
             </TabsList>
+          </div>
 
             <TabsContent value="profile" className="space-y-4">
               <Card className="bg-white border-2 border-slate-200 text-black">
