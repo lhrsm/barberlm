@@ -105,7 +105,7 @@ serve(async (req) => {
         payload: {
           event_name: "button_clicked",
           button_id: buttonId,
-          button_text: body.buttonsResponseMessage?.selectedButtonId || text,
+          button_text: body.buttonsResponseMessage?.selectedButtonId || buttonText,
           referenceMessageId: referenceId,
           webhook_received: true,
           phone,
