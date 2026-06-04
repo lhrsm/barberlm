@@ -377,16 +377,28 @@ function AutomationsComponent() {
 
   const handleManualReconcile = async () => {
     setIsReconciling(true);
-    toast.loading("Reprocessando reconciliações...");
+    const toastId = toast.loading("Reprocessando reconciliações...");
     try {
-      // Logic for manual reconcile would typically be an edge function call
-      // or a specific DB operation to check for missing callbacks
-      // For now we simulate with a delay and re-fetching data
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      await fetchData();
-      toast.success("Reconciliação manual concluída!");
+      const { data, error } = await supabase.functions.invoke('reconcile-automations', {
+        body: { tenant_id: tenantId }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        const { analyzed, updated, ignored, errors, duration } = data.stats;
+        toast.success(`Reconciliação concluída em ${duration}!`, {
+          description: `Analisados: ${analyzed} | Atualizados: ${updated} | Ignorados: ${ignored} | Erros: ${errors}`,
+          id: toastId,
+          duration: 6000
+        });
+        await fetchData();
+      } else {
+        throw new Error(data?.error || "Erro desconhecido na reconciliação");
+      }
     } catch (error: any) {
-      toast.error("Erro na reconciliação: " + error.message);
+      console.error("Reconciliation error:", error);
+      toast.error("Erro na reconciliação: " + error.message, { id: toastId });
     } finally {
       setIsReconciling(false);
     }
