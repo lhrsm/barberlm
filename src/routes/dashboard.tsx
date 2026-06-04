@@ -319,7 +319,7 @@ function DashboardComponent() {
 
     // 2. Update status using CENTRALIZED RPC hook
     // The RPC handled in useAppointmentStatus (complete_appointment) 
-    // already handles cashback and loyalty points calculation based on tenant settings
+    // now correctly handles financial registration and deductions.
     const result = await centralUpdateStatus(
       appointment.id,
       'completed',
@@ -327,45 +327,14 @@ function DashboardComponent() {
         payment_status: 'paid',
         credit_used: usedCredits,
         cashback_used: usedCashback,
-        final_amount: remainingToPay,
-        barbershop_amount: remainingToPay
+        final_amount: remainingToPay
       },
       'dashboard'
     );
 
     if (!result.success) return;
 
-    // 3. Create Financial Transaction if not already exists
-    const { data: existingTrans } = await supabase
-      .from("transactions")
-      .select("id")
-      .eq("appointment_id", appointment.id)
-      .maybeSingle();
-
-    if (!existingTrans) {
-      const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)})` : "";
-      const cashbackText = usedCashback > 0 ? ` (Cashback: R$ ${usedCashback.toFixed(2)})` : "";
-      const deductionText = `${creditText}${cashbackText}`;
-
-      if (!tenantId) return;
-
-      await supabase
-        .from("transactions")
-        .insert([{
-          amount: remainingToPay,
-          type: "income",
-          description: `Atendimento${deductionText}: ${appointment.services?.name || 'Serviço'} - ${appointment.customers?.name || 'Cliente'}`,
-          category: "Serviço",
-          barber_id: appointment.barber_id,
-          appointment_id: appointment.id,
-          tenant_id: tenantId,
-          user_id: tenantId,
-          date: new Date().toISOString().split('T')[0],
-          time: new Date().toLocaleTimeString('pt-BR', { hour12: false })
-        }]);
-    }
-
-    toast.success("Serviço concluído e registrado no financeiro!");
+    // 3. Finance is now handled inside complete_appointment RPC
     fetchTodayAppointments();
     fetchStats();
   }

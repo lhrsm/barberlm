@@ -364,8 +364,11 @@ export function AppointmentModal({
       const barber = barbers.find(b => b.id === selectedBarber);
       const notificationMessage = `${customer?.name} agendou ${service?.name} às ${selectedTime}`;
 
-      // 2.5 Create Transaction if already paid
+      // 2.5 Finance is now handled by complete_appointment RPC
+      // If we mark as paid here during creation, it should eventually be captured when completed
+      // However, if it's already paid AND we are not completing it yet, we might need a transaction
       if (appointmentData.payment_status === 'paid' && Number(appointmentData.total_price || 0) > 0) {
+        // If it's paid but not completed, we still register the income
         const { data: existingTrans } = await supabase
           .from("transactions")
           .select("id")
@@ -373,17 +376,23 @@ export function AppointmentModal({
           .maybeSingle();
 
         if (!existingTrans) {
-          await supabase.from("transactions").insert([{
-            amount: Number(appointmentData.total_price || 0),
-            type: "income",
-            description: `Agendamento Admin (${appointmentData.payment_method?.toUpperCase()}): ${service?.name || 'Serviço'} - ${customer?.name || 'Cliente'}`,
-            category: "Serviço",
-            barber_id: appointmentData.barber_id,
-            appointment_id: appointmentData.id,
-            tenant_id: tenantId,
-            user_id: tenantId,
-            date: new Date().toISOString().split('T')[0]
-          }]);
+          const usedCredits = Number(appointmentData.credit_used || 0);
+          const usedCashback = Number(appointmentData.cashback_used || 0);
+          const finalAmount = Number(appointmentData.final_amount || (Number(appointmentData.total_price || 0) - usedCredits - usedCashback));
+          
+          if (finalAmount > 0) {
+            await supabase.from("transactions").insert([{
+              amount: finalAmount,
+              type: "income",
+              description: `Agendamento Antecipado (${appointmentData.payment_method?.toUpperCase()}): ${service?.name || 'Serviço'} - ${customer?.name || 'Cliente'}`,
+              category: "Serviço",
+              barber_id: appointmentData.barber_id,
+              appointment_id: appointmentData.id,
+              tenant_id: tenantId,
+              user_id: tenantId,
+              date: new Date().toISOString().split('T')[0]
+            }]);
+          }
         }
       }
       
