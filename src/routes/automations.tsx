@@ -274,9 +274,9 @@ function AutomationsComponent() {
 
       // Fetch global stats for logs
       const { count: totalSent } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
-      const { count: totalSuccess } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "sent");
+      const { count: totalSuccess } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "success");
       const { count: totalFailed } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
-      const { data: lastLog } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const { data: lastLog } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "success").order("created_at", { ascending: false }).limit(1).maybeSingle();
 
       setLogStats({
         sent: totalSent || 0,
