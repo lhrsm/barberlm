@@ -116,12 +116,13 @@ serve(async (req) => {
     return new Response(JSON.stringify({ processed: pendingMessages.length, results }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  if (req.method === "POST" && (url.pathname.endsWith("/send") || url.pathname.endsWith("/whatsapp-cloud"))) {
+  if (req.method === "POST" && (url.pathname.endsWith("/send") || url.pathname.endsWith("/whatsapp-cloud") || url.pathname === "/whatsapp-cloud" || url.pathname.endsWith("/whatsapp-cloud/"))) {
     const body = await req.json();
-    const { user_id, event_type, phone, placeholders, appointment_id } = body;
+    // Support both direct send (V1) and template-based send (V1.5)
+    const { user_id, phone, content, options, metadata } = body;
 
-    if (!user_id) {
-      return new Response(JSON.stringify({ error: "user_id is required" }), { status: 400, headers: corsHeaders });
+    if (!user_id || !phone) {
+      return new Response(JSON.stringify({ error: "user_id and phone are required" }), { status: 400, headers: corsHeaders });
     }
 
     const { data: activeInstance } = await supabase
@@ -135,29 +136,17 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Nenhuma instância ativa do WhatsApp encontrada para este tenant." }), { status: 404, headers: corsHeaders });
     }
 
-    const { data: template } = await supabase
-      .from("whatsapp_templates")
-      .select("content")
-      .eq("user_id", user_id)
-      .eq("event_type", event_type)
-      .maybeSingle();
-
-    let content = template?.content || "Olá!"; // Simplified for brevity
-
-    if (placeholders) {
-      Object.keys(placeholders).forEach(key => {
-        content = content.replace(new RegExp(`{{${key}}}`, "g"), placeholders[key]);
-      });
-    }
+    // Determine content: direct content or template-based logic (which is now handled in frontend utility)
+    const finalContent = content || "Olá!";
 
     const { data: message, error: insertError } = await supabase
       .from("whatsapp_messages")
       .insert({
         user_id,
-        connection_id: activeInstance.id, // Column still named connection_id in whatsapp_messages for now
+        connection_id: activeInstance.id,
         status: "pending",
-        content,
-        metadata: { phone, appointment_id, ...placeholders },
+        content: finalContent,
+        metadata: { phone, options, ...metadata },
         scheduled_for: new Date().toISOString()
       })
       .select()
@@ -167,6 +156,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: insertError.message }), { status: 500, headers: corsHeaders });
     }
 
+    // Trigger immediate processing
     fetch(`${supabaseUrl}/functions/v1/whatsapp-cloud/process-queue`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${supabaseKey}` }
