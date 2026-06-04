@@ -144,6 +144,20 @@ export function AutomationTestModal({
 
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+      if (e.key === 'Enter' && e.ctrlKey && isOpen && !isTesting && !isSimulating) {
+        handleTest();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isTesting, isSimulating, phone, testType, realData]);
+
+  useEffect(() => {
     if (isOpen) {
       fetchLastTestResult();
       if (testType === "real") {
