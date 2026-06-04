@@ -119,6 +119,8 @@ function AutomationsComponent() {
     return localStorage.getItem(`auditSearchTerm_${tenantId}`) || "";
   });
   const [auditPage, setAuditPage] = useState(1);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [totalAuditLogs, setTotalAuditLogs] = useState(0);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const auditItemsPerPage = 5;
   const [statsLoading, setStatsLoading] = useState(false);
