@@ -974,8 +974,9 @@ function AutomationsComponent() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
+                    {/* Desktop view for logs (Table) */}
+                    <div className="hidden lg:block overflow-x-auto">
+                      <table className="w-full border-collapse">
                     <thead className="bg-[#0F172A]/80 sticky top-0 z-10">
                       <tr className="border-b border-white/5">
                         <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Data/Hora</th>
