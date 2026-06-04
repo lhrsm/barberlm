@@ -178,7 +178,7 @@ function FinancesComponent() {
   const summary = useMemo(() => {
     // FILTRAR APENAS TRANSAÇÕES DE AGENDAMENTOS CONCLUÍDOS OU MANUAIS
     const effectiveTransactions = transactions.filter(t => 
-      !t.appointment || t.appointment.status === 'completed'
+      !t.appointment || t.appointment.status === 'completed' || t.appointment.status === 'confirmed' || t.appointment.status === 'scheduled'
     );
 
     // 1. Receita Operacional (Faturamento Operacional) - Valor Total dos Serviços Vendidos
@@ -186,18 +186,10 @@ function FinancesComponent() {
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         if (t.appointment) {
-          return acc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
+          // Usar total_price como o valor total do serviço (independente de como foi pago)
+          return acc + (Number(t.appointment.total_price || t.appointment.original_total) || 0);
         }
-
-        const val = parseFloat(String(t.amount)) || 0;
-        
-        let creditedAmount = 0;
-        if (t.description?.includes("Créditos: R$")) {
-          const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
-          creditedAmount = match ? parseFloat(match[1]) : 0;
-        }
-        
-        return acc + val + creditedAmount;
+        return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
 
     // 2. Fluxo de Caixa (Entrada Financeira Real) - Dinheiro novo no caixa
@@ -208,16 +200,12 @@ function FinancesComponent() {
     // 3. Créditos Consumidos
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
-      .reduce((acc, t) => {
-        let creditedAmount = 0;
-        if (t.appointment?.credit_used) {
-          creditedAmount = Number(t.appointment.credit_used);
-        } else if (t.description?.includes("Créditos: R$")) {
-          const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
-          creditedAmount = match ? parseFloat(match[1]) : 0;
-        }
-        return acc + creditedAmount;
-      }, 0);
+      .reduce((acc, t) => acc + (Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)), 0);
+
+    // 4. Cashback Consumido
+    const cashbackConsumed = effectiveTransactions
+      .filter((t) => t.type === "income")
+      .reduce((acc, t) => acc + Number(t.appointment?.cashback_used || 0), 0);
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
