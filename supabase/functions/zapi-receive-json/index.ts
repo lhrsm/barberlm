@@ -270,7 +270,6 @@ serve(async (req) => {
         });
       }
 
-      const appointment = foundLog?.appointment;
       const statusBefore = appointment?.status;
 
       // IDEMPOTENCY CHECK (using messageId from provider)
@@ -287,9 +286,6 @@ serve(async (req) => {
           status: 200,
         });
       }
-
-      const appointment = foundLog?.appointment;
-      const statusBefore = appointment?.status;
 
       // 5. Etapa Resposta (Log de Auditoria)
       await supabase.from("automation_logs").insert({
