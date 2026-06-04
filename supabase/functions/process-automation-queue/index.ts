@@ -127,8 +127,10 @@ serve(async (req) => {
           ];
           */
           
-          // Adicionando menu de texto
-          renderedTemplate += "\n\nO que deseja fazer?\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar";
+          // Adicionando menu de texto APENAS se não houver botões
+          if (!sendOptions.buttons) {
+            renderedTemplate += "\n\nO que deseja fazer?\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar";
+          }
         }
 
         // 5. Dry Run exit
@@ -202,7 +204,39 @@ serve(async (req) => {
              continue;
           }
 
-          // REGISTRO NO LOG DE FLUXO (Mantendo compatibilidade)
+          // REGISTRO NO LOG DE FLUXO (Auditoria do Fluxo)
+          // 1. Evento Criado
+          await supabase.from("automation_logs").insert({
+            automation_id: automation.id,
+            tenant_id: itemTenantId,
+            appointment_id: appointment.id,
+            status: "info",
+            action: "evento_criado",
+            payload: { event: "appointment.created", details: "Evento recebido pelo sistema" }
+          });
+
+          // 2. Fila Processada
+          await supabase.from("automation_logs").insert({
+            automation_id: automation.id,
+            tenant_id: itemTenantId,
+            appointment_id: appointment.id,
+            status: "info",
+            action: "fila_processada",
+            payload: { details: "Item retirado da fila para processamento" }
+          });
+
+          // 3. Mensagem Renderizada
+          await supabase.from("automation_logs").insert({
+            automation_id: automation.id,
+            tenant_id: itemTenantId,
+            appointment_id: appointment.id,
+            status: "info",
+            action: "mensagem_renderizada",
+            processed_template: renderedTemplate,
+            payload: { rendered_message: renderedTemplate, test_data: testData }
+          });
+
+          // 4. Mensagem Enviada (Log principal de aguardando_resposta)
           await supabase.from("automation_logs").insert({
             automation_id: automation.id,
             tenant_id: itemTenantId,
@@ -210,6 +244,7 @@ serve(async (req) => {
             customer_id: appointment.customer_id,
             phone: phone,
             status: "aguardando_resposta",
+            action: "mensagem_enviada",
             message_type: finalMessageType,
             processed_template: renderedTemplate,
             original_template: automation.template,
@@ -221,7 +256,8 @@ serve(async (req) => {
               diagnostic: diagInfo, 
               buttons_attached: !!sendOptions.buttons,
               source: force_resend ? 'test_manual' : 'automatic',
-              zaap_id: zaapId
+              zaap_id: zaapId,
+              rendered_message: renderedTemplate
             },
             response: sendResult.response
           });

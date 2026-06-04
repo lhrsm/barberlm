@@ -238,8 +238,10 @@ function AutomationsComponent() {
 
       let query = anySupabase
         .from("automation_send_history")
-        .select("*", { count: 'exact' })
-        .eq("tenant_id", tenantId);
+        .select("*", { count: 'exact' });
+        // Removido filtro fixo de tenant_id para garantir que mostre tudo no filtro "Sempre" se solicitado, 
+        // mas mantendo por segurança de RLS/Tenant context
+        query = query.eq("tenant_id", tenantId);
         
       if (searchTerm) {
         if (searchTerm.startsWith('appointment:')) {
@@ -1757,7 +1759,7 @@ function AutomationsComponent() {
                   </div>
                   <div className="bg-[#0F172A] border border-white/5 p-6 rounded-[24px] h-[300px] overflow-y-auto custom-scrollbar">
                     <div className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
-                      {selectedLog.processed_template || "Mensagem não disponível"}
+                      {selectedLog.processed_template || selectedLog.payload?.rendered_message || "Mensagem não disponível"}
                     </div>
                   </div>
                 </div>
@@ -1780,11 +1782,11 @@ function AutomationsComponent() {
                       { label: "Inserido na Fila", status: "done", id: 2 },
                       { label: "Processado", status: "done", id: 3 },
                       { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error", id: 4 },
-                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending", id: 5 },
-                      { label: "Lida", status: "pending", id: 6 },
-                      { label: "Resposta", status: "pending", id: 7 },
-                      { label: "Ação", status: "pending", id: 8 },
-                      { label: "Finalizado", status: "pending", id: 9 }
+                      { label: "Entregue", status: selectedLog.status === 'sent' || selectedLog.callback_received ? "done" : "pending", id: 5 },
+                      { label: "Lida", status: selectedLog.callback_received ? "done" : "pending", id: 6 },
+                      { label: "Resposta", status: selectedLog.callback_received ? "done" : "pending", id: 7 },
+                      { label: "Ação", status: selectedLog.final_status === 'confirmed' ? "done" : "pending", id: 8 },
+                      { label: "Finalizado", status: selectedLog.final_status === 'confirmed' ? "done" : "pending", id: 9 }
                     ].map((step, idx) => (
                       <button 
                         key={idx} 
