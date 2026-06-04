@@ -1073,23 +1073,10 @@ function AutomationsComponent() {
                       ))}
                     </tbody>
                   </table>
-                  {logs.length === 0 && (
-                    <div className="text-center py-20 bg-[#020817]">
-                      <div className="w-16 h-16 bg-[#0F172A] rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
-                        <History size={24} className="text-slate-600" />
-                      </div>
-                      <p className="text-slate-500 text-sm font-medium">Nenhum envio registrado recentemente.</p>
-                      <p className="text-slate-600 text-xs mt-1">Tente ajustar seus filtros para encontrar o que procura.</p>
-                    </div>
-                  )}
-                </div>
-                      Nenhum envio registrado recentemente.
-                    </div>
-                  )}
                 </div>
                 {totalLogs > itemsPerPage && (
-                  <div className="flex items-center justify-between mt-4 px-1">
-                    <p className="text-xs text-slate-400">
+                  <div className="flex items-center justify-between p-6 border-t border-white/5 bg-[#0F172A]/50">
+                    <p className="text-xs text-slate-500">
                       Mostrando <span className="text-white font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="text-white font-medium">{Math.min(currentPage * itemsPerPage, totalLogs)}</span> de <span className="text-white font-medium">{totalLogs}</span> registros
                     </p>
                     <div className="flex gap-2">
@@ -1098,18 +1085,18 @@ function AutomationsComponent() {
                         size="sm"
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-8 px-3"
+                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-9 px-4"
                       >
-                        <ChevronLeft size={14} className="mr-1" /> Anterior
+                        <ChevronLeft size={16} className="mr-1" /> Anterior
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={currentPage * itemsPerPage >= totalLogs}
                         onClick={() => setCurrentPage(prev => prev + 1)}
-                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-8 px-3"
+                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-9 px-4"
                       >
-                        Próximo <ChevronRight size={14} className="ml-1" />
+                        Próximo <ChevronRight size={16} className="ml-1" />
                       </Button>
                     </div>
                   </div>
