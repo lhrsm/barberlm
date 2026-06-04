@@ -144,6 +144,10 @@ function AutomationsComponent() {
         .select("*", { count: 'exact' })
         .eq("tenant_id", tenantId);
         
+      if (searchTerm) {
+        query = query.ilike("phone", `%${searchTerm}%`);
+      }
+        
       if (filterStatus !== "all") {
         query = query.eq("status", filterStatus);
       }
