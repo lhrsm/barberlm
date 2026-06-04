@@ -499,17 +499,6 @@ export function AutomationTestModal({
             )}
           </Button>
         </DialogFooter>
-                Enviando...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Play size={18} className="fill-current" />
-                Enviar Teste
-              </span>
-            )}
-          </Button>
-        </DialogFooter>
-
       </DialogContent>
     </Dialog>
   );
