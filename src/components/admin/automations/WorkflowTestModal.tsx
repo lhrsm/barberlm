@@ -82,10 +82,10 @@ export function WorkflowTestModal({ workflow, isOpen, onClose }: WorkflowTestMod
 
       if (error) throw error;
 
-      await supabase.from("automation_v2_logs").insert({
+      await (supabase.from("automation_v2_logs") as any).insert({
         tenant_id: workflow.tenant_id,
         event_name: workflow.event_name,
-        flow_type: workflow.configuration?.flow_type,
+        flow_type: workflow.configuration?.flow_type || "single",
         action: "test_send",
         status: "success",
         message: `Teste enviado para ${phone}`
