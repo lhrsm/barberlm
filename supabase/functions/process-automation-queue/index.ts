@@ -105,7 +105,20 @@ serve(async (req) => {
         const phone = appointment.customer?.phone;
         if (!phone) throw new Error("Customer phone not found");
 
-        const sendResult = await sendMessage(instance, phone, renderedTemplate);
+        // 4. Send Message with buttons for confirmation
+        const phone = appointment.customer?.phone;
+        if (!phone) throw new Error("Customer phone not found");
+
+        const sendOptions: any = {};
+        if (automation.key === 'appointment_confirmation') {
+          sendOptions.buttons = [
+            { id: 'main_confirm', label: 'Confirmar agendamento' },
+            { id: 'main_reschedule', label: 'Reagendar' },
+            { id: 'main_cancel', label: 'Cancelar' }
+          ];
+        }
+
+        const sendResult = await sendMessage(instance, phone, renderedTemplate, sendOptions);
 
         // 5. Update Queue and Log
         if (sendResult.success) {
