@@ -1022,8 +1022,28 @@ function AutomationsComponent() {
                         <SelectItem value="pending">Pendentes</SelectItem>
                       </SelectContent>
                     </Select>
+                    </div>
                   </div>
-                </div>
+
+                  <div className="flex items-center gap-2 px-4 pb-4">
+                    <Button
+                      variant={searchTerm === 'source:test_manual' ? 'default' : 'outline'}
+                      size="sm"
+                      className={`rounded-full text-[10px] uppercase font-bold tracking-wider h-8 ${
+                        searchTerm === 'source:test_manual' 
+                        ? 'bg-amber-500 hover:bg-amber-600 text-white' 
+                        : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                      onClick={() => {
+                        setSearchTerm(searchTerm === 'source:test_manual' ? '' : 'source:test_manual');
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <Terminal size={12} className="mr-1.5" />
+                      Apenas Testes Manuais
+                    </Button>
+                  </div>
+
               </CardHeader>
               <CardContent className="p-0">
                     {/* Desktop view for logs (Table) */}
