@@ -176,7 +176,7 @@ function AutomationsComponent() {
         }
       }
 
-      // 3. Fetch stats for each automation
+      // 3. Fetch stats and failure reasons for each automation
       const enrichedAutomations = await Promise.all((automationsData || []).map(async (auto: any) => {
         const { count: sentCount } = await supabase
           .from("automation_logs")
@@ -199,18 +199,29 @@ function AutomationsComponent() {
           .limit(1)
           .maybeSingle();
 
+        const { data: lastError } = await supabase
+          .from("automation_logs")
+          .select("created_at, error_message")
+          .eq("automation_id", auto.id)
+          .eq("status", "error")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
         return {
           ...auto,
           stats: {
             sent: sentCount || 0,
             errors: errorCount || 0,
-            lastSent: lastLog?.created_at || null
+            lastSent: lastLog?.created_at || null,
+            lastError: lastError || null
           }
         };
       }));
 
       setAutomations(enrichedAutomations);
       setStatsLoading(false);
+
 
       // 4. Fetch logs with filtering and pagination
 
