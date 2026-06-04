@@ -27,7 +27,9 @@ import {
   SendHorizontal,
   Search,
   Filter,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
@@ -82,7 +84,12 @@ function AutomationsComponent() {
   
   // Filtros
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterAutomation, setFilterAutomation] = useState("all");
+  const [filterPeriod, setFilterPeriod] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalLogs, setTotalLogs] = useState(0);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (tenantId) {
@@ -131,21 +138,46 @@ function AutomationsComponent() {
 
       setAutomations(automationsData || []);
 
-      // 3. Fetch logs with filtering
+      // 3. Fetch logs with filtering and pagination
       let query = supabase
         .from("automation_logs")
-        .select("*")
+        .select("*", { count: 'exact' })
         .eq("tenant_id", tenantId);
+        
+      if (searchTerm) {
+        query = query.ilike("phone", `%${searchTerm}%`);
+      }
         
       if (filterStatus !== "all") {
         query = query.eq("status", filterStatus);
       }
       
-      const { data: logsData } = await query
+      if (filterAutomation !== "all") {
+        query = query.eq("message_type", filterAutomation);
+      }
+      
+      if (filterPeriod !== "all") {
+        const now = new Date();
+        let startDate = new Date();
+        if (filterPeriod === "today") {
+          startDate.setHours(0, 0, 0, 0);
+        } else if (filterPeriod === "7days") {
+          startDate.setDate(now.getDate() - 7);
+        } else if (filterPeriod === "30days") {
+          startDate.setDate(now.getDate() - 30);
+        }
+        query = query.gte("created_at", startDate.toISOString());
+      }
+      
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      
+      const { data: logsData, count } = await query
         .order("created_at", { ascending: false })
-        .limit(100);
+        .range(from, to);
 
       setLogs(logsData || []);
+      setTotalLogs(count || 0);
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao carregar dados: " + error.message);
@@ -170,8 +202,15 @@ function AutomationsComponent() {
   };
 
   useEffect(() => {
+    if (tenantId) {
+      setCurrentPage(1); // Reset to first page when filters change
+      fetchData();
+    }
+  }, [filterStatus, filterAutomation, filterPeriod, searchTerm]);
+
+  useEffect(() => {
     if (tenantId) fetchData();
-  }, [filterStatus]);
+  }, [currentPage]);
 
   const toggleStatus = async (automation: any) => {
     try {
@@ -428,10 +467,37 @@ function AutomationsComponent() {
                         placeholder="Buscar destinatário..." 
                         className="pl-9 w-[200px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white focus:border-amber-500/50"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1); // Reset to first page when searching
+                        }}
                       />
                     </div>
                     
+                    <Select value={filterAutomation} onValueChange={setFilterAutomation}>
+                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white">
+                        <Zap size={14} className="mr-2 text-slate-500" />
+                        <SelectValue placeholder="Automação" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="appointment_confirmation">Confirmação</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white">
+                        <CalendarIcon size={14} className="mr-2 text-slate-500" />
+                        <SelectValue placeholder="Período" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
+                        <SelectItem value="all">Sempre</SelectItem>
+                        <SelectItem value="today">Hoje</SelectItem>
+                        <SelectItem value="7days">7 Dias</SelectItem>
+                        <SelectItem value="30days">30 Dias</SelectItem>
+                      </SelectContent>
+                    </Select>
+
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
                       <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white">
                         <Filter size={14} className="mr-2 text-slate-500" />
@@ -461,7 +527,7 @@ function AutomationsComponent() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {logs.filter(l => (l.phone || '').includes(searchTerm)).map((log) => (
+                      {logs.map((log) => (
                         <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-4 py-3 text-xs">
                             {new Date(log.created_at).toLocaleString('pt-BR')}
@@ -530,6 +596,33 @@ function AutomationsComponent() {
                     </div>
                   )}
                 </div>
+                {totalLogs > itemsPerPage && (
+                  <div className="flex items-center justify-between mt-4 px-1">
+                    <p className="text-xs text-slate-400">
+                      Mostrando <span className="text-white font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="text-white font-medium">{Math.min(currentPage * itemsPerPage, totalLogs)}</span> de <span className="text-white font-medium">{totalLogs}</span> registros
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-8 px-3"
+                      >
+                        <ChevronLeft size={14} className="mr-1" /> Anterior
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage * itemsPerPage >= totalLogs}
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-8 px-3"
+                      >
+                        Próximo <ChevronRight size={14} className="ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
