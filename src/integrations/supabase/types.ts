@@ -148,6 +148,7 @@ export type Database = {
           cashback_used: number | null
           completed_at: string | null
           completed_by: string | null
+          confirmation_response_sent_at: string | null
           confirmation_sent: boolean | null
           confirmation_sent_at: string | null
           confirmed_at: string | null
@@ -200,6 +201,7 @@ export type Database = {
           cashback_used?: number | null
           completed_at?: string | null
           completed_by?: string | null
+          confirmation_response_sent_at?: string | null
           confirmation_sent?: boolean | null
           confirmation_sent_at?: string | null
           confirmed_at?: string | null
@@ -252,6 +254,7 @@ export type Database = {
           cashback_used?: number | null
           completed_at?: string | null
           completed_by?: string | null
+          confirmation_response_sent_at?: string | null
           confirmation_sent?: boolean | null
           confirmation_sent_at?: string | null
           confirmed_at?: string | null
@@ -612,6 +615,7 @@ export type Database = {
           phone: string | null
           processed_template: string | null
           provider: string | null
+          provider_message_id: string | null
           received_at: string | null
           response: Json | null
           selected_option_normalized: string | null
@@ -646,6 +650,7 @@ export type Database = {
           phone?: string | null
           processed_template?: string | null
           provider?: string | null
+          provider_message_id?: string | null
           received_at?: string | null
           response?: Json | null
           selected_option_normalized?: string | null
@@ -680,6 +685,7 @@ export type Database = {
           phone?: string | null
           processed_template?: string | null
           provider?: string | null
+          provider_message_id?: string | null
           received_at?: string | null
           response?: Json | null
           selected_option_normalized?: string | null
