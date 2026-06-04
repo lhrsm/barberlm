@@ -1159,8 +1159,49 @@ function AutomationsComponent() {
                 </div>
               </div>
 
+              {/* PAYLOAD E DADOS */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Terminal size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Payload da Mensagem</h3>
+                  </div>
+                  <div className="bg-[#0F172A] border border-white/5 p-6 rounded-[24px] h-[300px] overflow-hidden flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">JSON Bruto</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 text-[10px] text-slate-400 hover:text-white"
+                        onClick={() => {
+                          navigator.clipboard.writeText(JSON.stringify(selectedLog.payload, null, 2));
+                          toast.success("Copiado!");
+                        }}
+                      >
+                        <Copy size={10} className="mr-1" /> Copiar
+                      </Button>
+                    </div>
+                    <pre className="text-[10px] font-mono text-amber-500/80 overflow-y-auto custom-scrollbar flex-1 bg-black/20 p-4 rounded-xl">
+                      {JSON.stringify(selectedLog.payload, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Mensagem Processada</h3>
+                  </div>
+                  <div className="bg-[#0F172A] border border-white/5 p-6 rounded-[24px] h-[300px] overflow-y-auto custom-scrollbar">
+                    <div className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
+                      {selectedLog.processed_template || "Mensagem não disponível"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* LINHA DO TEMPO DA AUTOMAÇÃO */}
-              <div className="space-y-4">
+              <div className="space-y-4 pt-4">
                 <div className="flex items-center gap-2">
                   <Activity size={18} className="text-amber-500" />
                   <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Fluxo da Automação</h3>
