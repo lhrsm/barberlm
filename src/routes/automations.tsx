@@ -109,6 +109,7 @@ function AutomationsComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
+  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null });
   const itemsPerPage = 10;
 
   // Estados Auditoria do Fluxo (Modal)
@@ -269,6 +270,19 @@ function AutomationsComponent() {
 
       setLogs(logsData || []);
       setTotalLogs(count || 0);
+
+      // Fetch global stats for logs
+      const { count: totalSent } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
+      const { count: totalSuccess } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "sent");
+      const { count: totalFailed } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
+      const { data: lastLog } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
+
+      setLogStats({
+        sent: totalSent || 0,
+        success: totalSuccess || 0,
+        failed: totalFailed || 0,
+        lastSent: lastLog?.created_at || null
+      });
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao carregar dados: " + error.message);
@@ -841,61 +855,113 @@ function AutomationsComponent() {
             </p>
           </TabsContent>
 
-          <TabsContent value="logs" className="pt-4">
-            <Card>
-              <CardHeader className="pb-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <TabsContent value="logs" className="pt-6 space-y-6">
+            {/* Cards de Estatísticas */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <SendHorizontal size={40} className="text-white" />
+                </div>
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Total Enviados</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-white">{logStats.sent}</CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <CheckCircle2 size={40} className="text-[#10B981]" />
+                </div>
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Sucessos</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-[#10B981]">{logStats.success}</CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <XCircle size={40} className="text-[#EF4444]" />
+                </div>
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Falhas</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-[#EF4444]">{logStats.failed}</CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="bg-[#0F172A] border-white/5 shadow-lg overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Clock size={40} className="text-amber-500" />
+                </div>
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Último Envio</CardDescription>
+                  <CardTitle className="text-sm font-bold text-white mt-2">
+                    {logStats.lastSent ? new Date(logStats.lastSent).toLocaleString('pt-BR') : 'Sem registros'}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
+
+            <Card className="bg-[#020817] border-white/5 shadow-2xl rounded-[24px] overflow-hidden">
+              <CardHeader className="pb-6 border-b border-white/5 bg-[#0F172A]/50">
+                <div className="flex flex-col gap-6">
                   <div>
-                    <CardTitle className="text-lg flex items-center gap-2 text-white">
-                      <History size={18} /> Histórico de Envios
+                    <CardTitle className="text-2xl font-bold flex items-center gap-2 text-white">
+                      <History size={24} className="text-amber-500" /> Histórico de Envios
                     </CardTitle>
-                    <CardDescription className="text-slate-400">
-                      Acompanhe as últimas mensagens enviadas pelo sistema.
+                    <CardDescription className="text-slate-400 mt-1">
+                      Acompanhe as mensagens automáticas enviadas pelo sistema.
                     </CardDescription>
                   </div>
                   
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+                  {/* Barra de Filtros Única */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-[#020817] p-4 rounded-2xl border border-white/5 shadow-inner">
+                    <div className="relative group">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-amber-500 transition-colors" size={14} />
                       <Input 
                         placeholder="Buscar destinatário..." 
-                        className="pl-9 w-[200px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white focus:border-amber-500/50"
+                        className="pl-9 w-full bg-[#0F172A] border-slate-800 text-sm h-11 rounded-xl text-white focus:border-amber-500/50 focus:ring-amber-500/20 transition-all"
                         value={searchTerm}
                         onChange={(e) => {
                           setSearchTerm(e.target.value);
-                          setCurrentPage(1); // Reset to first page when searching
+                          setCurrentPage(1);
                         }}
                       />
                     </div>
                     
                     <Select value={filterAutomation} onValueChange={setFilterAutomation}>
-                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white">
-                        <Zap size={14} className="mr-2 text-slate-500" />
-                        <SelectValue placeholder="Automação" />
+                      <SelectTrigger className="w-full bg-[#0F172A] border-slate-800 text-sm h-11 rounded-xl text-white focus:ring-amber-500/20">
+                        <div className="flex items-center gap-2">
+                          <Zap size={14} className="text-slate-500" />
+                          <SelectValue placeholder="Automação" />
+                        </div>
                       </SelectTrigger>
                       <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
-                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="all">Todas Automações</SelectItem>
                         <SelectItem value="appointment_confirmation">Confirmação</SelectItem>
                       </SelectContent>
                     </Select>
 
                     <Select value={filterPeriod} onValueChange={setFilterPeriod}>
-                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white">
-                        <CalendarIcon size={14} className="mr-2 text-slate-500" />
-                        <SelectValue placeholder="Período" />
+                      <SelectTrigger className="w-full bg-[#0F172A] border-slate-800 text-sm h-11 rounded-xl text-white focus:ring-amber-500/20">
+                        <div className="flex items-center gap-2">
+                          <CalendarIcon size={14} className="text-slate-500" />
+                          <SelectValue placeholder="Período" />
+                        </div>
                       </SelectTrigger>
                       <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
                         <SelectItem value="all">Sempre</SelectItem>
                         <SelectItem value="today">Hoje</SelectItem>
-                        <SelectItem value="7days">7 Dias</SelectItem>
-                        <SelectItem value="30days">30 Dias</SelectItem>
+                        <SelectItem value="7days">Últimos 7 Dias</SelectItem>
+                        <SelectItem value="30days">Últimos 30 Dias</SelectItem>
                       </SelectContent>
                     </Select>
 
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
-                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white">
-                        <Filter size={14} className="mr-2 text-slate-500" />
-                        <SelectValue placeholder="Status" />
+                      <SelectTrigger className="w-full bg-[#0F172A] border-slate-800 text-sm h-11 rounded-xl text-white focus:ring-amber-500/20">
+                        <div className="flex items-center gap-2">
+                          <Filter size={14} className="text-slate-500" />
+                          <SelectValue placeholder="Status" />
+                        </div>
                       </SelectTrigger>
                       <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
                         <SelectItem value="all">Todos Status</SelectItem>
@@ -907,154 +973,111 @@ function AutomationsComponent() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="rounded-2xl border border-slate-800 overflow-hidden bg-[#0F172A]/50">
-                  <table className="w-full text-sm">
-                    <thead className="bg-[#0F172A] border-b border-slate-800">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-medium text-slate-400">Data/Hora</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-400">Automação</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-400">Canal</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-400">Destinatário</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-400">ID Agendamento</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-400">Status</th>
-
-                        <th className="px-4 py-3 text-right font-medium text-slate-400">Ações</th>
+              <CardContent className="p-0">
+                    {/* Desktop view for logs (Table) */}
+                    <div className="hidden lg:block overflow-x-auto">
+                      <table className="w-full border-collapse">
+                    <thead className="bg-[#0F172A]/80 sticky top-0 z-10">
+                      <tr className="border-b border-white/5">
+                        <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Data/Hora</th>
+                        <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Automação</th>
+                        <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Canal</th>
+                        <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Destinatário</th>
+                        <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">ID Agendamento</th>
+                        <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Status</th>
+                        <th className="px-6 py-4 text-right font-bold text-[10px] uppercase tracking-widest text-slate-500">Ações</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800">
-                      {logs.map((log) => (
-                        <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-4 py-3 text-xs">
-                            {new Date(log.created_at).toLocaleString('pt-BR')}
+                    <tbody className="divide-y divide-white/5">
+                      {logs.map((log, idx) => (
+                        <tr key={log.id} className={`${idx % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'} hover:bg-white/[0.05] transition-colors group`}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-white">{new Date(log.created_at).toLocaleDateString('pt-BR')}</span>
+                              <span className="text-[10px] text-slate-500 font-mono">{new Date(log.created_at).toLocaleTimeString('pt-BR')}</span>
+                            </div>
                           </td>
-                          <td className="px-4 py-3 font-medium">
-                            {log.message_type === 'appointment_confirmation' ? 'Confirmação de Agendamento' : log.message_type}
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-semibold text-slate-300">
+                              {log.message_type === 'appointment_confirmation' ? 'Confirmação' : 'Automação'}
+                            </span>
                           </td>
-                          <td className="px-4 py-3 text-xs font-mono text-slate-500">
-                            {log.appointment_id ? (
-                              <button 
-                                onClick={() => {
-                                  setSearchTerm(log.appointment_id);
-                                  setCurrentPage(1);
-                                  toast.info(`Filtrando por agendamento: ${log.appointment_id.substring(0,8)}`);
-                                }}
-                                className="hover:text-amber-500 transition-colors flex items-center gap-1"
-                              >
-                                <Code2 size={12} /> {log.appointment_id.substring(0, 8)}...
-                              </button>
-                            ) : '-'}
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              {log.provider === 'zapi' ? (
+                                <>
+                                  <Smartphone size={14} className="text-[#10B981]" />
+                                  <span className="text-xs font-medium text-slate-400">WhatsApp</span>
+                                </>
+                              ) : log.provider === 'email' ? (
+                                <>
+                                  <MessageSquare size={14} className="text-sky-500" />
+                                  <span className="text-xs font-medium text-slate-400">E-mail</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Terminal size={14} className="text-slate-500" />
+                                  <span className="text-xs font-medium text-slate-400">Sistema</span>
+                                </>
+                              )}
+                            </div>
                           </td>
-                          <td className="px-4 py-3">
-
-                            <Badge variant="outline" className="text-[10px] capitalize">
-                              {log.provider === 'zapi' ? 'WhatsApp' : log.provider}
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-white">{log.payload?.data?.customer_name || 'Cliente'}</span>
+                              <span className="text-xs text-slate-500 font-mono">{log.phone}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge variant="outline" className="font-mono text-[10px] border-white/10 text-slate-400 bg-white/5">
+                              #{log.appointment_id?.substring(0, 8).toUpperCase() || '---'}
                             </Badge>
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {log.phone}
-                          </td>
-                          <td className="px-4 py-3">
+                          <td className="px-6 py-4">
                             {log.status === 'sent' ? (
-                              <div className="flex items-center gap-1.5 text-green-600">
-                                <CheckCircle2 size={14} />
-                                <span className="text-xs font-medium">Enviado</span>
-                              </div>
+                              <Badge className="bg-[#10B981]/10 text-[#10B981] border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit">
+                                <Check size={12} strokeWidth={3} /> Enviado
+                              </Badge>
                             ) : log.status === 'error' ? (
-                              <div className="flex items-center gap-1.5 text-red-600" title={log.error_message}>
-                                <XCircle size={14} />
-                                <span className="text-xs font-medium">Falha</span>
-                              </div>
+                              <Badge className="bg-[#EF4444]/10 text-[#EF4444] border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit">
+                                <X size={12} strokeWidth={3} /> Falhou
+                              </Badge>
                             ) : (
-                              <div className="flex items-center gap-1.5 text-amber-600">
-                                <Clock size={14} />
-                                <span className="text-xs font-medium">{log.status}</span>
-                              </div>
+                              <Badge className="bg-amber-500/10 text-amber-500 border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit">
+                                <Clock size={12} /> Pendente
+                              </Badge>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex justify-end gap-2">
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                               <Button 
                                 variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 focus-visible:ring-2 focus-visible:ring-amber-500"
-                                onClick={() => {
-                                  openLogDetail(log);
-                                }}
-                                title="Ver Auditoria do Fluxo"
+                                size="sm" 
+                                className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-white/5 hover:bg-amber-500 hover:text-slate-900 rounded-lg focus-visible:ring-2 focus-visible:ring-amber-500 transition-all"
+                                onClick={() => openLogDetail(log)}
+                                title="Ver Detalhes"
                               >
-                                <Terminal size={14} />
+                                <Terminal size={12} className="mr-1.5" /> Detalhes
                               </Button>
                               <Button 
                                 variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-slate-500 hover:text-sky-500 hover:bg-sky-500/10 focus-visible:ring-2 focus-visible:ring-sky-500"
-                                onClick={() => openPreview(log.processed_template || log.payload?.rendered)}
-                                title="Ver Preview da Mensagem"
+                                size="sm" 
+                                className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-white/5 hover:bg-sky-500 hover:text-white rounded-lg focus-visible:ring-2 focus-visible:ring-sky-500 transition-all"
+                                onClick={() => resendTest(log)}
+                                title="Reprocessar"
                               >
-                                <Eye size={14} />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                                onClick={async () => {
-                                  if (log.status === 'error' || log.error_message) {
-                                    const confirmResend = confirm("Deseja reenviar esta automação?");
-                                    if (!confirmResend) return;
-                                    
-                                    toast.loading("Reenviando...");
-                                    try {
-                                      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
-                                        body: { 
-                                          tenant_id: tenantId, 
-                                          appointment_id: log.appointment_id,
-                                          force_resend: true 
-                                        }
-                                      });
-                                      
-                                      if (error) throw error;
-                                      toast.success("Solicitação de reenvio processada!");
-                                      fetchData();
-                                    } catch (err: any) {
-                                      toast.error("Erro ao reenviar: " + err.message);
-                                    }
-                                  } else {
-                                    resendTest(log);
-                                  }
-                                }}
-                                title="Reenviar"
-                              >
-                                <RotateCcw size={14} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-slate-500 hover:text-white hover:bg-white/10"
-                                onClick={() => {
-                                  // Open a detailed log view or similar
-                                  setSelectedLog(log);
-                                  setIsLogDetailOpen(true);
-                                }}
-                                title="Logs Detalhados"
-                              >
-                                <ExternalLink size={14} />
+                                <RotateCcw size={12} className="mr-1.5" /> Reenviar
                               </Button>
                             </div>
                           </td>
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                  {logs.length === 0 && (
-                    <div className="text-center py-12 text-slate-400">
-                      Nenhum envio registrado recentemente.
-                    </div>
-                  )}
-                </div>
+                    </table>
+                  </div>
                 {totalLogs > itemsPerPage && (
-                  <div className="flex items-center justify-between mt-4 px-1">
-                    <p className="text-xs text-slate-400">
+                  <div className="flex items-center justify-between p-6 border-t border-white/5 bg-[#0F172A]/50">
+                    <p className="text-xs text-slate-500">
                       Mostrando <span className="text-white font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="text-white font-medium">{Math.min(currentPage * itemsPerPage, totalLogs)}</span> de <span className="text-white font-medium">{totalLogs}</span> registros
                     </p>
                     <div className="flex gap-2">
@@ -1063,18 +1086,18 @@ function AutomationsComponent() {
                         size="sm"
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-8 px-3"
+                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-9 px-4"
                       >
-                        <ChevronLeft size={14} className="mr-1" /> Anterior
+                        <ChevronLeft size={16} className="mr-1" /> Anterior
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={currentPage * itemsPerPage >= totalLogs}
                         onClick={() => setCurrentPage(prev => prev + 1)}
-                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-8 px-3"
+                        className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-9 px-4"
                       >
-                        Próximo <ChevronRight size={14} className="ml-1" />
+                        Próximo <ChevronRight size={16} className="ml-1" />
                       </Button>
                     </div>
                   </div>
@@ -1083,6 +1106,71 @@ function AutomationsComponent() {
             </Card>
           </TabsContent>
         </Tabs>
+      </div>
+
+      {/* Mobile view for logs (Cards) */}
+      <div className="lg:hidden space-y-4 px-4 pb-8">
+        {logs.map((log) => (
+          <div key={log.id} className="bg-[#0F172A] border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-white">{new Date(log.created_at).toLocaleDateString('pt-BR')}</span>
+                <span className="text-[10px] text-slate-500">{new Date(log.created_at).toLocaleTimeString('pt-BR')}</span>
+              </div>
+              {log.status === 'sent' ? (
+                <Badge className="bg-[#10B981]/10 text-[#10B981] border-none text-[10px] font-bold px-2 py-1 rounded-lg">
+                  Enviado
+                </Badge>
+              ) : log.status === 'error' ? (
+                <Badge className="bg-[#EF4444]/10 text-[#EF4444] border-none text-[10px] font-bold px-2 py-1 rounded-lg">
+                  Falhou
+                </Badge>
+              ) : (
+                <Badge className="bg-amber-500/10 text-amber-500 border-none text-[10px] font-bold px-2 py-1 rounded-lg">
+                  Pendente
+                </Badge>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Destinatário:</span>
+                <span className="text-white font-medium">{log.payload?.data?.customer_name || 'Cliente'} ({log.phone})</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Automação:</span>
+                <span className="text-white font-medium">{log.message_type === 'appointment_confirmation' ? 'Confirmação' : 'Outra'}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Canal:</span>
+                <span className="text-white font-medium">{log.provider === 'zapi' ? 'WhatsApp' : 'Sistema'}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Agendamento:</span>
+                <span className="text-slate-400 font-mono text-[10px]">#{log.appointment_id?.substring(0, 8).toUpperCase()}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 bg-white/5 border-white/10 text-xs rounded-xl h-10"
+                onClick={() => openLogDetail(log)}
+              >
+                <Terminal size={12} className="mr-2" /> Detalhes
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 bg-white/5 border-white/10 text-xs rounded-xl h-10"
+                onClick={() => resendTest(log)}
+              >
+                <RotateCcw size={12} className="mr-2" /> Reenviar
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {selectedAutomation && (
@@ -1111,14 +1199,18 @@ function AutomationsComponent() {
             <X size={20} />
           </button>
 
-          <DialogHeader className="p-8 pb-4">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 text-2xl">
+          <DialogHeader className="p-8 pb-4 bg-[#0F172A]/50 border-b border-white/5">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 flex items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 text-3xl">
                 📨
               </div>
               <div>
-                <DialogTitle className="text-2xl font-bold text-white">Detalhes do Envio</DialogTitle>
-                <p className="text-slate-400 text-sm">Informações completas da execução da automação.</p>
+                <DialogTitle className="text-2xl font-bold text-white tracking-tight">Detalhes do Envio</DialogTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-slate-400 text-sm">Informações completas do processamento</span>
+                  <div className="w-1 h-1 rounded-full bg-slate-600" />
+                  <span className="text-slate-500 text-xs font-mono uppercase">ID: {selectedLog?.id?.substring(0,8)}</span>
+                </div>
               </div>
             </div>
           </DialogHeader>
