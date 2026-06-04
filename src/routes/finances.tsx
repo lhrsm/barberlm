@@ -250,6 +250,7 @@ function FinancesComponent() {
       income: operationalRevenue, 
       realCashIncome,
       creditsConsumed,
+      cashbackConsumed,
       expense, 
       pending, 
       balance: realCashIncome - expense, // Saldo Atual é Dinheiro Real - Despesas
