@@ -22,7 +22,6 @@ import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BarbersRouteImport } from './routes/barbers'
-import { Route as AutomationsRouteImport } from './routes/automations'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SlugRouteImport } from './routes/$slug'
@@ -108,11 +107,6 @@ const CalendarRoute = CalendarRouteImport.update({
 const BarbersRoute = BarbersRouteImport.update({
   id: '/barbers',
   path: '/barbers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AutomationsRoute = AutomationsRouteImport.update({
-  id: '/automations',
-  path: '/automations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -228,7 +222,6 @@ export interface FileRoutesByFullPath {
   '/$slug': typeof SlugRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
-  '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
@@ -264,7 +257,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRouteWithChildren
   '/auth': typeof AuthRoute
-  '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
@@ -302,7 +294,6 @@ export interface FileRoutesById {
   '/$slug': typeof SlugRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
-  '/automations': typeof AutomationsRoute
   '/barbers': typeof BarbersRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
@@ -341,7 +332,6 @@ export interface FileRouteTypes {
     | '/$slug'
     | '/admin'
     | '/auth'
-    | '/automations'
     | '/barbers'
     | '/calendar'
     | '/campaigns'
@@ -377,7 +367,6 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/auth'
-    | '/automations'
     | '/barbers'
     | '/calendar'
     | '/campaigns'
@@ -414,7 +403,6 @@ export interface FileRouteTypes {
     | '/$slug'
     | '/admin'
     | '/auth'
-    | '/automations'
     | '/barbers'
     | '/calendar'
     | '/campaigns'
@@ -452,7 +440,6 @@ export interface RootRouteChildren {
   SlugRoute: typeof SlugRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
-  AutomationsRoute: typeof AutomationsRoute
   BarbersRoute: typeof BarbersRoute
   CalendarRoute: typeof CalendarRoute
   CampaignsRoute: typeof CampaignsRoute
@@ -562,13 +549,6 @@ declare module '@tanstack/react-router' {
       path: '/barbers'
       fullPath: '/barbers'
       preLoaderRoute: typeof BarbersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/automations': {
-      id: '/automations'
-      path: '/automations'
-      fullPath: '/automations'
-      preLoaderRoute: typeof AutomationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -770,7 +750,6 @@ const rootRouteChildren: RootRouteChildren = {
   SlugRoute: SlugRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
-  AutomationsRoute: AutomationsRoute,
   BarbersRoute: BarbersRoute,
   CalendarRoute: CalendarRoute,
   CampaignsRoute: CampaignsRoute,
@@ -791,3 +770,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
