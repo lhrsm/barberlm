@@ -474,7 +474,7 @@ serve(async (req) => {
         }
       });
 
-      // Update the webhook log with the found appointment_id
+      // Update the webhook log with the found appointment_id and results
       if (webhookLog) {
           await supabase.from("automation_webhook_logs").update({
               appointment_id: appointmentId,
@@ -489,8 +489,6 @@ serve(async (req) => {
               status_after: targetStatus,
               response_sent: !!zapiResponse,
               error: null
-          }).eq("id", webhookLog.id);
-      }
           }).eq("id", webhookLog.id);
       }
     }
