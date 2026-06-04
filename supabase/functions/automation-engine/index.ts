@@ -22,7 +22,18 @@ serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const { tenantId, workflowId, queueId, action } = body;
+    const { tenantId, workflowId, queueId, action, phone, message, buttons } = body;
+
+    if (action === "send_test_message") {
+      const { sendMessage, getWhatsAppSettings } = await import("../_shared/whatsapp-settings.ts");
+      const connection = await getWhatsAppSettings(supabase, tenantId);
+      if (!connection) throw new Error("WhatsApp connection not found");
+      const result = await sendMessage(connection, phone, message, { buttons });
+      return new Response(JSON.stringify({ success: true, result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     
     console.log(`[AutomationEngine] Start. Tenant: ${tenantId || 'ALL'}, Action: ${action || 'process_queue'}`);
 
@@ -87,7 +98,15 @@ serve(async (req) => {
         // Update item in memory and in DB for UI consistency
         item.flow_type = flowTypeSelected;
         await supabase.from("automation_queue")
-          .update({ flow_type: flowTypeSelected })
+          .update({ 
+            flow_type: flowTypeSelected,
+            metadata: {
+              ...(item.metadata || {}),
+              appointments_found: appointmentsFound,
+              flow_type_selected: flowTypeSelected,
+              reason_selected: reasonSelected
+            }
+          })
           .eq("id", item.id);
 
         let result;
@@ -101,7 +120,10 @@ serve(async (req) => {
         await supabase.from("automation_queue").update({ 
           status: "completed", 
           processed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          // Ensure these fields reflect successful processing
+          confirmation_sent: result?.success === true,
+          confirmation_sent_at: result?.success === true ? new Date().toISOString() : null
         }).eq("id", item.id);
 
         results.push({ id: item.id, status: "completed", result });
@@ -110,7 +132,8 @@ serve(async (req) => {
         await supabase.from("automation_queue").update({ 
           status: "failed", 
           error: error.message,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          confirmation_sent: false
         }).eq("id", item.id);
         
         results.push({ id: item.id, status: "failed", error: error.message });

@@ -102,11 +102,23 @@ Seu agendamento na {barbershop_name} foi realizado com sucesso.
 
   if (result.success && result.response?.messageId) {
     await supabase.from("conversation_sessions")
-      .update({ provider_message_id: result.response.messageId })
+      .update({ 
+        provider_message_id: result.response.messageId,
+        metadata: {
+          ...(session.metadata || {}),
+          provider_message_id: result.response.messageId,
+          appointment_id: appointmentId,
+          appointment_group_id: appointment.appointment_group_id,
+          flow_type: FLOW_TYPES.SINGLE
+        }
+      })
       .eq("id", session.id);
 
     await supabase.from("appointments")
-      .update({ confirmation_sent: true, confirmation_sent_at: new Date().toISOString() })
+      .update({ 
+        confirmation_sent: true, 
+        confirmation_sent_at: new Date().toISOString() 
+      })
       .eq("id", appointmentId);
   }
 
