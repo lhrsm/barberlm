@@ -1001,9 +1001,15 @@ function AutomationsComponent() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-sm font-semibold text-slate-300">
-                              {log.message_type === 'appointment_confirmation' ? 'Confirmação' : 'Automação'}
-                            </span>
+                            <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border-white/10 ${
+                              log.message_type === 'buttons' ? 'text-sky-400 bg-sky-500/5' : 
+                              log.message_type === 'text_fallback' ? 'text-amber-400 bg-amber-500/5' : 
+                              'text-slate-300 bg-white/5'
+                            }`}>
+                              {log.message_type === 'buttons' ? 'Botões' : 
+                               log.message_type === 'text_fallback' ? 'Texto' : 
+                               'Confirmação'}
+                            </Badge>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
@@ -1066,7 +1072,24 @@ function AutomationsComponent() {
                                 variant="ghost" 
                                 size="sm" 
                                 className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-white/5 hover:bg-sky-500 hover:text-white rounded-lg focus-visible:ring-2 focus-visible:ring-sky-500 transition-all"
-                                onClick={() => resendTest(log)}
+                                onClick={async () => {
+                                  toast.loading("Reenviando...");
+                                  try {
+                                    const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+                                      body: { 
+                                        tenant_id: tenantId, 
+                                        appointment_id: log.appointment_id,
+                                        force_resend: true 
+                                      }
+                                    });
+                                    
+                                    if (error) throw error;
+                                    toast.success("Solicitação de reenvio processada!");
+                                    fetchData();
+                                  } catch (err: any) {
+                                    toast.error("Erro ao reenviar: " + err.message);
+                                  }
+                                }}
                                 title="Reprocessar"
                               >
                                 <RotateCcw size={12} className="mr-1.5" /> Reenviar

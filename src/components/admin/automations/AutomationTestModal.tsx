@@ -236,94 +236,55 @@ export function AutomationTestModal({
   };
 
   const handleTest = async () => {
-
-    if (!phone) {
-      toast.error("Informe um telefone de destino");
-      return;
-    }
-
-    if (testType === "real" && !realData) {
-      toast.error("Nenhum agendamento encontrado para teste");
+    if (!selectedAppointmentId && testType === "real") {
+      toast.error("Selecione um agendamento para o teste.");
       return;
     }
 
     setIsTesting(true);
+    toast.loading("Processando envio de teste...");
+
     try {
-      // 1. Phone validation
-      if (phone.length < 10) {
-        throw new Error("Telefone inválido. Use o formato DDI + DDD + Número (Ex: 5511999999999)");
+      if (testType === "fictitious") {
+         if (!phone || phone.length < 10) {
+            toast.error("Informe um telefone válido para o teste fictício.");
+            setIsTesting(false);
+            return;
+         }
+         // Custom handling for fictitious send (calling direct zapi-api for mock data)
+         const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
+            body: {
+              action: 'send-test-message',
+              instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', automation.tenant_id).single()).data?.id,
+              data: { phone, message: renderedTemplate }
+            }
+          });
+          if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro no provedor");
+          toast.success("Teste fictício enviado!");
+          setIsTesting(false);
+          return;
       }
 
-      // 2. Template rendering validation
-      if (!renderedTemplate) {
-        throw new Error("Erro ao renderizar o template. Verifique as variáveis.");
-      }
-
-      // 3. Instance check
-      const { data: instance, error: instError } = await supabase
-        .from('whatsapp_instances')
-        .select('id')
-        .eq('tenant_id', automation.tenant_id)
-        .single();
-
-      if (instError || !instance) {
-        throw new Error("Instância do WhatsApp não encontrada para este tenant.");
-      }
-
-      // Call the zapi-api edge function
-      const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
-        body: {
-          action: 'send-test-message',
-          instanceId: instance.id,
-          data: {
-            phone: phone,
-            message: renderedTemplate
-          }
+      // Use the unified logic for real appointment data
+      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { 
+          tenant_id: automation.tenant_id, 
+          appointment_id: selectedAppointmentId || recentAppointments[0]?.id,
+          force_resend: true 
         }
       });
 
-      if (zapiError) throw zapiError;
+      if (error) throw error;
 
-      const isSuccess = zapiData?.success === true;
-
-      const { data: newLog } = await (supabase as any).from("automation_logs").insert({
-        automation_id: automation.id,
-        tenant_id: automation.tenant_id,
-        phone: phone,
-        status: isSuccess ? "sent" : "error",
-        message_type: automation.key,
-        processed_template: renderedTemplate,
-        original_template: automation.template,
-        provider: "zapi",
-        sent_at: new Date().toISOString(),
-        payload: { test_data: testData, rendered: renderedTemplate, test_type: testType, is_test: true },
-        error_message: isSuccess ? null : (zapiData?.error || "Erro no envio de teste"),
-        response: zapiData?.result
-      }).select().single();
-
-      if (isSuccess) {
+      if (data?.success) {
         toast.success("Teste enviado com sucesso!");
-        setLastTestResult(newLog);
-        // Não fechar imediatamente para permitir ver o resultado
+        fetchLastTestResult();
       } else {
-        throw new Error(zapiData?.error || "Falha ao enviar mensagem pelo provedor.");
+        throw new Error(data?.error || "Falha no processamento");
       }
     } catch (error: any) {
-      toast.error(
-        <div className="flex flex-col gap-2">
-          <p className="font-bold">Falha no Teste</p>
-          <p className="text-xs">{error.message}</p>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="h-7 text-[10px] mt-1 border-white/20 hover:bg-white/10"
-            onClick={handleTest}
-          >
-            <RefreshCcw size={10} className="mr-1" /> Tentar novamente
-          </Button>
-        </div>,
-        { duration: 5000 }
-      );
+      console.error("Test error:", error);
+      toast.error("Erro ao enviar teste: " + error.message);
     } finally {
       setIsTesting(false);
     }
@@ -343,16 +304,18 @@ export function AutomationTestModal({
         </DialogHeader>
 
         <div className="p-6 pt-2 space-y-6 overflow-y-auto max-h-[80vh]">
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="text-slate-400 text-xs font-bold uppercase tracking-wider">Telefone de destino</Label>
-            <Input
-              id="phone"
-              placeholder="Ex: 5511999999999"
-              className="bg-[#0F172A] border-slate-800 text-white rounded-xl h-11 focus:border-amber-500/50"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
+          {testType === "fictitious" && (
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-slate-400 text-xs font-bold uppercase tracking-wider">Telefone de destino</Label>
+              <Input
+                id="phone"
+                placeholder="Ex: 5511999999999"
+                className="bg-[#0F172A] border-slate-800 text-white rounded-xl h-11 focus:border-amber-500/50"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+          )}
 
           <div className="space-y-3">
             <Label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Origem dos dados</Label>

@@ -324,6 +324,7 @@ export function AppointmentModal({
         credit_used: paymentMethod === 'wallet' ? (service?.price || 0) : 0,
         final_amount: paymentMethod === 'wallet' ? 0 : (paymentStatus === 'paid' ? 0 : (service?.price || 0)),
         source: 'admin',
+        confirmation_sent: false, // Ensure confirmation is false by default
         items: [{
           id: selectedService,
           name: service?.name,
@@ -411,10 +412,10 @@ export function AppointmentModal({
         })
       ]);
 
-      const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled, business_name").eq("id", tenantId).single();
+      const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", tenantId).single();
 
       if (profile?.whatsapp_enabled) {
-        console.log("Triggering functional WhatsApp confirmation...");
+        console.log("Triggering automatic WhatsApp confirmation via frontend trigger...");
         triggerAutomation({
           tenant_id: tenantId,
           event_name: 'appointment.created',
