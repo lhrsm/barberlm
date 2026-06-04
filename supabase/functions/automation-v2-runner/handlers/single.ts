@@ -134,16 +134,17 @@ function renderTemplate(template: string, data: any) {
 
     const vars: any = {
         "{customer_name}": data.customers?.name || "Cliente",
-        "{barbershop_name}": data.profiles?.full_name || data.profiles?.business_name || "Barbearia",
+        "{barbershop_name}": data.profiles?.business_name || data.profiles?.full_name || "Barbearia",
         "{service_name}": data.services?.name || "Serviço",
         "{professional_name}": data.barbers?.name || "Profissional",
         "{appointment_date}": dateStr,
         "{appointment_time}": timeStr,
         "{service_price}": data.services?.price ? `R$ ${data.services.price}` : "R$ 0,00",
         "{appointment_status}": data.status || "Pendente",
-        "{credit_amount}": data.credits_used || data.credit_used ? `R$ ${data.credits_used || data.credit_used}` : "R$ 0,00",
+        "{credit_amount}": data.credit_used || data.credits_used ? `R$ ${data.credit_used || data.credits_used}` : "R$ 0,00",
         "{cashback_amount}": data.cashback_earned ? `R$ ${data.cashback_earned}` : "R$ 0,00",
-        "{payment_method}": data.payment_method || "Não definido"
+        "{payment_method}": data.payment_method || "Não definido",
+        "{appointments_list}": "(Lista de agendamentos não disponível em fluxo único)"
     };
 
     for (const [key, value] of Object.entries(vars)) {
