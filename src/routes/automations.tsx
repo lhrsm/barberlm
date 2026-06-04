@@ -44,7 +44,8 @@ import {
   ChevronDown,
   ChevronUp,
   Code2,
-  Info
+  Info,
+  MousePointer2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
