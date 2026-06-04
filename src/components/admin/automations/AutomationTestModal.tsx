@@ -260,6 +260,22 @@ export function AutomationTestModal({
             }
           });
           if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro no provedor");
+          
+          // Log fictitious test manually since it doesn't go through the queue
+          await (supabase as any).from("automation_logs").insert({
+            automation_id: automation.id,
+            tenant_id: automation.tenant_id,
+            phone: phone,
+            status: "success",
+            message_type: "test_manual",
+            processed_template: renderedTemplate,
+            original_template: automation.template,
+            provider: "zapi",
+            sent_at: new Date().toISOString(),
+            payload: { test_data: testData, rendered: renderedTemplate, test_type: "fictitious", origin: "test_manual", source: "test_manual" },
+            response: zapiData?.result
+          });
+
           toast.success("Teste fictício enviado!");
           setIsTesting(false);
           return;
