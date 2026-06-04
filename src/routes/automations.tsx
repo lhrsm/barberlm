@@ -186,7 +186,7 @@ function AutomationsV2Component() {
                                 toast.error("Erro ao atualizar status: " + err.message);
                               }
                             }}
-                            className="data-[state=checked]:bg-amber-500"
+                            className="data-[state=checked]:bg-amber-500 border-zinc-700"
                           />
                           <span className={cn(
                             "text-[10px] font-bold uppercase tracking-wider",
