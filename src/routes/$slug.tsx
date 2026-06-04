@@ -17,7 +17,9 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { triggerWhatsAppMessage } from "@/utils/whatsapp";
+import { triggerAutomation } from "@/utils/automation";
 import { normalizePhone } from "@/utils/phone";
+
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
 
