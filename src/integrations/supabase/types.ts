@@ -3996,6 +3996,7 @@ export type Database = {
         }
         Returns: string
       }
+      seed_default_workflows_v2: { Args: never; Returns: undefined }
       update_appointment_status: {
         Args: {
           p_appointment_id: string
