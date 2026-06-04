@@ -1005,57 +1005,84 @@ function AutomationsComponent() {
               </DialogDescription>
             </DialogHeader>
             {diagnosingItem && (
-              <div className="space-y-4 py-4">
+              <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="p-3 bg-muted rounded-lg">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Queue ID</p>
                     <p className="font-mono truncate">{diagnosingItem.id}</p>
                   </div>
                   <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tenant ID</p>
-                    <p className="font-mono truncate">{diagnosingItem.tenant_id}</p>
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Status Atual</p>
                     <Badge variant="outline">{diagnosingItem.status}</Badge>
                   </div>
                   <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tentativas</p>
-                    <p className="font-bold">{diagnosingItem.attempts}</p>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Iniciado em</p>
+                    <p className="font-mono text-xs">{diagnosingItem.started_at ? new Date(diagnosingItem.started_at).toLocaleString('pt-BR') : '-'}</p>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Última Etapa</p>
+                    <Badge variant="secondary" className="text-[10px]">{diagnosingItem.metadata?.last_step || '-'}</Badge>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Appointment ID</p>
+                    <p className="font-mono truncate text-[10px]">{diagnosingItem.appointment_id || '-'}</p>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Group ID</p>
+                    <p className="font-mono truncate text-[10px]">{diagnosingItem.appointment_group_id || '-'}</p>
                   </div>
                 </div>
 
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Comparação de Tempo (UTC)</p>
-                  <div className="flex flex-col gap-1 text-xs">
-                    <div className="flex justify-between">
-                      <span>Agendado para:</span>
-                      <span className="font-mono">{new Date(diagnosingItem.scheduled_for).toISOString()}</span>
-                    </div>
-                    <div className="flex justify-between border-t border-zinc-700 pt-1 mt-1">
-                      <span>Agora (Servidor):</span>
-                      <span className="font-mono">{new Date().toISOString()}</span>
-                    </div>
-                    <div className="flex justify-between font-bold mt-2">
-                      <span>Deve processar?</span>
-                      <span className={new Date(diagnosingItem.scheduled_for) <= new Date() ? "text-green-500" : "text-amber-500"}>
-                        {new Date(diagnosingItem.scheduled_for) <= new Date() ? "SIM (Atrasado/Agora)" : "NÃO (Futuro)"}
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Detalhes do Envio</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex justify-between col-span-2">
+                      <span>Mensagem Enviada?</span>
+                      <span className={diagnosingItem.metadata?.provider_message_id ? "text-green-500 font-bold" : "text-amber-500"}>
+                        {diagnosingItem.metadata?.provider_message_id ? "SIM" : "NÃO / PENDENTE"}
                       </span>
+                    </div>
+                    <div className="flex justify-between col-span-2 border-t border-zinc-700 pt-1">
+                      <span>Message ID:</span>
+                      <span className="font-mono text-[9px]">{diagnosingItem.metadata?.provider_message_id || '-'}</span>
                     </div>
                   </div>
                 </div>
 
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tempo em Processamento</p>
+                  <div className="flex flex-col gap-1 text-xs">
+                    <div className="flex justify-between">
+                      <span>Iniciado em:</span>
+                      <span className="font-mono">{diagnosingItem.started_at ? new Date(diagnosingItem.started_at).toISOString() : '-'}</span>
+                    </div>
+                    {diagnosingItem.status === 'processing' && diagnosingItem.started_at && (
+                      <div className="flex justify-between font-bold mt-1 text-blue-400">
+                        <span>Duração atual:</span>
+                        <span>{Math.floor((Date.now() - new Date(diagnosingItem.started_at).getTime()) / 1000)}s</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label>Payload do Evento</Label>
-                  <pre className="p-3 bg-black text-green-400 text-[10px] rounded-lg overflow-x-auto max-h-40">
+                  <Label className="text-xs uppercase text-muted-foreground">Resposta Z-API</Label>
+                  <pre className="p-3 bg-black text-blue-400 text-[10px] rounded-lg overflow-x-auto max-h-32">
+                    {JSON.stringify(diagnosingItem.metadata?.zapi_response || {}, null, 2)}
+                  </pre>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase text-muted-foreground">Payload do Evento</Label>
+                  <pre className="p-3 bg-black text-green-400 text-[10px] rounded-lg overflow-x-auto max-h-32">
                     {JSON.stringify(diagnosingItem.automation_events?.payload || {}, null, 2)}
                   </pre>
                 </div>
 
                 {diagnosingItem.error && (
                   <div className="space-y-2">
-                    <Label className="text-red-500">Último Erro</Label>
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs rounded-lg whitespace-pre-wrap">
+                    <Label className="text-red-500 text-xs uppercase">Último Erro</Label>
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] rounded-lg whitespace-pre-wrap font-mono">
                       {diagnosingItem.error}
                     </div>
                   </div>
