@@ -155,9 +155,42 @@ function AutomationsComponent() {
         }
       }
 
-      setAutomations(automationsData || []);
+      // 3. Fetch stats for each automation
+      const enrichedAutomations = await Promise.all((automationsData || []).map(async (auto: any) => {
+        const { count: sentCount } = await supabase
+          .from("automation_logs")
+          .select("*", { count: 'exact', head: true })
+          .eq("automation_id", auto.id)
+          .eq("status", "sent");
 
-      // 3. Fetch logs with filtering and pagination
+        const { count: errorCount } = await supabase
+          .from("automation_logs")
+          .select("*", { count: 'exact', head: true })
+          .eq("automation_id", auto.id)
+          .eq("status", "error");
+
+        const { data: lastLog } = await supabase
+          .from("automation_logs")
+          .select("created_at")
+          .eq("automation_id", auto.id)
+          .eq("status", "sent")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        return {
+          ...auto,
+          stats: {
+            sent: sentCount || 0,
+            errors: errorCount || 0,
+            lastSent: lastLog?.created_at || null
+          }
+        };
+      }));
+
+      setAutomations(enrichedAutomations);
+
+      // 4. Fetch logs with filtering and pagination
       let query = supabase
         .from("automation_logs")
         .select("*", { count: 'exact' })
