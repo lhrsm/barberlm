@@ -486,28 +486,29 @@ function AutomationsComponent() {
                   key={auto.id} 
                   className="group relative flex flex-col bg-[#0F172A] border-[1px] border-amber-500/30 rounded-[20px] shadow-[0_10px_35px_rgba(0,0,0,0.35)] hover:border-amber-500/60 hover:shadow-[0_20px_45px_rgba(0,0,0,0.45)] transition-all duration-300 overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/50"
                 >
-                  <CardHeader className="p-6 pb-4">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg shadow-amber-600/20">
-                          <Zap className="text-white" size={24} />
+                  <CardHeader className="p-5 pb-3">
+                    <div className="flex justify-between items-start mb-3 gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg shadow-amber-600/20">
+                          <Zap className="text-white" size={20} />
                         </div>
                         <div className="min-w-0">
-                          <CardTitle className="text-xl md:text-[22px] font-bold text-white leading-tight truncate">
+                          <CardTitle className="text-lg md:text-xl font-bold text-white leading-tight break-words">
                             {auto.name}
                           </CardTitle>
-                          <div className="flex flex-wrap gap-2 mt-2">
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
                             <Badge 
-                              className={`text-[10px] font-bold uppercase tracking-wider py-0 px-2 h-5 border-none ${
+                              className={`text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 h-4.5 border-none flex items-center gap-1 ${
                                 auto.active 
                                   ? 'bg-emerald-500/15 text-emerald-400' 
                                   : 'bg-slate-500/15 text-slate-400'
                               }`}
                             >
+                              <div className={`w-1 h-1 rounded-full ${auto.active ? 'bg-emerald-400' : 'bg-slate-400'}`} />
                               {auto.active ? 'Ativa' : 'Inativa'}
                             </Badge>
-                            <Badge className="bg-amber-500/15 text-amber-500 text-[10px] font-bold uppercase tracking-wider py-0 px-2 h-5 border-none">
-                              <MessageCircle size={10} className="mr-1" /> WhatsApp
+                            <Badge className="bg-amber-500/15 text-amber-500 text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 h-4.5 border-none flex items-center gap-1">
+                              <MessageCircle size={9} /> WhatsApp
                             </Badge>
                           </div>
                         </div>
@@ -516,18 +517,18 @@ function AutomationsComponent() {
                       <Switch 
                         checked={auto.active || false} 
                         onCheckedChange={() => toggleStatus(auto)}
-                        className="data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-slate-700 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A]"
+                        className="data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-slate-700 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A] scale-90"
                         thumbClassName="data-[state=checked]:bg-slate-900"
                         aria-label={`Alternar status da automação ${auto.name}`}
                       />
                     </div>
 
-                    <CardDescription className="text-slate-400 text-sm leading-relaxed mb-4 line-clamp-2">
+                    <CardDescription className="text-slate-400 text-xs leading-relaxed mb-3 line-clamp-2">
                       Envia automaticamente uma mensagem para o cliente após a criação de um agendamento.
                     </CardDescription>
 
-                    <div className="flex items-center gap-2 mb-4">
-                      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-none text-[10px] font-mono py-0 px-2 h-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-none text-[9px] font-mono py-0 px-1.5 h-4.5">
                         {auto.trigger_event}
                       </Badge>
                     </div>
