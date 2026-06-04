@@ -262,6 +262,28 @@ function AutomationsComponent() {
     }
   };
 
+  const handleResetQueue = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("automation_queue")
+        .update({ 
+          status: "pending", 
+          error: null,
+          attempts: 0,
+          started_at: null,
+          processed_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", id);
+      
+      if (error) throw error;
+      toast.success("Item resetado para pendente");
+      fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao resetar: " + error.message);
+    }
+  };
+
   const handleLoadDefaults = async () => {
     if (!tenantId) return;
     setLoading(true);
