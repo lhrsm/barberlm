@@ -153,6 +153,59 @@ function AutomationsComponent() {
     setIsTestOpen(true);
   };
 
+  const resendTest = async (log: any) => {
+    try {
+      setLoading(true);
+      const { data: automation } = await anySupabase
+        .from("automation_templates")
+        .select("*")
+        .eq("id", log.automation_id)
+        .single();
+
+      if (!automation) throw new Error("Automação não encontrada");
+
+      // We reuse the AutomationTestModal logic but simplified here or we can just trigger the send
+      const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
+        body: {
+          action: 'send-test-message',
+          instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', tenantId).single()).data?.id,
+          data: {
+            phone: log.phone,
+            message: log.processed_template || log.payload?.rendered || "Mensagem de reenvio"
+          }
+        }
+      });
+
+      if (zapiError) throw zapiError;
+
+      const isSuccess = zapiData?.success === true;
+
+      await (supabase as any).from("automation_logs").insert({
+        automation_id: automation.id,
+        tenant_id: tenantId,
+        phone: log.phone,
+        status: isSuccess ? "sent" : "error",
+        message_type: automation.key,
+        processed_template: log.processed_template || log.payload?.rendered,
+        original_template: automation.template,
+        provider: "zapi",
+        sent_at: new Date().toISOString(),
+        payload: { ...log.payload, resent: true },
+        error_message: isSuccess ? null : (zapiData?.error || "Erro no reenvio"),
+        response: zapiData?.result
+      });
+
+      if (isSuccess) toast.success("Reenviado com sucesso!");
+      else toast.error("Falha ao reenviar: " + (zapiData?.error || "Erro desconhecido"));
+      
+      fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao reenviar: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
