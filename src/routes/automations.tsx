@@ -13,7 +13,9 @@ import {
   MessageSquare, 
   Zap, 
   RefreshCw,
+  Loader2,
   Play,
+
   Settings2,
   History,
   CheckCircle2,
