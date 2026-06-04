@@ -77,12 +77,10 @@ serve(async (req) => {
 
         // 2. Resolve Barbershop Name
         let barbershopName = "Barbearia";
-        // Try tenants table
         const { data: tenantData } = await supabase.from("tenants").select("name").eq("id", itemTenantId).maybeSingle();
         if (tenantData?.name && tenantData.name !== 'Barbearia') {
           barbershopName = tenantData.name;
         } else {
-          // Try profiles (business_name)
           const { data: profileData } = await supabase.from("profiles").select("business_name").eq("id", itemTenantId).maybeSingle();
           if (profileData?.business_name) barbershopName = profileData.business_name;
         }
@@ -93,13 +91,11 @@ serve(async (req) => {
         let professionalStatus = "default";
         
         if (professionalId) {
-          // Check barbers table first
           const { data: barberData } = await supabase.from("barbers").select("name").eq("id", professionalId).maybeSingle();
           if (barberData?.name && barberData.name !== 'Profissional') {
             profName = barberData.name;
             professionalStatus = "resolved_barber";
           } else {
-            // Try profiles table
             const { data: profData } = await supabase.from("profiles").select("full_name").eq("id", professionalId).maybeSingle();
             if (profData?.full_name && profData.full_name !== 'Profissional') {
               profName = profData.full_name;
@@ -128,7 +124,6 @@ serve(async (req) => {
           renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
         });
 
-        // Diagnostic validation
         const diagInfo: any = { 
           professional_resolved: professionalStatus !== "not_found" && professionalStatus !== "missing_id",
           professional_status: professionalStatus,
@@ -162,28 +157,22 @@ serve(async (req) => {
 
         const sendResult = await sendMessage(instance, phone, renderedTemplate, sendOptions);
 
-        // Track button/text status
-        const finalMessageType = (sendOptions.buttons && sendResult.success) ? 'buttons' : 'text_fallback';
-
-        // Track button/text status
-        const finalMessageType = (sendOptions.buttons && sendResult.success) ? 'buttons' : 'text_fallback';
-
         // 7. Update status and Log
         if (sendResult.success) {
           await supabase.from("automation_queue").update({ 
-            status: "sent", 
+            status: "success", 
             attempts: (item.attempts || 0) + 1,
             updated_at: new Date().toISOString() 
           }).eq("id", item.id);
           
-          const msgType = sendResult.response?.buttonList ? 'buttons' : 'text_fallback';
+          const finalMessageType = (sendOptions.buttons && sendResult.response?.buttonList) ? 'buttons' : 'text_fallback';
 
           await supabase.from("automation_logs").insert({
             automation_id: automation.id,
             tenant_id: itemTenantId,
             appointment_id: appointment.id,
             phone: phone,
-            status: "sent",
+            status: "success",
             message_type: finalMessageType,
             processed_template: renderedTemplate,
             original_template: automation.template,
@@ -192,7 +181,8 @@ serve(async (req) => {
             payload: { 
               data: testData, 
               rendered: renderedTemplate, 
-              origin: force_resend ? 'manual_resend' : 'automatic', 
+              origin: force_resend ? 'test_manual' : 'automatic', 
+              source: force_resend ? 'test_manual' : 'automatic',
               diagnostic: diagInfo,
               buttons_attached: !!sendOptions.buttons 
             },
@@ -214,7 +204,7 @@ serve(async (req) => {
         console.error(`[ProcessQueue] Error on item ${item.id}:`, err.message);
         
         await supabase.from("automation_queue").update({ 
-          status: "error", 
+          status: "failed", 
           error_message: err.message,
           attempts: (item.attempts || 0) + 1,
           updated_at: new Date().toISOString() 
@@ -227,10 +217,10 @@ serve(async (req) => {
           tenant_id: item.tenant_id,
           appointment_id: item.appointment_id,
           phone: item.appointment?.customer?.phone || "N/A",
-          status: "error",
+          status: "failed",
           message_type: "error",
           error_message: err.message,
-          payload: { error: err.message, origin: force_resend ? 'manual_resend' : 'automatic' }
+          payload: { error: err.message, origin: force_resend ? 'test_manual' : 'automatic' }
         });
       }
     }

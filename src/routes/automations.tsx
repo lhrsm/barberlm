@@ -241,7 +241,8 @@ function AutomationsComponent() {
       }
         
       if (filterStatus !== "all") {
-        query = query.eq("status", filterStatus);
+        const mappedStatus = filterStatus === "sent" ? "success" : filterStatus === "error" ? "error" : filterStatus;
+        query = query.eq("status", mappedStatus);
       }
       
       if (filterAutomation !== "all") {
@@ -252,6 +253,7 @@ function AutomationsComponent() {
         const now = new Date();
         let startDate = new Date();
         if (filterPeriod === "today") {
+          // Use localized approach to ensure "today" matches the user's timezone start-of-day in UTC
           startDate.setHours(0, 0, 0, 0);
         } else if (filterPeriod === "7days") {
           startDate.setDate(now.getDate() - 7);
@@ -273,9 +275,9 @@ function AutomationsComponent() {
 
       // Fetch global stats for logs
       const { count: totalSent } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
-      const { count: totalSuccess } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "sent");
+      const { count: totalSuccess } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "success");
       const { count: totalFailed } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
-      const { data: lastLog } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const { data: lastLog } = await supabase.from("automation_logs").select("created_at").eq("tenant_id", tenantId).eq("status", "success").order("created_at", { ascending: false }).limit(1).maybeSingle();
 
       setLogStats({
         sent: totalSent || 0,
@@ -1043,17 +1045,17 @@ function AutomationsComponent() {
                             </Badge>
                           </td>
                           <td className="px-6 py-4">
-                            {log.status === 'sent' ? (
+                            {log.status === 'success' || log.status === 'sent' ? (
                               <Badge className="bg-[#10B981]/10 text-[#10B981] border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit">
                                 <Check size={12} strokeWidth={3} /> Enviado
                               </Badge>
-                            ) : log.status === 'error' ? (
+                            ) : log.status === 'failed' || log.status === 'error' ? (
                               <Badge className="bg-[#EF4444]/10 text-[#EF4444] border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit">
                                 <X size={12} strokeWidth={3} /> Falhou
                               </Badge>
                             ) : (
                               <Badge className="bg-amber-500/10 text-amber-500 border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit">
-                                <Clock size={12} /> Pendente
+                                <Clock size={12} /> {log.status === 'processing' ? 'Processando' : 'Pendente'}
                               </Badge>
                             )}
                           </td>
@@ -1111,7 +1113,10 @@ function AutomationsComponent() {
                         variant="outline"
                         size="sm"
                         disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        onClick={() => {
+                           setCurrentPage(prev => Math.max(1, prev - 1));
+                           window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-9 px-4"
                       >
                         <ChevronLeft size={16} className="mr-1" /> Anterior
@@ -1120,7 +1125,10 @@ function AutomationsComponent() {
                         variant="outline"
                         size="sm"
                         disabled={currentPage * itemsPerPage >= totalLogs}
-                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        onClick={() => {
+                           setCurrentPage(prev => prev + 1);
+                           window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-9 px-4"
                       >
                         Próximo <ChevronRight size={16} className="ml-1" />
