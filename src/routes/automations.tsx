@@ -1107,6 +1107,71 @@ function AutomationsComponent() {
         </Tabs>
       </div>
 
+      {/* Mobile view for logs (Cards) */}
+      <div className="lg:hidden space-y-4 px-4 pb-8">
+        {logs.map((log) => (
+          <div key={log.id} className="bg-[#0F172A] border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-white">{new Date(log.created_at).toLocaleDateString('pt-BR')}</span>
+                <span className="text-[10px] text-slate-500">{new Date(log.created_at).toLocaleTimeString('pt-BR')}</span>
+              </div>
+              {log.status === 'sent' ? (
+                <Badge className="bg-[#10B981]/10 text-[#10B981] border-none text-[10px] font-bold px-2 py-1 rounded-lg">
+                  Enviado
+                </Badge>
+              ) : log.status === 'error' ? (
+                <Badge className="bg-[#EF4444]/10 text-[#EF4444] border-none text-[10px] font-bold px-2 py-1 rounded-lg">
+                  Falhou
+                </Badge>
+              ) : (
+                <Badge className="bg-amber-500/10 text-amber-500 border-none text-[10px] font-bold px-2 py-1 rounded-lg">
+                  Pendente
+                </Badge>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Destinatário:</span>
+                <span className="text-white font-medium">{log.payload?.data?.customer_name || 'Cliente'} ({log.phone})</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Automação:</span>
+                <span className="text-white font-medium">{log.message_type === 'appointment_confirmation' ? 'Confirmação' : 'Outra'}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Canal:</span>
+                <span className="text-white font-medium">{log.provider === 'zapi' ? 'WhatsApp' : 'Sistema'}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Agendamento:</span>
+                <span className="text-slate-400 font-mono text-[10px]">#{log.appointment_id?.substring(0, 8).toUpperCase()}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 bg-white/5 border-white/10 text-xs rounded-xl h-10"
+                onClick={() => openLogDetail(log)}
+              >
+                <Terminal size={12} className="mr-2" /> Detalhes
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 bg-white/5 border-white/10 text-xs rounded-xl h-10"
+                onClick={() => resendTest(log)}
+              >
+                <RotateCcw size={12} className="mr-2" /> Reenviar
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {selectedAutomation && (
         <>
           <AutomationEditModal
