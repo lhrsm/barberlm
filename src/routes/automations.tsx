@@ -302,9 +302,10 @@ function AutomationsComponent() {
         failed: totalFailed || 0,
         duplicateBlocked: totalDuplicate || 0,
         notFound: totalNotFound || 0,
-        lastSent: lastLogData?.created_at || null
-
+        lastSent: lastLogData?.created_at || null,
+        lastUpdate: new Date()
       });
+
 
     } catch (error: any) {
       console.error(error);
@@ -1055,8 +1056,54 @@ function AutomationsComponent() {
 
               </CardHeader>
               <CardContent className="p-0">
-                    {/* Desktop view for logs (Table) */}
-                    <div className="hidden lg:block overflow-x-auto">
+                  {/* Technical Diagnostic Header */}
+                  {logs.length > 0 && (
+                    <div className="mx-6 mt-4 p-4 rounded-2xl bg-slate-900/50 border border-white/5 shadow-inner">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-2">
+                        <Terminal size={12} /> Diagnóstico Técnico (Último Envio)
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Appointment ID</p>
+                          <p className="text-[10px] font-mono text-white truncate hover:text-amber-400 cursor-pointer">{logs[0].appointment_id || 'N/A'}</p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Phone</p>
+                          <p className="text-[10px] font-mono text-white">{logs[0].phone || 'N/A'}</p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Message ID</p>
+                          <p className="text-[10px] font-mono text-white truncate">{logs[0].provider_message_id || 'N/A'}</p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Enviado em</p>
+                          <p className="text-[10px] font-mono text-white">
+                            {logs[0].sent_at ? new Date(logs[0].sent_at).toLocaleTimeString('pt-BR') : logs[0].created_at ? new Date(logs[0].created_at).toLocaleTimeString('pt-BR') : 'N/A'}
+                          </p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Log Criado</p>
+                          <p className="text-[10px] font-mono">
+                            {logs[0].id ? <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4">TRUE</Badge> : <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] h-4">FALSE</Badge>}
+                          </p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Botão Recebido</p>
+                          <p className="text-[10px] font-mono">
+                            {logs.some(l => l.appointment_id === logs[0].appointment_id && l.action === 'button_clicked') ? (
+                              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4">TRUE</Badge>
+                            ) : (
+                              <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] h-4">CALLBACK PENDENTE</Badge>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Desktop view for logs (Table) */}
+                  <div className="hidden lg:block overflow-x-auto mt-6">
+
                       <table className="w-full border-collapse">
                     <thead className="bg-[#0F172A]/80 sticky top-0 z-10">
                       <tr className="border-b border-white/5">
