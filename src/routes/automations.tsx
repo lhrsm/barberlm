@@ -38,7 +38,8 @@ import {
   Terminal,
   Activity,
   ArrowRight,
-  X
+  X,
+  Copy
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
@@ -195,14 +196,45 @@ function AutomationsComponent() {
     }
   }
 
-  const replaceVariables = (template: string) => {
-    return template
-      .replace(/{customer_name}/g, "João Silva")
-      .replace(/{barbershop_name}/g, "Barbex Premium")
-      .replace(/{service_name}/g, "Corte + Barba")
-      .replace(/{professional_name}/g, "Carlos (Mestre Barbeiro)")
-      .replace(/{appointment_date}/g, "15/06/2026")
-      .replace(/{appointment_time}/g, "14:30");
+  const replaceVariables = (template: string, highlight: boolean = false) => {
+    if (!template) return "";
+    
+    const variables = [
+      { key: "{customer_name}", value: "João Silva", color: "text-amber-400" },
+      { key: "{barbershop_name}", value: "Barbex Premium", color: "text-sky-400" },
+      { key: "{service_name}", value: "Corte + Barba", color: "text-emerald-400" },
+      { key: "{professional_name}", value: "Carlos (Mestre Barbeiro)", color: "text-rose-400" },
+      { key: "{appointment_date}", value: "15/06/2026", color: "text-purple-400" },
+      { key: "{appointment_time}", value: "14:30", color: "text-indigo-400" }
+    ];
+
+    if (!highlight) {
+      let result = template;
+      variables.forEach(v => {
+        result = result.replace(new RegExp(v.key, 'g'), v.value);
+      });
+      return result;
+    }
+
+    // Highlighting logic for React components
+    const parts = template.split(/(\{[a-z_]+\})/g);
+    return parts.map((part, index) => {
+      const variable = variables.find(v => v.key === part);
+      if (variable) {
+        return (
+          <span key={index} className={`font-bold px-1 rounded bg-white/5 ${variable.color}`} title={variable.key}>
+            {variable.value}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
+  const handleCopyTemplate = (template: string) => {
+    const rendered = replaceVariables(template, false) as string;
+    navigator.clipboard.writeText(rendered);
+    toast.success("Mensagem copiada para a área de transferência!");
   };
 
   const openPreview = (template: string) => {
@@ -963,7 +995,7 @@ function AutomationsComponent() {
       </Dialog>
       
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-md bg-[#0F172A] border-slate-800 text-white p-0 overflow-hidden rounded-[24px]">
+        <DialogContent className="max-w-md bg-[#0F172A] border-slate-800 text-white p-0 overflow-hidden rounded-[24px] focus:outline-none">
           <DialogHeader className="p-6 pb-2">
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <Eye className="text-amber-500" size={20} />
@@ -978,8 +1010,10 @@ function AutomationsComponent() {
               </div>
               
               <div className="mt-2 space-y-3">
-                <div className="bg-[#075E54] text-white p-3 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] text-sm whitespace-pre-wrap leading-relaxed relative">
-                  {replaceVariables(selectedPreviewTemplate)}
+                <div className="bg-[#075E54] text-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[95%] text-sm whitespace-pre-wrap leading-relaxed relative">
+                  <div className="mb-2">
+                    {replaceVariables(selectedPreviewTemplate, true)}
+                  </div>
                   <div className="text-[10px] text-white/60 text-right mt-1">
                     14:30 ✓✓
                   </div>
@@ -999,16 +1033,27 @@ function AutomationsComponent() {
               </div>
             </div>
             
-            <p className="text-[10px] text-slate-500 text-center px-4">
-              As variáveis foram preenchidas com dados de exemplo para esta visualização.
+            <div className="flex flex-col gap-3">
+              <Button 
+                variant="outline"
+                className="w-full border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-white font-bold rounded-xl h-11"
+                onClick={() => handleCopyTemplate(selectedPreviewTemplate)}
+              >
+                <Copy size={16} className="mr-2" /> Copiar Mensagem Completa
+              </Button>
+              
+              <Button 
+                className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl h-11"
+                onClick={() => setIsPreviewOpen(false)}
+              >
+                Fechar Visualização
+              </Button>
+            </div>
+
+            <p className="text-[10px] text-slate-500 text-center px-4 leading-tight">
+              As cores indicam variáveis preenchidas dinamicamente pelo sistema.
+              Pressione ESC para fechar.
             </p>
-            
-            <Button 
-              className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl h-11"
-              onClick={() => setIsPreviewOpen(false)}
-            >
-              Fechar Visualização
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
