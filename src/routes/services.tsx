@@ -232,7 +232,7 @@ function ServicesComponent() {
           </Alert>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {services.length === 0 ? (
             <div className="col-span-full text-center py-12 border rounded-xl bg-card text-muted-foreground">
               <Scissors size={48} className="mx-auto mb-4 opacity-20" />
@@ -240,7 +240,7 @@ function ServicesComponent() {
             </div>
           ) : (
             services.map((service) => (
-              <div key={service.id} className="p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow text-black">
+              <div key={service.id} className="p-4 md:p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm hover:border-slate-400 transition-all duration-300 text-black">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="font-bold text-lg">{service.name}</h3>
                   <span className="font-bold text-primary">R$ {Number(service.price).toFixed(2)}</span>
@@ -250,12 +250,12 @@ function ServicesComponent() {
                   <span>{service.duration_minutes} minutos</span>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">{service.description || "Sem descrição."}</p>
-                <div className="mt-4 pt-4 border-t flex justify-end gap-2">
+                <div className="mt-4 pt-4 border-t flex flex-col sm:flex-row justify-end gap-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => handleDuplicateService(service)}
-                    className="gap-2 border-slate-200 hover:bg-slate-50"
+                    className="gap-2 border-slate-200 hover:bg-slate-50 h-10 w-full sm:w-auto"
                   >
                     <Copy size={14} /> Duplicar
                   </Button>
@@ -263,7 +263,7 @@ function ServicesComponent() {
                     variant="default" 
                     size="sm" 
                     onClick={() => toast.info("Edição em breve")}
-                    className="gap-2 bg-black text-white hover:scale-105 transition-all"
+                    className="gap-2 bg-black text-white hover:scale-[1.02] transition-all h-10 w-full sm:w-auto"
                   >
                     <Edit2 size={14} /> Editar
                   </Button>
@@ -271,7 +271,7 @@ function ServicesComponent() {
                     variant="ghost" 
                     size="sm" 
                     onClick={() => handleDeleteService(service.id)}
-                    className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 h-10 w-full sm:w-auto"
                   >
                     <Trash2 size={14} /> Excluir
                   </Button>
