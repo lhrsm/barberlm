@@ -29,9 +29,9 @@ async function testAutomationActiveStatus() {
     if (!automation) throw new Error('Automation template not found');
 
     // Ensure we have a customer, barber, and service for this tenant
-    const { data: customer } = await supabase.from('customers').select('id').eq('tenant_id', tenantId).limit(1).single();
-    const { data: barber } = await supabase.from('barbers').select('id').eq('tenant_id', tenantId).limit(1).single();
-    const { data: service } = await supabase.from('services').select('id').eq('tenant_id', tenantId).limit(1).single();
+    const { data: customer } = await supabase.from('customers').select('id').eq('barbershop_id', tenantId).limit(1).single();
+    const { data: barber } = await supabase.from('barbers').select('id').eq('barbershop_id', tenantId).limit(1).single();
+    const { data: service } = await supabase.from('services').select('id').eq('barbershop_id', tenantId).limit(1).single();
 
     if (!customer || !barber || !service) {
       console.log('Skipping test: Missing required related records (customer/barber/service)');
