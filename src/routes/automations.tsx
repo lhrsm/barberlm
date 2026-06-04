@@ -196,14 +196,45 @@ function AutomationsComponent() {
     }
   }
 
-  const replaceVariables = (template: string) => {
-    return template
-      .replace(/{customer_name}/g, "João Silva")
-      .replace(/{barbershop_name}/g, "Barbex Premium")
-      .replace(/{service_name}/g, "Corte + Barba")
-      .replace(/{professional_name}/g, "Carlos (Mestre Barbeiro)")
-      .replace(/{appointment_date}/g, "15/06/2026")
-      .replace(/{appointment_time}/g, "14:30");
+  const replaceVariables = (template: string, highlight: boolean = false) => {
+    if (!template) return "";
+    
+    const variables = [
+      { key: "{customer_name}", value: "João Silva", color: "text-amber-400" },
+      { key: "{barbershop_name}", value: "Barbex Premium", color: "text-sky-400" },
+      { key: "{service_name}", value: "Corte + Barba", color: "text-emerald-400" },
+      { key: "{professional_name}", value: "Carlos (Mestre Barbeiro)", color: "text-rose-400" },
+      { key: "{appointment_date}", value: "15/06/2026", color: "text-purple-400" },
+      { key: "{appointment_time}", value: "14:30", color: "text-indigo-400" }
+    ];
+
+    if (!highlight) {
+      let result = template;
+      variables.forEach(v => {
+        result = result.replace(new RegExp(v.key, 'g'), v.value);
+      });
+      return result;
+    }
+
+    // Highlighting logic for React components
+    const parts = template.split(/(\{[a-z_]+\})/g);
+    return parts.map((part, index) => {
+      const variable = variables.find(v => v.key === part);
+      if (variable) {
+        return (
+          <span key={index} className={`font-bold px-1 rounded bg-white/5 ${variable.color}`} title={variable.key}>
+            {variable.value}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
+  const handleCopyTemplate = (template: string) => {
+    const rendered = replaceVariables(template, false) as string;
+    navigator.clipboard.writeText(rendered);
+    toast.success("Mensagem copiada para a área de transferência!");
   };
 
   const openPreview = (template: string) => {
