@@ -82,7 +82,7 @@ serve(async (req) => {
         const { data: log } = await supabase
           .from("automation_logs")
           .select("appointment_id, tenant_id, automation_id, conversation_id")
-          .eq("response->>messageId", referenceId)
+          .or(`response->>messageId.eq.${referenceId},zapi_response->response->>messageId.eq.${referenceId},zapi_response->>messageId.eq.${referenceId}`)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
