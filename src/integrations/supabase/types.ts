@@ -763,6 +763,56 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_templates: {
+        Row: {
+          active: boolean | null
+          buttons: Json | null
+          channel: string
+          created_at: string | null
+          id: string
+          key: string
+          name: string
+          template: string
+          tenant_id: string
+          trigger_event: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          buttons?: Json | null
+          channel?: string
+          created_at?: string | null
+          id?: string
+          key: string
+          name: string
+          template: string
+          tenant_id: string
+          trigger_event: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          buttons?: Json | null
+          channel?: string
+          created_at?: string | null
+          id?: string
+          key?: string
+          name?: string
+          template?: string
+          tenant_id?: string
+          trigger_event?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automations: {
         Row: {
           barber_id: string | null
