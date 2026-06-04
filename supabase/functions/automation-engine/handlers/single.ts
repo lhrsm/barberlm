@@ -112,7 +112,7 @@ Seu agendamento na {barbershop_name} foi realizado com sucesso.
 
   // 7. Log
   await supabase.from("automation_logs").insert({
-    tenant_id: tenant_id,
+    tenant_id: tenantId,
     session_id: session.id,
     queue_id: item.id,
     flow_type: FLOW_TYPES.SINGLE,
