@@ -181,7 +181,7 @@ serve(async (req) => {
             appointment_id: appointment.id,
             phone: phone,
             status: "sent",
-            message_type: msgType,
+            message_type: finalMessageType,
             processed_template: renderedTemplate,
             original_template: automation.template,
             provider: "zapi",
