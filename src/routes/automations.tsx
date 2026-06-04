@@ -233,7 +233,8 @@ function AutomationsComponent() {
         .eq("tenant_id", tenantId);
         
       if (searchTerm) {
-        query = query.ilike("phone", `%${searchTerm}%`);
+        // Search by phone, message_id (id), or provider_message_id (inside response)
+        query = query.or(`phone.ilike.%${searchTerm}%,id.eq.${searchTerm},response->>messageId.ilike.%${searchTerm}%,response->>id.ilike.%${searchTerm}%`);
       }
         
       if (filterStatus !== "all") {
