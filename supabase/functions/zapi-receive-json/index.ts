@@ -49,61 +49,41 @@ serve(async (req) => {
 
   if (!body) body = { raw: rawBody };
 
-  // Save debug log
+  // 1. SALVAR TODO WEBHOOK RECEBIDO
+  const phone = body.phone || body.from;
+  const messageId = body.messageId || body.id;
+  const referenceId = body.referenceMessageId;
+  const buttonId = body.buttonsResponseMessage?.buttonId;
+  const buttonText = body.buttonsResponseMessage?.selectedButtonId || body.text?.message || "";
+  const type = body.type;
+  const fromMe = body.fromMe;
+
+  // Initial save to debug table (keep for legacy reasons if needed)
   await supabase.from("zapi_webhook_debug").insert({
     method, url: req.url, content_type: contentType, payload_raw: body, source: "zapi_real", processed: false
   });
 
+  // NEW: Save to automation_webhook_logs as requested
+  const { data: webhookLog, error: webhookLogError } = await supabase.from("automation_webhook_logs").insert({
+    raw_payload: body,
+    type,
+    fromMe,
+    phone,
+    messageId,
+    referenceMessageId: referenceId,
+    buttonId,
+    buttonText
+  }).select().single();
+
+  if (webhookLogError) console.error("[Webhook] Error saving webhook log:", webhookLogError);
+
   // PROCESS CALLBACK
-  if (body.type === "ReceivedCallback" && !body.fromMe) {
-    const phone = body.phone;
-    const buttonId = body.buttonsResponseMessage?.buttonId;
-    const text = body.text?.message?.toLowerCase() || "";
-    const referenceId = body.referenceMessageId;
-    const messageId = body.messageId; 
-
-    console.log(`[Webhook] Processing callback for ${phone}. ButtonId: ${buttonId}, Text: ${text}, Ref: ${referenceId}`);
-
-    // REGISTRAR CLIQUE (Geral)
-    if (buttonId || text) {
-      // Find appointment context first to enrich the click log if possible
-      let enrichedAppointmentId = null;
-      let enrichedTenantId = null;
-
-      if (referenceId) {
-        const { data: logCtx } = await supabase
-          .from("automation_logs")
-          .select("appointment_id, tenant_id")
-          .eq("provider_message_id", referenceId)
-          .maybeSingle();
-        
-        if (logCtx) {
-          enrichedAppointmentId = logCtx.appointment_id;
-          enrichedTenantId = logCtx.tenant_id;
-        }
-      }
-
-      await supabase.from("automation_logs").insert({
-        tenant_id: enrichedTenantId,
-        appointment_id: enrichedAppointmentId,
-        phone,
-        status: "info",
-        action: "button_clicked",
-        payload: {
-          event_name: "button_clicked",
-          button_id: buttonId,
-          button_text: body.buttonsResponseMessage?.selectedButtonId || text,
-          referenceMessageId: referenceId,
-          webhook_received: true,
-          phone
-        }
-      });
-    }
+  if (type === "ReceivedCallback" && !fromMe) {
+    console.log(`[Webhook] Processing callback for ${phone}. ButtonId: ${buttonId}, Ref: ${referenceId}`);
 
     // Is it a confirmation?
     const isConfirm = buttonId === "main_confirm" || 
-                      ["confirmar agendamento", "confirmar", "1"].includes(text);
-
+                      ["confirmar agendamento", "confirmar", "1"].includes(buttonText.toLowerCase());
 
     if (isConfirm) {
       console.log(`[Webhook] Confirmation action detected`);
@@ -113,10 +93,11 @@ serve(async (req) => {
       let sessionId = null;
       let automationId = null;
       let foundLog = null;
+      let fallbackUsed = false;
 
-      // 1. Search ONLY by referenceId (matching provider_message_id)
+      // 1. Search strictly by referenceId (matching provider_message_id)
       if (referenceId) {
-        console.log(`[Webhook] Searching strictly by referenceId (provider_message_id): ${referenceId}`);
+        console.log(`[Webhook] Searching strictly by referenceId: ${referenceId}`);
         const { data: log } = await supabase
           .from("automation_logs")
           .select(`
@@ -135,89 +116,66 @@ serve(async (req) => {
           automationId = log.automation_id;
           sessionId = log.conversation_id;
           console.log(`[Webhook] Found by provider_message_id: ${appointmentId}`);
-        } else {
-           // Fallback for logs that don't have provider_message_id yet
-           console.log(`[Webhook] Not found in provider_message_id. Trying fallback search in response json...`);
-           const { data: fallbackLog } = await supabase
-            .from("automation_logs")
-            .select(`
-              *,
-              appointment:appointments(*, service:services(name))
-            `)
-            .or(`response->>messageId.eq.${referenceId},zapi_response->response->>messageId.eq.${referenceId},zapi_response->>messageId.eq.${referenceId}`)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-            if (fallbackLog) {
-              foundLog = fallbackLog;
-              appointmentId = fallbackLog.appointment_id;
-              tenantId = fallbackLog.tenant_id;
-              automationId = fallbackLog.automation_id;
-              sessionId = fallbackLog.conversation_id;
-              console.log(`[Webhook] Found by fallback referenceId search: ${appointmentId}`);
-            }
         }
       }
 
-      // 2. Search by sessionId if referenceId didn't yield anything
-      if (!appointmentId && body.session_id) {
-         console.log(`[Webhook] Searching by body.session_id: ${body.session_id}`);
-         const { data: logBySession } = await supabase
+      // 2. Fallback search (Phone + Timeframe)
+      if (!appointmentId && phone) {
+        console.log(`[Webhook] Fallback search by phone: ${phone}`);
+        const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+        
+        const { data: fallbackLog } = await supabase
           .from("automation_logs")
           .select(`
             *,
             appointment:appointments(*, service:services(name))
           `)
-          .eq("conversation_id", body.session_id)
+          .eq("phone", phone)
+          .eq("callback_received", false)
+          .eq("status", "success")
+          .gt("created_at", thirtyMinutesAgo)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
-          
-          if (logBySession) {
-            foundLog = logBySession;
-            appointmentId = logBySession.appointment_id;
-            tenantId = logBySession.tenant_id;
-            automationId = logBySession.automation_id;
-            sessionId = logBySession.conversation_id;
-            console.log(`[Webhook] Found by session_id: ${appointmentId}`);
-          }
+
+        if (fallbackLog) {
+          foundLog = fallbackLog;
+          appointmentId = fallbackLog.appointment_id;
+          tenantId = fallbackLog.tenant_id;
+          automationId = fallbackLog.automation_id;
+          sessionId = fallbackLog.conversation_id;
+          fallbackUsed = true;
+          console.log(`[Webhook] Found by fallback phone search: ${appointmentId}`);
+        }
       }
 
-      // IF NOT FOUND -> Send "Not found" message
+      // IF NOT FOUND
       if (!appointmentId || !tenantId) {
         console.warn(`[Webhook] Link not found for message ${referenceId} from ${phone}`);
         
-        // Log "not found" for dashboard
         await supabase.from("automation_logs").insert({
-          tenant_id: foundLog?.tenant_id,
+          tenant_id: null,
           phone,
           status: "not_found",
           action: "confirmed_via_webhook",
-          error_message: "Agendamento não encontrado para o referenceMessageId fornecido",
+          error_message: "Agendamento não encontrado para o referenceMessageId ou telefone fornecido",
           payload: { clicked_referenceMessageId: referenceId, webhook_received: true }
         });
 
-        const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId || (foundLog?.tenant_id)).maybeSingle();
-        if (instance) {
-          await sendMessage(instance, phone, "Recebi sua confirmação, mas não encontrei o agendamento vinculado.");
-        }
-
+        // We don't have tenantId so we can't easily send a response message back here without more logic
         return new Response(JSON.stringify({ ok: true, status: "not_found" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
-
       }
 
       const appointment = foundLog?.appointment;
       const statusBefore = appointment?.status;
 
-      // IDEMPOTENCY CHECK: Is it already confirmed?
+      // IDEMPOTENCY CHECK
       if (statusBefore === "confirmed") {
         console.log(`[Webhook] Appointment ${appointmentId} already confirmed.`);
         
-        // Log duplicity check
         await supabase.from("automation_logs").insert({
           automation_id: automationId,
           tenant_id: tenantId,
@@ -233,21 +191,14 @@ serve(async (req) => {
           }
         });
 
-        // Ensure session is closed
-        if (sessionId) {
-          await supabase.from("automation_conversations")
-            .update({ status: "closed", current_state: "completed", updated_at: new Date().toISOString() })
-            .eq("id", sessionId);
-        }
-          
         return new Response(JSON.stringify({ ok: true, status: "already_confirmed" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
       }
 
-      console.log(`[Webhook] Updating appointment ${appointmentId} from ${statusBefore} to confirmed`);
-      
+      // UPDATE APPOINTMENT
+      console.log(`[Webhook] Updating appointment ${appointmentId} to confirmed`);
       const { error: updateError } = await supabase
         .from("appointments")
         .update({ 
@@ -260,20 +211,8 @@ serve(async (req) => {
 
       if (updateError) {
         console.error(`[Webhook] Update error:`, updateError);
-        await supabase.from("automation_logs").insert({
-          automation_id: automationId,
-          tenant_id: tenantId,
-          appointment_id: appointmentId,
-          conversation_id: sessionId,
-          phone,
-          status: "error",
-          action: "confirmed_via_webhook",
-          error_message: `Update error: ${JSON.stringify(updateError)}`,
-          payload: { clicked_referenceMessageId: referenceId, appointment_id_found: appointmentId }
-        });
       } else {
-        console.log(`[Webhook] Update success. Preparing response message...`);
-        
+        // Resolve names for success message
         let businessName = "Barbearia";
         const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", tenantId).maybeSingle();
         if (profile?.business_name) businessName = profile.business_name;
@@ -295,7 +234,6 @@ serve(async (req) => {
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
         if (instance) {
           zapiResponse = await sendMessage(instance, phone, successMsg);
-          console.log(`[Webhook] Message sent to ${phone}`);
         }
 
         // Close session
@@ -305,7 +243,17 @@ serve(async (req) => {
             .eq("id", sessionId);
         }
 
-        // Detailed Log
+        // Update original log with callback info
+        if (foundLog) {
+            await supabase.from("automation_logs").update({
+                callback_received: true,
+                callback_received_at: new Date().toISOString(),
+                button_id: buttonId || "main_confirm",
+                final_status: "confirmed"
+            }).eq("id", foundLog.id);
+        }
+
+        // Detailed Audit Log
         await supabase.from("automation_logs").insert({
           automation_id: automationId,
           tenant_id: tenantId,
@@ -330,10 +278,19 @@ serve(async (req) => {
             duplicate_blocked: false,
             success_message_sent: !!zapiResponse,
             webhook_received: true, 
-            button_id: buttonId || "text_match",
-            session_closed: true
+            button_id: buttonId || "main_confirm",
+            session_closed: true,
+            fallback_used
           }
         });
+
+        // Update the webhook log with the found appointment_id
+        if (webhookLog) {
+            await supabase.from("automation_webhook_logs").update({
+                appointment_id: appointmentId,
+                tenant_id: tenantId
+            }).eq("id", webhookLog.id);
+        }
       }
     }
   }
