@@ -56,7 +56,7 @@ serve(async (req) => {
           customer_name: appointment.customer?.name || "Cliente",
           barbershop_name: (await supabase.from("profiles").select("business_name").eq("id", tenant_id).single()).data?.business_name || "Nossa Barbearia",
           service_name: appointment.service?.name || "Serviço",
-          professional_name: appointment.barber?.full_name || "Profissional",
+          professional_name: (await supabase.from("profiles").select("full_name").eq("id", appointment.barber_id).single()).data?.full_name || "Profissional",
           appointment_date: new Date(appointment.start_time).toLocaleDateString("pt-BR"),
           appointment_time: new Date(appointment.start_time).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }),
           service_price: `R$ ${appointment.total_price || appointment.service?.price || 0}`,
