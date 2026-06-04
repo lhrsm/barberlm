@@ -370,13 +370,14 @@ function AutomationsComponent() {
       let query = supabase
         .from("automation_logs")
         .select("*", { count: 'exact' })
-        .eq("appointment_id", log.appointment_id);
+        .eq("appointment_id", log.appointment_id)
+        .eq("tenant_id", tenantId || ""); // Filter by tenant_id for security and context
 
       if (auditSearchTerm) {
         query = query.or(`id.eq.${auditSearchTerm},payload->>diagnostic.ilike.%${auditSearchTerm}%,error_message.ilike.%${auditSearchTerm}%`);
       }
 
-      if (auditFilterType !== "all") {
+      if (auditFilterType !== "all" && auditFilterType !== "by_template") {
         if (auditFilterType === "webhook") {
           query = query.filter("payload->>diagnostic", "eq", "trigger_executed");
         } else if (auditFilterType === "queue") {
@@ -385,6 +386,8 @@ function AutomationsComponent() {
           query = query.eq("status", "sent");
         } else if (auditFilterType === "delivery") {
           query = query.filter("payload->>diagnostic", "eq", "delivery_detected");
+        } else if (auditFilterType === "by_template") {
+          query = query.eq("automation_id", log.automation_id);
         }
       }
 
@@ -1226,11 +1229,20 @@ function AutomationsComponent() {
                   </p>
                 </div>
                 
-                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">STATUS</p>
-                  <div className={`flex items-center gap-1.5 text-xs font-bold ${selectedLog.status === 'sent' ? 'text-[#10B981]' : 'text-rose-500'}`}>
-                    {selectedLog.status === 'sent' ? <Check size={14} /> : <X size={14} />}
-                    {selectedLog.status === 'sent' ? '✓ Enviado com sucesso' : 'Falha no envio'}
+                <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl relative">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">STATUS DO PROFISSIONAL</p>
+                  <div className="flex items-center gap-1.5 text-xs font-bold">
+                    {selectedLog.payload?.diagnostic?.professional_resolved ? (
+                      <>
+                        <CheckCircle2 size={14} className="text-[#10B981]" />
+                        <span className="text-[#10B981]">OK: {selectedLog.payload?.data?.professional_name}</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle size={14} className="text-amber-500 animate-pulse" />
+                        <span className="text-amber-500" title="Relacionamento ausente ou nome genérico">AVISO: Ausente</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -1415,6 +1427,7 @@ function AutomationsComponent() {
                       </SelectTrigger>
                       <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
                         <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="by_template">Este Template</SelectItem>
                         <SelectItem value="webhook">Webhook</SelectItem>
                         <SelectItem value="queue">Fila</SelectItem>
                         <SelectItem value="send">Envio</SelectItem>
