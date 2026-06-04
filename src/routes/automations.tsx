@@ -272,14 +272,78 @@ function AutomationsComponent() {
     }
   }
 
-  const [customVariables, setCustomVariables] = useState({
+  const INITIAL_VARIABLES = {
     customer_name: "João Silva",
     barbershop_name: "Barbex Premium",
     service_name: "Corte + Barba",
     professional_name: "Carlos (Mestre Barbeiro)",
     appointment_date: "15/06/2026",
     appointment_time: "14:30"
-  });
+  };
+
+  const [customVariables, setCustomVariables] = useState(INITIAL_VARIABLES);
+
+  useEffect(() => {
+    if (tenantId) {
+      localStorage.setItem(`auditFilterType_${tenantId}`, auditFilterType);
+    }
+  }, [auditFilterType, tenantId]);
+
+  useEffect(() => {
+    if (tenantId) {
+      localStorage.setItem(`auditSearchTerm_${tenantId}`, auditSearchTerm);
+    }
+  }, [auditSearchTerm, tenantId]);
+
+  const saveScenario = () => {
+    const scenarioName = prompt("Nome do cenário:");
+    if (!scenarioName) return;
+    const newScenarios = [...savedScenarios, { name: scenarioName, variables: { ...customVariables } }];
+    setSavedScenarios(newScenarios);
+    localStorage.setItem(`automation_scenarios_${tenantId}`, JSON.stringify(newScenarios));
+    toast.success("Cenário salvo!");
+  };
+
+  const loadScenario = (scenario: any) => {
+    setCustomVariables(scenario.variables);
+    toast.success(`Cenário "${scenario.name}" aplicado!`);
+  };
+
+  const deleteScenario = (idx: number) => {
+    const newScenarios = savedScenarios.filter((_, i) => i !== idx);
+    setSavedScenarios(newScenarios);
+    localStorage.setItem(`automation_scenarios_${tenantId}`, JSON.stringify(newScenarios));
+    toast.success("Cenário removido.");
+  };
+
+  const countSearchResults = (text: string, term: string) => {
+    if (!term) return 0;
+    const regex = new RegExp(term, 'gi');
+    return (text.match(regex) || []).length;
+  };
+
+  useEffect(() => {
+    if (selectedPreviewTemplate && previewSearchTerm) {
+      const rendered = replaceVariables(selectedPreviewTemplate, false, "") as string;
+      const total = countSearchResults(rendered, previewSearchTerm);
+      setPreviewTotalResults(total);
+      setPreviewSearchResultIndex(total > 0 ? 1 : 0);
+    } else {
+      setPreviewTotalResults(0);
+      setPreviewSearchResultIndex(0);
+    }
+  }, [previewSearchTerm, selectedPreviewTemplate]);
+
+  const handlePreviewSearchKeydown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        setPreviewSearchResultIndex(prev => prev > 1 ? prev - 1 : previewTotalResults);
+      } else {
+        setPreviewSearchResultIndex(prev => prev < previewTotalResults ? prev + 1 : 1);
+      }
+    }
+  };
+
 
   const replaceVariables = (template: string, highlight: boolean = false, searchTerm: string = "") => {
     if (!template) return "";
