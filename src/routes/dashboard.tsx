@@ -306,7 +306,7 @@ function DashboardComponent() {
     let remainingToPay = Number(appointment.final_amount || totalPrice);
 
     // Determine how much credit and cashback will be used if not already set
-    if (appointment.payment_status !== 'paid' && usedCredits === 0 && usedCashback === 0 && remainingToPay === totalPrice) {
+    if (appointment.payment_status !== 'paid' && usedCredits === 0 && usedCashback === 0 && (remainingToPay === totalPrice || !appointment.final_amount)) {
       if (availableCashback > 0) {
         usedCashback = Math.min(availableCashback, remainingToPay);
         remainingToPay -= usedCashback;
@@ -343,8 +343,8 @@ function DashboardComponent() {
       .maybeSingle();
 
     if (!existingTrans) {
-      const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
-      const cashbackText = usedCashback > 0 ? ` (Abatimento Cashback: R$ ${usedCashback.toFixed(2)})` : "";
+      const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+      const cashbackText = usedCashback > 0 ? ` (Cashback: R$ ${usedCashback.toFixed(2)})` : "";
       const deductionText = `${creditText}${cashbackText}`;
 
       if (!tenantId) return;
@@ -379,7 +379,7 @@ function DashboardComponent() {
       const usedCredits = Number(appointment.credit_used || 0);
       
       // Criar transação mesmo que seja 0 para constar no financeiro
-      const creditText = usedCredits > 0 ? ` (Abatimento Créditos: R$ ${usedCredits.toFixed(2)})` : "";
+      const creditText = usedCredits > 0 ? ` (Créditos: R$ ${usedCredits.toFixed(2)})` : "";
       
       if (!tenantId) {
         toast.error("Tenant não identificado");
@@ -606,9 +606,13 @@ function DashboardComponent() {
             return acc;
           }
           // Ignorar transações de créditos/cashback que não representam dinheiro novo real em caixa (PIX/Dinheiro/Cartão)
-          if (curr.category === 'Crédito Cliente' || curr.description?.includes('Crédito Gerado')) {
+          if (curr.category === 'Crédito Cliente' || curr.description?.includes('Crédito Gerado') || curr.description?.includes('Cashback Gerado')) {
             return acc;
           }
+          
+          // Se for uma transação de serviço, abater o valor que foi pago com crédito/cashback se estiver no description
+          // No dashboard, as transações financeiras salvam em 'amount' o valor REAL recebido (final_amount).
+          // Então não precisamos abater nada aqui, o amount já é o líquido.
           return acc + Number(curr.amount);
         } else if (curr.type === 'expense') {
             // Deduzir estornos da entrada em caixa se necessário para refletir saldo real
