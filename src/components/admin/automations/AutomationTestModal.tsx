@@ -48,43 +48,49 @@ export function AutomationTestModal({
 
 
 
-  const fetchRealData = async () => {
+  const fetchRealData = async (appointmentId?: string) => {
     setIsLoadingRealData(true);
     try {
-      // 1. Fetch the last appointment for this tenant
-      const { data: appointment, error: appError } = await (supabase as any)
+      // 1. Fetch recent appointments
+      const { data: appointments, error: appError } = await (supabase as any)
         .from("appointments")
-        .select("*")
+        .select(`
+          id, 
+          start_time, 
+          customer_id, 
+          service_id, 
+          barber_id,
+          total_price,
+          customer:customers(name, phone)
+        `)
         .eq("tenant_id", automation.tenant_id)
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(10);
 
       if (appError) throw appError;
 
-      if (appointment) {
-        // 2. Fetch Customer
-        const { data: customer } = await (supabase as any)
-          .from("customers")
-          .select("name, phone")
-          .eq("id", appointment.customer_id)
-          .maybeSingle();
+      if (appointments && appointments.length > 0) {
+        setRecentAppointments(appointments);
+        
+        // Use provided ID or the latest one
+        const targetId = appointmentId || appointments[0].id;
+        const appointment = appointments.find(a => a.id === targetId) || appointments[0];
+        
+        setSelectedAppointmentId(appointment.id);
 
-        // 3. Fetch Service
+        // Fetch remaining details for the selected one
         const { data: service } = await (supabase as any)
           .from("services")
           .select("name, price")
           .eq("id", appointment.service_id)
           .maybeSingle();
 
-        // 4. Fetch Professional (from profiles)
         const { data: professional } = await (supabase as any)
           .from("profiles")
           .select("full_name")
           .eq("id", appointment.barber_id)
           .maybeSingle();
 
-        // 5. Fetch Barbershop (Tenant)
         const { data: tenant } = await (supabase as any)
           .from("tenants")
           .select("name")
@@ -92,7 +98,7 @@ export function AutomationTestModal({
           .maybeSingle();
 
         setRealData({
-          customer_name: customer?.name || "Cliente",
+          customer_name: appointment.customer?.name || "Cliente",
           barbershop_name: tenant?.name || "Barbearia",
           service_name: service?.name || "Serviço",
           professional_name: professional?.full_name || "Profissional",
@@ -100,8 +106,8 @@ export function AutomationTestModal({
           appointment_time: appointment.start_time ? new Date(appointment.start_time).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }) : "--:--",
           service_price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(appointment.total_price || service?.price || 0),
         });
-        setSelectedAppointmentId(appointment.id);
       } else {
+        setRecentAppointments([]);
         setRealData(null);
         setSelectedAppointmentId("");
       }
