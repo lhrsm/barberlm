@@ -377,7 +377,7 @@ function AutomationsComponent() {
         query = query.or(`id.eq.${auditSearchTerm},payload->>diagnostic.ilike.%${auditSearchTerm}%,error_message.ilike.%${auditSearchTerm}%`);
       }
 
-      if (auditFilterType !== "all") {
+      if (auditFilterType !== "all" && auditFilterType !== "by_template") {
         if (auditFilterType === "webhook") {
           query = query.filter("payload->>diagnostic", "eq", "trigger_executed");
         } else if (auditFilterType === "queue") {
