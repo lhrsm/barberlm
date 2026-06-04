@@ -349,6 +349,91 @@ function AutomationsComponent() {
     }
   };
 
+  const fetchAuditLogs = async (log: any) => {
+    if (!log || !log.appointment_id) return;
+    setIsAuditLoading(true);
+    try {
+      let query = supabase
+        .from("automation_logs")
+        .select("*", { count: 'exact' })
+        .eq("appointment_id", log.appointment_id);
+
+      if (auditSearchTerm) {
+        query = query.or(`id.eq.${auditSearchTerm},payload->>diagnostic.ilike.%${auditSearchTerm}%,error_message.ilike.%${auditSearchTerm}%`);
+      }
+
+      if (auditFilterType !== "all") {
+        if (auditFilterType === "webhook") {
+          query = query.filter("payload->>diagnostic", "eq", "trigger_executed");
+        } else if (auditFilterType === "queue") {
+          query = query.filter("payload->>diagnostic", "eq", "queue_insert");
+        } else if (auditFilterType === "send") {
+          query = query.eq("status", "sent");
+        } else if (auditFilterType === "delivery") {
+          query = query.filter("payload->>diagnostic", "eq", "delivery_detected");
+        }
+      }
+
+      const from = (auditPage - 1) * auditItemsPerPage;
+      const to = from + auditItemsPerPage - 1;
+
+      const { data, count, error } = await query
+        .order("created_at", { ascending: true })
+        .range(from, to);
+
+      if (error) throw error;
+      setAuditLogs(data || []);
+      setTotalAuditLogs(count || 0);
+    } catch (error: any) {
+      console.error("Error fetching audit logs:", error);
+    } finally {
+      setIsAuditLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isLogDetailOpen && selectedLog) {
+      fetchAuditLogs(selectedLog);
+    }
+  }, [isLogDetailOpen, selectedLog, auditPage, auditFilterType, auditSearchTerm]);
+
+  const handleExportAudit = (log: any, format: 'csv' | 'json') => {
+    if (!auditLogs.length) return;
+    
+    if (format === 'json') {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(auditLogs, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", `audit_${log.appointment_id}.json`);
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    } else {
+      const headers = ["ID", "Data", "Status", "Tipo", "Telefone", "Erro"];
+      const rows = auditLogs.map(l => [
+        l.id,
+        new Date(l.created_at).toLocaleString('pt-BR'),
+        l.status,
+        l.message_type,
+        l.phone,
+        l.error_message || ""
+      ]);
+      
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + headers.join(",") + "\n"
+        + rows.map(e => e.join(",")).join("\n");
+        
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `audit_${log.appointment_id}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+    toast.success(`Auditoria exportada em ${format.toUpperCase()}`);
+  };
+
 
   const replaceVariables = (template: string, highlight: boolean = false, searchTerm: string = "") => {
     if (!template) return "";
