@@ -34,6 +34,7 @@ export function AutomationTestModal({
   const [isLoadingRealData, setIsLoadingRealData] = useState(false);
   const [realData, setRealData] = useState<any>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>("");
+  const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
   const [lastTestResult, setLastTestResult] = useState<any>(null);
   const [isLoadingLastTest, setIsLoadingLastTest] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
