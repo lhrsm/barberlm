@@ -54,6 +54,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -94,6 +95,8 @@ function AutomationsComponent() {
   const [isLogDetailOpen, setIsLogDetailOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [selectedPreviewTemplate, setSelectedPreviewTemplate] = useState("");
+  const [isPreviewEditMode, setIsPreviewEditMode] = useState(false);
+  const [previewSearchTerm, setPreviewSearchTerm] = useState("");
   
   // Filtros Log Principal
   const [filterStatus, setFilterStatus] = useState("all");
@@ -238,45 +241,97 @@ function AutomationsComponent() {
     }
   }
 
-  const replaceVariables = (template: string, highlight: boolean = false) => {
+  const [customVariables, setCustomVariables] = useState({
+    customer_name: "João Silva",
+    barbershop_name: "Barbex Premium",
+    service_name: "Corte + Barba",
+    professional_name: "Carlos (Mestre Barbeiro)",
+    appointment_date: "15/06/2026",
+    appointment_time: "14:30"
+  });
+
+  const replaceVariables = (template: string, highlight: boolean = false, searchTerm: string = "") => {
     if (!template) return "";
     
     const variables = [
-      { key: "{customer_name}", value: "João Silva", color: "text-amber-400" },
-      { key: "{barbershop_name}", value: "Barbex Premium", color: "text-sky-400" },
-      { key: "{service_name}", value: "Corte + Barba", color: "text-emerald-400" },
-      { key: "{professional_name}", value: "Carlos (Mestre Barbeiro)", color: "text-rose-400" },
-      { key: "{appointment_date}", value: "15/06/2026", color: "text-purple-400" },
-      { key: "{appointment_time}", value: "14:30", color: "text-indigo-400" }
+      { key: "{customer_name}", value: customVariables.customer_name, color: "text-amber-400" },
+      { key: "{barbershop_name}", value: customVariables.barbershop_name, color: "text-sky-400" },
+      { key: "{service_name}", value: customVariables.service_name, color: "text-emerald-400" },
+      { key: "{professional_name}", value: customVariables.professional_name, color: "text-rose-400" },
+      { key: "{appointment_date}", value: customVariables.appointment_date, color: "text-purple-400" },
+      { key: "{appointment_time}", value: customVariables.appointment_time, color: "text-indigo-400" }
     ];
 
-    if (!highlight) {
+    if (!highlight && !searchTerm) {
       let result = template;
       variables.forEach(v => {
-        result = result.replace(new RegExp(v.key, 'g'), v.value);
+        // Escape braces for regex
+        const escapedKey = v.key.replace(/\{/g, '\\{').replace(/\}/g, '\\}');
+        result = result.replace(new RegExp(escapedKey, 'g'), v.value);
       });
       return result;
     }
 
-    // Highlighting logic for React components
     const parts = template.split(/(\{[a-z_]+\})/g);
     return parts.map((part, index) => {
       const variable = variables.find(v => v.key === part);
       if (variable) {
+        let content: any = variable.value;
+        if (searchTerm && variable.value.toLowerCase().includes(searchTerm.toLowerCase())) {
+          const sParts = variable.value.split(new RegExp(`(${searchTerm})`, 'gi'));
+          content = sParts.map((p, i) => 
+            p.toLowerCase() === searchTerm.toLowerCase() 
+              ? <mark key={i} className="bg-amber-500 text-slate-900 rounded-sm">{p}</mark> 
+              : p
+          );
+        }
+
         return (
           <span key={index} className={`font-bold px-1 rounded bg-white/5 ${variable.color}`} title={variable.key}>
-            {variable.value}
+            {content}
           </span>
         );
       }
+
+      if (searchTerm && part.toLowerCase().includes(searchTerm.toLowerCase())) {
+        const sParts = part.split(new RegExp(`(${searchTerm})`, 'gi'));
+        return (
+          <span key={index}>
+            {sParts.map((p, i) => 
+              p.toLowerCase() === searchTerm.toLowerCase() 
+                ? <mark key={i} className="bg-amber-500 text-slate-900 rounded-sm">{p}</mark> 
+                : p
+            )}
+          </span>
+        );
+      }
+
       return part;
     });
   };
 
   const handleCopyTemplate = (template: string) => {
-    const rendered = replaceVariables(template, false) as string;
-    navigator.clipboard.writeText(rendered);
-    toast.success("Mensagem copiada para a área de transferência!");
+    const rendered = replaceVariables(template, false, "") as string;
+    try {
+      navigator.clipboard.writeText(rendered).then(() => {
+        toast.success("Mensagem copiada para a área de transferência!");
+      }).catch(() => {
+        // Fallback para quando o clipboard API falha/bloqueia
+        const textArea = document.createElement("textarea");
+        textArea.value = rendered;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          toast.success("Mensagem copiada (via fallback)!");
+        } catch (err) {
+          toast.error("Não foi possível copiar automaticamente.");
+        }
+        document.body.removeChild(textArea);
+      });
+    } catch (e) {
+      toast.error("Erro ao tentar copiar.");
+    }
   };
 
   const handleCopyText = (text: string, label: string) => {
@@ -1242,43 +1297,86 @@ function AutomationsComponent() {
         </DialogContent>
       </Dialog>
       
-      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-md bg-[#0F172A] border-slate-800 text-white p-0 overflow-hidden rounded-[24px] focus:outline-none">
+      <Dialog open={isPreviewOpen} onOpenChange={(open) => {
+        setIsPreviewOpen(open);
+        if (!open) {
+          setIsPreviewEditMode(false);
+          setPreviewSearchTerm("");
+        }
+      }}>
+        <DialogContent className="max-w-2xl bg-[#0F172A] border-slate-800 text-white p-0 overflow-hidden rounded-[24px] focus:outline-none">
           <DialogHeader className="p-6 pb-2">
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <Eye className="text-amber-500" size={20} />
-              Visualização da Mensagem
-            </DialogTitle>
+            <div className="flex items-center justify-between gap-4">
+              <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                <Eye className="text-amber-500" size={20} />
+                Visualização da Mensagem
+              </DialogTitle>
+              
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
+                  <Input 
+                    placeholder="Buscar na mensagem..."
+                    value={previewSearchTerm}
+                    onChange={(e) => setPreviewSearchTerm(e.target.value)}
+                    className="h-8 pl-8 text-xs bg-slate-900 border-slate-700 w-[180px] rounded-lg focus:border-amber-500/50"
+                  />
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setIsPreviewEditMode(!isPreviewEditMode)}
+                  className={`h-8 border-slate-700 rounded-lg text-xs ${isPreviewEditMode ? 'bg-amber-500 text-slate-900 border-amber-500 hover:bg-amber-600' : 'bg-slate-800 text-white'}`}
+                >
+                  <Settings2 size={12} className="mr-1.5" />
+                  {isPreviewEditMode ? 'Ver Preview' : 'Editar Variáveis'}
+                </Button>
+              </div>
+            </div>
           </DialogHeader>
           
           <div className="p-6 pt-2 space-y-4">
-            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 relative">
-              <div className="absolute top-0 right-4 -translate-y-1/2 bg-amber-500 text-[10px] font-bold px-2 py-0.5 rounded-full text-slate-900 uppercase">
-                WhatsApp Preview
-              </div>
-              
-              <div className="mt-2 space-y-3">
-                <div className="bg-[#0F172A] border border-amber-500/25 text-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[95%] text-sm whitespace-pre-wrap leading-relaxed relative">
-                  <div className="mb-2">
-                    {replaceVariables(selectedPreviewTemplate, true)}
-                  </div>
-                  <div className="text-[10px] text-slate-400 text-right mt-1">
-                    14:30 ✓✓
-                  </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-6">
+              <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 relative min-h-[300px]">
+                <div className="absolute top-0 right-4 -translate-y-1/2 bg-amber-500 text-[10px] font-bold px-2 py-0.5 rounded-full text-slate-900 uppercase">
+                  WhatsApp Preview
                 </div>
                 
-                <div className="space-y-2 pt-2">
-                  <div className="bg-[#0F172A] hover:bg-white/5 transition-colors border border-amber-500/15 p-2.5 rounded-xl text-center text-sm font-semibold text-sky-400">
-                    Confirmar agendamento
+                <div className="mt-2 space-y-3 h-full flex flex-col">
+                  <div className="bg-[#0F172A] border border-amber-500/25 text-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[95%] text-sm whitespace-pre-wrap leading-relaxed relative flex-grow">
+                    <div className="mb-2">
+                      {replaceVariables(selectedPreviewTemplate, true, previewSearchTerm)}
+                    </div>
+                    <div className="text-[10px] text-slate-400 text-right mt-1">
+                      14:30 ✓✓
+                    </div>
                   </div>
-                  <div className="bg-[#0F172A] hover:bg-white/5 transition-colors border border-amber-500/15 p-2.5 rounded-xl text-center text-sm font-semibold text-sky-400">
-                    Reagendar
-                  </div>
-                  <div className="bg-[#0F172A] hover:bg-white/5 transition-colors border border-amber-500/15 p-2.5 rounded-xl text-center text-sm font-semibold text-sky-400">
-                    Cancelar
+                  
+                  <div className="space-y-2 pt-2">
+                    <div className="bg-[#0F172A] hover:bg-white/5 transition-colors border border-amber-500/15 p-2.5 rounded-xl text-center text-sm font-semibold text-sky-400">
+                      Confirmar agendamento
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {isPreviewEditMode && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Testar Variáveis</p>
+                  <div className="space-y-3">
+                    {Object.entries(customVariables).map(([key, value]) => (
+                      <div key={key} className="space-y-1">
+                        <Label className="text-[10px] text-slate-400">{key}</Label>
+                        <Input 
+                          value={value} 
+                          onChange={(e) => setCustomVariables({...customVariables, [key]: e.target.value})}
+                          className="h-8 text-xs bg-slate-900 border-slate-800 rounded-lg focus:border-amber-500/50"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="flex flex-col gap-3">
@@ -1299,7 +1397,7 @@ function AutomationsComponent() {
             </div>
 
             <p className="text-[10px] text-slate-500 text-center px-4 leading-tight">
-              As cores indicam variáveis preenchidas dinamicamente pelo sistema.
+              As cores indicam variáveis preenchidas dinamicamente. Edite os valores para simular diferentes cenários.
               Pressione ESC para fechar.
             </p>
           </div>
