@@ -413,23 +413,15 @@ export function AppointmentModal({
 
       const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled, business_name").eq("id", tenantId).single();
 
-      if (profile?.whatsapp_enabled && customer?.phone) {
+      if (profile?.whatsapp_enabled) {
         console.log("Triggering functional WhatsApp confirmation...");
-        triggerWhatsAppMessage({
-          userId: tenantId,
-          eventType: 'appointment_confirmation',
-          phone: customer.phone,
-          appointmentId: appointmentData.id,
-          placeholders: {
-            cliente_nome: customer.name,
-            data: format(startTime, "dd/MM/yyyy"),
-            horario: selectedTime,
-            servico: service?.name,
-            barbeiro_nome: barbers.find(b => b.id === selectedBarber)?.name,
-            barbearia_nome: profile.business_name
-          }
+        triggerAutomation({
+          tenant_id: tenantId,
+          event_name: 'appointment.created',
+          appointment_id: appointmentData.id
         });
       }
+
 
 
       toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
