@@ -168,7 +168,7 @@ function AutomationsComponent() {
       const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
         body: {
           action: 'send-test-message',
-          instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', tenantId).single()).data?.id,
+          instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', tenantId || "").single()).data?.id,
           data: {
             phone: log.phone,
             message: log.processed_template || log.payload?.rendered || "Mensagem de reenvio"
