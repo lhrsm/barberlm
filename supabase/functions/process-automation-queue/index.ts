@@ -162,6 +162,9 @@ serve(async (req) => {
 
         const sendResult = await sendMessage(instance, phone, renderedTemplate, sendOptions);
 
+        // Track button/text status
+        const finalMessageType = (sendOptions.buttons && sendResult.success) ? 'buttons' : 'text_fallback';
+
         // 7. Update status and Log
         if (sendResult.success) {
           await supabase.from("automation_queue").update({ 
