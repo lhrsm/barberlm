@@ -13,6 +13,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { Phone, ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign } from "lucide-react";
 import { format } from "date-fns";
@@ -347,12 +348,12 @@ function FinancesComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Financeiro</h2>
             <p className="text-muted-foreground">Controle suas entradas e saídas.</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3">
             {role !== 'barber' && (
               <Button 
                 variant="outline" 
