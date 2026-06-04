@@ -1258,23 +1258,23 @@ function AutomationsComponent() {
               </div>
               
               <div className="mt-2 space-y-3">
-                <div className="bg-[#075E54] text-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[95%] text-sm whitespace-pre-wrap leading-relaxed relative">
+                <div className="bg-[#0F172A] border border-amber-500/25 text-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[95%] text-sm whitespace-pre-wrap leading-relaxed relative">
                   <div className="mb-2">
                     {replaceVariables(selectedPreviewTemplate, true)}
                   </div>
-                  <div className="text-[10px] text-white/60 text-right mt-1">
+                  <div className="text-[10px] text-slate-400 text-right mt-1">
                     14:30 ✓✓
                   </div>
                 </div>
                 
                 <div className="space-y-2 pt-2">
-                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                  <div className="bg-[#0F172A] hover:bg-white/5 transition-colors border border-amber-500/15 p-2.5 rounded-xl text-center text-sm font-semibold text-sky-400">
                     Confirmar agendamento
                   </div>
-                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                  <div className="bg-[#0F172A] hover:bg-white/5 transition-colors border border-amber-500/15 p-2.5 rounded-xl text-center text-sm font-semibold text-sky-400">
                     Reagendar
                   </div>
-                  <div className="bg-white/10 hover:bg-white/20 transition-colors border border-white/10 p-2.5 rounded-xl text-center text-sm font-semibold text-white">
+                  <div className="bg-[#0F172A] hover:bg-white/5 transition-colors border border-amber-500/15 p-2.5 rounded-xl text-center text-sm font-semibold text-sky-400">
                     Cancelar
                   </div>
                 </div>
