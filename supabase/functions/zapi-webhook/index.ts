@@ -114,7 +114,7 @@ serve(async (req) => {
       payload: body,
       phone: normalizedPhone,
       button_id: buttonId,
-      reference_message_id: referenceMessageId,
+      reference_message_id: referenceMessageId || body.buttonsResponseMessage?.referenceMessageId,
       session_id: session?.id,
       flow_type: session?.flow_type,
       processed: !!session
