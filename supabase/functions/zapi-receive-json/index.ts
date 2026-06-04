@@ -219,8 +219,15 @@ serve(async (req) => {
             .update({ status: "closed", current_state: "completed", updated_at: new Date().toISOString() })
             .eq("id", sessionId);
 
+          // Get a fallback automation_id if not found yet
+          if (!automationId) {
+            const { data: auto } = await supabase.from("automations").select("id").limit(1).maybeSingle();
+            automationId = auto?.id;
+          }
+
           // Detailed Log
-          await supabase.from("automation_logs").insert({
+          console.log(`[Webhook] Inserting log for appointment ${appointmentId}`);
+          const { error: logError } = await supabase.from("automation_logs").insert({
             automation_id: automationId,
             tenant_id: tenantId,
             appointment_id: appointmentId,
@@ -229,7 +236,7 @@ serve(async (req) => {
             status: "success",
             action: "confirmed_via_webhook",
             message_sent: successMsg,
-            state_before: statusBefore,
+            state_before: statusBefore || "pending",
             state_after: "confirmed",
             idempotency_key: messageId,
             zapi_response: zapiResponse,
@@ -240,9 +247,17 @@ serve(async (req) => {
               session_found: !!sessionId,
               session_id: sessionId,
               session_closed: !sessionError,
-              success_message_sent: !!zapiResponse
+              success_message_sent: !!zapiResponse,
+              status_before: statusBefore,
+              status_after: "confirmed"
             }
           });
+
+          if (logError) {
+            console.error(`[Webhook] Error inserting automation log:`, logError);
+          } else {
+            console.log(`[Webhook] Automation log inserted successfully`);
+          }
         }
       } else {
         console.warn(`[Webhook] No appointment/tenant found for confirmation click from ${phone}`);
