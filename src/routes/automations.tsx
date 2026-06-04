@@ -2,7 +2,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useTenant } from "@/hooks/use-tenant";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +39,10 @@ import {
   Activity,
   ArrowRight,
   X,
-  Copy
+  Copy,
+  ChevronDown,
+  ChevronUp,
+  Code2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
@@ -92,7 +95,7 @@ function AutomationsComponent() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [selectedPreviewTemplate, setSelectedPreviewTemplate] = useState("");
   
-  // Filtros
+  // Filtros Log Principal
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterAutomation, setFilterAutomation] = useState("all");
   const [filterPeriod, setFilterPeriod] = useState("all");
@@ -100,6 +103,12 @@ function AutomationsComponent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
   const itemsPerPage = 10;
+
+  // Estados Auditoria do Fluxo (Modal)
+  const [auditFilterType, setAuditFilterType] = useState("all");
+  const [auditPage, setAuditPage] = useState(1);
+  const [expandedStep, setExpandedStep] = useState<number | null>(null);
+  const auditItemsPerPage = 5;
 
   useEffect(() => {
     if (tenantId) {
@@ -237,9 +246,72 @@ function AutomationsComponent() {
     toast.success("Mensagem copiada para a área de transferência!");
   };
 
+  const handleCopyText = (text: string, label: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copiado!`);
+  };
+
   const openPreview = (template: string) => {
     setSelectedPreviewTemplate(template);
     setIsPreviewOpen(true);
+  };
+
+  const getAuditSteps = (log: any) => {
+    if (!log) return [];
+    
+    const steps = [
+      { 
+        id: 1,
+        time: new Date(log.created_at).toLocaleTimeString(), 
+        event: log.message_type || 'appointment.created', 
+        type: 'webhook',
+        result: 'sucesso',
+        status: 'done',
+        payload: log.payload
+      },
+      { 
+        id: 2,
+        time: new Date(new Date(log.created_at).getTime() + 1000).toLocaleTimeString(), 
+        event: 'queue.insert', 
+        type: 'queue',
+        result: 'sucesso',
+        status: 'done',
+        payload: { queue_id: log.id, priority: 'high' }
+      },
+      { 
+        id: 3,
+        time: new Date(new Date(log.created_at).getTime() + 2000).toLocaleTimeString(), 
+        event: 'process.automation', 
+        type: 'action',
+        result: 'sucesso',
+        status: 'done',
+        payload: { automation_key: log.message_type }
+      },
+      { 
+        id: 4,
+        time: new Date(new Date(log.created_at).getTime() + 3000).toLocaleTimeString(), 
+        event: 'send.whatsapp', 
+        type: 'send',
+        result: log.status === 'sent' ? 'sucesso' : 'falha',
+        status: log.status === 'sent' ? 'done' : 'error',
+        payload: log.response || { error: log.error_message }
+      }
+    ];
+
+    if (log.status === 'sent') {
+      steps.push({
+        id: 5,
+        time: new Date(new Date(log.created_at).getTime() + 5000).toLocaleTimeString(),
+        event: 'message.delivery',
+        type: 'delivery',
+        result: 'entregue',
+        status: 'done',
+        payload: { provider: 'zapi', status: 'delivered' }
+      });
+    }
+
+    return steps.filter(step => auditFilterType === 'all' || step.type === auditFilterType);
   };
 
   useEffect(() => {
@@ -757,17 +829,27 @@ function AutomationsComponent() {
                     <div className="absolute top-4 left-0 right-0 h-[2px] bg-slate-800 -z-0" />
                     
                     {[
-                      { label: "Evento Criado", status: "done" },
-                      { label: "Inserido na Fila", status: "done" },
-                      { label: "Processado", status: "done" },
-                      { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error" },
-                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending" },
-                      { label: "Lida", status: "pending" },
-                      { label: "Resposta", status: "pending" },
-                      { label: "Ação", status: "pending" },
-                      { label: "Finalizado", status: "pending" }
+                      { label: "Evento Criado", status: "done", id: 1 },
+                      { label: "Inserido na Fila", status: "done", id: 2 },
+                      { label: "Processado", status: "done", id: 3 },
+                      { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error", id: 4 },
+                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending", id: 5 },
+                      { label: "Lida", status: "pending", id: 6 },
+                      { label: "Resposta", status: "pending", id: 7 },
+                      { label: "Ação", status: "pending", id: 8 },
+                      { label: "Finalizado", status: "pending", id: 9 }
                     ].map((step, idx) => (
-                      <div key={idx} className="flex flex-col items-center gap-3 relative z-10 px-2 text-center max-w-[100px]">
+                      <button 
+                        key={idx} 
+                        onClick={() => {
+                          if (step.id <= 5) {
+                            setExpandedStep(step.id);
+                            const element = document.getElementById('audit-section');
+                            element?.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                        className={`flex flex-col items-center gap-3 relative z-10 px-2 text-center max-w-[100px] transition-transform hover:scale-110 focus:outline-none ${step.id <= 5 ? 'cursor-pointer' : 'cursor-default'}`}
+                      >
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center border-4 border-[#0F172A] shadow-lg ${
                           step.status === 'done' ? 'bg-[#10B981]' : 
                           step.status === 'current' ? 'bg-amber-500' : 
@@ -785,21 +867,29 @@ function AutomationsComponent() {
                         }`}>
                           {step.label}
                         </span>
-                      </div>
+                      </button>
                     ))}
                   </div>
 
                   {/* Mobile Vertical Timeline */}
                   <div className="lg:hidden space-y-4">
                     {[
-                      { label: "Evento Criado", status: "done", time: "10:30:05" },
-                      { label: "Inserido na Fila", status: "done", time: "10:30:06" },
-                      { label: "Processado", status: "done", time: "10:30:07" },
-                      { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error", time: "10:30:08" },
-                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending" },
+                      { label: "Evento Criado", status: "done", time: "10:30:05", id: 1 },
+                      { label: "Inserido na Fila", status: "done", time: "10:30:06", id: 2 },
+                      { label: "Processado", status: "done", time: "10:30:07", id: 3 },
+                      { label: "Mensagem Enviada", status: selectedLog.status === 'sent' ? "done" : "error", time: "10:30:08", id: 4 },
+                      { label: "Entregue", status: selectedLog.status === 'sent' ? "current" : "pending", id: 5 },
                     ].map((step, idx) => (
-                      <div key={idx} className="flex items-center gap-4">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      <button 
+                        key={idx} 
+                        onClick={() => {
+                          setExpandedStep(step.id);
+                          const element = document.getElementById('audit-section');
+                          element?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="flex items-center gap-4 w-full text-left transition-colors hover:bg-white/5 p-2 rounded-xl focus:outline-none"
+                      >
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
                           step.status === 'done' ? 'bg-[#10B981]' : 
                           step.status === 'current' ? 'bg-amber-500' : 
                           step.status === 'error' ? 'bg-rose-500' : 'bg-slate-700'
@@ -810,49 +900,146 @@ function AutomationsComponent() {
                           {step.status === 'pending' && <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />}
                         </div>
                         <div className="flex-1">
-                          <p className={`text-xs font-bold ${step.status === 'done' ? 'text-[#10B981]' : 'text-slate-400'}`}>{step.label}</p>
+                          <p className={`text-xs font-bold ${step.status === 'done' ? 'text-[#10B981]' : step.status === 'current' ? 'text-amber-500' : 'text-slate-400'}`}>{step.label}</p>
+                          {step.time && <p className="text-[10px] text-slate-500">{step.time}</p>}
                         </div>
-                      </div>
+                        <ChevronRight size={14} className="text-slate-600" />
+                      </button>
                     ))}
                   </div>
                 </div>
               </div>
 
               {/* AUDITORIA DO FLUXO TÉCNICA */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Terminal size={18} className="text-amber-500" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Auditoria do Fluxo</h3>
+              <div id="audit-section" className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <Terminal size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Auditoria do Fluxo</h3>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Select value={auditFilterType} onValueChange={(val) => { setAuditFilterType(val); setAuditPage(1); }}>
+                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-xs h-8 rounded-lg text-white focus:ring-amber-500/50">
+                        <Filter size={12} className="mr-2 text-slate-500" />
+                        <SelectValue placeholder="Tipo de Evento" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
+                        <SelectItem value="all">Todos Eventos</SelectItem>
+                        <SelectItem value="webhook">Webhook</SelectItem>
+                        <SelectItem value="queue">Fila</SelectItem>
+                        <SelectItem value="send">Envio</SelectItem>
+                        <SelectItem value="delivery">Entrega</SelectItem>
+                        <SelectItem value="action">Ação</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-white/5 text-slate-500">
-                      <tr>
-                        <th className="px-6 py-3 font-bold">HORÁRIO</th>
-                        <th className="px-6 py-3 font-bold">EVENTO</th>
-                        <th className="px-6 py-3 font-bold">RESULTADO</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      <tr>
-                        <td className="px-6 py-3 text-slate-400">{new Date(selectedLog.created_at).toLocaleTimeString()}</td>
-                        <td className="px-6 py-3 font-mono text-amber-500/70">{selectedLog.message_type || 'appointment.created'}</td>
-                        <td className="px-6 py-3 font-bold text-[#10B981]">✓ sucesso</td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-3 text-slate-400">{new Date(new Date(selectedLog.created_at).getTime() + 1000).toLocaleTimeString()}</td>
-                        <td className="px-6 py-3 font-mono text-amber-500/70">queue.insert</td>
-                        <td className="px-6 py-3 font-bold text-[#10B981]">✓ sucesso</td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-3 text-slate-400">{new Date(new Date(selectedLog.created_at).getTime() + 2000).toLocaleTimeString()}</td>
-                        <td className="px-6 py-3 font-mono text-amber-500/70">send.whatsapp</td>
-                        <td className={`px-6 py-3 font-bold ${selectedLog.status === 'sent' ? 'text-[#10B981]' : 'text-rose-500'}`}>
-                          {selectedLog.status === 'sent' ? '✓ sucesso' : '✕ falha'}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+
+                <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden shadow-lg">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-white/5 text-slate-500">
+                        <tr>
+                          <th className="px-6 py-4 font-bold uppercase tracking-wider">Horário</th>
+                          <th className="px-6 py-4 font-bold uppercase tracking-wider">Evento</th>
+                          <th className="px-6 py-4 font-bold uppercase tracking-wider">Resultado</th>
+                          <th className="px-6 py-4 font-bold uppercase tracking-wider text-right">Detalhes</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {getAuditSteps(selectedLog)
+                          .slice((auditPage - 1) * auditItemsPerPage, auditPage * auditItemsPerPage)
+                          .map((step) => (
+                          <React.Fragment key={step.id}>
+                            <tr 
+                              className={`transition-colors hover:bg-white/5 cursor-pointer ${expandedStep === step.id ? 'bg-amber-500/5' : ''}`}
+                              onClick={() => setExpandedStep(expandedStep === step.id ? null : step.id)}
+                            >
+                              <td className="px-6 py-4 text-slate-400 whitespace-nowrap">{step.time}</td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className={`text-[10px] py-0 px-2 h-5 border-none ${
+                                    step.type === 'webhook' ? 'bg-blue-500/10 text-blue-400' :
+                                    step.type === 'queue' ? 'bg-purple-500/10 text-purple-400' :
+                                    step.type === 'send' ? 'bg-amber-500/10 text-amber-400' :
+                                    step.type === 'delivery' ? 'bg-emerald-500/10 text-emerald-400' :
+                                    'bg-slate-500/10 text-slate-400'
+                                  }`}>
+                                    {step.type}
+                                  </Badge>
+                                  <span className="font-mono text-white/90">{step.event}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className={`flex items-center gap-1.5 font-bold ${step.status === 'done' ? 'text-[#10B981]' : 'text-rose-500'}`}>
+                                  {step.status === 'done' ? <Check size={14} /> : <X size={14} />}
+                                  {step.result}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                {expandedStep === step.id ? <ChevronUp size={16} className="ml-auto text-amber-500" /> : <ChevronDown size={16} className="ml-auto text-slate-600" />}
+                              </td>
+                            </tr>
+                            {expandedStep === step.id && (
+                              <tr className="bg-amber-500/[0.02]">
+                                <td colSpan={4} className="px-6 py-4 border-l-2 border-amber-500/50">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                      <p className="text-[10px] font-bold uppercase text-slate-500">Payload do Evento</p>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="h-7 text-[10px] text-amber-500 hover:bg-amber-500/10"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleCopyText(JSON.stringify(step.payload, null, 2), "Payload");
+                                        }}
+                                      >
+                                        <Copy size={12} className="mr-1.5" /> Copiar JSON
+                                      </Button>
+                                    </div>
+                                    <div className="bg-[#081229] p-4 rounded-xl border border-white/5 font-mono text-[11px] text-sky-400 overflow-x-auto max-h-[200px] custom-scrollbar">
+                                      <pre>{JSON.stringify(step.payload, null, 2)}</pre>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Audit Pagination */}
+                  {getAuditSteps(selectedLog).length > auditItemsPerPage && (
+                    <div className="px-6 py-4 bg-white/5 flex items-center justify-between border-t border-white/5">
+                      <p className="text-[10px] text-slate-500">
+                        Página {auditPage} de {Math.ceil(getAuditSteps(selectedLog).length / auditItemsPerPage)}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          disabled={auditPage === 1}
+                          onClick={() => setAuditPage(prev => prev - 1)}
+                          className="h-8 w-8 p-0 rounded-lg border border-white/5 text-slate-400"
+                        >
+                          <ChevronLeft size={14} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          disabled={auditPage >= Math.ceil(getAuditSteps(selectedLog).length / auditItemsPerPage)}
+                          onClick={() => setAuditPage(prev => prev + 1)}
+                          className="h-8 w-8 p-0 rounded-lg border border-white/5 text-slate-400"
+                        >
+                          <ChevronRight size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -908,28 +1095,57 @@ function AutomationsComponent() {
                     <FileCode size={18} className="text-amber-500" />
                     <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Dados Técnicos da Execução</h3>
                   </div>
-                  <div className="bg-[#081229] border border-amber-500/15 rounded-[18px] p-6 font-mono text-xs overflow-hidden shadow-2xl relative">
+                  <div className="bg-[#081229] border border-amber-500/15 rounded-[18px] p-6 font-mono text-xs overflow-hidden shadow-2xl relative group/terminal">
                     <div className="flex gap-1.5 absolute top-4 left-6">
                       <div className="w-2.5 h-2.5 rounded-full bg-rose-500/50" />
                       <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50" />
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/50" />
                     </div>
+
+                    <div className="absolute top-4 right-6 opacity-0 group-hover/terminal:opacity-100 transition-opacity">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 bg-white/5 text-amber-500 hover:bg-amber-500/10 border border-white/5"
+                        onClick={() => handleCopyText(JSON.stringify({
+                          zaap_id: selectedLog.response?.id,
+                          provider_message_id: selectedLog.response?.id || selectedLog.id,
+                          appointment_id: selectedLog.payload?.appointment_id,
+                          customer_phone: selectedLog.phone,
+                          workflow_key: "appointment_confirmation",
+                          tenant_id: tenantId,
+                          created_at: selectedLog.created_at,
+                          payload: selectedLog.payload
+                        }, null, 2), "JSON de Execução")}
+                      >
+                        <Code2 size={14} className="mr-2" /> Copiar Tudo (JSON)
+                      </Button>
+                    </div>
                     
-                    <div className="mt-6 custom-scrollbar overflow-auto max-h-[400px]">
+                    <div className="mt-8 custom-scrollbar overflow-auto max-h-[400px]">
                       <div className="space-y-2">
-                        {/* Custom JSON highlighting renderer logic or manually mapped fields */}
                         <div className="flex flex-wrap gap-x-4 gap-y-2">
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2 group/field">
                              <span className="text-sky-400">zaap_id:</span>
-                             <span className="text-[#10B981] break-all">"{selectedLog.response?.id || 'null'}"</span>
+                             <div className="flex items-center justify-between gap-2 overflow-hidden">
+                               <span className="text-[#10B981] break-all truncate">"{selectedLog.response?.id || 'null'}"</span>
+                               <button onClick={() => handleCopyText(selectedLog.response?.id, "Zaap ID")} className="opacity-0 group-hover/field:opacity-100 p-1 hover:bg-white/10 rounded transition-all">
+                                 <Copy size={12} className="text-slate-500" />
+                               </button>
+                             </div>
                            </div>
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2 group/field">
                              <span className="text-sky-400">provider_message_id:</span>
-                             <span className="text-[#10B981] break-all">"{selectedLog.response?.id || selectedLog.id}"</span>
+                             <div className="flex items-center justify-between gap-2 overflow-hidden">
+                               <span className="text-[#10B981] break-all truncate">"{selectedLog.response?.id || selectedLog.id}"</span>
+                               <button onClick={() => handleCopyText(selectedLog.response?.id || selectedLog.id, "Provider Message ID")} className="opacity-0 group-hover/field:opacity-100 p-1 hover:bg-white/10 rounded transition-all">
+                                 <Copy size={12} className="text-slate-500" />
+                               </button>
+                             </div>
                            </div>
                            <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
                              <span className="text-sky-400">appointment_id:</span>
-                             <span className="text-[#10B981] break-all">"{selectedLog.payload?.appointment_id || 'null'}"</span>
+                             <span className="text-[#10B981] break-all truncate">"{selectedLog.payload?.appointment_id || 'null'}"</span>
                            </div>
                            <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
                              <span className="text-sky-400">customer_phone:</span>
@@ -939,21 +1155,14 @@ function AutomationsComponent() {
                              <span className="text-sky-400">workflow_key:</span>
                              <span className="text-[#10B981]">"appointment_confirmation"</span>
                            </div>
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
-                             <span className="text-sky-400">tenant_id:</span>
-                             <span className="text-[#10B981]">"{tenantId}"</span>
-                           </div>
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
-                             <span className="text-sky-400">current_state:</span>
-                             <span className="text-amber-500">"completed"</span>
-                           </div>
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
-                             <span className="text-sky-400">created_at:</span>
-                             <span className="text-[#10B981] font-bold">"{selectedLog.created_at}"</span>
-                           </div>
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
-                             <span className="text-sky-400">processed_at:</span>
-                             <span className="text-[#10B981]">"{new Date(new Date(selectedLog.created_at).getTime() + 2000).toISOString()}"</span>
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2 group/field">
+                             <span className="text-sky-400">message_id:</span>
+                             <div className="flex items-center justify-between gap-2 overflow-hidden">
+                               <span className="text-[#10B981] break-all truncate">"{selectedLog.id}"</span>
+                               <button onClick={() => handleCopyText(selectedLog.id, "Message ID")} className="opacity-0 group-hover/field:opacity-100 p-1 hover:bg-white/10 rounded transition-all">
+                                 <Copy size={12} className="text-slate-500" />
+                               </button>
+                             </div>
                            </div>
                         </div>
 
