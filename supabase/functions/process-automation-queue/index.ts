@@ -79,8 +79,9 @@ serve(async (req) => {
 
         // 3. Resolve Professional (Manual Step-by-Step for robustness)
         const profId = appointment.barber_id || appointment.professional_id;
-        let profName = "Profissional não encontrado";
+        let profName = "Profissional";
         let resolvedTable = "none";
+
 
         if (profId) {
             // Try barbers table
@@ -111,7 +112,7 @@ serve(async (req) => {
         const diagInfo = { 
           resolved_table: resolvedTable, 
           prof_id_used: profId,
-          prof_name_found: profName !== "Profissional não encontrado",
+          prof_name_found: profName !== "Profissional",
           origin: force_resend ? 'test_manual' : 'automatic'
         };
 
