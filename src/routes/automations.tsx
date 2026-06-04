@@ -210,21 +210,40 @@ function AutomationsComponent() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="space-y-6 pb-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Automações</h2>
-            <p className="text-muted-foreground">Gerencie suas automações de atendimento, notificações e comunicações com clientes.</p>
+            <h2 className="text-4xl font-extrabold tracking-tight text-white mb-2">
+              Automações
+            </h2>
+            <p className="text-slate-400 max-w-xl leading-relaxed">
+              Gerencie suas automações de atendimento, notificações e comunicações com clientes de forma profissional.
+            </p>
           </div>
-          <Button onClick={fetchData} variant="outline" size="icon">
+          <Button 
+            onClick={fetchData} 
+            variant="outline" 
+            size="icon"
+            className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
+          >
             <RefreshCw className={loading ? "animate-spin" : ""} size={18} />
           </Button>
         </div>
 
-        <Tabs defaultValue="templates">
-          <TabsList className="bg-slate-100 dark:bg-slate-800">
-            <TabsTrigger value="templates">Modelos de Mensagem</TabsTrigger>
-            <TabsTrigger value="logs">Histórico de Envios</TabsTrigger>
+        <Tabs defaultValue="templates" className="w-full">
+          <TabsList className="bg-[#0F172A] border border-slate-800 p-1 rounded-2xl w-fit">
+            <TabsTrigger 
+              value="templates" 
+              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all"
+            >
+              Modelos de Mensagem
+            </TabsTrigger>
+            <TabsTrigger 
+              value="logs"
+              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all"
+            >
+              Histórico de Envios
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="templates" className="space-y-4 pt-4">
