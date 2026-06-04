@@ -92,9 +92,12 @@ export function AutomationTestModal({
           appointment_time: appointment.start_time ? new Date(appointment.start_time).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }) : "--:--",
           service_price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(appointment.total_price || service?.price || 0),
         });
+        setSelectedAppointmentId(appointment.id);
       } else {
         setRealData(null);
+        setSelectedAppointmentId("");
       }
+
     } catch (error: any) {
       console.error("Error fetching real data:", error);
       toast.error("Erro ao carregar agendamento: " + error.message);
