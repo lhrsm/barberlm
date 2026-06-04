@@ -412,13 +412,21 @@ export function AppointmentModal({
       const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", tenantId).single();
 
       if (profile?.whatsapp_enabled && customer?.phone) {
-        supabase.functions.invoke('run-automations', {
-          body: { 
-            tenantId: tenantId, 
-            appointmentId: appointmentData.id 
-          }
-        }).catch(err => console.error("Error triggering automation:", err));
+        // Enfileirar na V2
+        supabase.from("automation_v2_queue").insert([{
+          tenant_id: tenantId,
+          workflow_key: 'confirmation_single',
+          event_name: 'appointment.created',
+          flow_type: 'single',
+          appointment_id: appointmentData.id,
+          payload: { source: 'admin_modal' }
+        }]).then(() => {
+          supabase.functions.invoke('automation-v2-runner', {
+            body: { tenantId: tenantId }
+          }).catch(err => console.error("Error triggering v2 runner:", err));
+        });
       }
+
 
       toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
       setOpen(false);
