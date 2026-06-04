@@ -728,12 +728,12 @@ function BarbersComponent() {
                     >
                       <Copy size={14} />
                     </Button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="flex-1 sm:flex-none h-10 hover:bg-slate-100"
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="flex-1 sm:flex-none h-10 hover:bg-slate-100"
                     onClick={() => {
                       setEditingBarber(barber);
                       setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
