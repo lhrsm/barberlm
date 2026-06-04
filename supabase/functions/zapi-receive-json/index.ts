@@ -240,7 +240,9 @@ serve(async (req) => {
             state_after: "confirmed",
             idempotency_key: messageId,
             zapi_response: zapiResponse,
+            response: zapiResponse?.response || zapiResponse, // Keep both for safety
             payload: { 
+
               webhook_received: true, 
               button_id: buttonId || "text_match",
               reference_message_id: referenceId,
