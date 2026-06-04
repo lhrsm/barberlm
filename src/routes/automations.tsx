@@ -467,6 +467,30 @@ function AutomationsComponent() {
                       />
                     </div>
                     
+                    <Select value={filterAutomation} onValueChange={setFilterAutomation}>
+                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white">
+                        <Zap size={14} className="mr-2 text-slate-500" />
+                        <SelectValue placeholder="Automação" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="appointment_confirmation">Confirmação</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white">
+                        <CalendarIcon size={14} className="mr-2 text-slate-500" />
+                        <SelectValue placeholder="Período" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
+                        <SelectItem value="all">Sempre</SelectItem>
+                        <SelectItem value="today">Hoje</SelectItem>
+                        <SelectItem value="7days">7 Dias</SelectItem>
+                        <SelectItem value="30days">30 Dias</SelectItem>
+                      </SelectContent>
+                    </Select>
+
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
                       <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl text-white">
                         <Filter size={14} className="mr-2 text-slate-500" />
