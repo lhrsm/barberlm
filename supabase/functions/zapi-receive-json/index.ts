@@ -75,185 +75,219 @@ serve(async (req) => {
       let tenantId = null;
       let sessionId = null;
       let automationId = null;
+      let foundLog = null;
 
-      // 1. Search by referenceId (most reliable)
+      // 1. Search ONLY by referenceId (matching provider_message_id)
       if (referenceId) {
-        console.log(`[Webhook] Searching by referenceId: ${referenceId}`);
+        console.log(`[Webhook] Searching strictly by referenceId (provider_message_id): ${referenceId}`);
         const { data: log } = await supabase
           .from("automation_logs")
-          .select("appointment_id, tenant_id, automation_id, conversation_id")
-          .or(`response->>messageId.eq.${referenceId},zapi_response->response->>messageId.eq.${referenceId},zapi_response->>messageId.eq.${referenceId}`)
+          .select(`
+            *,
+            appointment:appointments(*)
+          `)
+          .eq("provider_message_id", referenceId)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
         
         if (log) {
+          foundLog = log;
           appointmentId = log.appointment_id;
           tenantId = log.tenant_id;
           automationId = log.automation_id;
           sessionId = log.conversation_id;
-          console.log(`[Webhook] Found by referenceId log: ${appointmentId}`);
+          console.log(`[Webhook] Found by provider_message_id: ${appointmentId}`);
+        } else {
+           // Fallback for logs that don't have provider_message_id yet (old logic, but only for the specific referenceId)
+           console.log(`[Webhook] Not found in provider_message_id. Trying fallback search in response json...`);
+           const { data: fallbackLog } = await supabase
+            .from("automation_logs")
+            .select(`
+              *,
+              appointment:appointments(*)
+            `)
+            .or(`response->>messageId.eq.${referenceId},zapi_response->response->>messageId.eq.${referenceId},zapi_response->>messageId.eq.${referenceId}`)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+            if (fallbackLog) {
+              foundLog = fallbackLog;
+              appointmentId = fallbackLog.appointment_id;
+              tenantId = fallbackLog.tenant_id;
+              automationId = fallbackLog.automation_id;
+              sessionId = fallbackLog.conversation_id;
+              console.log(`[Webhook] Found by fallback referenceId search: ${appointmentId}`);
+            }
         }
       }
 
-      // 2. Search by active session if not found
-      if (!appointmentId) {
-        console.log(`[Webhook] Searching by active session for phone: ${phone}`);
-        const { data: session } = await supabase
-          .from("automation_conversations")
-          .select("id, selected_appointment_id, appointment_ids, tenant_id, automation_id")
-          .eq("phone", phone)
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
+      // 2. Search by sessionId if referenceId didn't yield anything
+      if (!appointmentId && body.session_id) {
+         console.log(`[Webhook] Searching by body.session_id: ${body.session_id}`);
+         const { data: logBySession } = await supabase
+          .from("automation_logs")
+          .select(`
+            *,
+            appointment:appointments(*)
+          `)
+          .eq("conversation_id", body.session_id)
+          .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
-
-        if (session) {
-          appointmentId = session.selected_appointment_id || (session.appointment_ids?.[0]);
-          tenantId = session.tenant_id;
-          sessionId = session.id;
-          automationId = session.automation_id;
-          console.log(`[Webhook] Found by phone session: ${appointmentId}`);
-        }
+          
+          if (logBySession) {
+            foundLog = logBySession;
+            appointmentId = logBySession.appointment_id;
+            tenantId = logBySession.tenant_id;
+            automationId = logBySession.automation_id;
+            sessionId = logBySession.conversation_id;
+            console.log(`[Webhook] Found by session_id: ${appointmentId}`);
+          }
       }
 
-      if (appointmentId && tenantId) {
-        // IDEMPOTENCY CHECK: Is it already confirmed?
-        const { data: currentAppointment } = await supabase
-          .from("appointments")
-          .select("status, start_time, barber_id, professional_id")
-          .eq("id", appointmentId)
-          .single();
+      // IF NOT FOUND -> Send "Not found" message
+      if (!appointmentId || !tenantId) {
+        console.warn(`[Webhook] Link not found for message ${referenceId} from ${phone}`);
+        
+        const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId || (foundLog?.tenant_id)).maybeSingle();
+        if (instance) {
+          await sendMessage(instance, phone, "Recebi sua confirmação, mas não encontrei o agendamento vinculado.");
+        }
 
-        const statusBefore = currentAppointment?.status;
+        return new Response(JSON.stringify({ ok: true, status: "not_found" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
 
-        if (statusBefore === "confirmed") {
-          console.log(`[Webhook] Appointment ${appointmentId} already confirmed. Checking if we need to log.`);
-          
-          // Check if we already logged this specific callback messageId
-          if (messageId) {
-            const { data: existingLog } = await supabase
-              .from("automation_logs")
-              .select("id")
-              .eq("idempotency_key", messageId)
-              .maybeSingle();
-              
-            if (existingLog) {
-              console.log(`[Webhook] Callback ${messageId} already processed. Exiting.`);
-              return new Response(JSON.stringify({ ok: true, status: "already_processed" }), {
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-                status: 200,
-              });
-            }
+      const appointment = foundLog?.appointment;
+      const statusBefore = appointment?.status;
+
+      // IDEMPOTENCY CHECK: Is it already confirmed?
+      if (statusBefore === "confirmed") {
+        console.log(`[Webhook] Appointment ${appointmentId} already confirmed.`);
+        
+        // Log duplicity check
+        await supabase.from("automation_logs").insert({
+          automation_id: automationId,
+          tenant_id: tenantId,
+          appointment_id: appointmentId,
+          phone,
+          status: "info",
+          action: "duplicate_confirmation_blocked",
+          payload: { 
+            clicked_referenceMessageId: referenceId,
+            appointment_id_found: appointmentId,
+            duplicate_blocked: true,
+            status_before: statusBefore
           }
-          
-          // If already confirmed but first time seeing this callback (or no messageId), just ensure session is closed
+        });
+
+        // Ensure session is closed
+        if (sessionId) {
           await supabase.from("automation_conversations")
             .update({ status: "closed", current_state: "completed", updated_at: new Date().toISOString() })
             .eq("id", sessionId);
-            
-          return new Response(JSON.stringify({ ok: true, status: "already_confirmed" }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
-          });
+        }
+          
+        return new Response(JSON.stringify({ ok: true, status: "already_confirmed" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      console.log(`[Webhook] Updating appointment ${appointmentId} from ${statusBefore} to confirmed`);
+      
+      const { error: updateError } = await supabase
+        .from("appointments")
+        .update({ 
+          status: "confirmed",
+          confirmed_at: new Date().toISOString(),
+          confirmation_response_sent_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", appointmentId);
+
+      if (updateError) {
+        console.error(`[Webhook] Update error:`, updateError);
+        await supabase.from("automation_logs").insert({
+          automation_id: automationId,
+          tenant_id: tenantId,
+          appointment_id: appointmentId,
+          conversation_id: sessionId,
+          phone,
+          status: "error",
+          action: "confirmed_via_webhook",
+          error_message: `Update error: ${JSON.stringify(updateError)}`,
+          payload: { clicked_referenceMessageId: referenceId, appointment_id_found: appointmentId }
+        });
+      } else {
+        console.log(`[Webhook] Update success. Preparing response message...`);
+        
+        let businessName = "Barbearia";
+        const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", tenantId).maybeSingle();
+        if (profile?.business_name) businessName = profile.business_name;
+
+        const profId = appointment.barber_id || appointment.professional_id;
+        let profName = "Profissional";
+        if (profId) {
+          const { data: barb } = await supabase.from("barbers").select("name").eq("id", profId).maybeSingle();
+          if (barb?.name) profName = barb.name;
+          else {
+            const { data: p } = await supabase.from("profiles").select("full_name").eq("id", profId).maybeSingle();
+            if (p?.full_name) profName = p.full_name;
+          }
         }
 
-        console.log(`[Webhook] Updating appointment ${appointmentId} from ${statusBefore} to confirmed`);
-        const { data: appointment, error: updateError } = await supabase
-          .from("appointments")
-          .update({ 
-            status: "confirmed",
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", appointmentId)
-          .select(`
-            *,
-            customer:customers(name),
-            service:services(name)
-          `)
-          .single();
+        const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appointment.start_time)}\n⏰ ${formatBrazilTime(appointment.start_time)}\n💈 ${profName}\n✂️ ${appointment.service_name || "Serviço"}`;
+        
+        let zapiResponse = null;
+        const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
+        if (instance) {
+          zapiResponse = await sendMessage(instance, phone, successMsg);
+          console.log(`[Webhook] Message sent to ${phone}`);
+        }
 
-        if (updateError) {
-          console.error(`[Webhook] Update error:`, updateError);
-          // Log failure
-          await supabase.from("automation_logs").insert({
-            automation_id: automationId,
-            tenant_id: tenantId,
-            appointment_id: appointmentId,
-            conversation_id: sessionId,
-            phone,
-            status: "error",
-            action: "confirmed_via_webhook",
-            error_message: `Update error: ${JSON.stringify(updateError)}`,
-            state_before: statusBefore,
-            payload: { webhook_received: true, button_id: buttonId || "text", message_id: messageId }
-          });
-        } else {
-          console.log(`[Webhook] Update success. Preparing response message...`);
-          let businessName = "Barbearia";
-          const { data: profile } = await supabase.from("profiles").select("business_name").eq("id", tenantId).maybeSingle();
-          if (profile?.business_name) businessName = profile.business_name;
-
-          const profId = appointment.barber_id || appointment.professional_id;
-          let profName = "Profissional";
-          if (profId) {
-            const { data: barb } = await supabase.from("barbers").select("name").eq("id", profId).maybeSingle();
-            if (barb?.name) profName = barb.name;
-            else {
-              const { data: p } = await supabase.from("profiles").select("full_name").eq("id", profId).maybeSingle();
-              if (p?.full_name) profName = p.full_name;
-            }
-          }
-
-          const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appointment.start_time)}\n⏰ ${formatBrazilTime(appointment.start_time)}\n💈 ${profName}\n✂️ ${appointment.service?.name || "Serviço"}`;
-          
-          let zapiResponse = null;
-          const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
-          if (instance) {
-            zapiResponse = await sendMessage(instance, phone, successMsg);
-            console.log(`[Webhook] Message sent to ${phone}`);
-          }
-
-          // Close session
-          const { error: sessionError } = await supabase.from("automation_conversations")
+        // Close session
+        if (sessionId) {
+          await supabase.from("automation_conversations")
             .update({ status: "closed", current_state: "completed", updated_at: new Date().toISOString() })
             .eq("id", sessionId);
+        }
 
-          // Get a fallback automation_id if not found yet
-          if (!automationId) {
-            const { data: auto } = await supabase.from("automations").select("id").limit(1).maybeSingle();
-            automationId = auto?.id;
+        // Detailed Log
+        console.log(`[Webhook] Inserting final log for appointment ${appointmentId}`);
+        await supabase.from("automation_logs").insert({
+          automation_id: automationId,
+          tenant_id: tenantId,
+          appointment_id: appointmentId,
+          conversation_id: sessionId,
+          phone,
+          status: "success",
+          action: "confirmed_via_webhook",
+          message_sent: successMsg,
+          state_before: statusBefore || "pending",
+          state_after: "confirmed",
+          idempotency_key: messageId,
+          zapi_response: zapiResponse,
+          payload: { 
+            clicked_referenceMessageId: referenceId,
+            provider_message_id_found: !!foundLog?.provider_message_id,
+            appointment_id_found: appointmentId,
+            appointment_date: formatBrazilDate(appointment.start_time),
+            appointment_time: formatBrazilTime(appointment.start_time),
+            status_before: statusBefore,
+            status_after: "confirmed",
+            duplicate_blocked: false,
+            success_message_sent: !!zapiResponse,
+            webhook_received: true, 
+            button_id: buttonId || "text_match",
+            session_closed: true
           }
-
-          // Detailed Log
-          console.log(`[Webhook] Inserting log for appointment ${appointmentId}`);
-          const { error: logError } = await supabase.from("automation_logs").insert({
-            automation_id: automationId,
-            tenant_id: tenantId,
-            appointment_id: appointmentId,
-            conversation_id: sessionId,
-            phone,
-            status: "success",
-            action: "confirmed_via_webhook",
-            message_sent: successMsg,
-            state_before: statusBefore || "pending",
-            state_after: "confirmed",
-            idempotency_key: messageId,
-            zapi_response: zapiResponse,
-            response: zapiResponse?.response || zapiResponse, // Keep both for safety
-            payload: { 
-
-              webhook_received: true, 
-              button_id: buttonId || "text_match",
-              reference_message_id: referenceId,
-              session_found: !!sessionId,
-              session_id: sessionId,
-              session_closed: !sessionError,
-              success_message_sent: !!zapiResponse,
-              status_before: statusBefore,
-              status_after: "confirmed"
-            }
-          });
+        });
+      }
 
           if (logError) {
             console.error(`[Webhook] Error inserting automation log:`, logError);
