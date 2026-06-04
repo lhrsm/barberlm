@@ -156,15 +156,18 @@ serve(async (req) => {
         results.push({ id: item.id, status: "completed", result });
       } catch (error: any) {
         console.error(`[AutomationEngine] Error item ${item.id}:`, error);
+        
+        item.metadata = {
+          ...(item.metadata || {}),
+          last_step: lastStep,
+          error: error.message
+        };
+
         await supabase.from("automation_queue").update({ 
           status: "failed", 
           error: error.message,
           updated_at: new Date().toISOString(),
-          metadata: {
-            ...(item.metadata || {}),
-            last_step: lastStep,
-            error: error.message
-          }
+          metadata: item.metadata
         }).eq("id", item.id);
         
         results.push({ id: item.id, status: "failed", error: error.message });
