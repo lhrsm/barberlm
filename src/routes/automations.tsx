@@ -861,15 +861,35 @@ function AutomationsComponent() {
               Gerencie suas automações de atendimento, notificações e comunicações com clientes de forma profissional.
             </p>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <Button 
-              onClick={fetchData} 
-              variant="outline" 
-              size="icon"
-              className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
-            >
-              <RefreshCw className={loading ? "animate-spin" : ""} size={18} />
-            </Button>
+          <div className="flex flex-col items-end gap-3">
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={() => setIsSettingsOpen(true)}
+                variant="outline" 
+                size="sm"
+                className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl h-10 px-4"
+              >
+                <Settings2 size={16} className="mr-2" /> Configurações
+              </Button>
+              <Button 
+                onClick={handleManualReconcile}
+                variant="outline" 
+                size="sm"
+                disabled={isReconciling}
+                className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl h-10 px-4"
+              >
+                {isReconciling ? <Loader2 size={16} className="mr-2 animate-spin" /> : <RefreshCw size={16} className="mr-2" />}
+                Reconciliar
+              </Button>
+              <Button 
+                onClick={fetchData} 
+                variant="outline" 
+                size="icon"
+                className="border-slate-800 bg-[#0F172A] text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl h-10 w-10"
+              >
+                <RotateCcw className={loading ? "animate-spin" : ""} size={18} />
+              </Button>
+            </div>
             <span className="text-[10px] text-slate-500 font-mono">
               Atualizado: {logStats.lastUpdate.toLocaleTimeString('pt-BR')}
             </span>
