@@ -13,185 +13,48 @@ import { cn } from "@/lib/utils";
 import { 
   Loader2, 
   Play, 
-  Settings2, 
   MessageSquare, 
   History, 
   Activity, 
-  Zap, 
   CheckCircle2, 
   AlertCircle,
   RefreshCw,
   Search,
   Trash2,
-  Copy,
   Plus,
-  Send,
-  Calendar,
-  User,
   Clock,
-  Check,
-  X,
+  Zap,
   Smartphone
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const AVAILABLE_VARIABLES = [
-  "{customer_name}",
-  "{barbershop_name}",
-  "{service_name}",
-  "{professional_name}",
-  "{appointment_date}",
-  "{appointment_time}",
-  "{service_price}",
-  "{customer_phone}",
-  "{payment_method}",
-  "{appointment_status}"
-];
-
-const DEFAULT_TEMPLATES = [
-  {
-    name: "Confirmação de Agendamento",
-    trigger_event: "appointment.created",
-    template: "Olá {customer_name}! 👋 Seu agendamento na {barbershop_name} foi realizado com sucesso para {appointment_date} às {appointment_time}."
-  },
-  {
-    name: "Lembrete de Agendamento",
-    trigger_event: "appointment.reminder",
-    template: "Olá {customer_name}! Passando para lembrar do seu agendamento amanhã ({appointment_date}) às {appointment_time} na {barbershop_name}. Podemos confirmar?"
-  },
-  {
-    name: "Cancelamento de Agendamento",
-    trigger_event: "appointment.cancelled",
-    template: "Olá {customer_name}. Seu agendamento na {barbershop_name} para {appointment_date} foi cancelado conforme solicitado."
-  },
-  {
-    name: "Reagendamento de Agendamento",
-    trigger_event: "appointment.rescheduled",
-    template: "Olá {customer_name}! Seu agendamento na {barbershop_name} foi reagendado com sucesso para {appointment_date} às {appointment_time}."
-  },
-  {
-    name: "Aniversário do Cliente",
-    trigger_event: "customer.birthday",
-    template: "Feliz aniversário, {customer_name}! 🎉 A {barbershop_name} preparou uma condição especial para você hoje. Venha comemorar conosco!"
-  },
-  {
-    name: "Cliente Inativo",
-    trigger_event: "customer.inactive",
-    template: "Olá {customer_name}! Sentimos sua falta na {barbershop_name}. Que tal agendar um novo horário hoje? Temos novidades esperando por você!"
-  },
-  {
-    name: "Pós-atendimento / Agradecimento",
-    trigger_event: "appointment.completed",
-    template: "Obrigado pela visita, {customer_name}! Foi um prazer atender você na {barbershop_name}. Esperamos vê-lo em breve novamente!"
-  },
-  {
-    name: "Pedido de Avaliação",
-    trigger_event: "appointment.completed",
-    template: "Como foi sua experiência na {barbershop_name}, {customer_name}? Sua avaliação é muito importante para nós! Avalie aqui: [Link]"
-  },
-  {
-    name: "Promoção da Semana",
-    trigger_event: "manual.campaign",
-    template: "Olá {customer_name}! 🚀 Confira nossa promoção especial desta semana na {barbershop_name}. Não perca tempo e garanta seu horário!"
-  },
-  {
-    name: "Cashback Disponível",
-    trigger_event: "cashback.created",
-    template: "Você recebeu {cashback_value} de cashback para usar na {barbershop_name}! Aproveite em seu próximo serviço."
-  },
-  {
-    name: "Créditos Disponíveis",
-    trigger_event: "credit.created",
-    template: "Olá {customer_name}! Você possui {credit_value} em créditos disponíveis na {barbershop_name}."
-  },
-  {
-    name: "Pagamento Pendente",
-    trigger_event: "payment.pending",
-    template: "Olá {customer_name}, seu pagamento do agendamento de {appointment_date} ainda está pendente. Por favor, regularize para garantir sua vaga."
-  },
-  {
-    name: "Pagamento Confirmado",
-    trigger_event: "payment.confirmed",
-    template: "Tudo pronto, {customer_name}! Seu pagamento para o agendamento de {appointment_date} foi confirmado com sucesso. Até lá!"
-  },
-  {
-    name: "Profissional Notificado",
-    trigger_event: "appointment.created",
-    template: "Novo atendimento agendado com {customer_name} em {appointment_date} às {appointment_time}."
-  },
-  {
-    name: "Aviso para a Barbearia",
-    trigger_event: "appointment.created",
-    template: "Novo agendamento recebido: {customer_name}, {service_name}, {appointment_date} às {appointment_time}."
-  }
-];
 
 export const Route = createFileRoute("/automations")({
-  component: AutomationsComponent,
+  component: AutomationsV2Component,
 });
 
-
-function AutomationsComponent() {
+function AutomationsV2Component() {
   const { tenantId } = useTenant();
   const [activeTab, setActiveTab] = useState("automations");
   const [loading, setLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   
-  // Data states
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [queue, setQueue] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
-  const [cronRuns, setCronRuns] = useState<any[]>([]);
-  const [providers, setProviders] = useState<any[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [diagnosingItem, setDiagnosingItem] = useState<any>(null);
-
-  // Modal states
-  const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
-  const [testPhone, setTestPhone] = useState("");
-  const [testDataType, setTestDataType] = useState("last"); // "last" or "mock"
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const filteredWorkflows = workflows.filter(w => 
-    w.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    w.trigger_event.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
 
   const fetchData = async () => {
     if (!tenantId) return;
     setLoading(true);
-    
     try {
-      const [w, q, s, l, wl, p, cr] = await Promise.all([
-        supabase.from("automation_workflows").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
-        supabase.from("automation_queue").select("*, automation_events(*), automation_workflows(*)").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
-        supabase.from("conversation_sessions").select("*, customers(name)").eq("tenant_id", tenantId).order("updated_at", { ascending: false }).limit(20),
-        supabase.from("automation_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
-        supabase.from("zapi_webhook_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
-        supabase.from("messaging_providers").select("*").eq("tenant_id", tenantId),
-        supabase.from("automation_cron_runs").select("*").eq("tenant_id", tenantId).order("started_at", { ascending: false }).limit(20)
+      const [w, q, s, l, wl] = await Promise.all([
+        supabase.from("automation_v2_workflows").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
+        supabase.from("automation_v2_queue").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
+        supabase.from("automation_v2_sessions").select("*, customers(name)").eq("tenant_id", tenantId).order("updated_at", { ascending: false }).limit(20),
+        supabase.from("automation_v2_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
+        supabase.from("automation_v2_webhook_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50)
       ]);
 
       if (w.data) setWorkflows(w.data);
@@ -199,10 +62,8 @@ function AutomationsComponent() {
       if (s.data) setSessions(s.data);
       if (l.data) setLogs(l.data);
       if (wl.data) setWebhookLogs(wl.data);
-      if (p.data) setProviders(p.data);
-      if (cr.data) setCronRuns(cr.data);
     } catch (error) {
-      console.error("Error fetching automation data:", error);
+      console.error("Error fetching automation v2 data:", error);
     } finally {
       setLoading(false);
     }
@@ -210,892 +71,182 @@ function AutomationsComponent() {
 
   useEffect(() => {
     fetchData();
-    
-    // Deduplicate on mount
-    if (tenantId) {
-      supabase.rpc('deduplicate_automation_workflows', { p_tenant_id: tenantId })
-        .then(({ error }) => {
-          if (error) console.error("Error deduplicating workflows:", error);
-        });
-    }
-    
-    const channel = supabase.channel('automation_updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_queue' }, () => fetchData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_logs' }, () => fetchData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'zapi_webhook_logs' }, () => fetchData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_sessions' }, () => fetchData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_workflows' }, () => fetchData())
+    const channel = supabase.channel('automation_v2_updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_v2_queue' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_v2_logs' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_v2_webhook_logs' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_v2_sessions' }, () => fetchData())
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [tenantId]);
-
-  const handleToggleWorkflow = async (id: string, active: boolean) => {
-    const { error } = await supabase
-      .from("automation_workflows")
-      .update({ active })
-      .eq("id", id);
-    
-    if (error) toast.error("Erro ao atualizar fluxo");
-    else {
-      toast.success(active ? "Fluxo ativado" : "Fluxo desativado");
-      // No need for fetchData() if channel is working, but it's safer
-      fetchData();
-    }
-  };
 
   const handleRunEngine = async () => {
     setIsProcessing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('run-automations', {
-        body: { tenantId }
-      });
+      const { error } = await supabase.functions.invoke('automation-v2-runner', { body: { tenantId } });
       if (error) throw error;
-      toast.success("Motor de automação executado com sucesso!");
+      toast.success("Motor v2 executado!");
       fetchData();
     } catch (error: any) {
-      toast.error("Erro ao executar motor: " + error.message);
+      toast.error("Erro no motor v2: " + error.message);
     } finally {
       setIsProcessing(false);
     }
   };
-
-  const handleResetQueue = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from("automation_queue")
-        .update({ 
-          status: "pending", 
-          error: null,
-          attempts: 0,
-          started_at: null,
-          processed_at: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", id);
-      
-      if (error) throw error;
-      toast.success("Item resetado para pendente");
-      fetchData();
-    } catch (error: any) {
-      toast.error("Erro ao resetar: " + error.message);
-    }
-  };
-
-  const handleLoadDefaults = async () => {
-    if (!tenantId) return;
-    setLoading(true);
-    try {
-      // Get current workflows to avoid duplicates
-      const { data: currentWorkflows } = await supabase
-        .from("automation_workflows")
-        .select("name, trigger_event")
-        .eq("tenant_id", tenantId);
-
-      const existingSet = new Set(
-        currentWorkflows?.map(w => `${w.name}|${w.trigger_event}`) || []
-      );
-
-      const toInsert = DEFAULT_TEMPLATES.filter(
-        t => !existingSet.has(`${t.name}|${t.trigger_event}`)
-      );
-
-      if (toInsert.length > 0) {
-        const { error } = await supabase.from("automation_workflows").insert(
-          toInsert.map(template => ({
-            tenant_id: tenantId,
-            name: template.name,
-            trigger_event: template.trigger_event,
-            active: false,
-            configuration: { template: template.template }
-          }))
-        );
-        if (error) throw error;
-        toast.success(`${toInsert.length} novos modelos carregados!`);
-      } else {
-        toast.info("Todos os modelos já estão carregados.");
-      }
-      
-      fetchData();
-    } catch (error: any) {
-      toast.error("Erro ao carregar modelos: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveWorkflow = async (workflow: any) => {
-    try {
-      // Validate variables
-      const template = workflow.configuration?.template || "";
-      const invalidVars = template.match(/\{[^{}]+\}/g)?.filter((v: string) => !AVAILABLE_VARIABLES.includes(v)) || [];
-      
-      if (invalidVars.length > 0) {
-        toast.error(`Variáveis inválidas encontradas: ${invalidVars.join(", ")}`);
-        return;
-      }
-
-      const { error } = await supabase
-        .from("automation_workflows")
-        .update({
-          name: workflow.name,
-          trigger_event: workflow.trigger_event,
-          active: workflow.active,
-          configuration: workflow.configuration
-        })
-        .eq("id", workflow.id);
-
-      if (error) throw error;
-      
-      toast.success("Automação salva com sucesso!");
-      setIsEditModalOpen(false);
-      fetchData();
-    } catch (error: any) {
-      toast.error("Erro ao salvar: " + error.message);
-    }
-  };
-
-  const handleTestWorkflow = async () => {
-    if (!selectedWorkflow || !testPhone || !tenantId) return;
-
-    
-    try {
-      let entityId = null;
-      let payload = { simulated: true, test_phone: testPhone };
-
-      if (testDataType === "last") {
-        const { data: lastAppt } = await supabase
-          .from("appointments")
-          .select("id")
-          .eq("tenant_id", tenantId)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        
-        if (lastAppt) {
-          entityId = lastAppt.id;
-        }
-      }
-
-      // If no last appointment or mock selected, we'd need a mock entity, but let's assume we need a real entity for now or just a UUID
-      if (!entityId) {
-        // Try to find ANY appointment
-        const { data: anyAppt } = await supabase.from("appointments").select("id").limit(1).maybeSingle();
-        entityId = anyAppt?.id;
-      }
-
-      if (!entityId) {
-        toast.error("Nenhum dado real encontrado para o teste. Crie um agendamento primeiro.");
-        return;
-      }
-
-      const { error } = await supabase.from("automation_events").insert({
-        tenant_id: tenantId,
-        event_name: selectedWorkflow.trigger_event,
-        entity_type: 'appointment',
-        entity_id: entityId,
-        payload: { ...payload, force_phone: testPhone }
-      });
-
-      if (error) throw error;
-      
-      toast.success("Evento de teste enfileirado!");
-      setIsTestModalOpen(false);
-      
-      // Auto-run engine after simulation
-      setTimeout(handleRunEngine, 1000);
-    } catch (error: any) {
-      toast.error("Erro no teste: " + error.message);
-    }
-  };
-
-  const handleSimulateEvent = async (eventName: string) => {
-    // Legacy test handler
-    if (!tenantId) return;
-    try {
-      const { data: appt } = await supabase.from("appointments").select("id").eq("tenant_id", tenantId).limit(1).single();
-      if (!appt) {
-        toast.error("Nenhum agendamento encontrado.");
-        return;
-      }
-      await supabase.from("automation_events").insert({
-        tenant_id: tenantId,
-        event_name: eventName,
-        entity_type: 'appointment',
-        entity_id: appt.id,
-        payload: { simulated: true }
-      });
-      toast.success("Simulado!");
-      setTimeout(handleRunEngine, 1000);
-    } catch (error: any) {
-      toast.error("Erro: " + error.message);
-    }
-  };
-
-
 
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Motor de Automação</h1>
-            <p className="text-muted-foreground">Arquitetura universal de eventos e workflows.</p>
+            <h1 className="text-3xl font-bold tracking-tight">Automações v2</h1>
+            <p className="text-muted-foreground text-amber-500 font-medium">Novo Motor de Automação (Arquitetura Limpa)</p>
           </div>
-          <Button 
-            onClick={handleRunEngine} 
-            disabled={isProcessing}
-            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold shadow-lg shadow-amber-500/20 border border-amber-400"
-          >
+          <Button onClick={handleRunEngine} disabled={isProcessing} className="bg-amber-500 hover:bg-amber-600 text-black">
             {isProcessing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
-            Processar Fila Agora
+            Processar Fila v2
           </Button>
         </div>
-        
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <ScrollArea className="w-full whitespace-nowrap">
-            <TabsList className="inline-flex w-full justify-start border-b rounded-none bg-transparent h-12 p-0">
-              <TabsTrigger value="automations" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Automações</TabsTrigger>
-              <TabsTrigger value="queue" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Fila</TabsTrigger>
-              <TabsTrigger value="conversations" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Conversas</TabsTrigger>
-              <TabsTrigger value="logs" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Logs</TabsTrigger>
-              <TabsTrigger value="webhooks" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Webhooks</TabsTrigger>
-              <TabsTrigger value="tests" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Testes</TabsTrigger>
-              <TabsTrigger value="integrations" className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-400 data-[state=active]:bg-amber-500/10 rounded-none bg-transparent">Integrações</TabsTrigger>
-            </TabsList>
-          </ScrollArea>
-          
-          {/* ABA 1: AUTOMAÇÕES */}
-          <TabsContent value="automations" className="space-y-4 pt-4">
-            <div className="flex justify-between items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Buscar automação..." 
-                  className="pl-8" 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Button onClick={handleLoadDefaults} variant="outline" size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Carregar Modelos
-              </Button>
-            </div>
+          <TabsList className="bg-zinc-900 border-zinc-800">
+            <TabsTrigger value="automations">Fluxos</TabsTrigger>
+            <TabsTrigger value="queue">Fila</TabsTrigger>
+            <TabsTrigger value="sessions">Sessões</TabsTrigger>
+            <TabsTrigger value="logs">Logs</TabsTrigger>
+            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          </TabsList>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-
-            {filteredWorkflows.map((w) => (
-
-              <Card key={w.id} className="relative overflow-hidden flex flex-col justify-between border-zinc-800 hover:border-amber-500/60 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10">
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{w.name}</CardTitle>
-                    <div className="flex flex-col items-end gap-1">
-                      <Switch 
-                        checked={w.active} 
-                        onCheckedChange={(checked) => handleToggleWorkflow(w.id, checked)}
-                        className="data-[state=unchecked]:bg-zinc-700 data-[state=unchecked]:border-zinc-500 data-[state=checked]:bg-amber-500"
-                        thumbClassName="data-[state=unchecked]:bg-zinc-300"
-                      />
-                      <span className={cn(
-                        "text-[10px] font-medium uppercase tracking-wider",
-                        w.active ? "text-amber-400" : "text-zinc-500"
-                      )}>
-                        {w.active ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </div>
-                  </div>
-                  <CardDescription>Gatilho: <Badge variant="secondary" className="bg-zinc-800 text-zinc-300 border-zinc-700">{w.trigger_event}</Badge></CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-sm text-muted-foreground italic h-12 overflow-hidden">
-                    "{w.configuration?.template || 'Sem template configurado'}"
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex items-center gap-1"><History className="w-3 h-3 text-muted-foreground" /> {w.last_execution_at ? new Date(w.last_execution_at).toLocaleDateString() : 'Nunca'}</div>
-                    <div className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> {w.total_sent || 0} envios</div>
-                    <div className="flex items-center gap-1"><AlertCircle className="w-3 h-3 text-red-500" /> {w.total_failed || 0} falhas</div>
-                  </div>
-                </CardContent>
-                <div className="p-4 border-t flex gap-2 bg-muted/20">
-                  <Button variant="outline" size="sm" className="w-full" onClick={() => { setSelectedWorkflow(w); setIsEditModalOpen(true); }}>Editar</Button>
-                  <Button variant="outline" size="sm" className="w-full" onClick={() => { setSelectedWorkflow(w); setIsTestModalOpen(true); }}>Testar</Button>
-                </div>
-              </Card>
-            ))}
-
-            {workflows.length === 0 && !loading && (
-              <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-                Nenhuma automação configurada.
-              </div>
-            )}
-            </div>
+          <TabsContent value="automations" className="space-y-4">
+             <div className="grid gap-4 md:grid-cols-3">
+                {workflows.map(w => (
+                  <Card key={w.id} className="border-zinc-800">
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg">{w.name}</CardTitle>
+                        <Switch checked={w.active} />
+                      </div>
+                      <CardDescription>{w.workflow_key}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <Badge variant="outline">{w.event_name}</Badge>
+                    </CardContent>
+                  </Card>
+                ))}
+                {workflows.length === 0 && (
+                  <Card className="col-span-full p-12 text-center border-dashed border-zinc-800">
+                    <p className="text-muted-foreground">Nenhum workflow v2 configurado.</p>
+                  </Card>
+                )}
+             </div>
           </TabsContent>
 
-
-          {/* ABA 2: FILA */}
           <TabsContent value="queue" className="space-y-4">
-            <Card>
-              <CardHeader><CardTitle>Itens na Fila</CardTitle></CardHeader>
-              <CardContent>
-                <div className="relative overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs uppercase bg-muted">
-                      <tr>
-                        <th className="px-4 py-2">Workflow</th>
-                        <th className="px-4 py-2">Evento</th>
-                        <th className="px-4 py-2">Fluxo</th>
-                        <th className="px-4 py-2">Status</th>
-                        <th className="px-4 py-2">Tentativas</th>
-                        <th className="px-4 py-2">Agendado para</th>
-                        <th className="px-4 py-2">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {queue.map((item) => (
-                        <tr key={item.id} className="border-b">
-                          <td className="px-4 py-3 font-medium">{item.automation_workflows?.name || 'Workflow Removido'}</td>
-                          <td className="px-4 py-3">{item.automation_events?.event_name}</td>
-                          <td className="px-4 py-3">
-                            <Badge variant="outline" className={cn(
-                              item.flow_type === 'multi' ? 'border-purple-500 text-purple-400' : 'border-blue-500 text-blue-400'
-                            )}>
-                              {item.flow_type || 'single'}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge className={
-                              item.status === 'completed' ? 'bg-green-500' :
-                              item.status === 'failed' ? 'bg-red-500' :
-                              item.status === 'processing' ? 'bg-blue-500' :
-                              'bg-amber-500'
-                            }>
-                              {item.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-center">{item.attempts}</td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {item.scheduled_for ? new Date(item.scheduled_for).toLocaleString('pt-BR') : '-'}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-8 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
-                                onClick={() => setDiagnosingItem(item)}
-                              >
-                                <Activity className="w-4 h-4 mr-1" />
-                                Diagnosticar
-                              </Button>
-                              {(item.status === 'failed' || item.status === 'processing') && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-8 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10"
-                                  onClick={() => handleResetQueue(item.id)}
-                                >
-                                  <RefreshCw className="w-4 h-4 mr-1" />
-                                  Resetar
-                                </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-
-                      ))}
-                    </tbody>
-                  </table>
-                  {queue.length === 0 && <p className="py-8 text-center text-muted-foreground">Fila vazia.</p>}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* ABA 3: CONVERSAS */}
-          <TabsContent value="conversations" className="space-y-4">
-            <Card>
-              <CardHeader><CardTitle>Sessões de Conversa Ativas</CardTitle></CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {sessions.map((s) => (
-                    <div key={s.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-amber-500/10 p-2 rounded-full">
-                          <MessageSquare className="w-5 h-5 text-amber-500" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{s.customers?.name || s.phone}</p>
-                          <p className="text-xs text-muted-foreground">{s.phone} • WhatsApp</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-8">
-                        <div className="text-right">
-                          <div className="flex flex-col items-end gap-1">
-                            <Badge variant="outline">{s.current_step}</Badge>
-                            <Badge variant="secondary" className={cn(
-                              "text-[10px]",
-                              s.flow_type === 'multi' ? 'text-purple-400' : 'text-blue-400'
-                            )}>
-                              {s.flow_type || 'single'}
-                            </Badge>
-                          </div>
-                          <p className="text-[10px] text-muted-foreground mt-1">Atualizado: {new Date(s.updated_at).toLocaleTimeString()}</p>
-                        </div>
-                        <Button variant="ghost" size="icon" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                      </div>
-                    </div>
-                  ))}
-                  {sessions.length === 0 && <p className="py-8 text-center text-muted-foreground">Nenhuma sessão ativa.</p>}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* ABA 4: LOGS */}
-          <TabsContent value="logs" className="space-y-4">
-            <Card>
-              <CardHeader><CardTitle>Histórico de Logs</CardTitle></CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {logs.map((log) => (
-                    <div key={log.id} className="flex gap-4 p-3 border-b last:border-0 items-start">
-                      <div className={cn(
-                        "mt-1 p-1 rounded-full",
-                        log.status === 'success' ? 'bg-green-500/10' : 'bg-red-500/10'
-                      )}>
-                        {log.status === 'success' ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <AlertCircle className="w-4 h-4 text-red-500" />}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex justify-between">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold text-sm">{log.action || log.event_name || 'Sistema'}</p>
-                            <Badge variant="outline" className="text-[10px] h-4">
-                              {log.flow_type || 'core'}
-                            </Badge>
-                          </div>
-                          <span className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString('pt-BR')}</span>
-                        </div>
-                        <p className="text-sm text-zinc-300">{log.message}</p>
-                        <div className="flex gap-2 mt-1">
-                           {log.current_step_before && <Badge variant="secondary" className="text-[9px] h-4">De: {log.current_step_before}</Badge>}
-                           {log.current_step_after && <Badge variant="secondary" className="text-[9px] h-4">Para: {log.current_step_after}</Badge>}
-                        </div>
-                        {log.error && <p className="text-xs text-red-400 mt-1 font-mono">{log.error}</p>}
-                      </div>
-                    </div>
-                  ))}
-                  {logs.length === 0 && <p className="py-8 text-center text-muted-foreground">Nenhum log encontrado.</p>}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* ABA 5: WEBHOOKS */}
-          <TabsContent value="webhooks" className="space-y-4">
-            <Card>
-              <CardHeader><CardTitle>Webhooks Recebidos</CardTitle></CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {webhookLogs.map((log) => (
-                    <div key={log.id} className={cn(
-                      "p-4 border rounded-lg font-mono text-xs overflow-hidden",
-                      log.processed ? "border-green-500/30 bg-green-500/5" : "border-zinc-800 bg-black"
-                    )}>
-                      <div className="flex justify-between border-b border-zinc-800 pb-2 mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className={log.processed ? "text-green-400" : "text-zinc-400"}>
-                            {log.processed ? "✅ PROCESSADO" : "📥 RECEBIDO"}
-                          </span>
-                          <span className="text-zinc-500">|</span>
-                          <span className="text-amber-500">{log.phone}</span>
-                          <Badge variant="outline" className="text-[10px] h-4">
-                            {log.flow_type || 'desconhecido'}
+            <Card className="border-zinc-800">
+              <CardContent className="p-0">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-zinc-900 text-zinc-400">
+                    <tr>
+                      <th className="px-4 py-3">Workflow</th>
+                      <th className="px-4 py-3">Tipo</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Agendado</th>
+                      <th className="px-4 py-3">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {queue.map(item => (
+                      <tr key={item.id} className="border-b border-zinc-800">
+                        <td className="px-4 py-3 font-medium">{item.workflow_key}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant="outline" className={item.flow_type === 'multi' ? 'border-purple-500' : 'border-blue-500'}>
+                            {item.flow_type}
                           </Badge>
-                        </div>
-                        <span className="text-zinc-500">{new Date(log.created_at).toLocaleString('pt-BR')}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 mb-2 text-zinc-300">
-                        <div><span className="text-zinc-500">Botão:</span> {log.button_id || '-'}</div>
-                        <div><span className="text-zinc-500">Sessão:</span> {log.session_id ? 'Sim' : 'Não'}</div>
-                      </div>
-                      <details className="mt-2">
-                        <summary className="cursor-pointer text-zinc-500 hover:text-zinc-300 transition-colors">Ver Payload Completo</summary>
-                        <pre className="mt-2 p-2 bg-zinc-950 rounded text-green-400/80 overflow-x-auto whitespace-pre-wrap">
-                          {JSON.stringify(log.payload, null, 2)}
-                        </pre>
-                      </details>
-                      {log.error && <p className="text-red-400 mt-2 border-t border-red-900/30 pt-2">Erro: {log.error}</p>}
-                    </div>
-                  ))}
-                  {webhookLogs.length === 0 && (
-                    <p className="py-8 text-center text-muted-foreground">Nenhum webhook recente.</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* ABA 6: TESTES */}
-          <TabsContent value="tests" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 pt-4">
-            <Button variant="outline" className="h-24 flex flex-col gap-2" onClick={() => handleSimulateEvent('appointment.created')}>
-              <Zap className="w-6 h-6 text-yellow-500" />
-              <span>appointment.created</span>
-            </Button>
-            <Button variant="outline" className="h-24 flex flex-col gap-2" onClick={() => handleSimulateEvent('appointment.confirmed')}>
-              <CheckCircle2 className="w-6 h-6 text-green-500" />
-              <span>appointment.confirmed</span>
-            </Button>
-            <Button variant="outline" className="h-24 flex flex-col gap-2" onClick={() => handleSimulateEvent('appointment.cancelled')}>
-              <AlertCircle className="w-6 h-6 text-red-500" />
-              <span>appointment.cancelled</span>
-            </Button>
-            <Button variant="outline" className="h-24 flex flex-col gap-2" onClick={() => handleSimulateEvent('customer.birthday')}>
-              <History className="w-6 h-6 text-pink-500" />
-              <span>customer.birthday</span>
-            </Button>
-          </TabsContent>
-
-          {/* ABA 7: CRON RUNS */}
-          <TabsContent value="tests" className="space-y-4">
-            <Card>
-              <CardHeader><CardTitle>Execuções do Cron</CardTitle></CardHeader>
-              <CardContent>
-                <div className="relative overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs uppercase bg-muted">
-                      <tr>
-                        <th className="px-4 py-2">Início</th>
-                        <th className="px-4 py-2">Status</th>
-                        <th className="px-4 py-2">Encontrados</th>
-                        <th className="px-4 py-2">Processados</th>
-                        <th className="px-4 py-2">Erros</th>
+                        </td>
+                        <td className="px-4 py-3">
+                           <Badge className={item.status === 'completed' ? 'bg-green-600' : item.status === 'failed' ? 'bg-red-600' : 'bg-amber-600'}>
+                             {item.status}
+                           </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-zinc-500">{new Date(item.scheduled_for).toLocaleString()}</td>
+                        <td className="px-4 py-3">
+                           <Button variant="ghost" size="sm" className="text-amber-500"><RefreshCw size={14} /></Button>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {cronRuns.map((run) => (
-                        <tr key={run.id} className="border-b">
-                          <td className="px-4 py-3 font-medium">{new Date(run.started_at).toLocaleString('pt-BR')}</td>
-                          <td className="px-4 py-3">
-                            <Badge className={run.status === 'success' ? 'bg-green-500' : 'bg-red-500'}>
-                              {run.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-center">{run.found_count}</td>
-                          <td className="px-4 py-3 text-center text-green-500 font-bold">{run.processed_count}</td>
-                          <td className="px-4 py-3 text-center text-red-500">{run.error_count}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {cronRuns.length === 0 && <p className="py-8 text-center text-muted-foreground">Nenhuma execução registrada.</p>}
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* ABA 8: INTEGRAÇÕES */}
-          <TabsContent value="integrations" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Canais de Comunicação</CardTitle>
-                <CardDescription>Configure os provedores para envio de mensagens.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between p-6 border rounded-xl bg-muted/30">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-white rounded-lg border flex items-center justify-center p-2">
-                      <img src="https://z-api.io/wp-content/uploads/2021/08/z-api-logo-azul.png" alt="Z-API" className="max-w-full" />
+          <TabsContent value="sessions" className="space-y-4">
+            <div className="grid gap-4">
+              {sessions.map(s => (
+                <Card key={s.id} className="border-zinc-800 bg-zinc-950">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-amber-500/10 rounded-full"><Smartphone className="text-amber-500" size={20} /></div>
+                      <div>
+                        <p className="font-bold">{s.customers?.name || s.phone}</p>
+                        <p className="text-xs text-zinc-500">{s.phone} • {s.flow_type}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold">Z-API</h3>
-                      <p className="text-sm text-muted-foreground">Instância conectada via API.</p>
-                      <Badge className="mt-2 bg-green-500">Conectado</Badge>
+                    <div className="text-right space-y-1">
+                      <Badge variant="outline" className="border-amber-500 text-amber-500">{s.current_step}</Badge>
+                      <p className="text-[10px] text-zinc-600">{new Date(s.updated_at).toLocaleTimeString()}</p>
                     </div>
-                  </div>
-                  <Button variant="outline">Configurar</Button>
-                </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
 
-                <div className="flex items-center justify-between p-6 border rounded-xl opacity-50 grayscale cursor-not-allowed">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-white rounded-lg border flex items-center justify-center p-2 font-bold text-blue-600">
-                      Evolution
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold">Evolution API</h3>
-                      <p className="text-sm text-muted-foreground">Conexão direta com instâncias Evolution.</p>
-                      <Badge variant="secondary" className="mt-2">Em breve</Badge>
-                    </div>
-                  </div>
-                  <Button variant="outline" disabled>Ativar</Button>
+          <TabsContent value="logs" className="space-y-2">
+            {logs.map(log => (
+              <div key={log.id} className="p-3 border-b border-zinc-800 flex gap-3 text-sm">
+                <div className={log.status === 'success' ? 'text-green-500' : 'text-red-500'}>
+                   {log.status === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
                 </div>
+                <div className="flex-1">
+                   <div className="flex justify-between">
+                      <span className="font-bold">{log.action}</span>
+                      <span className="text-[10px] text-zinc-600">{new Date(log.created_at).toLocaleString()}</span>
+                   </div>
+                   <p className="text-zinc-400">{log.message}</p>
+                   {log.error && <p className="text-red-400 text-xs mt-1">{log.error}</p>}
+                </div>
+              </div>
+            ))}
+          </TabsContent>
 
-                <div className="flex items-center justify-between p-6 border rounded-xl opacity-50 grayscale cursor-not-allowed">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-white rounded-lg border flex items-center justify-center p-2 font-bold text-blue-800">
-                      Meta
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold">Meta Cloud API</h3>
-                      <p className="text-sm text-muted-foreground">API Oficial do WhatsApp Business.</p>
-                      <Badge variant="secondary" className="mt-2">Em breve</Badge>
-                    </div>
-                  </div>
-                  <Button variant="outline" disabled>Ativar</Button>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="webhooks" className="space-y-4">
+             {webhookLogs.map(log => (
+               <Card key={log.id} className="bg-black border-zinc-800 font-mono text-[10px]">
+                 <CardContent className="p-3">
+                   <div className="flex justify-between border-b border-zinc-800 pb-1 mb-2">
+                      <span className={log.processed ? "text-green-500" : "text-amber-500"}>
+                        {log.processed ? "PROCESSADO" : "RECEBIDO"}
+                      </span>
+                      <span className="text-zinc-600">{new Date(log.created_at).toLocaleString()}</span>
+                   </div>
+                   <div className="grid grid-cols-3 gap-2">
+                      <span className="text-zinc-400">Fone: {log.phone_normalized}</span>
+                      <span className="text-zinc-400">Botão: {log.button_id || 'texto'}</span>
+                      <span className="text-zinc-400">Ref: {log.reference_message_id?.substr(0,8)}...</span>
+                   </div>
+                   <details className="mt-1">
+                      <summary className="text-zinc-600 cursor-pointer">Ver Payload</summary>
+                      <pre className="p-2 bg-zinc-900 mt-1 rounded overflow-x-auto">
+                        {JSON.stringify(log.raw_payload, null, 2)}
+                      </pre>
+                   </details>
+                 </CardContent>
+               </Card>
+             ))}
           </TabsContent>
         </Tabs>
-
-        {/* Modal de Edição */}
-        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="sm:max-width-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Editar Automação</DialogTitle>
-              <DialogDescription>
-                Configure os detalhes e o template da sua automação.
-              </DialogDescription>
-            </DialogHeader>
-            {selectedWorkflow && (
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome da Automação</Label>
-                  <Input 
-                    id="name" 
-                    value={selectedWorkflow.name} 
-                    onChange={(e) => setSelectedWorkflow({ ...selectedWorkflow, name: e.target.value })} 
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="trigger">Gatilho (Evento)</Label>
-                    <Select 
-                      value={selectedWorkflow.trigger_event} 
-                      onValueChange={(v) => setSelectedWorkflow({ ...selectedWorkflow, trigger_event: v })}
-                    >
-                      <SelectTrigger id="trigger">
-                        <SelectValue placeholder="Selecione o gatilho" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="appointment.created">Agendamento Criado</SelectItem>
-                        <SelectItem value="appointment.confirmed">Agendamento Confirmado</SelectItem>
-                        <SelectItem value="appointment.cancelled">Agendamento Cancelado</SelectItem>
-                        <SelectItem value="appointment.reminder">Lembrete de Agendamento</SelectItem>
-                        <SelectItem value="appointment.completed">Agendamento Concluído</SelectItem>
-                        <SelectItem value="customer.birthday">Aniversário do Cliente</SelectItem>
-                        <SelectItem value="customer.inactive">Cliente Inativo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Status</Label>
-                    <div className="flex items-center space-x-2 pt-2">
-                      <Switch 
-                        checked={selectedWorkflow.active} 
-                        onCheckedChange={(checked) => setSelectedWorkflow({ ...selectedWorkflow, active: checked })}
-                        className="data-[state=unchecked]:bg-zinc-700 data-[state=unchecked]:border-zinc-500 data-[state=checked]:bg-amber-500"
-                        thumbClassName="data-[state=unchecked]:bg-zinc-300"
-                      />
-                      <Label className={cn(
-                        "font-normal",
-                        selectedWorkflow.active ? "text-amber-400" : "text-zinc-500"
-                      )}>
-                        {selectedWorkflow.active ? 'Ativo' : 'Inativo'}
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="template">Template da Mensagem</Label>
-                  <Textarea 
-                    id="template" 
-                    rows={5} 
-                    value={selectedWorkflow.configuration?.template || ""} 
-                    onChange={(e) => setSelectedWorkflow({ 
-                      ...selectedWorkflow, 
-                      configuration: { ...selectedWorkflow.configuration, template: e.target.value } 
-                    })} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Variáveis Disponíveis (Clique para copiar)</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {AVAILABLE_VARIABLES.map(v => (
-                      <Badge 
-                        key={v} 
-                        variant="secondary" 
-                        className="cursor-pointer hover:bg-muted"
-                        onClick={() => {
-                          navigator.clipboard.writeText(v);
-                          toast.success("Copiado: " + v);
-                        }}
-                      >
-                        {v}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
-              <Button onClick={() => handleSaveWorkflow(selectedWorkflow)}>Salvar Alterações</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Modal de Teste */}
-        <Dialog open={isTestModalOpen} onOpenChange={setIsTestModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Testar Automação</DialogTitle>
-              <DialogDescription>
-                Envie uma mensagem de teste para validar o template.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="test-phone">Telefone de Destino (com DDD)</Label>
-                <Input 
-                  id="test-phone" 
-                  placeholder="Ex: 71996242196" 
-                  value={testPhone} 
-                  onChange={(e) => setTestPhone(e.target.value)} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Dados para o teste</Label>
-                <Select value={testDataType} onValueChange={setTestDataType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="last">Usar dados do último agendamento real</SelectItem>
-                    <SelectItem value="mock">Usar dados fictícios</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {selectedWorkflow && (
-                <div className="p-4 bg-muted rounded-lg text-sm italic">
-                  Preview do template:<br/>
-                  <span className="text-muted-foreground">"{selectedWorkflow.configuration?.template}"</span>
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsTestModalOpen(false)}>Cancelar</Button>
-              <Button onClick={handleTestWorkflow}>
-                <Send className="w-4 h-4 mr-2" />
-                Enviar Teste
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        {/* Modal de Diagnóstico */}
-        <Dialog open={!!diagnosingItem} onOpenChange={(open) => !open && setDiagnosingItem(null)}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Diagnóstico do Item da Fila</DialogTitle>
-              <DialogDescription>
-                Detalhes técnicos para depuração do processamento.
-              </DialogDescription>
-            </DialogHeader>
-            {diagnosingItem && (
-              <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Queue ID</p>
-                    <p className="font-mono truncate">{diagnosingItem.id}</p>
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Status Atual</p>
-                    <Badge variant="outline">{diagnosingItem.status}</Badge>
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Iniciado em</p>
-                    <p className="font-mono text-xs">{diagnosingItem.started_at ? new Date(diagnosingItem.started_at).toLocaleString('pt-BR') : '-'}</p>
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Última Etapa</p>
-                    <Badge variant="secondary" className="text-[10px]">{diagnosingItem.metadata?.last_step || '-'}</Badge>
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Appointment ID</p>
-                    <p className="font-mono truncate text-[10px]">{diagnosingItem.appointment_id || '-'}</p>
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Group ID</p>
-                    <p className="font-mono truncate text-[10px]">{diagnosingItem.appointment_group_id || '-'}</p>
-                  </div>
-                </div>
-
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Detalhes do Envio</p>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex justify-between col-span-2">
-                      <span>Mensagem Enviada?</span>
-                      <span className={diagnosingItem.metadata?.provider_message_id ? "text-green-500 font-bold" : "text-amber-500"}>
-                        {diagnosingItem.metadata?.provider_message_id ? "SIM" : "NÃO / PENDENTE"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between col-span-2 border-t border-zinc-700 pt-1">
-                      <span>Message ID:</span>
-                      <span className="font-mono text-[9px]">{diagnosingItem.metadata?.provider_message_id || '-'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tempo em Processamento</p>
-                  <div className="flex flex-col gap-1 text-xs">
-                    <div className="flex justify-between">
-                      <span>Iniciado em:</span>
-                      <span className="font-mono">{diagnosingItem.started_at ? new Date(diagnosingItem.started_at).toISOString() : '-'}</span>
-                    </div>
-                    {diagnosingItem.status === 'processing' && diagnosingItem.started_at && (
-                      <div className="flex justify-between font-bold mt-1 text-blue-400">
-                        <span>Duração atual:</span>
-                        <span>{Math.floor((Date.now() - new Date(diagnosingItem.started_at).getTime()) / 1000)}s</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase text-muted-foreground">Resposta Z-API</Label>
-                  <pre className="p-3 bg-black text-blue-400 text-[10px] rounded-lg overflow-x-auto max-h-32">
-                    {JSON.stringify(diagnosingItem.metadata?.zapi_response || {}, null, 2)}
-                  </pre>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase text-muted-foreground">Payload do Evento</Label>
-                  <pre className="p-3 bg-black text-green-400 text-[10px] rounded-lg overflow-x-auto max-h-32">
-                    {JSON.stringify(diagnosingItem.automation_events?.payload || {}, null, 2)}
-                  </pre>
-                </div>
-
-                {diagnosingItem.error && (
-                  <div className="space-y-2">
-                    <Label className="text-red-500 text-xs uppercase">Último Erro</Label>
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] rounded-lg whitespace-pre-wrap font-mono">
-                      {diagnosingItem.error}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            <DialogFooter>
-              <Button onClick={() => setDiagnosingItem(null)}>Fechar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </AppLayout>
   );
 }
-

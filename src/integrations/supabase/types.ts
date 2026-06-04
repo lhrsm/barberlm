@@ -776,6 +776,309 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_v2_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          error: string | null
+          event_name: string | null
+          flow_type: string | null
+          id: string
+          message: string | null
+          payload: Json | null
+          queue_id: string | null
+          session_id: string | null
+          status: string
+          step_after: string | null
+          step_before: string | null
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          error?: string | null
+          event_name?: string | null
+          flow_type?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json | null
+          queue_id?: string | null
+          session_id?: string | null
+          status: string
+          step_after?: string | null
+          step_before?: string | null
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          error?: string | null
+          event_name?: string | null
+          flow_type?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json | null
+          queue_id?: string | null
+          session_id?: string | null
+          status?: string
+          step_after?: string | null
+          step_before?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_v2_logs_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "automation_v2_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_v2_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "automation_v2_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_v2_queue: {
+        Row: {
+          appointment_group_id: string | null
+          appointment_id: string | null
+          attempts: number | null
+          created_at: string | null
+          error: string | null
+          event_name: string
+          finished_at: string | null
+          flow_type: string
+          id: string
+          payload: Json | null
+          scheduled_for: string
+          started_at: string | null
+          status: string
+          tenant_id: string
+          workflow_key: string
+        }
+        Insert: {
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          attempts?: number | null
+          created_at?: string | null
+          error?: string | null
+          event_name: string
+          finished_at?: string | null
+          flow_type: string
+          id?: string
+          payload?: Json | null
+          scheduled_for?: string
+          started_at?: string | null
+          status?: string
+          tenant_id: string
+          workflow_key: string
+        }
+        Update: {
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          attempts?: number | null
+          created_at?: string | null
+          error?: string | null
+          event_name?: string
+          finished_at?: string | null
+          flow_type?: string
+          id?: string
+          payload?: Json | null
+          scheduled_for?: string
+          started_at?: string | null
+          status?: string
+          tenant_id?: string
+          workflow_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_v2_queue_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_v2_queue_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+        ]
+      }
+      automation_v2_sessions: {
+        Row: {
+          appointment_group_id: string | null
+          appointment_id: string | null
+          channel: string | null
+          closed_at: string | null
+          context: Json | null
+          created_at: string | null
+          current_step: string
+          customer_id: string | null
+          error: string | null
+          flow_type: string
+          id: string
+          phone: string
+          provider_message_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          channel?: string | null
+          closed_at?: string | null
+          context?: Json | null
+          created_at?: string | null
+          current_step: string
+          customer_id?: string | null
+          error?: string | null
+          flow_type: string
+          id?: string
+          phone: string
+          provider_message_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          channel?: string | null
+          closed_at?: string | null
+          context?: Json | null
+          created_at?: string | null
+          current_step?: string
+          customer_id?: string | null
+          error?: string | null
+          flow_type?: string
+          id?: string
+          phone?: string
+          provider_message_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_v2_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_v2_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "automation_v2_sessions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_v2_webhook_logs: {
+        Row: {
+          button_id: string | null
+          created_at: string | null
+          error: string | null
+          id: string
+          message_text: string | null
+          phone_normalized: string | null
+          phone_raw: string | null
+          processed: boolean | null
+          raw_payload: Json
+          reference_message_id: string | null
+          session_id: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          button_id?: string | null
+          created_at?: string | null
+          error?: string | null
+          id?: string
+          message_text?: string | null
+          phone_normalized?: string | null
+          phone_raw?: string | null
+          processed?: boolean | null
+          raw_payload: Json
+          reference_message_id?: string | null
+          session_id?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          button_id?: string | null
+          created_at?: string | null
+          error?: string | null
+          id?: string
+          message_text?: string | null
+          phone_normalized?: string | null
+          phone_raw?: string | null
+          processed?: boolean | null
+          raw_payload?: Json
+          reference_message_id?: string | null
+          session_id?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_v2_webhook_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "automation_v2_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_v2_workflows: {
+        Row: {
+          active: boolean | null
+          configuration: Json | null
+          created_at: string | null
+          event_name: string
+          id: string
+          name: string
+          tenant_id: string
+          updated_at: string | null
+          workflow_key: string
+        }
+        Insert: {
+          active?: boolean | null
+          configuration?: Json | null
+          created_at?: string | null
+          event_name: string
+          id?: string
+          name: string
+          tenant_id: string
+          updated_at?: string | null
+          workflow_key: string
+        }
+        Update: {
+          active?: boolean | null
+          configuration?: Json | null
+          created_at?: string | null
+          event_name?: string
+          id?: string
+          name?: string
+          tenant_id?: string
+          updated_at?: string | null
+          workflow_key?: string
+        }
+        Relationships: []
+      }
       automation_workflows: {
         Row: {
           active: boolean | null
@@ -1907,6 +2210,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      messaging_v2_providers: {
+        Row: {
+          active: boolean | null
+          config: Json
+          created_at: string | null
+          id: string
+          provider_type: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          config?: Json
+          created_at?: string | null
+          id?: string
+          provider_type?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          config?: Json
+          created_at?: string | null
+          id?: string
+          provider_type?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
