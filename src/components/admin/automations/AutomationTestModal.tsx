@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCcw, CheckCircle2, XCircle, Info } from "lucide-react";
 
 interface AutomationTestModalProps {
   isOpen: boolean;
@@ -31,6 +31,9 @@ export function AutomationTestModal({
   const [isTesting, setIsTesting] = useState(false);
   const [isLoadingRealData, setIsLoadingRealData] = useState(false);
   const [realData, setRealData] = useState<any>(null);
+  const [lastTestResult, setLastTestResult] = useState<any>(null);
+  const [isLoadingLastTest, setIsLoadingLastTest] = useState(false);
+
 
   const fetchRealData = async () => {
     setIsLoadingRealData(true);
@@ -75,11 +78,36 @@ export function AutomationTestModal({
     }
   };
 
+  const fetchLastTestResult = async () => {
+    setIsLoadingLastTest(true);
+    try {
+      const { data, error } = await (supabase as any)
+        .from("automation_logs")
+        .select("*")
+        .eq("automation_id", automation.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      setLastTestResult(data);
+    } catch (error) {
+      console.error("Error fetching last test:", error);
+    } finally {
+      setIsLoadingLastTest(false);
+    }
+  };
+
+
   useEffect(() => {
-    if (isOpen && testType === "real") {
-      fetchRealData();
+    if (isOpen) {
+      fetchLastTestResult();
+      if (testType === "real") {
+        fetchRealData();
+      }
     }
   }, [isOpen, testType]);
+
 
   const getTestData = () => {
     if (testType === "real") return realData;
@@ -121,11 +149,32 @@ export function AutomationTestModal({
 
     setIsTesting(true);
     try {
+      // 1. Phone validation
+      if (phone.length < 10) {
+        throw new Error("Telefone inválido. Use o formato DDI + DDD + Número (Ex: 5511999999999)");
+      }
+
+      // 2. Template rendering validation
+      if (!renderedTemplate) {
+        throw new Error("Erro ao renderizar o template. Verifique as variáveis.");
+      }
+
+      // 3. Instance check
+      const { data: instance, error: instError } = await supabase
+        .from('whatsapp_instances')
+        .select('id')
+        .eq('tenant_id', automation.tenant_id)
+        .single();
+
+      if (instError || !instance) {
+        throw new Error("Instância do WhatsApp não encontrada para este tenant.");
+      }
+
       // Call the zapi-api edge function
       const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
         body: {
           action: 'send-test-message',
-          instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', automation.tenant_id).single()).data?.id,
+          instanceId: instance.id,
           data: {
             phone: phone,
             message: renderedTemplate
@@ -137,7 +186,7 @@ export function AutomationTestModal({
 
       const isSuccess = zapiData?.success === true;
 
-      await (supabase as any).from("automation_logs").insert({
+      const { data: newLog } = await (supabase as any).from("automation_logs").insert({
         automation_id: automation.id,
         tenant_id: automation.tenant_id,
         phone: phone,
@@ -147,23 +196,39 @@ export function AutomationTestModal({
         original_template: automation.template,
         provider: "zapi",
         sent_at: new Date().toISOString(),
-        payload: { test_data: testData, rendered: renderedTemplate, test_type: testType },
+        payload: { test_data: testData, rendered: renderedTemplate, test_type: testType, is_test: true },
         error_message: isSuccess ? null : (zapiData?.error || "Erro no envio de teste"),
         response: zapiData?.result
-      });
+      }).select().single();
 
       if (isSuccess) {
         toast.success("Teste enviado com sucesso!");
-        onClose();
+        setLastTestResult(newLog);
+        // Não fechar imediatamente para permitir ver o resultado
       } else {
-        throw new Error(zapiData?.error || "Falha ao enviar mensagem");
+        throw new Error(zapiData?.error || "Falha ao enviar mensagem pelo provedor.");
       }
     } catch (error: any) {
-      toast.error("Erro ao enviar teste: " + error.message);
+      toast.error(
+        <div className="flex flex-col gap-2">
+          <p className="font-bold">Falha no Teste</p>
+          <p className="text-xs">{error.message}</p>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-7 text-[10px] mt-1 border-white/20 hover:bg-white/10"
+            onClick={handleTest}
+          >
+            <RefreshCcw size={10} className="mr-1" /> Tentar novamente
+          </Button>
+        </div>,
+        { duration: 5000 }
+      );
     } finally {
       setIsTesting(false);
     }
   };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -218,10 +283,16 @@ export function AutomationTestModal({
             <Label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Preview da mensagem</Label>
             <div className="bg-[#0F172A] border border-amber-500/20 p-4 rounded-2xl relative min-h-[100px]">
               {testType === "real" && !isLoadingRealData && !realData ? (
-                <div className="flex flex-col items-center justify-center py-4 text-center space-y-2">
-                  <AlertCircle className="text-amber-500" size={24} />
-                  <p className="text-sm font-bold text-amber-500">Nenhum agendamento encontrado para teste.</p>
-                  <p className="text-[10px] text-slate-500">Crie um agendamento na plataforma para testar com dados reais.</p>
+                <div className="flex flex-col items-center justify-center py-6 text-center space-y-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
+                  <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center">
+                    <AlertCircle className="text-amber-500" size={24} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-amber-500">Nenhum agendamento encontrado para teste.</p>
+                    <p className="text-[10px] text-slate-400 max-w-[200px] mx-auto leading-relaxed">
+                      Crie um agendamento real na plataforma antes de testar com esta opção.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -237,6 +308,41 @@ export function AutomationTestModal({
               )}
             </div>
           </div>
+
+          {/* Resumo do Último Teste */}
+          {lastTestResult && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Info size={14} className="text-slate-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Último resultado</span>
+                </div>
+                <span className="text-[10px] text-slate-500">
+                  {new Date(lastTestResult.created_at).toLocaleString('pt-BR')}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {lastTestResult.status === 'sent' ? (
+                  <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[10px] flex items-center gap-1">
+                    <CheckCircle2 size={10} /> Sucesso
+                  </Badge>
+                ) : (
+                  <Badge className="bg-rose-500/10 text-rose-500 border-none text-[10px] flex items-center gap-1">
+                    <XCircle size={10} /> Falha
+                  </Badge>
+                )}
+                <span className="text-[10px] text-slate-400 truncate max-w-[200px]">
+                  Para: {lastTestResult.phone}
+                </span>
+              </div>
+              {lastTestResult.error_message && (
+                <p className="text-[10px] text-rose-400/80 italic line-clamp-1">
+                  Erro: {lastTestResult.error_message}
+                </p>
+              )}
+            </div>
+          )}
+
         </div>
 
         <DialogFooter className="p-6 bg-slate-900/50">
