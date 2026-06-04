@@ -96,8 +96,8 @@ export function AutomationDebugger() {
     setLoading(true);
     setResult(null);
     try {
-      const { data: session, error: sessionError } = await supabase
-        .from("conversation_sessions")
+      const { data: session, error: sessionError } = await (supabase
+        .from("conversation_sessions" as any) as any)
         .select("*")
         .eq("tenant_id", tenantId)
         .eq("active", true)

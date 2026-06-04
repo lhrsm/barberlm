@@ -88,7 +88,7 @@ export function WorkflowTestModal({ workflow, isOpen, onClose }: WorkflowTestMod
         throw new Error(data.error || "Erro desconhecido na Edge Function");
       }
 
-      await (supabase.from("automation_v2_logs") as any).insert({
+      await (supabase.from("automation_v2_logs" as any) as any).insert({
         tenant_id: workflow.tenant_id,
         event_name: workflow.event_name,
         flow_type: workflow.configuration?.flow_type || "single",
@@ -106,7 +106,7 @@ export function WorkflowTestModal({ workflow, isOpen, onClose }: WorkflowTestMod
       
       // Attempt to log failure
       try {
-        await supabase.from("automation_v2_logs").insert({
+        await (supabase.from("automation_v2_logs" as any) as any).insert({
           tenant_id: workflow.tenant_id,
           event_name: 'test_execution',
           workflow_key: workflow.workflow_key,

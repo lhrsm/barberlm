@@ -412,7 +412,9 @@ export function AppointmentModal({
       const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", tenantId).single();
 
       if (profile?.whatsapp_enabled && customer?.phone) {
-        // Enfileirar na V2
+        // Automação V2 desativada temporariamente para estabilidade
+        console.log("Automation V2 is temporarily disabled during rollback stabilization");
+        /*
         supabase.from("automation_v2_queue").insert([{
           tenant_id: tenantId,
           workflow_key: 'confirmation_single',
@@ -425,6 +427,7 @@ export function AppointmentModal({
             body: { tenantId: tenantId }
           }).catch(err => console.error("Error triggering v2 runner:", err));
         });
+        */
       }
 
 
