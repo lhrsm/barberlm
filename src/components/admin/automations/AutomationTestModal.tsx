@@ -91,21 +91,15 @@ export function AutomationTestModal({
         const profId = appointment.barber_id || appointment.professional_id;
         
         if (profId) {
-           // Try professionals first
-           const { data: professionalData } = await (supabase as any).from("professionals").select("name").eq("id", profId).maybeSingle();
-           if (professionalData?.name) {
-              profName = professionalData.name;
-           } else {
-              // Try barbers
-              const { data: barberData } = await (supabase as any).from("barbers").select("name").eq("id", profId).maybeSingle();
-              if (barberData?.name) {
-                 profName = barberData.name;
-              } else {
-                 // Try profiles
-                 const { data: profileData } = await (supabase as any).from("profiles").select("full_name").eq("id", profId).maybeSingle();
-                 if (profileData?.full_name) profName = profileData.full_name;
-              }
-           }
+            // Try barbers
+            const { data: barberData } = await (supabase as any).from("barbers").select("name").eq("id", profId).maybeSingle();
+            if (barberData?.name) {
+                profName = barberData.name;
+            } else {
+                // Try profiles
+                const { data: profileData } = await (supabase as any).from("profiles").select("full_name").eq("id", profId).maybeSingle();
+                if (profileData?.full_name) profName = profileData.full_name;
+            }
         }
 
         const { data: tenant } = await (supabase as any)
