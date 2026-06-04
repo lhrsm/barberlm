@@ -378,7 +378,7 @@ export function AppointmentModal({
         if (!existingTrans) {
           const usedCredits = Number(appointmentData.credit_used || 0);
           const usedCashback = Number(appointmentData.cashback_used || 0);
-          const finalAmount = Number(appointmentData.final_amount || (appointmentData.total_price - usedCredits - usedCashback));
+          const finalAmount = Number(appointmentData.final_amount || (Number(appointmentData.total_price || 0) - usedCredits - usedCashback));
           
           if (finalAmount > 0) {
             await supabase.from("transactions").insert([{
