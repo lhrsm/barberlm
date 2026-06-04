@@ -156,6 +156,26 @@ serve(async (req) => {
     if (isConfirm || isReschedule || isCancel) {
       console.log(`[Webhook] Action detected: ${isConfirm ? 'confirm' : isReschedule ? 'reschedule' : 'cancel'}`);
       
+      // DEDUPLICAÇÃO DE PROCESSAMENTO POR TEXTO (Janela de 5 segundos)
+      const textDedupKey = `dedup:${phone}:${normalizedText}`;
+      const { data: recentAction } = await supabase
+        .from("automation_logs")
+        .select("id")
+        .eq("phone", phone)
+        .eq("action", "resposta_recebida")
+        .eq("status", "info")
+        .gt("created_at", new Date(Date.now() - 5000).toISOString())
+        .filter("payload->>normalized", "eq", normalizedText)
+        .maybeSingle();
+
+      if (recentAction) {
+        console.log(`[Webhook] Ignoring duplicate rapid response from ${phone}: ${normalizedText}`);
+        return new Response(JSON.stringify({ ok: true, status: "duplicate_ignored" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+      
       let appointmentId = null;
       let tenantId = null;
       let sessionId = null;
