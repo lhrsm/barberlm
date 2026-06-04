@@ -219,19 +219,28 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (data.success) {
         setButtonTestMessageId(data.result?.messageId);
         toast.success("Mensagem enviada! Clique no botão no seu WhatsApp.");
+        
+        // Poll for 30 seconds
         let secondsPassed = 0;
         const maxSeconds = 30;
+        const startTime = new Date().toISOString();
+        
         const checkInterval = setInterval(async () => {
-          secondsPassed += 2;
+          secondsPassed += 3;
+          
+          // Refresh logs
+          await fetchIntegrationLogs();
+          
           const { data: webhookLogs } = await supabase
             .from("zapi_webhook_debug")
             .select("*")
             .eq("tenant_id", tenantId)
             .eq("source", "zapi_real")
             .eq("option_id", "main_confirm")
-            .gte("received_at", new Date(Date.now() - 60000).toISOString())
+            .gte("received_at", startTime)
             .order("received_at", { ascending: false })
             .limit(1);
+
           if (webhookLogs && webhookLogs.length > 0) {
             clearInterval(checkInterval);
             setIsWaitingForCallback(false);
@@ -247,10 +256,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           } else if (secondsPassed >= maxSeconds) {
             clearInterval(checkInterval);
             setIsWaitingForCallback(false);
-            setCallbackResult({ received: false });
-            toast.error("Z-API não enviou callback de resposta.");
+            setCallbackResult({ 
+              received: false,
+              error: "Nenhum webhook recebido da Z-API após 30 segundos. Verifique se clicou no botão correto."
+            });
+            toast.error("Tempo esgotado: Callback não recebido.");
           }
-        }, 2000);
+        }, 3000);
       } else {
         setIsWaitingForCallback(false);
         toast.error("Erro ao enviar botão: " + (data.error || "Erro desconhecido"));
