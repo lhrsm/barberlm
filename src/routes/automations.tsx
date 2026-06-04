@@ -241,7 +241,8 @@ function AutomationsComponent() {
       }
         
       if (filterStatus !== "all") {
-        query = query.eq("status", filterStatus);
+        const mappedStatus = filterStatus === "sent" ? "success" : filterStatus === "error" ? "error" : filterStatus;
+        query = query.eq("status", mappedStatus);
       }
       
       if (filterAutomation !== "all") {
