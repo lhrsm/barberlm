@@ -178,7 +178,7 @@ function FinancesComponent() {
   const summary = useMemo(() => {
     // FILTRAR APENAS TRANSAÇÕES DE AGENDAMENTOS CONCLUÍDOS OU MANUAIS
     const effectiveTransactions = transactions.filter(t => 
-      !t.appointment || t.appointment.status === 'completed'
+      !t.appointment || t.appointment.status === 'completed' || t.appointment.status === 'confirmed' || t.appointment.status === 'scheduled'
     );
 
     // 1. Receita Operacional (Faturamento Operacional) - Valor Total dos Serviços Vendidos
@@ -186,18 +186,10 @@ function FinancesComponent() {
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         if (t.appointment) {
-          return acc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0))) || 0);
+          // Usar total_price como o valor total do serviço (independente de como foi pago)
+          return acc + (Number(t.appointment.total_price || t.appointment.original_total) || 0);
         }
-
-        const val = parseFloat(String(t.amount)) || 0;
-        
-        let creditedAmount = 0;
-        if (t.description?.includes("Créditos: R$")) {
-          const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
-          creditedAmount = match ? parseFloat(match[1]) : 0;
-        }
-        
-        return acc + val + creditedAmount;
+        return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
 
     // 2. Fluxo de Caixa (Entrada Financeira Real) - Dinheiro novo no caixa
@@ -208,16 +200,12 @@ function FinancesComponent() {
     // 3. Créditos Consumidos
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
-      .reduce((acc, t) => {
-        let creditedAmount = 0;
-        if (t.appointment?.credit_used) {
-          creditedAmount = Number(t.appointment.credit_used);
-        } else if (t.description?.includes("Créditos: R$")) {
-          const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
-          creditedAmount = match ? parseFloat(match[1]) : 0;
-        }
-        return acc + creditedAmount;
-      }, 0);
+      .reduce((acc, t) => acc + (Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)), 0);
+
+    // 4. Cashback Consumido
+    const cashbackConsumed = effectiveTransactions
+      .filter((t) => t.type === "income")
+      .reduce((acc, t) => acc + Number(t.appointment?.cashback_used || 0), 0);
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
@@ -262,6 +250,7 @@ function FinancesComponent() {
       income: operationalRevenue, 
       realCashIncome,
       creditsConsumed,
+      cashbackConsumed,
       expense, 
       pending, 
       balance: realCashIncome - expense, // Saldo Atual é Dinheiro Real - Despesas
@@ -714,12 +703,18 @@ function FinancesComponent() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <span className="text-xs font-medium uppercase">
-                            {t.appointment?.payment_method === 'pix' ? 'PIX' : 
-                             t.appointment?.payment_method === 'credits' ? 'Créditos' : 
-                             t.appointment?.payment_method === 'cashback' ? 'Cashback' : 
-                             t.appointment?.payment_method || '-'}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="w-fit">PIX</Badge>}
+                            {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="w-fit">Créditos</Badge>}
+                            {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="w-fit">Cashback</Badge>}
+                            {(t.appointment?.credit_used > 0 || t.appointment?.credits_used > 0) && (
+                              <span className="text-[10px] text-purple-600 font-bold">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)).toFixed(2)}</span>
+                            )}
+                            {t.appointment?.cashback_used > 0 && (
+                              <span className="text-[10px] text-orange-600 font-bold">Cashback: R$ {Number(t.appointment?.cashback_used).toFixed(2)}</span>
+                            )}
+                            {!t.appointment && <span className="text-xs uppercase font-medium">{t.payment_method || '-'}</span>}
+                          </div>
                         </TableCell>
                         <TableCell>{t.category || "-"}</TableCell>
                         <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>

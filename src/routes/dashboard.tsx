@@ -536,8 +536,8 @@ function DashboardComponent() {
       monthlyAppointmentsData,
       customersWithBalances
     ] = await Promise.all([
-      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).not("status", "eq", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).not("status", "eq", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
       // Buscar todas as transações para filtrar em memória
       supabase.from("transactions").select("amount, type, appointment:appointments(status)").eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("transactions").select("amount, type, appointment:appointments(status)").eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
@@ -575,32 +575,26 @@ function DashboardComponent() {
             return acc;
           }
           // Ignorar transações de créditos/cashback que não representam dinheiro novo real em caixa (PIX/Dinheiro/Cartão)
-          if (curr.category === 'Crédito Cliente' || curr.description?.includes('Crédito Gerado') || curr.description?.includes('Cashback Gerado')) {
-            return acc;
-          }
+          // Mas se o valor for > 0, ele representa a parte em dinheiro de um pagamento misto ou integral.
           
-          // Se for uma transação de serviço, abater o valor que foi pago com crédito/cashback se estiver no description
-          // No dashboard, as transações financeiras salvam em 'amount' o valor REAL recebido (final_amount).
-          // Então não precisamos abater nada aqui, o amount já é o líquido.
-          return acc + Number(curr.amount);
+          return acc + Number(curr.amount || 0);
         } else if (curr.type === 'expense') {
-            // Deduzir estornos da entrada em caixa se necessário para refletir saldo real
-            return acc - Number(curr.amount);
+            return acc - Number(curr.amount || 0);
         }
         return acc;
       }, 0) || 0;
     };
 
     // Cálculos Diários
-    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
-    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.total_price || curr.original_total || 0), 0) || 0;
+    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + (Number(curr.credit_used || 0) + Number(curr.credits_used || 0)), 0) || 0;
     const dailyCashbackUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_used || 0), 0) || 0;
     const dailyCashbackEarned = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const dailyCashInflow = calculateCashInflow(dailyTrans.data);
 
     // Cálculos Mensais
-    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.original_total || curr.total_price || 0), 0) || 0;
-    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.credit_used || 0), 0) || 0;
+    const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.total_price || curr.original_total || 0), 0) || 0;
+    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + (Number(curr.credit_used || 0) + Number(curr.credits_used || 0)), 0) || 0;
     const monthlyCashbackUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_used || 0), 0) || 0;
     const monthlyCashbackEarned = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const monthlyCashInflow = calculateCashInflow(monthlyTrans.data);
@@ -1076,12 +1070,33 @@ function DashboardComponent() {
                   variant="outline" 
                   size="sm" 
                   className="gap-2"
-                  onClick={() => {
+                  onClick={async () => {
+                    const today = new Date().toISOString().split('T')[0];
+                    const { data: apps } = await supabase
+                      .from("appointments")
+                      .select("id, status, total_price, final_amount, credit_used, credits_used, cashback_used, payment_method, payment_status")
+                      .gte("start_time", today + "T00:00:00")
+                      .lte("start_time", today + "T23:59:59")
+                      .neq("status", "cancelled");
+
+                    const details = apps?.map(a => ({
+                      id: a.id.substring(0,8),
+                      status: a.status,
+                      total: a.total_price,
+                      cash: a.final_amount,
+                      credits: Number(a.credit_used || 0) + Number(a.credits_used || 0),
+                      cashback: a.cashback_used,
+                      pay: a.payment_method,
+                      included: ["scheduled", "confirmed", "completed"].includes(a.status || "")
+                    }));
+                    
+                    console.table(details);
+                    
                     fetchStats();
                     fetchTodayAppointments();
                     fetchNotifications();
                     fetchBirthdayCustomers();
-                    toast.success("Dados do dashboard atualizados!");
+                    toast.success(`${apps?.length || 0} agendamentos encontrados. Verifique o console para detalhes.`);
                   }}
                 >
                   <RefreshCcw size={14} />
