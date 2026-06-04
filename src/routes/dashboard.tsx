@@ -1183,14 +1183,14 @@ function DashboardComponent() {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                           <div className="flex flex-wrap items-center gap-2">
                              {app.refund_requested_at && (
                                app.refund_status === 'pending' ? (
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                className="h-8 px-2 text-white bg-amber-500/80 hover:bg-amber-500 text-[10px] gap-1"
+                                className="h-8 px-2 text-white bg-amber-500/80 hover:bg-amber-500 text-[10px] gap-1 w-auto"
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   const type = app.refund_type === 'refund' ? 'estorno' : 'créditos';
@@ -1327,7 +1327,7 @@ function DashboardComponent() {
                               <Button 
                                 variant="default"
                                 size="sm" 
-                                className="h-8 gap-1 text-xs bg-green-600 hover:bg-green-700"
+                                className="h-8 gap-1 text-xs bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   completeAppointment(app);
@@ -1341,7 +1341,7 @@ function DashboardComponent() {
                               <Button 
                                 variant="outline"
                                 size="sm" 
-                                className="h-8 gap-1 text-xs text-destructive border-destructive/20 hover:bg-destructive/10"
+                                className="h-8 gap-1 text-xs text-destructive border-destructive/20 hover:bg-destructive/10 w-full sm:w-auto"
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   if (confirm("Deseja cancelar este agendamento?")) {
@@ -1389,7 +1389,7 @@ function DashboardComponent() {
                                   variant={app.payment_status === 'paid' ? 'secondary' : 'outline'} 
                                   size="sm" 
                                   className={cn(
-                                    "h-8 gap-1 text-xs",
+                                    "h-8 gap-1 text-xs w-full sm:w-auto",
                                     app.payment_status === 'paid' && "text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
                                   )}
                                   onClick={(e) => {
