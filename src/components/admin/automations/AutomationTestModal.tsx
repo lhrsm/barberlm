@@ -33,8 +33,11 @@ export function AutomationTestModal({
   const [isTesting, setIsTesting] = useState(false);
   const [isLoadingRealData, setIsLoadingRealData] = useState(false);
   const [realData, setRealData] = useState<any>(null);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>("");
   const [lastTestResult, setLastTestResult] = useState<any>(null);
   const [isLoadingLastTest, setIsLoadingLastTest] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
+
 
 
   const fetchRealData = async () => {
