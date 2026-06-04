@@ -137,9 +137,10 @@ export function WorkflowEditModal({ workflow, isOpen, onClose, onSuccess }: Work
       console.error("Error updating workflow:", error);
       
       // Log error
-      await supabase.from("automation_v2_logs").insert({
+      await (supabase.from("automation_v2_logs") as any).insert({
         tenant_id: workflow.tenant_id,
-        workflow_key: workflow.workflow_key,
+        event_name: workflow.event_name,
+        flow_type: workflow.configuration?.flow_type || "single",
         action: "workflow_updated",
         status: "error",
         message: `Erro ao atualizar workflow: ${error.message}`,
