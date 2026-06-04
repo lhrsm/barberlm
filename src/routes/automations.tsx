@@ -1080,14 +1080,27 @@ function AutomationsComponent() {
                     <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Auditoria do Fluxo</h3>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
+                      <Input 
+                        placeholder="Buscar ID ou evento..." 
+                        className="pl-8 w-[180px] bg-[#0F172A] border-slate-800 text-xs h-8 rounded-lg text-white focus:border-amber-500/50"
+                        value={auditSearchTerm}
+                        onChange={(e) => {
+                          setAuditSearchTerm(e.target.value);
+                          setAuditPage(1);
+                        }}
+                      />
+                    </div>
+
                     <Select value={auditFilterType} onValueChange={(val) => { setAuditFilterType(val); setAuditPage(1); }}>
-                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-xs h-8 rounded-lg text-white focus:ring-amber-500/50">
+                      <SelectTrigger className="w-[130px] bg-[#0F172A] border-slate-800 text-xs h-8 rounded-lg text-white focus:ring-amber-500/50">
                         <Filter size={12} className="mr-2 text-slate-500" />
-                        <SelectValue placeholder="Tipo de Evento" />
+                        <SelectValue placeholder="Evento" />
                       </SelectTrigger>
                       <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
-                        <SelectItem value="all">Todos Eventos</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="webhook">Webhook</SelectItem>
                         <SelectItem value="queue">Fila</SelectItem>
                         <SelectItem value="send">Envio</SelectItem>
@@ -1095,7 +1108,27 @@ function AutomationsComponent() {
                         <SelectItem value="action">Ação</SelectItem>
                       </SelectContent>
                     </Select>
+
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 text-[10px] text-slate-400 hover:text-white"
+                        onClick={() => handleExportAudit(selectedLog, 'csv')}
+                      >
+                        <FileCode size={12} className="mr-1.5" /> CSV
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 text-[10px] text-slate-400 hover:text-white"
+                        onClick={() => handleExportAudit(selectedLog, 'json')}
+                      >
+                        <Code2 size={12} className="mr-1.5" /> JSON
+                      </Button>
+                    </div>
                   </div>
+
                 </div>
 
                 <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden shadow-lg">
