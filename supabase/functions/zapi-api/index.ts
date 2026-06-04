@@ -450,6 +450,42 @@ serve(async (req) => {
       });
     }
 
+    if (action === "test-received-callback") {
+      const { phone, text, messageId } = data;
+      const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/zapi-receive-json`;
+      
+      const payload = {
+        type: "ReceivedCallback",
+        fromMe: false,
+        phone,
+        messageId: messageId || `test-${Date.now()}`,
+        text: { message: text },
+        body: { text: { message: text } },
+        timestamp: Date.now()
+      };
+
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      
+      return new Response(JSON.stringify({ 
+        success: res.ok, 
+        result,
+        webhookUrl,
+        payloadSent: payload
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     throw new Error("Ação inválida");
 
   } catch (error) {

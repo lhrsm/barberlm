@@ -144,6 +144,28 @@ function AutomationsComponent() {
   useEffect(() => {
     if (tenantId) {
       fetchData();
+      
+      // Auto-reload history when new records appear in automation_send_history
+      const channel = supabase
+        .channel('schema-db-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'automation_send_history',
+            filter: `tenant_id=eq.${tenantId}`
+          },
+          (payload) => {
+            console.log('New send history detected, reloading...', payload);
+            fetchData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [tenantId]);
 
