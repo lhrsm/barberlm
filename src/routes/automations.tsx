@@ -151,6 +151,7 @@ function AutomationsComponent() {
       toast.error("Erro ao carregar dados: " + error.message);
     } finally {
       setLoading(false);
+    }
   }
 
   const replaceVariables = (template: string) => {
@@ -167,7 +168,6 @@ function AutomationsComponent() {
     setSelectedPreviewTemplate(template);
     setIsPreviewOpen(true);
   };
-  }
 
   useEffect(() => {
     if (tenantId) fetchData();
