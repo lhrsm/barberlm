@@ -18,6 +18,58 @@ serve(async (req) => {
   );
 
   try {
+    const { tenantId, action, workflow_id, phone, test_type, appointment_id } = await req.json();
+
+    // ACTION: TEST SEND
+    if (action === "test_send") {
+        console.log(`[automation-v2-runner] Action: test_send for workflow ${workflow_id}`);
+        
+        const { data: workflow } = await supabase
+            .from("automation_v2_workflows")
+            .select("*")
+            .eq("id", workflow_id)
+            .single();
+        
+        if (!workflow) throw new Error("Workflow not found");
+
+        let contextData: any = {};
+        if (test_type === "real" && appointment_id) {
+            const { data: appt } = await supabase
+                .from("appointments")
+                .select("*, customers(*), services(*), profiles(*), barbers(*)")
+                .eq("id", appointment_id)
+                .single();
+            contextData = appt;
+        } else {
+            // Dummy data
+            contextData = {
+                customers: { name: "Cliente Teste" },
+                profiles: { full_name: "Barbearia Modelo" },
+                services: { name: "Corte e Barba", price: 50 },
+                barbers: { name: "Barbeiro Mestre" },
+                start_time: new Date().toISOString(),
+                status: "Confirmado",
+                payment_method: "PIX"
+            };
+        }
+
+        // We can use a temporary item to call processSingleFlow
+        const tempItem = {
+            id: `test_${Date.now()}`,
+            tenant_id: workflow.tenant_id,
+            workflow_key: workflow.workflow_key,
+            appointment_id: appointment_id || null,
+            payload: { phone }
+        };
+
+        // In a real test, we might want to skip session creation if it's just a message preview
+        // but for now let's just use the existing handler if possible, or extract the logic
+        const result = await processSingleFlow(supabase, tempItem);
+
+        return new Response(JSON.stringify({ success: true, result }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // NORMAL QUEUE PROCESSING
     // 0. Cleanup timeouts (2 mins)
     const timeoutThreshold = new Date(Date.now() - 120 * 1000).toISOString();
     await supabase.from("automation_v2_queue")
