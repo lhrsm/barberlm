@@ -237,17 +237,19 @@ function ProductsComponent() {
     <AppLayout>
       <div className="space-y-6">
         <Tabs defaultValue="inventory" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
-            <TabsTrigger value="inventory" className="gap-2">
-              <Package size={16} /> Estoque
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="gap-2">
-              <History size={16} /> Faturamento
-            </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2">
-              <History size={16} /> Histórico Completo
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
+            <TabsList className="flex w-max min-w-full md:grid md:grid-cols-3 md:w-full max-w-[500px]">
+              <TabsTrigger value="inventory" className="gap-2">
+                <Package size={16} /> Estoque
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="gap-2">
+                <History size={16} /> Faturamento
+              </TabsTrigger>
+              <TabsTrigger value="history" className="gap-2">
+                <History size={16} /> Histórico
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="inventory" className="space-y-6 pt-6">
 
