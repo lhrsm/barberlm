@@ -977,12 +977,20 @@ function AutomationsComponent() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10"
+                                 className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 focus-visible:ring-2 focus-visible:ring-amber-500"
                                 onClick={() => {
                                   openLogDetail(log);
                                 }}
-                                title="Ver Detalhes (Auditoria)"
-
+                                title="Ver Auditoria do Fluxo"
+                              >
+                                <Terminal size={14} />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-slate-500 hover:text-sky-500 hover:bg-sky-500/10 focus-visible:ring-2 focus-visible:ring-sky-500"
+                                onClick={() => openPreview(log.processed_template || log.payload?.rendered)}
+                                title="Ver Preview da Mensagem"
                               >
                                 <Eye size={14} />
                               </Button>
