@@ -284,16 +284,18 @@ export function AutomationTestModal({
         </DialogHeader>
 
         <div className="p-6 pt-2 space-y-6 overflow-y-auto max-h-[80vh]">
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="text-slate-400 text-xs font-bold uppercase tracking-wider">Telefone de destino</Label>
-            <Input
-              id="phone"
-              placeholder="Ex: 5511999999999"
-              className="bg-[#0F172A] border-slate-800 text-white rounded-xl h-11 focus:border-amber-500/50"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
+          {testType === "fictitious" && (
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-slate-400 text-xs font-bold uppercase tracking-wider">Telefone de destino</Label>
+              <Input
+                id="phone"
+                placeholder="Ex: 5511999999999"
+                className="bg-[#0F172A] border-slate-800 text-white rounded-xl h-11 focus:border-amber-500/50"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+          )}
 
           <div className="space-y-3">
             <Label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Origem dos dados</Label>
