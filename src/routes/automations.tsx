@@ -936,7 +936,22 @@ function AutomationsComponent() {
                           <td className="px-4 py-3 font-medium">
                             {log.message_type === 'appointment_confirmation' ? 'Confirmação de Agendamento' : log.message_type}
                           </td>
+                          <td className="px-4 py-3 text-xs font-mono text-slate-500">
+                            {log.appointment_id ? (
+                              <button 
+                                onClick={() => {
+                                  setSearchTerm(log.appointment_id);
+                                  setCurrentPage(1);
+                                  toast.info(`Filtrando por agendamento: ${log.appointment_id.substring(0,8)}`);
+                                }}
+                                className="hover:text-amber-500 transition-colors flex items-center gap-1"
+                              >
+                                <Code2 size={12} /> {log.appointment_id.substring(0, 8)}...
+                              </button>
+                            ) : '-'}
+                          </td>
                           <td className="px-4 py-3">
+
                             <Badge variant="outline" className="text-[10px] capitalize">
                               {log.provider === 'zapi' ? 'WhatsApp' : log.provider}
                             </Badge>
