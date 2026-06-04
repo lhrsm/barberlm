@@ -471,7 +471,8 @@ serve(async (req) => {
       if (webhookLog) {
           await supabase.from("automation_webhook_logs").update({
               appointment_id: appointmentId,
-              tenant_id: tenantId
+              tenant_id: tenantId,
+              processed_at: new Date().toISOString()
           }).eq("id", webhookLog.id);
       }
     }
