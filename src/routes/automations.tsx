@@ -44,7 +44,8 @@ import {
   ChevronDown,
   ChevronUp,
   Code2,
-  Info
+  Info,
+  MousePointer2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationEditModal } from "@/components/admin/automations/AutomationEditModal";
@@ -744,18 +745,48 @@ function AutomationsComponent() {
   };
 
   const getLogIcon = (log: any) => {
-    if (log.status === 'sent') return <CheckCircle2 className="text-emerald-500" size={16} />;
-    if (log.status === 'error') return <XCircle className="text-rose-500" size={16} />;
-    if (log.payload?.diagnostic === 'trigger_executed') return <Zap className="text-amber-500" size={16} />;
-    if (log.status === 'pending') return <Clock className="text-sky-500" size={16} />;
+    // Priority based on action field
+    if (log.action === 'evento_criado') return <Zap className="text-sky-500" size={16} />;
+    if (log.action === 'fila_processada') return <Activity className="text-amber-500" size={16} />;
+    if (log.action === 'mensagem_renderizada') return <FileCode className="text-indigo-400" size={16} />;
+    if (log.action === 'mensagem_enviada') return <SendHorizontal className="text-emerald-500" size={16} />;
+    if (log.action === 'resposta_recebida') return <MessageSquare className="text-sky-400" size={16} />;
+    if (log.action === 'acao_executada') return <CheckCircle2 className="text-emerald-400" size={16} />;
+    if (log.action === 'finalizado') return <CheckCheck className="text-[#10B981]" size={16} />;
+    if (log.action === 'button_clicked') return <MousePointer2 className="text-amber-400" size={16} />;
+    
+    // Status fallback
+    if (log.status === 'sent' || log.status === 'success') return <CheckCircle2 className="text-emerald-500" size={16} />;
+    if (log.status === 'error' || log.status === 'failed' || log.status === 'not_found') return <XCircle className="text-rose-500" size={16} />;
+    if (log.status === 'pending' || log.status === 'aguardando_resposta') return <Clock className="text-sky-500" size={16} />;
     return <Info className="text-slate-500" size={16} />;
   };
 
   const getLogLabel = (log: any) => {
+    // Labels based on action field
+    const actionLabels: Record<string, string> = {
+      'evento_criado': 'Evento Criado',
+      'fila_processada': 'Fila Processada',
+      'mensagem_renderizada': 'Mensagem Renderizada',
+      'mensagem_enviada': 'Mensagem Enviada',
+      'resposta_recebida': 'Resposta Recebida',
+      'acao_executada': 'Ação Executada',
+      'finalizado': 'Fluxo Finalizado',
+      'button_clicked': 'Botão Clicado',
+      'duplicate_confirmation_blocked': 'Confirmação Duplicada Bloqueada',
+      'confirmed_via_webhook': 'Confirmado via Webhook'
+    };
+
+    if (log.action && actionLabels[log.action]) return actionLabels[log.action];
+    
+    // Fallbacks
     if (log.payload?.diagnostic === 'trigger_executed') return "Gatilho Detectado";
-    if (log.status === 'sent') return "Mensagem Enviada";
-    if (log.status === 'error') return "Erro no Processamento";
+    if (log.status === 'sent' || log.status === 'success') return "Sucesso";
+    if (log.status === 'error' || log.status === 'failed') return "Erro no Processamento";
+    if (log.status === 'not_found') return "Agendamento N/E";
     if (log.status === 'pending') return "Na Fila";
+    if (log.status === 'aguardando_resposta') return "Aguardando Resposta";
+    
     return "Evento Desconhecido";
   };
 
@@ -2088,7 +2119,7 @@ function AutomationsComponent() {
                     
                     <div className="p-6 bg-[#0B141A] min-h-[300px] relative">
                       <div className="bg-[#054740] text-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[90%] text-sm whitespace-pre-wrap leading-relaxed relative border border-white/5">
-                        {selectedLog.processed_template || selectedLog.payload?.rendered}
+                        {selectedLog.payload?.rendered_message || selectedLog.processed_template || selectedLog.payload?.rendered || "Mensagem não disponível"}
                         <div className="text-[10px] text-white/50 text-right mt-2 flex items-center justify-end gap-1">
                           {new Date(selectedLog.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           <CheckCheck size={14} className="text-sky-400" />

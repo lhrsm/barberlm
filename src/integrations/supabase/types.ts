@@ -371,12 +371,16 @@ export type Database = {
       }
       automation_conversations: {
         Row: {
+          appointment_id: string | null
           appointment_ids: string[] | null
           automation_id: string | null
           automation_type: string
+          confirmed_at: string | null
           created_at: string
           current_state: string
           customer_id: string | null
+          customer_phone: string | null
+          expected_response: string | null
           expires_at: string
           id: string
           last_option_id: string | null
@@ -387,14 +391,19 @@ export type Database = {
           status: string
           tenant_id: string
           updated_at: string
+          workflow_key: string | null
         }
         Insert: {
+          appointment_id?: string | null
           appointment_ids?: string[] | null
           automation_id?: string | null
           automation_type: string
+          confirmed_at?: string | null
           created_at?: string
           current_state?: string
           customer_id?: string | null
+          customer_phone?: string | null
+          expected_response?: string | null
           expires_at?: string
           id?: string
           last_option_id?: string | null
@@ -405,14 +414,19 @@ export type Database = {
           status?: string
           tenant_id: string
           updated_at?: string
+          workflow_key?: string | null
         }
         Update: {
+          appointment_id?: string | null
           appointment_ids?: string[] | null
           automation_id?: string | null
           automation_type?: string
+          confirmed_at?: string | null
           created_at?: string
           current_state?: string
           customer_id?: string | null
+          customer_phone?: string | null
+          expected_response?: string | null
           expires_at?: string
           id?: string
           last_option_id?: string | null
@@ -423,8 +437,23 @@ export type Database = {
           status?: string
           tenant_id?: string
           updated_at?: string
+          workflow_key?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "automation_conversations_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_conversations_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
           {
             foreignKeyName: "automation_conversations_automation_id_fkey"
             columns: ["automation_id"]

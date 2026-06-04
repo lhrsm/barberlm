@@ -163,9 +163,32 @@ serve(async (req) => {
       let foundLog = null;
       let fallbackUsed = false;
 
-      // 1. Search strictly by referenceId (matching provider_message_id)
-      if (referenceId) {
-        console.log(`[Webhook] Searching strictly by referenceId: ${referenceId}`);
+      // 1. Search in automation_conversations (BEST WAY)
+      if (phone) {
+        console.log(`[Webhook] Searching active conversation for phone: ${phone}`);
+        
+        const { data: conversation } = await supabase
+          .from("automation_conversations")
+          .select("*")
+          .eq("customer_phone", phone)
+          .eq("status", "awaiting_response")
+          .eq("workflow_key", "appointment_confirmation")
+          .gt("expires_at", new Date().toISOString())
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (conversation) {
+          appointmentId = conversation.appointment_id;
+          tenantId = conversation.tenant_id;
+          sessionId = conversation.id;
+          console.log(`[Webhook] Found session via automation_conversations: ${sessionId}, Appt: ${appointmentId}`);
+        }
+      }
+
+      // 2. Search strictly by referenceId (matching provider_message_id) - FALLBACK
+      if (!appointmentId && referenceId) {
+        console.log(`[Webhook] Fallback: Searching strictly by referenceId: ${referenceId}`);
         const { data: log } = await supabase
           .from("automation_logs")
           .select(`
@@ -182,15 +205,14 @@ serve(async (req) => {
           appointmentId = log.appointment_id;
           tenantId = log.tenant_id;
           automationId = log.automation_id;
-          sessionId = log.conversation_id;
-          console.log(`[Webhook] Found by provider_message_id: ${appointmentId}`);
+          sessionId = sessionId || log.conversation_id;
+          console.log(`[Webhook] Found by provider_message_id fallback: ${appointmentId}`);
         }
       }
 
-      // 2. Fallback search (Phone + Timeframe + Status aguardando_resposta)
-      // Agora priorizamos o status "aguardando_resposta" conforme pedido para fluxo de texto
+      // 3. Fallback search (Phone + Timeframe + Status aguardando_resposta)
       if (!appointmentId && phone) {
-        console.log(`[Webhook] Fallback search by phone: ${phone}`);
+        console.log(`[Webhook] Final fallback search by phone: ${phone}`);
         const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
         
         const { data: fallbackLog } = await supabase
@@ -212,10 +234,21 @@ serve(async (req) => {
           appointmentId = fallbackLog.appointment_id;
           tenantId = fallbackLog.tenant_id;
           automationId = fallbackLog.automation_id;
-          sessionId = fallbackLog.conversation_id;
+          sessionId = sessionId || fallbackLog.conversation_id;
           fallbackUsed = true;
-          console.log(`[Webhook] Found by fallback phone search: ${appointmentId}`);
+          console.log(`[Webhook] Found by final fallback phone search: ${appointmentId}`);
         }
+      }
+
+      // 4. Fetch appointment details if found via conversation but not yet via logs
+      let appointment = foundLog?.appointment;
+      if (appointmentId && !appointment) {
+        const { data: apptData } = await supabase
+          .from("appointments")
+          .select("*, service:services(name)")
+          .eq("id", appointmentId)
+          .maybeSingle();
+        appointment = apptData;
       }
 
       // IF NOT FOUND
@@ -237,7 +270,6 @@ serve(async (req) => {
         });
       }
 
-      const appointment = foundLog?.appointment;
       const statusBefore = appointment?.status;
 
       // IDEMPOTENCY CHECK (using messageId from provider)
@@ -254,9 +286,6 @@ serve(async (req) => {
           status: 200,
         });
       }
-
-      const appointment = foundLog?.appointment;
-      const statusBefore = appointment?.status;
 
       // 5. Etapa Resposta (Log de Auditoria)
       await supabase.from("automation_logs").insert({
@@ -350,10 +379,15 @@ serve(async (req) => {
         zapiResponse = await sendMessage(instance, phone, successMsg);
       }
 
-      // Close session
+      // Close session (automation_conversations)
       if (sessionId) {
         await supabase.from("automation_conversations")
-          .update({ status: "closed", current_state: "completed", updated_at: new Date().toISOString() })
+          .update({ 
+            status: "completed", 
+            current_state: "completed", 
+            confirmed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString() 
+          })
           .eq("id", sessionId);
       }
 
