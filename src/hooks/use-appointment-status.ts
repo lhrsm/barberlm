@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { triggerWhatsAppMessage } from "@/utils/whatsapp";
 
 export function useAppointmentStatus() {
   const queryClient = useQueryClient();
@@ -12,10 +13,17 @@ export function useAppointmentStatus() {
     source: string = 'frontend'
   ) => {
     try {
-      console.log('Appointment schema loaded - Updating appointment status', { appointmentId, newStatus, source, metadata });
+      console.log('Appointment status update starting', { appointmentId, newStatus, source, metadata });
       
       const { data: { user } } = await supabase.auth.getUser();
       
+      // Fetch current appointment data for notifications
+      const { data: appt } = await supabase
+        .from("appointments")
+        .select("*, customers(*), profiles(*), barbers(*), services(*)")
+        .eq("id", appointmentId)
+        .single();
+
       let result;
       
       if (newStatus === 'cancelled') {
@@ -29,6 +37,21 @@ export function useAppointmentStatus() {
         
         if (error) throw error;
         result = data as any;
+
+        // Functional Notification
+        if (appt?.profiles?.whatsapp_enabled && appt?.customers?.phone) {
+          triggerWhatsAppMessage({
+            userId: appt.tenant_id,
+            eventType: 'cancellation',
+            phone: appt.customers.phone,
+            appointmentId: appointmentId,
+            placeholders: {
+              cliente_nome: appt.customers.name,
+              barbearia_nome: appt.profiles.business_name,
+              servico: appt.services?.name
+            }
+          });
+        }
       } else if (newStatus === 'completed') {
         const { data, error } = await supabase.rpc('complete_appointment', {
           p_appointment_id: appointmentId,

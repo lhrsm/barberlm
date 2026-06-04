@@ -3192,10 +3192,6 @@ export type Database = {
         Args: { amount: number; prod_id: string }
         Returns: undefined
       }
-      deduplicate_automation_workflows: {
-        Args: { p_tenant_id: string }
-        Returns: undefined
-      }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
       get_cron_status: {
         Args: never

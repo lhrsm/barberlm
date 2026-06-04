@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 interface WhatsAppParams {
@@ -17,13 +16,42 @@ export const triggerWhatsAppMessage = async ({
   appointmentId
 }: WhatsAppParams) => {
   try {
+    // 1. Get Template
+    const { data: template } = await supabase
+      .from("whatsapp_templates")
+      .select("content")
+      .eq("user_id", userId)
+      .eq("event_type", eventType)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!template) {
+      console.log(`[WhatsApp] No active template found for ${eventType} and user ${userId}`);
+      return { success: false, error: "Template not found" };
+    }
+
+    // 2. Parse placeholders
+    let content = template.content;
+    Object.keys(placeholders).forEach(key => {
+      content = content.replace(new RegExp(`{{${key}}}`, "g"), placeholders[key]);
+    });
+
+    // 3. Prepare Buttons for confirmation
+    const options: any = {};
+    if (eventType === 'appointment_confirmation') {
+      options.buttons = [
+        { id: "main_confirm", label: "Confirmar agendamento" }
+      ];
+    }
+
+    // 4. Send via Edge Function (functional version)
     const { data, error } = await supabase.functions.invoke('whatsapp-cloud', {
       body: {
         user_id: userId,
-        event_type: eventType,
         phone,
-        placeholders,
-        appointment_id: appointmentId
+        content,
+        options,
+        metadata: { eventType, appointmentId }
       },
       method: 'POST'
     });
@@ -39,3 +67,4 @@ export const triggerWhatsAppMessage = async ({
     return { success: false, error: err };
   }
 };
+
