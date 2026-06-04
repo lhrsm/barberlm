@@ -1160,10 +1160,10 @@ function DashboardComponent() {
                     todayAppointments.map((app) => (
                       <div 
                         key={app.id} 
-                        className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group"
+                        className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group gap-4"
                       >
-                        <div className="flex items-center gap-4 cursor-pointer flex-1" onClick={() => navigate({ to: "/calendar" })}>
-                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+                        <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate({ to: "/calendar" })}>
+                          <div className="h-12 w-12 md:h-10 md:w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden shrink-0">
                             {app.customers?.avatar_url ? (
                               <img 
                                 src={app.customers.avatar_url} 
@@ -1174,12 +1174,12 @@ function DashboardComponent() {
                               app.customers?.name?.[0].toUpperCase()
                             )}
                           </div>
-                          <div>
-                            <p className="font-bold">{app.customers?.name}</p>
-                            <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1"><Clock size={12} /> {format(new Date(app.start_time), 'HH:mm')}</span>
-                              <span className="flex items-center gap-1"><Scissors size={12} /> {app.services?.name}</span>
-                              <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold truncate">{app.customers?.name}</p>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-1 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1"><Clock size={12} className="shrink-0" /> {format(new Date(app.start_time), 'HH:mm')}</span>
+                              <span className="flex items-center gap-1"><Scissors size={12} className="shrink-0" /> {app.services?.name}</span>
+                              <span className="flex items-center gap-1"><UserIcon size={12} className="shrink-0" /> {app.barbers?.name}</span>
                             </div>
                           </div>
                         </div>
