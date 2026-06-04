@@ -727,6 +727,74 @@ export type Database = {
           },
         ]
       }
+      automation_queue: {
+        Row: {
+          appointment_id: string | null
+          attempts: number | null
+          automation_id: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          payload: Json | null
+          status: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          attempts?: number | null
+          automation_id: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          status?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          attempts?: number | null
+          automation_id?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_queue_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_queue_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "automation_queue_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automation_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_queue_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_status: {
         Row: {
           id: string
