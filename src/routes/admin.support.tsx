@@ -31,7 +31,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AutomationDebugger } from "@/components/admin/support/AutomationDebugger";
+// import { AutomationDebugger } from "@/components/admin/support/AutomationDebugger";
 
 export const Route = createFileRoute("/admin/support")({
   component: AdminSupport,
@@ -191,7 +191,7 @@ function AdminSupport() {
         </div>
       </div>
 
-      <AutomationDebugger />
+      {/* <AutomationDebugger /> */}
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-[calc(100vh-20rem)]">
         {/* Sidebar Tickets List */}
