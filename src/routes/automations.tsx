@@ -388,29 +388,58 @@ function AutomationsComponent() {
 
           <TabsContent value="logs" className="pt-4">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <History size={18} /> Histórico de Envios
-                </CardTitle>
-                <CardDescription>
-                  Acompanhe as últimas mensagens enviadas pelo sistema.
-                </CardDescription>
+              <CardHeader className="pb-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <History size={18} /> Histórico de Envios
+                    </CardTitle>
+                    <CardDescription>
+                      Acompanhe as últimas mensagens enviadas pelo sistema.
+                    </CardDescription>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+                      <Input 
+                        placeholder="Buscar destinatário..." 
+                        className="pl-9 w-[200px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-sm h-9 rounded-xl">
+                        <Filter size={14} className="mr-2 text-slate-500" />
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
+                        <SelectItem value="all">Todos Status</SelectItem>
+                        <SelectItem value="sent">Sucesso</SelectItem>
+                        <SelectItem value="error">Falhas</SelectItem>
+                        <SelectItem value="pending">Pendentes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-2xl border border-slate-800 overflow-hidden bg-[#0F172A]/50">
                   <table className="w-full text-sm">
-                    <thead className="bg-slate-50 border-b">
+                    <thead className="bg-[#0F172A] border-b border-slate-800">
                       <tr>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Data/Hora</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Automação</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Canal</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Destinatário</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                        <th className="px-4 py-3 text-right font-medium text-muted-foreground">Ações</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-400">Data/Hora</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-400">Automação</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-400">Canal</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-400">Destinatário</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-400">Status</th>
+                        <th className="px-4 py-3 text-right font-medium text-slate-400">Ações</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y">
-                      {logs.map((log) => (
+                    <tbody className="divide-y divide-slate-800">
+                      {logs.filter(l => l.phone?.includes(searchTerm)).map((log) => (
                         <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-4 py-3 text-xs">
                             {new Date(log.created_at).toLocaleString('pt-BR')}
