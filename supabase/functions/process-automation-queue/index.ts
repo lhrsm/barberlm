@@ -115,7 +115,17 @@ serve(async (req) => {
           origin: force_resend ? 'test_manual' : 'automatic'
         };
 
+        const sendOptions: any = {};
+        if (automation.key === 'appointment_confirmation') {
+          sendOptions.buttons = [
+            { id: 'main_confirm', label: 'Confirmar agendamento' },
+            { id: 'main_reschedule', label: 'Reagendar' },
+            { id: 'main_cancel', label: 'Cancelar' }
+          ];
+        }
+
         // 5. Dry Run exit
+
         if (dry_run) {
           results.push({ 
             id: item.id, 
