@@ -42,7 +42,7 @@ serve(async (req) => {
             await supabase.from("automation_v2_queue").update({ 
                 status: "processing", 
                 started_at: new Date().toISOString(),
-                attempts: item.attempts + 1 
+                attempts: (item.attempts || 0) + 1 
             }).eq("id", item.id);
 
             // Flow Detection (Override)
@@ -56,7 +56,6 @@ serve(async (req) => {
 
             await supabase.from("automation_v2_queue").update({ flow_type: flowType }).eq("id", item.id);
 
-            // TODO: Execute workflow logic
             console.log(`[automation-v2-runner] Processing ${item.id} - Flow: ${flowType}`);
 
             await supabase.from("automation_v2_queue").update({ 
