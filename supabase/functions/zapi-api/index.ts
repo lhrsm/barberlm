@@ -335,9 +335,7 @@ serve(async (req) => {
         { id: "update-webhook-received", required: true },
         { id: "update-webhook-disconnected", required: true },
         { id: "update-webhook-connected", required: true },
-        { id: "update-webhook-message-status", required: true },
-        { id: "update-webhook-button-response", required: false },
-        { id: "update-webhook-list-response", required: false }
+        { id: "update-webhook-message-status", required: true }
       ];
       
       const results = await Promise.all(types.map(async (typeInfo) => {

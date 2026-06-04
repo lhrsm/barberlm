@@ -83,12 +83,14 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isSendingButtonTest, setIsSendingButtonTest] = useState(false);
   const [buttonTestMessageId, setButtonTestMessageId] = useState<string | null>(null);
   const [isWaitingForCallback, setIsWaitingForCallback] = useState(false);
+  const [webhookDebugLogs, setWebhookDebugLogs] = useState<any[]>([]);
   const [callbackResult, setCallbackResult] = useState<{
     received: boolean;
     time?: string | null;
     buttonId?: string | null;
     phone?: string | null;
     payload?: any;
+    error?: string;
   } | null>(null);
 
   const [formData, setFormData] = useState({
@@ -112,25 +114,37 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
 
   async function fetchIntegrationLogs() {
     try {
-      const { data } = await supabase
+      const { data: logs } = await supabase
         .from("zapi_integration_logs")
         .select("*")
         .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(10);
       
-      if (data) {
-        setIntegrationLogs(data);
-        if (data.length > 0) {
-          setLastCheckTime(data[0].created_at);
+      if (logs) {
+        setIntegrationLogs(logs);
+        if (logs.length > 0) {
+          setLastCheckTime(logs[0].created_at);
         }
-        const lastSent = data.find(l => l.action === 'send-test-message' && l.status_code === 200);
+        const lastSent = logs.find(l => l.action === 'send-test-message' && l.status_code === 200);
         if (lastSent && (lastSent.response_payload as any)?.messageId) {
           setLastSentMessageInfo({
             id: (lastSent.response_payload as any).messageId,
             time: lastSent.created_at
           });
         }
+      }
+
+      // Fetch webhook debug logs
+      const { data: debugLogs } = await supabase
+        .from("zapi_webhook_debug")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .order("received_at", { ascending: false })
+        .limit(10);
+      
+      if (debugLogs) {
+        setWebhookDebugLogs(debugLogs);
       }
     } catch (error) {
       console.error("Error fetching integration logs:", error);
@@ -205,19 +219,28 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
       if (data.success) {
         setButtonTestMessageId(data.result?.messageId);
         toast.success("Mensagem enviada! Clique no botão no seu WhatsApp.");
+        
+        // Poll for 30 seconds
         let secondsPassed = 0;
         const maxSeconds = 30;
+        const startTime = new Date().toISOString();
+        
         const checkInterval = setInterval(async () => {
-          secondsPassed += 2;
+          secondsPassed += 3;
+          
+          // Refresh logs
+          await fetchIntegrationLogs();
+          
           const { data: webhookLogs } = await supabase
             .from("zapi_webhook_debug")
             .select("*")
             .eq("tenant_id", tenantId)
             .eq("source", "zapi_real")
             .eq("option_id", "main_confirm")
-            .gte("received_at", new Date(Date.now() - 60000).toISOString())
+            .gte("received_at", startTime)
             .order("received_at", { ascending: false })
             .limit(1);
+
           if (webhookLogs && webhookLogs.length > 0) {
             clearInterval(checkInterval);
             setIsWaitingForCallback(false);
@@ -233,10 +256,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
           } else if (secondsPassed >= maxSeconds) {
             clearInterval(checkInterval);
             setIsWaitingForCallback(false);
-            setCallbackResult({ received: false });
-            toast.error("Z-API não enviou callback de resposta.");
+            setCallbackResult({ 
+              received: false,
+              error: "Nenhum webhook recebido da Z-API após 30 segundos. Verifique se clicou no botão correto."
+            });
+            toast.error("Tempo esgotado: Callback não recebido.");
           }
-        }, 2000);
+        }, 3000);
       } else {
         setIsWaitingForCallback(false);
         toast.error("Erro ao enviar botão: " + (data.error || "Erro desconhecido"));
@@ -489,30 +515,56 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
              </div>
           </TabsContent>
 
-          <TabsContent value="diagnostico" className="pt-4 space-y-4">
+          <TabsContent value="diagnostico" className="pt-4 space-y-6">
             <div className="bg-slate-900/50 p-4 rounded-xl border border-white/10 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold flex items-center gap-2"><Activity size={16} className="text-blue-400" /> Integração</h3>
+                <div>
+                  <h3 className="text-sm font-bold flex items-center gap-2"><Activity size={16} className="text-blue-400" /> Diagnóstico do Webhook</h3>
+                  <p className="text-[10px] text-slate-400">Verifique se a Z-API está enviando os eventos corretamente</p>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={reconfigureWebhook} disabled={isConfiguring || !instance} size="sm" className="bg-blue-600 text-[10px] h-8">
-                    {isConfiguring ? <Loader2 className="animate-spin mr-1" size={12} /> : <RefreshCw className="mr-1" size={12} />} Reconfigurar Webhook
+                    {isConfiguring ? <Loader2 className="animate-spin mr-1" size={12} /> : <RefreshCw className="mr-1" size={12} />} Reconfigurar
                   </Button>
                   <Button onClick={sendTestButtonWithCallback} disabled={isSendingButtonTest || isWaitingForCallback || !instance} size="sm" className="bg-purple-600 text-[10px] h-8">
-                    {isSendingButtonTest || isWaitingForCallback ? <Loader2 className="animate-spin mr-1" size={12} /> : <Send className="mr-1" size={12} />} Testar clique
+                    {isSendingButtonTest || isWaitingForCallback ? <Loader2 className="animate-spin mr-1" size={12} /> : <Send className="mr-1" size={12} />} Testar Botão
                   </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px]">
+                <div className="space-y-1">
+                  <p className="text-slate-500">Instance ID</p>
+                  <p className="font-mono text-slate-300">{instance?.instance_id || "---"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-slate-500">Telefone Conectado</p>
+                  <p className="font-mono text-slate-300">{instance?.phone || "---"}</p>
+                </div>
+                <div className="col-span-full space-y-1">
+                  <p className="text-slate-500">URL Alvo (Webhook)</p>
+                  <p className="font-mono text-blue-400 break-all">{instance?.webhook_received_url || "Não configurado"}</p>
                 </div>
               </div>
             </div>
 
             {callbackResult && (
               <div className={cn("p-4 rounded-xl border space-y-3", callbackResult.received ? "bg-emerald-500/5 border-emerald-500/20" : "bg-red-500/5 border-red-500/20")}>
-                <h3 className={cn("text-sm font-bold", callbackResult.received ? "text-emerald-400" : "text-red-400")}>
-                  {callbackResult.received ? "Callback Recebido!" : "Falha no Callback"}
-                </h3>
-                {callbackResult.received && (
-                  <pre className="bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-32 text-[9px]">
-                    {JSON.stringify(callbackResult.payload, null, 2)}
-                  </pre>
+                <div className="flex items-center justify-between">
+                  <h3 className={cn("text-sm font-bold", callbackResult.received ? "text-emerald-400" : "text-red-400")}>
+                    {callbackResult.received ? "✅ Webhook Recebido!" : "❌ Falha no Recebimento"}
+                  </h3>
+                  {callbackResult.time && <span className="text-[10px] text-slate-500">{new Date(callbackResult.time).toLocaleTimeString()}</span>}
+                </div>
+                {callbackResult.received ? (
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-slate-300">Botão detectado: <Badge variant="outline" className="text-emerald-400 border-emerald-500/30">{callbackResult.buttonId}</Badge></p>
+                    <pre className="bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-32 text-[9px]">
+                      {JSON.stringify(callbackResult.payload, null, 2)}
+                    </pre>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-red-400 italic">{callbackResult.error || "Aguardando clique no WhatsApp..."}</p>
                 )}
               </div>
             )}
@@ -521,11 +573,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               <div className="bg-slate-900/50 border border-white/10 rounded-xl p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-blue-400">Status da Configuração</h3>
-                    <p className="text-[10px] text-slate-400">Resumo dos endpoints da Z-API</p>
+                    <h3 className="text-sm font-bold text-blue-400">Status da Última Configuração</h3>
+                    <p className="text-[10px] text-slate-400">{instance?.webhook_received_configured_at ? new Date(instance.webhook_received_configured_at).toLocaleString() : "Data desconhecida"}</p>
                   </div>
                   <Badge className={isZApiSuccess(lastWebhookCall) ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
-                    {isZApiSuccess(lastWebhookCall) ? (lastWebhookCall.allCompatible ? "Totalmente Compatível" : "Parcialmente Compatível") : "Falha na Configuração"}
+                    {isZApiSuccess(lastWebhookCall) ? (lastWebhookCall.allCompatible ? "Sucesso Total" : "Sucesso Parcial") : "Falha"}
                   </Badge>
                 </div>
                 
@@ -543,7 +595,7 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                             <AlertCircle size={12} className="text-red-500" />
                           )}
                           <span className={cn("text-[8px] font-bold", r.success ? "text-emerald-500" : r.isCompatible ? "text-blue-400" : "text-red-500")}>
-                            {r.success ? "Conectado" : r.isCompatible ? "Via Callback" : "Falha"}
+                            {r.success ? "OK" : r.isCompatible ? "N/A" : "Erro"}
                           </span>
                         </div>
                       </div>
@@ -551,14 +603,12 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                   </div>
                 )}
 
-                {isZApiSuccess(lastWebhookCall) && !lastWebhookCall.allCompatible && (
-                  <div className="bg-blue-500/10 border border-blue-500/20 p-2 rounded text-[9px] text-blue-300">
-                    <p>ℹ️ Nota: Alguns endpoints específicos não foram encontrados, mas o webhook principal está ativo. As respostas de botões serão processadas automaticamente via ReceivedCallback.</p>
-                  </div>
-                )}
+                <div className="bg-blue-500/10 border border-blue-500/20 p-2 rounded text-[9px] text-blue-300">
+                  <p>ℹ️ Esta versão da Z-API processa botões via <strong>ReceivedCallback</strong> dentro do webhook principal.</p>
+                </div>
                 
                 <details className="text-[9px]">
-                  <summary className="cursor-pointer text-slate-500 hover:text-slate-300">Ver JSON completo</summary>
+                  <summary className="cursor-pointer text-slate-500 hover:text-slate-300">Ver Resposta Completa da API</summary>
                   <pre className="mt-2 text-[8px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-48 text-slate-300">
                     {JSON.stringify(lastWebhookCall, null, 2)}
                   </pre>
@@ -567,17 +617,38 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
             )}
 
             <div className="space-y-3">
-              <h3 className="text-sm font-bold flex items-center gap-2"><Terminal size={16} className="text-amber-400" /> Logs de Integração</h3>
-              <div className="space-y-2 max-h-[300px] overflow-auto">
-                {integrationLogs.map((log) => (
-                  <div key={log.id} className="bg-black/30 border border-white/5 rounded-lg p-2 text-[10px]">
-                    <div className="flex justify-between">
-                      <span className="font-bold uppercase text-blue-400">{log.action}</span>
-                      <span className="text-slate-500">{new Date(log.created_at).toLocaleString()}</span>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold flex items-center gap-2"><History size={16} className="text-emerald-400" /> Webhooks Recebidos (Raw)</h3>
+                <Button variant="ghost" size="sm" onClick={fetchIntegrationLogs} className="h-6 text-[10px]">Atualizar</Button>
+              </div>
+              <div className="space-y-2 max-h-[400px] overflow-auto border border-white/5 rounded-lg p-2 bg-black/20">
+                {webhookDebugLogs.length > 0 ? (
+                  webhookDebugLogs.map((log) => (
+                    <div key={log.id} className="bg-black/30 border-b border-white/5 last:border-0 p-2 text-[9px] space-y-1">
+                      <div className="flex justify-between items-center">
+                        <Badge variant="outline" className={cn("text-[8px] h-4", log.option_id ? "text-purple-400 border-purple-500/30" : "text-slate-400")}>
+                          {log.payload_raw?.type || "Unknown"}
+                        </Badge>
+                        <span className="text-slate-500 font-mono">{new Date(log.received_at).toLocaleTimeString()}</span>
+                      </div>
+                      <div className="flex gap-2 text-slate-400">
+                        <span className="font-bold">De: {log.phone_normalized || "Sistema"}</span>
+                        {log.option_id && <span className="text-emerald-400 font-bold">Botão: {log.option_id}</span>}
+                      </div>
+                      <details>
+                        <summary className="text-[8px] text-slate-600 cursor-pointer">Payload</summary>
+                        <pre className="mt-1 p-1 bg-black/50 rounded text-slate-500 font-mono text-[8px] overflow-auto max-h-24">
+                          {JSON.stringify(log.payload_raw, null, 2)}
+                        </pre>
+                      </details>
                     </div>
-                    <p className="truncate text-slate-400">{log.endpoint}</p>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    <p className="text-[10px]">Nenhum webhook recebido ainda.</p>
+                    <p className="text-[8px]">Envie uma mensagem para o WhatsApp conectado e verifique se aparece aqui.</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </TabsContent>

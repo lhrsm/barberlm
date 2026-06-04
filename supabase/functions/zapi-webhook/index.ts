@@ -56,16 +56,43 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const tenantId = url.searchParams.get("tenantId");
-    if (!tenantId) return new Response(JSON.stringify({ error: "Missing tenantId" }), { status: 400, headers: corsHeaders });
-
-    const body = await req.json().catch(() => ({}));
     
-    // Ignore sent messages
-    if (body.fromMe === true) return new Response(JSON.stringify({ success: true, ignored: true }), { headers: corsHeaders });
-
+    const rawBody = await req.text();
+    let body: any = {};
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      console.error("[Webhook] Failed to parse JSON body:", e.message);
+    }
+    
+    // Immediate Debug Log (before any processing)
     const phone = extractPhoneFromZapiPayload(body);
     const normalizedPhone = normalizePhone(phone);
     const buttonId = extractSelectedOption(body);
+
+    await supabase.from("zapi_webhook_debug").insert({
+      tenant_id: tenantId,
+      source: "zapi_real",
+      payload_raw: body,
+      raw_body: rawBody,
+      phone_raw: phone,
+      phone_normalized: normalizedPhone,
+      option_id: buttonId,
+      method: req.method,
+      url: req.url,
+      received_at: new Date().toISOString()
+    });
+
+    if (!tenantId) {
+      console.error("[Webhook] Missing tenantId in URL");
+      return new Response(JSON.stringify({ error: "Missing tenantId" }), { status: 400, headers: corsHeaders });
+    }
+
+    // Ignore sent messages
+    if (body.fromMe === true) {
+      return new Response(JSON.stringify({ success: true, ignored: true }), { headers: corsHeaders });
+    }
+
     const referenceMessageId = body.referenceMessageId;
 
     console.log(`[Webhook] From: ${normalizedPhone}, Button: ${buttonId}, Ref: ${referenceMessageId}`);
