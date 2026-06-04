@@ -1095,28 +1095,57 @@ function AutomationsComponent() {
                     <FileCode size={18} className="text-amber-500" />
                     <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Dados Técnicos da Execução</h3>
                   </div>
-                  <div className="bg-[#081229] border border-amber-500/15 rounded-[18px] p-6 font-mono text-xs overflow-hidden shadow-2xl relative">
+                  <div className="bg-[#081229] border border-amber-500/15 rounded-[18px] p-6 font-mono text-xs overflow-hidden shadow-2xl relative group/terminal">
                     <div className="flex gap-1.5 absolute top-4 left-6">
                       <div className="w-2.5 h-2.5 rounded-full bg-rose-500/50" />
                       <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50" />
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/50" />
                     </div>
+
+                    <div className="absolute top-4 right-6 opacity-0 group-hover/terminal:opacity-100 transition-opacity">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 bg-white/5 text-amber-500 hover:bg-amber-500/10 border border-white/5"
+                        onClick={() => handleCopyText(JSON.stringify({
+                          zaap_id: selectedLog.response?.id,
+                          provider_message_id: selectedLog.response?.id || selectedLog.id,
+                          appointment_id: selectedLog.payload?.appointment_id,
+                          customer_phone: selectedLog.phone,
+                          workflow_key: "appointment_confirmation",
+                          tenant_id: tenantId,
+                          created_at: selectedLog.created_at,
+                          payload: selectedLog.payload
+                        }, null, 2), "JSON de Execução")}
+                      >
+                        <Code2 size={14} className="mr-2" /> Copiar Tudo (JSON)
+                      </Button>
+                    </div>
                     
-                    <div className="mt-6 custom-scrollbar overflow-auto max-h-[400px]">
+                    <div className="mt-8 custom-scrollbar overflow-auto max-h-[400px]">
                       <div className="space-y-2">
-                        {/* Custom JSON highlighting renderer logic or manually mapped fields */}
                         <div className="flex flex-wrap gap-x-4 gap-y-2">
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2 group/field">
                              <span className="text-sky-400">zaap_id:</span>
-                             <span className="text-[#10B981] break-all">"{selectedLog.response?.id || 'null'}"</span>
+                             <div className="flex items-center justify-between gap-2 overflow-hidden">
+                               <span className="text-[#10B981] break-all truncate">"{selectedLog.response?.id || 'null'}"</span>
+                               <button onClick={() => handleCopyText(selectedLog.response?.id, "Zaap ID")} className="opacity-0 group-hover/field:opacity-100 p-1 hover:bg-white/10 rounded transition-all">
+                                 <Copy size={12} className="text-slate-500" />
+                               </button>
+                             </div>
                            </div>
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2 group/field">
                              <span className="text-sky-400">provider_message_id:</span>
-                             <span className="text-[#10B981] break-all">"{selectedLog.response?.id || selectedLog.id}"</span>
+                             <div className="flex items-center justify-between gap-2 overflow-hidden">
+                               <span className="text-[#10B981] break-all truncate">"{selectedLog.response?.id || selectedLog.id}"</span>
+                               <button onClick={() => handleCopyText(selectedLog.response?.id || selectedLog.id, "Provider Message ID")} className="opacity-0 group-hover/field:opacity-100 p-1 hover:bg-white/10 rounded transition-all">
+                                 <Copy size={12} className="text-slate-500" />
+                               </button>
+                             </div>
                            </div>
                            <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
                              <span className="text-sky-400">appointment_id:</span>
-                             <span className="text-[#10B981] break-all">"{selectedLog.payload?.appointment_id || 'null'}"</span>
+                             <span className="text-[#10B981] break-all truncate">"{selectedLog.payload?.appointment_id || 'null'}"</span>
                            </div>
                            <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
                              <span className="text-sky-400">customer_phone:</span>
@@ -1126,21 +1155,14 @@ function AutomationsComponent() {
                              <span className="text-sky-400">workflow_key:</span>
                              <span className="text-[#10B981]">"appointment_confirmation"</span>
                            </div>
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
-                             <span className="text-sky-400">tenant_id:</span>
-                             <span className="text-[#10B981]">"{tenantId}"</span>
-                           </div>
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
-                             <span className="text-sky-400">current_state:</span>
-                             <span className="text-amber-500">"completed"</span>
-                           </div>
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
-                             <span className="text-sky-400">created_at:</span>
-                             <span className="text-[#10B981] font-bold">"{selectedLog.created_at}"</span>
-                           </div>
-                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2">
-                             <span className="text-sky-400">processed_at:</span>
-                             <span className="text-[#10B981]">"{new Date(new Date(selectedLog.created_at).getTime() + 2000).toISOString()}"</span>
+                           <div className="w-full grid grid-cols-[160px_1fr] gap-2 border-b border-white/5 pb-2 group/field">
+                             <span className="text-sky-400">message_id:</span>
+                             <div className="flex items-center justify-between gap-2 overflow-hidden">
+                               <span className="text-[#10B981] break-all truncate">"{selectedLog.id}"</span>
+                               <button onClick={() => handleCopyText(selectedLog.id, "Message ID")} className="opacity-0 group-hover/field:opacity-100 p-1 hover:bg-white/10 rounded transition-all">
+                                 <Copy size={12} className="text-slate-500" />
+                               </button>
+                             </div>
                            </div>
                         </div>
 
