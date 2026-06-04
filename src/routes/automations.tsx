@@ -1427,6 +1427,7 @@ function AutomationsComponent() {
                       </SelectTrigger>
                       <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
                         <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="by_template">Este Template</SelectItem>
                         <SelectItem value="webhook">Webhook</SelectItem>
                         <SelectItem value="queue">Fila</SelectItem>
                         <SelectItem value="send">Envio</SelectItem>
