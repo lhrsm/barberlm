@@ -77,7 +77,7 @@ export function AutomationEditModal({
 
   const handleSave = async () => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("automation_templates")
         .update({
           name: formData.name,
