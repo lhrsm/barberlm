@@ -21,13 +21,17 @@ Deno.test({
     // Get or create a customer
     let { data: customer } = await supabase.from("customers").select("id, phone").eq("tenant_id", tenant_id).limit(1).maybeSingle();
     if (!customer) {
-      const { data: newCust } = await supabase.from("customers").insert({
+      console.log("Creating test customer...");
+      const { data: newCust, error: custError } = await supabase.from("customers").insert({
         tenant_id: tenant_id,
-        name: "Test User",
+        name: "Test User E2E",
         phone: "5511999999999"
       }).select().single();
+      if (custError) throw custError;
       customer = newCust;
     }
+
+    if (!customer) throw new Error("Customer not found or created");
 
     // Create a new appointment to avoid conflicts
     const { data: appointment, error: apptError } = await supabase.from("appointments").insert({
