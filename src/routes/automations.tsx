@@ -534,55 +534,60 @@ function AutomationsComponent() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="px-6 flex-1 flex flex-col gap-4">
+                  <CardContent className="px-5 flex-1 flex flex-col gap-3">
                     <button 
                       onClick={() => openPreview(auto.template)}
-                      className="w-full text-left bg-white/5 border border-white/10 rounded-[14px] p-4 relative group/preview hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                      className="w-full text-left bg-white/5 border border-white/10 rounded-xl p-3 relative group/preview hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                       aria-label="Visualizar mensagem completa"
                     >
-                      <p className="text-xs text-slate-300 italic whitespace-pre-wrap line-clamp-4 leading-relaxed">
+                      <p className="text-[11px] text-slate-300 italic whitespace-pre-wrap line-clamp-2 leading-snug">
                         {auto.template}
                       </p>
-                      <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-500 font-medium group-hover/preview:text-slate-300 transition-colors">Visualizar mensagem completa</span>
-                        <ExternalLink size={10} className="text-slate-500 group-hover/preview:text-slate-300 transition-colors" />
+                      <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
+                        <span className="text-[9px] text-slate-500 font-medium group-hover/preview:text-slate-300 transition-colors">Visualizar mensagem completa</span>
+                        <ExternalLink size={9} className="text-slate-500 group-hover/preview:text-slate-300 transition-colors" />
                       </div>
                     </button>
 
-                    <div className="grid grid-cols-3 gap-2 mt-auto border-t border-white/5 pt-4">
+                    <div className="grid grid-cols-3 gap-1 mt-auto border-t border-white/5 pt-3">
                       <div className="text-center">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-center gap-1">
-                          <SendHorizontal size={10} /> Enviados
+                        <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
+                          <SendHorizontal size={9} /> Enviados
                         </p>
-                        <p className="text-lg font-bold text-white leading-none">127</p>
+                        <p className="text-base font-bold text-white leading-none">{auto.stats?.sent || 0}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-center gap-1">
-                          <AlertTriangle size={10} /> Falhas
+                        <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
+                          <AlertTriangle size={9} /> Falhas
                         </p>
-                        <p className="text-lg font-bold text-rose-400 leading-none">2</p>
+                        <p className="text-base font-bold text-rose-400 leading-none">{auto.stats?.errors || 0}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-center gap-1">
-                          <Clock size={10} /> Último Envio
+                        <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
+                          <Clock size={9} /> Último Envio
                         </p>
-                        <p className="text-[10px] font-medium text-slate-300 leading-tight">Hoje às 14:30</p>
+                        <p className="text-[9px] font-medium text-slate-300 leading-tight">
+                          {auto.stats?.lastSent 
+                            ? new Date(auto.stats.lastSent).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + 
+                              new Date(auto.stats.lastSent).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                            : 'Nunca'}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
 
-                  <div className="p-6 pt-2 flex flex-col sm:flex-row gap-3 mt-auto">
+                  <div className="p-5 pt-1 flex gap-2 mt-auto">
                     <Button 
-                      className="flex-1 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl h-11 shadow-lg focus-visible:ring-2 focus-visible:ring-amber-500"
+                      className="flex-1 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-lg h-9 text-xs shadow-lg focus-visible:ring-2 focus-visible:ring-amber-500"
                       onClick={() => openEdit(auto)}
                     >
-                      <Settings2 size={16} className="mr-2" /> Editar
+                      <Settings2 size={14} className="mr-1.5" /> Editar
                     </Button>
                     <Button 
-                      className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl h-11 shadow-lg shadow-amber-600/20 transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-amber-500"
+                      className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-lg h-9 text-xs shadow-lg shadow-amber-600/20 transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-amber-500"
                       onClick={() => openTest(auto)}
                     >
-                      <Play size={16} className="mr-2 fill-current" /> Testar
+                      <Play size={14} className="mr-1.5 fill-current" /> Testar
                     </Button>
                   </div>
                 </Card>
