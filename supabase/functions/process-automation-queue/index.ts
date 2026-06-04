@@ -108,7 +108,26 @@ serve(async (req) => {
             }
         }
 
-        // 4. Build Test Data
+        const diagInfo = { 
+          resolved_table: resolvedTable, 
+          prof_id_used: profId,
+          prof_name_found: profName !== "Profissional",
+          origin: force_resend ? 'test_manual' : 'automatic'
+        };
+
+        // 4. Build Message
+        const buildAppointmentConfirmationMessage = (data: any, options: { buttons_attached: boolean }) => {
+          let body = `Olá ${data.customer_name} 👋\n\nSeu agendamento na ${data.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${data.service_name}\n💈 Profissional: ${data.professional_name}\n📅 Data: ${data.appointment_date}\n⏰ Horário: ${data.appointment_time}`;
+          
+          const question = "\n\nO que deseja fazer?";
+          
+          if (options.buttons_attached) {
+            return body + question;
+          } else {
+            return body + question + "\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar";
+          }
+        };
+
         const testData = {
           customer_name: appointment.customer?.name || "Cliente",
           barbershop_name: barbershopName,
@@ -119,33 +138,18 @@ serve(async (req) => {
           service_price: `R$ ${appointment.total_price || appointment.service?.price || 0}`,
         };
 
-        let renderedTemplate = automation.template;
-        Object.entries(testData).forEach(([key, value]) => {
-          renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
-        });
-
-        const diagInfo = { 
-          resolved_table: resolvedTable, 
-          prof_id_used: profId,
-          prof_name_found: profName !== "Profissional",
-          origin: force_resend ? 'test_manual' : 'automatic'
-        };
-
         const sendOptions: any = {};
+        let renderedTemplate = "";
+
         if (automation.key === 'appointment_confirmation') {
           // Desativando botões interativos temporariamente conforme pedido
-          /*
-          sendOptions.buttons = [
-            { id: 'main_confirm', label: 'Confirmar agendamento' },
-            { id: 'main_reschedule', label: 'Reagendar' },
-            { id: 'main_cancel', label: 'Cancelar' }
-          ];
-          */
-          
-          // Adicionando menu de texto APENAS se não houver botões e não houver duplicidade
-          if (!sendOptions.buttons && !renderedTemplate.includes("O que deseja fazer?")) {
-            renderedTemplate += "\n\nO que deseja fazer?\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar";
-          }
+          sendOptions.buttons = null; 
+          renderedTemplate = buildAppointmentConfirmationMessage(testData, { buttons_attached: !!sendOptions.buttons });
+        } else {
+          renderedTemplate = automation.template;
+          Object.entries(testData).forEach(([key, value]) => {
+            renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
+          });
         }
 
         // 5. Dry Run exit
