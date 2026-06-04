@@ -102,8 +102,8 @@ export function WorkflowEditModal({ workflow, isOpen, onClose, onSuccess }: Work
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from("automation_v2_workflows")
+      const { error } = await (supabase
+        .from("automation_v2_workflows" as any) as any)
         .update({
           name: formData.name,
           active: formData.active,

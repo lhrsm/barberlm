@@ -49,30 +49,30 @@ function AutomationsV2Component() {
     setLoading(true);
     try {
       const [w, q, s, l, wl] = await Promise.all([
-        supabase.from("automation_v2_workflows").select("*").eq("tenant_id", tenantId).order("name", { ascending: true }),
-        supabase.from("automation_v2_queue").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
-        supabase.from("automation_v2_sessions").select("*, customers(name)").eq("tenant_id", tenantId).order("updated_at", { ascending: false }).limit(20),
-        supabase.from("automation_v2_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
-        supabase.from("automation_v2_webhook_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50)
+        (supabase.from("automation_v2_workflows" as any) as any).select("*").eq("tenant_id", tenantId).order("name", { ascending: true }),
+        (supabase.from("automation_v2_queue" as any) as any).select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
+        (supabase.from("automation_v2_sessions" as any) as any).select("*, customers(name)").eq("tenant_id", tenantId).order("updated_at", { ascending: false }).limit(20),
+        (supabase.from("automation_v2_logs" as any) as any).select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50),
+        (supabase.from("automation_v2_webhook_logs" as any) as any).select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(50)
       ]);
 
       if (w.data) {
         // Fetch metrics for each workflow
-        const workflowsWithMetrics = await Promise.all(w.data.map(async (wf) => {
-          const { count: sentCount } = await supabase
-            .from("automation_v2_queue")
+        const workflowsWithMetrics = await Promise.all(w.data.map(async (wf: any) => {
+          const { count: sentCount } = await (supabase
+            .from("automation_v2_queue" as any) as any)
             .select('*', { count: 'exact', head: true })
             .eq("workflow_key", wf.workflow_key)
             .eq("status", "completed");
           
-          const { count: errorCount } = await supabase
-            .from("automation_v2_queue")
+          const { count: errorCount } = await (supabase
+            .from("automation_v2_queue" as any) as any)
             .select('*', { count: 'exact', head: true })
             .eq("workflow_key", wf.workflow_key)
             .eq("status", "failed");
 
-          const { data: lastRun } = await supabase
-            .from("automation_v2_queue")
+          const { data: lastRun } = await (supabase
+            .from("automation_v2_queue" as any) as any)
             .select("finished_at")
             .eq("workflow_key", wf.workflow_key)
             .eq("status", "completed")
@@ -175,8 +175,8 @@ function AutomationsV2Component() {
                             checked={w.active} 
                             onCheckedChange={async (checked) => {
                               try {
-                                const { error } = await supabase
-                                  .from("automation_v2_workflows")
+                                const { error } = await (supabase
+                                  .from("automation_v2_workflows" as any) as any)
                                   .update({ active: checked })
                                   .eq("id", w.id);
                                 if (error) throw error;

@@ -106,7 +106,7 @@ export function WorkflowTestModal({ workflow, isOpen, onClose }: WorkflowTestMod
       
       // Attempt to log failure
       try {
-        await supabase.from("automation_v2_logs").insert({
+        await (supabase.from("automation_v2_logs" as any) as any).insert({
           tenant_id: workflow.tenant_id,
           event_name: 'test_execution',
           workflow_key: workflow.workflow_key,
