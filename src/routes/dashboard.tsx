@@ -536,8 +536,8 @@ function DashboardComponent() {
       monthlyAppointmentsData,
       customersWithBalances
     ] = await Promise.all([
-      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).neq("status", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).neq("status", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).not("status", "eq", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
+      supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).not("status", "eq", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
       // Buscar todas as transações para filtrar em memória
       supabase.from("transactions").select("amount, type, appointment:appointments(status)").eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("transactions").select("amount, type, appointment:appointments(status)").eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
