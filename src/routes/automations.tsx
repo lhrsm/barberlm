@@ -109,9 +109,12 @@ function AutomationsComponent() {
 
   // Estados Auditoria do Fluxo (Modal)
   const [auditFilterType, setAuditFilterType] = useState("all");
+  const [auditSearchTerm, setAuditSearchTerm] = useState("");
   const [auditPage, setAuditPage] = useState(1);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const auditItemsPerPage = 5;
+  const [statsLoading, setStatsLoading] = useState(false);
+
 
   useEffect(() => {
     if (tenantId) {
@@ -122,7 +125,9 @@ function AutomationsComponent() {
   async function fetchData() {
     if (!tenantId) return;
     setLoading(true);
+    setStatsLoading(true);
     try {
+
       // 1. Fetch automations from the new table
       const { data: automationsData, error: autoError } = await anySupabase
         .from("automation_templates")
@@ -192,8 +197,10 @@ function AutomationsComponent() {
       }));
 
       setAutomations(enrichedAutomations);
+      setStatsLoading(false);
 
       // 4. Fetch logs with filtering and pagination
+
       let query = supabase
         .from("automation_logs")
         .select("*", { count: 'exact' })
@@ -352,7 +359,7 @@ function AutomationsComponent() {
       { 
         id: 1,
         time: new Date(log.created_at).toLocaleTimeString(), 
-        event: log.message_type || 'appointment.created', 
+        event: 'appointment.created', 
         type: 'webhook',
         result: 'sucesso',
         status: 'done',
@@ -374,7 +381,7 @@ function AutomationsComponent() {
         type: 'action',
         result: 'sucesso',
         status: 'done',
-        payload: { automation_key: log.message_type }
+        payload: { automation_key: log.message_type, provider_message_id: log.response?.messageId || log.response?.id }
       },
       { 
         id: 4,
@@ -383,7 +390,7 @@ function AutomationsComponent() {
         type: 'send',
         result: log.status === 'sent' ? 'sucesso' : 'falha',
         status: log.status === 'sent' ? 'done' : 'error',
-        payload: log.response || { error: log.error_message }
+        payload: log.response || { error: log.error_message, message_id: log.id }
       }
     ];
 
@@ -395,12 +402,60 @@ function AutomationsComponent() {
         type: 'delivery',
         result: 'entregue',
         status: 'done',
-        payload: { provider: 'zapi', status: 'delivered' }
+        payload: { provider: 'zapi', status: 'delivered', provider_message_id: log.response?.messageId || log.response?.id }
       });
     }
 
-    return steps.filter(step => auditFilterType === 'all' || step.type === auditFilterType);
+    if (log.status === 'error' && log.error_message?.toLowerCase().includes('timeout')) {
+      steps.push({
+        id: 6,
+        time: new Date(new Date(log.created_at).getTime() + 4000).toLocaleTimeString(),
+        event: 'request.timeout',
+        type: 'error',
+        result: 'timeout',
+        status: 'error',
+        payload: { error: log.error_message, retry_count: 3 }
+      });
+    }
+
+    return steps.filter(step => {
+      const matchType = auditFilterType === 'all' || step.type === auditFilterType;
+      const matchSearch = !auditSearchTerm || 
+        JSON.stringify(step.payload).toLowerCase().includes(auditSearchTerm.toLowerCase()) ||
+        step.event.toLowerCase().includes(auditSearchTerm.toLowerCase());
+      return matchType && matchSearch;
+    });
   };
+
+  const handleExportAudit = (log: any, format: 'csv' | 'json') => {
+    const steps = getAuditSteps(log);
+    if (format === 'json') {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(steps, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href",     dataStr);
+      downloadAnchorNode.setAttribute("download", `auditoria_fluxo_${log.id}.json`);
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    } else {
+      const headers = ['ID', 'Horário', 'Evento', 'Tipo', 'Resultado', 'Status'];
+      const csvRows = [
+        headers.join(','),
+        ...steps.map(s => [s.id, s.time, s.event, s.type, s.result, s.status].join(','))
+      ].join('\n');
+      
+      const blob = new Blob([csvRows], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `auditoria_fluxo_${log.id}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.remove();
+    }
+    toast.success(`Auditoria exportada em ${format.toUpperCase()}`);
+  };
+
 
   useEffect(() => {
     if (tenantId) {
@@ -609,26 +664,39 @@ function AutomationsComponent() {
                         <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
                           <SendHorizontal size={9} /> Enviados
                         </p>
-                        <p className="text-base font-bold text-white leading-none">{auto.stats?.sent || 0}</p>
+                        {statsLoading ? (
+                          <div className="h-4 w-8 bg-white/5 animate-pulse mx-auto rounded mt-1" />
+                        ) : (
+                          <p className="text-base font-bold text-white leading-none">{auto.stats?.sent || 0}</p>
+                        )}
                       </div>
                       <div className="text-center">
                         <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
                           <AlertTriangle size={9} /> Falhas
                         </p>
-                        <p className="text-base font-bold text-rose-400 leading-none">{auto.stats?.errors || 0}</p>
+                        {statsLoading ? (
+                          <div className="h-4 w-8 bg-rose-500/5 animate-pulse mx-auto rounded mt-1" />
+                        ) : (
+                          <p className="text-base font-bold text-rose-400 leading-none">{auto.stats?.errors || 0}</p>
+                        )}
                       </div>
                       <div className="text-center">
                         <p className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mb-0.5 flex items-center justify-center gap-1">
                           <Clock size={9} /> Último Envio
                         </p>
-                        <p className="text-[9px] font-medium text-slate-300 leading-tight">
-                          {auto.stats?.lastSent 
-                            ? new Date(auto.stats.lastSent).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + 
-                              new Date(auto.stats.lastSent).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                            : 'Nunca'}
-                        </p>
+                        {statsLoading ? (
+                          <div className="h-4 w-12 bg-white/5 animate-pulse mx-auto rounded mt-1" />
+                        ) : (
+                          <p className="text-[9px] font-medium text-slate-300 leading-tight">
+                            {auto.stats?.lastSent 
+                              ? new Date(auto.stats.lastSent).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + 
+                                new Date(auto.stats.lastSent).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                              : 'Nunca'}
+                          </p>
+                        )}
                       </div>
                     </div>
+
                   </CardContent>
 
                   <div className="p-5 pt-1 flex gap-2 mt-auto">
@@ -1012,14 +1080,27 @@ function AutomationsComponent() {
                     <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Auditoria do Fluxo</h3>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
+                      <Input 
+                        placeholder="Buscar ID ou evento..." 
+                        className="pl-8 w-[180px] bg-[#0F172A] border-slate-800 text-xs h-8 rounded-lg text-white focus:border-amber-500/50"
+                        value={auditSearchTerm}
+                        onChange={(e) => {
+                          setAuditSearchTerm(e.target.value);
+                          setAuditPage(1);
+                        }}
+                      />
+                    </div>
+
                     <Select value={auditFilterType} onValueChange={(val) => { setAuditFilterType(val); setAuditPage(1); }}>
-                      <SelectTrigger className="w-[140px] bg-[#0F172A] border-slate-800 text-xs h-8 rounded-lg text-white focus:ring-amber-500/50">
+                      <SelectTrigger className="w-[130px] bg-[#0F172A] border-slate-800 text-xs h-8 rounded-lg text-white focus:ring-amber-500/50">
                         <Filter size={12} className="mr-2 text-slate-500" />
-                        <SelectValue placeholder="Tipo de Evento" />
+                        <SelectValue placeholder="Evento" />
                       </SelectTrigger>
                       <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
-                        <SelectItem value="all">Todos Eventos</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="webhook">Webhook</SelectItem>
                         <SelectItem value="queue">Fila</SelectItem>
                         <SelectItem value="send">Envio</SelectItem>
@@ -1027,7 +1108,27 @@ function AutomationsComponent() {
                         <SelectItem value="action">Ação</SelectItem>
                       </SelectContent>
                     </Select>
+
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 text-[10px] text-slate-400 hover:text-white"
+                        onClick={() => handleExportAudit(selectedLog, 'csv')}
+                      >
+                        <FileCode size={12} className="mr-1.5" /> CSV
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 text-[10px] text-slate-400 hover:text-white"
+                        onClick={() => handleExportAudit(selectedLog, 'json')}
+                      >
+                        <Code2 size={12} className="mr-1.5" /> JSON
+                      </Button>
+                    </div>
                   </div>
+
                 </div>
 
                 <div className="bg-[#0F172A] border border-white/5 rounded-2xl overflow-hidden shadow-lg">
