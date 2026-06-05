@@ -1756,6 +1756,127 @@ function AutomationsComponent() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="callbacks" className="space-y-4 pt-4">
+            <Card className="bg-[#0F172A] border-slate-800 shadow-2xl rounded-2xl overflow-hidden">
+              <CardHeader className="p-6 border-b border-white/5 bg-[#0F172A]/50">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                      <AlertTriangle className="text-amber-500" size={20} /> Callbacks Pendentes
+                    </CardTitle>
+                    <CardDescription className="text-slate-400">
+                      Disparos enviados que ainda não receberam resposta do cliente via botões.
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={fetchPendingCallbacks}
+                      className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-10 px-4"
+                    >
+                      <RefreshCw size={16} className="mr-2" /> Atualizar
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-white/5 bg-[#020817]/50">
+                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Envio / Phone</th>
+                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Workflow / IDs</th>
+                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tempo Aguardando</th>
+                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {pendingCallbacks.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-12 text-center">
+                            <div className="flex flex-col items-center gap-2 opacity-50">
+                              <CheckCircle2 size={40} className="text-emerald-500" />
+                              <p className="text-slate-400 text-sm">Nenhum callback pendente no momento!</p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        pendingCallbacks.map((dispatch) => {
+                          const sentAt = new Date(dispatch.sent_at);
+                          const diff = Math.floor((Date.now() - sentAt.getTime()) / 60000); // minutes
+                          const isOld = diff > 5;
+                          
+                          return (
+                            <tr key={dispatch.id} className="group hover:bg-white/5 transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-bold text-white">{dispatch.customer_name || 'Cliente'}</span>
+                                  <span className="text-xs text-slate-500 font-mono">{dispatch.phone}</span>
+                                  <span className="text-[10px] text-slate-600">Enviado em: {sentAt.toLocaleString('pt-BR')}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex flex-col gap-1">
+                                  <Badge variant="outline" className="w-fit text-[10px] border-amber-500/20 text-amber-500 bg-amber-500/5">
+                                    {dispatch.workflow_key}
+                                  </Badge>
+                                  <span className="text-[10px] text-slate-500 font-mono" title="Provider Message ID">
+                                    MSG: {dispatch.message_id?.substring(0, 15)}...
+                                  </span>
+                                  <span className="text-[10px] text-slate-500 font-mono">
+                                    APP: {dispatch.appointment_id?.substring(0, 8).toUpperCase()}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <Badge className={cn(
+                                  "border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit",
+                                  isOld ? "bg-rose-500/10 text-rose-500" : "bg-sky-500/10 text-sky-500"
+                                )}>
+                                  <Clock size={12} /> {diff} minutos
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleDiagnoseCallback(dispatch)}
+                                    className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500 hover:text-slate-900 rounded-lg transition-all"
+                                  >
+                                    Diagnosticar
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleManualCallbackTest(dispatch)}
+                                    className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border-sky-500/20 hover:bg-sky-500 hover:text-white rounded-lg transition-all"
+                                  >
+                                    Simular Teste
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleRescheduleCallbackTracking(dispatch)}
+                                    className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500 hover:text-white rounded-lg transition-all"
+                                  >
+                                    Reenviar
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
       </div>
 
