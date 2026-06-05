@@ -1047,8 +1047,8 @@ function DashboardComponent() {
 
           <TabsContent value="daily" className="space-y-6">
             <div className="flex flex-col gap-4 mb-4">
-              <div className="flex items-center gap-3">
-                <h3 className="text-lg font-semibold">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h3 className="text-lg font-semibold shrink-0">
                   {isSameDay(selectedDate, new Date()) ? "Agendamentos de Hoje" : `Agendamentos de ${format(selectedDate, "dd/MM")}`}
                 </h3>
                 <Popover>

@@ -185,7 +185,7 @@ function SubscriptionComponent() {
       name: "Starter",
       price: "19,90",
       description: "Ideal para profissionais individuais.",
-      icon: <Zap className="text-green-500 w-5 h-5" />,
+      icon: <Zap className="text-amber-500 w-5 h-5" />,
       features: [
         `${PLAN_LIMITS.starter.barbers} Profissional`,
         `Serviços Ilimitados`,
@@ -194,14 +194,14 @@ function SubscriptionComponent() {
         "1 Conexão WhatsApp",
       ],
       buttonText: "Assinar Starter",
-      color: "green"
+      color: "amber"
     },
     {
       id: "pro" as PlanType,
       name: "Pro",
       price: "39,90",
       description: "Perfeito para barbearias em crescimento.",
-      icon: <Rocket className="text-purple-500 w-5 h-5" />,
+      icon: <Crown className="text-amber-500 w-5 h-5" />,
       features: [
         `${PLAN_LIMITS.pro.barbers} Profissionais`,
         `Serviços Ilimitados`,
@@ -211,14 +211,14 @@ function SubscriptionComponent() {
         "Financeiro Completo",
       ],
       buttonText: "Assinar Pro",
-      color: "purple"
+      color: "amber"
     },
     {
       id: "elite" as PlanType,
       name: "Elite",
       price: "59,90",
       description: "A solução definitiva sem limites.",
-      icon: <Crown className="text-yellow-500 w-5 h-5" />,
+      icon: <Rocket className="text-amber-500 w-5 h-5" />,
       features: [
         "Profissionais Ilimitados",
         "Serviços Ilimitados",
@@ -228,7 +228,7 @@ function SubscriptionComponent() {
         "Suporte Prioritário",
       ],
       buttonText: "Assinar Elite",
-      color: "yellow"
+      color: "amber"
     }
   ];
 
@@ -435,9 +435,9 @@ function SubscriptionComponent() {
 
               return (
                 <Card key={config.id} className={cn(
-                  "flex flex-col relative transition-all hover:shadow-2xl hover:scale-[1.02] duration-300 bg-white border-2 text-black min-h-[500px]",
-                  isCurrentPlan && "border-black shadow-2xl ring-2 ring-black/10",
-                  !isCurrentPlan && "border-slate-200 opacity-95"
+                  "flex flex-col relative transition-all hover:shadow-2xl hover:scale-[1.02] duration-300 bg-white border-2 min-h-[500px]",
+                  isCurrentPlan && "border-amber-500 shadow-2xl ring-2 ring-amber-500/10",
+                  !isCurrentPlan && "border-slate-200"
                 )}>
                   {isCurrentPlan && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
@@ -465,13 +465,13 @@ function SubscriptionComponent() {
                       ))}
                     </ul>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="mt-auto">
                     <Button 
                       variant={isCurrentPlan ? "outline" : "default"}
                       className={cn(
                         "w-full font-black uppercase tracking-tighter h-12 rounded-xl transition-all hover:scale-105",
                         isCurrentPlan && "border-black text-black opacity-50 cursor-not-allowed",
-                        !isCurrentPlan && "bg-black text-white shadow-xl"
+                        !isCurrentPlan && "bg-amber-500 text-white shadow-xl hover:bg-amber-600"
                       )} 
 
                       disabled={isCurrentPlan || updating}
