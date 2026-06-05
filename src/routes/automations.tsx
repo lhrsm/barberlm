@@ -1603,6 +1603,7 @@ function AutomationsComponent() {
                         <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Destinatário</th>
                         <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">ID Agendamento</th>
                         <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Status</th>
+                        <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Botão Recebido</th>
                         <th className="px-6 py-4 text-right font-bold text-[10px] uppercase tracking-widest text-slate-500">Ações</th>
                       </tr>
                     </thead>
