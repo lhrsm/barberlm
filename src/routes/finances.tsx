@@ -182,28 +182,36 @@ function FinancesComponent() {
       !t.appointment || t.appointment.status === 'completed' || t.appointment.status === 'confirmed' || t.appointment.status === 'scheduled'
     );
 
-    // 1. Receita Operacional (Faturamento Operacional) - Valor Total dos Serviços Vendidos
+    // 1. Serviços Vendidos Hoje (Faturamento Operacional) - Somar o valor total dos serviços realizados/concluídos.
     const operationalRevenue = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         if (t.appointment) {
-          // Usar total_price como o valor total do serviço (independente de como foi pago)
+          // Usar total_price como o valor total do serviço
           return acc + (Number(t.appointment.total_price || t.appointment.original_total) || 0);
         }
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
 
-    // 2. Fluxo de Caixa (Entrada Financeira Real) - Dinheiro novo no caixa
+    // 2. Entrada em Caixa Hoje (Fluxo de Caixa) - Dinheiro novo no caixa (PIX, Dinheiro, Cartão)
+    // NÃO incluir cashback ou créditos
     const realCashIncome = effectiveTransactions
       .filter((t) => t.type === "income")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+      .reduce((acc, t) => {
+        if (t.appointment) {
+          // Se for via pix/cash/card, o amount na transação deve ser o valor pago em dinheiro novo
+          // Se for 100% cashback/credits, o amount na transação deve ser 0
+          return acc + (parseFloat(String(t.amount)) || 0);
+        }
+        return acc + (parseFloat(String(t.amount)) || 0);
+      }, 0);
 
-    // 3. Créditos Consumidos
+    // 3. Créditos Utilizados Hoje
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + (Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)), 0);
 
-    // 4. Cashback Consumido
+    // 4. Cashback Utilizado Hoje
     const cashbackConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + Number(t.appointment?.cashback_used || 0), 0);
@@ -472,140 +480,140 @@ function FinancesComponent() {
         </div>
 
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-black">Faturamento Operacional</CardTitle>
-              <div className="p-2 bg-blue-200/50 rounded-lg">
-                <Scissors className="h-4 w-4 text-blue-700" />
+              <CardTitle className="text-sm font-semibold">Serviços Vendidos</CardTitle>
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <Scissors className="h-4 w-4 text-blue-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-900">R$ {summary.income.toFixed(2)}</div>
-              <p className="text-[10px] text-blue-700 font-medium mt-1">Total de serviços vendidos</p>
+              <div className="text-2xl font-bold text-white">R$ {summary.income.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Total de serviços concluídos</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-green-800">Fluxo de Caixa</CardTitle>
-              <div className="p-2 bg-green-200/50 rounded-lg">
-                <CircleDollarSign className="h-4 w-4 text-green-700" />
+              <CardTitle className="text-sm font-semibold">Entrada em Caixa</CardTitle>
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <CircleDollarSign className="h-4 w-4 text-emerald-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-900">R$ {summary.realCashIncome.toFixed(2)}</div>
-              <p className="text-[10px] text-green-700 font-medium mt-1">Dinheiro novo recebido</p>
+              <div className="text-2xl font-bold text-emerald-500">R$ {summary.realCashIncome.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Dinheiro novo (PIX/Cartão/Dinheiro)</p>
             </CardContent>
           </Card>
 
           {role !== 'barber' && (
             <>
-              <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+              <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-semibold text-purple-800">Créditos Consumidos</CardTitle>
-                  <div className="p-2 bg-purple-200/50 rounded-lg">
-                    <Wallet className="h-4 w-4 text-purple-700" />
+                  <CardTitle className="text-sm font-semibold">Cashback Utilizado</CardTitle>
+                  <div className="p-2 bg-orange-500/10 rounded-lg">
+                    <Wallet className="h-4 w-4 text-orange-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-purple-900">R$ {summary.creditsConsumed.toFixed(2)}</div>
-                  <p className="text-[10px] text-purple-700 font-medium mt-1">Abatido via créditos</p>
+                  <div className="text-2xl font-bold text-orange-500">R$ {summary.cashbackConsumed.toFixed(2)}</div>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Abatido via cashback</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+              <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-semibold text-red-800">Saídas</CardTitle>
-                  <div className="p-2 bg-red-200/50 rounded-lg">
-                    <TrendingDown className="h-4 w-4 text-red-700" />
+                  <CardTitle className="text-sm font-semibold">Saídas</CardTitle>
+                  <div className="p-2 bg-red-500/10 rounded-lg">
+                    <TrendingDown className="h-4 w-4 text-red-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-red-900">R$ {summary.expense.toFixed(2)}</div>
-                  <p className="text-[10px] text-red-700 font-medium mt-1">Despesas e estornos</p>
+                  <div className="text-2xl font-bold text-red-500">R$ {summary.expense.toFixed(2)}</div>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Despesas e estornos</p>
                 </CardContent>
               </Card>
             </>
           )}
 
-          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-indigo-800">{role === 'barber' ? 'Minha Comissão' : 'Freelancers'}</CardTitle>
-              <div className="p-2 bg-indigo-200/50 rounded-lg">
-                <Users className="h-4 w-4 text-indigo-700" />
+              <CardTitle className="text-sm font-semibold">{role === 'barber' ? 'Minha Comissão' : 'Freelancers'}</CardTitle>
+              <div className="p-2 bg-indigo-500/10 rounded-lg">
+                <Users className="h-4 w-4 text-indigo-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-indigo-900">R$ {summary.freelancersPart.toFixed(2)}</div>
-              <p className="text-[10px] text-indigo-700 font-medium mt-1">{role === 'barber' ? 'Minha parte garantida' : 'Comissões (Total serviços)'}</p>
+              <div className="text-2xl font-bold text-indigo-400">R$ {summary.freelancersPart.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">{role === 'barber' ? 'Minha parte garantida' : 'Comissões (Total serviços)'}</p>
             </CardContent>
           </Card>
 
           {role !== 'barber' && (
-            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-emerald-800">Barbearia</CardTitle>
-                <div className="p-2 bg-emerald-200/50 rounded-lg">
-                  <TrendingUp className="h-4 w-4 text-emerald-700" />
+                <CardTitle className="text-sm font-semibold">Créditos Utilizados</CardTitle>
+                <div className="p-2 bg-purple-500/10 rounded-lg">
+                  <Wallet className="h-4 w-4 text-purple-500" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-emerald-900">R$ {summary.barbershopPart.toFixed(2)}</div>
-                <p className="text-[10px] text-emerald-700 font-medium mt-1">Receita operacional líquida</p>
+                <div className="text-2xl font-bold text-purple-400">R$ {summary.creditsConsumed.toFixed(2)}</div>
+                <p className="text-[10px] text-muted-foreground font-medium mt-1">Abatido via créditos</p>
               </CardContent>
             </Card>
           )}
 
-          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-yellow-800">Pendente</CardTitle>
-              <div className="p-2 bg-yellow-200/50 rounded-lg">
-                <Clock className="h-4 w-4 text-yellow-700" />
+              <CardTitle className="text-sm font-semibold">Pendente</CardTitle>
+              <div className="p-2 bg-yellow-500/10 rounded-lg">
+                <Clock className="h-4 w-4 text-yellow-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-900">R$ {summary.pending.toFixed(2)}</div>
-              <p className="text-[10px] text-yellow-700 font-medium mt-1">Aguardando pagamento</p>
+              <div className="text-2xl font-bold text-yellow-500">R$ {summary.pending.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Aguardando pagamento</p>
             </CardContent>
           </Card>
 
           {role !== 'barber' && (
-            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-orange-800">Saldo Atual</CardTitle>
-                <div className="p-2 bg-orange-200/50 rounded-lg">
-                  <CircleDollarSign className="h-4 w-4 text-orange-700" />
+                <CardTitle className="text-sm font-semibold">Saldo em Caixa</CardTitle>
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <CircleDollarSign className="h-4 w-4 text-primary" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-900">R$ {summary.balance.toFixed(2)}</div>
-                <p className="text-[10px] text-orange-700 font-medium mt-1">Real em caixa (Entrada - Saída)</p>
+                <div className="text-2xl font-bold text-primary">R$ {summary.balance.toFixed(2)}</div>
+                <p className="text-[10px] text-muted-foreground font-medium mt-1">Real em caixa (Entrada - Saída)</p>
               </CardContent>
             </Card>
           )}
         </div>
 
         <Tabs defaultValue="transactions" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[600px] bg-white border border-slate-200 text-black">
-            <TabsTrigger value="transactions" className="gap-2">
+          <TabsList className="grid w-full grid-cols-3 max-w-[600px] bg-card border border-border text-foreground">
+            <TabsTrigger value="transactions" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <FileText size={16} /> Lançamentos
             </TabsTrigger>
-            <TabsTrigger value="pending" className="gap-2">
+            <TabsTrigger value="pending" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Clock size={16} /> Pendentes
             </TabsTrigger>
             {role !== 'barber' && (
-              <TabsTrigger value="barbers" className="gap-2">
+              <TabsTrigger value="barbers" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Users size={16} /> Por Barbeiro
               </TabsTrigger>
             )}
           </TabsList>
 
           <TabsContent value="transactions" className="pt-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-end bg-white p-4 border-2 border-slate-200 rounded-xl text-black">
+            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border border-border rounded-xl text-foreground">
               <div className="space-y-2">
                 <Label htmlFor="filter-status">Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger id="filter-status" className="w-[180px]">
+                  <SelectTrigger id="filter-status" className="w-[180px] bg-background border-border">
                     <SelectValue placeholder="Filtrar por status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -621,7 +629,7 @@ function FinancesComponent() {
                 <Input 
                   id="filter-date" 
                   type="date" 
-                  className="w-[180px]" 
+                  className="w-[180px] bg-background border-border" 
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
                 />
@@ -632,27 +640,27 @@ function FinancesComponent() {
                   setStatusFilter("all");
                   setDateFilter("");
                 }}
-                className="h-10"
+                className="h-10 hover:bg-accent hover:text-accent-foreground"
               >
                 Limpar Filtros
               </Button>
             </div>
 
-            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden shadow-sm">
+            <div className="border border-border rounded-xl bg-card text-foreground overflow-hidden shadow-sm">
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[100px]">Data</TableHead>
-                      <TableHead className="w-[100px]">Hora</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      {role !== 'barber' && <TableHead>Barbeiro</TableHead>}
-                      <TableHead>Status</TableHead>
-                      <TableHead>Pagamento</TableHead>
-                      <TableHead>Categoria</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                  <TableHeader className="bg-background">
+                    <TableRow className="hover:bg-transparent border-border">
+                      <TableHead className="w-[100px] text-muted-foreground">Data</TableHead>
+                      <TableHead className="w-[100px] text-muted-foreground">Hora</TableHead>
+                      <TableHead className="text-muted-foreground">Descrição</TableHead>
+                      {role !== 'barber' && <TableHead className="text-muted-foreground">Barbeiro</TableHead>}
+                      <TableHead className="text-muted-foreground">Status</TableHead>
+                      <TableHead className="text-muted-foreground">Pagamento</TableHead>
+                      <TableHead className="text-muted-foreground">Categoria</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Valor</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -664,8 +672,8 @@ function FinancesComponent() {
                     </TableRow>
                   ) : (
                     filteredTransactions.map((t) => (
-                      <TableRow key={t.id}>
-                        <TableCell className="whitespace-nowrap">
+                      <TableRow key={t.id} className="border-border hover:bg-muted/50 transition-colors">
+                        <TableCell className="whitespace-nowrap text-foreground">
                           {t.appointment?.start_time 
                             ? new Date(t.appointment.start_time).toLocaleDateString('pt-BR')
                             : (t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-")}
@@ -691,33 +699,36 @@ function FinancesComponent() {
                         <TableCell>
                           {t.appointment ? (
                             <Badge className={cn(
-                              t.appointment.status === 'completed' ? 'bg-emerald-600 text-white' : 
-                              t.appointment.status === 'cancelled' ? 'bg-destructive text-white' : 
-                              'bg-blue-100 text-blue-700'
+                              "font-semibold",
+                              t.appointment.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                              t.appointment.status === 'cancelled' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
+                              'bg-blue-500/10 text-blue-500 border-blue-500/20'
                             )} variant="outline">
                               {t.appointment.status === 'completed' ? 'Concluído' : 
                                t.appointment.status === 'cancelled' ? 'Cancelado' : 'Agendado'}
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-gray-100">Manual</Badge>
+                            <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Manual</Badge>
                           )}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
-                            {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="w-fit">PIX</Badge>}
-                            {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="w-fit">Créditos</Badge>}
-                            {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="w-fit">Cashback</Badge>}
+                            {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="w-fit bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
+                            {t.appointment?.payment_method === 'cash' && <Badge variant="outline" className="w-fit bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
+                            {t.appointment?.payment_method === 'card' && <Badge variant="outline" className="w-fit bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
+                            {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="w-fit bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
+                            {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
                             {(t.appointment?.credit_used > 0 || t.appointment?.credits_used > 0) && (
-                              <span className="text-[10px] text-purple-600 font-bold">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)).toFixed(2)}</span>
+                              <span className="text-[10px] text-purple-400 font-bold">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)).toFixed(2)}</span>
                             )}
                             {t.appointment?.cashback_used > 0 && (
-                              <span className="text-[10px] text-orange-600 font-bold">Cashback: R$ {Number(t.appointment?.cashback_used).toFixed(2)}</span>
+                              <span className="text-[10px] text-orange-400 font-bold">Cashback: R$ {Number(t.appointment?.cashback_used).toFixed(2)}</span>
                             )}
-                            {!t.appointment && <span className="text-xs uppercase font-medium">{t.payment_method || '-'}</span>}
+                            {!t.appointment && <span className="text-xs uppercase font-medium text-muted-foreground">{t.payment_method || '-'}</span>}
                           </div>
                         </TableCell>
-                        <TableCell>{t.category || "-"}</TableCell>
-                        <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>
+                        <TableCell className="text-muted-foreground">{t.category || "-"}</TableCell>
+                        <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-emerald-500" : "text-violet-400") : "text-red-500")}>
                           {t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "+" : "★") : "-"} R$ {(() => {
                             const val = parseFloat(String(t.amount)) || 0;
                             if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
@@ -863,29 +874,29 @@ function FinancesComponent() {
               </div>
 
               {/* Mobile Cards */}
-              <div className="md:hidden divide-y divide-slate-100">
+              <div className="md:hidden divide-y divide-border">
                 {filteredTransactions.length === 0 ? (
                   <div className="p-8 text-center text-muted-foreground italic">
                     Nenhuma transação encontrada.
                   </div>
                 ) : (
                   filteredTransactions.map((t) => (
-                    <div key={t.id} className="p-4 space-y-4 hover:bg-slate-50 transition-colors">
+                    <div key={t.id} className="p-4 space-y-4 hover:bg-muted/50 transition-colors">
                       <div className="flex justify-between items-start">
                         <div className="flex flex-col">
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                             {t.appointment?.start_time 
                               ? new Date(t.appointment.start_time).toLocaleDateString('pt-BR')
                               : (t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-")}
                           </span>
-                          <span className="text-lg font-black text-slate-900">
+                          <span className="text-lg font-black text-foreground">
                             {t.appointment?.start_time 
                               ? format(new Date(t.appointment.start_time), 'HH:mm')
                               : (typeof t.time === 'string' ? t.time.substring(0, 5) : "--:--")}
                           </span>
                         </div>
-                        <div className={cn("text-right", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>
-                          <p className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">{t.type === "income" ? "Entrada" : "Saída"}</p>
+                        <div className={cn("text-right", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-emerald-500" : "text-violet-400") : "text-red-500")}>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-0.5">{t.type === "income" ? "Entrada" : "Saída"}</p>
                           <span className="text-lg font-black italic">
                              R$ {(() => {
                               const val = parseFloat(String(t.amount)) || 0;
@@ -900,12 +911,12 @@ function FinancesComponent() {
                       </div>
 
                       <div className="space-y-3">
-                        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Descrição</p>
-                          <p className="text-sm font-bold text-slate-700 leading-tight">
+                        <div className="bg-background/50 p-3 rounded-xl border border-border">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Descrição</p>
+                          <p className="text-sm font-bold text-foreground leading-tight">
                             {t.appointment?.customers?.name ? (
                               <>
-                                <span className="text-sky-600">Cliente: {t.appointment.customers.name}</span><br/>
+                                <span className="text-primary">Cliente: {t.appointment.customers.name}</span><br/>
                                 {t.description || "-"}
                               </>
                             ) : (
@@ -915,29 +926,31 @@ function FinancesComponent() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
-                           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Status</p>
+                           <div className="bg-background/50 p-3 rounded-xl border border-border">
+                             <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Status</p>
                              {t.appointment ? (
                                <Badge className={cn(
                                  "text-[10px] font-black uppercase italic",
-                                 t.appointment.status === 'completed' ? 'bg-emerald-600 text-white' : 
-                                 t.appointment.status === 'cancelled' ? 'bg-destructive text-white' : 
-                                 'bg-blue-100 text-blue-700'
+                                 t.appointment.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                                 t.appointment.status === 'cancelled' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
+                                 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                                )} variant="outline">
                                  {t.appointment.status === 'completed' ? 'Concluído' : 
                                   t.appointment.status === 'cancelled' ? 'Cancelado' : 'Agendado'}
                                </Badge>
                              ) : (
-                               <Badge variant="outline" className="bg-gray-100 text-[10px] font-black uppercase italic">Manual</Badge>
+                               <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px] font-black uppercase italic">Manual</Badge>
                              )}
                            </div>
-                           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Pagamento</p>
+                           <div className="bg-background/50 p-3 rounded-xl border border-border">
+                             <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Pagamento</p>
                              <div className="flex flex-wrap gap-1">
-                               {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="text-[10px] font-bold">PIX</Badge>}
-                               {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="text-[10px] font-bold">Créditos</Badge>}
-                               {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="text-[10px] font-bold">Cashback</Badge>}
-                               {!t.appointment && <span className="text-[10px] font-bold uppercase">{t.payment_method || '-'}</span>}
+                               {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
+                               {t.appointment?.payment_method === 'cash' && <Badge variant="outline" className="text-[10px] font-bold bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
+                               {t.appointment?.payment_method === 'card' && <Badge variant="outline" className="text-[10px] font-bold bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
+                               {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="text-[10px] font-bold bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
+                               {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
+                               {!t.appointment && <span className="text-[10px] font-bold uppercase text-muted-foreground">{t.payment_method || '-'}</span>}
                              </div>
                            </div>
                         </div>
@@ -947,7 +960,7 @@ function FinancesComponent() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-slate-200"
+                          className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-border bg-background hover:bg-accent"
                           onClick={() => {
                             setEditingTransaction({
                               ...t,
@@ -964,7 +977,7 @@ function FinancesComponent() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-9 w-auto text-xs gap-1 font-bold rounded-xl text-red-500 hover:bg-red-50"
+                          className="h-9 w-auto text-xs gap-1 font-bold rounded-xl text-red-500 hover:bg-red-500/10"
                           onClick={() => handleDeleteTransaction(t.id)}
                         >
                           <Trash2 size={12} /> Excluir
@@ -978,39 +991,39 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="pending" className="pt-4">
-            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-x-auto custom-scrollbar">
+            <div className="border border-border rounded-xl bg-card text-foreground overflow-x-auto custom-scrollbar shadow-sm">
               <Table className="min-w-[800px] md:min-w-0">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">Data</TableHead>
-                    <TableHead className="w-[100px]">Hora</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Serviço</TableHead>
-                    {role !== 'barber' && <TableHead>Barbeiro</TableHead>}
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                <TableHeader className="bg-background">
+                  <TableRow className="hover:bg-transparent border-border">
+                    <TableHead className="w-[100px] text-muted-foreground">Data</TableHead>
+                    <TableHead className="w-[100px] text-muted-foreground">Hora</TableHead>
+                    <TableHead className="text-muted-foreground">Cliente</TableHead>
+                    <TableHead className="text-muted-foreground">Serviço</TableHead>
+                    {role !== 'barber' && <TableHead className="text-muted-foreground">Barbeiro</TableHead>}
+                    <TableHead className="text-right text-muted-foreground">Valor</TableHead>
+                    <TableHead className="text-right text-muted-foreground">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {appointments.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={role !== 'barber' ? 7 : 6} className="text-center py-8 text-muted-foreground">
                         Nenhum agendamento pendente de pagamento.
                       </TableCell>
                     </TableRow>
                   ) : (
                     appointments.map((app) => (
-                      <TableRow key={app.id}>
-                        <TableCell className="whitespace-nowrap">
+                      <TableRow key={app.id} className="border-border hover:bg-muted/50 transition-colors">
+                        <TableCell className="whitespace-nowrap text-foreground">
                           {new Date(app.start_time).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm font-medium">{new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="text-sm font-medium text-foreground">{new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                         </TableCell>
-                        <TableCell className="font-medium">{app.customers?.name || "Cliente"}</TableCell>
-                        <TableCell>{app.services?.name || "Serviço"}</TableCell>
+                        <TableCell className="font-medium text-foreground">{app.customers?.name || "Cliente"}</TableCell>
+                        <TableCell className="text-muted-foreground">{app.services?.name || "Serviço"}</TableCell>
                         {role !== 'barber' && <TableCell>{app.barber?.name || "Geral"}</TableCell>}
-                        <TableCell className="text-right font-bold text-yellow-600">
+                        <TableCell className="text-right font-bold text-yellow-500">
                           R$ {(parseFloat(String(app.total_price)) || 0).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right">
@@ -1096,13 +1109,13 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="barbers" className="pt-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-end bg-white p-4 border-2 border-slate-200 rounded-xl text-black">
+            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border border-border rounded-xl text-foreground">
               <div className="space-y-2">
                 <Label htmlFor="barber-filter-date">Filtrar por Data</Label>
                 <input 
                   id="barber-filter-date" 
                   type="date" 
-                  className="flex h-10 w-[180px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-[180px] rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                   value={barberDateFilter}
                   onChange={(e) => setBarberDateFilter(e.target.value)}
                 />
@@ -1110,7 +1123,7 @@ function FinancesComponent() {
               <Button 
                 variant="ghost" 
                 onClick={() => setBarberDateFilter("")}
-                className="h-10"
+                className="h-10 hover:bg-accent hover:text-accent-foreground"
               >
                 Todas as Datas
               </Button>
@@ -1151,24 +1164,24 @@ function FinancesComponent() {
                 const barbershopPartFromBarber = totalReceived - barberPart;
 
                 return (
-                  <Card key={barber.id} className="bg-white border-2 border-slate-200 text-black">
+                  <Card key={barber.id} className="bg-card border-border text-foreground">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">{barber.name}</CardTitle>
+                      <CardTitle className="text-lg text-white">{barber.name}</CardTitle>
                       <p className="text-xs text-muted-foreground">Comissão: {commissionRate}%</p>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="flex justify-between items-center border-b pb-2">
+                      <div className="flex justify-between items-center border-b border-border pb-2">
                         <span className="text-sm text-muted-foreground">Total Atendido</span>
-                        <span className="font-bold">R$ {totalReceived.toFixed(2)}</span>
+                        <span className="font-bold text-white">R$ {totalReceived.toFixed(2)}</span>
                       </div>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center text-sm">
                           <span>Parte do Barbeiro ({commissionRate}%)</span>
-                          <span className="text-green-600 font-medium">R$ {barberPart.toFixed(2)}</span>
+                          <span className="text-emerald-500 font-medium">R$ {barberPart.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
                           <span>Parte da Barbearia</span>
-                          <span className="text-blue-600 font-medium">R$ {barbershopPartFromBarber.toFixed(2)}</span>
+                          <span className="text-primary font-medium">R$ {barbershopPartFromBarber.toFixed(2)}</span>
                         </div>
                       </div>
                     </CardContent>
@@ -1176,9 +1189,9 @@ function FinancesComponent() {
                 );
               })}
               
-              <Card className="bg-white border-2 border-black/10 text-black shadow-md">
+              <Card className="bg-card border-primary/20 text-foreground shadow-md">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg text-black font-black">Barbearia Geral (Total)</CardTitle>
+                  <CardTitle className="text-lg text-white font-black">Barbearia Geral (Total)</CardTitle>
                   <p className="text-xs text-muted-foreground">Soma de todos os ganhos da barbearia</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1235,15 +1248,15 @@ function FinancesComponent() {
                         <>
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">Lançamentos Gerais</span>
-                            <span>R$ {totalGeneralOnly.toFixed(2)}</span>
+                            <span className="text-foreground">R$ {totalGeneralOnly.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">Vindo dos Barbeiros</span>
-                            <span>R$ {totalFromBarbers.toFixed(2)}</span>
+                            <span className="text-foreground">R$ {totalFromBarbers.toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between items-center border-t pt-2 mt-2">
-                             <span className="font-bold text-black uppercase tracking-tighter">Total Acumulado</span>
-                            <span className="text-xl font-black text-black">R$ {finalTotal.toFixed(2)}</span>
+                          <div className="flex justify-between items-center border-t border-border pt-2 mt-2">
+                             <span className="font-bold text-white uppercase tracking-tighter">Total Acumulado</span>
+                            <span className="text-xl font-black text-primary">R$ {finalTotal.toFixed(2)}</span>
                           </div>
                         </>
                       );
@@ -1252,7 +1265,7 @@ function FinancesComponent() {
               </Card>
 
               {barbers.length === 0 && (
-                <div className="col-span-full text-center py-12 border-2 border-slate-200 rounded-xl bg-white text-black font-medium">
+                <div className="col-span-full text-center py-12 border border-border rounded-xl bg-card text-foreground font-medium">
                   Nenhum barbeiro cadastrado.
                 </div>
               )}
