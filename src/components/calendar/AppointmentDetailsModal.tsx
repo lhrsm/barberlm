@@ -51,6 +51,7 @@ export function AppointmentDetailsModal({
   const [appointment, setAppointment] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
   const [actionLoading, setActionLoading] = React.useState(false);
+  const [auditLogs, setAuditLogs] = React.useState<any[]>([]);
   const queryClient = useQueryClient();
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
 
@@ -59,6 +60,7 @@ export function AppointmentDetailsModal({
       fetchAppointment();
     } else {
       setAppointment(null);
+      setAuditLogs([]);
     }
   }, [open, appointmentId]);
 
@@ -78,6 +80,18 @@ export function AppointmentDetailsModal({
 
       if (error) throw error;
       setAppointment(data);
+
+      // Fetch audit logs (manual adjustments)
+      const { data: logs } = await supabase
+        .from("financial_adjustment_logs")
+        .select(`
+          *,
+          adjusted_by_user:profiles(full_name)
+        `)
+        .eq("appointment_id", appointmentId!)
+        .order("adjusted_at", { ascending: false });
+      
+      setAuditLogs(logs || []);
     } catch (error: any) {
       console.error("Error fetching appointment details:", error);
       toast.error("Erro ao carregar detalhes do agendamento");
@@ -309,7 +323,36 @@ export function AppointmentDetailsModal({
                     "{appointment.notes}"
                   </div>
                 </div>
-              )}
+          )}
+
+          {/* Audit & Logs - ONLY for Admin (we could pass an 'isAdmin' prop, but checking appointment source or similar) */}
+          {auditLogs.length > 0 && (
+            <div className="space-y-4 pt-6 border-t border-zinc-100">
+              <p className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <AlertTriangle size={14} /> Auditoria de Ajustes
+              </p>
+              <div className="space-y-3">
+                {auditLogs.map((log) => (
+                  <div key={log.id} className="p-4 rounded-xl bg-red-50/50 border border-red-100 text-xs text-zinc-600">
+                    <div className="flex justify-between mb-1">
+                      <span className="font-bold text-zinc-900">Ajustado por: {log.adjusted_by_user?.full_name || 'Sistema'}</span>
+                      <span className="text-zinc-400">{format(parseISO(log.adjusted_at), "dd/MM/yyyy HH:mm")}</span>
+                    </div>
+                    <p className="italic text-red-700 font-medium mb-1">Motivo: {log.reason}</p>
+                    <div className="text-[10px] bg-white p-2 rounded border border-red-50 flex flex-col gap-0.5 mt-2">
+                      <span className="font-bold uppercase text-zinc-400">Mudanças:</span>
+                      {log.new_values?.amount !== log.old_values?.amount && (
+                        <span>Valor: R$ {log.old_values?.amount} → R$ {log.new_values?.amount}</span>
+                      )}
+                      {log.new_values?.payment_method !== log.old_values?.payment_method && (
+                        <span>Método: {log.old_values?.payment_method} → {log.new_values?.payment_method}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
             </div>
           )}
         </div>
