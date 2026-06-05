@@ -854,9 +854,9 @@ function DashboardComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground italic">Profissionais</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-1 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
+                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 italic">Profissionais</span>
                   <div className="flex items-end gap-1">
                     <span className="text-lg font-black leading-none text-foreground">{usage.barbers}</span>
                     <span className="text-[10px] text-muted-foreground font-bold">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
@@ -868,8 +868,8 @@ function DashboardComponent() {
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground italic">Serviços</span>
+                <div className="space-y-1 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
+                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 italic">Serviços</span>
                   <div className="flex items-end gap-1">
                     <span className="text-lg font-black leading-none text-foreground">{usage.services}</span>
                     <span className="text-[10px] text-muted-foreground font-bold">/ {limits.services === Infinity ? "∞" : limits.services}</span>
@@ -881,8 +881,8 @@ function DashboardComponent() {
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground italic">Agendamentos</span>
+                <div className="space-y-1 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
+                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 italic">Agendamentos</span>
                   <div className="flex items-end gap-1">
                     <span className="text-lg font-black leading-none text-foreground">{usage.monthlyAppointments}</span>
                     <span className="text-[10px] text-muted-foreground font-bold">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
@@ -894,33 +894,33 @@ function DashboardComponent() {
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">WhatsApp</span>
+                <div className="space-y-1 bg-sky-500/5 p-3 rounded-2xl border border-sky-500/10">
+                  <span className="text-[10px] uppercase font-bold text-sky-600 dark:text-sky-500">WhatsApp</span>
                   <div className="flex items-end gap-1">
                     <span className="text-lg font-black leading-none text-foreground">{usage.whatsappConnections}</span>
                     <span className="text-[10px] text-muted-foreground">/ {limits.whatsappConnections === Infinity ? "∞" : limits.whatsappConnections}</span>
                   </div>
-                  <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1" />
+                  <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1 bg-sky-100" />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 bg-purple-500/5 p-3 rounded-2xl border border-purple-500/10">
                   <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400">Créditos</span>
                   <div className="flex items-center gap-1">
                     <span className="text-lg font-black leading-none text-purple-800 dark:text-purple-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
                     </span>
                   </div>
-                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg text-purple-700 dark:text-purple-300 w-fit">
+                  <div className="p-1 bg-purple-100 dark:bg-purple-900/40 rounded-lg text-purple-700 dark:text-purple-300 w-fit">
                     <Wallet size={12} />
                   </div>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
                   <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Cashback</span>
                   <div className="flex items-center gap-1">
                     <span className="text-lg font-black leading-none text-orange-800 dark:text-orange-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
                     </span>
                   </div>
-                  <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg text-orange-700 dark:text-orange-300 w-fit">
+                  <div className="p-1 bg-orange-100 dark:bg-orange-900/40 rounded-lg text-orange-700 dark:text-orange-300 w-fit">
                     <Gift size={12} />
                   </div>
                 </div>
