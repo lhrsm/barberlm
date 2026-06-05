@@ -1698,6 +1698,7 @@ function AutomationsComponent() {
                                       body: { 
                                         tenant_id: tenantId, 
                                         appointment_id: log.appointment_id,
+                                        workflow_key: log.workflow_key,
                                         force_resend: true 
                                       }
                                     });
