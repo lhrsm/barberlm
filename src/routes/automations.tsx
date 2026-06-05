@@ -409,6 +409,133 @@ function AutomationsComponent() {
     }
   };
 
+  const fetchPendingCallbacks = async () => {
+    if (!tenantId) return;
+    try {
+      const { data, error } = await anySupabase
+        .from("automation_v2_dispatches")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("callback_received", false)
+        .eq("status", "sent")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      setPendingCallbacks(data || []);
+    } catch (error: any) {
+      console.error("Error fetching pending callbacks:", error);
+    }
+  };
+
+  const handleDiagnoseCallback = async (dispatch: any) => {
+    setIsDiagnosing(true);
+    setIsDiagnosticOpen(true);
+    try {
+      // 1. Get Instance Config
+      const { data: instance } = await supabase
+        .from("whatsapp_instances")
+        .select("*")
+        .eq("tenant_id", tenantId || "")
+        .maybeSingle();
+
+      // 2. Get active session
+      const { data: session } = await supabase
+        .from("automation_conversations")
+        .select("*")
+        .eq("phone_normalized", dispatch.phone)
+        .in("status", ["active", "awaiting_response"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // 3. Get recent webhooks for this phone
+      const { data: phoneWebhooks } = await anySupabase
+        .from("automation_webhook_logs")
+        .select("*")
+        .eq("phone_normalized", dispatch.phone)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      // 4. Get recent webhooks for this instance
+      let instanceWebhooks = [];
+      if (instance?.instance_id) {
+        const { data: instWebs } = await anySupabase
+          .from("automation_webhook_logs")
+          .select("*")
+          .filter("raw_payload->>instanceId", "eq", instance.instance_id)
+          .order("created_at", { ascending: false })
+          .limit(5);
+        instanceWebhooks = instWebs || [];
+      }
+
+      setDiagnosticData({
+        dispatch,
+        instance,
+        session,
+        phoneWebhooks,
+        instanceWebhooks,
+        webhookUrl: instance?.webhook_received_url || "Não configurada"
+      });
+    } catch (error: any) {
+      toast.error("Erro no diagnóstico: " + error.message);
+    } finally {
+      setIsDiagnosing(false);
+    }
+  };
+
+  const handleManualCallbackTest = async (dispatch: any) => {
+    const toastId = toast.loading("Simulando callback...");
+    try {
+      const payload = {
+        type: "ReceivedCallback",
+        fromMe: false,
+        phone: dispatch.phone,
+        referenceMessageId: dispatch.message_id,
+        buttonsResponseMessage: {
+          buttonId: "main_confirm",
+          buttonText: "Confirmar agendamento"
+        }
+      };
+
+      const { data, error } = await supabase.functions.invoke('zapi-receive-json', {
+        body: payload
+      });
+
+      if (error) throw error;
+
+      if (data?.matchedAction) {
+        toast.success(`Callback simulado com sucesso! Ação detectada: ${data.matchedAction}`, { id: toastId });
+        await fetchData();
+      } else {
+        toast.error("Callback processado, mas nenhuma ação detectada.", { id: toastId });
+      }
+    } catch (error: any) {
+      toast.error("Falha no teste manual: " + error.message, { id: toastId });
+    }
+  };
+
+  const handleRescheduleCallbackTracking = async (dispatch: any) => {
+    const toastId = toast.loading("Reenviando com tracking...");
+    try {
+      // Forçar reprocessamento via queue
+      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { 
+          tenant_id: tenantId, 
+          appointment_id: dispatch.appointment_id,
+          force_resend: true 
+        }
+      });
+
+      if (error) throw error;
+      toast.success("Mensagem reenviada! Aguardando novo callback.", { id: toastId });
+      await fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao reenviar: " + error.message, { id: toastId });
+    }
+  };
+
+
   const handleManualReconcile = async () => {
     setIsReconciling(true);
     const toastId = toast.loading("Reprocessando reconciliações...");
