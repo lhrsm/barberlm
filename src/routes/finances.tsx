@@ -594,15 +594,15 @@ function FinancesComponent() {
         </div>
 
         <Tabs defaultValue="transactions" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[600px] bg-white border border-slate-200 text-black">
-            <TabsTrigger value="transactions" className="gap-2">
+          <TabsList className="grid w-full grid-cols-3 max-w-[600px] bg-card border border-border text-foreground">
+            <TabsTrigger value="transactions" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <FileText size={16} /> Lançamentos
             </TabsTrigger>
-            <TabsTrigger value="pending" className="gap-2">
+            <TabsTrigger value="pending" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Clock size={16} /> Pendentes
             </TabsTrigger>
             {role !== 'barber' && (
-              <TabsTrigger value="barbers" className="gap-2">
+              <TabsTrigger value="barbers" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Users size={16} /> Por Barbeiro
               </TabsTrigger>
             )}
