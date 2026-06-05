@@ -494,9 +494,10 @@ function AutomationsComponent() {
         referenceMessageId: dispatch.message_id,
         buttonsResponseMessage: {
           buttonId: "main_confirm",
-          buttonText: "Confirmar agendamento"
+          message: "Confirmar agendamento"
         }
       };
+
 
       const { data, error } = await supabase.functions.invoke('zapi-receive-json', {
         body: payload
