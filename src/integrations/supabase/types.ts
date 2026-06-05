@@ -1834,6 +1834,71 @@ export type Database = {
           },
         ]
       }
+      financial_adjustment_logs: {
+        Row: {
+          adjusted_at: string | null
+          adjusted_by: string | null
+          appointment_id: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          reason: string
+          tenant_id: string | null
+          transaction_id: string | null
+        }
+        Insert: {
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          appointment_id?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          reason: string
+          tenant_id?: string | null
+          transaction_id?: string | null
+        }
+        Update: {
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          appointment_id?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          reason?: string
+          tenant_id?: string | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_adjustment_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_adjustment_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "financial_adjustment_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_adjustment_logs_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           barber_id: string | null
@@ -2672,42 +2737,75 @@ export type Database = {
       }
       transactions: {
         Row: {
+          adjusted_at: string | null
+          adjusted_by: string | null
+          adjustment_reason: string | null
           amount: number
           appointment_id: string | null
           barber_id: string | null
+          cash_amount: number | null
+          cashback_amount: number | null
           category: string | null
           created_at: string
+          credit_card_amount: number | null
+          credits_amount: number | null
           date: string | null
+          debit_card_amount: number | null
           description: string | null
           id: string
+          manual_adjustment: boolean | null
+          payment_method: string | null
+          pix_amount: number | null
           tenant_id: string | null
           time: string | null
           type: string
           user_id: string
         }
         Insert: {
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          adjustment_reason?: string | null
           amount: number
           appointment_id?: string | null
           barber_id?: string | null
+          cash_amount?: number | null
+          cashback_amount?: number | null
           category?: string | null
           created_at?: string
+          credit_card_amount?: number | null
+          credits_amount?: number | null
           date?: string | null
+          debit_card_amount?: number | null
           description?: string | null
           id?: string
+          manual_adjustment?: boolean | null
+          payment_method?: string | null
+          pix_amount?: number | null
           tenant_id?: string | null
           time?: string | null
           type: string
           user_id: string
         }
         Update: {
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          adjustment_reason?: string | null
           amount?: number
           appointment_id?: string | null
           barber_id?: string | null
+          cash_amount?: number | null
+          cashback_amount?: number | null
           category?: string | null
           created_at?: string
+          credit_card_amount?: number | null
+          credits_amount?: number | null
           date?: string | null
+          debit_card_amount?: number | null
           description?: string | null
           id?: string
+          manual_adjustment?: boolean | null
+          payment_method?: string | null
+          pix_amount?: number | null
           tenant_id?: string | null
           time?: string | null
           type?: string

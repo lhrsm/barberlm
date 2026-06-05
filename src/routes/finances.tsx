@@ -16,7 +16,8 @@ import {
 import { Phone, ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { formatInTimeZone, toDate } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,9 +27,11 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger 
+  DialogTrigger,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Select, 
   SelectContent, 
@@ -52,12 +55,40 @@ function FinancesComponent() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: "12:00" });
+  const [newTransaction, setNewTransaction] = useState({ 
+    amount: "", 
+    type: "income", 
+    description: "", 
+    category: "Serviço", 
+    barber_id: "none", 
+    date: new Date().toISOString().split('T')[0], 
+    time: "12:00",
+    payment_method: "cash"
+  });
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  const TIMEZONE = "America/Sao_Paulo";
+
+  const formatTransactionTimeForEdit = (transaction: any) => {
+    if (transaction.appointment?.start_time) {
+      return formatInTimeZone(new Date(transaction.appointment.start_time), TIMEZONE, 'HH:mm');
+    }
+    if (typeof transaction.time === 'string') {
+      return transaction.time.substring(0, 5);
+    }
+    return "12:00";
+  };
+
+  const formatTransactionDateForEdit = (transaction: any) => {
+    if (transaction.appointment?.start_time) {
+      return formatInTimeZone(new Date(transaction.appointment.start_time), TIMEZONE, 'yyyy-MM-dd');
+    }
+    return transaction.date || new Date().toISOString().split('T')[0];
+  };
   
   const user = authUser || (session ? { id: session.barber_id } : null);
   const role = authRole || (session ? 'barber' : null);
@@ -127,7 +158,19 @@ function FinancesComponent() {
       .select(`
         *,
         barber:barbers(name),
-        appointment:appointments(status, payment_method, credit_used, original_total, final_amount, total_price, start_time, customers(name))
+        appointment:appointments(
+          status, 
+          payment_method, 
+          credit_used, 
+          credits_used,
+          original_total, 
+          final_amount, 
+          total_price, 
+          start_time, 
+          customers(name),
+          pix_amount,
+          cashback_used
+        )
       `)
       .eq("user_id", user.id);
     
@@ -198,8 +241,13 @@ function FinancesComponent() {
     const realCashIncome = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
+        // Se houver valores detalhados de pagamento, usar eles (preferência para ajustes manuais ou mistos)
+        if (t.payment_method === 'misto' || t.manual_adjustment) {
+          const cashFlow = Number(t.pix_amount || 0) + Number(t.cash_amount || 0) + Number(t.credit_card_amount || 0) + Number(t.debit_card_amount || 0);
+          return acc + cashFlow;
+        }
+
         // Se for via cashback ou créditos no método de pagamento, não deve contar no caixa real
-        // mesmo que o valor na transação seja > 0 (por erro de registro)
         if (t.appointment && (t.appointment.payment_method === 'cashback' || t.appointment.payment_method === 'credits')) {
           return acc;
         }
@@ -210,6 +258,9 @@ function FinancesComponent() {
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
+        if (t.payment_method === 'misto' || t.manual_adjustment) {
+          return acc + Number(t.credits_amount || 0);
+        }
         let val = Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0);
         // Fallback: se o valor for 0 mas o método for créditos, usar o valor da transação
         if (val === 0 && t.appointment?.payment_method === 'credits') {
@@ -222,6 +273,9 @@ function FinancesComponent() {
     const cashbackConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
+        if (t.payment_method === 'misto' || t.manual_adjustment) {
+          return acc + Number(t.cashback_amount || 0);
+        }
         let val = Number(t.appointment?.cashback_used || 0);
         // Fallback: se o valor for 0 mas o método for cashback, usar o valor da transação
         if (val === 0 && t.appointment?.payment_method === 'cashback') {
@@ -237,6 +291,7 @@ function FinancesComponent() {
     // Pendentes são agendamentos que ainda não foram concluídos
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
+
 
     // Parte dos Freelancers (Comissão baseada no Valor Total do Serviço)
     const freelancersPart = barbers.reduce((acc, barber) => {
@@ -316,7 +371,7 @@ function FinancesComponent() {
     } else {
       toast.success("Transação adicionada!");
       setIsAddDialogOpen(false);
-      setNewTransaction({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: "12:00" });
+      setNewTransaction({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: "12:00", payment_method: "cash" });
       fetchTransactions();
     }
   }
@@ -325,23 +380,73 @@ function FinancesComponent() {
     e.preventDefault();
     if (!user || !editingTransaction) return;
 
+    if (!editingTransaction.adjustment_reason) {
+      toast.error("O motivo do ajuste é obrigatório.");
+      return;
+    }
+
+    // Validate mixed payment total
+    if (editingTransaction.payment_method === 'misto') {
+      const total = 
+        Number(editingTransaction.pix_amount || 0) + 
+        Number(editingTransaction.cash_amount || 0) + 
+        Number(editingTransaction.credit_card_amount || 0) + 
+        Number(editingTransaction.debit_card_amount || 0) + 
+        Number(editingTransaction.credits_amount || 0) + 
+        Number(editingTransaction.cashback_amount || 0);
+      
+      if (Math.abs(total - parseFloat(editingTransaction.amount)) > 0.01) {
+        toast.error(`O total dos valores (R$ ${total.toFixed(2)}) deve ser igual ao valor da transação (R$ ${parseFloat(editingTransaction.amount).toFixed(2)}).`);
+        return;
+      }
+    }
+
+    // Get original transaction for logging
+    const originalTransaction = transactions.find(t => t.id === editingTransaction.id);
+
+    const updateData: any = {
+      amount: parseFloat(editingTransaction.amount),
+      type: editingTransaction.type,
+      description: editingTransaction.description,
+      category: editingTransaction.category,
+      barber_id: editingTransaction.barber_id === "none" ? null : editingTransaction.barber_id,
+      date: editingTransaction.date,
+      time: editingTransaction.time,
+      payment_method: editingTransaction.payment_method,
+      manual_adjustment: true,
+      adjusted_by: user.id,
+      adjusted_at: new Date().toISOString(),
+      adjustment_reason: editingTransaction.adjustment_reason,
+      pix_amount: editingTransaction.payment_method === 'pix' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.pix_amount || 0) : 0),
+      cash_amount: editingTransaction.payment_method === 'cash' || editingTransaction.payment_method === 'dinheiro' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.cash_amount || 0) : 0),
+      credit_card_amount: editingTransaction.payment_method === 'card' || editingTransaction.payment_method === 'credit_card' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.credit_card_amount || 0) : 0),
+      debit_card_amount: editingTransaction.payment_method === 'debit_card' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.debit_card_amount || 0) : 0),
+      credits_amount: editingTransaction.payment_method === 'credits' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.credits_amount || 0) : 0),
+      cashback_amount: editingTransaction.payment_method === 'cashback' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.cashback_amount || 0) : 0),
+    };
+
     const { error } = await supabase
       .from("transactions")
-      .update({
-        amount: parseFloat(editingTransaction.amount),
-        type: editingTransaction.type,
-        description: editingTransaction.description,
-        category: editingTransaction.category,
-        barber_id: editingTransaction.barber_id === "none" ? null : editingTransaction.barber_id,
-        date: editingTransaction.date,
-        time: editingTransaction.time,
-      })
+      .update(updateData)
       .eq("id", editingTransaction.id);
 
     if (error) {
       toast.error("Erro ao atualizar transação");
+      console.error(error);
     } else {
-      toast.success("Transação atualizada!");
+      // Log the adjustment
+      await supabase.from("financial_adjustment_logs").insert({
+        transaction_id: editingTransaction.id,
+        appointment_id: editingTransaction.appointment_id,
+        tenant_id: editingTransaction.tenant_id,
+        old_values: originalTransaction,
+        new_values: updateData,
+        reason: editingTransaction.adjustment_reason,
+        adjusted_by: user.id,
+        adjusted_at: new Date().toISOString()
+      });
+
+      toast.success("Transação atualizada e auditada!");
       setIsEditDialogOpen(false);
       setEditingTransaction(null);
       fetchTransactions();
@@ -727,18 +832,33 @@ function FinancesComponent() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
-                            {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="w-fit bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
-                            {t.appointment?.payment_method === 'cash' && <Badge variant="outline" className="w-fit bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
-                            {t.appointment?.payment_method === 'card' && <Badge variant="outline" className="w-fit bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
-                            {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="w-fit bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
-                            {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
-                            {(t.appointment?.credit_used > 0 || t.appointment?.credits_used > 0) && (
-                              <span className="text-[10px] text-purple-400 font-bold">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)).toFixed(2)}</span>
+                            {/* Prioritize manual/transaction payment method */}
+                            {t.payment_method === 'misto' ? (
+                              <Badge variant="outline" className="w-fit bg-orange-500/10 text-orange-500 border-orange-500/20 font-bold">MISTO</Badge>
+                            ) : (
+                              <>
+                                {(t.payment_method === 'pix' || t.appointment?.payment_method === 'pix') && <Badge variant="outline" className="w-fit bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
+                                {(t.payment_method === 'dinheiro' || t.appointment?.payment_method === 'cash') && <Badge variant="outline" className="w-fit bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
+                                {(t.payment_method === 'credit_card' || t.payment_method === 'card' || t.appointment?.payment_method === 'card') && <Badge variant="outline" className="w-fit bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
+                                {(t.payment_method === 'debit_card') && <Badge variant="outline" className="w-fit bg-indigo-500/10 text-indigo-500 border-indigo-500/20">Débito</Badge>}
+                                {(t.payment_method === 'credits' || t.appointment?.payment_method === 'credits') && <Badge variant="outline" className="w-fit bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
+                                {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback') && <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
+                              </>
                             )}
-                            {t.appointment?.cashback_used > 0 && (
-                              <span className="text-[10px] text-orange-400 font-bold">Cashback: R$ {Number(t.appointment?.cashback_used).toFixed(2)}</span>
+                            
+                            {/* Detailed parts for Misto or Manual adjustments */}
+                            {(t.pix_amount > 0) && <span className="text-[9px] text-emerald-400 font-medium">PIX: R$ {Number(t.pix_amount).toFixed(2)}</span>}
+                            {(t.cash_amount > 0) && <span className="text-[9px] text-blue-400 font-medium">Din: R$ {Number(t.cash_amount).toFixed(2)}</span>}
+                            {(t.credit_card_amount > 0) && <span className="text-[9px] text-purple-400 font-medium">CC: R$ {Number(t.credit_card_amount).toFixed(2)}</span>}
+                            {(t.debit_card_amount > 0) && <span className="text-[9px] text-indigo-400 font-medium">Deb: R$ {Number(t.debit_card_amount).toFixed(2)}</span>}
+
+                            {(t.appointment?.credit_used > 0 || t.appointment?.credits_used > 0 || t.credits_amount > 0) && (
+                              <span className="text-[10px] text-purple-400 font-bold uppercase">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0) + Number(t.credits_amount || 0)).toFixed(2)}</span>
                             )}
-                            {!t.appointment && <span className="text-xs uppercase font-medium text-muted-foreground">{t.payment_method || '-'}</span>}
+                            {(t.appointment?.cashback_used > 0 || t.cashback_amount > 0) && (
+                              <span className="text-[10px] text-orange-400 font-bold uppercase">Cashback: R$ {(Number(t.appointment?.cashback_used || 0) + Number(t.cashback_amount || 0)).toFixed(2)}</span>
+                            )}
+                            {!t.appointment && !t.payment_method && <span className="text-xs uppercase font-medium text-muted-foreground">-</span>}
                           </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">{t.category || "-"}</TableCell>
@@ -770,102 +890,224 @@ function FinancesComponent() {
                                     ...t,
                                     amount: String(t.amount || ""),
                                     barber_id: t.barber_id || "none",
-                                    date: t.date,
-                                    time: t.time || "12:00:00"
+                                    date: formatTransactionDateForEdit(t),
+                                    time: formatTransactionTimeForEdit(t),
+                                    payment_method: t.payment_method || (t.appointment?.payment_method === 'cash' ? 'dinheiro' : t.appointment?.payment_method) || "dinheiro",
+                                    category: t.category || "Serviço",
+                                    pix_amount: t.pix_amount || t.appointment?.pix_amount || 0,
+                                    cash_amount: t.cash_amount || 0,
+                                    credit_card_amount: t.credit_card_amount || 0,
+                                    debit_card_amount: t.debit_card_amount || 0,
+                                    credits_amount: t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0,
+                                    cashback_amount: t.cashback_amount || t.appointment?.cashback_used || 0,
+                                    adjustment_reason: ""
                                   });
                                   setIsEditDialogOpen(true);
                                 }}
                               >
                                 <Edit2 size={14} />
                               </Button>
-                              <DialogContent>
+                              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                                 <DialogHeader>
-                                  <DialogTitle>Editar Transação</DialogTitle>
+                                  <DialogTitle className="text-xl font-bold">Ajuste Manual de Transação</DialogTitle>
                                 </DialogHeader>
                                 {editingTransaction && (
-                                  <form onSubmit={handleUpdateTransaction} className="space-y-4 pt-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                                  <form onSubmit={handleUpdateTransaction} className="space-y-6 pt-4 pb-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                      <div className="space-y-4">
+                                        <div className="space-y-2">
+                                          <Label htmlFor="edit-date" className="text-sm font-semibold">Data</Label>
+                                          <Input 
+                                            id="edit-date" 
+                                            type="date"
+                                            value={editingTransaction.date} 
+                                            onChange={(e) => setEditingTransaction({...editingTransaction, date: e.target.value})} 
+                                            required 
+                                            className="bg-background border-border"
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label htmlFor="edit-time" className="text-sm font-semibold">Horário</Label>
+                                          <Input 
+                                            id="edit-time" 
+                                            type="time"
+                                            value={editingTransaction.time} 
+                                            onChange={(e) => setEditingTransaction({...editingTransaction, time: e.target.value})} 
+                                            required 
+                                            className="bg-background border-border"
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label htmlFor="edit-amount" className="text-sm font-semibold">Valor Total (R$)</Label>
+                                          <Input 
+                                            id="edit-amount" 
+                                            type="number"
+                                            step="0.01"
+                                            value={editingTransaction.amount} 
+                                            onChange={(e) => setEditingTransaction({...editingTransaction, amount: e.target.value})} 
+                                            required 
+                                            className="bg-background border-border font-bold text-lg"
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label htmlFor="edit-type" className="text-sm font-semibold">Tipo</Label>
+                                          <Select 
+                                            value={editingTransaction.type} 
+                                            onValueChange={(val) => setEditingTransaction({...editingTransaction, type: val})}
+                                          >
+                                            <SelectTrigger className="bg-background border-border">
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="income">Entrada (Receita)</SelectItem>
+                                              <SelectItem value="expense">Saída (Despesa)</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-4">
+                                        <div className="space-y-2">
+                                          <Label htmlFor="edit-payment-method" className="text-sm font-semibold">Forma de Pagamento</Label>
+                                          <Select 
+                                            value={editingTransaction.payment_method} 
+                                            onValueChange={(val) => setEditingTransaction({...editingTransaction, payment_method: val})}
+                                          >
+                                            <SelectTrigger className="bg-background border-border">
+                                              <SelectValue placeholder="Selecione" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="pix">PIX</SelectItem>
+                                              <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                                              <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                                              <SelectItem value="debit_card">Cartão de Débito</SelectItem>
+                                              <SelectItem value="barbershop">Pagar na Barbearia</SelectItem>
+                                              <SelectItem value="credits">Créditos</SelectItem>
+                                              <SelectItem value="cashback">Cashback</SelectItem>
+                                              <SelectItem value="misto">Misto (Múltiplas Formas)</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          <Label htmlFor="edit-category-dropdown" className="text-sm font-semibold">Categoria</Label>
+                                          <Select 
+                                            value={editingTransaction.category} 
+                                            onValueChange={(val) => setEditingTransaction({...editingTransaction, category: val})}
+                                          >
+                                            <SelectTrigger className="bg-background border-border">
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="Serviço">Serviço</SelectItem>
+                                              <SelectItem value="Produto">Produto</SelectItem>
+                                              <SelectItem value="Ambos">Ambos</SelectItem>
+                                              <SelectItem value="Outros">Outros</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          <Label htmlFor="edit-barber" className="text-sm font-semibold">Barbeiro Responsável</Label>
+                                          <Select 
+                                            value={editingTransaction.barber_id} 
+                                            onValueChange={(val) => setEditingTransaction({...editingTransaction, barber_id: val})}
+                                          >
+                                            <SelectTrigger className="bg-background border-border">
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="none">Nenhum / Geral</SelectItem>
+                                              {barbers.map((b) => (
+                                                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                              ))}
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {editingTransaction.payment_method === 'misto' && (
+                                      <div className="bg-muted/30 p-4 rounded-xl border border-border space-y-4">
+                                        <h4 className="text-sm font-bold uppercase tracking-tight text-primary">Detalhamento do Pagamento Misto</h4>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                          <div className="space-y-1">
+                                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Valor PIX</Label>
+                                            <Input type="number" step="0.01" value={editingTransaction.pix_amount} onChange={(e) => setEditingTransaction({...editingTransaction, pix_amount: e.target.value})} className="h-8 text-sm" />
+                                          </div>
+                                          <div className="space-y-1">
+                                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Valor Dinheiro</Label>
+                                            <Input type="number" step="0.01" value={editingTransaction.cash_amount} onChange={(e) => setEditingTransaction({...editingTransaction, cash_amount: e.target.value})} className="h-8 text-sm" />
+                                          </div>
+                                          <div className="space-y-1">
+                                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Valor Crédito</Label>
+                                            <Input type="number" step="0.01" value={editingTransaction.credit_card_amount} onChange={(e) => setEditingTransaction({...editingTransaction, credit_card_amount: e.target.value})} className="h-8 text-sm" />
+                                          </div>
+                                          <div className="space-y-1">
+                                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Valor Débito</Label>
+                                            <Input type="number" step="0.01" value={editingTransaction.debit_card_amount} onChange={(e) => setEditingTransaction({...editingTransaction, debit_card_amount: e.target.value})} className="h-8 text-sm" />
+                                          </div>
+                                          <div className="space-y-1">
+                                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Valor Créditos</Label>
+                                            <Input type="number" step="0.01" value={editingTransaction.credits_amount} onChange={(e) => setEditingTransaction({...editingTransaction, credits_amount: e.target.value})} className="h-8 text-sm" />
+                                          </div>
+                                          <div className="space-y-1">
+                                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Valor Cashback</Label>
+                                            <Input type="number" step="0.01" value={editingTransaction.cashback_amount} onChange={(e) => setEditingTransaction({...editingTransaction, cashback_amount: e.target.value})} className="h-8 text-sm" />
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <p className={cn(
+                                            "text-xs font-bold",
+                                            Math.abs((Number(editingTransaction.pix_amount || 0) + Number(editingTransaction.cash_amount || 0) + Number(editingTransaction.credit_card_amount || 0) + Number(editingTransaction.debit_card_amount || 0) + Number(editingTransaction.credits_amount || 0) + Number(editingTransaction.cashback_amount || 0)) - parseFloat(editingTransaction.amount)) < 0.01 
+                                              ? "text-emerald-500" 
+                                              : "text-red-500"
+                                          )}>
+                                            Soma: R$ {(Number(editingTransaction.pix_amount || 0) + Number(editingTransaction.cash_amount || 0) + Number(editingTransaction.credit_card_amount || 0) + Number(editingTransaction.debit_card_amount || 0) + Number(editingTransaction.credits_amount || 0) + Number(editingTransaction.cashback_amount || 0)).toFixed(2)}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    <div className="space-y-4">
                                       <div className="space-y-2">
-                                        <Label htmlFor="edit-date">Data</Label>
+                                        <Label htmlFor="edit-description" className="text-sm font-semibold">Descrição Pública (Exibida na Tabela)</Label>
                                         <Input 
-                                          id="edit-date" 
-                                          type="date"
-                                          value={editingTransaction.date} 
-                                          onChange={(e) => setEditingTransaction({...editingTransaction, date: e.target.value})} 
-                                          required 
+                                          id="edit-description" 
+                                          value={editingTransaction.description} 
+                                          onChange={(e) => setEditingTransaction({...editingTransaction, description: e.target.value})} 
+                                          className="bg-background border-border"
                                         />
                                       </div>
+
                                       <div className="space-y-2">
-                                        <Label htmlFor="edit-time">Horário</Label>
+                                        <Label htmlFor="edit-internal-notes" className="text-sm font-semibold text-yellow-500">Observações Internas</Label>
+                                        <Textarea 
+                                          id="edit-internal-notes" 
+                                          value={editingTransaction.notes || ""} 
+                                          onChange={(e) => setEditingTransaction({...editingTransaction, notes: e.target.value})} 
+                                          placeholder="Anotações que não aparecem para o cliente..."
+                                          className="bg-background border-border resize-none"
+                                        />
+                                      </div>
+
+                                      <div className="space-y-2">
+                                        <Label htmlFor="edit-reason" className="text-sm font-semibold text-red-500">Motivo do Ajuste (Obrigatório)</Label>
                                         <Input 
-                                          id="edit-time" 
-                                          type="time"
-                                          value={editingTransaction.time} 
-                                          onChange={(e) => setEditingTransaction({...editingTransaction, time: e.target.value})} 
-                                          required 
+                                          id="edit-reason" 
+                                          value={editingTransaction.adjustment_reason} 
+                                          onChange={(e) => setEditingTransaction({...editingTransaction, adjustment_reason: e.target.value})} 
+                                          placeholder="Ex: Erro no lançamento original, Cliente mudou forma de pagamento..."
+                                          required
+                                          className="bg-background border-red-500/30 focus:border-red-500"
                                         />
                                       </div>
                                     </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="edit-amount">Valor (R$)</Label>
-                                      <Input 
-                                        id="edit-amount" 
-                                        type="number"
-                                        step="0.01"
-                                        value={editingTransaction.amount} 
-                                        onChange={(e) => setEditingTransaction({...editingTransaction, amount: e.target.value})} 
-                                        required 
-                                      />
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="edit-type">Tipo</Label>
-                                      <Select 
-                                        value={editingTransaction.type} 
-                                        onValueChange={(val) => setEditingTransaction({...editingTransaction, type: val})}
-                                      >
-                                        <SelectTrigger>
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="income">Entrada (Receita)</SelectItem>
-                                          <SelectItem value="expense">Saída (Despesa)</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="edit-category">Categoria</Label>
-                                      <Input 
-                                        id="edit-category" 
-                                        value={editingTransaction.category} 
-                                        onChange={(e) => setEditingTransaction({...editingTransaction, category: e.target.value})} 
-                                      />
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="edit-barber">Barbeiro</Label>
-                                      <Select 
-                                        value={editingTransaction.barber_id} 
-                                        onValueChange={(val) => setEditingTransaction({...editingTransaction, barber_id: val})}
-                                      >
-                                        <SelectTrigger>
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="none">Nenhum / Geral</SelectItem>
-                                          {barbers.map((b) => (
-                                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="edit-description">Descrição</Label>
-                                      <Input 
-                                        id="edit-description" 
-                                        value={editingTransaction.description} 
-                                        onChange={(e) => setEditingTransaction({...editingTransaction, description: e.target.value})} 
-                                      />
-                                    </div>
-                                    <Button type="submit" className="w-full">Atualizar</Button>
+
+                                    <DialogFooter className="pt-4">
+                                      <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
+                                      <Button type="submit" className="bg-primary text-primary-foreground font-bold px-8">Salvar Alterações</Button>
+                                    </DialogFooter>
                                   </form>
                                 )}
                               </DialogContent>
@@ -959,12 +1201,24 @@ function FinancesComponent() {
                            <div className="bg-background/50 p-3 rounded-xl border border-border">
                              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Pagamento</p>
                              <div className="flex flex-wrap gap-1">
-                               {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
-                               {t.appointment?.payment_method === 'cash' && <Badge variant="outline" className="text-[10px] font-bold bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
-                               {t.appointment?.payment_method === 'card' && <Badge variant="outline" className="text-[10px] font-bold bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
-                               {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="text-[10px] font-bold bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
-                               {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
-                               {!t.appointment && <span className="text-[10px] font-bold uppercase text-muted-foreground">{t.payment_method || '-'}</span>}
+                               {t.payment_method === 'misto' ? (
+                                 <Badge variant="outline" className="text-[10px] font-bold bg-orange-500/10 text-orange-500 border-orange-500/20">MISTO</Badge>
+                               ) : (
+                                 <>
+                                   {(t.payment_method === 'pix' || t.appointment?.payment_method === 'pix') && <Badge variant="outline" className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
+                                   {(t.payment_method === 'dinheiro' || t.appointment?.payment_method === 'cash') && <Badge variant="outline" className="text-[10px] font-bold bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
+                                   {(t.payment_method === 'credit_card' || t.payment_method === 'card' || t.appointment?.payment_method === 'card') && <Badge variant="outline" className="text-[10px] font-bold bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
+                                   {(t.payment_method === 'debit_card') && <Badge variant="outline" className="text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border-indigo-500/20">Débito</Badge>}
+                                   {(t.payment_method === 'credits' || t.appointment?.payment_method === 'credits') && <Badge variant="outline" className="text-[10px] font-bold bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
+                                   {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback') && <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
+                                 </>
+                               )}
+                             </div>
+                             <div className="mt-1 flex flex-col gap-0.5">
+                               {(t.pix_amount > 0) && <span className="text-[9px] text-emerald-400 font-medium">PIX: R$ {Number(t.pix_amount).toFixed(2)}</span>}
+                               {(t.cash_amount > 0) && <span className="text-[9px] text-blue-400 font-medium">Din: R$ {Number(t.cash_amount).toFixed(2)}</span>}
+                               {(t.appointment?.credits_used > 0 || t.credits_amount > 0) && <span className="text-[9px] text-purple-400 font-medium">Cred: R$ {(Number(t.appointment?.credits_used || 0) + Number(t.credits_amount || 0)).toFixed(2)}</span>}
+                               {(t.appointment?.cashback_used > 0 || t.cashback_amount > 0) && <span className="text-[9px] text-orange-400 font-medium">Cash: R$ {(Number(t.appointment?.cashback_used || 0) + Number(t.cashback_amount || 0)).toFixed(2)}</span>}
                              </div>
                            </div>
                         </div>
@@ -980,8 +1234,17 @@ function FinancesComponent() {
                               ...t,
                               amount: String(t.amount || ""),
                               barber_id: t.barber_id || "none",
-                              date: t.date,
-                              time: t.time || "12:00:00"
+                              date: formatTransactionDateForEdit(t),
+                              time: formatTransactionTimeForEdit(t),
+                              payment_method: t.payment_method || (t.appointment?.payment_method === 'cash' ? 'dinheiro' : t.appointment?.payment_method) || "dinheiro",
+                              category: t.category || "Serviço",
+                              pix_amount: t.pix_amount || t.appointment?.pix_amount || 0,
+                              cash_amount: t.cash_amount || 0,
+                              credit_card_amount: t.credit_card_amount || 0,
+                              debit_card_amount: t.debit_card_amount || 0,
+                              credits_amount: t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0,
+                              cashback_amount: t.cashback_amount || t.appointment?.cashback_used || 0,
+                              adjustment_reason: ""
                             });
                             setIsEditDialogOpen(true);
                           }}
