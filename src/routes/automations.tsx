@@ -524,6 +524,7 @@ function AutomationsComponent() {
         body: { 
           tenant_id: tenantId, 
           appointment_id: dispatch.appointment_id,
+          workflow_key: dispatch.workflow_key,
           force_resend: true 
         }
       });
