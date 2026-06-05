@@ -382,8 +382,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     setIsConfiguring(true);
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-      // Usando a URL específica para processamento JSON que não depende de tenant_id no path
-      const webhookUrl = `${supabaseUrl}/functions/v1/zapi-receive-json`;
+      // Usando a URL específica para processamento JSON v2
+      const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook-v2`;
       
       const { data, error } = await supabase.functions.invoke('zapi-api', { 
         body: { 
