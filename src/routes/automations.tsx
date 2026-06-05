@@ -1420,12 +1420,12 @@ function AutomationsComponent() {
                         </div>
                         <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Message ID</p>
-                          <p className="text-[10px] font-mono text-white truncate">{logs[0].provider_message_id || 'N/A'}</p>
+                          <p className="text-xs font-mono text-white truncate">{logs[0].message_id || 'N/A'}</p>
                         </div>
                         <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Enviado em</p>
-                          <p className="text-[10px] font-mono text-white">
-                            {logs[0].sent_at ? new Date(logs[0].sent_at).toLocaleTimeString('pt-BR') : logs[0].created_at ? new Date(logs[0].created_at).toLocaleTimeString('pt-BR') : 'N/A'}
+                          <p className="text-xs font-mono text-white">
+                            {logs[0].sent_at ? new Date(logs[0].sent_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : 'N/A'}
                           </p>
                         </div>
                         <div className="space-y-1.5">
@@ -1437,10 +1437,10 @@ function AutomationsComponent() {
                         <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Botão Recebido</p>
                           <p className="text-[10px] font-mono">
-                            {logs.some(l => l.appointment_id === logs[0].appointment_id && l.action === 'button_clicked') ? (
-                              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4">TRUE</Badge>
+                            {logs[0].callback_received ? (
+                              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4 uppercase">{logs[0].callback_button_id || 'TRUE'}</Badge>
                             ) : (
-                              <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] h-4">CALLBACK PENDENTE</Badge>
+                              <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] h-4 uppercase">CALLBACK PENDENTE</Badge>
                             )}
                           </p>
                         </div>
