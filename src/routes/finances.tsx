@@ -158,7 +158,19 @@ function FinancesComponent() {
       .select(`
         *,
         barber:barbers(name),
-        appointment:appointments(status, payment_method, credit_used, original_total, final_amount, total_price, start_time, customers(name))
+        appointment:appointments(
+          status, 
+          payment_method, 
+          credit_used, 
+          credits_used,
+          original_total, 
+          final_amount, 
+          total_price, 
+          start_time, 
+          customers(name),
+          pix_amount,
+          cashback_used
+        )
       `)
       .eq("user_id", user.id);
     
