@@ -991,39 +991,39 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="pending" className="pt-4">
-            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-x-auto custom-scrollbar">
+            <div className="border border-border rounded-xl bg-card text-foreground overflow-x-auto custom-scrollbar shadow-sm">
               <Table className="min-w-[800px] md:min-w-0">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">Data</TableHead>
-                    <TableHead className="w-[100px]">Hora</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Serviço</TableHead>
-                    {role !== 'barber' && <TableHead>Barbeiro</TableHead>}
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                <TableHeader className="bg-background">
+                  <TableRow className="hover:bg-transparent border-border">
+                    <TableHead className="w-[100px] text-muted-foreground">Data</TableHead>
+                    <TableHead className="w-[100px] text-muted-foreground">Hora</TableHead>
+                    <TableHead className="text-muted-foreground">Cliente</TableHead>
+                    <TableHead className="text-muted-foreground">Serviço</TableHead>
+                    {role !== 'barber' && <TableHead className="text-muted-foreground">Barbeiro</TableHead>}
+                    <TableHead className="text-right text-muted-foreground">Valor</TableHead>
+                    <TableHead className="text-right text-muted-foreground">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {appointments.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={role !== 'barber' ? 7 : 6} className="text-center py-8 text-muted-foreground">
                         Nenhum agendamento pendente de pagamento.
                       </TableCell>
                     </TableRow>
                   ) : (
                     appointments.map((app) => (
-                      <TableRow key={app.id}>
-                        <TableCell className="whitespace-nowrap">
+                      <TableRow key={app.id} className="border-border hover:bg-muted/50 transition-colors">
+                        <TableCell className="whitespace-nowrap text-foreground">
                           {new Date(app.start_time).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm font-medium">{new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="text-sm font-medium text-foreground">{new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                         </TableCell>
-                        <TableCell className="font-medium">{app.customers?.name || "Cliente"}</TableCell>
-                        <TableCell>{app.services?.name || "Serviço"}</TableCell>
+                        <TableCell className="font-medium text-foreground">{app.customers?.name || "Cliente"}</TableCell>
+                        <TableCell className="text-muted-foreground">{app.services?.name || "Serviço"}</TableCell>
                         {role !== 'barber' && <TableCell>{app.barber?.name || "Geral"}</TableCell>}
-                        <TableCell className="text-right font-bold text-yellow-600">
+                        <TableCell className="text-right font-bold text-yellow-500">
                           R$ {(parseFloat(String(app.total_price)) || 0).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right">
