@@ -260,12 +260,15 @@ serve(async (req) => {
           const { error: dispatchError } = await supabase.from("automation_v2_dispatches").insert({
             tenant_id: itemTenantId,
             appointment_id: appointment.id,
+            appointment_group_id: appointment.group_id || appointment.appointment_group_id,
+            customer_id: appointment.customer_id,
             workflow_key: automation.key,
-            flow_type: 'single', // Padronizado conforme solicitado
+            flow_type: 'single', 
             phone: phone,
             customer_name: appointment.customer?.name,
             status: "sent",
             message_id: providerMessageId,
+            provider_message_id: providerMessageId,
             sent_at: new Date().toISOString(),
             payload: { 
               data: testData, 

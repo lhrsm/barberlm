@@ -151,12 +151,35 @@ serve(async (req) => {
   }).eq("id", webhookLog.id);
 
   if (!selectedConversation && !updatedDispatch) {
-    console.warn(`STAGE 3 FAIL: No active context found for ${phone}`);
-    return new Response(JSON.stringify({ ok: true, status: "context_not_found" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    console.warn(`STAGE 3 FAIL: No active context found for ${phone}. Searching for last appointment fallback.`);
+    
+    // Fallback: Buscar último agendamento do cliente por telefone
+    const { data: customerData } = await supabase.from("customers").select("id").eq("phone", phone).maybeSingle();
+    const { data: lastAppt } = customerData ? await supabase
+      .from("appointments")
+      .select("id, tenant_id")
+      .eq("customer_id", customerData.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle() : { data: null };
+
+    if (lastAppt) {
+      console.log("STAGE 3 FALLBACK: Using last appointment", lastAppt.id);
+      await supabase.from("automation_webhook_logs").update({
+        appointment_id: lastAppt.id,
+        error_message: "Contexto não encontrado, usando fallback do último agendamento"
+      }).eq("id", webhookLog.id);
+      
+      // Prosseguir com este appointmentId
+      const appointmentId = lastAppt.id;
+      const tenantId = lastAppt.tenant_id;
+    } else {
+      return new Response(JSON.stringify({ ok: true, status: "context_not_found" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
   }
 
-  const appointmentId = selectedConversation?.appointment_id || updatedDispatch?.appointment_id;
-  const tenantId = selectedConversation?.tenant_id || updatedDispatch?.tenant_id;
+  const appointmentId = selectedConversation?.appointment_id || updatedDispatch?.appointment_id || (await supabase.from("automation_webhook_logs").select("appointment_id").eq("id", webhookLog.id).single()).data?.appointment_id;
+  const tenantId = selectedConversation?.tenant_id || updatedDispatch?.tenant_id || (await supabase.from("automation_webhook_logs").select("tenant_id").eq("id", webhookLog.id).single()).data?.tenant_id;
 
   if (!tenantId) {
     console.error("STAGE 3 FAIL: Tenant ID missing");
@@ -185,37 +208,90 @@ serve(async (req) => {
   if (matchedAction !== "none" && appointmentId) {
     console.log(`STAGE 5: Executing ${matchedAction} for appointment ${appointmentId}`);
     
+    // Capturar status anterior para logs
+    const { data: initialAppt } = await supabase.from("appointments").select("status").eq("id", appointmentId).single();
+    const statusBefore = initialAppt?.status;
+
     if (matchedAction === "confirm") {
-      const { data: appt } = await supabase.from("appointments").select("*, service:services(name), barber:barbers(name)").eq("id", appointmentId).single();
+      const { data: appt, error: apptFetchErr } = await supabase
+        .from("appointments")
+        .select("*, service:services(name), barber:barbers(name)")
+        .eq("id", appointmentId)
+        .single();
       
-      await supabase.from("appointments").update({ status: "confirmed", confirmed_at: new Date().toISOString() }).eq("id", appointmentId);
+      if (apptFetchErr) {
+        console.error("STAGE 5 FAIL: Error fetching appointment details:", apptFetchErr);
+      }
       
+      // 1. Atualizar agendamento
+      const { error: apptUpdateErr } = await supabase
+        .from("appointments")
+        .update({ 
+          status: "confirmed", 
+          confirmed_at: new Date().toISOString() 
+        })
+        .eq("id", appointmentId);
+      
+      if (apptUpdateErr) {
+        console.error("STAGE 5 FAIL: Error updating appointment status:", apptUpdateErr);
+      }
+
+      // 2. Atualizar conversa/sessão
       if (selectedConversation) {
         await supabase.from("automation_conversations").update({ 
           status: "completed", 
           current_state: "completed", 
-          confirmed_at: new Date().toISOString() 
+          confirmed_at: new Date().toISOString(),
+          last_action: "confirm"
         }).eq("id", selectedConversation.id);
       }
 
+      // 3. Atualizar dispatch (Fluxo da Automação)
       if (updatedDispatch) {
         await supabase.from("automation_v2_dispatches").update({
-          current_step: "FINALIZADO"
+          current_step: "FINALIZADO",
+          action_executed: true,
+          action_executed_at: new Date().toISOString(),
+          finalized: true,
+          finalized_at: new Date().toISOString()
         }).eq("id", updatedDispatch.id);
       }
+
+      // 4. Registrar logs detalhados
+      await supabase.from("automation_logs").insert({
+        tenant_id: tenantId,
+        appointment_id: appointmentId,
+        phone: phone,
+        action: "confirm_single_appointment",
+        status: "success",
+        payload: {
+          callback_received: true,
+          button_id: buttonId || normalizedText,
+          session_id: selectedConversation?.id,
+          dispatch_id: updatedDispatch?.id,
+          appointment_id: appointmentId,
+          appointment_status_before: statusBefore,
+          appointment_status_after: "confirmed",
+          action_executed: true,
+          session_closed: !!selectedConversation,
+          flow_finalized: !!updatedDispatch
+        }
+      });
 
       // STAGE 6: Resposta ao cliente
       let businessName = "Barbearia";
       const { data: tenant } = await supabase.from("barbershops").select("name").eq("id", tenantId).maybeSingle();
       if (tenant?.name) businessName = tenant.name;
 
-      const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n💈 ${appt.barber?.name || "Profissional"}\n✂️ ${appt.service?.name || "Serviço"}`;
+      if (appt) {
+        const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n💈 ${appt.barber?.name || "Profissional"}\n✂️ ${appt.service?.name || "Serviço"}`;
 
-      const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
-      if (instance) {
-        console.log("STAGE 6: Enviando confirmação via WhatsApp");
-        await sendMessage(instance, phone, successMsg);
-        await supabase.from("automation_webhook_logs").update({ response_sent: true }).eq("id", webhookLog.id);
+        const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
+        if (instance) {
+          console.log("STAGE 6: Enviando confirmação via WhatsApp");
+          await sendMessage(instance, phone, successMsg);
+          await supabase.from("automation_webhook_logs").update({ response_sent: true }).eq("id", webhookLog.id);
+        }
       }
     } else {
       // REAGENDAR / CANCELAR
@@ -228,14 +304,31 @@ serve(async (req) => {
       
       if (updatedDispatch) {
         await supabase.from("automation_v2_dispatches").update({
-          current_step: matchedAction === "reschedule" ? "REAGENDAMENTO_SOLICITADO" : "CANCELAMENTO_SOLICITADO"
+          current_step: matchedAction === "reschedule" ? "REAGENDAMENTO_SOLICITADO" : "CANCELAMENTO_SOLICITADO",
+          action_executed: true,
+          action_executed_at: new Date().toISOString()
         }).eq("id", updatedDispatch.id);
       }
       
-      // Aqui poderíamos enviar uma mensagem pedindo mais detalhes ou confirmando a intenção
+      // Registrar log para outras ações
+      await supabase.from("automation_logs").insert({
+        tenant_id: tenantId,
+        appointment_id: appointmentId,
+        phone: phone,
+        action: matchedAction === "reschedule" ? "request_reschedule" : "request_cancel",
+        status: "success",
+        payload: {
+          callback_received: true,
+          button_id: buttonId || normalizedText,
+          appointment_status_before: statusBefore
+        }
+      });
     }
   } else {
     console.warn("STAGE 5 FAIL: No action matched or missing appointment ID");
+    await supabase.from("automation_webhook_logs").update({
+      error_message: "No action matched or missing appointment ID"
+    }).eq("id", webhookLog.id);
   }
 
   return new Response(JSON.stringify({ ok: true, matchedAction }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
