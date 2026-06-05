@@ -134,10 +134,10 @@ function CampaignsComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Campanhas de Marketing</h2>
-            <p className="text-muted-foreground">Crie e envie campanhas em massa por WhatsApp e E-mail.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Marketing</h2>
+            <p className="text-muted-foreground text-sm">Crie e envie campanhas em massa.</p>
           </div>
           <Button className="gap-2" onClick={() => setIsAddModalOpen(true)}>
             <Plus size={18} /> Nova Campanha
