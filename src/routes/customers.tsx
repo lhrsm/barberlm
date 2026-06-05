@@ -206,10 +206,10 @@ function CustomersComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Clientes</h2>
-            <p className="text-muted-foreground">Gerencie seus clientes e histórico.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Clientes</h2>
+            <p className="text-muted-foreground text-sm">Gerencie seus clientes e histórico.</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
@@ -282,18 +282,20 @@ function CustomersComponent() {
           />
         </div>
 
-        <div className="border rounded-xl bg-card overflow-x-auto custom-scrollbar">
-          <Table className="min-w-[600px] md:min-w-0">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead className="hidden md:table-cell">Fidelidade</TableHead>
-                <TableHead className="hidden md:table-cell">Créditos</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden shadow-sm">
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Telefone</TableHead>
+                  <TableHead className="hidden md:table-cell">Fidelidade</TableHead>
+                  <TableHead className="hidden md:table-cell">Créditos</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
               {filteredCustomers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
@@ -352,6 +354,82 @@ function CustomersComponent() {
               )}
             </TableBody>
           </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {filteredCustomers.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground italic">
+                Nenhum cliente encontrado.
+              </div>
+            ) : (
+              filteredCustomers.map((customer) => (
+                <div key={customer.id} className="p-4 space-y-4 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden border border-primary/20 shrink-0">
+                      {customer.avatar_url ? (
+                        <img 
+                          src={customer.avatar_url} 
+                          alt={customer.name} 
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        customer.name?.[0].toUpperCase()
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-900 truncate">{customer.name}</p>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                        <Phone size={12} className="text-slate-400" />
+                        {customer.phone || "Sem telefone"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1"><Gift size={10} /> Fidelidade</p>
+                      <div className="flex items-end gap-1">
+                        <span className="text-sm font-black text-slate-900">{customer.loyalty_points || 0}</span>
+                        <span className="text-[10px] text-slate-400 font-bold mb-0.5">/ {shopProfile?.free_service_threshold || 10}</span>
+                      </div>
+                    </div>
+                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1"><CircleDollarSign size={10} /> Créditos</p>
+                      <span className="text-sm font-black text-green-600">R$ {(Number(customer.credits) || 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-slate-200"
+                      onClick={() => handleViewHistory(customer)}
+                    >
+                      <HistoryIcon size={14} /> Detalhes
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-9 w-9 p-0 rounded-xl text-slate-400 hover:text-primary"
+                      onClick={() => openEditDialog(customer)}
+                    >
+                      <Edit size={16} />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-9 w-9 p-0 rounded-xl text-red-500 hover:bg-red-50"
+                      onClick={() => openDeleteDialog(customer)}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
         <HistoryDialog 
           isOpen={isHistoryOpen} 

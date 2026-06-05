@@ -410,10 +410,10 @@ function BarbersComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Profissionais</h2>
-            <p className="text-muted-foreground">Cadastre os barbeiros da sua equipe.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Profissionais</h2>
+            <p className="text-muted-foreground text-sm">Cadastre os barbeiros da sua equipe.</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
@@ -657,7 +657,7 @@ function BarbersComponent() {
           </Alert>
         )}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {barbers.length === 0 ? (
             <div className="col-span-full text-center py-12 border rounded-xl bg-card text-muted-foreground">
               <UserRound size={48} className="mx-auto mb-4 opacity-20" />
@@ -665,7 +665,7 @@ function BarbersComponent() {
             </div>
           ) : (
             barbers.map((barber) => (
-              <div key={barber.id} className="p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm hover:border-slate-400 transition-all duration-300 text-black">
+              <div key={barber.id} className="p-4 md:p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm hover:border-slate-400 transition-all duration-300 text-black">
                 <div className="flex items-center gap-4 mb-4">
                   <Avatar className="h-12 w-12">
                     {barber.avatar_url ? (
@@ -717,8 +717,8 @@ function BarbersComponent() {
                     <span>{barber.email || "Não informado"}</span>
                   </div>
                 </div>
-                <div className="mt-6 flex gap-2 items-center">
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => toast.info("Relatório em breve")}>Desempenho</Button>
+                <div className="mt-6 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                  <Button variant="outline" size="sm" className="flex-1 h-10" onClick={() => toast.info("Relatório em breve")}>Desempenho</Button>
                   {plan !== 'free' && (
                     <Button 
                       variant="ghost" 
@@ -729,26 +729,28 @@ function BarbersComponent() {
                       <Copy size={14} />
                     </Button>
                   )}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="hover:bg-slate-100"
-                    onClick={() => {
-                      setEditingBarber(barber);
-                      setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
-                      setIsEditDialogOpen(true);
-                    }}
-                  >
-                    Editar
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-slate-400 hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => handleDeleteBarber(barber.id)}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="flex-1 sm:flex-none h-10 hover:bg-slate-100"
+                      onClick={() => {
+                        setEditingBarber(barber);
+                        setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
+                        setIsEditDialogOpen(true);
+                      }}
+                    >
+                      Editar
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-slate-400 hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeleteBarber(barber.id)}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))

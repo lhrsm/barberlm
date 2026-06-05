@@ -1036,22 +1036,24 @@ function DashboardComponent() {
         </div>
 
         <Tabs defaultValue="daily" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
-            <TabsTrigger value="daily">Hoje</TabsTrigger>
-            <TabsTrigger value="monthly">Este Mês</TabsTrigger>
-            <TabsTrigger value="analytics">Gráficos</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
+            <TabsList className="flex w-max min-w-full md:grid md:grid-cols-3 md:w-full max-w-[500px]">
+              <TabsTrigger value="daily">Hoje</TabsTrigger>
+              <TabsTrigger value="monthly">Este Mês</TabsTrigger>
+              <TabsTrigger value="analytics">Gráficos</TabsTrigger>
+            </TabsList>
+          </div>
 
 
           <TabsContent value="daily" className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+            <div className="flex flex-col gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <h3 className="text-lg font-semibold">
                   {isSameDay(selectedDate, new Date()) ? "Agendamentos de Hoje" : `Agendamentos de ${format(selectedDate, "dd/MM")}`}
                 </h3>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2">
+                    <Button variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
                       <Calendar size={14} />
                       Filtrar Data
                     </Button>
@@ -1066,47 +1068,49 @@ function DashboardComponent() {
                     />
                   </PopoverContent>
                 </Popover>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2"
-                  onClick={async () => {
-                    const today = new Date().toISOString().split('T')[0];
-                    const { data: apps } = await supabase
-                      .from("appointments")
-                      .select("id, status, total_price, final_amount, credit_used, credits_used, cashback_used, payment_method, payment_status")
-                      .gte("start_time", today + "T00:00:00")
-                      .lte("start_time", today + "T23:59:59")
-                      .neq("status", "cancelled");
-
-                    const details = apps?.map(a => ({
-                      id: a.id.substring(0,8),
-                      status: a.status,
-                      total: a.total_price,
-                      cash: a.final_amount,
-                      credits: Number(a.credit_used || 0) + Number(a.credits_used || 0),
-                      cashback: a.cashback_used,
-                      pay: a.payment_method,
-                      included: ["scheduled", "confirmed", "completed"].includes(a.status || "")
-                    }));
-                    
-                    console.table(details);
-                    
-                    fetchStats();
-                    fetchTodayAppointments();
-                    fetchNotifications();
-                    fetchBirthdayCustomers();
-                    toast.success(`${apps?.length || 0} agendamentos encontrados. Verifique o console para detalhes.`);
-                  }}
-                >
-                  <RefreshCcw size={14} />
-                  Recalcular Dashboard
-                </Button>
               </div>
-              <div className="flex gap-2">
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2 w-full"
+                onClick={async () => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const { data: apps } = await supabase
+                    .from("appointments")
+                    .select("id, status, total_price, final_amount, credit_used, credits_used, cashback_used, payment_method, payment_status")
+                    .gte("start_time", today + "T00:00:00")
+                    .lte("start_time", today + "T23:59:59")
+                    .neq("status", "cancelled");
+
+                  const details = apps?.map(a => ({
+                    id: a.id.substring(0,8),
+                    status: a.status,
+                    total: a.total_price,
+                    cash: a.final_amount,
+                    credits: Number(a.credit_used || 0) + Number(a.credits_used || 0),
+                    cashback: a.cashback_used,
+                    pay: a.payment_method,
+                    included: ["scheduled", "confirmed", "completed"].includes(a.status || "")
+                  }));
+                  
+                  console.table(details);
+                  
+                  fetchStats();
+                  fetchTodayAppointments();
+                  fetchNotifications();
+                  fetchBirthdayCustomers();
+                  toast.success(`${apps?.length || 0} agendamentos encontrados. Verifique o console para detalhes.`);
+                }}
+              >
+                <RefreshCcw size={14} />
+                Recalcular Dashboard
+              </Button>
+              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar -mx-1 px-1">
                 <Button 
                   variant={statusFilter === "all" ? "default" : "outline"} 
                   size="sm"
+                  className="flex-shrink-0 w-auto"
                   onClick={() => setStatusFilter("all")}
                 >
                   Todos
@@ -1114,6 +1118,7 @@ function DashboardComponent() {
                 <Button 
                   variant={statusFilter === "scheduled" ? "default" : "outline"} 
                   size="sm"
+                  className="flex-shrink-0 w-auto"
                   onClick={() => setStatusFilter("scheduled")}
                 >
                   Agendados
@@ -1121,6 +1126,7 @@ function DashboardComponent() {
                 <Button 
                   variant={statusFilter === "completed" ? "default" : "outline"} 
                   size="sm"
+                  className="flex-shrink-0 w-auto"
                   onClick={() => setStatusFilter("completed")}
                 >
                   Concluídos
@@ -1128,6 +1134,7 @@ function DashboardComponent() {
                 <Button 
                   variant={statusFilter === "cancelled" ? "default" : "outline"} 
                   size="sm"
+                  className="flex-shrink-0 w-auto"
                   onClick={() => setStatusFilter("cancelled")}
                 >
                   Cancelados
@@ -1155,10 +1162,10 @@ function DashboardComponent() {
                     todayAppointments.map((app) => (
                       <div 
                         key={app.id} 
-                        className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group"
+                        className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group gap-4"
                       >
-                        <div className="flex items-center gap-4 cursor-pointer flex-1" onClick={() => navigate({ to: "/calendar" })}>
-                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+                        <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate({ to: "/calendar" })}>
+                          <div className="h-12 w-12 md:h-10 md:w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden shrink-0">
                             {app.customers?.avatar_url ? (
                               <img 
                                 src={app.customers.avatar_url} 
@@ -1169,23 +1176,23 @@ function DashboardComponent() {
                               app.customers?.name?.[0].toUpperCase()
                             )}
                           </div>
-                          <div>
-                            <p className="font-bold">{app.customers?.name}</p>
-                            <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1"><Clock size={12} /> {format(new Date(app.start_time), 'HH:mm')}</span>
-                              <span className="flex items-center gap-1"><Scissors size={12} /> {app.services?.name}</span>
-                              <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold truncate">{app.customers?.name}</p>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-1 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1"><Clock size={12} className="shrink-0" /> {format(new Date(app.start_time), 'HH:mm')}</span>
+                              <span className="flex items-center gap-1"><Scissors size={12} className="shrink-0" /> {app.services?.name}</span>
+                              <span className="flex items-center gap-1"><UserIcon size={12} className="shrink-0" /> {app.barbers?.name}</span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                           <div className="flex flex-wrap items-center gap-2">
                              {app.refund_requested_at && (
                                app.refund_status === 'pending' ? (
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                className="h-8 px-2 text-white bg-amber-500/80 hover:bg-amber-500 text-[10px] gap-1"
+                                className="h-8 px-2 text-white bg-amber-500/80 hover:bg-amber-500 text-[10px] gap-1 w-auto"
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   const type = app.refund_type === 'refund' ? 'estorno' : 'créditos';
@@ -1322,7 +1329,7 @@ function DashboardComponent() {
                               <Button 
                                 variant="default"
                                 size="sm" 
-                                className="h-8 gap-1 text-xs bg-green-600 hover:bg-green-700"
+                                className="h-8 gap-1 text-xs bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   completeAppointment(app);
@@ -1336,7 +1343,7 @@ function DashboardComponent() {
                               <Button 
                                 variant="outline"
                                 size="sm" 
-                                className="h-8 gap-1 text-xs text-destructive border-destructive/20 hover:bg-destructive/10"
+                                className="h-8 gap-1 text-xs text-destructive border-destructive/20 hover:bg-destructive/10 w-full sm:w-auto"
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   if (confirm("Deseja cancelar este agendamento?")) {
@@ -1384,7 +1391,7 @@ function DashboardComponent() {
                                   variant={app.payment_status === 'paid' ? 'secondary' : 'outline'} 
                                   size="sm" 
                                   className={cn(
-                                    "h-8 gap-1 text-xs",
+                                    "h-8 gap-1 text-xs w-full sm:w-auto",
                                     app.payment_status === 'paid' && "text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
                                   )}
                                   onClick={(e) => {
@@ -1412,7 +1419,7 @@ function DashboardComponent() {
               </CardContent>
             </Card>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               <Card className="bg-white border-2 border-blue-500/30 shadow-lg shadow-blue-500/5 hover:border-blue-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-black uppercase tracking-widest text-blue-900">Serviços Vendidos Hoje</CardTitle>

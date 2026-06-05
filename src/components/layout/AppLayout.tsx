@@ -186,7 +186,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="p-1.5 bg-primary/10 rounded-lg shrink-0">
             <Scissors className="text-primary h-5 w-5" />
           </div>
-          <h1 className="text-lg font-bold text-white truncate">{businessName}</h1>
+          <p className="text-lg font-bold text-white truncate">{businessName}</p>
         </div>
         <div className="flex items-center gap-1">
           <NotificationsCenter />
@@ -202,7 +202,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-background md:hidden overflow-auto">
           <div className="flex items-center justify-between p-4 border-b bg-card">
-            <h1 className="text-xl font-bold text-primary truncate">{businessName}</h1>
+            <p className="text-xl font-bold text-primary truncate">{businessName}</p>
             <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
               <X />
             </Button>
@@ -237,9 +237,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r bg-card shrink-0">
           <div className="p-6 flex items-center justify-between border-b border-white/5 mb-2">
-            <h1 className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
+            <p className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
               {businessName}
-            </h1>
+            </p>
           </div>
 
           <nav className="flex-1 px-4 space-y-1 overflow-y-auto">

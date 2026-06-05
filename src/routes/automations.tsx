@@ -924,12 +924,12 @@ function AutomationsComponent() {
   return (
     <AppLayout>
       <div className="space-y-6 pb-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-4xl font-extrabold tracking-tight text-white mb-2">
+            <h2 className="text-3xl font-extrabold tracking-tight text-white mb-2">
               Automações
             </h2>
-            <p className="text-slate-400 max-w-xl leading-relaxed">
+            <p className="text-slate-400 text-sm leading-relaxed">
               Gerencie suas automações de atendimento, notificações e comunicações com clientes de forma profissional.
             </p>
           </div>
@@ -1427,9 +1427,10 @@ function AutomationsComponent() {
                     </div>
                   )}
 
-                  {/* Desktop view for logs (Table) */}
-                  <div className="hidden lg:block overflow-x-auto mt-6">
-
+                  {/* Table / Cards Container */}
+                  <div className="mt-6 border-t border-white/5">
+                    {/* Desktop Table */}
+                    <div className="hidden lg:block overflow-x-auto">
                       <table className="w-full border-collapse">
                     <thead className="bg-[#0F172A]/80 sticky top-0 z-10">
                       <tr className="border-b border-white/5">
@@ -1547,6 +1548,7 @@ function AutomationsComponent() {
                       ))}
                     </tbody>
                     </table>
+                    </div>
                   </div>
                 {totalLogs > itemsPerPage && (
                   <div className="flex items-center justify-between p-6 border-t border-white/5 bg-[#0F172A]/50">

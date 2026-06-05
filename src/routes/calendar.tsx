@@ -328,8 +328,8 @@ function CalendarComponent() {
             <Button variant="ghost" size="sm" className="font-semibold text-sky-600 hover:bg-sky-50 rounded-xl" onClick={() => setCurrentDate(new Date())}>Hoje</Button>
           </div>
 
-          <ScrollArea className="flex-1 custom-scrollbar">
-            <div className="min-w-[700px] lg:min-w-0">
+          <ScrollArea className="flex-1 overflow-x-auto scroll-smooth">
+            <div className="min-w-full sm:min-w-[700px] lg:min-w-0">
               {view === 'day' ? (
                 <div className="flex flex-col divide-y divide-zinc-100">
                   {HOURS.map(hour => (
@@ -338,7 +338,7 @@ function CalendarComponent() {
                         {hour.toString().padStart(2, '0')}:00
                       </div>
                       <div 
-                        className="flex-1 p-3 relative gap-3 flex flex-wrap content-start bg-white transition-all cursor-pointer hover:bg-zinc-50"
+                        className="flex-1 p-3 relative gap-3 flex flex-row sm:flex-wrap overflow-x-auto sm:overflow-x-visible content-start bg-white transition-all cursor-pointer hover:bg-zinc-50 snap-x snap-mandatory hide-scrollbar"
                         onClick={() => {
                           setModalInitialData({ time: `${hour.toString().padStart(2, '0')}:00`, date: format(currentDate, "yyyy-MM-dd"), step: 1, editingId: undefined });
                           setIsDialogOpen(true);
@@ -357,7 +357,7 @@ function CalendarComponent() {
                                 setDetailsModalOpen(true);
                               }}
                               className={cn(
-                                "px-3 py-2 rounded-xl shadow-lg border-2 cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-xl flex flex-col gap-1 min-w-[180px]",
+                                "px-3 py-2 rounded-xl shadow-lg border-2 cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-xl flex flex-col gap-1 min-w-[240px] sm:min-w-[180px] snap-center shrink-0",
                                 statusConfig.className
                               )}
                             >

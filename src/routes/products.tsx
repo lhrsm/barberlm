@@ -237,24 +237,26 @@ function ProductsComponent() {
     <AppLayout>
       <div className="space-y-6">
         <Tabs defaultValue="inventory" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
-            <TabsTrigger value="inventory" className="gap-2">
-              <Package size={16} /> Estoque
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="gap-2">
-              <History size={16} /> Faturamento
-            </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2">
-              <History size={16} /> Histórico Completo
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
+            <TabsList className="flex w-max min-w-full md:grid md:grid-cols-3 md:w-full max-w-[500px]">
+              <TabsTrigger value="inventory" className="gap-2">
+                <Package size={16} /> Estoque
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="gap-2">
+                <History size={16} /> Faturamento
+              </TabsTrigger>
+              <TabsTrigger value="history" className="gap-2">
+                <History size={16} /> Histórico
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="inventory" className="space-y-6 pt-6">
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Produtos</h2>
-            <p className="text-muted-foreground">Gerencie seu estoque de pomadas, balms e outros itens.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Produtos</h2>
+            <p className="text-muted-foreground text-sm">Gerencie seu estoque de pomadas, balms e outros itens.</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
             setIsAddDialogOpen(open);
@@ -475,7 +477,7 @@ function ProductsComponent() {
           </Alert>
         )}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.length === 0 ? (
             <div className="col-span-full text-center py-20 border-2 border-dashed rounded-3xl bg-muted/20 text-muted-foreground">
               <div className="bg-background w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl border">
@@ -493,7 +495,7 @@ function ProductsComponent() {
                 key={product.id} 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="group relative border-2 border-slate-200 rounded-[2.5rem] bg-white overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 text-black"
+                className="group relative border-2 border-slate-200 rounded-[2rem] md:rounded-[2.5rem] bg-white overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 text-black"
               >
                 <div className="aspect-square bg-muted/20 relative overflow-hidden">
                   {product.image_url ? (
@@ -516,27 +518,27 @@ function ProductsComponent() {
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3">
-                    <Button 
-                      variant="secondary" 
-                      size="icon" 
-                      className="h-12 w-12 rounded-full bg-white text-black hover:bg-white/90 shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
-                      onClick={() => {
-                        setEditingProduct(product);
-                        setIsAddDialogOpen(true);
-                      }}
-                    >
-                      <Edit size={20} />
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="icon" 
-                      className="h-12 w-12 rounded-full shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500"
-                      onClick={() => handleDeleteProduct(product.id)}
-                    >
-                      <Trash2 size={20} />
-                    </Button>
-                  </div>
+                    <div className="absolute inset-0 bg-black/40 md:opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3">
+                      <Button 
+                        variant="secondary" 
+                        size="icon" 
+                        className="h-12 w-12 rounded-full bg-white text-black hover:bg-white/90 shadow-2xl scale-100 md:scale-90 group-hover:scale-100 transition-transform duration-500"
+                        onClick={() => {
+                          setEditingProduct(product);
+                          setIsAddDialogOpen(true);
+                        }}
+                      >
+                        <Edit size={20} />
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="icon" 
+                        className="h-12 w-12 rounded-full shadow-2xl scale-100 md:scale-90 group-hover:scale-100 transition-transform duration-500"
+                        onClick={() => handleDeleteProduct(product.id)}
+                      >
+                        <Trash2 size={20} />
+                      </Button>
+                    </div>
 
                   {product.stock_quantity <= 5 && (
                     <div className="absolute bottom-4 left-4 right-4 bg-red-500/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest py-1.5 rounded-full text-center shadow-lg border border-white/20">
@@ -565,10 +567,10 @@ function ProductsComponent() {
                       </div>
                     </div>
                     
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button 
                         size="sm" 
-                        className="gap-2 rounded-full h-9 px-4"
+                        className="gap-2 rounded-full h-10 md:h-9 px-4 w-full sm:w-auto"
                         onClick={async () => {
                           if (!user) return;
                           if (product.stock_quantity <= 0) {

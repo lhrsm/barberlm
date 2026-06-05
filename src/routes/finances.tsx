@@ -13,6 +13,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { Phone, ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign } from "lucide-react";
 import { format } from "date-fns";
@@ -347,12 +348,12 @@ function FinancesComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Financeiro</h2>
-            <p className="text-muted-foreground">Controle suas entradas e saídas.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Financeiro</h2>
+            <p className="text-muted-foreground text-sm">Controle suas entradas e saídas.</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3">
             {role !== 'barber' && (
               <Button 
                 variant="outline" 
@@ -470,10 +471,7 @@ function FinancesComponent() {
           </div>
         </div>
 
-        <div className={cn(
-          "grid gap-4",
-          role === 'barber' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-        )}>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold text-black">Faturamento Operacional</CardTitle>
@@ -640,22 +638,24 @@ function FinancesComponent() {
               </Button>
             </div>
 
-            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-x-auto custom-scrollbar">
-              <Table className="min-w-[800px] md:min-w-0">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">Data</TableHead>
-                    <TableHead className="w-[100px]">Hora</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    {role !== 'barber' && <TableHead>Barbeiro</TableHead>}
-                    <TableHead>Status</TableHead>
-                    <TableHead>Pagamento</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden shadow-sm">
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[100px]">Data</TableHead>
+                      <TableHead className="w-[100px]">Hora</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      {role !== 'barber' && <TableHead>Barbeiro</TableHead>}
+                      <TableHead>Status</TableHead>
+                      <TableHead>Pagamento</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
@@ -858,8 +858,122 @@ function FinancesComponent() {
                       </TableRow>
                     ))
                   )}
-                </TableBody>
-              </Table>
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden divide-y divide-slate-100">
+                {filteredTransactions.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground italic">
+                    Nenhuma transação encontrada.
+                  </div>
+                ) : (
+                  filteredTransactions.map((t) => (
+                    <div key={t.id} className="p-4 space-y-4 hover:bg-slate-50 transition-colors">
+                      <div className="flex justify-between items-start">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            {t.appointment?.start_time 
+                              ? new Date(t.appointment.start_time).toLocaleDateString('pt-BR')
+                              : (t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-")}
+                          </span>
+                          <span className="text-lg font-black text-slate-900">
+                            {t.appointment?.start_time 
+                              ? format(new Date(t.appointment.start_time), 'HH:mm')
+                              : (typeof t.time === 'string' ? t.time.substring(0, 5) : "--:--")}
+                          </span>
+                        </div>
+                        <div className={cn("text-right", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>
+                          <p className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">{t.type === "income" ? "Entrada" : "Saída"}</p>
+                          <span className="text-lg font-black italic">
+                             R$ {(() => {
+                              const val = parseFloat(String(t.amount)) || 0;
+                              if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
+                                const match = t.description.match(/R\$\s*([\d.]+)/);
+                                return match ? parseFloat(match[1]).toFixed(2) : "0.00";
+                              }
+                              return val.toFixed(2);
+                            })()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Descrição</p>
+                          <p className="text-sm font-bold text-slate-700 leading-tight">
+                            {t.appointment?.customers?.name ? (
+                              <>
+                                <span className="text-sky-600">Cliente: {t.appointment.customers.name}</span><br/>
+                                {t.description || "-"}
+                              </>
+                            ) : (
+                              t.description || "-"
+                            )}
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Status</p>
+                             {t.appointment ? (
+                               <Badge className={cn(
+                                 "text-[10px] font-black uppercase italic",
+                                 t.appointment.status === 'completed' ? 'bg-emerald-600 text-white' : 
+                                 t.appointment.status === 'cancelled' ? 'bg-destructive text-white' : 
+                                 'bg-blue-100 text-blue-700'
+                               )} variant="outline">
+                                 {t.appointment.status === 'completed' ? 'Concluído' : 
+                                  t.appointment.status === 'cancelled' ? 'Cancelado' : 'Agendado'}
+                               </Badge>
+                             ) : (
+                               <Badge variant="outline" className="bg-gray-100 text-[10px] font-black uppercase italic">Manual</Badge>
+                             )}
+                           </div>
+                           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Pagamento</p>
+                             <div className="flex flex-wrap gap-1">
+                               {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="text-[10px] font-bold">PIX</Badge>}
+                               {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="text-[10px] font-bold">Créditos</Badge>}
+                               {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="text-[10px] font-bold">Cashback</Badge>}
+                               {!t.appointment && <span className="text-[10px] font-bold uppercase">{t.payment_method || '-'}</span>}
+                             </div>
+                           </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-slate-200"
+                          onClick={() => {
+                            setEditingTransaction({
+                              ...t,
+                              amount: String(t.amount || ""),
+                              barber_id: t.barber_id || "none",
+                              date: t.date,
+                              time: t.time || "12:00:00"
+                            });
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Edit2 size={12} /> Editar
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-9 w-auto text-xs gap-1 font-bold rounded-xl text-red-500 hover:bg-red-50"
+                          onClick={() => handleDeleteTransaction(t.id)}
+                        >
+                          <Trash2 size={12} /> Excluir
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </TabsContent>
 

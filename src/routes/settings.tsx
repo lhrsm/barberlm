@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ImageIcon } from "lucide-react";
 import { 
   MessageSquare, 
   CreditCard, 
@@ -58,7 +59,7 @@ function SettingsComponent() {
   const [saving, setSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     business_name: "",
     slug: "",
     whatsapp_enabled: false,
@@ -68,6 +69,7 @@ function SettingsComponent() {
     primary_color: "#7c3aed",
     secondary_color: "#f4f4f5",
     logo_url: "",
+    barbershop_logo_url: "",
     cashback_enabled: false,
     cashback_percentage: 0,
     free_service_threshold: 10,
@@ -148,6 +150,7 @@ function SettingsComponent() {
           primary_color: profile.primary_color || "#7c3aed",
           secondary_color: profile.secondary_color || "#f4f4f5",
           logo_url: profile.logo_url || "",
+          barbershop_logo_url: (profile as any).barbershop_logo_url || "",
           cashback_enabled: profile.cashback_enabled || false,
           cashback_percentage: profile.cashback_percentage || 0,
           free_service_threshold: profile.free_service_threshold || 10,
@@ -198,31 +201,33 @@ function SettingsComponent() {
       updatedData.payment_gateway_key = "";
     }
 
+    const { barbershop_logo_url: _, ...profileUpdateData } = updatedData;
     const { error: profileError } = await supabase
       .from("profiles")
       .update({
-        business_name: updatedData.business_name,
-        slug: updatedData.slug,
-        whatsapp_enabled: updatedData.whatsapp_enabled,
-        scheduling_mode: updatedData.scheduling_mode,
-        payment_gateway_provider: updatedData.payment_gateway_provider === "none" ? null : updatedData.payment_gateway_provider,
-        payment_gateway_key: updatedData.payment_gateway_key,
-        primary_color: updatedData.primary_color,
-        secondary_color: updatedData.secondary_color,
-        logo_url: updatedData.logo_url,
-        cashback_enabled: updatedData.cashback_enabled,
-        cashback_percentage: updatedData.cashback_percentage,
-        free_service_threshold: updatedData.free_service_threshold,
-        address: updatedData.address,
-        google_maps_url: updatedData.google_maps_url,
-        font_family: updatedData.font_family,
-        font_size: updatedData.font_size,
-        font_color: updatedData.font_color,
-        pix_key: updatedData.pix_key,
-        pix_qr_code_url: updatedData.pix_qr_code_url,
-        whatsapp_number: updatedData.whatsapp_number,
+        business_name: profileUpdateData.business_name,
+        slug: profileUpdateData.slug,
+        whatsapp_enabled: profileUpdateData.whatsapp_enabled,
+        scheduling_mode: profileUpdateData.scheduling_mode,
+        payment_gateway_provider: profileUpdateData.payment_gateway_provider === "none" ? null : profileUpdateData.payment_gateway_provider,
+        payment_gateway_key: profileUpdateData.payment_gateway_key,
+        primary_color: profileUpdateData.primary_color,
+        secondary_color: profileUpdateData.secondary_color,
+        logo_url: profileUpdateData.logo_url,
+        barbershop_logo_url: updatedData.barbershop_logo_url,
+        cashback_enabled: profileUpdateData.cashback_enabled,
+        cashback_percentage: profileUpdateData.cashback_percentage,
+        free_service_threshold: profileUpdateData.free_service_threshold,
+        address: profileUpdateData.address,
+        google_maps_url: profileUpdateData.google_maps_url,
+        font_family: profileUpdateData.font_family,
+        font_size: profileUpdateData.font_size,
+        font_color: profileUpdateData.font_color,
+        pix_key: profileUpdateData.pix_key,
+        pix_qr_code_url: profileUpdateData.pix_qr_code_url,
+        whatsapp_number: profileUpdateData.whatsapp_number,
         updated_at: new Date().toISOString(),
-      })
+      } as any)
       .eq("id", user.id);
 
     // Save to barbershop_settings
@@ -257,10 +262,10 @@ function SettingsComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Configurações</h2>
-            <p className="text-muted-foreground">Gerencie sua barbearia, integrações e personalização.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Configurações</h2>
+            <p className="text-muted-foreground text-sm">Gerencie sua barbearia, integrações e personalização.</p>
           </div>
           {plan === "free" && (
             <Button variant="outline" className="bg-primary/10 border-primary/20 text-primary gap-2" asChild>
@@ -311,48 +316,51 @@ function SettingsComponent() {
                   <CardDescription>Gerencie suas informações pessoais e foto de perfil.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center gap-6">
-                    <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-primary/20">
-                      {formData.logo_url ? (
-                        <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
-                      ) : (
-                        <UserRound className="h-12 w-12 text-muted-foreground/30" />
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <Label htmlFor="profile_avatar">Alterar Foto de Perfil</Label>
-                      <Input 
-                        id="profile_avatar" 
-                        type="file" 
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file || !user) return;
-                          
-                          try {
-                            setSaving(true);
-                            const fileExt = file.name.split('.').pop();
-                            const fileName = `${user.id}-avatar-${Date.now()}.${fileExt}`;
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="flex flex-col items-center gap-4 w-full">
+                      <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-lg">
+                        {formData.logo_url ? (
+                          <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
+                        ) : (
+                          <UserRound className="h-12 w-12 text-muted-foreground/30" />
+                        )}
+                      </div>
+                      <div className="w-full space-y-2 text-center">
+                        <Label htmlFor="profile_avatar" className="text-sm font-bold text-slate-500 uppercase tracking-widest">Foto de Perfil</Label>
+                        <Input 
+                          id="profile_avatar" 
+                          type="file" 
+                          accept="image/*"
+                          className="h-12 rounded-[14px] cursor-pointer bg-slate-50/50"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || !user) return;
                             
-                            const { error: uploadError } = await supabase.storage
-                              .from('barber-avatars')
-                              .upload(fileName, file);
+                            try {
+                              setSaving(true);
+                              const fileExt = file.name.split('.').pop();
+                              const fileName = `${user.id}-avatar-${Date.now()}.${fileExt}`;
                               
-                            if (uploadError) throw uploadError;
-                            
-                            const { data: { publicUrl } } = supabase.storage
-                              .from('barber-avatars')
-                              .getPublicUrl(fileName);
+                              const { error: uploadError } = await supabase.storage
+                                .from('barber-avatars')
+                                .upload(fileName, file);
+                                
+                              if (uploadError) throw uploadError;
                               
-                            setFormData({ ...formData, logo_url: publicUrl });
-                            toast.success("Foto de perfil atualizada!");
-                          } catch (error: any) {
-                            toast.error("Erro ao carregar imagem: " + error.message);
-                          } finally {
-                            setSaving(false);
-                          }
-                        }}
-                      />
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('barber-avatars')
+                                .getPublicUrl(fileName);
+                                
+                              setFormData({ ...formData, logo_url: publicUrl });
+                              toast.success("Foto de perfil atualizada!");
+                            } catch (error: any) {
+                              toast.error("Erro ao carregar imagem: " + error.message);
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                   
@@ -395,7 +403,45 @@ function SettingsComponent() {
                     {isSyncing ? "Sincronizando..." : "Sincronizar"}
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
+                  <div className="flex flex-col items-center gap-4 py-4 border-b border-slate-100 mb-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Logo da Barbearia</p>
+                    <div className="h-32 w-full max-w-[200px] rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group">
+                      {formData.barbershop_logo_url ? (
+                        <img src={formData.barbershop_logo_url} alt="Logo" className="h-full w-full object-contain p-2" />
+                      ) : (
+                        <div className="text-center p-4">
+                          <ImageIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                          <p className="text-[10px] text-slate-400 font-bold">SEM LOGO</p>
+                        </div>
+                      )}
+                      <Input 
+                        type="file" 
+                        accept="image/*"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !user) return;
+                          try {
+                            setSaving(true);
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `${user.id}-logo-${Date.now()}.${fileExt}`;
+                            const { error: uploadError } = await supabase.storage.from('barber-avatars').upload(fileName, file);
+                            if (uploadError) throw uploadError;
+                            const { data: { publicUrl } } = supabase.storage.from('barber-avatars').getPublicUrl(fileName);
+                            setFormData({ ...formData, barbershop_logo_url: publicUrl });
+                            toast.success("Logo atualizada!");
+                          } catch (error: any) {
+                            toast.error("Erro: " + error.message);
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground text-center max-w-[250px]">Recomendamos uma imagem com fundo transparente (PNG) ou fundo sólido contrastante.</p>
+                  </div>
+
                   <div className="grid gap-2">
                     <Label htmlFor="business_name">Nome da Barbearia</Label>
                     <Input 
@@ -919,20 +965,21 @@ function SettingsComponent() {
 
                   <div className="space-y-4 pt-4 border-t">
                     <h4 className="font-medium text-sm">QR Code do PIX</h4>
-                    <div className="flex items-center gap-4">
-                      <div className="h-24 w-24 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                    <div className="flex flex-col items-center gap-6">
+                      <div className="h-32 w-32 rounded-lg bg-muted flex items-center justify-center overflow-hidden border shadow-inner">
                         {formData.pix_qr_code_url ? (
                           <img src={formData.pix_qr_code_url} alt="PIX QR Code Preview" className="h-full w-full object-contain" />
                         ) : (
-                          <QrCode className="h-8 w-8 text-muted-foreground/30" />
+                          <QrCode className="h-12 w-12 text-muted-foreground/30" />
                         )}
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor="pix_qr_file">Upload do QR Code (Imagem)</Label>
+                      <div className="w-full space-y-3">
+                        <Label htmlFor="pix_qr_file" className="text-center block text-sm font-bold text-slate-500 uppercase tracking-widest">Upload do QR Code (Imagem)</Label>
                         <Input 
                           id="pix_qr_file" 
                           type="file" 
                           accept="image/*"
+                          className="h-12 rounded-[14px] cursor-pointer bg-slate-50/50"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file || !user) return;
@@ -961,7 +1008,7 @@ function SettingsComponent() {
                             }
                           }}
                         />
-                        <p className="text-[10px] text-muted-foreground">Upload da imagem do seu QR Code gerado pelo banco.</p>
+                        <p className="text-[10px] text-muted-foreground text-center">Upload da imagem do seu QR Code gerado pelo banco para facilitar pagamentos Pix.</p>
                       </div>
                     </div>
                   </div>

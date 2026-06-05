@@ -346,9 +346,9 @@ function SubscriptionComponent() {
 
           {/* Plan Status */}
           <Card className="border-primary/20 bg-primary/5">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
+            <CardHeader className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <CardTitle className="flex items-center justify-center sm:justify-start gap-2">
                   Plano Atual: <span className="capitalize text-primary font-bold">{
                     plan === 'starter' ? 'Starter' : 
                     plan === 'pro' ? 'Pro' : 
@@ -362,7 +362,7 @@ function SubscriptionComponent() {
                 <CardDescription>Acompanhe o uso dos seus recursos.</CardDescription>
               </div>
               <div className={cn(
-                "px-3 py-1 rounded-full border text-xs font-medium",
+                "px-3 py-1 rounded-full border text-xs font-black uppercase italic tracking-widest",
                 subscription?.status === 'active' ? "bg-green-100 text-green-700 border-green-200" :
                 subscription?.status === 'trialing' ? "bg-blue-100 text-blue-700 border-blue-200" :
                 subscription?.status === 'past_due' ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
