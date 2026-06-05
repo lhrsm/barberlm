@@ -110,6 +110,7 @@ function AutomationsComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
+  const [lastManualUpdate, setLastManualUpdate] = useState<Date | null>(null);
   const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0, lastUpdate: new Date(), pendingCallbacks: 0 });
   const [reconciliationSettings, setReconciliationSettings] = useState<any>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
