@@ -1036,11 +1036,13 @@ function DashboardComponent() {
         </div>
 
         <Tabs defaultValue="daily" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
-            <TabsTrigger value="daily">Hoje</TabsTrigger>
-            <TabsTrigger value="monthly">Este Mês</TabsTrigger>
-            <TabsTrigger value="analytics">Gráficos</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
+            <TabsList className="flex w-max min-w-full md:grid md:grid-cols-3 md:w-full max-w-[500px]">
+              <TabsTrigger value="daily">Hoje</TabsTrigger>
+              <TabsTrigger value="monthly">Este Mês</TabsTrigger>
+              <TabsTrigger value="analytics">Gráficos</TabsTrigger>
+            </TabsList>
+          </div>
 
 
           <TabsContent value="daily" className="space-y-6">
