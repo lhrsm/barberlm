@@ -200,7 +200,33 @@ serve(async (req) => {
             }
           }
 
-          // REGISTRO NO HISTÓRICO DE ENVIO
+          // REGISTRO NO HISTÓRICO DE ENVIO (V2)
+          const { error: dispatchError } = await supabase.from("automation_v2_dispatches").insert({
+            tenant_id: itemTenantId,
+            appointment_id: appointment.id,
+            workflow_key: automation.key,
+            flow_type: 'single', // Padronizado conforme solicitado
+            phone: phone,
+            customer_name: appointment.customer?.name,
+            status: "sent",
+            message_id: providerMessageId,
+            sent_at: new Date().toISOString(),
+            payload: { 
+              data: testData, 
+              diagnostic: diagInfo, 
+              rendered_message: renderedTemplate,
+            },
+            provider_response: sendResult.response,
+            session_id: conversationId,
+            current_step: "AWAITING_MAIN_ACTION"
+          });
+
+          if (dispatchError) {
+            console.error(`[ProcessQueue] Error creating dispatch record:`, dispatchError);
+          }
+
+          // Mantendo compatibilidade com tabelas legadas se necessário, 
+          // mas o foco agora é a v2_dispatches
           await supabase.from("automation_send_history").insert({
             tenant_id: itemTenantId,
             appointment_id: appointment.id,
