@@ -327,7 +327,7 @@ serve(async (req) => {
             conversation_id: conversationId,
             payload: { 
               rendered_message: renderedTemplate,
-              conversation_created,
+              conversation_created: conversationCreated,
               conversation_id: conversationId
             }
           });
