@@ -148,7 +148,7 @@ function IntegrationsComponent() {
 
           {/* OpenAI */}
           <Card className={cn(
-            "flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm",
+            "flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm rounded-2xl md:rounded-[2.5rem] overflow-hidden",
             plan !== 'elite' && "opacity-75 grayscale-[0.5]"
           )}>
             <CardHeader>
