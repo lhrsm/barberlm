@@ -430,58 +430,64 @@ function CustomersComponent() {
         />
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
+          <DialogContent className="bg-[#0b0f17] border-[#1f2937] text-white">
             <DialogHeader>
-              <DialogTitle>Editar Cliente</DialogTitle>
+              <DialogTitle className="text-white">Editar Cliente</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleEditCustomer} className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Nome Completo</Label>
+                <Label htmlFor="edit-name" className="text-slate-300">Nome Completo</Label>
                 <Input 
                   id="edit-name" 
+                  className="bg-[#111827] border-[#1f2937] text-white"
                   value={editingCustomer.name} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, name: e.target.value})} 
                   required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-phone">Telefone / WhatsApp</Label>
+                <Label htmlFor="edit-phone" className="text-slate-300">Telefone / WhatsApp</Label>
                 <Input 
                   id="edit-phone" 
+                  className="bg-[#111827] border-[#1f2937] text-white"
                   placeholder="(00) 00000-0000"
                   value={editingCustomer.phone} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, phone: e.target.value})} 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-email">Email (Opcional)</Label>
+                <Label htmlFor="edit-email" className="text-slate-300">Email (Opcional)</Label>
                 <Input 
                   id="edit-email" 
                   type="email"
+                  className="bg-[#111827] border-[#1f2937] text-white"
                   value={editingCustomer.email} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, email: e.target.value})} 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-birth_date">Data de Nascimento</Label>
+                <Label htmlFor="edit-birth_date" className="text-slate-300">Data de Nascimento</Label>
                 <Input 
                   id="edit-birth_date" 
                   type="date"
+                  className="bg-[#111827] border-[#1f2937] text-white"
                   value={editingCustomer.birth_date} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, birth_date: e.target.value})} 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-notes">Notas / Preferências</Label>
+                <Label htmlFor="edit-notes" className="text-slate-300">Notas / Preferências</Label>
                 <Input 
                   id="edit-notes" 
+                  className="bg-[#111827] border-[#1f2937] text-white"
                   value={editingCustomer.notes} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, notes: e.target.value})} 
                 />
               </div>
-              <Button type="submit" className="w-full">Atualizar Cliente</Button>
+              <Button type="submit" className="w-full bg-[#D4AF37] text-black font-bold hover:bg-[#C5A028]">Atualizar Cliente</Button>
             </form>
           </DialogContent>
+
         </Dialog>
 
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
