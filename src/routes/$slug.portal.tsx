@@ -1000,7 +1000,7 @@ function ClientPortalComponent() {
               // Emitir evento para o pai (ShopPageComponent)
               window.dispatchEvent(new CustomEvent('OPEN_BOOKING_MODAL'));
             }} 
-            className="gap-2 bg-black text-white border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all duration-300 hover:scale-105"
+            className="w-full md:w-auto gap-2 bg-black text-white border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all duration-300 hover:scale-105"
           >
             <Calendar size={18} /> Novo Agendamento
           </Button>
