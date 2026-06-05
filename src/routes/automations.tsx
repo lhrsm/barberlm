@@ -3007,7 +3007,10 @@ function AutomationsComponent() {
             </div>
           </div>
         </DialogContent>
+      </Dialog>
+
       <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
+
         <DialogContent className="max-w-[1000px] w-[95vw] bg-[#020817] border border-amber-500/25 text-white p-0 overflow-hidden rounded-[24px] shadow-[0_25px_80px_rgba(0,0,0,0.5)]">
           <button 
             onClick={() => setIsDiagnosticOpen(false)}
