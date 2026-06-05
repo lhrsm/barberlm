@@ -1469,40 +1469,26 @@ function AutomationsComponent() {
                         <tr key={log.id} className={`${idx % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'} hover:bg-white/[0.05] transition-colors group`}>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium text-white">{new Date(log.created_at).toLocaleDateString('pt-BR')}</span>
-                              <span className="text-[10px] text-slate-500 font-mono">{new Date(log.created_at).toLocaleTimeString('pt-BR')}</span>
+                              <span className="text-sm font-medium text-white">{new Date(log.created_at).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
+                              <span className="text-[10px] text-slate-500 font-mono">{new Date(log.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border-white/10 ${
-                              log.source === 'test_manual' ? 'text-amber-400 bg-amber-500/5' : 'text-sky-400 bg-sky-500/5'
+                              log.flow_type === 'multi' ? 'text-amber-400 bg-amber-500/5' : 'text-sky-400 bg-sky-500/5'
                             }`}>
-                              {log.automation_name || (log.source === 'test_manual' ? 'Teste Manual' : 'Automático')}
+                              {log.workflow_key || 'Automático'}
                             </Badge>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              {log.provider === 'zapi' ? (
-                                <>
-                                  <Smartphone size={14} className="text-[#10B981]" />
-                                  <span className="text-xs font-medium text-slate-400">WhatsApp</span>
-                                </>
-                              ) : log.provider === 'email' ? (
-                                <>
-                                  <MessageSquare size={14} className="text-sky-500" />
-                                  <span className="text-xs font-medium text-slate-400">E-mail</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Terminal size={14} className="text-slate-500" />
-                                  <span className="text-xs font-medium text-slate-400">Sistema</span>
-                                </>
-                              )}
+                              <Smartphone size={14} className="text-[#10B981]" />
+                              <span className="text-xs font-medium text-slate-400">WhatsApp</span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col">
-                              <span className="text-sm font-bold text-white">{log.payload?.data?.customer_name || 'Cliente'}</span>
+                              <span className="text-sm font-bold text-white">{log.customer_name || 'Cliente'}</span>
                               <span className="text-xs text-slate-500 font-mono">{log.phone}</span>
                             </div>
                           </td>
