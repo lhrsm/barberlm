@@ -248,7 +248,7 @@ function FinancesComponent() {
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         // Se houver valores detalhados de pagamento, usar eles (preferência para ajustes manuais ou mistos)
-        if (t.payment_method === 'misto' || t.manual_adjustment) {
+        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment) {
           const cashFlow = Number(t.pix_amount || 0) + Number(t.cash_amount || 0) + Number(t.credit_card_amount || 0) + Number(t.debit_card_amount || 0);
           return acc + cashFlow;
         }
@@ -265,7 +265,7 @@ function FinancesComponent() {
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
-        if (t.payment_method === 'misto' || t.manual_adjustment) {
+        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment) {
           return acc + Number(t.credits_amount || 0);
         }
         let val = Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0);
@@ -280,7 +280,7 @@ function FinancesComponent() {
     const cashbackConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
-        if (t.payment_method === 'misto' || t.manual_adjustment) {
+        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment) {
           return acc + Number(t.cashback_amount || 0);
         }
         let val = Number(t.appointment?.cashback_used || 0);
@@ -392,8 +392,10 @@ function FinancesComponent() {
       return;
     }
 
+    const isMixed = editingTransaction.payment_method === 'misto' || editingTransaction.payment_method === 'mixed';
+    
     // Validate mixed payment total
-    if (editingTransaction.payment_method === 'misto') {
+    if (isMixed) {
       const total = 
         Number(editingTransaction.pix_amount || 0) + 
         Number(editingTransaction.cash_amount || 0) + 
@@ -404,13 +406,22 @@ function FinancesComponent() {
       
       const transactionAmount = parseFloat(editingTransaction.amount);
       if (Math.abs(total - transactionAmount) > 0.01) {
-        toast.error(`O total dos valores (R$ ${total.toFixed(2)}) deve ser igual ao valor da transação (R$ ${transactionAmount.toFixed(2)}).`);
+        toast.error(`A soma das formas de pagamento (R$ ${total.toFixed(2)}) precisa ser igual ao valor total (R$ ${transactionAmount.toFixed(2)}).`);
         return;
       }
     }
 
     // Get original transaction for logging
     const originalTransaction = transactions.find(t => t.id === editingTransaction.id);
+
+    const breakdown = isMixed ? {
+      pix: Number(editingTransaction.pix_amount || 0),
+      cash: Number(editingTransaction.cash_amount || 0),
+      card_credit: Number(editingTransaction.credit_card_amount || 0),
+      card_debit: Number(editingTransaction.debit_card_amount || 0),
+      credits: Number(editingTransaction.credits_amount || 0),
+      cashback: Number(editingTransaction.cashback_amount || 0)
+    } : null;
 
     const updateData: any = {
       amount: parseFloat(editingTransaction.amount),
@@ -420,17 +431,18 @@ function FinancesComponent() {
       barber_id: editingTransaction.barber_id === "none" ? null : editingTransaction.barber_id,
       date: editingTransaction.date,
       time: editingTransaction.time,
-      payment_method: editingTransaction.payment_method,
+      payment_method: isMixed ? 'mixed' : editingTransaction.payment_method,
       manual_adjustment: true,
       adjusted_by: user.id,
       adjusted_at: new Date().toISOString(),
       adjustment_reason: editingTransaction.adjustment_reason,
-      pix_amount: editingTransaction.payment_method === 'pix' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.pix_amount || 0) : 0),
-      cash_amount: editingTransaction.payment_method === 'cash' || editingTransaction.payment_method === 'dinheiro' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.cash_amount || 0) : 0),
-      credit_card_amount: editingTransaction.payment_method === 'card' || editingTransaction.payment_method === 'credit_card' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.credit_card_amount || 0) : 0),
-      debit_card_amount: editingTransaction.payment_method === 'debit_card' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.debit_card_amount || 0) : 0),
-      credits_amount: editingTransaction.payment_method === 'credits' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.credits_amount || 0) : 0),
-      cashback_amount: editingTransaction.payment_method === 'cashback' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.cashback_amount || 0) : 0),
+      pix_amount: editingTransaction.payment_method === 'pix' ? parseFloat(editingTransaction.amount) : (isMixed ? Number(editingTransaction.pix_amount || 0) : 0),
+      cash_amount: editingTransaction.payment_method === 'cash' || editingTransaction.payment_method === 'dinheiro' ? parseFloat(editingTransaction.amount) : (isMixed ? Number(editingTransaction.cash_amount || 0) : 0),
+      credit_card_amount: editingTransaction.payment_method === 'card' || editingTransaction.payment_method === 'credit_card' ? parseFloat(editingTransaction.amount) : (isMixed ? Number(editingTransaction.credit_card_amount || 0) : 0),
+      debit_card_amount: editingTransaction.payment_method === 'debit_card' ? parseFloat(editingTransaction.amount) : (isMixed ? Number(editingTransaction.debit_card_amount || 0) : 0),
+      credits_amount: editingTransaction.payment_method === 'credits' ? parseFloat(editingTransaction.amount) : (isMixed ? Number(editingTransaction.credits_amount || 0) : 0),
+      cashback_amount: editingTransaction.payment_method === 'cashback' ? parseFloat(editingTransaction.amount) : (isMixed ? Number(editingTransaction.cashback_amount || 0) : 0),
+      payment_breakdown: breakdown,
     };
 
     const { error } = await supabase
@@ -442,6 +454,23 @@ function FinancesComponent() {
       toast.error("Erro ao atualizar transação");
       console.error(error);
     } else {
+      // If there's an appointment, sync it too
+      if (editingTransaction.appointment_id) {
+        const finalAmount = updateData.pix_amount + updateData.cash_amount + updateData.credit_card_amount + updateData.debit_card_amount;
+        
+        await supabase.from("appointments").update({
+          payment_method: updateData.payment_method,
+          pix_amount: updateData.pix_amount,
+          cash_amount: updateData.cash_amount,
+          credit_card_amount: updateData.credit_card_amount,
+          debit_card_amount: updateData.debit_card_amount,
+          credits_used: updateData.credits_amount,
+          cashback_used: updateData.cashback_amount,
+          final_amount: finalAmount,
+          total_price: updateData.amount
+        }).eq("id", editingTransaction.appointment_id);
+      }
+
       // Log the adjustment
       await supabase.from("financial_adjustment_logs").insert({
         transaction_id: editingTransaction.id,
@@ -458,6 +487,7 @@ function FinancesComponent() {
       setIsEditDialogOpen(false);
       setEditingTransaction(null);
       fetchTransactions();
+      fetchAppointments();
     }
   }
 
@@ -841,7 +871,7 @@ function FinancesComponent() {
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             {/* Prioritize manual/transaction payment method */}
-                            {t.payment_method === 'misto' ? (
+                            {t.payment_method === 'misto' || t.payment_method === 'mixed' ? (
                               <Badge variant="outline" className="w-fit bg-orange-500/10 text-orange-500 border-orange-500/20 font-bold">MISTO</Badge>
                             ) : (
                               <>
@@ -1036,7 +1066,7 @@ function FinancesComponent() {
                                       </div>
                                     </div>
 
-                                    {editingTransaction.payment_method === 'misto' && (
+                                    {(editingTransaction.payment_method === 'misto' || editingTransaction.payment_method === 'mixed') && (
                                       <div className="bg-muted/30 p-4 rounded-xl border border-border space-y-4">
                                         <h4 className="text-sm font-bold uppercase tracking-tight text-primary">Detalhamento do Pagamento Misto</h4>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
