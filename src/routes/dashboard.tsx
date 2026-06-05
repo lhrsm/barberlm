@@ -539,8 +539,8 @@ function DashboardComponent() {
       supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).not("status", "eq", "cancelled").gte("start_time", todayStart).lte("start_time", todayEnd),
       supabase.from("appointments").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).not("status", "eq", "cancelled").gte("start_time", monthStart).lte("start_time", monthEnd),
       // Buscar todas as transações para filtrar em memória
-      supabase.from("transactions").select("amount, type, appointment:appointments(status)").eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
-      supabase.from("transactions").select("amount, type, appointment:appointments(status)").eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
+      supabase.from("transactions").select("amount, type, appointment:appointments(status, payment_method)").eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
+      supabase.from("transactions").select("amount, type, appointment:appointments(status, payment_method)").eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", todayStart).lte("created_at", todayEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", monthStart).lte("created_at", monthEnd),
       supabase.from("customers").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId),
@@ -549,11 +549,11 @@ function DashboardComponent() {
       supabase.from("profiles").select("*").eq("id", tenantId).single(),
       supabase.from("wallet").select("balance").eq("user_id", tenantId),
       // Valor dos serviços: APENAS CONCLUÍDOS
-      supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
+      supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount, payment_method")
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", todayStart).lte("start_time", todayEnd),
-      supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount")
+      supabase.from("appointments").select("total_price, original_total, credit_used, cashback_used, cashback_earned, final_amount, payment_method")
         .eq("tenant_id", tenantId)
         .eq("status", "completed")
         .gte("start_time", monthStart).lte("start_time", monthEnd),
@@ -566,7 +566,7 @@ function DashboardComponent() {
     setBarbers(barbersData.data || []);
     setProfile(profileData.data);
 
-    // Função auxiliar para calcular entrada real desconsiderando agendamentos cancelados
+    // Função auxiliar para calcular entrada real desconsiderando agendamentos cancelados e pagamentos via saldo
     const calculateCashInflow = (transData: any[] | null) => {
       return transData?.reduce((acc, curr: any) => {
         if (curr.type === 'income') {
@@ -574,8 +574,12 @@ function DashboardComponent() {
           if (curr.appointment && curr.appointment.status === 'cancelled') {
             return acc;
           }
+          
           // Ignorar transações de créditos/cashback que não representam dinheiro novo real em caixa (PIX/Dinheiro/Cartão)
-          // Mas se o valor for > 0, ele representa a parte em dinheiro de um pagamento misto ou integral.
+          // Se o método de pagamento for explicitamente cashback ou créditos, ignoramos o amount no caixa real
+          if (curr.appointment && (curr.appointment.payment_method === 'cashback' || curr.appointment.payment_method === 'credits')) {
+            return acc;
+          }
           
           return acc + Number(curr.amount || 0);
         } else if (curr.type === 'expense') {
@@ -587,15 +591,39 @@ function DashboardComponent() {
 
     // Cálculos Diários
     const dailyServicesValue = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.total_price || curr.original_total || 0), 0) || 0;
-    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + (Number(curr.credit_used || 0) + Number(curr.credits_used || 0)), 0) || 0;
-    const dailyCashbackUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_used || 0), 0) || 0;
+    const dailyCreditsUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => {
+      let val = (Number(curr.credit_used || 0) + Number(curr.credits_used || 0));
+      if (val === 0 && curr.payment_method === 'credits') {
+        val = Number(curr.total_price || curr.original_total || 0);
+      }
+      return acc + val;
+    }, 0) || 0;
+    const dailyCashbackUsed = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => {
+      let val = Number(curr.cashback_used || 0);
+      if (val === 0 && curr.payment_method === 'cashback') {
+        val = Number(curr.total_price || curr.original_total || 0);
+      }
+      return acc + val;
+    }, 0) || 0;
     const dailyCashbackEarned = dailyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const dailyCashInflow = calculateCashInflow(dailyTrans.data);
 
     // Cálculos Mensais
     const monthlyServicesValue = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.total_price || curr.original_total || 0), 0) || 0;
-    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + (Number(curr.credit_used || 0) + Number(curr.credits_used || 0)), 0) || 0;
-    const monthlyCashbackUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_used || 0), 0) || 0;
+    const monthlyCreditsUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => {
+      let val = (Number(curr.credit_used || 0) + Number(curr.credits_used || 0));
+      if (val === 0 && curr.payment_method === 'credits') {
+        val = Number(curr.total_price || curr.original_total || 0);
+      }
+      return acc + val;
+    }, 0) || 0;
+    const monthlyCashbackUsed = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => {
+      let val = Number(curr.cashback_used || 0);
+      if (val === 0 && curr.payment_method === 'cashback') {
+        val = Number(curr.total_price || curr.original_total || 0);
+      }
+      return acc + val;
+    }, 0) || 0;
     const monthlyCashbackEarned = monthlyAppointmentsData.data?.reduce((acc: number, curr: any) => acc + Number(curr.cashback_earned || 0), 0) || 0;
     const monthlyCashInflow = calculateCashInflow(monthlyTrans.data);
 

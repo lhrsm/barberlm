@@ -198,10 +198,10 @@ function FinancesComponent() {
     const realCashIncome = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
-        if (t.appointment) {
-          // Se for via pix/cash/card, o amount na transação deve ser o valor pago em dinheiro novo
-          // Se for 100% cashback/credits, o amount na transação deve ser 0
-          return acc + (parseFloat(String(t.amount)) || 0);
+        // Se for via cashback ou créditos no método de pagamento, não deve contar no caixa real
+        // mesmo que o valor na transação seja > 0 (por erro de registro)
+        if (t.appointment && (t.appointment.payment_method === 'cashback' || t.appointment.payment_method === 'credits')) {
+          return acc;
         }
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
@@ -209,12 +209,26 @@ function FinancesComponent() {
     // 3. Créditos Utilizados Hoje
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
-      .reduce((acc, t) => acc + (Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)), 0);
+      .reduce((acc, t) => {
+        let val = Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0);
+        // Fallback: se o valor for 0 mas o método for créditos, usar o valor da transação
+        if (val === 0 && t.appointment?.payment_method === 'credits') {
+          val = parseFloat(String(t.amount)) || 0;
+        }
+        return acc + val;
+      }, 0);
 
     // 4. Cashback Utilizado Hoje
     const cashbackConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
-      .reduce((acc, t) => acc + Number(t.appointment?.cashback_used || 0), 0);
+      .reduce((acc, t) => {
+        let val = Number(t.appointment?.cashback_used || 0);
+        // Fallback: se o valor for 0 mas o método for cashback, usar o valor da transação
+        if (val === 0 && t.appointment?.payment_method === 'cashback') {
+          val = parseFloat(String(t.amount)) || 0;
+        }
+        return acc + val;
+      }, 0);
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
