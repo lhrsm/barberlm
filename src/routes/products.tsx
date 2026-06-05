@@ -253,10 +253,10 @@ function ProductsComponent() {
 
           <TabsContent value="inventory" className="space-y-6 pt-6">
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Produtos</h2>
-            <p className="text-muted-foreground">Gerencie seu estoque de pomadas, balms e outros itens.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Produtos</h2>
+            <p className="text-muted-foreground text-sm">Gerencie seu estoque de pomadas, balms e outros itens.</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
             setIsAddDialogOpen(open);
