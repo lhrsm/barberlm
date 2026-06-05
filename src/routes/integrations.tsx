@@ -100,13 +100,13 @@ function IntegrationsComponent() {
           <p className="text-muted-foreground">Conecte suas ferramentas favoritas para automatizar seu negócio.</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 pb-10">
           {/* WhatsApp Z-API */}
           {tenantId && <ZApiWhatsAppCard tenantId={tenantId} />}
 
 
           {/* Resend E-mail */}
-          <Card className="flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm">
+          <Card className="flex flex-col bg-white border-2 border-slate-200 text-black shadow-sm rounded-2xl md:rounded-[2.5rem] overflow-hidden">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
@@ -122,17 +122,17 @@ function IntegrationsComponent() {
             <CardContent className="flex-1 space-y-4">
               <form id="email-form" onSubmit={saveEmail} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>API Key (Resend)</Label>
-                  <Input name="api_key" type="password" defaultValue={email?.api_key} placeholder="re_..." required />
+                  <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">API Key (Resend)</Label>
+                  <Input name="api_key" type="password" defaultValue={email?.api_key} placeholder="re_..." required className="h-11 rounded-xl" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>E-mail do Remetente</Label>
-                    <Input name="sender_email" defaultValue={email?.sender_email} placeholder="contato@seudominio.com" required />
+                    <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">E-mail Remetente</Label>
+                    <Input name="sender_email" defaultValue={email?.sender_email} placeholder="contato@seudominio.com" required className="h-11 rounded-xl" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Nome do Remetente</Label>
-                    <Input name="sender_name" defaultValue={email?.sender_name} placeholder="Barbearia X" required />
+                    <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Nome Remetente</Label>
+                    <Input name="sender_name" defaultValue={email?.sender_name} placeholder="Barbearia X" required className="h-11 rounded-xl" />
                   </div>
                 </div>
               </form>
@@ -171,12 +171,12 @@ function IntegrationsComponent() {
             </CardHeader>
             <CardContent className="flex-1 space-y-4">
               <div className="space-y-2">
-                <Label>API Key (OpenAI)</Label>
-                <Input type="password" defaultValue={ai?.api_key} placeholder="sk-..." disabled={plan !== 'elite'} />
+                <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">API Key (OpenAI)</Label>
+                <Input type="password" defaultValue={ai?.api_key} placeholder="sk-..." disabled={plan !== 'elite'} className="h-11 rounded-xl" />
               </div>
               <div className="space-y-2">
-                <Label>Modelo</Label>
-                <Input defaultValue={ai?.model || 'gpt-4o-mini'} placeholder="gpt-4o-mini" disabled={plan !== 'elite'} />
+                <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Modelo</Label>
+                <Input defaultValue={ai?.model || 'gpt-4o-mini'} placeholder="gpt-4o-mini" disabled={plan !== 'elite'} className="h-11 rounded-xl" />
               </div>
             </CardContent>
             <CardFooter className="border-t pt-4">
