@@ -699,33 +699,36 @@ function FinancesComponent() {
                         <TableCell>
                           {t.appointment ? (
                             <Badge className={cn(
-                              t.appointment.status === 'completed' ? 'bg-emerald-600 text-white' : 
-                              t.appointment.status === 'cancelled' ? 'bg-destructive text-white' : 
-                              'bg-blue-100 text-blue-700'
+                              "font-semibold",
+                              t.appointment.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                              t.appointment.status === 'cancelled' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
+                              'bg-blue-500/10 text-blue-500 border-blue-500/20'
                             )} variant="outline">
                               {t.appointment.status === 'completed' ? 'Concluído' : 
                                t.appointment.status === 'cancelled' ? 'Cancelado' : 'Agendado'}
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-gray-100">Manual</Badge>
+                            <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Manual</Badge>
                           )}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
-                            {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="w-fit">PIX</Badge>}
-                            {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="w-fit">Créditos</Badge>}
-                            {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="w-fit">Cashback</Badge>}
+                            {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="w-fit bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
+                            {t.appointment?.payment_method === 'cash' && <Badge variant="outline" className="w-fit bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
+                            {t.appointment?.payment_method === 'card' && <Badge variant="outline" className="w-fit bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
+                            {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="w-fit bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
+                            {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
                             {(t.appointment?.credit_used > 0 || t.appointment?.credits_used > 0) && (
-                              <span className="text-[10px] text-purple-600 font-bold">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)).toFixed(2)}</span>
+                              <span className="text-[10px] text-purple-400 font-bold">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)).toFixed(2)}</span>
                             )}
                             {t.appointment?.cashback_used > 0 && (
-                              <span className="text-[10px] text-orange-600 font-bold">Cashback: R$ {Number(t.appointment?.cashback_used).toFixed(2)}</span>
+                              <span className="text-[10px] text-orange-400 font-bold">Cashback: R$ {Number(t.appointment?.cashback_used).toFixed(2)}</span>
                             )}
-                            {!t.appointment && <span className="text-xs uppercase font-medium">{t.payment_method || '-'}</span>}
+                            {!t.appointment && <span className="text-xs uppercase font-medium text-muted-foreground">{t.payment_method || '-'}</span>}
                           </div>
                         </TableCell>
-                        <TableCell>{t.category || "-"}</TableCell>
-                        <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>
+                        <TableCell className="text-muted-foreground">{t.category || "-"}</TableCell>
+                        <TableCell className={cn("text-right font-bold", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-emerald-500" : "text-violet-400") : "text-red-500")}>
                           {t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "+" : "★") : "-"} R$ {(() => {
                             const val = parseFloat(String(t.amount)) || 0;
                             if (val === 0 && (t.description?.includes("CRÉDITOS") || t.description?.includes("Créditos") || t.description?.includes("Uso de Crédito"))) {
