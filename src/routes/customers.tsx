@@ -206,147 +206,123 @@ function CustomersComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-white">Clientes</h2>
-            <p className="text-muted-foreground text-sm">Gerencie seus clientes e histórico.</p>
+            <p className="text-slate-400 text-sm">Gerencie seus clientes e histórico.</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
-                <UserPlus size={18} /> Novo Cliente
+              <Button className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold gap-2 shadow-lg hover:shadow-orange-500/20 transition-all rounded-xl w-full md:w-auto">
+                <UserPlus size={18} /> + Novo Cliente
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-[#0b0f17] border-[#1f2937] text-white">
               <DialogHeader>
-                <DialogTitle>Adicionar Novo Cliente</DialogTitle>
+                <DialogTitle className="text-white">Adicionar Novo Cliente</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddCustomer} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome Completo</Label>
+                  <Label htmlFor="name" className="text-slate-300">Nome Completo</Label>
                   <Input 
                     id="name" 
+                    className="bg-[#111827] border-[#1f2937] text-white"
                     value={newCustomer.name} 
                     onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})} 
                     required 
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone / WhatsApp</Label>
+                  <Label htmlFor="phone" className="text-slate-300">Telefone / WhatsApp</Label>
                   <Input 
                     id="phone" 
+                    className="bg-[#111827] border-[#1f2937] text-white"
                     placeholder="(00) 00000-0000"
                     value={newCustomer.phone} 
                     onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})} 
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email (Opcional)</Label>
-                  <Input 
-                    id="email" 
-                    type="email"
-                    value={newCustomer.email} 
-                    onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="birth_date">Data de Nascimento</Label>
-                  <Input 
-                    id="birth_date" 
-                    type="date"
-                    value={newCustomer.birth_date} 
-                    onChange={(e) => setNewCustomer({...newCustomer, birth_date: e.target.value})} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notas / Preferências</Label>
-                  <Input 
-                    id="notes" 
-                    value={newCustomer.notes} 
-                    onChange={(e) => setNewCustomer({...newCustomer, notes: e.target.value})} 
-                  />
-                </div>
-                <Button type="submit" className="w-full">Salvar Cliente</Button>
+                <Button type="submit" className="w-full bg-[#D4AF37] text-black font-bold hover:bg-[#C5A028]">Salvar Cliente</Button>
               </form>
             </DialogContent>
           </Dialog>
         </div>
 
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Total</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-white">{customers.length}</p></CardContent>
+          </Card>
+          <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Ativos</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-white">{customers.filter(c => c.id).length}</p></CardContent>
+          </Card>
+          <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Créditos</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-green-500">R$ {customers.reduce((acc, c) => acc + (Number(c.credits) || 0), 0).toFixed(2)}</p></CardContent>
+          </Card>
+          <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Cashback</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-[#D4AF37]">R$ {customers.reduce((acc, c) => acc + (Number(c.cashback_balance) || 0), 0).toFixed(2)}</p></CardContent>
+          </Card>
+          <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Aniversários</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-white">0</p></CardContent>
+          </Card>
+        </div>
+
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
           <Input 
-            placeholder="Buscar por nome ou telefone..." 
-            className="pl-10"
+            placeholder="Buscar por nome, telefone ou CPF..." 
+            className="pl-10 bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#D4AF37]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden shadow-sm">
-          {/* Desktop Table */}
+        <div className="bg-[#0b0f17] border border-[#1f2937] rounded-2xl overflow-hidden shadow-xl">
           <div className="hidden md:block overflow-x-auto">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead className="hidden md:table-cell">Fidelidade</TableHead>
-                  <TableHead className="hidden md:table-cell">Créditos</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+              <TableHeader className="bg-[#111827]">
+                <TableRow className="border-[#1f2937] hover:bg-transparent">
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cliente</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Telefone</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Fidelidade</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Créditos</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cashback</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
               {filteredCustomers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                    Nenhum cliente encontrado.
-                  </TableCell>
+                <TableRow className="hover:bg-transparent border-transparent">
+                  <TableCell colSpan={6} className="text-center py-12 text-slate-500">Nenhum cliente encontrado.</TableCell>
                 </TableRow>
               ) : (
                 filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id}>
-                    <TableCell className="font-medium">
+                  <TableRow key={customer.id} className="border-[#1f2937] hover:bg-[#111827]">
+                    <TableCell className="font-bold text-white">
                       <div className="flex items-center gap-3">
-                        {customer.avatar_url && (
-                          <img 
-                            src={customer.avatar_url} 
-                            alt={customer.name} 
-                            className="h-8 w-8 rounded-full object-cover border border-primary/10"
-                          />
-                        )}
-                        <span>{customer.name}</span>
+                        <div className="h-8 w-8 rounded-full bg-slate-800 flex items-center justify-center text-xs text-white border border-slate-700">
+                          {customer.name[0].toUpperCase()}
+                        </div>
+                        {customer.name}
                       </div>
                     </TableCell>
+                    <TableCell className="text-slate-300">{customer.phone || "-"}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Phone size={14} className="text-muted-foreground" />
-                        {customer.phone || "-"}
-                      </div>
+                      <Badge variant="outline" className="border-slate-700 text-slate-300">
+                        {customer.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
+                      </Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="flex items-center gap-2">
-                        <Gift size={14} className="text-primary" />
-                        <span className="font-medium">{customer.loyalty_points || 0}</span>
-                        <span className="text-muted-foreground text-xs">/ {shopProfile?.free_service_threshold || 10}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="flex items-center gap-2">
-                        <CircleDollarSign size={14} className="text-green-600" />
-                        <span className="font-medium text-green-700">R$ {(Number(customer.credits) || 0).toFixed(2)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleViewHistory(customer)}>
-                          Ver Cadastro
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(customer)}>
-                          <Edit size={16} className="text-muted-foreground" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(customer)}>
-                          <Trash2 size={16} className="text-destructive" />
-                        </Button>
+                    <TableCell className="text-green-500 font-bold">R$ {(Number(customer.credits) || 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-[#D4AF37] font-bold">R$ {(Number(customer.cashback_balance) || 0).toFixed(2)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-bold h-8 text-xs" onClick={() => handleViewHistory(customer)}>Ver</Button>
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white h-8" onClick={() => openEditDialog(customer)}><Edit size={14} /></Button>
+                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-400 h-8" onClick={() => openDeleteDialog(customer)}><Trash2 size={14} /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -356,81 +332,23 @@ function CustomersComponent() {
           </Table>
           </div>
 
-          {/* Mobile Cards */}
-          <div className="md:hidden divide-y divide-slate-100">
-            {filteredCustomers.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground italic">
-                Nenhum cliente encontrado.
-              </div>
-            ) : (
-              filteredCustomers.map((customer) => (
-                <div key={customer.id} className="p-4 space-y-4 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden border border-primary/20 shrink-0">
-                      {customer.avatar_url ? (
-                        <img 
-                          src={customer.avatar_url} 
-                          alt={customer.name} 
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        customer.name?.[0].toUpperCase()
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-900 truncate">{customer.name}</p>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                        <Phone size={12} className="text-slate-400" />
-                        {customer.phone || "Sem telefone"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1"><Gift size={10} /> Fidelidade</p>
-                      <div className="flex items-end gap-1">
-                        <span className="text-sm font-black text-slate-900">{customer.loyalty_points || 0}</span>
-                        <span className="text-[10px] text-slate-400 font-bold mb-0.5">/ {shopProfile?.free_service_threshold || 10}</span>
-                      </div>
-                    </div>
-                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1"><CircleDollarSign size={10} /> Créditos</p>
-                      <span className="text-sm font-black text-green-600">R$ {(Number(customer.credits) || 0).toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-1">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-slate-200"
-                      onClick={() => handleViewHistory(customer)}
-                    >
-                      <HistoryIcon size={14} /> Detalhes
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-9 w-9 p-0 rounded-xl text-slate-400 hover:text-primary"
-                      onClick={() => openEditDialog(customer)}
-                    >
-                      <Edit size={16} />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-9 w-9 p-0 rounded-xl text-red-500 hover:bg-red-50"
-                      onClick={() => openDeleteDialog(customer)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
+          <div className="md:hidden divide-y divide-[#1f2937]">
+            {filteredCustomers.map((customer) => (
+              <div key={customer.id} className="p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <p className="font-bold text-white text-lg">{customer.name}</p>
+                  <Button variant="outline" size="sm" className="border-[#D4AF37] text-[#D4AF37] h-8 text-xs" onClick={() => handleViewHistory(customer)}>Ver</Button>
                 </div>
-              ))
-            )}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <p className="text-slate-400">Tel: <span className="text-white">{customer.phone || "-"}</span></p>
+                  <p className="text-slate-400">Créditos: <span className="text-green-500">R$ {(Number(customer.credits) || 0).toFixed(2)}</span></p>
+                  <p className="text-slate-400">Cashback: <span className="text-[#D4AF37]">R$ {(Number(customer.cashback_balance) || 0).toFixed(2)}</span></p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+
         <HistoryDialog 
           isOpen={isHistoryOpen} 
           onOpenChange={setIsHistoryOpen}
