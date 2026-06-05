@@ -449,14 +449,14 @@ function SubscriptionComponent() {
                   )}
                   <CardHeader>
                     <div className="flex justify-between items-start mb-2">
-                      <CardTitle className="text-xl">{config.name}</CardTitle>
+                      <CardTitle className="text-2xl font-black italic uppercase tracking-tighter text-amber-500">{config.name}</CardTitle>
                       {config.icon}
                     </div>
                     <CardDescription className="min-h-[40px]">{config.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 space-y-4">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold">R$ {config.price}</span>
+                    <div className="flex items-baseline gap-1 bg-amber-500/5 p-3 rounded-xl border border-amber-500/10 justify-center">
+                      <span className="text-4xl font-black italic tracking-tighter text-amber-500">R$ {config.price}</span>
                       <span className="text-sm text-muted-foreground">/mês</span>
                     </div>
                     <ul className="space-y-2.5">
