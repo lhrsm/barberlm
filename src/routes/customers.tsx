@@ -206,10 +206,10 @@ function CustomersComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Clientes</h2>
-            <p className="text-muted-foreground">Gerencie seus clientes e histórico.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Clientes</h2>
+            <p className="text-muted-foreground text-sm">Gerencie seus clientes e histórico.</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
