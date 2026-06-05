@@ -922,23 +922,22 @@ function ClientPortalComponent() {
 
               <Button 
                 type="submit" 
-                className="w-full h-16 bg-black text-white hover:bg-black/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-black text-xl uppercase tracking-tighter rounded-2xl shadow-xl shadow-black/10" 
+                className="w-full h-[64px] bg-[#000] text-[#FFF] hover:bg-gradient-to-br hover:from-[#000000] hover:to-[#1F2937] transition-all duration-300 hover:-translate-y-[2px] active:translate-y-0 font-extrabold text-[22px] uppercase tracking-[0.5px] rounded-[22px] shadow-[0_12px_30px_rgba(0,0,0,0.25)] hover:shadow-[0_16px_35px_rgba(0,0,0,0.35)] disabled:opacity-50 disabled:cursor-not-allowed" 
                 disabled={submitting}
               >
                 {submitting ? "Processando..." : (isRegistering ? "Criar Conta" : "Entrar no Portal")}
               </Button>
             </form>
             
-            <div className="mt-8 text-center pt-6 border-t border-gray-100/10">
-              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+            <div className="mt-4 text-center pt-6 border-t border-gray-100/10">
+              <p className="text-sm text-gray-500 font-bold flex items-center justify-center gap-2">
                 <span>{isRegistering ? "Já tem conta?" : "Ainda não tem conta?"}</span>
                 <button 
                   type="button"
-                  className="text-[#D4AF37] hover:text-white transition-all duration-300 font-black relative group" 
+                  className="text-[#D4AF37] hover:text-[#F5C542] transition-all duration-300 font-extrabold border-b-2 border-[#D4AF37] hover:border-[#F5C542] pb-[2px] hover:-translate-y-[1px]" 
                   onClick={() => setIsRegistering(!isRegistering)}
                 >
                   {isRegistering ? "Fazer Login" : "Cadastre-se"}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#D4AF37] group-hover:w-full transition-all duration-300"></span>
                 </button>
               </p>
             </div>
@@ -947,11 +946,10 @@ function ClientPortalComponent() {
         
         <Button 
           variant="ghost" 
-          size="sm"
-          className="mt-4 h-auto py-2 text-white/30 hover:text-white transition-all uppercase font-black tracking-widest text-[8px] opacity-60 hover:opacity-100" 
+          className="mt-4 w-full h-[52px] bg-[rgba(255,255,255,0.10)] border border-[rgba(212,175,55,0.45)] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#000] transition-all duration-300 rounded-[16px] font-extrabold text-[14px] tracking-[1px] uppercase hover:-translate-y-[2px] active:translate-y-0 hover:shadow-[0_10px_25px_rgba(212,175,55,0.25)]" 
           onClick={() => navigate({ to: `/${slug}` })}
         >
-          <ChevronLeft className="mr-1" size={10} /> Voltar para a barbearia
+          <ChevronLeft className="mr-2" size={18} /> Voltar para a barbearia
         </Button>
       </div>
     );
