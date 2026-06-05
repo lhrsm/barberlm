@@ -234,10 +234,12 @@ function FinancesComponent() {
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         if (t.appointment) {
-          // Usar total_price como o valor total do serviço
+          // Use total_price as the total service value
           return acc + (Number(t.appointment.total_price || t.appointment.original_total) || 0);
         }
-        return acc + (parseFloat(String(t.amount)) || 0);
+        // For manual entries, include extra amounts that might not be in 'amount'
+        const extraAmounts = Number(t.credits_amount || 0) + Number(t.cashback_amount || 0);
+        return acc + (parseFloat(String(t.amount)) || 0) + extraAmounts;
       }, 0);
 
     // 2. Entrada em Caixa Hoje (Fluxo de Caixa) - Dinheiro novo no caixa (PIX, Dinheiro, Cartão)
@@ -1328,34 +1330,12 @@ function FinancesComponent() {
                               variant="ghost" 
                               size="sm" 
                               className="h-8 gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-                              onClick={async () => {
-                                const { error } = await supabase
-                                  .from("appointments")
-                                  .update({ payment_status: 'paid', status: 'completed' })
-                                  .eq("id", app.id);
-                                
-                                if (error) {
-                                  toast.error("Erro ao confirmar pagamento");
-                                } else {
-                                  // Inserir na tabela de transações como Entrada
-                                  await supabase.from("transactions").insert({
-                                    amount: app.total_price,
-                                    type: "income",
-                                    description: `Atendimento: ${app.services?.name} - ${app.customers?.name}`,
-                                    category: "Serviço",
-                                    barber_id: app.barber_id,
-                                    appointment_id: app.id,
-                                    user_id: user.id,
-                                    date: new Date().toISOString().split('T')[0]
-                                  });
-                                  
-                                  toast.success("Pagamento confirmado e registrado!");
-                                  fetchAppointments();
-                                  fetchTransactions();
-                                }
+                              onClick={() => {
+                                setSelectedAppointmentId(app.id);
+                                setIsDetailsModalOpen(true);
                               }}
                             >
-                              <Check size={14} /> Confirmar
+                              <Check size={14} /> Confirmar / Detalhes
                             </Button>
                             <Button 
                               variant="ghost" 
