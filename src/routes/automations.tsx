@@ -1409,7 +1409,7 @@ function AutomationsComponent() {
                       <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-2">
                         <Terminal size={12} /> Diagnóstico Técnico (Último Envio)
                       </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-6">
                         <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Appointment ID</p>
                           <p className="text-[10px] font-mono text-white truncate hover:text-amber-400 cursor-pointer">{logs[0].appointment_id || 'N/A'}</p>
@@ -1420,31 +1420,48 @@ function AutomationsComponent() {
                         </div>
                         <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Message ID</p>
-                          <p className="text-xs font-mono text-white truncate">{logs[0].message_id || 'N/A'}</p>
+                          <p className="text-[10px] font-mono text-white truncate">{logs[0].message_id || 'N/A'}</p>
                         </div>
                         <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Enviado em</p>
-                          <p className="text-xs font-mono text-white">
+                          <p className="text-[10px] font-mono text-white">
                             {logs[0].sent_at ? new Date(logs[0].sent_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : 'N/A'}
                           </p>
                         </div>
                         <div className="space-y-1.5">
-                          <p className="text-[9px] text-slate-500 uppercase font-bold">Log Criado</p>
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Status Envio</p>
                           <p className="text-[10px] font-mono">
-                            {logs[0].id ? <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4">TRUE</Badge> : <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] h-4">FALSE</Badge>}
+                            {logs[0].status === 'sent' ? <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4">SUCESSO</Badge> : <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] h-4">{logs[0].status?.toUpperCase() || 'ERRO'}</Badge>}
                           </p>
                         </div>
                         <div className="space-y-1.5">
-                          <p className="text-[9px] text-slate-500 uppercase font-bold">Botão Recebido</p>
-                          <p className="text-[10px] font-mono">
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Callback / Botão</p>
+                          <div className="flex flex-col gap-1">
                             {logs[0].callback_received ? (
-                              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4 uppercase">{logs[0].callback_button_id || 'TRUE'}</Badge>
+                              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4 uppercase">{logs[0].callback_button_id || 'RECEBIDO'}</Badge>
                             ) : (
-                              <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] h-4 uppercase">CALLBACK PENDENTE</Badge>
+                              <div className="flex flex-col gap-1">
+                                <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] h-4 uppercase">PENDENTE</Badge>
+                                <span className="text-[8px] text-slate-500 italic">Aguardando webhook...</span>
+                              </div>
                             )}
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Z-API Status</p>
+                          <p className="text-[10px] font-mono text-sky-400">
+                             OK (Webhook Ativo)
                           </p>
                         </div>
                       </div>
+                      {!logs[0].callback_received && logs[0].status === 'sent' && (
+                        <div className="mt-4 pt-3 border-t border-white/5">
+                           <p className="text-[9px] text-slate-400 flex items-center gap-1.5">
+                             <Info size={10} className="text-amber-500" /> Se o cliente já clicou e não aparece aqui: 
+                             <span className="text-amber-200/70 font-medium">Webhook não recebido pela aplicação. Verifique a URL na Z-API.</span>
+                           </p>
+                        </div>
+                      )}
                     </div>
                   )}
 
