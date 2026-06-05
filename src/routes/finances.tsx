@@ -1158,7 +1158,14 @@ function FinancesComponent() {
                   </div>
                 ) : (
                   filteredTransactions.map((t) => (
-                    <div key={t.id} className="p-4 space-y-4 hover:bg-muted/50 transition-colors">
+                    <div 
+                      key={t.id} 
+                      className="p-4 space-y-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setSelectedAppointmentId(t.appointment_id);
+                        setIsDetailsModalOpen(true);
+                      }}
+                    >
                       <div className="flex justify-between items-start">
                         <div className="flex flex-col">
                           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -1250,7 +1257,8 @@ function FinancesComponent() {
                           variant="outline" 
                           size="sm" 
                           className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-border bg-background hover:bg-accent"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setEditingTransaction({
                               ...t,
                               amount: String(t.amount || ""),
@@ -1276,7 +1284,10 @@ function FinancesComponent() {
                           variant="ghost" 
                           size="sm" 
                           className="h-9 w-auto text-xs gap-1 font-bold rounded-xl text-red-500 hover:bg-red-500/10"
-                          onClick={() => handleDeleteTransaction(t.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTransaction(t.id);
+                          }}
                         >
                           <Trash2 size={12} /> Excluir
                         </Button>
