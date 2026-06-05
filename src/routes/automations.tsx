@@ -997,59 +997,32 @@ function AutomationsComponent() {
   };
 
   const resendTest = async (log: any) => {
+    const toastId = toast.loading("Reenviando mensagem...");
     try {
-      // Reenvio exclusivo para testes de Confirmação de Agendamento
-      if (log.message_type !== 'appointment_confirmation') {
-        toast.error("Reenvio disponível apenas para Confirmação de Agendamento");
-        return;
-      }
-
       setLoading(true);
-      const { data: automation } = await anySupabase
-        .from("automation_templates")
-        .select("*")
-        .eq("id", log.automation_id)
-        .single();
-
-      if (!automation) throw new Error("Automação não encontrada");
-
-      const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
-        body: {
-          action: 'send-test-message',
-          instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', tenantId || "").single()).data?.id,
-          data: {
-            phone: log.phone,
-            message: log.processed_template || log.payload?.rendered || "Mensagem de reenvio"
-          }
+      
+      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { 
+          tenant_id: log.tenant_id || tenantId, 
+          appointment_id: log.appointment_id,
+          automation_id: log.automation_id,
+          workflow_key: log.message_type,
+          force_resend: true 
         }
       });
 
-      if (zapiError) throw zapiError;
-
-      const isSuccess = zapiData?.success === true;
-
-      await (supabase as any).from("automation_logs").insert({
-        automation_id: automation.id,
-        tenant_id: tenantId,
-        phone: log.phone,
-        status: isSuccess ? "sent" : "error",
-        message_type: automation.key,
-        processed_template: log.processed_template || log.payload?.rendered,
-        original_template: automation.template,
-        provider: "zapi",
-        sent_at: new Date().toISOString(),
-        payload: { ...log.payload, resent: true },
-        error_message: isSuccess ? null : (zapiData?.error || "Erro no reenvio"),
-        response: zapiData?.result
-      });
-
-      if (isSuccess) toast.success("Reenviado com sucesso!");
-      else toast.error("Falha ao reenviar: " + (zapiData?.error || "Erro desconhecido"));
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success("Mensagem reenviada com sucesso!", { id: toastId });
+      } else {
+        throw new Error(data?.error || "Erro no reenvio");
+      }
       
       fetchData();
       fetchWebhookLogs();
     } catch (error: any) {
-      toast.error("Erro ao reenviar: " + error.message);
+      toast.error("Erro ao reenviar: " + error.message, { id: toastId });
     } finally {
       setLoading(false);
     }
