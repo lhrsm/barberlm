@@ -149,15 +149,15 @@ function AutomationsComponent() {
     if (tenantId) {
       fetchData();
       
-      // Auto-reload history when new records appear in automation_send_history
+      // Auto-reload history when new records appear in automation_v2_dispatches
       const channel = supabase
         .channel('schema-db-changes')
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*',
             schema: 'public',
-            table: 'automation_send_history',
+            table: 'automation_v2_dispatches',
             filter: `tenant_id=eq.${tenantId}`
           },
           (payload) => {
