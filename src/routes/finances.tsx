@@ -646,21 +646,21 @@ function FinancesComponent() {
               </Button>
             </div>
 
-            <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden shadow-sm">
+            <div className="border border-border rounded-xl bg-card text-foreground overflow-hidden shadow-sm">
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[100px]">Data</TableHead>
-                      <TableHead className="w-[100px]">Hora</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      {role !== 'barber' && <TableHead>Barbeiro</TableHead>}
-                      <TableHead>Status</TableHead>
-                      <TableHead>Pagamento</TableHead>
-                      <TableHead>Categoria</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                  <TableHeader className="bg-background">
+                    <TableRow className="hover:bg-transparent border-border">
+                      <TableHead className="w-[100px] text-muted-foreground">Data</TableHead>
+                      <TableHead className="w-[100px] text-muted-foreground">Hora</TableHead>
+                      <TableHead className="text-muted-foreground">Descrição</TableHead>
+                      {role !== 'barber' && <TableHead className="text-muted-foreground">Barbeiro</TableHead>}
+                      <TableHead className="text-muted-foreground">Status</TableHead>
+                      <TableHead className="text-muted-foreground">Pagamento</TableHead>
+                      <TableHead className="text-muted-foreground">Categoria</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Valor</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
