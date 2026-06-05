@@ -480,114 +480,114 @@ function FinancesComponent() {
         </div>
 
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-black">Faturamento Operacional</CardTitle>
-              <div className="p-2 bg-blue-200/50 rounded-lg">
-                <Scissors className="h-4 w-4 text-blue-700" />
+              <CardTitle className="text-sm font-semibold">Serviços Vendidos</CardTitle>
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <Scissors className="h-4 w-4 text-blue-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-900">R$ {summary.income.toFixed(2)}</div>
-              <p className="text-[10px] text-blue-700 font-medium mt-1">Total de serviços vendidos</p>
+              <div className="text-2xl font-bold text-white">R$ {summary.income.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Total de serviços concluídos</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-green-800">Fluxo de Caixa</CardTitle>
-              <div className="p-2 bg-green-200/50 rounded-lg">
-                <CircleDollarSign className="h-4 w-4 text-green-700" />
+              <CardTitle className="text-sm font-semibold">Entrada em Caixa</CardTitle>
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <CircleDollarSign className="h-4 w-4 text-emerald-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-900">R$ {summary.realCashIncome.toFixed(2)}</div>
-              <p className="text-[10px] text-green-700 font-medium mt-1">Dinheiro novo recebido</p>
+              <div className="text-2xl font-bold text-emerald-500">R$ {summary.realCashIncome.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Dinheiro novo (PIX/Cartão/Dinheiro)</p>
             </CardContent>
           </Card>
 
           {role !== 'barber' && (
             <>
-              <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+              <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-semibold text-purple-800">Créditos Consumidos</CardTitle>
-                  <div className="p-2 bg-purple-200/50 rounded-lg">
-                    <Wallet className="h-4 w-4 text-purple-700" />
+                  <CardTitle className="text-sm font-semibold">Cashback Utilizado</CardTitle>
+                  <div className="p-2 bg-orange-500/10 rounded-lg">
+                    <Wallet className="h-4 w-4 text-orange-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-purple-900">R$ {summary.creditsConsumed.toFixed(2)}</div>
-                  <p className="text-[10px] text-purple-700 font-medium mt-1">Abatido via créditos</p>
+                  <div className="text-2xl font-bold text-orange-500">R$ {summary.cashbackConsumed.toFixed(2)}</div>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Abatido via cashback</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+              <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-semibold text-red-800">Saídas</CardTitle>
-                  <div className="p-2 bg-red-200/50 rounded-lg">
-                    <TrendingDown className="h-4 w-4 text-red-700" />
+                  <CardTitle className="text-sm font-semibold">Saídas</CardTitle>
+                  <div className="p-2 bg-red-500/10 rounded-lg">
+                    <TrendingDown className="h-4 w-4 text-red-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-red-900">R$ {summary.expense.toFixed(2)}</div>
-                  <p className="text-[10px] text-red-700 font-medium mt-1">Despesas e estornos</p>
+                  <div className="text-2xl font-bold text-red-500">R$ {summary.expense.toFixed(2)}</div>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Despesas e estornos</p>
                 </CardContent>
               </Card>
             </>
           )}
 
-          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-indigo-800">{role === 'barber' ? 'Minha Comissão' : 'Freelancers'}</CardTitle>
-              <div className="p-2 bg-indigo-200/50 rounded-lg">
-                <Users className="h-4 w-4 text-indigo-700" />
+              <CardTitle className="text-sm font-semibold">{role === 'barber' ? 'Minha Comissão' : 'Freelancers'}</CardTitle>
+              <div className="p-2 bg-indigo-500/10 rounded-lg">
+                <Users className="h-4 w-4 text-indigo-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-indigo-900">R$ {summary.freelancersPart.toFixed(2)}</div>
-              <p className="text-[10px] text-indigo-700 font-medium mt-1">{role === 'barber' ? 'Minha parte garantida' : 'Comissões (Total serviços)'}</p>
+              <div className="text-2xl font-bold text-indigo-400">R$ {summary.freelancersPart.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">{role === 'barber' ? 'Minha parte garantida' : 'Comissões (Total serviços)'}</p>
             </CardContent>
           </Card>
 
           {role !== 'barber' && (
-            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-emerald-800">Barbearia</CardTitle>
-                <div className="p-2 bg-emerald-200/50 rounded-lg">
-                  <TrendingUp className="h-4 w-4 text-emerald-700" />
+                <CardTitle className="text-sm font-semibold">Créditos Utilizados</CardTitle>
+                <div className="p-2 bg-purple-500/10 rounded-lg">
+                  <Wallet className="h-4 w-4 text-purple-500" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-emerald-900">R$ {summary.barbershopPart.toFixed(2)}</div>
-                <p className="text-[10px] text-emerald-700 font-medium mt-1">Receita operacional líquida</p>
+                <div className="text-2xl font-bold text-purple-400">R$ {summary.creditsConsumed.toFixed(2)}</div>
+                <p className="text-[10px] text-muted-foreground font-medium mt-1">Abatido via créditos</p>
               </CardContent>
             </Card>
           )}
 
-          <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-yellow-800">Pendente</CardTitle>
-              <div className="p-2 bg-yellow-200/50 rounded-lg">
-                <Clock className="h-4 w-4 text-yellow-700" />
+              <CardTitle className="text-sm font-semibold">Pendente</CardTitle>
+              <div className="p-2 bg-yellow-500/10 rounded-lg">
+                <Clock className="h-4 w-4 text-yellow-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-900">R$ {summary.pending.toFixed(2)}</div>
-              <p className="text-[10px] text-yellow-700 font-medium mt-1">Aguardando pagamento</p>
+              <div className="text-2xl font-bold text-yellow-500">R$ {summary.pending.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Aguardando pagamento</p>
             </CardContent>
           </Card>
 
           {role !== 'barber' && (
-            <Card className="bg-white border-2 border-slate-200 text-black shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-orange-800">Saldo Atual</CardTitle>
-                <div className="p-2 bg-orange-200/50 rounded-lg">
-                  <CircleDollarSign className="h-4 w-4 text-orange-700" />
+                <CardTitle className="text-sm font-semibold">Saldo em Caixa</CardTitle>
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <CircleDollarSign className="h-4 w-4 text-primary" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-900">R$ {summary.balance.toFixed(2)}</div>
-                <p className="text-[10px] text-orange-700 font-medium mt-1">Real em caixa (Entrada - Saída)</p>
+                <div className="text-2xl font-bold text-primary">R$ {summary.balance.toFixed(2)}</div>
+                <p className="text-[10px] text-muted-foreground font-medium mt-1">Real em caixa (Entrada - Saída)</p>
               </CardContent>
             </Card>
           )}
