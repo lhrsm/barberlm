@@ -469,9 +469,9 @@ function SubscriptionComponent() {
                     <Button 
                       variant={isCurrentPlan ? "outline" : "default"}
                       className={cn(
-                        "w-full font-black uppercase tracking-tighter h-12 rounded-xl transition-all hover:scale-105",
-                        isCurrentPlan && "border-black text-black opacity-50 cursor-not-allowed",
-                        !isCurrentPlan && "bg-amber-500 text-white shadow-xl hover:bg-amber-600"
+                        "w-full font-black italic uppercase tracking-wider h-12 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-sm",
+                        isCurrentPlan && "border-amber-200 text-amber-700 bg-amber-50/50 opacity-50 cursor-not-allowed dark:border-amber-800 dark:text-amber-400",
+                        !isCurrentPlan && "bg-amber-500 text-white hover:bg-amber-600 shadow-amber-500/20"
                       )} 
 
                       disabled={isCurrentPlan || updating}
