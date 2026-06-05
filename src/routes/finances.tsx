@@ -832,18 +832,33 @@ function FinancesComponent() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
-                            {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="w-fit bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
-                            {t.appointment?.payment_method === 'cash' && <Badge variant="outline" className="w-fit bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
-                            {t.appointment?.payment_method === 'card' && <Badge variant="outline" className="w-fit bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
-                            {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="w-fit bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
-                            {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
-                            {(t.appointment?.credit_used > 0 || t.appointment?.credits_used > 0) && (
-                              <span className="text-[10px] text-purple-400 font-bold">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)).toFixed(2)}</span>
+                            {/* Prioritize manual/transaction payment method */}
+                            {t.payment_method === 'misto' ? (
+                              <Badge variant="outline" className="w-fit bg-orange-500/10 text-orange-500 border-orange-500/20 font-bold">MISTO</Badge>
+                            ) : (
+                              <>
+                                {(t.payment_method === 'pix' || t.appointment?.payment_method === 'pix') && <Badge variant="outline" className="w-fit bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
+                                {(t.payment_method === 'dinheiro' || t.appointment?.payment_method === 'cash') && <Badge variant="outline" className="w-fit bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
+                                {(t.payment_method === 'credit_card' || t.payment_method === 'card' || t.appointment?.payment_method === 'card') && <Badge variant="outline" className="w-fit bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
+                                {(t.payment_method === 'debit_card') && <Badge variant="outline" className="w-fit bg-indigo-500/10 text-indigo-500 border-indigo-500/20">Débito</Badge>}
+                                {(t.payment_method === 'credits' || t.appointment?.payment_method === 'credits') && <Badge variant="outline" className="w-fit bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
+                                {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback') && <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
+                              </>
                             )}
-                            {t.appointment?.cashback_used > 0 && (
-                              <span className="text-[10px] text-orange-400 font-bold">Cashback: R$ {Number(t.appointment?.cashback_used).toFixed(2)}</span>
+                            
+                            {/* Detailed parts for Misto or Manual adjustments */}
+                            {(t.pix_amount > 0) && <span className="text-[9px] text-emerald-400 font-medium">PIX: R$ {Number(t.pix_amount).toFixed(2)}</span>}
+                            {(t.cash_amount > 0) && <span className="text-[9px] text-blue-400 font-medium">Din: R$ {Number(t.cash_amount).toFixed(2)}</span>}
+                            {(t.credit_card_amount > 0) && <span className="text-[9px] text-purple-400 font-medium">CC: R$ {Number(t.credit_card_amount).toFixed(2)}</span>}
+                            {(t.debit_card_amount > 0) && <span className="text-[9px] text-indigo-400 font-medium">Deb: R$ {Number(t.debit_card_amount).toFixed(2)}</span>}
+
+                            {(t.appointment?.credit_used > 0 || t.appointment?.credits_used > 0 || t.credits_amount > 0) && (
+                              <span className="text-[10px] text-purple-400 font-bold uppercase">Créditos: R$ {(Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0) + Number(t.credits_amount || 0)).toFixed(2)}</span>
                             )}
-                            {!t.appointment && <span className="text-xs uppercase font-medium text-muted-foreground">{t.payment_method || '-'}</span>}
+                            {(t.appointment?.cashback_used > 0 || t.cashback_amount > 0) && (
+                              <span className="text-[10px] text-orange-400 font-bold uppercase">Cashback: R$ {(Number(t.appointment?.cashback_used || 0) + Number(t.cashback_amount || 0)).toFixed(2)}</span>
+                            )}
+                            {!t.appointment && !t.payment_method && <span className="text-xs uppercase font-medium text-muted-foreground">-</span>}
                           </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">{t.category || "-"}</TableCell>
