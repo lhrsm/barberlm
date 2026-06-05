@@ -262,10 +262,10 @@ function SettingsComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Configurações</h2>
-            <p className="text-muted-foreground">Gerencie sua barbearia, integrações e personalização.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Configurações</h2>
+            <p className="text-muted-foreground text-sm">Gerencie sua barbearia, integrações e personalização.</p>
           </div>
           {plan === "free" && (
             <Button variant="outline" className="bg-primary/10 border-primary/20 text-primary gap-2" asChild>
