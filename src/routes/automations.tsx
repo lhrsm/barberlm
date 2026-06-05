@@ -1332,10 +1332,10 @@ function AutomationsComponent() {
                         </div>
                       </SelectTrigger>
                       <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
-                        <SelectItem value="all">Sempre</SelectItem>
                         <SelectItem value="today">Hoje</SelectItem>
                         <SelectItem value="7days">Últimos 7 Dias</SelectItem>
                         <SelectItem value="30days">Últimos 30 Dias</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
                       </SelectContent>
                     </Select>
 
