@@ -109,11 +109,11 @@ serve(async (req) => {
   if (referenceMessageId) {
     dispatchUpdateQuery = dispatchUpdateQuery.eq("message_id", referenceMessageId);
   } else {
-    // Fallback by phone - last 2 hours
-    const twoHoursAgo = new Date(Date.now() - 7200000).toISOString();
+    // Fallback by phone - last 12 hours (increased from 2h to be more robust)
+    const twelveHoursAgo = new Date(Date.now() - (12 * 60 * 60 * 1000)).toISOString();
     dispatchUpdateQuery = dispatchUpdateQuery
       .eq("phone", phone)
-      .gte("created_at", twoHoursAgo)
+      .gte("created_at", twelveHoursAgo)
       .order("created_at", { ascending: false })
       .limit(1);
   }
