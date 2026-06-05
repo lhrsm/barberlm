@@ -17,9 +17,9 @@ serve(async (req) => {
   );
 
   try {
-    const { tenant_id, appointment_id, force_resend, dry_run } = await req.json().catch(() => ({}));
+    const { tenant_id, appointment_id, automation_id, workflow_key, force_resend, dry_run } = await req.json().catch(() => ({}));
     
-    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, force_resend, dry_run });
+    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, automation_id, workflow_key, force_resend, dry_run });
 
     // 1. Fetch items to process
     let query = supabase
@@ -46,7 +46,58 @@ serve(async (req) => {
     const { data: queueItems, error: queueError } = await query.limit(10);
 
     if (queueError) throw queueError;
-    if (!queueItems || queueItems.length === 0) {
+    
+    let itemsToProcess = queueItems || [];
+
+    // 2. If no queue items found but it's a forced resend with appointment_id, create a virtual item
+    if (itemsToProcess.length === 0 && force_resend && appointment_id) {
+      console.log("[ProcessQueue] No queue item found for forced resend, attempting virtual item creation");
+      
+      // Fetch appointment
+      const { data: appointment, error: appError } = await supabase
+        .from("appointments")
+        .select(`
+          *,
+          customer:customers(name, phone),
+          service:services(name, price)
+        `)
+        .eq("id", appointment_id)
+        .single();
+      
+      if (appError || !appointment) {
+        throw new Error("Appointment not found for virtual resend");
+      }
+
+      // Fetch automation
+      let automationQuery = supabase.from("automation_templates").select("*");
+      if (automation_id) {
+        automationQuery = automationQuery.eq("id", automation_id);
+      } else if (workflow_key) {
+        automationQuery = automationQuery.eq("key", workflow_key).eq("tenant_id", tenant_id || appointment.tenant_id);
+      } else {
+        // Default to appointment confirmation
+        automationQuery = automationQuery.eq("key", "appointment_confirmation").eq("tenant_id", tenant_id || appointment.tenant_id);
+      }
+
+      const { data: automation, error: autoError } = await automationQuery.single();
+
+      if (autoError || !automation) {
+        throw new Error("Automation template not found for virtual resend");
+      }
+
+      itemsToProcess = [{
+        id: "virtual-" + crypto.randomUUID(),
+        tenant_id: tenant_id || appointment.tenant_id,
+        appointment_id: appointment.id,
+        automation_id: automation.id,
+        status: "pending",
+        attempts: 0,
+        appointment,
+        automation
+      }];
+    }
+
+    if (itemsToProcess.length === 0) {
       return new Response(JSON.stringify({ success: true, message: "No items to process" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -54,7 +105,7 @@ serve(async (req) => {
 
     const results = [];
 
-    for (const item of queueItems) {
+    for (const item of itemsToProcess) {
       try {
         const { appointment, automation, tenant_id: itemTenantId } = item;
         
