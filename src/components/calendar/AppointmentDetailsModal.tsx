@@ -113,6 +113,9 @@ export function AppointmentDetailsModal({
     );
 
     if (result.success) {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       if (onSuccess) onSuccess();
       onOpenChange(false);
     }

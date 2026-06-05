@@ -31,6 +31,8 @@ import {
   Bell,
   User as UserIcon,
   RefreshCcw,
+  Maximize2,
+  Minimize2,
   Gift,
   Eye,
   StopCircle,
@@ -337,6 +339,10 @@ function DashboardComponent() {
     // 3. Finance is now handled inside complete_appointment RPC
     fetchTodayAppointments();
     fetchStats();
+    refreshLimits();
+    queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    queryClient.invalidateQueries({ queryKey: ['calendar'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
   }
 
   async function togglePaymentStatus(appointment: any) {
@@ -1181,7 +1187,19 @@ function DashboardComponent() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-2 text-xs font-bold border-zinc-200 hover:bg-zinc-50 rounded-xl"
+                      onClick={() => fetchTodayAppointments()}
+                    >
+                      <RefreshCcw size={14} className={cn("text-sky-500", loading && "animate-spin")} />
+                      Recalcular Dashboard
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-4">
                   {todayAppointments.length === 0 ? (
                     <div className="text-center py-6 text-muted-foreground">
                       Nenhum agendamento para hoje.
