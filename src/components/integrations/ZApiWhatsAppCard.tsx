@@ -81,6 +81,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
   const [isConfiguringNew, setIsConfiguringNew] = useState(false);
   const [lastNewWebhookResult, setLastNewWebhookResult] = useState<any>(null);
   const [isSendingButtonTest, setIsSendingButtonTest] = useState(false);
+  const [isTestingEndpoint, setIsTestingEndpoint] = useState(false);
+  const [lastEndpointTestResult, setLastEndpointTestResult] = useState<any>(null);
   const [buttonTestMessageId, setButtonTestMessageId] = useState<string | null>(null);
   const [isWaitingForCallback, setIsWaitingForCallback] = useState(false);
   const [webhookDebugLogs, setWebhookDebugLogs] = useState<any[]>([]);
@@ -380,22 +382,60 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     setIsConfiguring(true);
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-      const webhookUrl = `${supabaseUrl}/functions/v1/zapi-webhook/${tenantId}`;
-      const { data, error } = await supabase.functions.invoke('zapi-api', { body: { action: 'set-webhook', instanceId: instance.id, data: { webhookUrl } } });
+      // Usando a URL específica para processamento JSON que não depende de tenant_id no path
+      const webhookUrl = `${supabaseUrl}/functions/v1/zapi-receive-json`;
+      
+      const { data, error } = await supabase.functions.invoke('zapi-api', { 
+        body: { 
+          action: 'update-webhook-received', 
+          instanceId: instance.id, 
+          data: { webhookUrl } 
+        } 
+      });
+      
       if (error) throw error;
       setLastWebhookCall(data);
       if (isZApiSuccess(data)) {
-        if (data.allCompatible) {
-          toast.success("Webhooks configurados com sucesso!");
-        } else {
-          toast.success("Webhook principal configurado! Alguns opcionais não são suportados nesta versão da Z-API.");
-        }
+        toast.success("Webhook Received configurado com sucesso!");
       } else {
         toast.error("Falha na configuração do webhook");
       }
       await fetchInstance();
-    } catch (err: any) { toast.error("Erro na reconfiguração"); }
-    finally { setIsConfiguring(false); }
+    } catch (err: any) { 
+      toast.error("Erro na reconfiguração: " + err.message); 
+    } finally { 
+      setIsConfiguring(false); 
+    }
+  }
+
+  async function testSupabaseEndpoint() {
+    if (!instance?.id) return;
+    setIsTestingEndpoint(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('zapi-api', {
+        body: {
+          action: 'test-received-callback',
+          instanceId: instance.id,
+          data: {
+            phone: formData.phone || "5571988939385",
+            text: "1",
+            messageId: `test-manual-${Date.now()}`
+          }
+        }
+      });
+      if (error) throw error;
+      setLastEndpointTestResult(data);
+      if (data.success) {
+        toast.success("Teste de endpoint enviado com sucesso!");
+        await fetchIntegrationLogs();
+      } else {
+        toast.error("Falha no teste de endpoint");
+      }
+    } catch (err: any) {
+      toast.error("Erro no teste: " + err.message);
+    } finally {
+      setIsTestingEndpoint(false);
+    }
   }
 
   async function applyTempWebhook(action: 'update-webhook-received' | 'update-every-webhooks') {
@@ -524,10 +564,13 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={reconfigureWebhook} disabled={isConfiguring || !instance} size="sm" className="bg-blue-600 text-[10px] h-8">
-                    {isConfiguring ? <Loader2 className="animate-spin mr-1" size={12} /> : <RefreshCw className="mr-1" size={12} />} Reconfigurar
+                    {isConfiguring ? <Loader2 className="animate-spin mr-1" size={12} /> : <RefreshCw className="mr-1" size={12} />} Sincronizar Webhook Received
+                  </Button>
+                  <Button onClick={testSupabaseEndpoint} disabled={isTestingEndpoint || !instance} size="sm" className="bg-amber-600 text-[10px] h-8">
+                    {isTestingEndpoint ? <Loader2 className="animate-spin mr-1" size={12} /> : <Terminal className="mr-1" size={12} />} Testar Endpoint Supabase
                   </Button>
                   <Button onClick={sendTestButtonWithCallback} disabled={isSendingButtonTest || isWaitingForCallback || !instance} size="sm" className="bg-purple-600 text-[10px] h-8">
-                    {isSendingButtonTest || isWaitingForCallback ? <Loader2 className="animate-spin mr-1" size={12} /> : <Send className="mr-1" size={12} />} Testar Botão
+                    {isSendingButtonTest || isWaitingForCallback ? <Loader2 className="animate-spin mr-1" size={12} /> : <Send className="mr-1" size={12} />} Testar WhatsApp Real
                   </Button>
                 </div>
               </div>
@@ -541,9 +584,21 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                   <p className="text-slate-500">Telefone Conectado</p>
                   <p className="font-mono text-slate-300">{instance?.phone || "---"}</p>
                 </div>
+                <div className="space-y-1">
+                  <p className="text-slate-500">Token (Mascarado)</p>
+                  <p className="font-mono text-slate-300">{maskTokenDisplay(instance?.token)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-slate-500">Client Token (Mascarado)</p>
+                  <p className="font-mono text-slate-300">{maskTokenDisplay(instance?.client_token)}</p>
+                </div>
+                <div className="col-span-full space-y-1 border-t border-white/5 pt-2">
+                  <p className="text-slate-500">URL Configurada no Sistema</p>
+                  <p className="font-mono text-blue-400 break-all">{`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zapi-receive-json`}</p>
+                </div>
                 <div className="col-span-full space-y-1">
-                  <p className="text-slate-500">URL Alvo (Webhook)</p>
-                  <p className="font-mono text-blue-400 break-all">{instance?.webhook_received_url || "Não configurado"}</p>
+                  <p className="text-slate-500">URL Atual na Z-API (Received)</p>
+                  <p className="font-mono text-emerald-400 break-all">{instance?.webhook_received_url || "Não configurado"}</p>
                 </div>
               </div>
             </div>
@@ -573,11 +628,11 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               <div className="bg-slate-900/50 border border-white/10 rounded-xl p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-blue-400">Status da Última Configuração</h3>
+                    <h3 className="text-sm font-bold text-blue-400">Status da Última Sincronização</h3>
                     <p className="text-[10px] text-slate-400">{instance?.webhook_received_configured_at ? new Date(instance.webhook_received_configured_at).toLocaleString() : "Data desconhecida"}</p>
                   </div>
                   <Badge className={isZApiSuccess(lastWebhookCall) ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
-                    {isZApiSuccess(lastWebhookCall) ? (lastWebhookCall.allCompatible ? "Sucesso Total" : "Sucesso Parcial") : "Falha"}
+                    {isZApiSuccess(lastWebhookCall) ? "Configurado" : "Erro"}
                   </Badge>
                 </div>
                 
