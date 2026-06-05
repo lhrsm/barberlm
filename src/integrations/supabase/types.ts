@@ -1061,6 +1061,113 @@ export type Database = {
           },
         ]
       }
+      automation_v2_dispatches: {
+        Row: {
+          appointment_group_id: string | null
+          appointment_id: string | null
+          callback_button_id: string | null
+          callback_payload: Json | null
+          callback_received: boolean | null
+          callback_received_at: string | null
+          channel: string
+          created_at: string
+          current_step: string | null
+          customer_name: string | null
+          error: string | null
+          flow_type: string
+          id: string
+          message_id: string | null
+          payload: Json | null
+          phone: string
+          provider_response: Json | null
+          sent_at: string | null
+          session_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+          workflow_key: string
+        }
+        Insert: {
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          callback_button_id?: string | null
+          callback_payload?: Json | null
+          callback_received?: boolean | null
+          callback_received_at?: string | null
+          channel?: string
+          created_at?: string
+          current_step?: string | null
+          customer_name?: string | null
+          error?: string | null
+          flow_type?: string
+          id?: string
+          message_id?: string | null
+          payload?: Json | null
+          phone: string
+          provider_response?: Json | null
+          sent_at?: string | null
+          session_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          workflow_key: string
+        }
+        Update: {
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          callback_button_id?: string | null
+          callback_payload?: Json | null
+          callback_received?: boolean | null
+          callback_received_at?: string | null
+          channel?: string
+          created_at?: string
+          current_step?: string | null
+          customer_name?: string | null
+          error?: string | null
+          flow_type?: string
+          id?: string
+          message_id?: string | null
+          payload?: Json | null
+          phone?: string
+          provider_response?: Json | null
+          sent_at?: string | null
+          session_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          workflow_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_v2_dispatches_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_v2_dispatches_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "automation_v2_dispatches_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "automation_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_v2_dispatches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_webhook_logs: {
         Row: {
           appointment_id: string | null

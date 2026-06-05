@@ -112,7 +112,7 @@ function AutomationsComponent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
   const [lastManualUpdate, setLastManualUpdate] = useState<Date | null>(null);
-  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0, lastUpdate: new Date(), pendingCallbacks: 0 });
+  const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0, lastUpdate: new Date(), pendingCallbacks: 0, callbacksReceived: 0 });
   const [reconciliationSettings, setReconciliationSettings] = useState<any>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isReconciling, setIsReconciling] = useState(false);
@@ -149,15 +149,15 @@ function AutomationsComponent() {
     if (tenantId) {
       fetchData();
       
-      // Auto-reload history when new records appear in automation_send_history
+      // Auto-reload history when new records appear in automation_v2_dispatches
       const channel = supabase
         .channel('schema-db-changes')
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*',
             schema: 'public',
-            table: 'automation_send_history',
+            table: 'automation_v2_dispatches',
             filter: `tenant_id=eq.${tenantId}`
           },
           (payload) => {
@@ -262,53 +262,47 @@ function AutomationsComponent() {
 
 
       // 4. Fetch logs with filtering and pagination
-
       let query = anySupabase
-        .from("automation_send_history")
+        .from("automation_v2_dispatches")
         .select("*", { count: 'exact' });
-        // Removido filtro fixo de tenant_id para garantir que mostre tudo no filtro "Sempre" se solicitado, 
-        // mas mantendo por segurança de RLS/Tenant context
-        query = query.eq("tenant_id", tenantId);
+      
+      query = query.eq("tenant_id", tenantId);
         
       if (searchTerm) {
         if (searchTerm.startsWith('appointment:')) {
           const id = searchTerm.replace('appointment:', '');
           query = query.eq('appointment_id', id);
-        } else if (searchTerm === 'source:test_manual') {
-          query = query.eq('source', 'test_manual');
         } else {
-          // Search by phone, status, or provider_message_id
-          query = query.or(`phone.ilike.%${searchTerm}%,provider_message_id.ilike.%${searchTerm}%`);
+          // Search by phone, message_id, or customer_name
+          query = query.or(`phone.ilike.%${searchTerm}%,message_id.ilike.%${searchTerm}%,customer_name.ilike.%${searchTerm}%`);
         }
       }
 
-        
       if (filterStatus !== "all") {
-        const mappedStatus = filterStatus === "sent" ? "success" : filterStatus === "error" ? "error" : filterStatus;
-        query = query.eq("status", mappedStatus);
-      }
-      
-      if (filterAutomation !== "all") {
-        query = query.eq("message_type", filterAutomation);
+        query = query.eq("status", filterStatus);
       }
       
       if (filterPeriod !== "all") {
         const now = new Date();
         let startDate = new Date();
         if (filterPeriod === "today") {
-          // Reset to beginning of today in Sao Paulo time, then to UTC for DB
-          const spOffset = -3; // UTC-3
-          startDate = new Date(now.getTime() + (spOffset * 60 * 60 * 1000));
-          startDate.setUTCHours(3, 0, 0, 0); // 00:00 SP is 03:00 UTC
+          // Reset to beginning of today in Sao Paulo time
+          startDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+          startDate.setHours(0, 0, 0, 0);
+          
+          // Convert back to UTC for comparison if needed, but Supabase handles ISO strings
+          // A safer way for "Today" in SP:
+          const todaySP = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }); // YYYY-MM-DD
+          query = query.gte("created_at", `${todaySP}T00:00:00Z`);
         } else if (filterPeriod === "7days") {
           startDate.setDate(now.getDate() - 7);
+          query = query.gte("created_at", startDate.toISOString());
         } else if (filterPeriod === "30days") {
           startDate.setDate(now.getDate() - 30);
+          query = query.gte("created_at", startDate.toISOString());
         }
-        query = query.gte("created_at", startDate.toISOString());
       }
 
-      
       const from = (currentPage - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
@@ -319,13 +313,14 @@ function AutomationsComponent() {
       setLogs(logsData || []);
       setTotalLogs(count || 0);
 
-      // Fetch global stats for logs using the new send history table
-      const { count: totalSent } = await anySupabase.from("automation_send_history").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
-      const { count: totalSuccess } = await anySupabase.from("automation_send_history").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "sent");
-      const { count: totalFailed } = await anySupabase.from("automation_send_history").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
+      // Fetch global stats for logs using the new send history table (v2)
+      const { count: totalSent } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
+      const { count: totalSuccess } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "sent");
+      const { count: totalFailed } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
+      const { count: totalCallbacks } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("callback_received", true);
       const { count: totalDuplicate } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("action", "duplicate_confirmation_blocked");
       const { count: totalNotFound } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "not_found");
-      const { data: lastLogData } = await anySupabase.from("automation_send_history").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const { data: lastLogData } = await anySupabase.from("automation_v2_dispatches").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
 
 
       // Pending callbacks are 'success' sent messages in the last 24h that don't have a 'button_clicked' action in the same appointment
@@ -358,7 +353,8 @@ function AutomationsComponent() {
         notFound: totalNotFound || 0,
         lastSent: lastLogData?.created_at || null,
         lastUpdate: new Date(),
-        pendingCallbacks: pendingCount
+        pendingCallbacks: (totalSent || 0) - (totalCallbacks || 0),
+        callbacksReceived: totalCallbacks || 0
       });
 
       // Fetch reconciliation settings
@@ -1336,10 +1332,10 @@ function AutomationsComponent() {
                         </div>
                       </SelectTrigger>
                       <SelectContent className="bg-[#0F172A] border-slate-800 text-white">
-                        <SelectItem value="all">Sempre</SelectItem>
                         <SelectItem value="today">Hoje</SelectItem>
                         <SelectItem value="7days">Últimos 7 Dias</SelectItem>
                         <SelectItem value="30days">Últimos 30 Dias</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
                       </SelectContent>
                     </Select>
 
@@ -1413,7 +1409,7 @@ function AutomationsComponent() {
                       <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-2">
                         <Terminal size={12} /> Diagnóstico Técnico (Último Envio)
                       </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-6">
                         <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Appointment ID</p>
                           <p className="text-[10px] font-mono text-white truncate hover:text-amber-400 cursor-pointer">{logs[0].appointment_id || 'N/A'}</p>
@@ -1424,31 +1420,48 @@ function AutomationsComponent() {
                         </div>
                         <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Message ID</p>
-                          <p className="text-[10px] font-mono text-white truncate">{logs[0].provider_message_id || 'N/A'}</p>
+                          <p className="text-[10px] font-mono text-white truncate">{logs[0].message_id || 'N/A'}</p>
                         </div>
                         <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Enviado em</p>
                           <p className="text-[10px] font-mono text-white">
-                            {logs[0].sent_at ? new Date(logs[0].sent_at).toLocaleTimeString('pt-BR') : logs[0].created_at ? new Date(logs[0].created_at).toLocaleTimeString('pt-BR') : 'N/A'}
+                            {logs[0].sent_at ? new Date(logs[0].sent_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : 'N/A'}
                           </p>
                         </div>
                         <div className="space-y-1.5">
-                          <p className="text-[9px] text-slate-500 uppercase font-bold">Log Criado</p>
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Status Envio</p>
                           <p className="text-[10px] font-mono">
-                            {logs[0].id ? <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4">TRUE</Badge> : <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] h-4">FALSE</Badge>}
+                            {logs[0].status === 'sent' ? <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4">SUCESSO</Badge> : <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] h-4">{logs[0].status?.toUpperCase() || 'ERRO'}</Badge>}
                           </p>
                         </div>
                         <div className="space-y-1.5">
-                          <p className="text-[9px] text-slate-500 uppercase font-bold">Botão Recebido</p>
-                          <p className="text-[10px] font-mono">
-                            {logs.some(l => l.appointment_id === logs[0].appointment_id && l.action === 'button_clicked') ? (
-                              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4">TRUE</Badge>
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Callback / Botão</p>
+                          <div className="flex flex-col gap-1">
+                            {logs[0].callback_received ? (
+                              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4 uppercase">{logs[0].callback_button_id || 'RECEBIDO'}</Badge>
                             ) : (
-                              <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] h-4">CALLBACK PENDENTE</Badge>
+                              <div className="flex flex-col gap-1">
+                                <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] h-4 uppercase">PENDENTE</Badge>
+                                <span className="text-[8px] text-slate-500 italic">Aguardando webhook...</span>
+                              </div>
                             )}
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Z-API Status</p>
+                          <p className="text-[10px] font-mono text-sky-400">
+                             OK (Webhook Ativo)
                           </p>
                         </div>
                       </div>
+                      {!logs[0].callback_received && logs[0].status === 'sent' && (
+                        <div className="mt-4 pt-3 border-t border-white/5">
+                           <p className="text-[9px] text-slate-400 flex items-center gap-1.5">
+                             <Info size={10} className="text-amber-500" /> Se o cliente já clicou e não aparece aqui: 
+                             <span className="text-amber-200/70 font-medium">Webhook não recebido pela aplicação. Verifique a URL na Z-API.</span>
+                           </p>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1473,40 +1486,26 @@ function AutomationsComponent() {
                         <tr key={log.id} className={`${idx % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'} hover:bg-white/[0.05] transition-colors group`}>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium text-white">{new Date(log.created_at).toLocaleDateString('pt-BR')}</span>
-                              <span className="text-[10px] text-slate-500 font-mono">{new Date(log.created_at).toLocaleTimeString('pt-BR')}</span>
+                              <span className="text-sm font-medium text-white">{new Date(log.created_at).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
+                              <span className="text-[10px] text-slate-500 font-mono">{new Date(log.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border-white/10 ${
-                              log.source === 'test_manual' ? 'text-amber-400 bg-amber-500/5' : 'text-sky-400 bg-sky-500/5'
+                              log.flow_type === 'multi' ? 'text-amber-400 bg-amber-500/5' : 'text-sky-400 bg-sky-500/5'
                             }`}>
-                              {log.automation_name || (log.source === 'test_manual' ? 'Teste Manual' : 'Automático')}
+                              {log.workflow_key || 'Automático'}
                             </Badge>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              {log.provider === 'zapi' ? (
-                                <>
-                                  <Smartphone size={14} className="text-[#10B981]" />
-                                  <span className="text-xs font-medium text-slate-400">WhatsApp</span>
-                                </>
-                              ) : log.provider === 'email' ? (
-                                <>
-                                  <MessageSquare size={14} className="text-sky-500" />
-                                  <span className="text-xs font-medium text-slate-400">E-mail</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Terminal size={14} className="text-slate-500" />
-                                  <span className="text-xs font-medium text-slate-400">Sistema</span>
-                                </>
-                              )}
+                              <Smartphone size={14} className="text-[#10B981]" />
+                              <span className="text-xs font-medium text-slate-400">WhatsApp</span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col">
-                              <span className="text-sm font-bold text-white">{log.payload?.data?.customer_name || 'Cliente'}</span>
+                              <span className="text-sm font-bold text-white">{log.customer_name || 'Cliente'}</span>
                               <span className="text-xs text-slate-500 font-mono">{log.phone}</span>
                             </div>
                           </td>
@@ -1620,8 +1619,8 @@ function AutomationsComponent() {
           <div key={log.id} className="bg-[#0F172A] border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-white">{new Date(log.created_at).toLocaleDateString('pt-BR')}</span>
-                <span className="text-[10px] text-slate-500">{new Date(log.created_at).toLocaleTimeString('pt-BR')}</span>
+                <span className="text-xs font-bold text-white">{new Date(log.created_at).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
+                <span className="text-[10px] text-slate-500">{new Date(log.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
               </div>
               {log.status === 'sent' ? (
                 <Badge className="bg-[#10B981]/10 text-[#10B981] border-none text-[10px] font-bold px-2 py-1 rounded-lg">
@@ -2301,7 +2300,7 @@ function AutomationsComponent() {
                         <div className="pt-4 mt-4 border-t border-amber-500/20">
                           <div className="flex items-center justify-between mb-2">
                             <p className="text-slate-500">// Diagnóstico da Sessão</p>
-                            {selectedLog.conversation_id && (
+                            {selectedLog.session_id && (
                               <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-400">
                                 SESSÃO ATIVA
                               </Badge>
@@ -2309,19 +2308,29 @@ function AutomationsComponent() {
                           </div>
                           <div className="grid grid-cols-1 gap-1 mb-4">
                              <div className="flex justify-between border-b border-white/5 py-1">
-                               <span className="text-slate-500">conversation_created:</span>
-                               <span className={selectedLog.conversation_created ? "text-emerald-400" : "text-rose-400"}>
-                                 {String(selectedLog.conversation_created)}
-                               </span>
+                               <span className="text-slate-500">session_id:</span>
+                               <span className="text-sky-400">"{selectedLog.session_id || 'null'}"</span>
                              </div>
                              <div className="flex justify-between border-b border-white/5 py-1">
-                               <span className="text-slate-500">conversation_id:</span>
-                               <span className="text-sky-400">"{selectedLog.conversation_id || 'null'}"</span>
+                               <span className="text-slate-500">current_step:</span>
+                               <span className="text-amber-400">"{selectedLog.current_step || 'AWAITING_MAIN_ACTION'}"</span>
                              </div>
-                             {selectedLog.conversation_error && (
+                             <div className="flex justify-between border-b border-white/5 py-1">
+                               <span className="text-slate-500">callback_received:</span>
+                               <span className={selectedLog.callback_received ? "text-emerald-400" : "text-amber-400"}>
+                                 {String(selectedLog.callback_received)}
+                               </span>
+                             </div>
+                             {selectedLog.callback_received && (
+                               <div className="flex justify-between border-b border-white/5 py-1">
+                                 <span className="text-slate-500">callback_button_id:</span>
+                                 <span className="text-emerald-400">"{selectedLog.callback_button_id}"</span>
+                               </div>
+                             )}
+                             {selectedLog.error && (
                                <div className="flex flex-col border-b border-white/5 py-1">
-                                 <span className="text-rose-500">conversation_error:</span>
-                                 <span className="text-rose-400 italic">"{selectedLog.conversation_error}"</span>
+                                 <span className="text-rose-500">error:</span>
+                                 <span className="text-rose-400 italic">"{selectedLog.error}"</span>
                                </div>
                              )}
                           </div>

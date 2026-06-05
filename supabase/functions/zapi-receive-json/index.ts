@@ -36,10 +36,12 @@ serve(async (req) => {
   const phone = body.phone || body.from;
   const type = body.type;
   const fromMe = body.fromMe;
-  const incomingText = body.text?.message || body.message || body.body || "";
+  const incomingText = body.text?.message || body.message || body.body || body.buttonsResponseMessage?.buttonText || "";
   const messageId = body.messageId || body.id;
+  const buttonId = body.buttonsResponseMessage?.buttonId;
+  const referenceMessageId = body.referenceMessageId; // Importante para vincular ao dispatch
 
-  // 2. SALVAR LOG OBRIGATÓRIO (PASSO 2 DO DIAGNÓSTICO)
+  // 2. SALVAR LOG OBRIGATÓRIO
   const normalizedText = incomingText.toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -57,52 +59,63 @@ serve(async (req) => {
     created_at: new Date().toISOString()
   }).select().single();
 
-  if (type !== "ReceivedCallback" || fromMe) {
-    return new Response(JSON.stringify({ ok: true, status: "ignored" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (fromMe) {
+    return new Response(JSON.stringify({ ok: true, status: "ignored_from_me" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  // 3. BUSCAR CONVERSA ATIVA (PASSO 3 DO DIAGNÓSTICO)
-  console.log(`[Webhook] Searching session for ${phone}`);
-  const queryFilters = {
-    phone_normalized: phone,
-    status: ['active', 'awaiting_response'],
-    automation_type: ['appointment_confirmation', 'confirmation'],
-    expires_gt: new Date().toISOString()
-  };
+  // 3. VINCULAR AO DISPATCH (HISTÓRICO)
+  console.log(`[Webhook] Searching dispatch for reference: ${referenceMessageId || 'none'} or phone: ${phone}`);
+  
+  let dispatchUpdateQuery = supabase.from("automation_v2_dispatches").update({
+    callback_received: true,
+    callback_received_at: new Date().toISOString(),
+    callback_button_id: buttonId || normalizedText,
+    callback_payload: body
+  });
 
+  if (referenceMessageId) {
+    dispatchUpdateQuery = dispatchUpdateQuery.eq("message_id", referenceMessageId);
+  } else {
+    // Fallback por telefone se não tiver referenceMessageId (mais comum em mensagens de texto)
+    dispatchUpdateQuery = dispatchUpdateQuery.eq("phone", phone).order("created_at", { ascending: false }).limit(1);
+  }
+
+  const { data: updatedDispatch, error: dispatchUpdateErr } = await dispatchUpdateQuery.select();
+  
+  if (dispatchUpdateErr) {
+    console.error("[Webhook] Error updating dispatch:", dispatchUpdateErr);
+  }
+
+  // 4. BUSCAR CONVERSA ATIVA
   const { data: conversations, error: convError } = await supabase
     .from("automation_conversations")
     .select("*")
     .eq("phone_normalized", phone)
     .in("status", ["active", "awaiting_response"])
-    .in("automation_type", ["appointment_confirmation", "confirmation"])
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false });
 
-  const conversationsFoundCount = conversations?.length || 0;
   const selectedConversation = conversations?.[0];
   
-  // Atualizar log com dados da busca
   await supabase.from("automation_webhook_logs").update({
-    query_filters_used: queryFilters,
-    conversations_found_count: conversationsFoundCount,
     conversation_selected_id: selectedConversation?.id,
-    conversation_found: !!selectedConversation
+    conversation_found: !!selectedConversation,
+    dispatch_updated: !!updatedDispatch?.length
   }).eq("id", webhookLog.id);
 
   if (!selectedConversation) {
     console.warn(`[Webhook] Conversation not found for ${phone}`);
-    // Opcional: Enviar mensagem de erro se não encontrar a sessão
     return new Response(JSON.stringify({ ok: true, status: "conversation_not_found" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   const appointmentId = selectedConversation.appointment_id;
   const tenantId = selectedConversation.tenant_id;
 
-  // 4. PROCESSAR AÇÃO (PASSO 4 DO DIAGNÓSTICO)
-  const isConfirm = ["1", "confirmar", "confirmar agendamento"].includes(normalizedText);
-  const isReschedule = ["2", "reagendar"].includes(normalizedText);
-  const isCancel = ["3", "cancelar"].includes(normalizedText);
+  // 5. PROCESSAR AÇÃO
+  // Mapeamento de botões e texto
+  const isConfirm = buttonId === "main_confirm" || ["1", "confirmar", "confirmar agendamento"].includes(normalizedText);
+  const isReschedule = buttonId === "main_reschedule" || ["2", "reagendar"].includes(normalizedText);
+  const isCancel = buttonId === "main_cancel" || ["3", "cancelar"].includes(normalizedText);
 
   let matchedAction = "none";
   if (isConfirm) matchedAction = "confirm";
@@ -116,14 +129,18 @@ serve(async (req) => {
   }).eq("id", webhookLog.id);
 
   if (matchedAction === "confirm") {
-    // Pegar detalhes do agendamento para a mensagem
+    // Pegar detalhes do agendamento
     const { data: appt } = await supabase.from("appointments").select("*, service:services(name), barber:barbers(name)").eq("id", appointmentId).single();
     
     // Atualizar agendamento
     await supabase.from("appointments").update({ status: "confirmed", confirmed_at: new Date().toISOString() }).eq("id", appointmentId);
     
     // Atualizar conversa
-    await supabase.from("automation_conversations").update({ status: "completed", current_state: "completed", confirmed_at: new Date().toISOString() }).eq("id", selectedConversation.id);
+    await supabase.from("automation_conversations").update({ 
+      status: "completed", 
+      current_state: "completed", 
+      confirmed_at: new Date().toISOString() 
+    }).eq("id", selectedConversation.id);
 
     // Enviar mensagem de sucesso
     let businessName = "Barbearia";
@@ -137,6 +154,16 @@ serve(async (req) => {
       await sendMessage(instance, phone, successMsg);
       await supabase.from("automation_webhook_logs").update({ response_sent: true }).eq("id", webhookLog.id);
     }
+  } else if (matchedAction === "reschedule" || matchedAction === "cancel") {
+    // Aqui iniciaria o fluxo de reagendamento ou cancelamento
+    // Por enquanto, apenas atualizamos o status para mostrar que recebemos
+    await supabase.from("automation_conversations").update({ 
+      current_state: matchedAction === "reschedule" ? "AWAITING_RESCHEDULE" : "AWAITING_CANCEL",
+      last_action: matchedAction
+    }).eq("id", selectedConversation.id);
+    
+    // TODO: Implementar lógica de reagendamento/cancelamento automática
+    console.log(`[Webhook] Action ${matchedAction} recognized but complex flow not fully implemented yet.`);
   }
 
   return new Response(JSON.stringify({ ok: true, matchedAction }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
