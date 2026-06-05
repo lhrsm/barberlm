@@ -929,23 +929,29 @@ function ClientPortalComponent() {
               </Button>
             </form>
             
-            <div className="mt-8 text-center pt-6 border-t border-gray-50">
-              <button 
-                className="text-xs text-gray-400 font-bold uppercase tracking-widest hover:text-[#D4AF37] transition-colors" 
-                onClick={() => setIsRegistering(!isRegistering)}
-              >
-                {isRegistering ? "Já tem conta? Fazer Login" : "Não tem conta? Cadastrar-se"}
-              </button>
+            <div className="mt-8 text-center pt-6 border-t border-gray-100/10">
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                <span>{isRegistering ? "Já tem conta?" : "Ainda não tem conta?"}</span>
+                <button 
+                  type="button"
+                  className="text-[#D4AF37] hover:text-white transition-all duration-300 font-black relative group" 
+                  onClick={() => setIsRegistering(!isRegistering)}
+                >
+                  {isRegistering ? "Fazer Login" : "Cadastre-se"}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#D4AF37] group-hover:w-full transition-all duration-300"></span>
+                </button>
+              </p>
             </div>
           </CardContent>
         </Card>
         
         <Button 
           variant="ghost" 
-          className="mt-8 text-white/40 hover:text-[#D4AF37] transition-colors uppercase font-black tracking-widest text-[10px]" 
+          size="sm"
+          className="mt-4 h-auto py-2 text-white/30 hover:text-white transition-all uppercase font-black tracking-widest text-[8px] opacity-60 hover:opacity-100" 
           onClick={() => navigate({ to: `/${slug}` })}
         >
-          <ChevronLeft className="mr-2" size={14} /> Voltar para a barbearia
+          <ChevronLeft className="mr-1" size={10} /> Voltar para a barbearia
         </Button>
       </div>
     );
