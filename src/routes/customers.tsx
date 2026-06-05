@@ -446,112 +446,136 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pr-6">
-          <DialogTitle>Informações de {selectedCustomer?.name}</DialogTitle>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col bg-[#0b0f17] border-[#1f2937] text-white">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pr-6 border-b border-[#1f2937] pb-4">
+          <DialogTitle className="text-white text-xl">Informações de {selectedCustomer?.name}</DialogTitle>
           <Button 
             variant="outline" 
             size="sm" 
-            className="bg-green-500 hover:bg-green-600 text-white gap-2 border-none"
+            className="bg-green-600 hover:bg-green-700 text-white gap-2 border-none shadow-lg shadow-green-900/20"
             onClick={() => handleWhatsApp(selectedCustomer?.phone)}
           >
             <Phone size={14} /> WhatsApp
           </Button>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-          <Card className="bg-muted/30 border-none shadow-none">
-            <CardContent className="pt-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <UserIcon className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">{selectedCustomer?.name}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-6">
+          <div className="space-y-4">
+            <div className="bg-[#111827] p-4 rounded-xl border border-[#1f2937] space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-[#1f2937] flex items-center justify-center text-white border border-[#D4AF37]/30">
+                  <UserIcon size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Nome</p>
+                  <p className="font-bold text-white">{selectedCustomer?.name}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-primary" />
-                <span className="text-sm">{selectedCustomer?.phone || "Não informado"}</span>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-[#1f2937] flex items-center justify-center text-white border border-[#D4AF37]/30">
+                  <Phone size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Telefone</p>
+                  <p className="text-white">{selectedCustomer?.phone || "Não informado"}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-primary" />
-                <span className="text-sm truncate">{selectedCustomer?.email || "Não informado"}</span>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-[#1f2937] flex items-center justify-center text-white border border-[#D4AF37]/30">
+                  <Mail size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Email</p>
+                  <p className="text-white truncate max-w-[180px]">{selectedCustomer?.email || "Não informado"}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Gift className="h-4 w-4 text-primary" />
-                <span className="text-sm">
-                  {selectedCustomer?.birth_date 
-                    ? format(new Date(selectedCustomer.birth_date + 'T12:00:00'), "dd/MM/yyyy") 
-                    : "Não informado"}
+            </div>
+
+            {selectedCustomer?.notes && (
+              <div className="p-3 bg-blue-500/5 rounded-xl border border-blue-500/20 text-xs text-blue-200 italic">
+                "{selectedCustomer.notes}"
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-[#111827] p-5 rounded-xl border border-[#D4AF37]/20 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Gift size={60} className="text-[#D4AF37]" />
+              </div>
+              
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-2 text-[#D4AF37]">
+                  <Gift size={20} />
+                  <span className="font-bold uppercase text-xs tracking-widest">Fidelidade</span>
+                </div>
+                <span className="text-sm font-black text-white">
+                  {selectedCustomer?.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
                 </span>
               </div>
-              {selectedCustomer?.notes && (
-                <div className="mt-2 p-2 bg-background rounded border text-xs text-muted-foreground italic">
-                  "{selectedCustomer.notes}"
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 h-fit">
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center gap-2 text-primary">
-                <Gift size={18} />
-                <span className="font-bold">Cartão Fidelidade</span>
+              
+              <div className="h-2 bg-[#1f2937] rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-[#D4AF37] to-orange-500 transition-all duration-500"
+                  style={{ width: `${Math.min(((selectedCustomer?.loyalty_points || 0) / (shopProfile?.free_service_threshold || 10)) * 100, 100)}%` }}
+                />
               </div>
-              <span className="text-sm font-medium">
-                {selectedCustomer?.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
-              </span>
+
+              <div className="mt-6 pt-4 border-t border-[#1f2937] grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Créditos</p>
+                  <p className="text-lg font-black text-green-500">R$ {(Number(selectedCustomer?.credits) || 0).toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Cashback</p>
+                  <p className="text-lg font-black text-[#D4AF37]">R$ {(Number(selectedCustomer?.cashback_balance) || 0).toFixed(2)}</p>
+                </div>
+              </div>
             </div>
-            <Progress 
-              value={((selectedCustomer?.loyalty_points || 0) % (shopProfile?.free_service_threshold || 10)) / (shopProfile?.free_service_threshold || 10) * 100} 
-              className="h-2" 
-            />
-            <p className="text-xs text-muted-foreground mt-2 font-medium">
-              Saldo em Créditos: <span className="text-green-600 font-bold">R$ {(Number(selectedCustomer?.credits) || 0).toFixed(2)}</span>
-            </p>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col min-h-0 space-y-4">
-          <div className="flex items-center gap-2 border-b pb-2">
-            <HistoryIcon size={18} className="text-muted-foreground" />
-            <h4 className="font-bold">Histórico de Atendimentos</h4>
+        <div className="flex-1 flex flex-col min-h-0 space-y-4 border-t border-[#1f2937] pt-4">
+          <div className="flex items-center gap-2">
+            <HistoryIcon size={18} className="text-slate-400" />
+            <h4 className="font-bold text-white uppercase text-xs tracking-wider">Histórico de Atendimentos</h4>
           </div>
           <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-4">
+            <div className="space-y-3">
               {loadingHistory ? (
-                <div className="text-center py-8">Carregando histórico...</div>
+                <div className="text-center py-12 text-slate-500 animate-pulse">Carregando histórico...</div>
               ) : customerHistory.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">Nenhum agendamento encontrado.</div>
+                <div className="text-center py-12 text-slate-500 italic">Nenhum agendamento encontrado.</div>
               ) : (
                 customerHistory.map((app: any) => (
-                  <div key={app.id} className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors">
+                  <div key={app.id} className="flex items-center justify-between p-4 bg-[#111827] border border-[#1f2937] rounded-xl hover:border-[#D4AF37]/30 transition-all group">
                     <div>
-                      <p className="font-bold">{app.services?.name}</p>
-                      <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
+                      <p className="font-bold text-white group-hover:text-[#D4AF37] transition-colors">{app.services?.name}</p>
+                      <div className="flex flex-wrap items-center gap-3 mt-1 text-[11px] text-slate-400">
                         <span className="flex items-center gap-1"><Clock size={12} /> {format(new Date(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                         <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
                         {app.payment_method && (
-                          <span className="flex items-center gap-1">
-                            <Badge variant="outline" className="text-[10px] py-0 h-4 uppercase">
-                              {app.payment_method === 'pix' ? 'PIX' : 
-                               app.payment_method === 'credits' ? 'Créditos' : 
-                               app.payment_method === 'cashback' ? 'Cashback' : 'Na Barbearia'}
-                            </Badge>
-                          </span>
+                          <Badge variant="outline" className="text-[9px] py-0 h-4 uppercase border-slate-700 text-slate-500 bg-[#0b0f17]">
+                            {app.payment_method === 'pix' ? 'PIX' : 
+                             app.payment_method === 'credits' ? 'Créditos' : 
+                             app.payment_method === 'cashback' ? 'Cashback' : 'Na Barbearia'}
+                          </Badge>
                         )}
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       <Badge className={cn(
-                        app.status === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white border-none' : 
-                        app.status === 'scheduled' ? 'bg-blue-100 text-blue-700 border-blue-200' : 
-                        'bg-red-50 text-red-700 border-red-100'
-                      )} variant={app.status === 'completed' ? 'default' : 'outline'}>
+                        "text-[10px] uppercase font-bold border-none",
+                        app.status === 'completed' ? 'bg-green-500/10 text-green-500' : 
+                        app.status === 'scheduled' ? 'bg-blue-500/10 text-blue-500' : 
+                        'bg-red-500/10 text-red-500'
+                      )}>
                         {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
                       </Badge>
                       {app.service_ratings?.[0] && (
-                        <div className="flex items-center gap-1 text-yellow-500">
-                          <Star size={12} fill="currentColor" />
-                          <span className="text-xs font-bold">{app.service_ratings[0].rating}</span>
+                        <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/5 px-2 py-0.5 rounded-full border border-yellow-500/10">
+                          <Star size={10} fill="currentColor" />
+                          <span className="text-[10px] font-black">{app.service_ratings[0].rating}</span>
                         </div>
                       )}
                     </div>
@@ -563,5 +587,6 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
         </div>
       </DialogContent>
     </Dialog>
+
   );
 }
