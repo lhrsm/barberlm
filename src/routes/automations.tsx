@@ -2872,7 +2872,7 @@ function AutomationsComponent() {
                   <th className="px-4 py-3 text-left">Data/Hora</th>
                   <th className="px-4 py-3 text-left">Telefone</th>
                   <th className="px-4 py-3 text-left">Mensagem Recebida</th>
-                  <th className="px-4 py-3 text-left">Normalizado</th>
+                  <th className="px-4 py-3 text-left">Etapa / Erro</th>
                   <th className="px-4 py-3 text-left">Sessão/Agendamento</th>
                   <th className="px-4 py-3 text-left">Ação</th>
                   <th className="px-4 py-3 text-right">Detalhes</th>
@@ -2893,7 +2893,19 @@ function AutomationsComponent() {
                       {log.incoming_text || log.buttonText || '---'}
                     </td>
                     <td className="px-4 py-3">
-                      <code className="bg-white/5 px-1.5 py-0.5 rounded text-amber-500">{log.normalized_text || '---'}</code>
+                      <div className="flex flex-col gap-1">
+                        <Badge variant="outline" className={`text-[9px] border-none px-2 py-0.5 ${
+                          log.last_processing_step === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 
+                          log.processing_error ? 'bg-rose-500/10 text-rose-500' : 'bg-amber-500/10 text-amber-500'
+                        }`}>
+                          {log.last_processing_step || 'RECEBIDO'}
+                        </Badge>
+                        {log.processing_error && (
+                          <span className="text-[9px] text-rose-400 truncate max-w-[150px]" title={log.processing_error}>
+                            {log.processing_error}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-col gap-1">
@@ -2964,11 +2976,15 @@ function AutomationsComponent() {
                 </div>
               </div>
               <div className="bg-black/30 p-4 rounded-2xl border border-white/5">
-                <p className="text-[10px] uppercase font-bold text-slate-500 mb-2">Resultado da Busca</p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 mb-2">Fluxo Interno</p>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-xs"><span>Sessão Encontrada:</span> <span className={selectedWebhookLog?.conversation_found ? "text-emerald-400" : "text-rose-400"}>{String(selectedWebhookLog?.conversation_found)}</span></div>
-                  <div className="flex justify-between text-xs"><span>Ação Mapeada:</span> <Badge className="h-4 text-[9px] bg-emerald-500/20 text-emerald-400 border-none">{selectedWebhookLog?.matched_action || 'NENHUMA'}</Badge></div>
-                  <div className="flex justify-between text-xs"><span>Resposta Enviada:</span> <span className="text-white">{selectedWebhookLog?.response_sent ? "Sim" : "Não"}</span></div>
+                  <div className="flex justify-between text-xs"><span>Última Etapa:</span> <Badge className="h-4 text-[9px] bg-amber-500/20 text-amber-400 border-none">{selectedWebhookLog?.last_processing_step || 'RECEBIDO'}</Badge></div>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <span className="text-xs text-slate-500">Erro / Status:</span>
+                    <span className={selectedWebhookLog?.processing_error ? "text-rose-400 text-[10px] bg-rose-500/10 p-2 rounded-lg border border-rose-500/20" : "text-emerald-400 text-[10px]"}>
+                      {selectedWebhookLog?.processing_error || "Processamento concluído com sucesso."}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
