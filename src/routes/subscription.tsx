@@ -465,13 +465,13 @@ function SubscriptionComponent() {
                       ))}
                     </ul>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="mt-auto">
                     <Button 
                       variant={isCurrentPlan ? "outline" : "default"}
                       className={cn(
                         "w-full font-black uppercase tracking-tighter h-12 rounded-xl transition-all hover:scale-105",
                         isCurrentPlan && "border-black text-black opacity-50 cursor-not-allowed",
-                        !isCurrentPlan && "bg-black text-white shadow-xl"
+                        !isCurrentPlan && "bg-black text-white shadow-xl hover:bg-black/90"
                       )} 
 
                       disabled={isCurrentPlan || updating}
