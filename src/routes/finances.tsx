@@ -350,8 +350,8 @@ function FinancesComponent() {
       <div className="space-y-6">
         <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Financeiro</h2>
-            <p className="text-muted-foreground">Controle suas entradas e saídas.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Financeiro</h2>
+            <p className="text-muted-foreground text-sm">Controle suas entradas e saídas.</p>
           </div>
           <div className="flex flex-col gap-3">
             {role !== 'barber' && (
