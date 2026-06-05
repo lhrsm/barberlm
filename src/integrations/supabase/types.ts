@@ -1196,6 +1196,7 @@ export type Database = {
           fromme: boolean | null
           id: string
           incoming_text: string | null
+          last_processing_step: string | null
           matched_action: string | null
           messageid: string | null
           normalized_text: string | null
@@ -1203,6 +1204,7 @@ export type Database = {
           phone_normalized: string | null
           phone_raw: string | null
           processed_at: string | null
+          processing_error: string | null
           query_filters_used: Json | null
           raw_payload: Json
           referencemessageid: string | null
@@ -1227,6 +1229,7 @@ export type Database = {
           fromme?: boolean | null
           id?: string
           incoming_text?: string | null
+          last_processing_step?: string | null
           matched_action?: string | null
           messageid?: string | null
           normalized_text?: string | null
@@ -1234,6 +1237,7 @@ export type Database = {
           phone_normalized?: string | null
           phone_raw?: string | null
           processed_at?: string | null
+          processing_error?: string | null
           query_filters_used?: Json | null
           raw_payload: Json
           referencemessageid?: string | null
@@ -1258,6 +1262,7 @@ export type Database = {
           fromme?: boolean | null
           id?: string
           incoming_text?: string | null
+          last_processing_step?: string | null
           matched_action?: string | null
           messageid?: string | null
           normalized_text?: string | null
@@ -1265,6 +1270,7 @@ export type Database = {
           phone_normalized?: string | null
           phone_raw?: string | null
           processed_at?: string | null
+          processing_error?: string | null
           query_filters_used?: Json | null
           raw_payload?: Json
           referencemessageid?: string | null
