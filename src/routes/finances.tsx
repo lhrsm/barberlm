@@ -1201,12 +1201,24 @@ function FinancesComponent() {
                            <div className="bg-background/50 p-3 rounded-xl border border-border">
                              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Pagamento</p>
                              <div className="flex flex-wrap gap-1">
-                               {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
-                               {t.appointment?.payment_method === 'cash' && <Badge variant="outline" className="text-[10px] font-bold bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
-                               {t.appointment?.payment_method === 'card' && <Badge variant="outline" className="text-[10px] font-bold bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
-                               {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="text-[10px] font-bold bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
-                               {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
-                               {!t.appointment && <span className="text-[10px] font-bold uppercase text-muted-foreground">{t.payment_method || '-'}</span>}
+                               {t.payment_method === 'misto' ? (
+                                 <Badge variant="outline" className="text-[10px] font-bold bg-orange-500/10 text-orange-500 border-orange-500/20">MISTO</Badge>
+                               ) : (
+                                 <>
+                                   {(t.payment_method === 'pix' || t.appointment?.payment_method === 'pix') && <Badge variant="outline" className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
+                                   {(t.payment_method === 'dinheiro' || t.appointment?.payment_method === 'cash') && <Badge variant="outline" className="text-[10px] font-bold bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
+                                   {(t.payment_method === 'credit_card' || t.payment_method === 'card' || t.appointment?.payment_method === 'card') && <Badge variant="outline" className="text-[10px] font-bold bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
+                                   {(t.payment_method === 'debit_card') && <Badge variant="outline" className="text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border-indigo-500/20">Débito</Badge>}
+                                   {(t.payment_method === 'credits' || t.appointment?.payment_method === 'credits') && <Badge variant="outline" className="text-[10px] font-bold bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
+                                   {(t.payment_method === 'cashback' || t.appointment?.payment_method === 'cashback') && <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
+                                 </>
+                               )}
+                             </div>
+                             <div className="mt-1 flex flex-col gap-0.5">
+                               {(t.pix_amount > 0) && <span className="text-[9px] text-emerald-400 font-medium">PIX: R$ {Number(t.pix_amount).toFixed(2)}</span>}
+                               {(t.cash_amount > 0) && <span className="text-[9px] text-blue-400 font-medium">Din: R$ {Number(t.cash_amount).toFixed(2)}</span>}
+                               {(t.appointment?.credits_used > 0 || t.credits_amount > 0) && <span className="text-[9px] text-purple-400 font-medium">Cred: R$ {(Number(t.appointment?.credits_used || 0) + Number(t.credits_amount || 0)).toFixed(2)}</span>}
+                               {(t.appointment?.cashback_used > 0 || t.cashback_amount > 0) && <span className="text-[9px] text-orange-400 font-medium">Cash: R$ {(Number(t.appointment?.cashback_used || 0) + Number(t.cashback_amount || 0)).toFixed(2)}</span>}
                              </div>
                            </div>
                         </div>
