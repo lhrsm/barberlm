@@ -946,7 +946,7 @@ function ClientPortalComponent() {
         
         <Button 
           variant="ghost" 
-          className="mt-4 w-full h-[52px] bg-[rgba(255,255,255,0.10)] border border-[rgba(212,175,55,0.45)] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#000] transition-all duration-300 rounded-[16px] font-extrabold text-[14px] tracking-[1px] uppercase hover:-translate-y-[2px] active:translate-y-0 hover:shadow-[0_10px_25px_rgba(212,175,55,0.25)]" 
+          className="mt-4 w-full max-w-md h-[52px] bg-[rgba(255,255,255,0.10)] border border-[rgba(212,175,55,0.45)] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#000] transition-all duration-300 rounded-[16px] font-extrabold text-[14px] tracking-[1px] uppercase hover:-translate-y-[2px] active:translate-y-0 hover:shadow-[0_10px_25px_rgba(212,175,55,0.25)]" 
           onClick={() => navigate({ to: `/${slug}` })}
         >
           <ChevronLeft className="mr-2" size={18} /> Voltar para a barbearia
