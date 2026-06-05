@@ -1417,7 +1417,7 @@ function DashboardComponent() {
               </CardContent>
             </Card>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               <Card className="bg-white border-2 border-blue-500/30 shadow-lg shadow-blue-500/5 hover:border-blue-500/60 transition-all duration-300">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-black uppercase tracking-widest text-blue-900">Serviços Vendidos Hoje</CardTitle>
