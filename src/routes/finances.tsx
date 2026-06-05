@@ -911,12 +911,12 @@ function FinancesComponent() {
                       </div>
 
                       <div className="space-y-3">
-                        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Descrição</p>
-                          <p className="text-sm font-bold text-slate-700 leading-tight">
+                        <div className="bg-background/50 p-3 rounded-xl border border-border">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Descrição</p>
+                          <p className="text-sm font-bold text-foreground leading-tight">
                             {t.appointment?.customers?.name ? (
                               <>
-                                <span className="text-sky-600">Cliente: {t.appointment.customers.name}</span><br/>
+                                <span className="text-primary">Cliente: {t.appointment.customers.name}</span><br/>
                                 {t.description || "-"}
                               </>
                             ) : (
@@ -926,29 +926,31 @@ function FinancesComponent() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
-                           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Status</p>
+                           <div className="bg-background/50 p-3 rounded-xl border border-border">
+                             <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Status</p>
                              {t.appointment ? (
                                <Badge className={cn(
                                  "text-[10px] font-black uppercase italic",
-                                 t.appointment.status === 'completed' ? 'bg-emerald-600 text-white' : 
-                                 t.appointment.status === 'cancelled' ? 'bg-destructive text-white' : 
-                                 'bg-blue-100 text-blue-700'
+                                 t.appointment.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                                 t.appointment.status === 'cancelled' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
+                                 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                                )} variant="outline">
                                  {t.appointment.status === 'completed' ? 'Concluído' : 
                                   t.appointment.status === 'cancelled' ? 'Cancelado' : 'Agendado'}
                                </Badge>
                              ) : (
-                               <Badge variant="outline" className="bg-gray-100 text-[10px] font-black uppercase italic">Manual</Badge>
+                               <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px] font-black uppercase italic">Manual</Badge>
                              )}
                            </div>
-                           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Pagamento</p>
+                           <div className="bg-background/50 p-3 rounded-xl border border-border">
+                             <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Pagamento</p>
                              <div className="flex flex-wrap gap-1">
-                               {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="text-[10px] font-bold">PIX</Badge>}
-                               {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="text-[10px] font-bold">Créditos</Badge>}
-                               {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="text-[10px] font-bold">Cashback</Badge>}
-                               {!t.appointment && <span className="text-[10px] font-bold uppercase">{t.payment_method || '-'}</span>}
+                               {t.appointment?.payment_method === 'pix' && <Badge variant="outline" className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PIX</Badge>}
+                               {t.appointment?.payment_method === 'cash' && <Badge variant="outline" className="text-[10px] font-bold bg-blue-500/10 text-blue-500 border-blue-500/20">Dinheiro</Badge>}
+                               {t.appointment?.payment_method === 'card' && <Badge variant="outline" className="text-[10px] font-bold bg-purple-500/10 text-purple-500 border-purple-500/20">Cartão</Badge>}
+                               {t.appointment?.payment_method === 'credits' && <Badge variant="outline" className="text-[10px] font-bold bg-violet-500/10 text-violet-500 border-violet-500/20">Créditos</Badge>}
+                               {t.appointment?.payment_method === 'cashback' && <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">Cashback</Badge>}
+                               {!t.appointment && <span className="text-[10px] font-bold uppercase text-muted-foreground">{t.payment_method || '-'}</span>}
                              </div>
                            </div>
                         </div>
