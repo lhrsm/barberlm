@@ -1560,10 +1560,13 @@ function AutomationsComponent() {
                           </p>
                         </div>
                         <div className="space-y-1.5">
-                          <p className="text-[9px] text-slate-500 uppercase font-bold">Callback / Botão</p>
+                          <p className="text-[9px] text-slate-500 uppercase font-bold">Etapa / Callback</p>
                           <div className="flex flex-col gap-1">
                             {logs[0].callback_received ? (
-                              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4 uppercase">{logs[0].callback_button_id || 'RECEBIDO'}</Badge>
+                              <div className="flex flex-col gap-1">
+                                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4 uppercase">{logs[0].callback_button_id || 'RECEBIDO'}</Badge>
+                                <span className="text-[9px] text-emerald-400 font-bold uppercase">{logs[0].current_step || 'COMPLETO'}</span>
+                              </div>
                             ) : (
                               <div className="flex flex-col gap-1">
                                 <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] h-4 uppercase">PENDENTE</Badge>
@@ -1658,14 +1661,20 @@ function AutomationsComponent() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex flex-col gap-1">
                               {log.callback_received ? (
-                                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 w-fit uppercase">
-                                  <CheckCheck size={12} strokeWidth={3} /> {log.callback_button_id || 'RECEBIDO'}
-                                </Badge>
+                                <div className="flex flex-col gap-1">
+                                  <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 w-fit uppercase">
+                                    <CheckCheck size={12} strokeWidth={3} /> {log.callback_button_id || 'RECEBIDO'}
+                                  </Badge>
+                                  <span className="text-[10px] text-emerald-400 font-medium">Fluxo: {log.current_step || 'COMPLETADO'}</span>
+                                </div>
                               ) : (
                                 <div className="flex flex-col gap-0.5">
                                   <Badge variant="outline" className="bg-amber-500/5 text-amber-500/70 border-amber-500/20 text-[9px] font-bold px-1.5 py-0 rounded flex items-center gap-1 w-fit uppercase">
                                     <Clock size={10} /> CALLBACK PENDENTE
                                   </Badge>
+                                  {log.status === 'sent' && (
+                                    <span className="text-[8px] text-slate-500 italic">Aguardando interação...</span>
+                                  )}
                                 </div>
                               )}
                             </div>
