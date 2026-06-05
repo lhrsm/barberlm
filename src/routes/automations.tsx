@@ -1115,6 +1115,18 @@ function AutomationsComponent() {
             >
               Histórico de Envios
             </TabsTrigger>
+            <TabsTrigger 
+              value="callbacks"
+              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A] flex items-center gap-2"
+            >
+              <MousePointer2 size={16} /> Webhooks / Callbacks
+              {pendingCallbacks.length > 0 && (
+                <Badge className="bg-rose-500 text-white border-none text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full">
+                  {pendingCallbacks.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="templates" className="space-y-4 pt-4">
