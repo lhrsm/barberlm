@@ -646,6 +646,8 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
                 <div className="bg-amber-500/10 border border-amber-500/20 p-2 rounded text-[9px] text-amber-300">
                   <p>ℹ️ Se o status for "Sucesso", verifique se um novo registro apareceu em "Webhooks Recebidos" abaixo.</p>
                 </div>
+              </div>
+            )}
 
             {lastWebhookCall && (
               <div className="bg-slate-900/50 border border-white/10 rounded-xl p-4 space-y-4">
