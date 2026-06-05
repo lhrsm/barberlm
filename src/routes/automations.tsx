@@ -1602,8 +1602,8 @@ function AutomationsComponent() {
           <div key={log.id} className="bg-[#0F172A] border border-white/5 rounded-2xl p-4 space-y-4 shadow-xl">
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-white">{new Date(log.created_at).toLocaleDateString('pt-BR')}</span>
-                <span className="text-[10px] text-slate-500">{new Date(log.created_at).toLocaleTimeString('pt-BR')}</span>
+                <span className="text-xs font-bold text-white">{new Date(log.created_at).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
+                <span className="text-[10px] text-slate-500">{new Date(log.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
               </div>
               {log.status === 'sent' ? (
                 <Badge className="bg-[#10B981]/10 text-[#10B981] border-none text-[10px] font-bold px-2 py-1 rounded-lg">
