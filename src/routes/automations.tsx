@@ -2300,7 +2300,7 @@ function AutomationsComponent() {
                         <div className="pt-4 mt-4 border-t border-amber-500/20">
                           <div className="flex items-center justify-between mb-2">
                             <p className="text-slate-500">// Diagnóstico da Sessão</p>
-                            {selectedLog.conversation_id && (
+                            {selectedLog.session_id && (
                               <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-400">
                                 SESSÃO ATIVA
                               </Badge>
@@ -2308,19 +2308,29 @@ function AutomationsComponent() {
                           </div>
                           <div className="grid grid-cols-1 gap-1 mb-4">
                              <div className="flex justify-between border-b border-white/5 py-1">
-                               <span className="text-slate-500">conversation_created:</span>
-                               <span className={selectedLog.conversation_created ? "text-emerald-400" : "text-rose-400"}>
-                                 {String(selectedLog.conversation_created)}
-                               </span>
+                               <span className="text-slate-500">session_id:</span>
+                               <span className="text-sky-400">"{selectedLog.session_id || 'null'}"</span>
                              </div>
                              <div className="flex justify-between border-b border-white/5 py-1">
-                               <span className="text-slate-500">conversation_id:</span>
-                               <span className="text-sky-400">"{selectedLog.conversation_id || 'null'}"</span>
+                               <span className="text-slate-500">current_step:</span>
+                               <span className="text-amber-400">"{selectedLog.current_step || 'AWAITING_MAIN_ACTION'}"</span>
                              </div>
-                             {selectedLog.conversation_error && (
+                             <div className="flex justify-between border-b border-white/5 py-1">
+                               <span className="text-slate-500">callback_received:</span>
+                               <span className={selectedLog.callback_received ? "text-emerald-400" : "text-amber-400"}>
+                                 {String(selectedLog.callback_received)}
+                               </span>
+                             </div>
+                             {selectedLog.callback_received && (
+                               <div className="flex justify-between border-b border-white/5 py-1">
+                                 <span className="text-slate-500">callback_button_id:</span>
+                                 <span className="text-emerald-400">"{selectedLog.callback_button_id}"</span>
+                               </div>
+                             )}
+                             {selectedLog.error && (
                                <div className="flex flex-col border-b border-white/5 py-1">
-                                 <span className="text-rose-500">conversation_error:</span>
-                                 <span className="text-rose-400 italic">"{selectedLog.conversation_error}"</span>
+                                 <span className="text-rose-500">error:</span>
+                                 <span className="text-rose-400 italic">"{selectedLog.error}"</span>
                                </div>
                              )}
                           </div>
