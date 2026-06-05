@@ -262,53 +262,47 @@ function AutomationsComponent() {
 
 
       // 4. Fetch logs with filtering and pagination
-
       let query = anySupabase
-        .from("automation_send_history")
+        .from("automation_v2_dispatches")
         .select("*", { count: 'exact' });
-        // Removido filtro fixo de tenant_id para garantir que mostre tudo no filtro "Sempre" se solicitado, 
-        // mas mantendo por segurança de RLS/Tenant context
-        query = query.eq("tenant_id", tenantId);
+      
+      query = query.eq("tenant_id", tenantId);
         
       if (searchTerm) {
         if (searchTerm.startsWith('appointment:')) {
           const id = searchTerm.replace('appointment:', '');
           query = query.eq('appointment_id', id);
-        } else if (searchTerm === 'source:test_manual') {
-          query = query.eq('source', 'test_manual');
         } else {
-          // Search by phone, status, or provider_message_id
-          query = query.or(`phone.ilike.%${searchTerm}%,provider_message_id.ilike.%${searchTerm}%`);
+          // Search by phone, message_id, or customer_name
+          query = query.or(`phone.ilike.%${searchTerm}%,message_id.ilike.%${searchTerm}%,customer_name.ilike.%${searchTerm}%`);
         }
       }
 
-        
       if (filterStatus !== "all") {
-        const mappedStatus = filterStatus === "sent" ? "success" : filterStatus === "error" ? "error" : filterStatus;
-        query = query.eq("status", mappedStatus);
-      }
-      
-      if (filterAutomation !== "all") {
-        query = query.eq("message_type", filterAutomation);
+        query = query.eq("status", filterStatus);
       }
       
       if (filterPeriod !== "all") {
         const now = new Date();
         let startDate = new Date();
         if (filterPeriod === "today") {
-          // Reset to beginning of today in Sao Paulo time, then to UTC for DB
-          const spOffset = -3; // UTC-3
-          startDate = new Date(now.getTime() + (spOffset * 60 * 60 * 1000));
-          startDate.setUTCHours(3, 0, 0, 0); // 00:00 SP is 03:00 UTC
+          // Reset to beginning of today in Sao Paulo time
+          startDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+          startDate.setHours(0, 0, 0, 0);
+          
+          // Convert back to UTC for comparison if needed, but Supabase handles ISO strings
+          // A safer way for "Today" in SP:
+          const todaySP = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }); // YYYY-MM-DD
+          query = query.gte("created_at", `${todaySP}T00:00:00Z`);
         } else if (filterPeriod === "7days") {
           startDate.setDate(now.getDate() - 7);
+          query = query.gte("created_at", startDate.toISOString());
         } else if (filterPeriod === "30days") {
           startDate.setDate(now.getDate() - 30);
+          query = query.gte("created_at", startDate.toISOString());
         }
-        query = query.gte("created_at", startDate.toISOString());
       }
 
-      
       const from = (currentPage - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
@@ -319,13 +313,14 @@ function AutomationsComponent() {
       setLogs(logsData || []);
       setTotalLogs(count || 0);
 
-      // Fetch global stats for logs using the new send history table
-      const { count: totalSent } = await anySupabase.from("automation_send_history").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
-      const { count: totalSuccess } = await anySupabase.from("automation_send_history").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "sent");
-      const { count: totalFailed } = await anySupabase.from("automation_send_history").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
+      // Fetch global stats for logs using the new send history table (v2)
+      const { count: totalSent } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
+      const { count: totalSuccess } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "sent");
+      const { count: totalFailed } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
+      const { count: totalCallbacks } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("callback_received", true);
       const { count: totalDuplicate } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("action", "duplicate_confirmation_blocked");
       const { count: totalNotFound } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "not_found");
-      const { data: lastLogData } = await anySupabase.from("automation_send_history").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const { data: lastLogData } = await anySupabase.from("automation_v2_dispatches").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
 
 
       // Pending callbacks are 'success' sent messages in the last 24h that don't have a 'button_clicked' action in the same appointment
