@@ -13,9 +13,9 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Phone, ArrowRight } from "lucide-react";
+import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatInTimeZone, toDate } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
@@ -39,8 +39,10 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
@@ -70,6 +72,8 @@ function FinancesComponent() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const TIMEZONE = "America/Sao_Paulo";
 
@@ -1565,6 +1569,17 @@ function FinancesComponent() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <AppointmentDetailsModal 
+        appointmentId={selectedAppointmentId || undefined}
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+        onSuccess={() => {
+          const barberIdFilter = role === 'barber' ? user?.id : null;
+          fetchTransactions(barberIdFilter);
+          fetchAppointments(barberIdFilter);
+        }}
+      />
     </AppLayout>
   );
 }
