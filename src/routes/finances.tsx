@@ -1189,9 +1189,9 @@ function FinancesComponent() {
                 );
               })}
               
-              <Card className="bg-white border-2 border-black/10 text-black shadow-md">
+              <Card className="bg-card border-primary/20 text-foreground shadow-md">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg text-black font-black">Barbearia Geral (Total)</CardTitle>
+                  <CardTitle className="text-lg text-white font-black">Barbearia Geral (Total)</CardTitle>
                   <p className="text-xs text-muted-foreground">Soma de todos os ganhos da barbearia</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1248,15 +1248,15 @@ function FinancesComponent() {
                         <>
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">Lançamentos Gerais</span>
-                            <span>R$ {totalGeneralOnly.toFixed(2)}</span>
+                            <span className="text-foreground">R$ {totalGeneralOnly.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">Vindo dos Barbeiros</span>
-                            <span>R$ {totalFromBarbers.toFixed(2)}</span>
+                            <span className="text-foreground">R$ {totalFromBarbers.toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between items-center border-t pt-2 mt-2">
-                             <span className="font-bold text-black uppercase tracking-tighter">Total Acumulado</span>
-                            <span className="text-xl font-black text-black">R$ {finalTotal.toFixed(2)}</span>
+                          <div className="flex justify-between items-center border-t border-border pt-2 mt-2">
+                             <span className="font-bold text-white uppercase tracking-tighter">Total Acumulado</span>
+                            <span className="text-xl font-black text-primary">R$ {finalTotal.toFixed(2)}</span>
                           </div>
                         </>
                       );
