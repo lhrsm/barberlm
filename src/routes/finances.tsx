@@ -960,7 +960,7 @@ function FinancesComponent() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-slate-200"
+                          className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-border bg-background hover:bg-accent"
                           onClick={() => {
                             setEditingTransaction({
                               ...t,
@@ -977,7 +977,7 @@ function FinancesComponent() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-9 w-auto text-xs gap-1 font-bold rounded-xl text-red-500 hover:bg-red-50"
+                          className="h-9 w-auto text-xs gap-1 font-bold rounded-xl text-red-500 hover:bg-red-500/10"
                           onClick={() => handleDeleteTransaction(t.id)}
                         >
                           <Trash2 size={12} /> Excluir
