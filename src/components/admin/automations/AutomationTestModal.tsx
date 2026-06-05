@@ -345,6 +345,7 @@ export function AutomationTestModal({
         body: { 
           tenant_id: automation.tenant_id, 
           appointment_id: selectedAppointmentId || recentAppointments[0]?.id,
+          automation_id: automation.id,
           force_resend: true 
         }
       });
