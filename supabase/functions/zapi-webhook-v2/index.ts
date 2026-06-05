@@ -37,13 +37,36 @@ serve(async (req) => {
   console.log("STAGE 1: Payload total:", JSON.stringify(body, null, 2));
 
   // 1. EXTRAIR DADOS BÁSICOS
-  const phone = body.phone || body.from;
+  // Z-API pode enviar campos em lugares diferentes dependendo da versão
+  const phone = body.phone || body.from || (body.body && body.body.phone);
   const type = body.type;
   const fromMe = body.fromMe;
-  const incomingText = body.text?.message || body.message || body.body || body.buttonsResponseMessage?.buttonText || body.buttonsResponseMessage?.message || "";
-  const messageId = body.messageId || body.id;
-  const buttonId = body.buttonsResponseMessage?.buttonId;
-  const referenceMessageId = body.referenceMessageId; 
+  
+  // Capturar texto de várias formas possíveis (texto simples, botão, resposta de lista)
+  const incomingText = 
+    body.text?.message || 
+    body.message || 
+    body.body?.text?.message ||
+    body.body?.message ||
+    body.body || 
+    body.buttonsResponseMessage?.buttonText || 
+    body.buttonsResponseMessage?.message || 
+    body.listResponseMessage?.title ||
+    "";
+
+  const messageId = body.messageId || body.id || (body.body && (body.body.messageId || body.body.id));
+  
+  // ID do botão clicado
+  const buttonId = 
+    body.buttonsResponseMessage?.buttonId || 
+    body.listResponseMessage?.listRowId ||
+    (body.body?.buttonsResponseMessage?.buttonId);
+
+  // ID da mensagem à qual esta resposta se refere (crucial para vincular ao agendamento correto)
+  const referenceMessageId = 
+    body.referenceMessageId || 
+    body.body?.referenceMessageId || 
+    (body.message && body.message.context && body.message.context.stanzaId); 
 
   // STAGE 2: Payload validado
   console.log(`STAGE 2: Payload validado. Phone: ${phone}, Type: ${type}, ButtonId: ${buttonId}, Ref: ${referenceMessageId}`);
@@ -86,11 +109,11 @@ serve(async (req) => {
   if (referenceMessageId) {
     dispatchUpdateQuery = dispatchUpdateQuery.eq("message_id", referenceMessageId);
   } else {
-    // Fallback by phone - last 2 hours
-    const twoHoursAgo = new Date(Date.now() - 7200000).toISOString();
+    // Fallback by phone - last 12 hours (increased from 2h to be more robust)
+    const twelveHoursAgo = new Date(Date.now() - (12 * 60 * 60 * 1000)).toISOString();
     dispatchUpdateQuery = dispatchUpdateQuery
       .eq("phone", phone)
-      .gte("created_at", twoHoursAgo)
+      .gte("created_at", twelveHoursAgo)
       .order("created_at", { ascending: false })
       .limit(1);
   }
