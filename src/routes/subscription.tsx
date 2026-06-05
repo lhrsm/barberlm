@@ -238,8 +238,8 @@ function SubscriptionComponent() {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Assinatura</h2>
-            <p className="text-muted-foreground">Gerencie seu plano e limites do sistema.</p>
+            <h2 className="text-3xl font-black italic tracking-tighter text-amber-500 uppercase">Assinatura</h2>
+            <p className="text-muted-foreground font-medium italic">Gerencie seu plano e limites do sistema de forma profissional.</p>
           </div>
           {plan !== 'free' && (
             <Button variant="outline" onClick={handleManageSubscription} disabled={updating}>
@@ -263,7 +263,7 @@ function SubscriptionComponent() {
                     <p className="text-sm text-blue-700/70">Assine agora para garantir que sua barbearia não pare e continue com todos os recursos Pro!</p>
                   </div>
                 </div>
-                <Button size="lg" className="bg-black text-white hover:scale-105 active:scale-95 shadow-xl transition-all rounded-xl font-bold whitespace-nowrap" onClick={() => handlePlanChange('pro')}>
+                <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-white hover:scale-105 active:scale-95 shadow-xl transition-all rounded-2xl font-black italic uppercase tracking-wider whitespace-nowrap" onClick={() => handlePlanChange('pro')}>
                   Assinar Plano Pro Agora
                 </Button>
               </CardContent>
@@ -435,10 +435,13 @@ function SubscriptionComponent() {
 
               return (
                 <Card key={config.id} className={cn(
-                  "flex flex-col relative transition-all hover:shadow-2xl hover:scale-[1.02] duration-300 bg-white border-2 min-h-[500px]",
-                  isCurrentPlan && "border-amber-500 shadow-2xl ring-2 ring-amber-500/10",
-                  !isCurrentPlan && "border-slate-200"
+                  "flex flex-col relative transition-all hover:shadow-2xl hover:scale-[1.02] duration-300 bg-card border-2 min-h-[500px] overflow-hidden group",
+                  isCurrentPlan && "border-amber-500 shadow-2xl ring-2 ring-amber-500/10 shadow-amber-500/20",
+                  !isCurrentPlan && "border-border/50"
                 )}>
+                  {/* Glow effect for cards */}
+                  <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/5 blur-[50px] rounded-full pointer-events-none group-hover:bg-amber-500/10 transition-all duration-500" />
+
                   {isCurrentPlan && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                       Plano Atual
@@ -446,14 +449,14 @@ function SubscriptionComponent() {
                   )}
                   <CardHeader>
                     <div className="flex justify-between items-start mb-2">
-                      <CardTitle className="text-xl">{config.name}</CardTitle>
+                      <CardTitle className="text-2xl font-black italic uppercase tracking-tighter text-amber-500">{config.name}</CardTitle>
                       {config.icon}
                     </div>
                     <CardDescription className="min-h-[40px]">{config.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 space-y-4">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold">R$ {config.price}</span>
+                    <div className="flex items-baseline gap-1 bg-amber-500/5 p-3 rounded-xl border border-amber-500/10 justify-center">
+                      <span className="text-4xl font-black italic tracking-tighter text-amber-500">R$ {config.price}</span>
                       <span className="text-sm text-muted-foreground">/mês</span>
                     </div>
                     <ul className="space-y-2.5">
@@ -465,14 +468,15 @@ function SubscriptionComponent() {
                       ))}
                     </ul>
                   </CardContent>
-                  <CardFooter className="mt-auto">
+                  <CardFooter className="mt-auto p-6">
                     <Button 
                       variant={isCurrentPlan ? "outline" : "default"}
                       className={cn(
-                        "w-full font-black italic uppercase tracking-wider h-12 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-sm",
-                        isCurrentPlan && "border-amber-200 text-amber-700 bg-amber-50/50 opacity-50 cursor-not-allowed dark:border-amber-800 dark:text-amber-400",
-                        !isCurrentPlan && "bg-amber-500 text-white hover:bg-amber-600 shadow-amber-500/20"
+                        "w-full h-12 rounded-2xl font-black italic uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl",
+                        isCurrentPlan && "border-amber-500/20 text-amber-500 opacity-50 cursor-not-allowed bg-amber-500/5",
+                        !isCurrentPlan && "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20"
                       )} 
+
 
                       disabled={isCurrentPlan || updating}
                       onClick={() => handlePlanChange(config.id)}
