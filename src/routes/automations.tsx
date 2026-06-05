@@ -1364,37 +1364,41 @@ function AutomationsComponent() {
                       <div className="flex items-center gap-2">
                         <History size={24} className="text-amber-500" /> Histórico de Envios
                       </div>
-                      <div className="flex flex-col items-end gap-1">
+                      <div className="flex flex-col sm:flex-row items-center gap-3">
                         <Button 
-                          variant="default" 
                           size="lg" 
                           className={cn(
-                            "bg-amber-500 hover:bg-amber-600 text-black font-bold shadow-lg rounded-xl transition-all duration-300 w-full sm:w-auto h-12 uppercase tracking-tight",
-                            loading ? "opacity-90 scale-[0.98]" : "hover:scale-[1.02] active:scale-[0.98]"
+                            "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-black font-extrabold shadow-[0_0_15px_rgba(245,158,11,0.4)] hover:shadow-[0_0_20px_rgba(245,158,11,0.6)] rounded-xl transition-all duration-300 w-full sm:w-auto h-12 uppercase tracking-wider border border-amber-300/20",
+                            loading ? "opacity-80 scale-[0.98]" : "hover:scale-[1.05] active:scale-[0.95]"
                           )}
                           onClick={async () => {
                             await fetchData();
                             setLastManualUpdate(new Date());
-                            toast.success("Histórico atualizado com sucesso");
+                            toast.success("Histórico atualizado!");
                           }}
                           disabled={loading}
                         >
                           {loading ? (
                             <>
                               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                              Atualizando...
+                              Processando...
                             </>
                           ) : (
                             <>
-                              <RotateCcw className={cn("mr-2 h-5 w-5 transition-transform duration-500", loading ? "rotate-180" : "group-hover:rotate-[-45deg]")} />
-                              Atualizar histórico
+                              <Zap className={cn("mr-2 h-5 w-5 fill-black transition-transform duration-500", loading ? "rotate-180" : "group-hover:scale-110")} />
+                              Atualizar Histórico
                             </>
                           )}
                         </Button>
                         {lastManualUpdate && (
-                          <span className="text-[10px] text-slate-500 font-medium italic">
-                            Última atualização: {lastManualUpdate.toLocaleDateString('pt-BR')} às {lastManualUpdate.toLocaleTimeString('pt-BR')}
-                          </span>
+                          <div className="flex flex-col items-start sm:items-end">
+                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                              Status: Atualizado
+                            </span>
+                            <span className="text-[11px] text-amber-500/80 font-medium whitespace-nowrap">
+                              {lastManualUpdate.toLocaleDateString('pt-BR')} às {lastManualUpdate.toLocaleTimeString('pt-BR')}
+                            </span>
+                          </div>
                         )}
                       </div>
                     </CardTitle>
@@ -1599,6 +1603,7 @@ function AutomationsComponent() {
                         <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Destinatário</th>
                         <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">ID Agendamento</th>
                         <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Status</th>
+                        <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-widest text-slate-500">Botão Recebido</th>
                         <th className="px-6 py-4 text-right font-bold text-[10px] uppercase tracking-widest text-slate-500">Ações</th>
                       </tr>
                     </thead>
@@ -1649,6 +1654,21 @@ function AutomationsComponent() {
                                 <Clock size={12} /> {log.status === 'processing' ? 'Processando' : 'Pendente'}
                               </Badge>
                             )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex flex-col gap-1">
+                              {log.callback_received ? (
+                                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 w-fit uppercase">
+                                  <CheckCheck size={12} strokeWidth={3} /> {log.callback_button_id || 'RECEBIDO'}
+                                </Badge>
+                              ) : (
+                                <div className="flex flex-col gap-0.5">
+                                  <Badge variant="outline" className="bg-amber-500/5 text-amber-500/70 border-amber-500/20 text-[9px] font-bold px-1.5 py-0 rounded flex items-center gap-1 w-fit uppercase">
+                                    <Clock size={10} /> CALLBACK PENDENTE
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">

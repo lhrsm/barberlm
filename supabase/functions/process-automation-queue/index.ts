@@ -302,7 +302,7 @@ serve(async (req) => {
               buttons_attached: !!sendOptions.buttons,
               rendered_message: renderedTemplate,
               session_info: {
-                conversation_created,
+                conversation_created: conversationCreated,
                 conversation_id: conversationId,
                 error: conversationError
               }
@@ -327,7 +327,7 @@ serve(async (req) => {
             conversation_id: conversationId,
             payload: { 
               rendered_message: renderedTemplate,
-              conversation_created,
+              conversation_created: conversationCreated,
               conversation_id: conversationId
             }
           });
