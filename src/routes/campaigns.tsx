@@ -144,30 +144,22 @@ function CampaignsComponent() {
           </Button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Enviado</CardDescription>
-              <CardTitle className="text-2xl font-bold">1.284</CardTitle>
-            </CardHeader>
+        <div className="grid gap-4 md:gap-6 grid-cols-2 md:grid-cols-4">
+          <Card className="p-4 md:p-6 flex flex-col items-center md:items-start text-center md:text-left">
+            <CardDescription className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Total Enviado</CardDescription>
+            <CardTitle className="text-xl md:text-2xl font-black">1.284</CardTitle>
           </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Taxa de Abertura</CardDescription>
-              <CardTitle className="text-2xl font-bold text-green-600">94.2%</CardTitle>
-            </CardHeader>
+          <Card className="p-4 md:p-6 flex flex-col items-center md:items-start text-center md:text-left">
+            <CardDescription className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Taxa Abertura</CardDescription>
+            <CardTitle className="text-xl md:text-2xl font-black text-green-600">94.2%</CardTitle>
           </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Taxa de Resposta</CardDescription>
-              <CardTitle className="text-2xl font-bold text-blue-600">12.5%</CardTitle>
-            </CardHeader>
+          <Card className="p-4 md:p-6 flex flex-col items-center md:items-start text-center md:text-left">
+            <CardDescription className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Taxa Resposta</CardDescription>
+            <CardTitle className="text-xl md:text-2xl font-black text-blue-600">12.5%</CardTitle>
           </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Clientes VIP</CardDescription>
-              <CardTitle className="text-2xl font-bold text-purple-600">42</CardTitle>
-            </CardHeader>
+          <Card className="p-4 md:p-6 flex flex-col items-center md:items-start text-center md:text-left">
+            <CardDescription className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Clientes VIP</CardDescription>
+            <CardTitle className="text-xl md:text-2xl font-black text-purple-600">42</CardTitle>
           </Card>
         </div>
 
@@ -185,29 +177,29 @@ function CampaignsComponent() {
             ) : (
               campaigns.map((campaign) => (
                 <Card key={campaign.id} className="overflow-hidden">
-                  <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-3">
                         <h4 className="font-bold text-lg">{campaign.title}</h4>
                         {getStatusBadge(campaign.status)}
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-1">{campaign.content}</p>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider">
                         <span className="flex items-center gap-1">
-                          <Calendar size={12} /> Criada em {new Date(campaign.created_at).toLocaleDateString()}
+                          <Calendar size={12} /> Criada: {new Date(campaign.created_at).toLocaleDateString()}
                         </span>
                         {campaign.scheduled_at && (
                           <span className="flex items-center gap-1 text-blue-600">
-                            <Clock size={12} /> Agendada para {new Date(campaign.scheduled_at).toLocaleString()}
+                            <Clock size={12} /> Agendada: {new Date(campaign.scheduled_at).toLocaleString()}
                           </span>
                         )}
                         <span className="flex items-center gap-1">
-                          <Users size={12} /> {campaign.total_recipients || 0} destinatários
+                          <Users size={12} /> {campaign.total_recipients || 0} envios
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" className="gap-2">
+                    <div className="flex items-center gap-2 w-full md:w-auto">
+                      <Button variant="outline" size="sm" className="flex-1 md:flex-none gap-2 rounded-xl h-10">
                         <BarChart3 size={14} /> Stats
                       </Button>
                       <DropdownMenu>
