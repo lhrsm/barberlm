@@ -353,7 +353,8 @@ function AutomationsComponent() {
         notFound: totalNotFound || 0,
         lastSent: lastLogData?.created_at || null,
         lastUpdate: new Date(),
-        pendingCallbacks: pendingCount
+        pendingCallbacks: (totalSent || 0) - (totalCallbacks || 0),
+        callbacksReceived: totalCallbacks || 0
       });
 
       // Fetch reconciliation settings
