@@ -248,7 +248,8 @@ function FinancesComponent() {
         }
 
         // Se for via cashback ou créditos no método de pagamento, não deve contar no caixa real
-        if (t.appointment && (t.appointment.payment_method === 'cashback' || t.appointment.payment_method === 'credits')) {
+        const method = t.payment_method || t.appointment?.payment_method;
+        if (method === 'cashback' || method === 'credits') {
           return acc;
         }
         return acc + (parseFloat(String(t.amount)) || 0);
@@ -395,8 +396,9 @@ function FinancesComponent() {
         Number(editingTransaction.credits_amount || 0) + 
         Number(editingTransaction.cashback_amount || 0);
       
-      if (Math.abs(total - parseFloat(editingTransaction.amount)) > 0.01) {
-        toast.error(`O total dos valores (R$ ${total.toFixed(2)}) deve ser igual ao valor da transação (R$ ${parseFloat(editingTransaction.amount).toFixed(2)}).`);
+      const transactionAmount = parseFloat(editingTransaction.amount);
+      if (Math.abs(total - transactionAmount) > 0.01) {
+        toast.error(`O total dos valores (R$ ${total.toFixed(2)}) deve ser igual ao valor da transação (R$ ${transactionAmount.toFixed(2)}).`);
         return;
       }
     }
