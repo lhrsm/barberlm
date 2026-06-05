@@ -238,8 +238,8 @@ function SubscriptionComponent() {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Assinatura</h2>
-            <p className="text-muted-foreground">Gerencie seu plano e limites do sistema.</p>
+            <h2 className="text-3xl font-black italic tracking-tighter text-amber-500 uppercase">Assinatura</h2>
+            <p className="text-muted-foreground font-medium italic">Gerencie seu plano e limites do sistema de forma profissional.</p>
           </div>
           {plan !== 'free' && (
             <Button variant="outline" onClick={handleManageSubscription} disabled={updating}>
@@ -263,7 +263,7 @@ function SubscriptionComponent() {
                     <p className="text-sm text-blue-700/70">Assine agora para garantir que sua barbearia não pare e continue com todos os recursos Pro!</p>
                   </div>
                 </div>
-                <Button size="lg" className="bg-black text-white hover:scale-105 active:scale-95 shadow-xl transition-all rounded-xl font-bold whitespace-nowrap" onClick={() => handlePlanChange('pro')}>
+                <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-white hover:scale-105 active:scale-95 shadow-xl transition-all rounded-2xl font-black italic uppercase tracking-wider whitespace-nowrap" onClick={() => handlePlanChange('pro')}>
                   Assinar Plano Pro Agora
                 </Button>
               </CardContent>
