@@ -312,55 +312,55 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
     return token.length <= 8 ? "********" : `${token.substring(0, 4)}...${token.substring(token.length - 4)}`;
   };
 
-  if (loading) return <div className=\"p-8 text-center\">Carregando...</div>;
+  if (loading) return <div className="p-8 text-center">Carregando...</div>;
 
   return (
-    <Card className=\"bg-[#0b0f1a] border-white/10 text-white\">
+    <Card className="bg-[#0b0f1a] border-white/10 text-white">
       <CardHeader>
-        <div className=\"flex justify-between items-center\">
-          <CardTitle className=\"flex items-center gap-2\"><Zap className=\"text-blue-400\" /> Z-API WhatsApp</CardTitle>
-          <Badge className={instance?.connected ? \"bg-emerald-500/20 text-emerald-400\" : \"bg-red-500/20 text-red-400\"}>{instance?.connected ? \"Conectado\" : \"Desconectado\"}</Badge>
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center gap-2"><Zap className="text-blue-400" /> Z-API WhatsApp</CardTitle>
+          <Badge className={instance?.connected ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>{instance?.connected ? "Conectado" : "Desconectado"}</Badge>
         </div>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className=\"bg-white/5 border-white/10\">
-            <TabsTrigger value=\"config\">Configuração</TabsTrigger>
-            <TabsTrigger value=\"logs\">Logs</TabsTrigger>
-            <TabsTrigger value=\"diagnostico\">Diagnóstico</TabsTrigger>
+          <TabsList className="bg-white/5 border-white/10">
+            <TabsTrigger value="config">Configuração</TabsTrigger>
+            <TabsTrigger value="logs">Logs</TabsTrigger>
+            <TabsTrigger value="diagnostico">Diagnóstico</TabsTrigger>
           </TabsList>
           
-          <TabsContent value=\"config\" className=\"space-y-4 pt-4\">
-            <form onSubmit={saveSettings} className=\"space-y-4\">
-              <div className=\"grid grid-cols-2 gap-4\">
-                <div className=\"space-y-2\">
+          <TabsContent value="config" className="space-y-4 pt-4">
+            <form onSubmit={saveSettings} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label>Telefone</Label>
-                  <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className=\"bg-white/5 border-white/10\" />
+                  <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="bg-white/5 border-white/10" />
                 </div>
-                <div className=\"space-y-2\">
+                <div className="space-y-2">
                   <Label>ID Instância</Label>
-                  <Input value={formData.instance_id} onChange={e => setFormData({...formData, instance_id: e.target.value})} className=\"bg-white/5 border-white/10\" />
+                  <Input value={formData.instance_id} onChange={e => setFormData({...formData, instance_id: e.target.value})} className="bg-white/5 border-white/10" />
                 </div>
-                <div className=\"space-y-2\">
+                <div className="space-y-2">
                   <Label>Token</Label>
-                  <Input type=\"password\" value={formData.instance_token} onChange={e => setFormData({...formData, instance_token: e.target.value})} className=\"bg-white/5 border-white/10\" />
+                  <Input type="password" value={formData.instance_token} onChange={e => setFormData({...formData, instance_token: e.target.value})} className="bg-white/5 border-white/10" />
                 </div>
-                <div className=\"space-y-2\">
+                <div className="space-y-2">
                   <Label>Client Token</Label>
-                  <Input type=\"password\" value={formData.client_token} onChange={e => setFormData({...formData, client_token: e.target.value})} className=\"bg-white/5 border-white/10\" />
+                  <Input type="password" value={formData.client_token} onChange={e => setFormData({...formData, client_token: e.target.value})} className="bg-white/5 border-white/10" />
                 </div>
               </div>
-              <Button type=\"submit\" disabled={isSaving} className=\"w-full\">{isSaving ? <Loader2 className=\"animate-spin\" /> : <Save className=\"mr-2\" size={16} />} Salvar</Button>
+              <Button type="submit" disabled={isSaving} className="w-full">{isSaving ? <Loader2 className="animate-spin" /> : <Save className="mr-2" size={16} />} Salvar</Button>
             </form>
           </TabsContent>
 
-          <TabsContent value=\"diagnostico\" className=\"pt-4 space-y-4\">
-             <div className=\"flex flex-wrap gap-2\">
-                <Button onClick={reconfigureWebhook} disabled={isConfiguring} size=\"sm\" className=\"bg-blue-600\">Configurar Webhook V2</Button>
-                <Button onClick={testSupabaseEndpoint} disabled={isTestingEndpoint} size=\"sm\" className=\"bg-amber-600\">Testar Endpoint</Button>
-                <Button onClick={sendTestButtonWithCallback} disabled={isSendingButtonTest} size=\"sm\" className=\"bg-purple-600\">Testar WhatsApp Real</Button>
+          <TabsContent value="diagnostico" className="pt-4 space-y-4">
+             <div className="flex flex-wrap gap-2">
+                <Button onClick={reconfigureWebhook} disabled={isConfiguring} size="sm" className="bg-blue-600">Configurar Webhook V2</Button>
+                <Button onClick={testSupabaseEndpoint} disabled={isTestingEndpoint} size="sm" className="bg-amber-600">Testar Endpoint</Button>
+                <Button onClick={sendTestButtonWithCallback} disabled={isSendingButtonTest} size="sm" className="bg-purple-600">Testar WhatsApp Real</Button>
              </div>
-             <p className=\"text-[10px] text-slate-400\">URL Atual: {instance?.webhook_received_url || \"Nenhuma\"}</p>
+             <p className="text-[10px] text-slate-400">URL Atual: {instance?.webhook_received_url || "Nenhuma"}</p>
           </TabsContent>
         </Tabs>
       </CardContent>
