@@ -1164,24 +1164,24 @@ function FinancesComponent() {
                 const barbershopPartFromBarber = totalReceived - barberPart;
 
                 return (
-                  <Card key={barber.id} className="bg-white border-2 border-slate-200 text-black">
+                  <Card key={barber.id} className="bg-card border-border text-foreground">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">{barber.name}</CardTitle>
+                      <CardTitle className="text-lg text-white">{barber.name}</CardTitle>
                       <p className="text-xs text-muted-foreground">Comissão: {commissionRate}%</p>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="flex justify-between items-center border-b pb-2">
+                      <div className="flex justify-between items-center border-b border-border pb-2">
                         <span className="text-sm text-muted-foreground">Total Atendido</span>
-                        <span className="font-bold">R$ {totalReceived.toFixed(2)}</span>
+                        <span className="font-bold text-white">R$ {totalReceived.toFixed(2)}</span>
                       </div>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center text-sm">
                           <span>Parte do Barbeiro ({commissionRate}%)</span>
-                          <span className="text-green-600 font-medium">R$ {barberPart.toFixed(2)}</span>
+                          <span className="text-emerald-500 font-medium">R$ {barberPart.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
                           <span>Parte da Barbearia</span>
-                          <span className="text-blue-600 font-medium">R$ {barbershopPartFromBarber.toFixed(2)}</span>
+                          <span className="text-primary font-medium">R$ {barbershopPartFromBarber.toFixed(2)}</span>
                         </div>
                       </div>
                     </CardContent>
