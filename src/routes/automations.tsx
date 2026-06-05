@@ -1655,6 +1655,21 @@ function AutomationsComponent() {
                               </Badge>
                             )}
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex flex-col gap-1">
+                              {log.callback_received ? (
+                                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 w-fit uppercase">
+                                  <CheckCheck size={12} strokeWidth={3} /> {log.callback_button_id || 'RECEBIDO'}
+                                </Badge>
+                              ) : (
+                                <div className="flex flex-col gap-0.5">
+                                  <Badge variant="outline" className="bg-amber-500/5 text-amber-500/70 border-amber-500/20 text-[9px] font-bold px-1.5 py-0 rounded flex items-center gap-1 w-fit uppercase">
+                                    <Clock size={10} /> CALLBACK PENDENTE
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                               <Button 
