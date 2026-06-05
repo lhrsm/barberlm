@@ -182,28 +182,36 @@ function FinancesComponent() {
       !t.appointment || t.appointment.status === 'completed' || t.appointment.status === 'confirmed' || t.appointment.status === 'scheduled'
     );
 
-    // 1. Receita Operacional (Faturamento Operacional) - Valor Total dos Serviços Vendidos
+    // 1. Serviços Vendidos Hoje (Faturamento Operacional) - Somar o valor total dos serviços realizados/concluídos.
     const operationalRevenue = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         if (t.appointment) {
-          // Usar total_price como o valor total do serviço (independente de como foi pago)
+          // Usar total_price como o valor total do serviço
           return acc + (Number(t.appointment.total_price || t.appointment.original_total) || 0);
         }
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
 
-    // 2. Fluxo de Caixa (Entrada Financeira Real) - Dinheiro novo no caixa
+    // 2. Entrada em Caixa Hoje (Fluxo de Caixa) - Dinheiro novo no caixa (PIX, Dinheiro, Cartão)
+    // NÃO incluir cashback ou créditos
     const realCashIncome = effectiveTransactions
       .filter((t) => t.type === "income")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+      .reduce((acc, t) => {
+        if (t.appointment) {
+          // Se for via pix/cash/card, o amount na transação deve ser o valor pago em dinheiro novo
+          // Se for 100% cashback/credits, o amount na transação deve ser 0
+          return acc + (parseFloat(String(t.amount)) || 0);
+        }
+        return acc + (parseFloat(String(t.amount)) || 0);
+      }, 0);
 
-    // 3. Créditos Consumidos
+    // 3. Créditos Utilizados Hoje
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + (Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0)), 0);
 
-    // 4. Cashback Consumido
+    // 4. Cashback Utilizado Hoje
     const cashbackConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + Number(t.appointment?.cashback_used || 0), 0);
