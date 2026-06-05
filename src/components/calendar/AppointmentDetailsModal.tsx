@@ -256,16 +256,21 @@ export function AppointmentDetailsModal({
                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-2">
                   <CreditCard size={12} className="text-blue-500" /> Pagamento
                 </p>
-                <p className="text-sm font-bold text-zinc-900">{getPaymentMethodLabel(appointment.payment_method)}</p>
-                {appointment.status !== 'cancelled' ? (
-                  <Badge variant="outline" className={cn("text-[9px] font-black px-2 border-zinc-200 text-zinc-400 uppercase tracking-widest mt-1", appointment.payment_status === 'paid' ? "text-emerald-600 border-emerald-100 bg-emerald-50" : "")}>
-                    {appointment.payment_status === 'paid' ? 'Pago' : 'Pendente'}
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-[9px] font-black px-2 border-zinc-200 text-zinc-400 uppercase tracking-widest mt-1">
-                    Sem cobrança
-                  </Badge>
-                )}
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-zinc-900">
+                    {appointment.payment_method === 'misto' ? "Misto" : getPaymentMethodLabel(appointment.payment_method)}
+                  </p>
+                  {appointment.payment_method === 'misto' && (
+                    <div className="text-[10px] font-medium text-zinc-500 space-y-0.5">
+                      {appointment.pix_amount > 0 && <p>PIX: R$ {Number(appointment.pix_amount).toFixed(2)}</p>}
+                      {appointment.cash_amount > 0 && <p>Dinheiro: R$ {Number(appointment.cash_amount).toFixed(2)}</p>}
+                      {appointment.credit_card_amount > 0 && <p>Cartão: R$ {Number(appointment.credit_card_amount).toFixed(2)}</p>}
+                      {appointment.debit_card_amount > 0 && <p>Débito: R$ {Number(appointment.debit_card_amount).toFixed(2)}</p>}
+                      {appointment.credits_used > 0 && <p>Créditos: R$ {Number(appointment.credits_used).toFixed(2)}</p>}
+                      {appointment.cashback_used > 0 && <p>Cashback: R$ {Number(appointment.cashback_used).toFixed(2)}</p>}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-1.5">
