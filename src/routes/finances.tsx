@@ -55,12 +55,40 @@ function FinancesComponent() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newTransaction, setNewTransaction] = useState({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: "12:00" });
+  const [newTransaction, setNewTransaction] = useState({ 
+    amount: "", 
+    type: "income", 
+    description: "", 
+    category: "Serviço", 
+    barber_id: "none", 
+    date: new Date().toISOString().split('T')[0], 
+    time: "12:00",
+    payment_method: "cash"
+  });
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  const TIMEZONE = "America/Sao_Paulo";
+
+  const formatTransactionTimeForEdit = (transaction: any) => {
+    if (transaction.appointment?.start_time) {
+      return formatInTimeZone(new Date(transaction.appointment.start_time), TIMEZONE, 'HH:mm');
+    }
+    if (typeof transaction.time === 'string') {
+      return transaction.time.substring(0, 5);
+    }
+    return "12:00";
+  };
+
+  const formatTransactionDateForEdit = (transaction: any) => {
+    if (transaction.appointment?.start_time) {
+      return formatInTimeZone(new Date(transaction.appointment.start_time), TIMEZONE, 'yyyy-MM-dd');
+    }
+    return transaction.date || new Date().toISOString().split('T')[0];
+  };
   
   const user = authUser || (session ? { id: session.barber_id } : null);
   const role = authRole || (session ? 'barber' : null);
