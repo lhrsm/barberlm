@@ -810,8 +810,8 @@ function DashboardComponent() {
           </Card>
         )}
 
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7 mb-6">
-          <Card className="col-span-1 md:col-span-2 lg:col-span-4 bg-card border-2 border-amber-500/20 shadow-lg shadow-amber-500/5 relative overflow-hidden group">
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-7 mb-6">
+          <Card className="lg:col-span-4 bg-card border-2 border-amber-500/20 shadow-lg shadow-amber-500/5 relative overflow-hidden group">
             {/* Glow sutil no fundo */}
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all duration-500" />
             
@@ -854,9 +854,9 @@ function DashboardComponent() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground italic">Profissionais</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-1 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
+                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 italic">Profissionais</span>
                   <div className="flex items-end gap-1">
                     <span className="text-lg font-black leading-none text-foreground">{usage.barbers}</span>
                     <span className="text-[10px] text-muted-foreground font-bold">/ {limits.barbers === Infinity ? "∞" : limits.barbers}</span>
@@ -868,8 +868,8 @@ function DashboardComponent() {
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground italic">Serviços</span>
+                <div className="space-y-1 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
+                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 italic">Serviços</span>
                   <div className="flex items-end gap-1">
                     <span className="text-lg font-black leading-none text-foreground">{usage.services}</span>
                     <span className="text-[10px] text-muted-foreground font-bold">/ {limits.services === Infinity ? "∞" : limits.services}</span>
@@ -881,8 +881,8 @@ function DashboardComponent() {
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground italic">Agendamentos</span>
+                <div className="space-y-1 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
+                  <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 italic">Agendamentos</span>
                   <div className="flex items-end gap-1">
                     <span className="text-lg font-black leading-none text-foreground">{usage.monthlyAppointments}</span>
                     <span className="text-[10px] text-muted-foreground font-bold">/ {limits.monthlyAppointments === Infinity ? "∞" : limits.monthlyAppointments}</span>
@@ -894,33 +894,33 @@ function DashboardComponent() {
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground">WhatsApp</span>
+                <div className="space-y-1 bg-sky-500/5 p-3 rounded-2xl border border-sky-500/10">
+                  <span className="text-[10px] uppercase font-bold text-sky-600 dark:text-sky-500">WhatsApp</span>
                   <div className="flex items-end gap-1">
                     <span className="text-lg font-black leading-none text-foreground">{usage.whatsappConnections}</span>
                     <span className="text-[10px] text-muted-foreground">/ {limits.whatsappConnections === Infinity ? "∞" : limits.whatsappConnections}</span>
                   </div>
-                  <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1" />
+                  <Progress value={limits.whatsappConnections === Infinity ? 100 : (usage.whatsappConnections / limits.whatsappConnections) * 100} className="h-1 bg-sky-100" />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 bg-purple-500/5 p-3 rounded-2xl border border-purple-500/10">
                   <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400">Créditos</span>
                   <div className="flex items-center gap-1">
                     <span className="text-lg font-black leading-none text-purple-800 dark:text-purple-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCredits)}
                     </span>
                   </div>
-                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg text-purple-700 dark:text-purple-300 w-fit">
+                  <div className="p-1 bg-purple-100 dark:bg-purple-900/40 rounded-lg text-purple-700 dark:text-purple-300 w-fit">
                     <Wallet size={12} />
                   </div>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
                   <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-400">Cashback</span>
                   <div className="flex items-center gap-1">
                     <span className="text-lg font-black leading-none text-orange-800 dark:text-orange-200">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.total.customerCashback)}
                     </span>
                   </div>
-                  <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg text-orange-700 dark:text-orange-300 w-fit">
+                  <div className="p-1 bg-orange-100 dark:bg-orange-900/40 rounded-lg text-orange-700 dark:text-orange-300 w-fit">
                     <Gift size={12} />
                   </div>
                 </div>
@@ -929,7 +929,7 @@ function DashboardComponent() {
           </Card>
           
           <Card className={cn(
-            "col-span-1 md:col-span-2 lg:col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group bg-card",
+            "lg:col-span-3 flex flex-col justify-center overflow-hidden border-2 relative group bg-card",
             !isExpired 
               ? "border-emerald-500/30 shadow-2xl shadow-emerald-500/10"
               : "border-red-500/30 shadow-2xl shadow-red-500/10"
@@ -996,25 +996,25 @@ function DashboardComponent() {
               </div>
 
               {/* Financial Tenant Stats */}
-              <div className="pt-4 border-t border-border grid grid-cols-2 gap-4">
-                <div className="space-y-1">
+              <div className="pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1 bg-purple-500/5 p-3 rounded-2xl border border-purple-500/10">
                   <h4 className="text-[10px] font-bold uppercase text-purple-800 dark:text-purple-300">Créditos Clientes</h4>
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg">
+                    <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded-lg shrink-0">
                       <Wallet className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />
                     </div>
-                    <span className="text-base font-black text-purple-900 dark:text-purple-100">
+                    <span className="text-base font-black text-purple-900 dark:text-purple-100 truncate">
                       R$ {stats.total.customerCredits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
                   <h4 className="text-[10px] font-bold uppercase text-orange-800 dark:text-orange-300">Cashback Total</h4>
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg">
+                    <div className="p-1.5 bg-orange-100 dark:bg-orange-900/40 rounded-lg shrink-0">
                       <Gift className="w-3.5 h-3.5 text-orange-700 dark:text-orange-400" />
                     </div>
-                    <span className="text-base font-black text-orange-900 dark:text-orange-100">
+                    <span className="text-base font-black text-orange-900 dark:text-orange-100 truncate">
                       R$ {stats.total.customerCashback.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
