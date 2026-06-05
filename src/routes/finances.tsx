@@ -380,23 +380,73 @@ function FinancesComponent() {
     e.preventDefault();
     if (!user || !editingTransaction) return;
 
+    if (!editingTransaction.adjustment_reason) {
+      toast.error("O motivo do ajuste é obrigatório.");
+      return;
+    }
+
+    // Validate mixed payment total
+    if (editingTransaction.payment_method === 'misto') {
+      const total = 
+        Number(editingTransaction.pix_amount || 0) + 
+        Number(editingTransaction.cash_amount || 0) + 
+        Number(editingTransaction.credit_card_amount || 0) + 
+        Number(editingTransaction.debit_card_amount || 0) + 
+        Number(editingTransaction.credits_amount || 0) + 
+        Number(editingTransaction.cashback_amount || 0);
+      
+      if (Math.abs(total - parseFloat(editingTransaction.amount)) > 0.01) {
+        toast.error(`O total dos valores (R$ ${total.toFixed(2)}) deve ser igual ao valor da transação (R$ ${parseFloat(editingTransaction.amount).toFixed(2)}).`);
+        return;
+      }
+    }
+
+    // Get original transaction for logging
+    const originalTransaction = transactions.find(t => t.id === editingTransaction.id);
+
+    const updateData: any = {
+      amount: parseFloat(editingTransaction.amount),
+      type: editingTransaction.type,
+      description: editingTransaction.description,
+      category: editingTransaction.category,
+      barber_id: editingTransaction.barber_id === "none" ? null : editingTransaction.barber_id,
+      date: editingTransaction.date,
+      time: editingTransaction.time,
+      payment_method: editingTransaction.payment_method,
+      manual_adjustment: true,
+      adjusted_by: user.id,
+      adjusted_at: new Date().toISOString(),
+      adjustment_reason: editingTransaction.adjustment_reason,
+      pix_amount: editingTransaction.payment_method === 'pix' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.pix_amount || 0) : 0),
+      cash_amount: editingTransaction.payment_method === 'cash' || editingTransaction.payment_method === 'dinheiro' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.cash_amount || 0) : 0),
+      credit_card_amount: editingTransaction.payment_method === 'card' || editingTransaction.payment_method === 'credit_card' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.credit_card_amount || 0) : 0),
+      debit_card_amount: editingTransaction.payment_method === 'debit_card' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.debit_card_amount || 0) : 0),
+      credits_amount: editingTransaction.payment_method === 'credits' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.credits_amount || 0) : 0),
+      cashback_amount: editingTransaction.payment_method === 'cashback' ? parseFloat(editingTransaction.amount) : (editingTransaction.payment_method === 'misto' ? Number(editingTransaction.cashback_amount || 0) : 0),
+    };
+
     const { error } = await supabase
       .from("transactions")
-      .update({
-        amount: parseFloat(editingTransaction.amount),
-        type: editingTransaction.type,
-        description: editingTransaction.description,
-        category: editingTransaction.category,
-        barber_id: editingTransaction.barber_id === "none" ? null : editingTransaction.barber_id,
-        date: editingTransaction.date,
-        time: editingTransaction.time,
-      })
+      .update(updateData)
       .eq("id", editingTransaction.id);
 
     if (error) {
       toast.error("Erro ao atualizar transação");
+      console.error(error);
     } else {
-      toast.success("Transação atualizada!");
+      // Log the adjustment
+      await supabase.from("financial_adjustment_logs").insert({
+        transaction_id: editingTransaction.id,
+        appointment_id: editingTransaction.appointment_id,
+        tenant_id: editingTransaction.tenant_id,
+        old_values: originalTransaction,
+        new_values: updateData,
+        reason: editingTransaction.adjustment_reason,
+        adjusted_by: user.id,
+        adjusted_at: new Date().toISOString()
+      });
+
+      toast.success("Transação atualizada e auditada!");
       setIsEditDialogOpen(false);
       setEditingTransaction(null);
       fetchTransactions();
