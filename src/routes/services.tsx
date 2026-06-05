@@ -138,10 +138,10 @@ function ServicesComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Serviços</h2>
-            <p className="text-muted-foreground">Cadastre os serviços oferecidos e seus valores.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Serviços</h2>
+            <p className="text-muted-foreground text-sm">Cadastre os serviços oferecidos e seus valores.</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
