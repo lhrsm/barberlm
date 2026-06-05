@@ -18,7 +18,7 @@ serve(async (req) => {
   );
 
   if (req.method === "GET") {
-    return new Response(JSON.stringify({ ok: true, message: "Webhook active" }), {
+    return new Response(JSON.stringify({ ok: true, message: "Webhook V2 active" }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
@@ -28,12 +28,12 @@ serve(async (req) => {
   try {
     body = await req.json();
   } catch (e) {
-    console.error("[Webhook] CALLBACK_STAGE_0: JSON Parse error");
+    console.error("[WebhookV2] CALLBACK_STAGE_0: JSON Parse error");
     return new Response("Invalid JSON", { status: 400 });
   }
 
-  // CALLBACK_STAGE_1: Webhook recebido
-  console.log("CALLBACK_STAGE_1: Webhook recebido da Z-API", JSON.stringify(body, null, 2));
+  // STAGE 1: Webhook recebido
+  console.log("STAGE 1: Webhook recebido da Z-API", JSON.stringify(body, null, 2));
 
   // 1. EXTRAIR DADOS BÁSICOS
   const phone = body.phone || body.from;
@@ -44,15 +44,15 @@ serve(async (req) => {
   const buttonId = body.buttonsResponseMessage?.buttonId;
   const referenceMessageId = body.referenceMessageId; 
 
-  // CALLBACK_STAGE_2: Payload validado
-  console.log(`CALLBACK_STAGE_2: Payload validado. Phone: ${phone}, Type: ${type}, ButtonId: ${buttonId}, Ref: ${referenceMessageId}`);
+  // STAGE 2: Payload validado
+  console.log(`STAGE 2: Payload validado. Phone: ${phone}, Type: ${type}, ButtonId: ${buttonId}, Ref: ${referenceMessageId}`);
 
   const normalizedText = incomingText.toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
 
-  // SALVAR LOG
+  // SALVAR LOG DE ENTRADA
   const { data: webhookLog, error: logErr } = await supabase.from("automation_webhook_logs").insert({
     raw_payload: body,
     type,
@@ -68,12 +68,12 @@ serve(async (req) => {
   }).select().single();
 
   if (fromMe) {
-    console.log("[Webhook] Ignored fromMe message");
+    console.log("[WebhookV2] Ignored fromMe message");
     return new Response(JSON.stringify({ ok: true, status: "ignored_from_me" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  // 3. VINCULAR AO DISPATCH (HISTÓRICO)
-  console.log(`[Webhook] Searching dispatch for reference: ${referenceMessageId || 'none'} or phone: ${phone}`);
+  // STAGE 3: Localizar contexto (Dispatch / Conversation)
+  console.log(`STAGE 3: Searching dispatch for reference: ${referenceMessageId || 'none'} or phone: ${phone}`);
   
   let dispatchUpdateQuery = supabase.from("automation_v2_dispatches").update({
     callback_received: true,
@@ -85,11 +85,11 @@ serve(async (req) => {
   if (referenceMessageId) {
     dispatchUpdateQuery = dispatchUpdateQuery.eq("message_id", referenceMessageId);
   } else {
-    // Fallback by phone - only if within last hour to avoid matching old dispatches
-    const oneHourAgo = new Date(Date.now() - 3600000).toISOString();
+    // Fallback by phone - last 2 hours
+    const twoHoursAgo = new Date(Date.now() - 7200000).toISOString();
     dispatchUpdateQuery = dispatchUpdateQuery
       .eq("phone", phone)
-      .gte("created_at", oneHourAgo)
+      .gte("created_at", twoHoursAgo)
       .order("created_at", { ascending: false })
       .limit(1);
   }
@@ -98,13 +98,13 @@ serve(async (req) => {
   const updatedDispatch = updatedDispatches?.[0];
   
   if (dispatchUpdateErr) {
-    console.error("[Webhook] Error updating dispatch:", dispatchUpdateErr);
+    console.error("STAGE 3 FAIL: Error updating dispatch:", dispatchUpdateErr);
   } else if (updatedDispatch) {
-    console.log("CALLBACK_STAGE_3: Session localizada via Dispatch", updatedDispatch.id);
+    console.log("STAGE 3 SUCCESS: Dispatch localizado e atualizado", updatedDispatch.id);
   }
 
-  // 4. BUSCAR CONVERSA ATIVA
-  const { data: conversations, error: convError } = await supabase
+  // BUSCAR CONVERSA ATIVA
+  const { data: conversations } = await supabase
     .from("automation_conversations")
     .select("*")
     .eq("phone_normalized", phone)
@@ -115,9 +115,10 @@ serve(async (req) => {
   const selectedConversation = conversations?.[0];
   
   if (selectedConversation) {
-    console.log("CALLBACK_STAGE_3: Session localizada via Conversation", selectedConversation.id);
+    console.log("STAGE 3 SUCCESS: Conversa localizada", selectedConversation.id);
   }
 
+  // Atualizar log com o contexto encontrado
   await supabase.from("automation_webhook_logs").update({
     conversation_selected_id: selectedConversation?.id,
     conversation_found: !!selectedConversation,
@@ -126,7 +127,7 @@ serve(async (req) => {
   }).eq("id", webhookLog.id);
 
   if (!selectedConversation && !updatedDispatch) {
-    console.warn(`[Webhook] CALLBACK_STAGE_3_FAIL: No active context found for ${phone}`);
+    console.warn(`STAGE 3 FAIL: No active context found for ${phone}`);
     return new Response(JSON.stringify({ ok: true, status: "context_not_found" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
@@ -134,27 +135,21 @@ serve(async (req) => {
   const tenantId = selectedConversation?.tenant_id || updatedDispatch?.tenant_id;
 
   if (!tenantId) {
-    console.error("[Webhook] Tenant ID missing from both conversation and dispatch");
+    console.error("STAGE 3 FAIL: Tenant ID missing");
     return new Response(JSON.stringify({ ok: false, error: "tenant_id_missing" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  // 5. PROCESSAR AÇÃO
-  // Mapeamento de botões e texto (Incluindo fallback 1, 2, 3)
+  // STAGE 4: Identificar Ação
   const isConfirm = buttonId === "main_confirm" || ["1", "confirmar", "confirmar agendamento"].includes(normalizedText);
   const isReschedule = buttonId === "main_reschedule" || ["2", "reagendar"].includes(normalizedText);
   const isCancel = buttonId === "main_cancel" || ["3", "cancelar"].includes(normalizedText);
 
   let matchedAction = "none";
-  if (isConfirm) {
-    matchedAction = "confirm";
-    console.log("CALLBACK_STAGE_4: Action -> CONFIRM");
-  } else if (isReschedule) {
-    matchedAction = "reschedule";
-    console.log("CALLBACK_STAGE_4: Action -> RESCHEDULE");
-  } else if (isCancel) {
-    matchedAction = "cancel";
-    console.log("CALLBACK_STAGE_4: Action -> CANCEL");
-  }
+  if (isConfirm) matchedAction = "confirm";
+  else if (isReschedule) matchedAction = "reschedule";
+  else if (isCancel) matchedAction = "cancel";
+
+  console.log(`STAGE 4: Action matched: ${matchedAction}`);
 
   await supabase.from("automation_webhook_logs").update({
     appointment_id_found: appointmentId,
@@ -162,17 +157,15 @@ serve(async (req) => {
     tenant_id: tenantId
   }).eq("id", webhookLog.id);
 
+  // STAGE 5: Executar Ação
   if (matchedAction !== "none" && appointmentId) {
-    console.log(`CALLBACK_STAGE_5: Processando ação ${matchedAction} para o agendamento ${appointmentId}`);
+    console.log(`STAGE 5: Executing ${matchedAction} for appointment ${appointmentId}`);
     
     if (matchedAction === "confirm") {
-      // Pegar detalhes do agendamento
       const { data: appt } = await supabase.from("appointments").select("*, service:services(name), barber:barbers(name)").eq("id", appointmentId).single();
       
-      // Atualizar agendamento
       await supabase.from("appointments").update({ status: "confirmed", confirmed_at: new Date().toISOString() }).eq("id", appointmentId);
       
-      // Atualizar conversa se existir
       if (selectedConversation) {
         await supabase.from("automation_conversations").update({ 
           status: "completed", 
@@ -181,14 +174,13 @@ serve(async (req) => {
         }).eq("id", selectedConversation.id);
       }
 
-      // Atualizar dispatch se existir
       if (updatedDispatch) {
         await supabase.from("automation_v2_dispatches").update({
           current_step: "FINALIZADO"
         }).eq("id", updatedDispatch.id);
       }
 
-      // Enviar mensagem de sucesso
+      // STAGE 6: Resposta ao cliente
       let businessName = "Barbearia";
       const { data: tenant } = await supabase.from("barbershops").select("name").eq("id", tenantId).maybeSingle();
       if (tenant?.name) businessName = tenant.name;
@@ -197,12 +189,12 @@ serve(async (req) => {
 
       const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
       if (instance) {
-        console.log("CALLBACK_STAGE_6: Mensagem resposta enviada");
+        console.log("STAGE 6: Enviando confirmação via WhatsApp");
         await sendMessage(instance, phone, successMsg);
         await supabase.from("automation_webhook_logs").update({ response_sent: true }).eq("id", webhookLog.id);
       }
     } else {
-      // RESCHEDULE ou CANCEL
+      // REAGENDAR / CANCELAR
       if (selectedConversation) {
         await supabase.from("automation_conversations").update({ 
           current_state: matchedAction === "reschedule" ? "AWAITING_RESCHEDULE" : "AWAITING_CANCEL",
@@ -215,11 +207,12 @@ serve(async (req) => {
           current_step: matchedAction === "reschedule" ? "REAGENDAMENTO_SOLICITADO" : "CANCELAMENTO_SOLICITADO"
         }).eq("id", updatedDispatch.id);
       }
+      
+      // Aqui poderíamos enviar uma mensagem pedindo mais detalhes ou confirmando a intenção
     }
   } else {
-    console.warn(`[Webhook] No action matched or context missing. Phone: ${phone}, Text: ${normalizedText}`);
+    console.warn("STAGE 5 FAIL: No action matched or missing appointment ID");
   }
 
   return new Response(JSON.stringify({ ok: true, matchedAction }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 });
-
