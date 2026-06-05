@@ -112,7 +112,7 @@ serve(async (req) => {
 
         // 4. Build Message
         const buildAppointmentConfirmationMessage = (data: any) => {
-          return `Olá ${data.customer_name} 👋\n\nSeu agendamento na ${data.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${data.service_name}\n💈 Profissional: ${data.professional_name}\n📅 Data: ${data.appointment_date}\n⏰ Horário: ${data.appointment_time}\n\nO que deseja fazer?\n\n1️⃣ Confirmar agendamento\n2️⃣ Reagendar\n3️⃣ Cancelar`;
+          return `Olá ${data.customer_name} 👋\n\nSeu agendamento na ${data.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${data.service_name}\n💈 Profissional: ${data.professional_name}\n📅 Data: ${data.appointment_date}\n⏰ Horário: ${data.appointment_time}\n\nO que deseja fazer?`;
         };
 
         const testData = {
@@ -129,7 +129,12 @@ serve(async (req) => {
         let renderedTemplate = "";
 
         if (automation.key === 'appointment_confirmation') {
-          sendOptions.buttons = null; 
+          // Ativando botões reais para o Z-API
+          sendOptions.buttons = [
+            { id: "main_confirm", label: "Confirmar agendamento" },
+            { id: "main_reschedule", label: "Reagendar" },
+            { id: "main_cancel", label: "Cancelar" }
+          ];
           renderedTemplate = buildAppointmentConfirmationMessage(testData);
         } else {
           renderedTemplate = automation.template;
