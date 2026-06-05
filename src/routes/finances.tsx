@@ -1265,7 +1265,7 @@ function FinancesComponent() {
               </Card>
 
               {barbers.length === 0 && (
-                <div className="col-span-full text-center py-12 border-2 border-slate-200 rounded-xl bg-white text-black font-medium">
+                <div className="col-span-full text-center py-12 border border-border rounded-xl bg-card text-foreground font-medium">
                   Nenhum barbeiro cadastrado.
                 </div>
               )}
