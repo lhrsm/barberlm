@@ -377,39 +377,39 @@ function SubscriptionComponent() {
                  plan === 'free' ? 'Plano Gratuito' : 'Assinatura Ativa'}
               </div>
             </CardHeader>
-            <CardContent className="grid gap-6 md:grid-cols-5">
-              <div className="space-y-2">
+            <CardContent className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+              <div className="space-y-2 bg-white/50 p-3 rounded-2xl border border-primary/10">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Profissionais</span>
-                  <span className="font-bold">{usage?.barbers ?? 0} / {limits?.barbers === Infinity ? "∞" : (limits?.barbers ?? 0)}</span>
+                  <span className="text-muted-foreground font-medium">Profissionais</span>
+                  <span className="font-bold text-primary">{usage?.barbers ?? 0} / {limits?.barbers === Infinity ? "∞" : (limits?.barbers ?? 0)}</span>
                 </div>
                 <Progress value={limits?.barbers === Infinity ? 100 : Math.min(((usage?.barbers || 0) / (limits?.barbers || 1)) * 100, 100)} className="h-1.5" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 bg-white/50 p-3 rounded-2xl border border-primary/10">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Serviços</span>
-                  <span className="font-bold">{usage?.services ?? 0} / {limits?.services === Infinity ? "∞" : (limits?.services ?? 0)}</span>
+                  <span className="text-muted-foreground font-medium">Serviços</span>
+                  <span className="font-bold text-primary">{usage?.services ?? 0} / {limits?.services === Infinity ? "∞" : (limits?.services ?? 0)}</span>
                 </div>
                 <Progress value={limits?.services === Infinity ? 100 : Math.min(((usage?.services || 0) / (limits?.services || 1)) * 100, 100)} className="h-1.5" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 bg-white/50 p-3 rounded-2xl border border-primary/10">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Produtos</span>
-                  <span className="font-bold">{usage?.products ?? 0} / {limits?.products === Infinity ? "∞" : (limits?.products ?? 0)}</span>
+                  <span className="text-muted-foreground font-medium">Produtos</span>
+                  <span className="font-bold text-primary">{usage?.products ?? 0} / {limits?.products === Infinity ? "∞" : (limits?.products ?? 0)}</span>
                 </div>
                 <Progress value={limits?.products === Infinity ? 100 : Math.min(((usage?.products || 0) / (limits?.products || 1)) * 100, 100)} className="h-1.5" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 bg-white/50 p-3 rounded-2xl border border-primary/10">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Agendamentos</span>
-                  <span className="font-bold">{usage?.monthlyAppointments ?? 0} / {limits?.monthlyAppointments === Infinity ? "∞" : (limits?.monthlyAppointments ?? 0)}</span>
+                  <span className="text-muted-foreground font-medium">Agendamentos</span>
+                  <span className="font-bold text-primary">{usage?.monthlyAppointments ?? 0} / {limits?.monthlyAppointments === Infinity ? "∞" : (limits?.monthlyAppointments ?? 0)}</span>
                 </div>
                 <Progress value={limits?.monthlyAppointments === Infinity ? 100 : Math.min(((usage?.monthlyAppointments || 0) / (limits?.monthlyAppointments || 1)) * 100, 100)} className="h-1.5" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 bg-white/50 p-3 rounded-2xl border border-primary/10">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">WhatsApp</span>
-                  <span className="font-bold">{usage?.whatsappConnections ?? 0} / {limits?.whatsappConnections === Infinity ? "∞" : (limits?.whatsappConnections ?? 0)}</span>
+                  <span className="text-muted-foreground font-medium">WhatsApp</span>
+                  <span className="font-bold text-primary">{usage?.whatsappConnections ?? 0} / {limits?.whatsappConnections === Infinity ? "∞" : (limits?.whatsappConnections ?? 0)}</span>
                 </div>
                 <Progress value={limits?.whatsappConnections === Infinity ? 100 : Math.min(((usage?.whatsappConnections || 0) / (limits?.whatsappConnections || 1)) * 100, 100)} className="h-1.5" />
               </div>
