@@ -624,6 +624,29 @@ export function ZApiWhatsAppCard({ tenantId }: { tenantId: string }) {
               </div>
             )}
 
+            {lastEndpointTestResult && (
+              <div className="bg-slate-900/50 border border-white/10 rounded-xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-amber-400">Resultado do Teste de Endpoint</h3>
+                    <p className="text-[10px] text-slate-400">Simulação manual de ReceivedCallback</p>
+                  </div>
+                  <Badge className={lastEndpointTestResult.success ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
+                    {lastEndpointTestResult.success ? "Sucesso" : "Falha"}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-[9px] text-slate-400">URL Chamada: <span className="text-blue-400 font-mono">{lastEndpointTestResult.webhookUrl}</span></p>
+                  <pre className="text-[8px] bg-black/40 p-2 rounded border border-white/5 font-mono overflow-auto max-h-32 text-slate-300">
+                    {JSON.stringify(lastEndpointTestResult.result, null, 2)}
+                  </pre>
+                </div>
+                
+                <div className="bg-amber-500/10 border border-amber-500/20 p-2 rounded text-[9px] text-amber-300">
+                  <p>ℹ️ Se o status for "Sucesso", verifique se um novo registro apareceu em "Webhooks Recebidos" abaixo.</p>
+                </div>
+
             {lastWebhookCall && (
               <div className="bg-slate-900/50 border border-white/10 rounded-xl p-4 space-y-4">
                 <div className="flex items-center justify-between">
