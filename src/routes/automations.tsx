@@ -3007,7 +3007,165 @@ function AutomationsComponent() {
             </div>
           </div>
         </DialogContent>
+      <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
+        <DialogContent className="max-w-[1000px] w-[95vw] bg-[#020817] border border-amber-500/25 text-white p-0 overflow-hidden rounded-[24px] shadow-[0_25px_80px_rgba(0,0,0,0.5)]">
+          <button 
+            onClick={() => setIsDiagnosticOpen(false)}
+            className="absolute right-6 top-6 w-10 h-10 flex items-center justify-center rounded-full bg-amber-500/15 hover:bg-amber-500 text-white transition-all z-10"
+          >
+            <X size={20} />
+          </button>
+
+          <DialogHeader className="p-8 pb-4 bg-[#0F172A]/50 border-b border-white/5">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 flex items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 text-3xl">
+                🔍
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-bold text-white tracking-tight">Diagnóstico de Callback</DialogTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-slate-400 text-sm">Análise técnica do fluxo de retorno</span>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {isDiagnosing ? (
+            <div className="p-20 flex flex-col items-center justify-center gap-4">
+              <Loader2 className="animate-spin text-amber-500" size={40} />
+              <p className="text-slate-400 animate-pulse">Coletando evidências técnicas...</p>
+            </div>
+          ) : diagnosticData && (
+            <div className="p-8 pt-4 space-y-6 overflow-y-auto max-h-[calc(90vh-120px)] custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 mb-3 flex items-center gap-2">
+                      <Settings2 size={12} /> Configuração Z-API
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] text-slate-500">URL do Webhook Configurada</span>
+                        <code className="text-[11px] bg-black/50 p-2 rounded border border-white/5 text-sky-400 break-all">
+                          {diagnosticData.webhookUrl}
+                        </code>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500">Instance ID</span>
+                          <span className="text-xs text-white font-mono">{diagnosticData.instance?.instance_id || 'N/A'}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500">Status</span>
+                          <Badge className={cn(
+                            "w-fit text-[10px] h-5",
+                            diagnosticData.instance?.connected ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
+                          )}>
+                            {diagnosticData.instance?.connected ? 'Conectado' : 'Desconectado'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 mb-3 flex items-center gap-2">
+                      <MessageSquare size={12} /> Sessão Ativa
+                    </p>
+                    {diagnosticData.session ? (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500">Status:</span>
+                          <span className="text-emerald-400 font-bold uppercase">{diagnosticData.session.status}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500">Etapa Atual:</span>
+                          <span className="text-amber-500 font-mono">{diagnosticData.session.current_state}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500">Expira em:</span>
+                          <span className="text-white">{new Date(diagnosticData.session.expires_at).toLocaleString('pt-BR')}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-rose-400 text-xs">
+                        <AlertTriangle size={14} /> Nenhuma sessão ativa encontrada
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 mb-3 flex items-center gap-2">
+                      <History size={12} /> Webhooks Recentes (Telefone)
+                    </p>
+                    <div className="space-y-2">
+                      {diagnosticData.phoneWebhooks?.length > 0 ? (
+                        diagnosticData.phoneWebhooks.map((log: any) => (
+                          <div key={log.id} className="text-[10px] p-2 bg-black/30 rounded border border-white/5 flex justify-between items-center">
+                            <span className="text-slate-400">{new Date(log.created_at).toLocaleTimeString('pt-BR')}</span>
+                            <span className="text-white font-mono">{log.type}</span>
+                            <Badge className="h-4 text-[8px] bg-white/5 text-slate-400 border-none">
+                              {log.buttonid || 'Texto'}
+                            </Badge>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-[10px] text-slate-600 italic">Nenhum webhook recebido deste número</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 mb-3 flex items-center gap-2">
+                      <Terminal size={12} /> Dados do Envio Original
+                    </p>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Provider Message ID:</span>
+                        <span className="text-sky-400 font-mono text-[10px] font-bold">{diagnosticData.dispatch.message_id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Status:</span>
+                        <span className="text-white font-bold">{diagnosticData.dispatch.status}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-2xl">
+                <h4 className="text-amber-500 font-bold text-sm mb-2 flex items-center gap-2">
+                  <Info size={16} /> Recomendações
+                </h4>
+                <ul className="text-xs text-slate-400 space-y-1 list-disc pl-4">
+                  <li>Se não houver webhooks recentes do telefone, o cliente pode não ter clicado ou a Z-API não está enviando.</li>
+                  <li>Verifique se a <strong>URL do Webhook</strong> na Z-API aponta exatamente para o endpoint v2.</li>
+                  <li>Se houver webhooks mas a sessão não foi encontrada, a sessão pode ter expirado ou o número não coincide.</li>
+                </ul>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setIsDiagnosticOpen(false)}
+                  className="rounded-xl text-slate-400 hover:text-white"
+                >
+                  Fechar
+                </Button>
+                <Button 
+                  className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl"
+                  onClick={() => handleManualCallbackTest(diagnosticData.dispatch)}
+                >
+                  Simular Callback de Teste
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
       </Dialog>
+
     </AppLayout>
   );
 }
