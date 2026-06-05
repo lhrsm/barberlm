@@ -39,7 +39,7 @@ serve(async (req) => {
   const phone = body.phone || body.from;
   const type = body.type;
   const fromMe = body.fromMe;
-  const incomingText = body.text?.message || body.message || body.body || body.buttonsResponseMessage?.buttonText || "";
+  const incomingText = body.text?.message || body.message || body.body || body.buttonsResponseMessage?.buttonText || body.buttonsResponseMessage?.message || "";
   const messageId = body.messageId || body.id;
   const buttonId = body.buttonsResponseMessage?.buttonId;
   const referenceMessageId = body.referenceMessageId; 
@@ -56,14 +56,14 @@ serve(async (req) => {
   const { data: webhookLog, error: logErr } = await supabase.from("automation_webhook_logs").insert({
     raw_payload: body,
     type,
-    fromme: fromMe, // Corrigido para minúsculo conforme schema
+    fromme: fromMe,
     phone_raw: phone,
     phone_normalized: phone,
-    messageid: messageId, // Corrigido para minúsculo conforme schema
+    messageid: messageId,
     incoming_text: incomingText,
     normalized_text: normalizedText,
-    buttonid: buttonId, // Corrigido para minúsculo conforme schema
-    referencemessageid: referenceMessageId, // Corrigido para minúsculo conforme schema
+    buttonid: buttonId,
+    referencemessageid: referenceMessageId,
     created_at: new Date().toISOString()
   }).select().single();
 
@@ -85,7 +85,13 @@ serve(async (req) => {
   if (referenceMessageId) {
     dispatchUpdateQuery = dispatchUpdateQuery.eq("message_id", referenceMessageId);
   } else {
-    dispatchUpdateQuery = dispatchUpdateQuery.eq("phone", phone).order("created_at", { ascending: false }).limit(1);
+    // Fallback by phone - only if within last hour to avoid matching old dispatches
+    const oneHourAgo = new Date(Date.now() - 3600000).toISOString();
+    dispatchUpdateQuery = dispatchUpdateQuery
+      .eq("phone", phone)
+      .gte("created_at", oneHourAgo)
+      .order("created_at", { ascending: false })
+      .limit(1);
   }
 
   const { data: updatedDispatches, error: dispatchUpdateErr } = await dispatchUpdateQuery.select();
@@ -115,19 +121,25 @@ serve(async (req) => {
   await supabase.from("automation_webhook_logs").update({
     conversation_selected_id: selectedConversation?.id,
     conversation_found: !!selectedConversation,
-    dispatch_updated: !!updatedDispatches?.length
+    dispatch_updated: !!updatedDispatches?.length,
+    appointment_id: selectedConversation?.appointment_id || updatedDispatch?.appointment_id
   }).eq("id", webhookLog.id);
 
-  if (!selectedConversation) {
-    console.warn(`[Webhook] CALLBACK_STAGE_3_FAIL: Conversation not found for ${phone}`);
-    return new Response(JSON.stringify({ ok: true, status: "conversation_not_found" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (!selectedConversation && !updatedDispatch) {
+    console.warn(`[Webhook] CALLBACK_STAGE_3_FAIL: No active context found for ${phone}`);
+    return new Response(JSON.stringify({ ok: true, status: "context_not_found" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  const appointmentId = selectedConversation.appointment_id || updatedDispatch?.appointment_id;
-  const tenantId = selectedConversation.tenant_id;
+  const appointmentId = selectedConversation?.appointment_id || updatedDispatch?.appointment_id;
+  const tenantId = selectedConversation?.tenant_id || updatedDispatch?.tenant_id;
+
+  if (!tenantId) {
+    console.error("[Webhook] Tenant ID missing from both conversation and dispatch");
+    return new Response(JSON.stringify({ ok: false, error: "tenant_id_missing" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
 
   // 5. PROCESSAR AÇÃO
-  // Mapeamento de botões e texto
+  // Mapeamento de botões e texto (Incluindo fallback 1, 2, 3)
   const isConfirm = buttonId === "main_confirm" || ["1", "confirmar", "confirmar agendamento"].includes(normalizedText);
   const isReschedule = buttonId === "main_reschedule" || ["2", "reagendar"].includes(normalizedText);
   const isCancel = buttonId === "main_cancel" || ["3", "cancelar"].includes(normalizedText);
@@ -135,13 +147,13 @@ serve(async (req) => {
   let matchedAction = "none";
   if (isConfirm) {
     matchedAction = "confirm";
-    console.log("CALLBACK_STAGE_4: ButtonId extraído -> main_confirm");
+    console.log("CALLBACK_STAGE_4: Action -> CONFIRM");
   } else if (isReschedule) {
     matchedAction = "reschedule";
-    console.log("CALLBACK_STAGE_4: ButtonId extraído -> main_reschedule");
+    console.log("CALLBACK_STAGE_4: Action -> RESCHEDULE");
   } else if (isCancel) {
     matchedAction = "cancel";
-    console.log("CALLBACK_STAGE_4: ButtonId extraído -> main_cancel");
+    console.log("CALLBACK_STAGE_4: Action -> CANCEL");
   }
 
   await supabase.from("automation_webhook_logs").update({
@@ -150,58 +162,64 @@ serve(async (req) => {
     tenant_id: tenantId
   }).eq("id", webhookLog.id);
 
-  if (matchedAction === "confirm" && appointmentId) {
-    console.log("CALLBACK_STAGE_5: Fluxo executado (Confirm)");
+  if (matchedAction !== "none" && appointmentId) {
+    console.log(`CALLBACK_STAGE_5: Processando ação ${matchedAction} para o agendamento ${appointmentId}`);
     
-    // Pegar detalhes do agendamento
-    const { data: appt } = await supabase.from("appointments").select("*, service:services(name), barber:barbers(name)").eq("id", appointmentId).single();
-    
-    // Atualizar agendamento
-    await supabase.from("appointments").update({ status: "confirmed", confirmed_at: new Date().toISOString() }).eq("id", appointmentId);
-    
-    // Atualizar conversa
-    await supabase.from("automation_conversations").update({ 
-      status: "completed", 
-      current_state: "completed", 
-      confirmed_at: new Date().toISOString() 
-    }).eq("id", selectedConversation.id);
+    if (matchedAction === "confirm") {
+      // Pegar detalhes do agendamento
+      const { data: appt } = await supabase.from("appointments").select("*, service:services(name), barber:barbers(name)").eq("id", appointmentId).single();
+      
+      // Atualizar agendamento
+      await supabase.from("appointments").update({ status: "confirmed", confirmed_at: new Date().toISOString() }).eq("id", appointmentId);
+      
+      // Atualizar conversa se existir
+      if (selectedConversation) {
+        await supabase.from("automation_conversations").update({ 
+          status: "completed", 
+          current_state: "completed", 
+          confirmed_at: new Date().toISOString() 
+        }).eq("id", selectedConversation.id);
+      }
 
-    // Atualizar dispatch se existir
-    if (updatedDispatch) {
-      await supabase.from("automation_v2_dispatches").update({
-        current_step: "FINALIZADO"
-      }).eq("id", updatedDispatch.id);
-    }
+      // Atualizar dispatch se existir
+      if (updatedDispatch) {
+        await supabase.from("automation_v2_dispatches").update({
+          current_step: "FINALIZADO"
+        }).eq("id", updatedDispatch.id);
+      }
 
-    // Enviar mensagem de sucesso
-    let businessName = "Barbearia";
-    const { data: tenant } = await supabase.from("tenants").select("name").eq("id", tenantId).maybeSingle();
-    if (tenant?.name) businessName = tenant.name;
+      // Enviar mensagem de sucesso
+      let businessName = "Barbearia";
+      const { data: tenant } = await supabase.from("barbershops").select("name").eq("id", tenantId).maybeSingle();
+      if (tenant?.name) businessName = tenant.name;
 
-    const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n💈 ${appt.barber?.name || "Profissional"}\n✂️ ${appt.service?.name || "Serviço"}`;
+      const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n💈 ${appt.barber?.name || "Profissional"}\n✂️ ${appt.service?.name || "Serviço"}`;
 
-    const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
-    if (instance) {
-      console.log("CALLBACK_STAGE_6: Mensagem resposta enviada");
-      await sendMessage(instance, phone, successMsg);
-      await supabase.from("automation_webhook_logs").update({ response_sent: true }).eq("id", webhookLog.id);
-    }
-  } else if (matchedAction === "reschedule" || matchedAction === "cancel") {
-    console.log(`CALLBACK_STAGE_5: Fluxo executado (${matchedAction})`);
-    
-    await supabase.from("automation_conversations").update({ 
-      current_state: matchedAction === "reschedule" ? "AWAITING_RESCHEDULE" : "AWAITING_CANCEL",
-      last_action: matchedAction
-    }).eq("id", selectedConversation.id);
-    
-    if (updatedDispatch) {
-      await supabase.from("automation_v2_dispatches").update({
-        current_step: matchedAction === "reschedule" ? "REAGENDAMENTO_SOLICITADO" : "CANCELAMENTO_SOLICITADO"
-      }).eq("id", updatedDispatch.id);
+      const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
+      if (instance) {
+        console.log("CALLBACK_STAGE_6: Mensagem resposta enviada");
+        await sendMessage(instance, phone, successMsg);
+        await supabase.from("automation_webhook_logs").update({ response_sent: true }).eq("id", webhookLog.id);
+      }
+    } else {
+      // RESCHEDULE ou CANCEL
+      if (selectedConversation) {
+        await supabase.from("automation_conversations").update({ 
+          current_state: matchedAction === "reschedule" ? "AWAITING_RESCHEDULE" : "AWAITING_CANCEL",
+          last_action: matchedAction
+        }).eq("id", selectedConversation.id);
+      }
+      
+      if (updatedDispatch) {
+        await supabase.from("automation_v2_dispatches").update({
+          current_step: matchedAction === "reschedule" ? "REAGENDAMENTO_SOLICITADO" : "CANCELAMENTO_SOLICITADO"
+        }).eq("id", updatedDispatch.id);
+      }
     }
   } else {
-    console.warn(`[Webhook] No action matched or appointmentId missing (${appointmentId})`);
+    console.warn(`[Webhook] No action matched or context missing. Phone: ${phone}, Text: ${normalizedText}`);
   }
 
   return new Response(JSON.stringify({ ok: true, matchedAction }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 });
+

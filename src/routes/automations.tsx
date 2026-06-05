@@ -121,7 +121,12 @@ function AutomationsComponent() {
   const [isWebhookLogsOpen, setIsWebhookLogsOpen] = useState(false);
   const [selectedWebhookLog, setSelectedWebhookLog] = useState<any>(null);
   const [isWebhookDetailOpen, setIsWebhookDetailOpen] = useState(false);
+  const [pendingCallbacks, setPendingCallbacks] = useState<any[]>([]);
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
+  const [diagnosticData, setDiagnosticData] = useState<any>(null);
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
   const itemsPerPage = 10;
+
 
   // Estados Auditoria do Fluxo (Modal)
   const [auditFilterType, setAuditFilterType] = useState(() => {
@@ -376,6 +381,8 @@ function AutomationsComponent() {
       }
       // Fetch webhook logs
       await fetchWebhookLogs();
+      await fetchPendingCallbacks();
+
 
     } catch (error: any) {
       console.error(error);
@@ -401,6 +408,134 @@ function AutomationsComponent() {
       console.error("Error fetching webhook logs:", error);
     }
   };
+
+  const fetchPendingCallbacks = async () => {
+    if (!tenantId) return;
+    try {
+      const { data, error } = await anySupabase
+        .from("automation_v2_dispatches")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("callback_received", false)
+        .eq("status", "sent")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      setPendingCallbacks(data || []);
+    } catch (error: any) {
+      console.error("Error fetching pending callbacks:", error);
+    }
+  };
+
+  const handleDiagnoseCallback = async (dispatch: any) => {
+    setIsDiagnosing(true);
+    setIsDiagnosticOpen(true);
+    try {
+      // 1. Get Instance Config
+      const { data: instance } = await supabase
+        .from("whatsapp_instances")
+        .select("*")
+        .eq("tenant_id", tenantId || "")
+        .maybeSingle();
+
+      // 2. Get active session
+      const { data: session } = await supabase
+        .from("automation_conversations")
+        .select("*")
+        .eq("phone_normalized", dispatch.phone)
+        .in("status", ["active", "awaiting_response"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // 3. Get recent webhooks for this phone
+      const { data: phoneWebhooks } = await anySupabase
+        .from("automation_webhook_logs")
+        .select("*")
+        .eq("phone_normalized", dispatch.phone)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      // 4. Get recent webhooks for this instance
+      let instanceWebhooks = [];
+      if (instance?.instance_id) {
+        const { data: instWebs } = await anySupabase
+          .from("automation_webhook_logs")
+          .select("*")
+          .filter("raw_payload->>instanceId", "eq", instance.instance_id)
+          .order("created_at", { ascending: false })
+          .limit(5);
+        instanceWebhooks = instWebs || [];
+      }
+
+      setDiagnosticData({
+        dispatch,
+        instance,
+        session,
+        phoneWebhooks,
+        instanceWebhooks,
+        webhookUrl: instance?.webhook_received_url || "Não configurada"
+      });
+    } catch (error: any) {
+      toast.error("Erro no diagnóstico: " + error.message);
+    } finally {
+      setIsDiagnosing(false);
+    }
+  };
+
+  const handleManualCallbackTest = async (dispatch: any) => {
+    const toastId = toast.loading("Simulando callback...");
+    try {
+      const payload = {
+        type: "ReceivedCallback",
+        fromMe: false,
+        phone: dispatch.phone,
+        referenceMessageId: dispatch.message_id,
+        buttonsResponseMessage: {
+          buttonId: "main_confirm",
+          message: "Confirmar agendamento"
+        }
+      };
+
+
+      const { data, error } = await supabase.functions.invoke('zapi-receive-json', {
+        body: payload
+      });
+
+      if (error) throw error;
+
+      if (data?.matchedAction) {
+        toast.success(`Callback simulado com sucesso! Ação detectada: ${data.matchedAction}`, { id: toastId });
+        await fetchData();
+      } else {
+        toast.error("Callback processado, mas nenhuma ação detectada.", { id: toastId });
+      }
+    } catch (error: any) {
+      toast.error("Falha no teste manual: " + error.message, { id: toastId });
+    }
+  };
+
+  const handleRescheduleCallbackTracking = async (dispatch: any) => {
+    const toastId = toast.loading("Reenviando com tracking...");
+    try {
+      // Forçar reprocessamento via queue
+      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { 
+          tenant_id: tenantId, 
+          appointment_id: dispatch.appointment_id,
+          force_resend: true 
+        }
+      });
+
+      if (error) throw error;
+      toast.success("Mensagem reenviada! Aguardando novo callback.", { id: toastId });
+      await fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao reenviar: " + error.message, { id: toastId });
+    }
+  };
+
 
   const handleManualReconcile = async () => {
     setIsReconciling(true);
@@ -981,6 +1116,18 @@ function AutomationsComponent() {
             >
               Histórico de Envios
             </TabsTrigger>
+            <TabsTrigger 
+              value="callbacks"
+              className="rounded-xl px-6 py-2.5 data-[state=active]:bg-amber-500 data-[state=active]:text-white transition-all focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F172A] flex items-center gap-2"
+            >
+              <MousePointer2 size={16} /> Webhooks / Callbacks
+              {pendingCallbacks.length > 0 && (
+                <Badge className="bg-rose-500 text-white border-none text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full">
+                  {pendingCallbacks.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="templates" className="space-y-4 pt-4">
@@ -1610,6 +1757,127 @@ function AutomationsComponent() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="callbacks" className="space-y-4 pt-4">
+            <Card className="bg-[#0F172A] border-slate-800 shadow-2xl rounded-2xl overflow-hidden">
+              <CardHeader className="p-6 border-b border-white/5 bg-[#0F172A]/50">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                      <AlertTriangle className="text-amber-500" size={20} /> Callbacks Pendentes
+                    </CardTitle>
+                    <CardDescription className="text-slate-400">
+                      Disparos enviados que ainda não receberam resposta do cliente via botões.
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={fetchPendingCallbacks}
+                      className="bg-[#0F172A] border-slate-800 text-slate-400 hover:text-white rounded-xl h-10 px-4"
+                    >
+                      <RefreshCw size={16} className="mr-2" /> Atualizar
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-white/5 bg-[#020817]/50">
+                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Envio / Phone</th>
+                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Workflow / IDs</th>
+                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tempo Aguardando</th>
+                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {pendingCallbacks.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-12 text-center">
+                            <div className="flex flex-col items-center gap-2 opacity-50">
+                              <CheckCircle2 size={40} className="text-emerald-500" />
+                              <p className="text-slate-400 text-sm">Nenhum callback pendente no momento!</p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        pendingCallbacks.map((dispatch) => {
+                          const sentAt = new Date(dispatch.sent_at);
+                          const diff = Math.floor((Date.now() - sentAt.getTime()) / 60000); // minutes
+                          const isOld = diff > 5;
+                          
+                          return (
+                            <tr key={dispatch.id} className="group hover:bg-white/5 transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-bold text-white">{dispatch.customer_name || 'Cliente'}</span>
+                                  <span className="text-xs text-slate-500 font-mono">{dispatch.phone}</span>
+                                  <span className="text-[10px] text-slate-600">Enviado em: {sentAt.toLocaleString('pt-BR')}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex flex-col gap-1">
+                                  <Badge variant="outline" className="w-fit text-[10px] border-amber-500/20 text-amber-500 bg-amber-500/5">
+                                    {dispatch.workflow_key}
+                                  </Badge>
+                                  <span className="text-[10px] text-slate-500 font-mono" title="Provider Message ID">
+                                    MSG: {dispatch.message_id?.substring(0, 15)}...
+                                  </span>
+                                  <span className="text-[10px] text-slate-500 font-mono">
+                                    APP: {dispatch.appointment_id?.substring(0, 8).toUpperCase()}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <Badge className={cn(
+                                  "border-none text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 w-fit",
+                                  isOld ? "bg-rose-500/10 text-rose-500" : "bg-sky-500/10 text-sky-500"
+                                )}>
+                                  <Clock size={12} /> {diff} minutos
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleDiagnoseCallback(dispatch)}
+                                    className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500 hover:text-slate-900 rounded-lg transition-all"
+                                  >
+                                    Diagnosticar
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleManualCallbackTest(dispatch)}
+                                    className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border-sky-500/20 hover:bg-sky-500 hover:text-white rounded-lg transition-all"
+                                  >
+                                    Simular Teste
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleRescheduleCallbackTracking(dispatch)}
+                                    className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500 hover:text-white rounded-lg transition-all"
+                                  >
+                                    Reenviar
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
       </div>
 
@@ -2741,6 +3009,167 @@ function AutomationsComponent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
+
+        <DialogContent className="max-w-[1000px] w-[95vw] bg-[#020817] border border-amber-500/25 text-white p-0 overflow-hidden rounded-[24px] shadow-[0_25px_80px_rgba(0,0,0,0.5)]">
+          <button 
+            onClick={() => setIsDiagnosticOpen(false)}
+            className="absolute right-6 top-6 w-10 h-10 flex items-center justify-center rounded-full bg-amber-500/15 hover:bg-amber-500 text-white transition-all z-10"
+          >
+            <X size={20} />
+          </button>
+
+          <DialogHeader className="p-8 pb-4 bg-[#0F172A]/50 border-b border-white/5">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 flex items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 text-3xl">
+                🔍
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-bold text-white tracking-tight">Diagnóstico de Callback</DialogTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-slate-400 text-sm">Análise técnica do fluxo de retorno</span>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {isDiagnosing ? (
+            <div className="p-20 flex flex-col items-center justify-center gap-4">
+              <Loader2 className="animate-spin text-amber-500" size={40} />
+              <p className="text-slate-400 animate-pulse">Coletando evidências técnicas...</p>
+            </div>
+          ) : diagnosticData && (
+            <div className="p-8 pt-4 space-y-6 overflow-y-auto max-h-[calc(90vh-120px)] custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 mb-3 flex items-center gap-2">
+                      <Settings2 size={12} /> Configuração Z-API
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] text-slate-500">URL do Webhook Configurada</span>
+                        <code className="text-[11px] bg-black/50 p-2 rounded border border-white/5 text-sky-400 break-all">
+                          {diagnosticData.webhookUrl}
+                        </code>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500">Instance ID</span>
+                          <span className="text-xs text-white font-mono">{diagnosticData.instance?.instance_id || 'N/A'}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500">Status</span>
+                          <Badge className={cn(
+                            "w-fit text-[10px] h-5",
+                            diagnosticData.instance?.connected ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
+                          )}>
+                            {diagnosticData.instance?.connected ? 'Conectado' : 'Desconectado'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 mb-3 flex items-center gap-2">
+                      <MessageSquare size={12} /> Sessão Ativa
+                    </p>
+                    {diagnosticData.session ? (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500">Status:</span>
+                          <span className="text-emerald-400 font-bold uppercase">{diagnosticData.session.status}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500">Etapa Atual:</span>
+                          <span className="text-amber-500 font-mono">{diagnosticData.session.current_state}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500">Expira em:</span>
+                          <span className="text-white">{new Date(diagnosticData.session.expires_at).toLocaleString('pt-BR')}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-rose-400 text-xs">
+                        <AlertTriangle size={14} /> Nenhuma sessão ativa encontrada
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 mb-3 flex items-center gap-2">
+                      <History size={12} /> Webhooks Recentes (Telefone)
+                    </p>
+                    <div className="space-y-2">
+                      {diagnosticData.phoneWebhooks?.length > 0 ? (
+                        diagnosticData.phoneWebhooks.map((log: any) => (
+                          <div key={log.id} className="text-[10px] p-2 bg-black/30 rounded border border-white/5 flex justify-between items-center">
+                            <span className="text-slate-400">{new Date(log.created_at).toLocaleTimeString('pt-BR')}</span>
+                            <span className="text-white font-mono">{log.type}</span>
+                            <Badge className="h-4 text-[8px] bg-white/5 text-slate-400 border-none">
+                              {log.buttonid || 'Texto'}
+                            </Badge>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-[10px] text-slate-600 italic">Nenhum webhook recebido deste número</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-[#0F172A] border border-white/5 p-4 rounded-2xl">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 mb-3 flex items-center gap-2">
+                      <Terminal size={12} /> Dados do Envio Original
+                    </p>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Provider Message ID:</span>
+                        <span className="text-sky-400 font-mono text-[10px] font-bold">{diagnosticData.dispatch.message_id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Status:</span>
+                        <span className="text-white font-bold">{diagnosticData.dispatch.status}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-2xl">
+                <h4 className="text-amber-500 font-bold text-sm mb-2 flex items-center gap-2">
+                  <Info size={16} /> Recomendações
+                </h4>
+                <ul className="text-xs text-slate-400 space-y-1 list-disc pl-4">
+                  <li>Se não houver webhooks recentes do telefone, o cliente pode não ter clicado ou a Z-API não está enviando.</li>
+                  <li>Verifique se a <strong>URL do Webhook</strong> na Z-API aponta exatamente para o endpoint v2.</li>
+                  <li>Se houver webhooks mas a sessão não foi encontrada, a sessão pode ter expirado ou o número não coincide.</li>
+                </ul>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setIsDiagnosticOpen(false)}
+                  className="rounded-xl text-slate-400 hover:text-white"
+                >
+                  Fechar
+                </Button>
+                <Button 
+                  className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl"
+                  onClick={() => handleManualCallbackTest(diagnosticData.dispatch)}
+                >
+                  Simular Callback de Teste
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </AppLayout>
   );
 }
