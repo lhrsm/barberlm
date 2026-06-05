@@ -242,8 +242,38 @@ function CustomersComponent() {
                     onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})} 
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-slate-300">Email (Opcional)</Label>
+                  <Input 
+                    id="email" 
+                    type="email"
+                    className="bg-[#111827] border-[#1f2937] text-white"
+                    value={newCustomer.email} 
+                    onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="birth_date" className="text-slate-300">Data de Nascimento</Label>
+                  <Input 
+                    id="birth_date" 
+                    type="date"
+                    className="bg-[#111827] border-[#1f2937] text-white"
+                    value={newCustomer.birth_date} 
+                    onChange={(e) => setNewCustomer({...newCustomer, birth_date: e.target.value})} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="text-slate-300">Notas / Preferências</Label>
+                  <Input 
+                    id="notes" 
+                    className="bg-[#111827] border-[#1f2937] text-white"
+                    value={newCustomer.notes} 
+                    onChange={(e) => setNewCustomer({...newCustomer, notes: e.target.value})} 
+                  />
+                </div>
                 <Button type="submit" className="w-full bg-[#D4AF37] text-black font-bold hover:bg-[#C5A028]">Salvar Cliente</Button>
               </form>
+
             </DialogContent>
           </Dialog>
         </div>
