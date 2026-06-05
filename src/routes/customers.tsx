@@ -333,21 +333,62 @@ function CustomersComponent() {
           </div>
 
           <div className="md:hidden divide-y divide-[#1f2937]">
-            {filteredCustomers.map((customer) => (
-              <div key={customer.id} className="p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <p className="font-bold text-white text-lg">{customer.name}</p>
-                  <Button variant="outline" size="sm" className="border-[#D4AF37] text-[#D4AF37] h-8 text-xs" onClick={() => handleViewHistory(customer)}>Ver</Button>
+            {filteredCustomers.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 italic">Nenhum cliente encontrado.</div>
+            ) : (
+              filteredCustomers.map((customer) => (
+                <div key={customer.id} className="p-4 space-y-4 hover:bg-[#111827] transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-[#111827] flex items-center justify-center text-white border border-[#D4AF37]/30 font-bold">
+                        {customer.name[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-bold text-white leading-tight">{customer.name}</p>
+                        <p className="text-xs text-slate-400">{customer.phone || "Sem telefone"}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black h-8 text-xs font-bold px-4" 
+                      onClick={() => handleViewHistory(customer)}
+                    >
+                      VER
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-[#111827] p-3 rounded-xl border border-[#1f2937]">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Créditos</p>
+                      <p className="text-sm font-black text-green-500">R$ {(Number(customer.credits) || 0).toFixed(2)}</p>
+                    </div>
+                    <div className="bg-[#111827] p-3 rounded-xl border border-[#1f2937]">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Cashback</p>
+                      <p className="text-sm font-black text-[#D4AF37]">R$ {(Number(customer.cashback_balance) || 0).toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-1">
+                    <button 
+                      className="text-slate-400 hover:text-white transition-colors" 
+                      onClick={() => openEditDialog(customer)}
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button 
+                      className="text-red-500 hover:text-red-400 transition-colors" 
+                      onClick={() => openDeleteDialog(customer)}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <p className="text-slate-400">Tel: <span className="text-white">{customer.phone || "-"}</span></p>
-                  <p className="text-slate-400">Créditos: <span className="text-green-500">R$ {(Number(customer.credits) || 0).toFixed(2)}</span></p>
-                  <p className="text-slate-400">Cashback: <span className="text-[#D4AF37]">R$ {(Number(customer.cashback_balance) || 0).toFixed(2)}</span></p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
+
 
         <HistoryDialog 
           isOpen={isHistoryOpen} 
