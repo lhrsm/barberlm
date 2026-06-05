@@ -929,7 +929,7 @@ function ClientPortalComponent() {
               </Button>
             </form>
             
-            <div className="mt-8 text-center pt-6 border-t border-gray-100/10">
+            <div className="mt-4 text-center pt-6 border-t border-gray-100/10">
               <p className="text-sm text-gray-500 font-bold flex items-center justify-center gap-2">
                 <span>{isRegistering ? "Já tem conta?" : "Ainda não tem conta?"}</span>
                 <button 
