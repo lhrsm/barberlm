@@ -65,6 +65,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 // Casting to any to bypass type errors for new table
 const anySupabase = supabase as any;
@@ -110,6 +111,7 @@ function AutomationsComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
+  const [lastManualUpdate, setLastManualUpdate] = useState<Date | null>(null);
   const [logStats, setLogStats] = useState<any>({ sent: 0, success: 0, failed: 0, lastSent: null, duplicateBlocked: 0, notFound: 0, lastUpdate: new Date(), pendingCallbacks: 0 });
   const [reconciliationSettings, setReconciliationSettings] = useState<any>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -1245,16 +1247,39 @@ function AutomationsComponent() {
                       <div className="flex items-center gap-2">
                         <History size={24} className="text-amber-500" /> Histórico de Envios
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-slate-400 hover:text-white"
-                        onClick={fetchData}
-                        disabled={loading}
-                      >
-                        <RefreshCw size={14} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
-                        Atualizar histórico
-                      </Button>
+                      <div className="flex flex-col items-end gap-1">
+                        <Button 
+                          variant="default" 
+                          size="lg" 
+                          className={cn(
+                            "bg-amber-500 hover:bg-amber-600 text-black font-bold shadow-lg rounded-xl transition-all duration-300 w-full sm:w-auto h-12 uppercase tracking-tight",
+                            loading ? "opacity-90 scale-[0.98]" : "hover:scale-[1.02] active:scale-[0.98]"
+                          )}
+                          onClick={async () => {
+                            await fetchData();
+                            setLastManualUpdate(new Date());
+                            toast.success("Histórico atualizado com sucesso");
+                          }}
+                          disabled={loading}
+                        >
+                          {loading ? (
+                            <>
+                              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                              Atualizando...
+                            </>
+                          ) : (
+                            <>
+                              <RotateCcw className={cn("mr-2 h-5 w-5 transition-transform duration-500", loading ? "rotate-180" : "group-hover:rotate-[-45deg]")} />
+                              Atualizar histórico
+                            </>
+                          )}
+                        </Button>
+                        {lastManualUpdate && (
+                          <span className="text-[10px] text-slate-500 font-medium italic">
+                            Última atualização: {lastManualUpdate.toLocaleDateString('pt-BR')} às {lastManualUpdate.toLocaleTimeString('pt-BR')}
+                          </span>
+                        )}
+                      </div>
                     </CardTitle>
                     <CardDescription className="text-slate-400 mt-1">
                       Acompanhe as mensagens automáticas enviadas pelo sistema.
