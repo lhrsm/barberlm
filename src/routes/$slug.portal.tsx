@@ -930,22 +930,27 @@ function ClientPortalComponent() {
             </form>
             
             <div className="mt-8 text-center pt-6 border-t border-gray-50">
-              <button 
-                className="text-xs text-gray-400 font-bold uppercase tracking-widest hover:text-[#D4AF37] transition-colors" 
-                onClick={() => setIsRegistering(!isRegistering)}
-              >
-                {isRegistering ? "Já tem conta? Fazer Login" : "Não tem conta? Cadastrar-se"}
-              </button>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">
+                {isRegistering ? "Já tem conta?" : "Não tem conta?"}{" "}
+                <button 
+                  type="button"
+                  className="text-[#D4AF37] hover:text-[#B8860B] underline underline-offset-4 transition-all decoration-2" 
+                  onClick={() => setIsRegistering(!isRegistering)}
+                >
+                  {isRegistering ? "Fazer Login" : "Cadastre-se agora"}
+                </button>
+              </p>
             </div>
           </CardContent>
         </Card>
         
         <Button 
           variant="ghost" 
-          className="mt-8 text-white/40 hover:text-[#D4AF37] transition-colors uppercase font-black tracking-widest text-[10px]" 
+          size="sm"
+          className="mt-6 h-auto py-2 text-white/40 hover:text-[#D4AF37] transition-colors uppercase font-black tracking-widest text-[9px]" 
           onClick={() => navigate({ to: `/${slug}` })}
         >
-          <ChevronLeft className="mr-2" size={14} /> Voltar para a barbearia
+          <ChevronLeft className="mr-1.5" size={12} /> Voltar para a barbearia
         </Button>
       </div>
     );
