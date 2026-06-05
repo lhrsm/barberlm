@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2, CircleDollarSign, History as HistoryIcon, Mail } from "lucide-react";
+import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2, CircleDollarSign, History as HistoryIcon, Mail, Cake } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -414,16 +414,16 @@ function CustomersComponent() {
         </Dialog>
 
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-[#0b0f17] border-[#1f2937] text-white">
             <AlertDialogHeader>
-              <AlertDialogTitle>Excluir Cliente</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja excluir o cliente {selectedCustomer?.name}? Esta ação não pode ser desfeita.
+              <AlertDialogTitle className="text-white">Excluir Cliente</AlertDialogTitle>
+              <AlertDialogDescription className="text-slate-400">
+                Tem certeza que deseja excluir o cliente <span className="text-white font-bold">{selectedCustomer?.name}</span>? Esta ação não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteCustomer} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <AlertDialogCancel className="bg-transparent border-[#1f2937] text-white hover:bg-[#111827]">Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteCustomer} className="bg-red-600 text-white hover:bg-red-700">
                 Excluir
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -433,6 +433,7 @@ function CustomersComponent() {
     </AppLayout>
   );
 }
+
 
 function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, loadingHistory, customerHistory }: any) {
   const handleWhatsApp = (phone: string) => {
