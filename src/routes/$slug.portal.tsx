@@ -40,6 +40,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { normalizePhone, formatPhoneMask } from "@/utils/phone";
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
+import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 
 export const Route = createFileRoute("/$slug/portal")({
   component: ClientPortalComponent,
@@ -86,6 +87,9 @@ function ClientPortalComponent() {
   const [cancellingAppointment, setCancellingAppointment] = useState<any>(null);
   const [creditTransactions, setCreditTransactions] = useState<any[]>([]);
   const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
+
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (slug) {
@@ -1063,7 +1067,14 @@ function ClientPortalComponent() {
                     </div>
                   ) : (
                     appointments.map((app) => (
-                      <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl gap-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div 
+                        key={app.id} 
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl gap-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => {
+                          setSelectedAppointmentId(app.id);
+                          setIsDetailsModalOpen(true);
+                        }}
+                      >
                         <div className="flex items-start gap-4">
                           <div className="h-12 w-12 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
                             <Scissors className="text-[#D4AF37] h-6 w-6" />
@@ -1117,7 +1128,10 @@ function ClientPortalComponent() {
                                  variant="ghost" 
                                  size="sm" 
                                  className="text-white hover:text-[#D4AF37] hover:bg-white/10 h-8 px-2 text-xs transition-all duration-300 hover:scale-105"
-                                 onClick={() => handleEditAppointment(app)}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleEditAppointment(app);
+                                 }}
                                 >
                                  <Edit2 size={14} className="mr-1" /> Editar
                                </Button>
@@ -1126,7 +1140,10 @@ function ClientPortalComponent() {
                                    variant="ghost" 
                                    size="sm" 
                                    className="text-destructive h-8 px-2 text-xs"
-                                   onClick={() => handleCancelAppointment(app)}
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     handleCancelAppointment(app);
+                                   }}
                                  >
                                    Cancelar
                                  </Button>
@@ -1525,6 +1542,17 @@ function ClientPortalComponent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AppointmentDetailsModal 
+        appointmentId={selectedAppointmentId || undefined}
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+        onReschedule={(app) => {
+          handleEditAppointment(app);
+        }}
+        onSuccess={() => {
+          if (client?.customer_id) fetchClientData(client.customer_id);
+        }}
+      />
     </div>
   );
 }

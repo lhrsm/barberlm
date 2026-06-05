@@ -13,9 +13,9 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Phone, ArrowRight } from "lucide-react";
+import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatInTimeZone, toDate } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
@@ -39,8 +39,10 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { AppointmentDetailsModal } from "@/components/calendar/AppointmentDetailsModal";
 
 export const Route = createFileRoute("/finances")({
   component: FinancesComponent,
@@ -70,6 +72,8 @@ function FinancesComponent() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const TIMEZONE = "America/Sao_Paulo";
 
@@ -230,10 +234,12 @@ function FinancesComponent() {
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         if (t.appointment) {
-          // Usar total_price como o valor total do serviço
+          // Use total_price as the total service value
           return acc + (Number(t.appointment.total_price || t.appointment.original_total) || 0);
         }
-        return acc + (parseFloat(String(t.amount)) || 0);
+        // For manual entries, include extra amounts that might not be in 'amount'
+        const extraAmounts = Number(t.credits_amount || 0) + Number(t.cashback_amount || 0);
+        return acc + (parseFloat(String(t.amount)) || 0) + extraAmounts;
       }, 0);
 
     // 2. Entrada em Caixa Hoje (Fluxo de Caixa) - Dinheiro novo no caixa (PIX, Dinheiro, Cartão)
@@ -248,7 +254,8 @@ function FinancesComponent() {
         }
 
         // Se for via cashback ou créditos no método de pagamento, não deve contar no caixa real
-        if (t.appointment && (t.appointment.payment_method === 'cashback' || t.appointment.payment_method === 'credits')) {
+        const method = t.payment_method || t.appointment?.payment_method;
+        if (method === 'cashback' || method === 'credits') {
           return acc;
         }
         return acc + (parseFloat(String(t.amount)) || 0);
@@ -395,8 +402,9 @@ function FinancesComponent() {
         Number(editingTransaction.credits_amount || 0) + 
         Number(editingTransaction.cashback_amount || 0);
       
-      if (Math.abs(total - parseFloat(editingTransaction.amount)) > 0.01) {
-        toast.error(`O total dos valores (R$ ${total.toFixed(2)}) deve ser igual ao valor da transação (R$ ${parseFloat(editingTransaction.amount).toFixed(2)}).`);
+      const transactionAmount = parseFloat(editingTransaction.amount);
+      if (Math.abs(total - transactionAmount) > 0.01) {
+        toast.error(`O total dos valores (R$ ${total.toFixed(2)}) deve ser igual ao valor da transação (R$ ${transactionAmount.toFixed(2)}).`);
         return;
       }
     }
@@ -875,39 +883,40 @@ function FinancesComponent() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => {
+                                setEditingTransaction({
+                                  ...t,
+                                  amount: String(t.amount || ""),
+                                  barber_id: t.barber_id || "none",
+                                  date: formatTransactionDateForEdit(t),
+                                  time: formatTransactionTimeForEdit(t),
+                                  payment_method: t.payment_method || (t.appointment?.payment_method === 'cash' ? 'dinheiro' : t.appointment?.payment_method) || "dinheiro",
+                                  category: t.category || "Serviço",
+                                  pix_amount: t.pix_amount || t.appointment?.pix_amount || 0,
+                                  cash_amount: t.cash_amount || 0,
+                                  credit_card_amount: t.credit_card_amount || 0,
+                                  debit_card_amount: t.debit_card_amount || 0,
+                                  credits_amount: t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0,
+                                  cashback_amount: t.cashback_amount || t.appointment?.cashback_used || 0,
+                                  adjustment_reason: ""
+                                });
+                                setIsEditDialogOpen(true);
+                              }}
+                            >
+                              <Edit2 size={14} />
+                            </Button>
+
                             <Dialog open={isEditDialogOpen && editingTransaction?.id === t.id} onOpenChange={(open) => {
                               if (!open) {
                                 setIsEditDialogOpen(false);
                                 setEditingTransaction(null);
                               }
                             }}>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                onClick={() => {
-                                  setEditingTransaction({
-                                    ...t,
-                                    amount: String(t.amount || ""),
-                                    barber_id: t.barber_id || "none",
-                                    date: formatTransactionDateForEdit(t),
-                                    time: formatTransactionTimeForEdit(t),
-                                    payment_method: t.payment_method || (t.appointment?.payment_method === 'cash' ? 'dinheiro' : t.appointment?.payment_method) || "dinheiro",
-                                    category: t.category || "Serviço",
-                                    pix_amount: t.pix_amount || t.appointment?.pix_amount || 0,
-                                    cash_amount: t.cash_amount || 0,
-                                    credit_card_amount: t.credit_card_amount || 0,
-                                    debit_card_amount: t.debit_card_amount || 0,
-                                    credits_amount: t.credits_amount || t.appointment?.credits_used || t.appointment?.credit_used || 0,
-                                    cashback_amount: t.cashback_amount || t.appointment?.cashback_used || 0,
-                                    adjustment_reason: ""
-                                  });
-                                  setIsEditDialogOpen(true);
-                                }}
-                              >
-                                <Edit2 size={14} />
-                              </Button>
-                              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-zinc-200 rounded-[2rem] shadow-2xl text-zinc-900">
                                 <DialogHeader>
                                   <DialogTitle className="text-xl font-bold">Ajuste Manual de Transação</DialogTitle>
                                 </DialogHeader>
@@ -1110,8 +1119,20 @@ function FinancesComponent() {
                                     </DialogFooter>
                                   </form>
                                 )}
-                              </DialogContent>
-                            </Dialog>
+                                </DialogContent>
+                              </Dialog>
+
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold"
+                                onClick={() => {
+                                  setSelectedAppointmentId(t.appointment_id);
+                                  setIsDetailsModalOpen(true);
+                                }}
+                              >
+                                Detalhes
+                              </Button>
                             <Button 
                               variant="ghost" 
                               size="icon" 
@@ -1137,7 +1158,14 @@ function FinancesComponent() {
                   </div>
                 ) : (
                   filteredTransactions.map((t) => (
-                    <div key={t.id} className="p-4 space-y-4 hover:bg-muted/50 transition-colors">
+                    <div 
+                      key={t.id} 
+                      className="p-4 space-y-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setSelectedAppointmentId(t.appointment_id);
+                        setIsDetailsModalOpen(true);
+                      }}
+                    >
                       <div className="flex justify-between items-start">
                         <div className="flex flex-col">
                           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -1229,7 +1257,8 @@ function FinancesComponent() {
                           variant="outline" 
                           size="sm" 
                           className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-border bg-background hover:bg-accent"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setEditingTransaction({
                               ...t,
                               amount: String(t.amount || ""),
@@ -1255,7 +1284,10 @@ function FinancesComponent() {
                           variant="ghost" 
                           size="sm" 
                           className="h-9 w-auto text-xs gap-1 font-bold rounded-xl text-red-500 hover:bg-red-500/10"
-                          onClick={() => handleDeleteTransaction(t.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTransaction(t.id);
+                          }}
                         >
                           <Trash2 size={12} /> Excluir
                         </Button>
@@ -1309,34 +1341,12 @@ function FinancesComponent() {
                               variant="ghost" 
                               size="sm" 
                               className="h-8 gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-                              onClick={async () => {
-                                const { error } = await supabase
-                                  .from("appointments")
-                                  .update({ payment_status: 'paid', status: 'completed' })
-                                  .eq("id", app.id);
-                                
-                                if (error) {
-                                  toast.error("Erro ao confirmar pagamento");
-                                } else {
-                                  // Inserir na tabela de transações como Entrada
-                                  await supabase.from("transactions").insert({
-                                    amount: app.total_price,
-                                    type: "income",
-                                    description: `Atendimento: ${app.services?.name} - ${app.customers?.name}`,
-                                    category: "Serviço",
-                                    barber_id: app.barber_id,
-                                    appointment_id: app.id,
-                                    user_id: user.id,
-                                    date: new Date().toISOString().split('T')[0]
-                                  });
-                                  
-                                  toast.success("Pagamento confirmado e registrado!");
-                                  fetchAppointments();
-                                  fetchTransactions();
-                                }
+                              onClick={() => {
+                                setSelectedAppointmentId(app.id);
+                                setIsDetailsModalOpen(true);
                               }}
                             >
-                              <Check size={14} /> Confirmar
+                              <Check size={14} /> Confirmar / Detalhes
                             </Button>
                             <Button 
                               variant="ghost" 
@@ -1550,6 +1560,17 @@ function FinancesComponent() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <AppointmentDetailsModal 
+        appointmentId={selectedAppointmentId || undefined}
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+        onSuccess={() => {
+          const barberIdFilter = role === 'barber' ? user?.id : null;
+          fetchTransactions(barberIdFilter);
+          fetchAppointments(barberIdFilter);
+        }}
+      />
     </AppLayout>
   );
 }

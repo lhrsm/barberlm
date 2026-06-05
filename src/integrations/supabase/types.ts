@@ -144,6 +144,7 @@ export type Database = {
           cancel_token: string | null
           cancelled_at: string | null
           cancelled_by: string | null
+          cash_amount: number | null
           cashback_earned: number | null
           cashback_used: number | null
           completed_at: string | null
@@ -156,9 +157,11 @@ export type Database = {
           coupon_code: string | null
           coupon_id: string | null
           created_at: string
+          credit_card_amount: number | null
           credit_used: number | null
           credits_used: number | null
           customer_id: string | null
+          debit_card_amount: number | null
           discount_amount: number | null
           end_time: string
           final_amount: number | null
@@ -166,6 +169,7 @@ export type Database = {
           items: Json | null
           notes: string | null
           original_total: number | null
+          payment_breakdown: Json | null
           payment_method: string | null
           payment_status: string | null
           pix_amount: number | null
@@ -197,6 +201,7 @@ export type Database = {
           cancel_token?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
+          cash_amount?: number | null
           cashback_earned?: number | null
           cashback_used?: number | null
           completed_at?: string | null
@@ -209,9 +214,11 @@ export type Database = {
           coupon_code?: string | null
           coupon_id?: string | null
           created_at?: string
+          credit_card_amount?: number | null
           credit_used?: number | null
           credits_used?: number | null
           customer_id?: string | null
+          debit_card_amount?: number | null
           discount_amount?: number | null
           end_time: string
           final_amount?: number | null
@@ -219,6 +226,7 @@ export type Database = {
           items?: Json | null
           notes?: string | null
           original_total?: number | null
+          payment_breakdown?: Json | null
           payment_method?: string | null
           payment_status?: string | null
           pix_amount?: number | null
@@ -250,6 +258,7 @@ export type Database = {
           cancel_token?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
+          cash_amount?: number | null
           cashback_earned?: number | null
           cashback_used?: number | null
           completed_at?: string | null
@@ -262,9 +271,11 @@ export type Database = {
           coupon_code?: string | null
           coupon_id?: string | null
           created_at?: string
+          credit_card_amount?: number | null
           credit_used?: number | null
           credits_used?: number | null
           customer_id?: string | null
+          debit_card_amount?: number | null
           discount_amount?: number | null
           end_time?: string
           final_amount?: number | null
@@ -272,6 +283,7 @@ export type Database = {
           items?: Json | null
           notes?: string | null
           original_total?: number | null
+          payment_breakdown?: Json | null
           payment_method?: string | null
           payment_status?: string | null
           pix_amount?: number | null
@@ -2861,6 +2873,7 @@ export type Database = {
           description: string | null
           id: string
           manual_adjustment: boolean | null
+          payment_breakdown: Json | null
           payment_method: string | null
           pix_amount: number | null
           tenant_id: string | null
@@ -2886,6 +2899,7 @@ export type Database = {
           description?: string | null
           id?: string
           manual_adjustment?: boolean | null
+          payment_breakdown?: Json | null
           payment_method?: string | null
           pix_amount?: number | null
           tenant_id?: string | null
@@ -2911,6 +2925,7 @@ export type Database = {
           description?: string | null
           id?: string
           manual_adjustment?: boolean | null
+          payment_breakdown?: Json | null
           payment_method?: string | null
           pix_amount?: number | null
           tenant_id?: string | null
