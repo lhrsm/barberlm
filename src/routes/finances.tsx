@@ -672,8 +672,8 @@ function FinancesComponent() {
                     </TableRow>
                   ) : (
                     filteredTransactions.map((t) => (
-                      <TableRow key={t.id}>
-                        <TableCell className="whitespace-nowrap">
+                      <TableRow key={t.id} className="border-border hover:bg-muted/50 transition-colors">
+                        <TableCell className="whitespace-nowrap text-foreground">
                           {t.appointment?.start_time 
                             ? new Date(t.appointment.start_time).toLocaleDateString('pt-BR')
                             : (t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-")}
