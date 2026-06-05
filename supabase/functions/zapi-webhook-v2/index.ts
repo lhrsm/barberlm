@@ -33,7 +33,8 @@ serve(async (req) => {
   }
 
   // STAGE 1: Webhook recebido
-  console.log("STAGE 1: Webhook recebido da Z-API", JSON.stringify(body, null, 2));
+  console.log("--- INCOMING Z-API WEBHOOK (V2) ---");
+  console.log("STAGE 1: Payload total:", JSON.stringify(body, null, 2));
 
   // 1. EXTRAIR DADOS BÁSICOS
   const phone = body.phone || body.from;

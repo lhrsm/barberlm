@@ -452,7 +452,7 @@ serve(async (req) => {
 
     if (action === "test-received-callback") {
       const { phone, text, messageId } = data;
-      const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/zapi-receive-json`;
+      const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/zapi-webhook-v2`;
       
       const payload = {
         type: "ReceivedCallback",
