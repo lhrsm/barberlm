@@ -273,9 +273,9 @@ export function AppointmentDetailsModal({
                 </p>
                 <div className="space-y-1">
                   <p className="text-sm font-bold text-zinc-900">
-                    {appointment.payment_method === 'misto' ? "Misto" : getPaymentMethodLabel(appointment.payment_method)}
+                    {appointment.payment_method === 'misto' || appointment.payment_method === 'mixed' ? "Misto" : getPaymentMethodLabel(appointment.payment_method)}
                   </p>
-                  {appointment.payment_method === 'misto' && (
+                  {(appointment.payment_method === 'misto' || appointment.payment_method === 'mixed') && (
                     <div className="text-[10px] font-medium text-zinc-500 space-y-0.5">
                       {appointment.pix_amount > 0 && <p>PIX: R$ {Number(appointment.pix_amount).toFixed(2)}</p>}
                       {appointment.cash_amount > 0 && <p>Dinheiro: R$ {Number(appointment.cash_amount).toFixed(2)}</p>}
