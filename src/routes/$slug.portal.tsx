@@ -1542,6 +1542,17 @@ function ClientPortalComponent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AppointmentDetailsModal 
+        appointmentId={selectedAppointmentId || undefined}
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+        onReschedule={(app) => {
+          handleEditAppointment(app);
+        }}
+        onSuccess={() => {
+          if (client?.customer_id) fetchClientData(client.customer_id);
+        }}
+      />
     </div>
   );
 }
