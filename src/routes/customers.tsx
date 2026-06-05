@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2, CircleDollarSign, History as HistoryIcon, Mail } from "lucide-react";
+import { UserPlus, Search, Phone, Gift, Clock, Scissors, User as UserIcon, CheckCircle2, Star, Edit, Trash2, CircleDollarSign, History as HistoryIcon, Mail, Cake } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -206,147 +206,153 @@ function CustomersComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-white">Clientes</h2>
-            <p className="text-muted-foreground text-sm">Gerencie seus clientes e histórico.</p>
+            <p className="text-slate-400 text-sm">Gerencie seus clientes e histórico.</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
-                <UserPlus size={18} /> Novo Cliente
+              <Button className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold gap-2 shadow-lg hover:shadow-orange-500/20 transition-all rounded-xl w-full md:w-auto">
+                <UserPlus size={18} /> + Novo Cliente
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-[#0b0f17] border-[#1f2937] text-white">
               <DialogHeader>
-                <DialogTitle>Adicionar Novo Cliente</DialogTitle>
+                <DialogTitle className="text-white">Adicionar Novo Cliente</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddCustomer} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome Completo</Label>
+                  <Label htmlFor="name" className="text-slate-300">Nome Completo</Label>
                   <Input 
                     id="name" 
+                    className="bg-[#111827] border-[#1f2937] text-white"
                     value={newCustomer.name} 
                     onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})} 
                     required 
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone / WhatsApp</Label>
+                  <Label htmlFor="phone" className="text-slate-300">Telefone / WhatsApp</Label>
                   <Input 
                     id="phone" 
+                    className="bg-[#111827] border-[#1f2937] text-white"
                     placeholder="(00) 00000-0000"
                     value={newCustomer.phone} 
                     onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})} 
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email (Opcional)</Label>
+                  <Label htmlFor="email" className="text-slate-300">Email (Opcional)</Label>
                   <Input 
                     id="email" 
                     type="email"
+                    className="bg-[#111827] border-[#1f2937] text-white"
                     value={newCustomer.email} 
                     onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})} 
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="birth_date">Data de Nascimento</Label>
+                  <Label htmlFor="birth_date" className="text-slate-300">Data de Nascimento</Label>
                   <Input 
                     id="birth_date" 
                     type="date"
+                    className="bg-[#111827] border-[#1f2937] text-white"
                     value={newCustomer.birth_date} 
                     onChange={(e) => setNewCustomer({...newCustomer, birth_date: e.target.value})} 
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Notas / Preferências</Label>
+                  <Label htmlFor="notes" className="text-slate-300">Notas / Preferências</Label>
                   <Input 
                     id="notes" 
+                    className="bg-[#111827] border-[#1f2937] text-white"
                     value={newCustomer.notes} 
                     onChange={(e) => setNewCustomer({...newCustomer, notes: e.target.value})} 
                   />
                 </div>
-                <Button type="submit" className="w-full">Salvar Cliente</Button>
+                <Button type="submit" className="w-full bg-[#D4AF37] text-black font-bold hover:bg-[#C5A028]">Salvar Cliente</Button>
               </form>
+
             </DialogContent>
           </Dialog>
         </div>
 
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Total</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-white">{customers.length}</p></CardContent>
+          </Card>
+          <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Ativos</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-white">{customers.filter(c => c.id).length}</p></CardContent>
+          </Card>
+          <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Créditos</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-green-500">R$ {customers.reduce((acc, c) => acc + (Number(c.credits) || 0), 0).toFixed(2)}</p></CardContent>
+          </Card>
+          <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Cashback</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-[#D4AF37]">R$ {customers.reduce((acc, c) => acc + (Number(c.cashback_balance) || 0), 0).toFixed(2)}</p></CardContent>
+          </Card>
+          <Card className="bg-[#0b0f17] border border-[#D4AF37]/20 shadow-none">
+            <CardHeader className="pb-2"><CardTitle className="text-slate-400 text-xs uppercase font-bold">Aniversários</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-black text-white">0</p></CardContent>
+          </Card>
+        </div>
+
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
           <Input 
-            placeholder="Buscar por nome ou telefone..." 
-            className="pl-10"
+            placeholder="Buscar por nome, telefone ou CPF..." 
+            className="pl-10 bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#D4AF37]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden shadow-sm">
-          {/* Desktop Table */}
+        <div className="bg-[#0b0f17] border border-[#1f2937] rounded-2xl overflow-hidden shadow-xl">
           <div className="hidden md:block overflow-x-auto">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead className="hidden md:table-cell">Fidelidade</TableHead>
-                  <TableHead className="hidden md:table-cell">Créditos</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+              <TableHeader className="bg-[#111827]">
+                <TableRow className="border-[#1f2937] hover:bg-transparent">
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cliente</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Telefone</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Fidelidade</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Créditos</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Cashback</TableHead>
+                  <TableHead className="text-slate-400 text-[10px] font-bold uppercase">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
               {filteredCustomers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                    Nenhum cliente encontrado.
-                  </TableCell>
+                <TableRow className="hover:bg-transparent border-transparent">
+                  <TableCell colSpan={6} className="text-center py-12 text-slate-500">Nenhum cliente encontrado.</TableCell>
                 </TableRow>
               ) : (
                 filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id}>
-                    <TableCell className="font-medium">
+                  <TableRow key={customer.id} className="border-[#1f2937] hover:bg-[#111827]">
+                    <TableCell className="font-bold text-white">
                       <div className="flex items-center gap-3">
-                        {customer.avatar_url && (
-                          <img 
-                            src={customer.avatar_url} 
-                            alt={customer.name} 
-                            className="h-8 w-8 rounded-full object-cover border border-primary/10"
-                          />
-                        )}
-                        <span>{customer.name}</span>
+                        <div className="h-8 w-8 rounded-full bg-slate-800 flex items-center justify-center text-xs text-white border border-slate-700">
+                          {customer.name[0].toUpperCase()}
+                        </div>
+                        {customer.name}
                       </div>
                     </TableCell>
+                    <TableCell className="text-slate-300">{customer.phone || "-"}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Phone size={14} className="text-muted-foreground" />
-                        {customer.phone || "-"}
-                      </div>
+                      <Badge variant="outline" className="border-slate-700 text-slate-300">
+                        {customer.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
+                      </Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="flex items-center gap-2">
-                        <Gift size={14} className="text-primary" />
-                        <span className="font-medium">{customer.loyalty_points || 0}</span>
-                        <span className="text-muted-foreground text-xs">/ {shopProfile?.free_service_threshold || 10}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="flex items-center gap-2">
-                        <CircleDollarSign size={14} className="text-green-600" />
-                        <span className="font-medium text-green-700">R$ {(Number(customer.credits) || 0).toFixed(2)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleViewHistory(customer)}>
-                          Ver Cadastro
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(customer)}>
-                          <Edit size={16} className="text-muted-foreground" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(customer)}>
-                          <Trash2 size={16} className="text-destructive" />
-                        </Button>
+                    <TableCell className="text-green-500 font-bold">R$ {(Number(customer.credits) || 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-[#D4AF37] font-bold">R$ {(Number(customer.cashback_balance) || 0).toFixed(2)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-bold h-8 text-xs" onClick={() => handleViewHistory(customer)}>Ver</Button>
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white h-8" onClick={() => openEditDialog(customer)}><Edit size={14} /></Button>
+                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-400 h-8" onClick={() => openDeleteDialog(customer)}><Trash2 size={14} /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -356,81 +362,64 @@ function CustomersComponent() {
           </Table>
           </div>
 
-          {/* Mobile Cards */}
-          <div className="md:hidden divide-y divide-slate-100">
+          <div className="md:hidden divide-y divide-[#1f2937]">
             {filteredCustomers.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground italic">
-                Nenhum cliente encontrado.
-              </div>
+              <div className="p-12 text-center text-slate-500 italic">Nenhum cliente encontrado.</div>
             ) : (
               filteredCustomers.map((customer) => (
-                <div key={customer.id} className="p-4 space-y-4 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden border border-primary/20 shrink-0">
-                      {customer.avatar_url ? (
-                        <img 
-                          src={customer.avatar_url} 
-                          alt={customer.name} 
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        customer.name?.[0].toUpperCase()
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-900 truncate">{customer.name}</p>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                        <Phone size={12} className="text-slate-400" />
-                        {customer.phone || "Sem telefone"}
+                <div key={customer.id} className="p-4 space-y-4 hover:bg-[#111827] transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-[#111827] flex items-center justify-center text-white border border-[#D4AF37]/30 font-bold">
+                        {customer.name[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-bold text-white leading-tight">{customer.name}</p>
+                        <p className="text-xs text-slate-400">{customer.phone || "Sem telefone"}</p>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1"><Gift size={10} /> Fidelidade</p>
-                      <div className="flex items-end gap-1">
-                        <span className="text-sm font-black text-slate-900">{customer.loyalty_points || 0}</span>
-                        <span className="text-[10px] text-slate-400 font-bold mb-0.5">/ {shopProfile?.free_service_threshold || 10}</span>
-                      </div>
-                    </div>
-                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1"><CircleDollarSign size={10} /> Créditos</p>
-                      <span className="text-sm font-black text-green-600">R$ {(Number(customer.credits) || 0).toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-1">
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="h-9 w-auto text-xs gap-1 font-bold rounded-xl border-slate-200"
+                      className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black h-8 text-xs font-bold px-4" 
                       onClick={() => handleViewHistory(customer)}
                     >
-                      <HistoryIcon size={14} /> Detalhes
+                      VER
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-9 w-9 p-0 rounded-xl text-slate-400 hover:text-primary"
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-[#111827] p-3 rounded-xl border border-[#1f2937]">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Créditos</p>
+                      <p className="text-sm font-black text-green-500">R$ {(Number(customer.credits) || 0).toFixed(2)}</p>
+                    </div>
+                    <div className="bg-[#111827] p-3 rounded-xl border border-[#1f2937]">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Cashback</p>
+                      <p className="text-sm font-black text-[#D4AF37]">R$ {(Number(customer.cashback_balance) || 0).toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-1">
+                    <button 
+                      className="text-slate-400 hover:text-white transition-colors" 
                       onClick={() => openEditDialog(customer)}
                     >
-                      <Edit size={16} />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-9 w-9 p-0 rounded-xl text-red-500 hover:bg-red-50"
+                      <Edit size={18} />
+                    </button>
+                    <button 
+                      className="text-red-500 hover:text-red-400 transition-colors" 
                       onClick={() => openDeleteDialog(customer)}
                     >
-                      <Trash2 size={16} />
-                    </Button>
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                 </div>
               ))
             )}
           </div>
         </div>
+
+
         <HistoryDialog 
           isOpen={isHistoryOpen} 
           onOpenChange={setIsHistoryOpen}
@@ -441,71 +430,77 @@ function CustomersComponent() {
         />
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
+          <DialogContent className="bg-[#0b0f17] border-[#1f2937] text-white">
             <DialogHeader>
-              <DialogTitle>Editar Cliente</DialogTitle>
+              <DialogTitle className="text-white">Editar Cliente</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleEditCustomer} className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Nome Completo</Label>
+                <Label htmlFor="edit-name" className="text-slate-300">Nome Completo</Label>
                 <Input 
                   id="edit-name" 
+                  className="bg-[#111827] border-[#1f2937] text-white"
                   value={editingCustomer.name} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, name: e.target.value})} 
                   required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-phone">Telefone / WhatsApp</Label>
+                <Label htmlFor="edit-phone" className="text-slate-300">Telefone / WhatsApp</Label>
                 <Input 
                   id="edit-phone" 
+                  className="bg-[#111827] border-[#1f2937] text-white"
                   placeholder="(00) 00000-0000"
                   value={editingCustomer.phone} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, phone: e.target.value})} 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-email">Email (Opcional)</Label>
+                <Label htmlFor="edit-email" className="text-slate-300">Email (Opcional)</Label>
                 <Input 
                   id="edit-email" 
                   type="email"
+                  className="bg-[#111827] border-[#1f2937] text-white"
                   value={editingCustomer.email} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, email: e.target.value})} 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-birth_date">Data de Nascimento</Label>
+                <Label htmlFor="edit-birth_date" className="text-slate-300">Data de Nascimento</Label>
                 <Input 
                   id="edit-birth_date" 
                   type="date"
+                  className="bg-[#111827] border-[#1f2937] text-white"
                   value={editingCustomer.birth_date} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, birth_date: e.target.value})} 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-notes">Notas / Preferências</Label>
+                <Label htmlFor="edit-notes" className="text-slate-300">Notas / Preferências</Label>
                 <Input 
                   id="edit-notes" 
+                  className="bg-[#111827] border-[#1f2937] text-white"
                   value={editingCustomer.notes} 
                   onChange={(e) => setEditingCustomer({...editingCustomer, notes: e.target.value})} 
                 />
               </div>
-              <Button type="submit" className="w-full">Atualizar Cliente</Button>
+              <Button type="submit" className="w-full bg-[#D4AF37] text-black font-bold hover:bg-[#C5A028]">Atualizar Cliente</Button>
             </form>
           </DialogContent>
+
         </Dialog>
 
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-[#0b0f17] border-[#1f2937] text-white">
             <AlertDialogHeader>
-              <AlertDialogTitle>Excluir Cliente</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja excluir o cliente {selectedCustomer?.name}? Esta ação não pode ser desfeita.
+              <AlertDialogTitle className="text-white">Excluir Cliente</AlertDialogTitle>
+              <AlertDialogDescription className="text-slate-400">
+                Tem certeza que deseja excluir o cliente <span className="text-white font-bold">{selectedCustomer?.name}</span>? Esta ação não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteCustomer} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <AlertDialogCancel className="bg-transparent border-[#1f2937] text-white hover:bg-[#111827]">Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteCustomer} className="bg-red-600 text-white hover:bg-red-700">
                 Excluir
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -515,6 +510,7 @@ function CustomersComponent() {
     </AppLayout>
   );
 }
+
 
 function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, loadingHistory, customerHistory }: any) {
   const handleWhatsApp = (phone: string) => {
@@ -528,112 +524,136 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pr-6">
-          <DialogTitle>Informações de {selectedCustomer?.name}</DialogTitle>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col bg-[#0b0f17] border-[#1f2937] text-white">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pr-6 border-b border-[#1f2937] pb-4">
+          <DialogTitle className="text-white text-xl">Informações de {selectedCustomer?.name}</DialogTitle>
           <Button 
             variant="outline" 
             size="sm" 
-            className="bg-green-500 hover:bg-green-600 text-white gap-2 border-none"
+            className="bg-green-600 hover:bg-green-700 text-white gap-2 border-none shadow-lg shadow-green-900/20"
             onClick={() => handleWhatsApp(selectedCustomer?.phone)}
           >
             <Phone size={14} /> WhatsApp
           </Button>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-          <Card className="bg-muted/30 border-none shadow-none">
-            <CardContent className="pt-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <UserIcon className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">{selectedCustomer?.name}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-6">
+          <div className="space-y-4">
+            <div className="bg-[#111827] p-4 rounded-xl border border-[#1f2937] space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-[#1f2937] flex items-center justify-center text-white border border-[#D4AF37]/30">
+                  <UserIcon size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Nome</p>
+                  <p className="font-bold text-white">{selectedCustomer?.name}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-primary" />
-                <span className="text-sm">{selectedCustomer?.phone || "Não informado"}</span>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-[#1f2937] flex items-center justify-center text-white border border-[#D4AF37]/30">
+                  <Phone size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Telefone</p>
+                  <p className="text-white">{selectedCustomer?.phone || "Não informado"}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-primary" />
-                <span className="text-sm truncate">{selectedCustomer?.email || "Não informado"}</span>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-[#1f2937] flex items-center justify-center text-white border border-[#D4AF37]/30">
+                  <Mail size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Email</p>
+                  <p className="text-white truncate max-w-[180px]">{selectedCustomer?.email || "Não informado"}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Gift className="h-4 w-4 text-primary" />
-                <span className="text-sm">
-                  {selectedCustomer?.birth_date 
-                    ? format(new Date(selectedCustomer.birth_date + 'T12:00:00'), "dd/MM/yyyy") 
-                    : "Não informado"}
+            </div>
+
+            {selectedCustomer?.notes && (
+              <div className="p-3 bg-blue-500/5 rounded-xl border border-blue-500/20 text-xs text-blue-200 italic">
+                "{selectedCustomer.notes}"
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-[#111827] p-5 rounded-xl border border-[#D4AF37]/20 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Gift size={60} className="text-[#D4AF37]" />
+              </div>
+              
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-2 text-[#D4AF37]">
+                  <Gift size={20} />
+                  <span className="font-bold uppercase text-xs tracking-widest">Fidelidade</span>
+                </div>
+                <span className="text-sm font-black text-white">
+                  {selectedCustomer?.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
                 </span>
               </div>
-              {selectedCustomer?.notes && (
-                <div className="mt-2 p-2 bg-background rounded border text-xs text-muted-foreground italic">
-                  "{selectedCustomer.notes}"
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 h-fit">
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center gap-2 text-primary">
-                <Gift size={18} />
-                <span className="font-bold">Cartão Fidelidade</span>
+              
+              <div className="h-2 bg-[#1f2937] rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-[#D4AF37] to-orange-500 transition-all duration-500"
+                  style={{ width: `${Math.min(((selectedCustomer?.loyalty_points || 0) / (shopProfile?.free_service_threshold || 10)) * 100, 100)}%` }}
+                />
               </div>
-              <span className="text-sm font-medium">
-                {selectedCustomer?.loyalty_points || 0} / {shopProfile?.free_service_threshold || 10}
-              </span>
+
+              <div className="mt-6 pt-4 border-t border-[#1f2937] grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Créditos</p>
+                  <p className="text-lg font-black text-green-500">R$ {(Number(selectedCustomer?.credits) || 0).toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Cashback</p>
+                  <p className="text-lg font-black text-[#D4AF37]">R$ {(Number(selectedCustomer?.cashback_balance) || 0).toFixed(2)}</p>
+                </div>
+              </div>
             </div>
-            <Progress 
-              value={((selectedCustomer?.loyalty_points || 0) % (shopProfile?.free_service_threshold || 10)) / (shopProfile?.free_service_threshold || 10) * 100} 
-              className="h-2" 
-            />
-            <p className="text-xs text-muted-foreground mt-2 font-medium">
-              Saldo em Créditos: <span className="text-green-600 font-bold">R$ {(Number(selectedCustomer?.credits) || 0).toFixed(2)}</span>
-            </p>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col min-h-0 space-y-4">
-          <div className="flex items-center gap-2 border-b pb-2">
-            <HistoryIcon size={18} className="text-muted-foreground" />
-            <h4 className="font-bold">Histórico de Atendimentos</h4>
+        <div className="flex-1 flex flex-col min-h-0 space-y-4 border-t border-[#1f2937] pt-4">
+          <div className="flex items-center gap-2">
+            <HistoryIcon size={18} className="text-slate-400" />
+            <h4 className="font-bold text-white uppercase text-xs tracking-wider">Histórico de Atendimentos</h4>
           </div>
           <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-4">
+            <div className="space-y-3">
               {loadingHistory ? (
-                <div className="text-center py-8">Carregando histórico...</div>
+                <div className="text-center py-12 text-slate-500 animate-pulse">Carregando histórico...</div>
               ) : customerHistory.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">Nenhum agendamento encontrado.</div>
+                <div className="text-center py-12 text-slate-500 italic">Nenhum agendamento encontrado.</div>
               ) : (
                 customerHistory.map((app: any) => (
-                  <div key={app.id} className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors">
+                  <div key={app.id} className="flex items-center justify-between p-4 bg-[#111827] border border-[#1f2937] rounded-xl hover:border-[#D4AF37]/30 transition-all group">
                     <div>
-                      <p className="font-bold">{app.services?.name}</p>
-                      <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
+                      <p className="font-bold text-white group-hover:text-[#D4AF37] transition-colors">{app.services?.name}</p>
+                      <div className="flex flex-wrap items-center gap-3 mt-1 text-[11px] text-slate-400">
                         <span className="flex items-center gap-1"><Clock size={12} /> {format(new Date(app.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                         <span className="flex items-center gap-1"><UserIcon size={12} /> {app.barbers?.name}</span>
                         {app.payment_method && (
-                          <span className="flex items-center gap-1">
-                            <Badge variant="outline" className="text-[10px] py-0 h-4 uppercase">
-                              {app.payment_method === 'pix' ? 'PIX' : 
-                               app.payment_method === 'credits' ? 'Créditos' : 
-                               app.payment_method === 'cashback' ? 'Cashback' : 'Na Barbearia'}
-                            </Badge>
-                          </span>
+                          <Badge variant="outline" className="text-[9px] py-0 h-4 uppercase border-slate-700 text-slate-500 bg-[#0b0f17]">
+                            {app.payment_method === 'pix' ? 'PIX' : 
+                             app.payment_method === 'credits' ? 'Créditos' : 
+                             app.payment_method === 'cashback' ? 'Cashback' : 'Na Barbearia'}
+                          </Badge>
                         )}
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       <Badge className={cn(
-                        app.status === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white border-none' : 
-                        app.status === 'scheduled' ? 'bg-blue-100 text-blue-700 border-blue-200' : 
-                        'bg-red-50 text-red-700 border-red-100'
-                      )} variant={app.status === 'completed' ? 'default' : 'outline'}>
+                        "text-[10px] uppercase font-bold border-none",
+                        app.status === 'completed' ? 'bg-green-500/10 text-green-500' : 
+                        app.status === 'scheduled' ? 'bg-blue-500/10 text-blue-500' : 
+                        'bg-red-500/10 text-red-500'
+                      )}>
                         {app.status === 'completed' ? 'Concluído' : app.status === 'scheduled' ? 'Agendado' : 'Cancelado'}
                       </Badge>
                       {app.service_ratings?.[0] && (
-                        <div className="flex items-center gap-1 text-yellow-500">
-                          <Star size={12} fill="currentColor" />
-                          <span className="text-xs font-bold">{app.service_ratings[0].rating}</span>
+                        <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/5 px-2 py-0.5 rounded-full border border-yellow-500/10">
+                          <Star size={10} fill="currentColor" />
+                          <span className="text-[10px] font-black">{app.service_ratings[0].rating}</span>
                         </div>
                       )}
                     </div>
@@ -645,5 +665,6 @@ function HistoryDialog({ isOpen, onOpenChange, selectedCustomer, shopProfile, lo
         </div>
       </DialogContent>
     </Dialog>
+
   );
 }
