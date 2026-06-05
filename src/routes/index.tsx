@@ -423,7 +423,7 @@ function LandingPageComponent() {
                 <PricingItem text="Gestão de Clientes" />
                 <PricingItem text="Financeiro Básico" />
               </ul>
-              <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white font-black hover:bg-white/5">Escolher Starter</Button>
+              <Button className="h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl" onClick={() => setShowSignupModal(true)}>Começar agora</Button>
             </div>
 
             {/* Pro */}
@@ -454,7 +454,7 @@ function LandingPageComponent() {
                 <PricingItem text="Mentoria de Gestão" />
                 <PricingItem text="Automações Premium" />
               </ul>
-              <Button variant="outline" className="h-14 rounded-2xl border-white/10 text-white font-black hover:bg-white/5">Escolher Elite</Button>
+              <Button className="h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl" onClick={() => setShowSignupModal(true)}>Assinar Elite</Button>
             </div>
           </div>
         </div>
