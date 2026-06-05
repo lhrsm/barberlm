@@ -874,29 +874,29 @@ function FinancesComponent() {
               </div>
 
               {/* Mobile Cards */}
-              <div className="md:hidden divide-y divide-slate-100">
+              <div className="md:hidden divide-y divide-border">
                 {filteredTransactions.length === 0 ? (
                   <div className="p-8 text-center text-muted-foreground italic">
                     Nenhuma transação encontrada.
                   </div>
                 ) : (
                   filteredTransactions.map((t) => (
-                    <div key={t.id} className="p-4 space-y-4 hover:bg-slate-50 transition-colors">
+                    <div key={t.id} className="p-4 space-y-4 hover:bg-muted/50 transition-colors">
                       <div className="flex justify-between items-start">
                         <div className="flex flex-col">
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                             {t.appointment?.start_time 
                               ? new Date(t.appointment.start_time).toLocaleDateString('pt-BR')
                               : (t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-")}
                           </span>
-                          <span className="text-lg font-black text-slate-900">
+                          <span className="text-lg font-black text-foreground">
                             {t.appointment?.start_time 
                               ? format(new Date(t.appointment.start_time), 'HH:mm')
                               : (typeof t.time === 'string' ? t.time.substring(0, 5) : "--:--")}
                           </span>
                         </div>
-                        <div className={cn("text-right", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-green-600" : "text-purple-600") : "text-red-600")}>
-                          <p className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">{t.type === "income" ? "Entrada" : "Saída"}</p>
+                        <div className={cn("text-right", t.type === "income" ? (parseFloat(String(t.amount)) > 0 ? "text-emerald-500" : "text-violet-400") : "text-red-500")}>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-0.5">{t.type === "income" ? "Entrada" : "Saída"}</p>
                           <span className="text-lg font-black italic">
                              R$ {(() => {
                               const val = parseFloat(String(t.amount)) || 0;
