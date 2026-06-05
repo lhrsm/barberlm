@@ -241,8 +241,13 @@ function FinancesComponent() {
     const realCashIncome = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
+        // Se houver valores detalhados de pagamento, usar eles (preferência para ajustes manuais ou mistos)
+        if (t.payment_method === 'misto' || t.manual_adjustment) {
+          const cashFlow = Number(t.pix_amount || 0) + Number(t.cash_amount || 0) + Number(t.credit_card_amount || 0) + Number(t.debit_card_amount || 0);
+          return acc + cashFlow;
+        }
+
         // Se for via cashback ou créditos no método de pagamento, não deve contar no caixa real
-        // mesmo que o valor na transação seja > 0 (por erro de registro)
         if (t.appointment && (t.appointment.payment_method === 'cashback' || t.appointment.payment_method === 'credits')) {
           return acc;
         }
@@ -253,6 +258,9 @@ function FinancesComponent() {
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
+        if (t.payment_method === 'misto' || t.manual_adjustment) {
+          return acc + Number(t.credits_amount || 0);
+        }
         let val = Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0);
         // Fallback: se o valor for 0 mas o método for créditos, usar o valor da transação
         if (val === 0 && t.appointment?.payment_method === 'credits') {
@@ -265,6 +273,9 @@ function FinancesComponent() {
     const cashbackConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
+        if (t.payment_method === 'misto' || t.manual_adjustment) {
+          return acc + Number(t.cashback_amount || 0);
+        }
         let val = Number(t.appointment?.cashback_used || 0);
         // Fallback: se o valor for 0 mas o método for cashback, usar o valor da transação
         if (val === 0 && t.appointment?.payment_method === 'cashback') {
@@ -280,6 +291,7 @@ function FinancesComponent() {
     // Pendentes são agendamentos que ainda não foram concluídos
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
+
 
     // Parte dos Freelancers (Comissão baseada no Valor Total do Serviço)
     const freelancersPart = barbers.reduce((acc, barber) => {
