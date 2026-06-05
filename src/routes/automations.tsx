@@ -381,6 +381,8 @@ function AutomationsComponent() {
       }
       // Fetch webhook logs
       await fetchWebhookLogs();
+      await fetchPendingCallbacks();
+
 
     } catch (error: any) {
       console.error(error);
