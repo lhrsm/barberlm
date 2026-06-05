@@ -609,11 +609,11 @@ function FinancesComponent() {
           </TabsList>
 
           <TabsContent value="transactions" className="pt-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-end bg-white p-4 border-2 border-slate-200 rounded-xl text-black">
+            <div className="flex flex-wrap gap-4 items-end bg-card p-4 border border-border rounded-xl text-foreground">
               <div className="space-y-2">
                 <Label htmlFor="filter-status">Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger id="filter-status" className="w-[180px]">
+                  <SelectTrigger id="filter-status" className="w-[180px] bg-background border-border">
                     <SelectValue placeholder="Filtrar por status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -629,7 +629,7 @@ function FinancesComponent() {
                 <Input 
                   id="filter-date" 
                   type="date" 
-                  className="w-[180px]" 
+                  className="w-[180px] bg-background border-border" 
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
                 />
@@ -640,7 +640,7 @@ function FinancesComponent() {
                   setStatusFilter("all");
                   setDateFilter("");
                 }}
-                className="h-10"
+                className="h-10 hover:bg-accent hover:text-accent-foreground"
               >
                 Limpar Filtros
               </Button>
