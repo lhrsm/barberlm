@@ -359,7 +359,7 @@ function FinancesComponent() {
     } else {
       toast.success("Transação adicionada!");
       setIsAddDialogOpen(false);
-      setNewTransaction({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: "12:00" });
+      setNewTransaction({ amount: "", type: "income", description: "", category: "Serviço", barber_id: "none", date: new Date().toISOString().split('T')[0], time: "12:00", payment_method: "cash" });
       fetchTransactions();
     }
   }
