@@ -121,7 +121,12 @@ function AutomationsComponent() {
   const [isWebhookLogsOpen, setIsWebhookLogsOpen] = useState(false);
   const [selectedWebhookLog, setSelectedWebhookLog] = useState<any>(null);
   const [isWebhookDetailOpen, setIsWebhookDetailOpen] = useState(false);
+  const [pendingCallbacks, setPendingCallbacks] = useState<any[]>([]);
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
+  const [diagnosticData, setDiagnosticData] = useState<any>(null);
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
   const itemsPerPage = 10;
+
 
   // Estados Auditoria do Fluxo (Modal)
   const [auditFilterType, setAuditFilterType] = useState(() => {
