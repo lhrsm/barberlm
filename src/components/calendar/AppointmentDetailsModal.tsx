@@ -16,7 +16,8 @@ import {
   Package,
   DollarSign,
   ChevronRight,
-  Timer
+  Timer,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
