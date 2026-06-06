@@ -503,65 +503,69 @@ function SettingsComponent() {
 
 
             <TabsContent value="appearance" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Personalização Visual</CardTitle>
-                  <CardDescription>Deixe a página com a cara da sua marca.</CardDescription>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Palette className="text-[#ea580c] h-5 w-5" />
+                    Personalização Visual
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Deixe a página com a cara da sua marca premium.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="grid gap-2">
-                      <Label htmlFor="primary_color">Cor Primária</Label>
+                <CardContent className="p-6 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid gap-3">
+                      <Label htmlFor="primary_color" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cor Primária (Destaques)</Label>
                       <div className="flex gap-2">
                         <Input 
                           id="primary_color" 
                           type="color" 
-                          className="w-12 h-10 p-1"
+                          className="w-14 h-12 p-1 bg-[#05070d] border-[#1f2937] rounded-xl cursor-pointer"
                           value={formData.primary_color} 
                           onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
                         />
                         <Input 
                           value={formData.primary_color} 
                           onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
-                          placeholder="#000000"
+                          placeholder="#EA580C"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                         />
                       </div>
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="secondary_color">Cor de Fundo</Label>
+                    <div className="grid gap-3">
+                      <Label htmlFor="secondary_color" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cor de Fundo</Label>
                       <div className="flex gap-2">
                         <Input 
                           id="secondary_color" 
                           type="color" 
-                          className="w-12 h-10 p-1"
+                          className="w-14 h-12 p-1 bg-[#05070d] border-[#1f2937] rounded-xl cursor-pointer"
                           value={formData.secondary_color} 
                           onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
                         />
                         <Input 
                           value={formData.secondary_color} 
                           onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
-                          placeholder="#F4F4F5"
+                          placeholder="#05070D"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                         />
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t">
-                    <h4 className="font-medium text-sm">Configurações de Fonte</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-6 pt-6 border-t border-[#1f2937]/50">
+                    <h4 className="font-black uppercase italic text-[#ea580c] text-xs tracking-[0.2em]">Configurações de Tipografia</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="grid gap-2">
-                        <Label htmlFor="font_family">Tipografia</Label>
+                        <Label htmlFor="font_family" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Família de Fonte</Label>
                         <Select 
                           value={formData.font_family} 
                           onValueChange={(value) => setFormData({ ...formData, font_family: value })}
                         >
-                          <SelectTrigger id="font_family">
+                          <SelectTrigger id="font_family" className="bg-[#05070d] border-[#1f2937] text-white h-12 rounded-xl focus:ring-[#ea580c]">
                             <SelectValue placeholder="Selecione a fonte" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
                             <SelectItem value="Inter">Inter (Padrão)</SelectItem>
                             <SelectItem value="Roboto">Roboto</SelectItem>
-                            <SelectItem value="Open Sans">Open Sans</SelectItem>
                             <SelectItem value="Montserrat">Montserrat</SelectItem>
                             <SelectItem value="Playfair Display">Playfair Display (Elegante)</SelectItem>
                             <SelectItem value="Oswald">Oswald (Moderna)</SelectItem>
@@ -569,15 +573,15 @@ function SettingsComponent() {
                         </Select>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="font_size">Tamanho da Fonte</Label>
+                        <Label htmlFor="font_size" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tamanho Base</Label>
                         <Select 
                           value={formData.font_size} 
                           onValueChange={(value) => setFormData({ ...formData, font_size: value })}
                         >
-                          <SelectTrigger id="font_size">
+                          <SelectTrigger id="font_size" className="bg-[#05070d] border-[#1f2937] text-white h-12 rounded-xl focus:ring-[#ea580c]">
                             <SelectValue placeholder="Selecione o tamanho" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
                             <SelectItem value="14px">Pequeno (14px)</SelectItem>
                             <SelectItem value="16px">Normal (16px)</SelectItem>
                             <SelectItem value="18px">Médio (18px)</SelectItem>
@@ -586,41 +590,43 @@ function SettingsComponent() {
                         </Select>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="font_color">Cor da Fonte</Label>
+                        <Label htmlFor="font_color" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cor do Texto</Label>
                         <div className="flex gap-2">
                           <Input 
                             id="font_color" 
                             type="color" 
-                            className="w-12 h-10 p-1"
+                            className="w-14 h-12 p-1 bg-[#05070d] border-[#1f2937] rounded-xl cursor-pointer"
                             value={formData.font_color} 
                             onChange={(e) => setFormData({ ...formData, font_color: e.target.value })}
                           />
                           <Input 
                             value={formData.font_color} 
                             onChange={(e) => setFormData({ ...formData, font_color: e.target.value })}
-                            placeholder="#000000"
+                            placeholder="#FFFFFF"
+                            className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t">
-                    <h4 className="font-medium text-sm">Logo da Barbearia</h4>
-                    <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                  <div className="space-y-6 pt-6 border-t border-[#1f2937]/50">
+                    <h4 className="font-black uppercase italic text-[#ea580c] text-xs tracking-[0.2em]">Logo de Rodapé/Fundo</h4>
+                    <div className="flex flex-col sm:flex-row items-center gap-6 bg-[#05070d]/30 p-6 rounded-2xl border border-[#1f2937]/30">
+                      <div className="h-24 w-24 rounded-xl bg-[#05070d] flex items-center justify-center overflow-hidden border border-[#1f2937] shadow-inner shrink-0">
                         {formData.logo_url ? (
-                          <img src={formData.logo_url} alt="Logo Preview" className="h-full w-full object-contain" />
+                          <img src={formData.logo_url} alt="Logo Preview" className="h-full w-full object-contain p-2" />
                         ) : (
-                          <Upload className="h-6 w-6 text-muted-foreground/30" />
+                          <Upload className="h-8 w-8 text-slate-800" />
                         )}
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor="logo_file">Anexar Arquivo de Logo</Label>
+                      <div className="flex-1 space-y-3 w-full">
+                        <Label htmlFor="logo_file" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Anexar Arquivo de Logo</Label>
                         <Input 
                           id="logo_file" 
                           type="file" 
                           accept="image/*"
+                          className="h-11 rounded-xl cursor-pointer bg-[#05070d] border-[#1f2937] text-white file:bg-[#ea580c] file:text-black file:font-bold file:border-none file:px-4 file:h-full file:mr-4"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file || !user) return;
@@ -631,7 +637,7 @@ function SettingsComponent() {
                               const fileName = `${user.id}-logo-${Math.random()}.${fileExt}`;
                               
                               const { error: uploadError } = await supabase.storage
-                                .from('barber-avatars') // Using existing bucket for simplicity
+                                .from('barber-avatars') 
                                 .upload(fileName, file);
                                 
                               if (uploadError) throw uploadError;
@@ -649,16 +655,17 @@ function SettingsComponent() {
                             }
                           }}
                         />
-                        <p className="text-[10px] text-muted-foreground">Recomendado: imagem quadrada ou horizontal com fundo transparente.</p>
+                        <p className="text-[10px] text-slate-500 font-medium italic">Fundo transparente altamente recomendado.</p>
                       </div>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="logo_url">Ou URL do Logo</Label>
+                      <Label htmlFor="logo_url" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Ou Link Direto da Imagem (URL)</Label>
                       <Input 
                         id="logo_url" 
                         value={formData.logo_url} 
                         onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
                         placeholder="https://exemplo.com/logo.png"
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                       />
                     </div>
                   </div>
