@@ -311,8 +311,8 @@ function SettingsComponent() {
                   <CardDescription className="text-slate-400">Gerencie suas informações pessoais e foto de perfil premium.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
-                  <div className="flex flex-col items-center gap-6">
-                    <div className="flex flex-col items-center gap-4 w-full">
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+                    <div className="flex flex-col items-center gap-4 shrink-0">
                       <div className="h-28 w-28 rounded-full bg-[#05070d] flex items-center justify-center overflow-hidden border-2 border-[#ea580c]/30 shadow-[0_0_20px_rgba(234,88,12,0.1)]">
                         {formData.logo_url ? (
                           <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
@@ -357,23 +357,23 @@ function SettingsComponent() {
                         />
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="grid gap-2">
-                      <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">E-mail (Login)</Label>
-                      <Input value={user?.email || ""} disabled className="bg-[#05070d]/50 border-[#1f2937] text-slate-500 cursor-not-allowed" />
-                      <p className="text-[10px] text-slate-600 font-medium italic">O e-mail não pode ser alterado diretamente.</p>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="profile_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome para Exibição</Label>
-                      <Input 
-                        id="profile_name" 
-                        value={formData.business_name} 
-                        onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                        placeholder="Seu nome"
-                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl"
-                      />
+
+                    <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                      <div className="grid gap-2">
+                        <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">E-mail (Login)</Label>
+                        <Input value={user?.email || ""} disabled className="bg-[#05070d]/50 border-[#1f2937] text-slate-500 cursor-not-allowed h-12 rounded-xl" />
+                        <p className="text-[10px] text-slate-600 font-medium italic">O e-mail não pode ser alterado diretamente.</p>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="profile_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome para Exibição</Label>
+                        <Input 
+                          id="profile_name" 
+                          value={formData.business_name} 
+                          onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                          placeholder="Seu nome"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -403,98 +403,100 @@ function SettingsComponent() {
                   </Button>
                 </CardHeader>
                 <CardContent className="p-6 space-y-8">
-                  <div className="flex flex-col items-center gap-4 py-6 border-b border-[#1f2937]/50 mb-4 bg-[#05070d]/30 rounded-2xl">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ea580c]">Logo da Barbearia</p>
-                    <div className="h-40 w-full max-w-[240px] rounded-2xl bg-[#05070d] border-2 border-dashed border-[#1f2937] flex items-center justify-center overflow-hidden relative group hover:border-[#ea580c]/50 transition-all shadow-inner">
-                      {formData.barbershop_logo_url ? (
-                        <img src={formData.barbershop_logo_url} alt="Logo" className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105" />
-                      ) : (
-                        <div className="text-center p-4">
-                          <ImageIcon className="w-10 h-10 text-slate-800 mx-auto mb-2" />
-                          <p className="text-[10px] text-slate-600 font-black tracking-widest uppercase">Sem Logo Definida</p>
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-8 py-6 border-b border-[#1f2937]/50 mb-4 bg-[#05070d]/30 rounded-2xl p-6">
+                    <div className="flex flex-col items-center gap-4 shrink-0">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ea580c]">Logo da Barbearia</p>
+                      <div className="h-40 w-44 rounded-2xl bg-[#05070d] border-2 border-dashed border-[#1f2937] flex items-center justify-center overflow-hidden relative group hover:border-[#ea580c]/50 transition-all shadow-inner">
+                        {formData.barbershop_logo_url ? (
+                          <img src={formData.barbershop_logo_url} alt="Logo" className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105" />
+                        ) : (
+                          <div className="text-center p-4">
+                            <ImageIcon className="w-10 h-10 text-slate-800 mx-auto mb-2" />
+                            <p className="text-[10px] text-slate-600 font-black tracking-widest uppercase">Sem Logo</p>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                          <p className="text-white text-[10px] font-bold uppercase tracking-widest">Alterar</p>
                         </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                        <p className="text-white text-xs font-bold uppercase tracking-widest">Alterar Logo</p>
-                      </div>
-                      <Input 
-                        type="file" 
-                        accept="image/*"
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file || !user) return;
-                          try {
-                            setSaving(true);
-                            const fileExt = file.name.split('.').pop();
-                            const fileName = `${user.id}-logo-${Date.now()}.${fileExt}`;
-                            const { error: uploadError } = await supabase.storage.from('barber-avatars').upload(fileName, file);
-                            if (uploadError) throw uploadError;
-                            const { data: { publicUrl } } = supabase.storage.from('barber-avatars').getPublicUrl(fileName);
-                            setFormData({ ...formData, barbershop_logo_url: publicUrl });
-                            toast.success("Logo atualizada!");
-                          } catch (error: any) {
-                            toast.error("Erro: " + error.message);
-                          } finally {
-                            setSaving(false);
-                          }
-                        }}
-                      />
-                    </div>
-                    <p className="text-[10px] text-slate-500 text-center max-w-[250px] font-medium italic">Recomendamos PNG com fundo transparente ou fundo contrastante.</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="grid gap-2">
-                      <Label htmlFor="business_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome da Barbearia</Label>
-                      <Input 
-                        id="business_name" 
-                        value={formData.business_name} 
-                        onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                        placeholder="Ex: Barbearia Premium"
-                        required
-                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="slug" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">URL da sua Página</Label>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          id="slug" 
-                          value={formData.slug} 
-                          onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                          placeholder="minha-barbearia"
-                          required
-                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12 flex-1"
-                        />
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="icon" 
-                          onClick={() => {
-                            const url = `${window.location.origin}/${formData.slug}`;
-                            navigator.clipboard.writeText(url);
-                            toast.success("Link copiado!");
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || !user) return;
+                            try {
+                              setSaving(true);
+                              const fileExt = file.name.split('.').pop();
+                              const fileName = `${user.id}-logo-${Date.now()}.${fileExt}`;
+                              const { error: uploadError } = await supabase.storage.from('barber-avatars').upload(fileName, file);
+                              if (uploadError) throw uploadError;
+                              const { data: { publicUrl } } = supabase.storage.from('barber-avatars').getPublicUrl(fileName);
+                              setFormData({ ...formData, barbershop_logo_url: publicUrl });
+                              toast.success("Logo atualizada!");
+                            } catch (error: any) {
+                              toast.error("Erro: " + error.message);
+                            } finally {
+                              setSaving(false);
+                            }
                           }}
-                          className="h-12 w-12 border-[#1f2937] bg-[#05070d] hover:bg-[#1f2937] text-[#ea580c] transition-all rounded-xl"
-                          title="Copiar link"
-                        >
-                          <Copy className="h-5 w-5" />
-                        </Button>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="icon" 
-                          asChild
-                          className="h-12 w-12 border-[#1f2937] bg-[#05070d] hover:bg-[#1f2937] text-[#ea580c] transition-all rounded-xl"
-                          title="Ver página"
-                        >
-                          <a href={`/${formData.slug}`} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-5 w-5" />
-                          </a>
-                        </Button>
+                        />
                       </div>
-                      <p className="text-[10px] text-slate-600 font-medium">Link público: {window.location.origin}/{formData.slug}</p>
+                      <p className="text-[10px] text-slate-500 text-center max-w-[150px] font-medium italic">PNG transparente recomendado.</p>
+                    </div>
+
+                    <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-1 gap-6 pt-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="business_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome da Barbearia</Label>
+                        <Input 
+                          id="business_name" 
+                          value={formData.business_name} 
+                          onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                          placeholder="Ex: Barbearia Premium"
+                          required
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="slug" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">URL da sua Página</Label>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            id="slug" 
+                            value={formData.slug} 
+                            onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                            placeholder="minha-barbearia"
+                            required
+                            className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12 flex-1"
+                          />
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => {
+                              const url = `${window.location.origin}/${formData.slug}`;
+                              navigator.clipboard.writeText(url);
+                              toast.success("Link copiado!");
+                            }}
+                            className="h-12 w-12 border-[#1f2937] bg-[#05070d] hover:bg-[#1f2937] text-[#ea580c] transition-all rounded-xl"
+                            title="Copiar link"
+                          >
+                            <Copy className="h-5 w-5" />
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="icon" 
+                            asChild
+                            className="h-12 w-12 border-[#1f2937] bg-[#05070d] hover:bg-[#1f2937] text-[#ea580c] transition-all rounded-xl"
+                            title="Ver página"
+                          >
+                            <a href={`/${formData.slug}`} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-5 w-5" />
+                            </a>
+                          </Button>
+                        </div>
+                        <p className="text-[10px] text-slate-600 font-medium italic">Link público: {window.location.origin}/{formData.slug}</p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -811,18 +813,18 @@ function SettingsComponent() {
                     </div>
                   </div>
                   
-                  <div className="pt-4 border-t border-[#1f2937]/30 flex flex-wrap gap-3">
+                  <div className="pt-4 border-t border-[#1f2937]/30 flex flex-wrap gap-2">
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-xl font-bold uppercase text-[10px] tracking-widest h-10 px-6"
+                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-xl font-bold uppercase text-[9px] tracking-widest h-9 px-4 transition-all"
                     >
                       Testar Conexão
                     </Button>
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold uppercase text-[10px] tracking-widest h-10 px-6"
+                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold uppercase text-[9px] tracking-widest h-9 px-4 transition-all"
                     >
                       Sincronizar Webhook
                     </Button>
@@ -1078,15 +1080,15 @@ function SettingsComponent() {
             <div className="flex justify-end pt-10 pb-20">
               <Button 
                 type="submit" 
-                className="gap-3 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 hover:scale-105 active:scale-95 transition-all h-14 px-10 rounded-2xl font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(234,88,12,0.3)] group" 
+                className="gap-3 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 hover:scale-105 active:scale-95 transition-all h-12 px-8 rounded-xl font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(234,88,12,0.2)] group" 
                 disabled={saving}
               >
                 {saving ? (
-                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  <RefreshCw className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Save className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+                  <Save className="h-4 w-4 group-hover:rotate-12 transition-transform" />
                 )}
-                {saving ? "Salvando..." : "Salvar Todas as Configurações"}
+                {saving ? "Salvando..." : "Salvar Configurações"}
               </Button>
             </div>
           </form>
