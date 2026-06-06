@@ -188,95 +188,67 @@ function ProfessionalDashboard() {
 
   return (
     <AppLayout>
-      <div className="space-y-8 pb-12 px-4 md:px-0 bg-[#0F1115] min-h-screen">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-[12px] border border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-[#D4AF37]/20 shadow-sm">
+      <div className="space-y-8 pb-12 px-4 md:px-0 bg-[#05070d] min-h-screen text-white">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#0b0f17] p-8 rounded-2xl border border-[#D4AF37]/20 shadow-[0_4px_24px_rgba(0,0,0,0.3)]">
+          <div className="flex items-center gap-6">
+            <Avatar className="h-20 w-20 border-2 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)]">
               <AvatarImage src={barber?.avatar_url} />
-              <AvatarFallback className="bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="bg-[#D4AF37]/10 text-[#D4AF37] text-2xl font-black">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold text-[#111827]">Olá, {session.name} 👋</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className={cn(
-                  "border-[#D4AF37]/30",
-                  barber?.active ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
+              <h1 className="text-3xl font-black text-white tracking-tight">Olá, {session.name} 👋</h1>
+              <div className="flex items-center gap-3 mt-3">
+                <Badge className={cn(
+                  "px-3 py-1 font-black text-[10px] uppercase tracking-wider border-0 shadow-sm",
+                  barber?.active ? "bg-green-600 text-white" : "bg-red-600 text-white"
                 )}>
-                  {barber?.active ? "Disponível" : "Indisponível"}
+                  {barber?.active ? "🟢 Disponível" : "🔴 Indisponível"}
                 </Badge>
-                <span className="text-xs text-[#6B7280]">{barber?.category || "Profissional"}</span>
+                <Badge className="px-3 py-1 bg-[#D4AF37] text-black font-black text-[10px] uppercase tracking-wider border-0 shadow-sm">
+                  👑 {barber?.category || "Profissional"}
+                </Badge>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <ProfessionalNotifications barberId={session.barber_id} />
             <Button 
               variant="outline" 
               size="icon" 
               onClick={fetchData} 
-              className="h-10 w-10 rounded-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10"
+              className="h-12 w-12 rounded-2xl border-[#D4AF37]/30 bg-[#05070d] text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]"
             >
-              <RefreshCcw className="h-5 w-5" />
+              <RefreshCcw className="h-6 w-6" />
             </Button>
             <Button 
               variant="ghost" 
-              size="sm" 
               onClick={logout} 
-              className="text-red-500 hover:bg-red-50 rounded-[10px]"
+              className="text-red-400 hover:bg-red-950/30 rounded-2xl h-12 px-6 font-bold"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-5 w-5 mr-2" /> Sair
             </Button>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-bold text-[#111827]">Hoje</CardTitle>
-              <Users className="h-4 w-4 text-[#D4AF37]" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#111827]">{stats.today}</div>
-              <p className="text-xs text-[#6B7280] mt-1 font-medium">{stats.week} na semana</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-bold text-[#111827]">Faturamento Mês</CardTitle>
-              <CircleDollarSign className="h-4 w-4 text-[#D4AF37]" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#111827]">R$ {stats.revenueMonth.toFixed(2)}</div>
-              <p className="text-xs text-[#6B7280] mt-1 font-medium">Ticket: R$ {stats.avgTicket.toFixed(2)}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-bold text-[#111827]">Cancelamentos</CardTitle>
-              <X className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#111827]">{stats.cancelledMonth}</div>
-              <p className="text-xs text-[#6B7280] mt-1 font-medium">No mês atual</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-bold text-[#111827]">Próximo</CardTitle>
-              <Clock className="h-4 w-4 text-[#D4AF37]" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold truncate text-[#111827]">
-                {stats.nextApp ? format(new Date(stats.nextApp.start_time), "HH:mm") : "---"}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {[
+            { title: "Atendimentos Hoje", value: stats.today, icon: Calendar },
+            { title: "Atendimentos Semana", value: stats.week, icon: Users },
+            { title: "Atendimentos Mês", value: stats.month, icon: Scissors },
+            { title: "Faturamento Mês", value: `R$ ${stats.revenueMonth.toFixed(2)}`, icon: CircleDollarSign },
+            { title: "Comissão Mês", value: `R$ ${stats.commissionMonth.toFixed(2)}`, icon: Crown },
+            { title: "Ticket Médio", value: `R$ ${stats.avgTicket.toFixed(2)}`, icon: TrendingUp },
+            { title: "Cancelamentos", value: stats.cancelledMonth, icon: X },
+            { title: "Próximo Atendimento", value: stats.nextApp ? format(new Date(stats.nextApp.start_time), "HH:mm") : "---", icon: Clock },
+          ].map((stat, i) => (
+            <Card key={i} className="bg-[#0b0f17] border-[#D4AF37]/20 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl p-6 transition-all hover:border-[#D4AF37]/50 hover:shadow-[0_8px_24px_rgba(212,175,55,0.1)]">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">{stat.title}</span>
+                <stat.icon className="h-6 w-6 text-[#D4AF37]" />
               </div>
-              <p className="text-xs text-[#6B7280] mt-1 truncate font-medium">
-                {stats.nextApp ? `Com ${stats.nextApp.customers?.name || 'Cliente'}` : "Sem agendamentos"}
-              </p>
-            </CardContent>
-          </Card>
+              <div className="text-3xl font-black text-white">{stat.value}</div>
+            </Card>
+          ))}
         </div>
 
         <Tabs defaultValue="appointments" className="w-full">
