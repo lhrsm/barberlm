@@ -289,22 +289,13 @@ function AutomationsComponent() {
       
       if (filterPeriod !== "all") {
         const now = new Date();
-        let startDate = new Date();
         if (filterPeriod === "today") {
-          // Reset to beginning of today in Sao Paulo time
-          startDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-          startDate.setHours(0, 0, 0, 0);
-          
-          // Convert back to UTC for comparison if needed, but Supabase handles ISO strings
-          // A safer way for "Today" in SP:
           const todaySP = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }); // YYYY-MM-DD
           query = query.gte("sent_at", `${todaySP}T00:00:00Z`);
         } else if (filterPeriod === "7days") {
           const sevenDaysAgo = new Date();
           sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
           query = query.gte("sent_at", sevenDaysAgo.toISOString());
-        } else if (filterPeriod === "all") {
-          // No filter needed for 'all'
         }
       }
 
@@ -312,7 +303,7 @@ function AutomationsComponent() {
       const to = from + itemsPerPage - 1;
       
       const { data: logsData, count } = await query
-        .order("created_at", { ascending: false })
+        .order("sent_at", { ascending: false })
         .range(from, to);
 
       setLogs(logsData || []);

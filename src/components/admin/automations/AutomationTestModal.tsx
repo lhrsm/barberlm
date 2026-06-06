@@ -309,17 +309,35 @@ export function AutomationTestModal({
           
           if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro no provedor");
           
+          // Using unified dispatch registration via server-side logic would be better, 
+          // but for now we manually simulate the V2 record as this is a front-end test bypass
+          const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
+            body: {
+              action: 'send-test-message',
+              instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', automation.tenant_id).single()).data?.id,
+              data: { phone, message: renderedTemplate }
+            }
+          });
+          
+          if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro no provedor");
+          
+          const providerMsgId = zapiData?.result?.messageId || zapiData?.result?.id;
+
+          // Manual Dispatch V2 Record
           await (supabase as any).from("automation_v2_dispatches").insert({
             tenant_id: automation.tenant_id,
             workflow_key: automation.key || 'test_manual',
             flow_type: 'single',
             phone: phone,
+            customer_phone: phone,
             customer_name: testData.customer_name,
             status: "sent",
-            message_id: zapiData?.result?.messageId || zapiData?.result?.id,
+            message_id: providerMsgId,
+            provider_message_id: providerMsgId,
             sent_at: new Date().toISOString(),
             payload: { test_data: testData, rendered: renderedTemplate, test_type: "fictitious" },
-            provider_response: zapiData?.result
+            provider_response: zapiData?.result,
+            callback_received: false
           });
 
           await (supabase as any).from("automation_logs").insert({
