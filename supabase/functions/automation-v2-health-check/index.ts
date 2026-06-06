@@ -30,16 +30,30 @@ serve(async (req) => {
     if (action === 'notify_unhealthy') {
       console.log(`[HealthCheck] Notification trigger for ${tenant_id} / ${workflow_key}`);
       
+      const { data: healthSettings } = await supabase.from("system_health_settings").select("*").single();
+      const { data: template } = await supabase.from("automation_templates")
+        .select("id, name, last_notified_at")
+        .eq("tenant_id", tenant_id)
+        .eq("key", workflow_key)
+        .single();
+
+      if (template && !shouldNotify(template.last_notified_at, healthSettings?.deduplication_minutes || 60)) {
+        console.log(`[HealthCheck] Notification skipped due to deduplication`);
+        return new Response(JSON.stringify({ success: true, notified: false, reason: "deduplicated" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const { data: tenant } = await supabase.from("tenants").select("name").eq("id", tenant_id).single();
       
       const message = `🚨 *ALERTA DE AUTOMAÇÃO CRÍTICO*\n\n` +
         `*Tenant:* ${tenant?.name || tenant_id}\n` +
-        `*Automação:* ${workflow_key}\n` +
+        `*Automação:* ${template?.name || workflow_key}\n` +
         `*Erro:* WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED\n` +
         `*ID Mensagem:* ${body.provider_message_id}\n\n` +
         `O WhatsApp foi enviado com sucesso, mas o registro no banco de dados falhou. A automação foi marcada como não saudável.\n\n` +
-        `🔗 [Ver Histórico](https://painel.barbearia.com.br/admin/automation-health?tenant=${tenant_id})\n` +
-        `🔗 [Ver Logs](https://painel.barbearia.com.br/admin/logs?search=${body.provider_message_id})`;
+        `🔗 [Ver Detalhes da Falha](https://painel.barbearia.com.br/admin/errors?tenant=${tenant_id}&key=${workflow_key})\n` +
+        `🔗 [Ver Logs da Sessão](https://painel.barbearia.com.br/admin/logs?search=${body.provider_message_id})`;
 
       // Generic notification table insert (common pattern in this project)
       await supabase.from("notifications").insert({
