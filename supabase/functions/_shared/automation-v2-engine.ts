@@ -143,7 +143,7 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
       success: true, 
       warning: "WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED", 
       error: dispatchError.message,
-      provider_message_id,
+      provider_message_id: providerMessageId,
       session_id
     };
   }
