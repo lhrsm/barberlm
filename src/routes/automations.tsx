@@ -324,7 +324,7 @@ function AutomationsComponent() {
       const { count: totalFailed } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
       const { count: totalCallbacks } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("callback_received", true);
       const { count: totalDispatches } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
-      const { count: totalSessions } = await supabase.from("automation_conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
+      const { count: totalSessions } = await anySupabase.from("automation_v2_sessions").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
       const { count: totalDuplicate } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("action", "duplicate_confirmation_blocked");
       const { count: totalNotFound } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "not_found");
       const { data: lastLogData } = await anySupabase.from("automation_v2_dispatches").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
@@ -443,12 +443,12 @@ function AutomationsComponent() {
         .eq("tenant_id", tenantId || "")
         .maybeSingle();
 
-      // 2. Get active session
-      const { data: session } = await supabase
-        .from("automation_conversations")
+      // 2. Get active session v2
+      const { data: session } = await anySupabase
+        .from("automation_v2_sessions")
         .select("*")
-        .eq("phone_normalized", dispatch.phone)
-        .in("status", ["active", "awaiting_response"])
+        .eq("phone", dispatch.phone)
+        .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();

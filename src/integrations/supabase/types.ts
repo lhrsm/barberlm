@@ -1075,6 +1075,8 @@ export type Database = {
       }
       automation_v2_dispatches: {
         Row: {
+          action_executed: boolean | null
+          action_executed_at: string | null
           appointment_group_id: string | null
           appointment_id: string | null
           callback_button_id: string | null
@@ -1084,13 +1086,18 @@ export type Database = {
           channel: string
           created_at: string
           current_step: string | null
+          customer_id: string | null
           customer_name: string | null
+          customer_phone: string | null
           error: string | null
+          finalized: boolean | null
+          finalized_at: string | null
           flow_type: string
           id: string
           message_id: string | null
           payload: Json | null
           phone: string
+          provider_message_id: string | null
           provider_response: Json | null
           sent_at: string | null
           session_id: string | null
@@ -1098,8 +1105,11 @@ export type Database = {
           tenant_id: string
           updated_at: string
           workflow_key: string
+          zaap_id: string | null
         }
         Insert: {
+          action_executed?: boolean | null
+          action_executed_at?: string | null
           appointment_group_id?: string | null
           appointment_id?: string | null
           callback_button_id?: string | null
@@ -1109,13 +1119,18 @@ export type Database = {
           channel?: string
           created_at?: string
           current_step?: string | null
+          customer_id?: string | null
           customer_name?: string | null
+          customer_phone?: string | null
           error?: string | null
+          finalized?: boolean | null
+          finalized_at?: string | null
           flow_type?: string
           id?: string
           message_id?: string | null
           payload?: Json | null
           phone: string
+          provider_message_id?: string | null
           provider_response?: Json | null
           sent_at?: string | null
           session_id?: string | null
@@ -1123,8 +1138,11 @@ export type Database = {
           tenant_id: string
           updated_at?: string
           workflow_key: string
+          zaap_id?: string | null
         }
         Update: {
+          action_executed?: boolean | null
+          action_executed_at?: string | null
           appointment_group_id?: string | null
           appointment_id?: string | null
           callback_button_id?: string | null
@@ -1134,13 +1152,18 @@ export type Database = {
           channel?: string
           created_at?: string
           current_step?: string | null
+          customer_id?: string | null
           customer_name?: string | null
+          customer_phone?: string | null
           error?: string | null
+          finalized?: boolean | null
+          finalized_at?: string | null
           flow_type?: string
           id?: string
           message_id?: string | null
           payload?: Json | null
           phone?: string
+          provider_message_id?: string | null
           provider_response?: Json | null
           sent_at?: string | null
           session_id?: string | null
@@ -1148,6 +1171,7 @@ export type Database = {
           tenant_id?: string
           updated_at?: string
           workflow_key?: string
+          zaap_id?: string | null
         }
         Relationships: [
           {
@@ -1165,6 +1189,13 @@ export type Database = {
             referencedColumns: ["appointment_id"]
           },
           {
+            foreignKeyName: "automation_v2_dispatches_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "automation_v2_dispatches_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -1173,6 +1204,138 @@ export type Database = {
           },
           {
             foreignKeyName: "automation_v2_dispatches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_v2_logs: {
+        Row: {
+          appointment_id: string | null
+          context: Json | null
+          created_at: string
+          id: string
+          level: string
+          message: string
+          tenant_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          context?: Json | null
+          created_at?: string
+          id?: string
+          level?: string
+          message: string
+          tenant_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          context?: Json | null
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_v2_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_v2_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "automation_v2_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_v2_sessions: {
+        Row: {
+          appointment_group_id: string | null
+          appointment_id: string | null
+          context: Json | null
+          created_at: string
+          current_step: string
+          customer_id: string | null
+          expires_at: string | null
+          flow_type: string
+          id: string
+          phone: string
+          provider_message_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          context?: Json | null
+          created_at?: string
+          current_step?: string
+          customer_id?: string | null
+          expires_at?: string | null
+          flow_type?: string
+          id?: string
+          phone: string
+          provider_message_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_group_id?: string | null
+          appointment_id?: string | null
+          context?: Json | null
+          created_at?: string
+          current_step?: string
+          customer_id?: string | null
+          expires_at?: string | null
+          flow_type?: string
+          id?: string
+          phone?: string
+          provider_message_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_v2_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_v2_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "automation_v2_sessions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_v2_sessions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "barbershops"
