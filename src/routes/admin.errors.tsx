@@ -172,6 +172,8 @@ function AdminErrors() {
     }
   };
 
+  const totalPages = Math.ceil(filteredAutomations.length / itemsPerPage);
+
   const unhealthyCount = healthReport?.summary?.unhealthy || 0;
 
   return (
