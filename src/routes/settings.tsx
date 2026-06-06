@@ -492,13 +492,6 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="coupons" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardContent className="pt-6">
-                  <CouponManagement />
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="whatsapp" className="space-y-4">
               <Card className="bg-white border-2 border-slate-200 text-black">
