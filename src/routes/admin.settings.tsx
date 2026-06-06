@@ -339,6 +339,69 @@ function AdminSettings() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="saude" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="glass border-white/5 rounded-[2.5rem] p-8">
+              <CardHeader className="p-0 mb-8">
+                <CardTitle className="text-xl font-bold text-white italic tracking-tight uppercase flex items-center gap-2">
+                  <Bell className="text-yellow-400 w-5 h-5" />
+                  Canais de Alerta Crítico
+                </CardTitle>
+                <CardDescription className="text-gray-400">Configure para onde enviar notificações de erros de automação.</CardDescription>
+              </CardHeader>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Slack Webhook URL</Label>
+                  <Input 
+                    placeholder="https://hooks.slack.com/services/..."
+                    className="h-12 bg-white/5 border-white/10 rounded-xl"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">E-mails de Destinatários (Vírgula)</Label>
+                  <div className="relative">
+                    <Input 
+                      placeholder="admin@exemplo.com, suporte@exemplo.com"
+                      className="h-12 bg-white/5 border-white/10 rounded-xl pl-12"
+                    />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="glass border-white/5 rounded-[2.5rem] p-8">
+              <CardHeader className="p-0 mb-8">
+                <CardTitle className="text-xl font-bold text-white italic tracking-tight uppercase flex items-center gap-2">
+                  <Clock className="text-blue-400 w-5 h-5" />
+                  Política de Deduplicação
+                </CardTitle>
+                <CardDescription className="text-gray-400">Evite spam de alertas repetidos para a mesma falha.</CardDescription>
+              </CardHeader>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-gray-400 text-[10px] uppercase font-bold tracking-widest px-1">Janela de Silêncio (Minutos)</Label>
+                  <Input 
+                    type="number"
+                    defaultValue={60}
+                    className="h-12 bg-white/5 border-white/10 rounded-xl"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-2 italic">
+                    O sistema aguardará este tempo antes de enviar outro alerta para a mesma automação e tenant.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
+                  <div className="space-y-0.5">
+                    <p className="text-white font-bold text-xs uppercase">Notificar Toda Falha</p>
+                    <p className="text-[10px] text-gray-500">Desativa a deduplicação (Não Recomendado).</p>
+                  </div>
+                  <Switch className="data-[state=checked]:bg-rose-500" />
+                </div>
+              </div>
+            </Card>
+          </div>
+        </TabsContent>
+
         <TabsContent value="seguranca" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="glass border-white/5 rounded-[2.5rem] p-8">
