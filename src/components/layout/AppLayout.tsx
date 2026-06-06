@@ -63,9 +63,11 @@ const defaultNavItems = [
 ];
 
 const barberNavItems = (slug: string) => [
-  { label: "Meu Painel", icon: LayoutDashboard, to: `/${slug}/profissional` },
-  { label: "Minha Agenda", icon: Calendar, to: "/calendar" },
+  { label: "Dashboard", icon: Layout, to: `/${slug}/profissional` },
+  { label: "Agenda", icon: Calendar, to: "/calendar" },
+  { label: "Histórico", icon: History, to: `/${slug}/profissional?tab=history` },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
+  { label: "Perfil", icon: User, to: `/${slug}/profissional?tab=profile` },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
