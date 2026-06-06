@@ -100,6 +100,45 @@ serve(async (req) => {
       });
     }
 
+    // Handle reprocess action
+    if (action === 'reprocess') {
+      const { data: template } = await supabase.from("automation_templates")
+        .select("id, last_reprocessed_at, reprocessing_status")
+        .eq("tenant_id", tenant_id)
+        .eq("key", workflow_key)
+        .single();
+
+      if (!template) {
+        return new Response(JSON.stringify({ success: false, error: "Template not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // 1. Idempotency Check
+      if (!canReprocess(template.last_reprocessed_at) || template.reprocessing_status === 'processing') {
+        return new Response(JSON.stringify({ success: false, error: "REPROCESS_ALREADY_IN_PROGRESS", last_reprocessed: template.last_reprocessed_at }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // 2. Mark as processing
+      await supabase.from("automation_templates")
+        .update({ 
+          reprocessing_status: 'processing', 
+          last_reprocessed_at: new Date().toISOString() 
+        })
+        .eq("id", template.id);
+
+      // 3. Trigger async job (invoke queue processor)
+      // Note: We don't await the full result here to keep it async for the UI
+      edge_function_invoke_queue(supabase, tenant_id, workflow_key, template.id);
+
+      return new Response(JSON.stringify({ success: true, status: 'processing' }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Standard Health Check Logic
     let query = supabase.from("automation_templates").select("*, tenant:tenants(name)");
     
