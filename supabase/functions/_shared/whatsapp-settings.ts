@@ -86,7 +86,7 @@ export async function sendMessage(
 
       if (response.ok) return { success: true, response: data, error: null };
       console.log('LIST SEND ERROR (API):', data.message || data.error);
-    } catch (error) {
+    } catch (error: any) {
       console.log('LIST SEND ERROR (Fetch):', error.message);
     }
   }
