@@ -16,11 +16,24 @@ import {
   Calendar as CalendarIcon,
   Filter,
   ExternalLink,
-  Activity
+  Activity,
+  ChevronRight,
+  Download,
+  FileSpreadsheet,
+  X,
+  Info
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -43,6 +56,9 @@ function AdminErrors() {
   const [dateFilter, setDateFilter] = useState<string>("7d");
   const [automationFilter, setAutomationFilter] = useState<string>("all");
   const [searchFilter, setSearchFilter] = useState<string>("");
+  const [selectedIssue, setSelectedIssue] = useState<any>(null);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: auditLogs, isLoading: isLoadingAudit, refetch: refetchAudit } = useQuery({
     queryKey: ["admin-audit-logs"],
@@ -73,11 +89,37 @@ function AdminErrors() {
     }
   });
 
+  const exportToCSV = () => {
+    const reportData = healthReport?.report || [];
+    const headers = ["Barbearia", "Automação", "Status", "Motivo", "Última Falha"];
+    const rows = reportData.map((item: any) => [
+      item.tenant_name,
+      item.key,
+      item.is_healthy ? "Saudável" : "Erro Crítico",
+      item.last_error || "Nenhum",
+      item.issues?.[0]?.last_occurrence || "N/A"
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(","), ...rows.map((e: any) => e.join(","))].join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `saude_automacoes_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredAutomations = healthReport?.report?.filter((item: any) => {
     if (automationFilter !== "all" && item.key !== automationFilter) return false;
     if (searchFilter && !item.tenant_name.toLowerCase().includes(searchFilter.toLowerCase())) return false;
     return true;
   }) || [];
+
+  const paginatedAutomations = filteredAutomations.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const totalPages = Math.ceil(filteredAutomations.length / itemsPerPage);
 
   const unhealthyCount = healthReport?.summary?.unhealthy || 0;
 
@@ -162,16 +204,25 @@ function AdminErrors() {
                   <CardDescription>Lista de automações com falhas de sincronismo detectadas.</CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={exportToCSV} className="h-8 gap-2">
+                    <FileSpreadsheet className="h-4 w-4" /> Exportar CSV
+                  </Button>
                   <div className="relative w-full md:w-64">
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                     <Input 
                       placeholder="Buscar por barbearia..." 
                       className="pl-8 h-8 text-xs" 
                       value={searchFilter}
-                      onChange={(e) => setSearchFilter(e.target.value)}
+                      onChange={(e) => {
+                        setSearchFilter(e.target.value);
+                        setPage(1);
+                      }}
                     />
                   </div>
-                  <Select value={automationFilter} onValueChange={setAutomationFilter}>
+                  <Select value={automationFilter} onValueChange={(val) => {
+                    setAutomationFilter(val);
+                    setPage(1);
+                  }}>
                     <SelectTrigger className="h-8 w-[150px] text-xs">
                       <SelectValue placeholder="Automação" />
                     </SelectTrigger>
@@ -207,8 +258,12 @@ function AdminErrors() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredAutomations.map((item: any) => (
-                      <TableRow key={item.automation_id}>
+                    paginatedAutomations.map((item: any) => (
+                      <TableRow 
+                        key={item.automation_id}
+                        className={cn("cursor-pointer hover:bg-muted/50 transition-colors", !item.is_healthy && "bg-rose-50/10")}
+                        onClick={() => setSelectedIssue(item)}
+                      >
                         <TableCell className="font-medium">{item.tenant_name}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-[10px] uppercase">
@@ -227,13 +282,13 @@ function AdminErrors() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                             <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Ver Logs">
+                             <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Ver Logs" onClick={(e) => e.stopPropagation()}>
                                <a href={`/admin/logs?tenant=${item.tenant_id}`} target="_blank" rel="noreferrer">
                                  <Terminal className="h-4 w-4" />
                                </a>
                              </Button>
-                             <Button variant="ghost" size="icon" className="h-8 w-8" title="Tentar Corrigir">
-                               <RefreshCw className="h-4 w-4" />
+                             <Button variant="ghost" size="icon" className="h-8 w-8" title="Ver Detalhes">
+                               <ChevronRight className="h-4 w-4" />
                              </Button>
                           </div>
                         </TableCell>
@@ -242,6 +297,30 @@ function AdminErrors() {
                   )}
                 </TableBody>
               </Table>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-end space-x-2 py-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    Anterior
+                  </Button>
+                  <div className="text-xs text-muted-foreground">
+                    Página {page} de {totalPages}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -302,6 +381,99 @@ function AdminErrors() {
           </Card>
         </TabsContent>
       </Tabs>
+      <Dialog open={!!selectedIssue} onOpenChange={() => setSelectedIssue(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-black italic uppercase">
+              <ShieldAlert className="h-5 w-5 text-rose-500" />
+              Detalhes da Ocorrência
+            </DialogTitle>
+            <DialogDescription>
+              Diagnóstico técnico para sincronismo de mensagens V2.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedIssue && (
+            <div className="space-y-6 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-muted/50 border">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Barbearia</p>
+                  <p className="font-bold">{selectedIssue.tenant_name}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-muted/50 border">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Status de Saúde</p>
+                  <Badge variant={selectedIssue.is_healthy ? "secondary" : "destructive"}>
+                    {selectedIssue.is_healthy ? "Operacional" : "Interrompida"}
+                  </Badge>
+                </div>
+              </div>
+
+              <Card className="border-rose-200 bg-rose-50/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Info className="h-4 w-4 text-rose-500" /> Causa Raiz Detectada
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-3 rounded-xl bg-background border text-xs font-mono">
+                    Motivo: <span className="text-rose-600 font-bold">{selectedIssue.last_error || "WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED"}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    A API do WhatsApp (Z-API) confirmou o recebimento da mensagem, porém a transação de banco de dados para criar o registro de despacho (dispatch) falhou ou foi interrompida. Isso impede o rastreamento do callback e a confirmação automática do agendamento.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {selectedIssue.issues && selectedIssue.issues.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold flex items-center gap-2">
+                    <Terminal className="h-4 w-4" /> Histórico de Erros Sincronizados
+                  </p>
+                  <div className="border rounded-2xl overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-muted/30">
+                        <TableRow>
+                          <TableHead className="h-9">Data/Hora</TableHead>
+                          <TableHead className="h-9">ID Provedor</TableHead>
+                          <TableHead className="h-9 text-right">Ação</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedIssue.issues.map((issue: any, idx: number) => (
+                          <TableRow key={idx}>
+                            <TableCell className="text-xs font-mono">
+                              {issue.last_occurrence || issue.log_time ? 
+                                format(new Date(issue.last_occurrence || issue.log_time), "dd/MM HH:mm:ss", { locale: ptBR }) 
+                                : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-xs font-mono text-muted-foreground truncate max-w-[150px]">
+                              {issue.provider_message_id || issue.details?.provider_message_id || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-bold" asChild>
+                                <a href={`/admin/logs?search=${issue.provider_message_id || issue.details?.provider_message_id}`} target="_blank" rel="noreferrer">
+                                  Ver Log <ExternalLink className="ml-1 h-3 w-3" />
+                                </a>
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setSelectedIssue(null)}>Fechar</Button>
+                <Button className="bg-primary text-primary-foreground font-bold">
+                  Sincronizar Manualmente
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
