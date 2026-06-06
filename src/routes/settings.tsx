@@ -1019,13 +1019,13 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-6">
               <Button type="submit" className="gap-2 bg-black text-white hover:scale-105 transition-all h-12 px-8 rounded-xl font-bold uppercase tracking-tight" disabled={saving}>
                 <Save size={18} /> {saving ? "Salvando..." : "Salvar Configurações (Confirmar)"}
               </Button>
             </div>
-          </Tabs>
-        </form>
+          </form>
+        </Tabs>
       </div>
     </AppLayout>
   );
