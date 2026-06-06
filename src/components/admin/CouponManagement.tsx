@@ -467,19 +467,19 @@ export function CouponManagement() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-[#2a2b2e]/50 p-3 rounded-xl border border-slate-800/50">
-                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Uso / Limite</p>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-[#05070d] p-4 rounded-2xl border border-[#1f2937]/50 shadow-inner">
+                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Uso / Limite</p>
+                      <div className="flex items-center gap-2 text-xs font-black text-white italic">
                         <Hash size={12} className="text-[#ea580c]" />
-                        {coupon.used_count || 0} / {coupon.usage_limit || "∞"}
+                        {coupon.used_count || 0} <span className="text-slate-700">/</span> {coupon.usage_limit || "∞"}
                       </div>
                     </div>
-                    <div className="bg-[#2a2b2e]/50 p-3 rounded-xl border border-slate-800/50">
-                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Validade</p>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                    <div className="bg-[#05070d] p-4 rounded-2xl border border-[#1f2937]/50 shadow-inner">
+                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Expiração</p>
+                      <div className="flex items-center gap-2 text-xs font-black text-white italic">
                         <Calendar size={12} className="text-[#ea580c]" />
-                        {coupon.expires_at ? format(new Date(coupon.expires_at), "dd/MM/yyyy") : "Sem expiração"}
+                        {coupon.expires_at ? format(new Date(coupon.expires_at), "dd/MM/yy") : "ILIMITADO"}
                       </div>
                     </div>
                   </div>
