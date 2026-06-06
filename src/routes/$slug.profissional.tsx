@@ -461,54 +461,61 @@ function ProfessionalDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="profile" className="mt-0">
+          <TabsContent value="profile" className="mt-8">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+              <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
                 <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
-                  <CardTitle className="text-xl font-bold text-[#111827]">Perfil Profissional</CardTitle>
+                  <CardTitle className="text-xl font-black text-white">Perfil Profissional</CardTitle>
                   <Button 
                     size="sm" 
                     onClick={() => setShowEditProfile(true)}
-                    className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30 rounded-xl font-black px-6 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Edit2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Editar
+                    <Edit2 className="h-4 w-4 mr-2" /> Editar
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-6 pt-8 px-6 pb-8">
-                  <div className="flex flex-col items-center gap-4">
-                    <Avatar className="h-28 w-28 border-4 border-[#D4AF37] shadow-xl">
-                      <AvatarImage src={barber?.avatar_url} />
-                      <AvatarFallback className="text-4xl font-black bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
+                <CardContent className="space-y-8 pt-8 px-6 pb-8">
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="relative">
+                      <Avatar className="h-32 w-32 border-4 border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+                        <AvatarImage src={barber?.avatar_url} />
+                        <AvatarFallback className="text-4xl font-black bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-2 -right-2 bg-green-500 h-6 w-6 rounded-full border-4 border-[#0b0f17]"></div>
+                    </div>
                     <div className="text-center">
-                      <h3 className="text-2xl font-black text-[#111827]">{barber?.name}</h3>
-                      <p className="text-sm text-[#D4AF37] font-black uppercase tracking-widest mt-1">{barber?.category || "Profissional"}</p>
+                      <h3 className="text-2xl font-black text-white">{barber?.name}</h3>
+                      <p className="text-sm text-[#D4AF37] font-black uppercase tracking-[0.2em] mt-2">{barber?.category || "Profissional"}</p>
                     </div>
                   </div>
                   
-                  <div className="space-y-6 pt-6 border-t border-[#D4AF37]/10">
-                    <div className="space-y-2">
-                      <p className="text-xs font-black uppercase text-[#D4AF37] tracking-wider">Bio / Descrição</p>
-                      <p className="text-sm text-[#111827] leading-relaxed font-medium bg-gray-50 p-4 rounded-[10px] border border-gray-100">
+                  <div className="space-y-6 pt-6 border-t border-[#D4AF37]/5">
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black uppercase text-[#D4AF37] tracking-[0.2em]">Bio / Descrição</p>
+                      <p className="text-sm text-gray-300 leading-relaxed font-medium bg-[#05070d] p-5 rounded-2xl border border-[#D4AF37]/5">
                         {barber?.bio || "Sem descrição informada."}
                       </p>
                     </div>
                     <div className="grid gap-4">
-                      <div className="flex items-center gap-4 text-sm text-[#111827] bg-[#D4AF37]/5 p-4 rounded-[10px] border border-[#D4AF37]/10 font-bold">
-                        <Phone className="h-5 w-5 text-[#D4AF37]" />
+                      <div className="flex items-center gap-4 text-sm text-white bg-[#05070d] p-4 rounded-xl border border-[#D4AF37]/5 font-bold">
+                        <div className="h-10 w-10 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
+                          <Phone className="h-5 w-5 text-[#D4AF37]" />
+                        </div>
                         <span>{barber?.phone || "Não informado"}</span>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-[#111827] bg-[#D4AF37]/5 p-4 rounded-[10px] border border-[#D4AF37]/10 font-bold">
-                        <Mail className="h-5 w-5 text-[#D4AF37]" />
+                      <div className="flex items-center gap-4 text-sm text-white bg-[#05070d] p-4 rounded-xl border border-[#D4AF37]/5 font-bold">
+                        <div className="h-10 w-10 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
+                          <Mail className="h-5 w-5 text-[#D4AF37]" />
+                        </div>
                         <span>{barber?.email || "Não informado"}</span>
                       </div>
                     </div>
                     {barber?.specialties && barber.specialties.length > 0 && (
-                      <div className="space-y-2 pt-2">
-                        <p className="text-xs font-black uppercase text-[#D4AF37] tracking-wider">Especialidades</p>
+                      <div className="space-y-3 pt-2">
+                        <p className="text-[10px] font-black uppercase text-[#D4AF37] tracking-[0.2em]">Especialidades</p>
                         <div className="flex flex-wrap gap-2">
                           {barber.specialties.map((spec: string, i: number) => (
-                            <Badge key={i} variant="outline" className="border-[#D4AF37]/30 text-[#111827] bg-white font-bold text-[10px] uppercase py-1 px-3 rounded-[6px]">
+                            <Badge key={i} variant="outline" className="border-[#D4AF37]/20 text-[#D4AF37] bg-[#D4AF37]/5 font-black text-[9px] uppercase py-1.5 px-4 rounded-lg tracking-wider">
                               {spec}
                             </Badge>
                           ))}
@@ -519,15 +526,15 @@ function ProfessionalDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+              <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
                 <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
-                  <CardTitle className="text-xl font-bold text-[#111827]">Horários</CardTitle>
+                  <CardTitle className="text-xl font-black text-white">Horários de Trabalho</CardTitle>
                   <Button 
                     size="sm" 
                     onClick={() => setShowEditSchedule(true)}
-                    className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30 rounded-xl font-black px-6 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Edit2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Ajustar
+                    <Clock className="h-4 w-4 mr-2" /> Ajustar
                   </Button>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -538,11 +545,11 @@ function ProfessionalDashboard() {
                         if (!config) return null;
                         return (
                           <div key={dayKey} className={cn(
-                            "flex items-center justify-between p-4 rounded-[10px] border transition-all",
-                            config.enabled ? "bg-white border-[#D4AF37]/30 shadow-sm" : "bg-gray-50 border-transparent opacity-50"
+                            "flex items-center justify-between p-4 rounded-xl border transition-all",
+                            config.enabled ? "bg-[#05070d] border-[#D4AF37]/20 shadow-sm" : "bg-[#0b0f17] border-transparent opacity-30"
                           )}>
-                            <span className="text-sm font-bold text-[#111827]">{dayNames[dayKey]}</span>
-                            <div className="flex items-center gap-2 text-xs font-black bg-[#D4AF37]/10 text-[#D4AF37] px-4 py-1.5 rounded-full border border-[#D4AF37]/20 uppercase tracking-tighter">
+                            <span className="text-sm font-black text-white uppercase tracking-wider">{dayNames[dayKey]}</span>
+                            <div className="flex items-center gap-2 text-[10px] font-black bg-[#D4AF37] text-black px-4 py-1.5 rounded-lg uppercase tracking-widest">
                               {config.enabled ? `${config.start} - ${config.end}` : "Fechado"}
                             </div>
                           </div>
@@ -551,7 +558,7 @@ function ProfessionalDashboard() {
                     ) : (
                       <div className="flex flex-col items-center justify-center py-12 text-center">
                         <Clock className="h-12 w-12 text-[#D4AF37] opacity-20 mb-4" />
-                        <p className="text-[#6B7280] font-medium">Nenhum horário cadastrado.</p>
+                        <p className="text-gray-500 font-medium">Nenhum horário cadastrado.</p>
                       </div>
                     )}
                   </div>
