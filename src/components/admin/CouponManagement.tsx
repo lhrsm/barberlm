@@ -317,20 +317,20 @@ export function CouponManagement() {
               </div>
             </div>
           </div>
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-2 border-t border-[#1f2937]/50 pt-4 mt-2">
             <Button 
               variant="outline" 
               onClick={() => setIsDialogOpen(false)}
-              className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
+              className="border-slate-800 text-slate-500 hover:bg-slate-800 hover:text-white rounded-xl h-12"
             >
               Cancelar
             </Button>
             <Button 
               onClick={() => saveCouponMutation.mutate({ ...couponForm, id: editingCoupon?.id })}
               disabled={saveCouponMutation.isPending || !couponForm.code || couponForm.value <= 0}
-              className="bg-[#ea580c] hover:bg-[#ea580c]/90 text-white"
+              className="bg-[#ea580c] hover:bg-[#ea580c]/90 text-black font-black uppercase tracking-widest h-12 rounded-xl flex-1"
             >
-              {saveCouponMutation.isPending ? "Salvando..." : (editingCoupon ? "Salvar Alterações" : "Criar Cupom")}
+              {saveCouponMutation.isPending ? "Salvando..." : (editingCoupon ? "Salvar Alterações" : "Criar Cupom Premium")}
             </Button>
           </DialogFooter>
         </DialogContent>
