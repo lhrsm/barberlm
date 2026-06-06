@@ -53,7 +53,6 @@ serve(async (req) => {
     if (itemsToProcess.length === 0 && force_resend && appointment_id) {
       console.log("[ProcessQueue] No queue item found for forced resend, attempting virtual item creation");
       
-      // Fetch appointment
       const { data: appointment, error: appError } = await supabase
         .from("appointments")
         .select(`
@@ -68,14 +67,12 @@ serve(async (req) => {
         throw new Error("Appointment not found for virtual resend");
       }
 
-      // Fetch automation
       let automationQuery = supabase.from("automation_templates").select("*");
       if (automation_id) {
         automationQuery = automationQuery.eq("id", automation_id);
       } else if (workflow_key) {
         automationQuery = automationQuery.eq("key", workflow_key).eq("tenant_id", tenant_id || appointment.tenant_id);
       } else {
-        // Default to appointment confirmation
         automationQuery = automationQuery.eq("key", "appointment_confirmation").eq("tenant_id", tenant_id || appointment.tenant_id);
       }
 
@@ -112,17 +109,17 @@ serve(async (req) => {
         if (!appointment || !automation) throw new Error("Data incomplete");
 
         if (!force_resend && appointment.confirmation_sent) {
-          const { data: activeConv } = await supabase
-            .from("automation_conversations")
+          const { data: activeSess } = await supabase
+            .from("automation_v2_sessions")
             .select("id")
             .eq("appointment_id", appointment.id)
             .eq("status", "active")
             .maybeSingle();
 
-          if (activeConv) {
-            console.log(`[ProcessQueue] Skipping item ${item.id} - Active conversation already exists for appointment ${appointment.id}`);
+          if (activeSess) {
+            console.log(`[ProcessQueue] Skipping item ${item.id} - Active session already exists for appointment ${appointment.id}`);
             await supabase.from("automation_queue").update({ status: "skipped", updated_at: new Date().toISOString() }).eq("id", item.id);
-            results.push({ id: item.id, success: true, skipped: true, reason: "active_conversation_exists" });
+            results.push({ id: item.id, success: true, skipped: true, reason: "active_session_exists" });
             continue;
           }
 
@@ -131,7 +128,6 @@ serve(async (req) => {
           continue;
         }
 
-        // 2. Resolve Barbershop
         let barbershopName = "Barbearia";
         const { data: tenantData } = await supabase.from("tenants").select("name").eq("id", itemTenantId).maybeSingle();
         if (tenantData?.name && !['Barbearia', 'Barbershop'].includes(tenantData.name)) barbershopName = tenantData.name;
@@ -140,7 +136,6 @@ serve(async (req) => {
           if (profileData?.business_name) barbershopName = profileData.business_name;
         }
 
-        // 3. Resolve Professional
         const profId = appointment.barber_id || appointment.professional_id;
         let profName = "Profissional";
         let resolvedTable = "none";
@@ -161,11 +156,6 @@ serve(async (req) => {
           origin: force_resend ? 'test_manual' : 'automatic'
         };
 
-        // 4. Build Message
-        const buildAppointmentConfirmationMessage = (data: any) => {
-          return `Olá ${data.customer_name} 👋\n\nSeu agendamento na ${data.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${data.service_name}\n💈 Profissional: ${data.professional_name}\n📅 Data: ${data.appointment_date}\n⏰ Horário: ${data.appointment_time}\n\nO que deseja fazer?`;
-        };
-
         const testData = {
           customer_name: appointment.customer?.name || "Cliente",
           barbershop_name: barbershopName,
@@ -180,13 +170,12 @@ serve(async (req) => {
         let renderedTemplate = "";
 
         if (automation.key === 'appointment_confirmation') {
-          // Ativando botões reais para o Z-API
           sendOptions.buttons = [
             { id: "main_confirm", label: "Confirmar agendamento" },
             { id: "main_reschedule", label: "Reagendar" },
             { id: "main_cancel", label: "Cancelar" }
           ];
-          renderedTemplate = buildAppointmentConfirmationMessage(testData);
+          renderedTemplate = `Olá ${testData.customer_name} 👋\n\nSeu agendamento na ${testData.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n📅 Data: ${testData.appointment_date}\n⏰ Horário: ${testData.appointment_time}\n\nO que deseja fazer?`;
         } else {
           renderedTemplate = automation.template;
           Object.entries(testData).forEach(([key, value]) => {
@@ -195,104 +184,70 @@ serve(async (req) => {
         }
 
         if (dry_run) {
-          results.push({ 
-            id: item.id, 
-            success: true, 
-            dry_run: true,
-            payload: {
-              phone: appointment.customer?.phone,
-              message: renderedTemplate,
-              buttons: sendOptions.buttons,
-              testData,
-              diagnostic: diagInfo
-            }
-          });
+          results.push({ id: item.id, success: true, dry_run: true, payload: { phone: appointment.customer?.phone, message: renderedTemplate, buttons: sendOptions.buttons, testData, diagnostic: diagInfo } });
           continue;
         }
 
-        // 6. WhatsApp Instance
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).single();
         if (!instance) throw new Error("WhatsApp not configured");
 
         const phone = appointment.customer?.phone;
         if (!phone) throw new Error("Phone missing");
 
-        // 7. Send Message
         const sendResult = await sendMessage(instance, phone, renderedTemplate, sendOptions);
-        const finalMessageType = (sendOptions.buttons && sendResult.response?.buttonList) ? 'buttons' : 'text_fallback';
-
         if (sendResult.success) {
           const providerMessageId = sendResult.response?.messageId || sendResult.response?.id;
           
-          // REGISTRO DE SESSÃO DE CONVERSA (PRIMEIRO PARA VINCULAR)
-          let conversationId = null;
-          let conversationCreated = false;
-          let conversationError = null;
-
+          // REGISTRO DE SESSÃO V2
+          let session_id = null;
           if (automation.key === 'appointment_confirmation') {
             const expiresAt = new Date();
             expiresAt.setHours(expiresAt.getHours() + 2);
 
-            const { data: conversation, error: convError } = await supabase.from("automation_conversations").insert({
+            const { data: session, error: sessError } = await supabase.from("automation_v2_sessions").insert({
               tenant_id: itemTenantId,
-              appointment_id: appointment.id,
               customer_id: appointment.customer_id,
-              customer_phone: phone,
               phone: phone,
-              phone_normalized: phone,
-              automation_type: 'appointment_confirmation',
-              workflow_key: 'appointment_confirmation',
+              flow_type: 'single',
+              current_step: "AWAITING_MAIN_ACTION",
               status: "active",
-              current_state: "AWAITING_MAIN_ACTION",
-              expected_response: "confirmation_menu",
-              expires_at: expiresAt.toISOString(),
+              appointment_id: appointment.id,
+              appointment_group_id: appointment.group_id || appointment.appointment_group_id,
               provider_message_id: providerMessageId,
-              context: {
-                automation_id: automation.id,
-                template_key: automation.key
-              }
+              expires_at: expiresAt.toISOString(),
+              context: { automation_id: automation.id, workflow_key: automation.key }
             }).select().single();
 
-            if (convError) {
-              console.error(`[ProcessQueue] Error creating conversation session:`, convError);
-              conversationError = convError.message;
-            } else {
-              conversationId = conversation.id;
-              conversationCreated = true;
-            }
+            if (!sessError) session_id = session.id;
+            else console.error("[ProcessQueue] Session Error:", sessError);
           }
 
-          // REGISTRO NO HISTÓRICO DE ENVIO (V2)
-          const { data: dispatch, error: dispatchError } = await supabase.from("automation_v2_dispatches").insert({
+          // REGISTRO OBRIGATÓRIO DE DISPATCH V2
+          const { error: dispatchError } = await supabase.from("automation_v2_dispatches").insert({
             tenant_id: itemTenantId,
             appointment_id: appointment.id,
             appointment_group_id: appointment.group_id || appointment.appointment_group_id,
             customer_id: appointment.customer_id,
+            customer_phone: phone,
             workflow_key: automation.key,
             flow_type: 'single', 
             phone: phone,
             customer_name: appointment.customer?.name,
-            customer_phone: phone,
-            status: "sent",
             channel: 'whatsapp',
             message_id: providerMessageId,
             provider_message_id: providerMessageId,
             zaap_id: instance.instance_id,
+            status: "sent",
             sent_at: new Date().toISOString(),
-            payload: { 
-              data: testData, 
-              diagnostic: diagInfo, 
-              rendered_message: renderedTemplate,
-            },
+            payload: { data: testData, diagnostic: diagInfo, rendered_message: renderedTemplate },
             provider_response: sendResult.response,
-            session_id: conversationId,
+            session_id: session_id,
             current_step: "AWAITING_MAIN_ACTION",
             callback_received: false
-          }).select().single();
+          });
 
           if (dispatchError) {
-            console.error(`[ProcessQueue] CRITICAL: Error creating dispatch record:`, dispatchError);
-            // Log to automation_v2_logs if dispatch fails
+            console.error(`[ProcessQueue] CRITICAL: Dispatch Error:`, dispatchError);
             await supabase.from("automation_v2_logs").insert({
               tenant_id: itemTenantId,
               appointment_id: appointment.id,
@@ -303,64 +258,13 @@ serve(async (req) => {
             throw new Error(`Falha ao registrar dispatch: ${dispatchError.message}`);
           }
 
-          // Mantendo compatibilidade com tabelas legadas se necessário, 
-          // mas o foco agora é a v2_dispatches
-          await supabase.from("automation_send_history").insert({
-            tenant_id: itemTenantId,
-            appointment_id: appointment.id,
-            automation_name: automation.name,
-            event_name: automation.trigger_event,
-            source: force_resend ? 'test_manual' : 'automatic',
-            channel: 'whatsapp',
-            phone: phone,
-            status: "sent",
-            provider_message_id: providerMessageId,
-            conversation_created: conversationCreated,
-            conversation_id: conversationId,
-            conversation_error: conversationError,
-            payload: { 
-              data: testData, 
-              diagnostic: diagInfo, 
-              buttons_attached: !!sendOptions.buttons,
-              rendered_message: renderedTemplate,
-              session_info: {
-                conversation_created: conversationCreated,
-                conversation_id: conversationId,
-                error: conversationError
-              }
-            },
-            zapi_response: sendResult.response
-          });
-
           await supabase.from("automation_queue").update({ status: "success", attempts: (item.attempts || 0) + 1, updated_at: new Date().toISOString() }).eq("id", item.id);
-          
-          // Logs de auditoria (automation_logs)
-          await supabase.from("automation_logs").insert({
-            automation_id: automation.id,
-            tenant_id: itemTenantId,
-            appointment_id: appointment.id,
-            customer_id: appointment.customer_id,
-            phone: phone,
-            status: "aguardando_resposta",
-            action: "mensagem_enviada",
-            message_type: finalMessageType,
-            processed_template: renderedTemplate,
-            provider_message_id: providerMessageId,
-            conversation_id: conversationId,
-            payload: { 
-              rendered_message: renderedTemplate,
-              conversation_created: conversationCreated,
-              conversation_id: conversationId
-            }
-          });
-
           await supabase.from("appointments").update({ confirmation_sent: true, confirmation_sent_at: new Date().toISOString() }).eq("id", appointment.id);
           results.push({ id: item.id, success: true });
 
         } else {
           throw new Error(sendResult.error || "Z-API failed");
         }
-
       } catch (err: any) {
         console.error(`[ProcessQueue] Fail:`, err.message);
         await supabase.from("automation_queue").update({ status: "failed", error_message: err.message, attempts: (item.attempts || 0) + 1, updated_at: new Date().toISOString() }).eq("id", item.id);
@@ -371,7 +275,6 @@ serve(async (req) => {
     return new Response(JSON.stringify({ success: true, results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
   } catch (error: any) {
     console.error("[ProcessQueue] Fatal:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {
