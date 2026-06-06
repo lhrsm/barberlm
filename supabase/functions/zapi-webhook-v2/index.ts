@@ -313,6 +313,7 @@ serve(async (req) => {
           await sendMessage(instance, phone, successMsg);
           await supabase.from("automation_webhook_logs").update({ response_sent: true }).eq("id", webhookLog.id);
         }
+        }
       }
     } else {
       // REAGENDAR / CANCELAR
