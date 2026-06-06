@@ -247,22 +247,31 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </p>
           </div>
 
-          <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-            {navItems.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300",
-                  pathname === item.to
-                    ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.3)]"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                )}
-              >
-                <item.icon size={20} className={cn(pathname === item.to ? "animate-pulse" : "")} />
-                {item.label}
-              </Link>
-            ))}
+          <nav className="flex-1 px-4 space-y-2 overflow-y-auto pt-4">
+            {navItems.map((item) => {
+              const isActive = pathname === item.to || (item.to.includes('?') && pathname + window.location.search === item.to);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 relative overflow-hidden",
+                    isActive
+                      ? "bg-[#D4AF37] text-black shadow-[0_0_20px_rgba(212,175,55,0.2)] scale-[1.02]"
+                      : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  )}
+                >
+                  {isActive && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-black rounded-r-full" />
+                  )}
+                  <item.icon size={20} className={cn(
+                    "transition-transform duration-300 group-hover:scale-110",
+                    isActive ? "text-black" : "text-[#D4AF37]/60 group-hover:text-[#D4AF37]"
+                  )} />
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
           <div className="p-4 border-t">
             <LogoutButton />
