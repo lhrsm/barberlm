@@ -299,18 +299,6 @@ export function AutomationTestModal({
             return;
          }
          
-         const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
-            body: {
-              action: 'send-test-message',
-              instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', automation.tenant_id).single()).data?.id,
-              data: { phone, message: renderedTemplate }
-            }
-          });
-          
-          if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro no provedor");
-          
-          // Using unified dispatch registration via server-side logic would be better, 
-          // but for now we manually simulate the V2 record as this is a front-end test bypass
           const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
             body: {
               action: 'send-test-message',
