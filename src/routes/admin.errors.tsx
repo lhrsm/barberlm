@@ -154,17 +154,25 @@ function AdminErrors() {
   const handleReprocess = async (item: any) => {
     setReprocessingId(item.automation_id);
     try {
-      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+    const { data, error } = await supabase.functions.invoke('automation-v2-health-check', {
         body: { 
+          action: 'reprocess',
           tenant_id: item.tenant_id,
-          workflow_key: item.key,
-          force_resend: true
+          workflow_key: item.key
         }
       });
       
-      if (error) throw error;
-      toast.success("Reprocessamento iniciado com sucesso!");
-      refetchHealth();
+      if (error || !data.success) {
+        if (data?.error === "REPROCESS_ALREADY_IN_PROGRESS") {
+          toast.info("Este registro já está sendo processado.");
+          return;
+        }
+        throw error || new Error(data?.error);
+      }
+      
+      toast.info("Trabalho de reprocessamento iniciado em segundo plano.");
+      // The polling or refetch will happen via react-query
+      setTimeout(() => refetchHealth(), 2000);
     } catch (error: any) {
       toast.error("Erro ao reprocessar: " + error.message);
     } finally {
