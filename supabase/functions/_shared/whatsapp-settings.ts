@@ -165,7 +165,7 @@ export async function sendMessage(
       response: data, 
       error: !response.ok ? (data.message || data.error || `HTTP ${response.status}`) : null 
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`[Z-API] Fatal error sending to ${phone}:`, error);
     return { success: false, error: error.message };
   }
