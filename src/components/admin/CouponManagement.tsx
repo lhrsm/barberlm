@@ -495,34 +495,34 @@ export function CouponManagement() {
                         {coupon.active ? "Ativo" : "Inativo"}
                       </Badge>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-9 w-9 p-0 rounded-lg text-slate-400 hover:bg-slate-800"
+                        className="h-11 w-11 p-0 rounded-xl bg-[#05070d] border border-[#1f2937] text-[#ea580c]"
                         onClick={() => handleEdit(coupon)}
                       >
-                        <Pencil size={14} />
+                        <Pencil size={18} />
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-9 w-9 p-0 rounded-lg text-slate-400 hover:bg-slate-800"
+                        className="h-11 w-11 p-0 rounded-xl bg-[#05070d] border border-[#1f2937] text-white"
                         onClick={() => handleDuplicate(coupon)}
                       >
-                        <Copy size={14} />
+                        <Copy size={18} />
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-9 w-9 p-0 rounded-lg text-red-400 hover:bg-red-500/10"
+                        className="h-11 w-11 p-0 rounded-xl bg-[#05070d] border border-rose-500/20 text-rose-500 hover:bg-rose-500/10"
                         onClick={() => {
                           if (confirm("Deseja realmente excluir este cupom?")) {
                             deleteCouponMutation.mutate(coupon.id);
                           }
                         }}
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={18} />
                       </Button>
                     </div>
                   </div>
