@@ -16,11 +16,24 @@ import {
   Calendar as CalendarIcon,
   Filter,
   ExternalLink,
-  Activity
+  Activity,
+  ChevronRight,
+  Download,
+  FileSpreadsheet,
+  X,
+  Info
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
