@@ -298,13 +298,13 @@ function AutomationsComponent() {
           // Convert back to UTC for comparison if needed, but Supabase handles ISO strings
           // A safer way for "Today" in SP:
           const todaySP = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }); // YYYY-MM-DD
-          query = query.gte("created_at", `${todaySP}T00:00:00Z`);
+          query = query.gte("sent_at", `${todaySP}T00:00:00Z`);
         } else if (filterPeriod === "7days") {
-          startDate.setDate(now.getDate() - 7);
-          query = query.gte("created_at", startDate.toISOString());
-        } else if (filterPeriod === "30days") {
-          startDate.setDate(now.getDate() - 30);
-          query = query.gte("created_at", startDate.toISOString());
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+          query = query.gte("sent_at", sevenDaysAgo.toISOString());
+        } else if (filterPeriod === "all") {
+          // No filter needed for 'all'
         }
       }
 
