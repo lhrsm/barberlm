@@ -224,16 +224,24 @@ serve(async (req) => {
       }
       
       // 1. Atualizar agendamento
-      const { error: apptUpdateErr } = await supabase
+      console.log(`[WebhookV2] Attempting to update appointment ${appointmentId} to confirmed`);
+      const { data: updateData, error: apptUpdateErr, count: rowsUpdated } = await supabase
         .from("appointments")
         .update({ 
           status: "confirmed", 
           confirmed_at: new Date().toISOString() 
         })
-        .eq("id", appointmentId);
+        .eq("id", appointmentId)
+        .select();
+      
+      const updateSuccess = !apptUpdateErr && updateData && updateData.length > 0;
       
       if (apptUpdateErr) {
         console.error("STAGE 5 FAIL: Error updating appointment status:", apptUpdateErr);
+      } else if (!updateSuccess) {
+        console.error(`STAGE 5 FAIL: No rows updated for appointment ${appointmentId}. Check if ID exists and RLS allows update.`);
+      } else {
+        console.log(`STAGE 5 SUCCESS: Appointment ${appointmentId} confirmed. Rows updated: ${updateData.length}`);
       }
 
       // 2. Atualizar conversa/sessão
@@ -247,13 +255,23 @@ serve(async (req) => {
       }
 
       // 3. Atualizar dispatch (Fluxo da Automação)
-      if (updatedDispatch) {
-        await supabase.from("automation_v2_dispatches").update({
+      if (updatedDispatch && updateSuccess) {
+        console.log(`[WebhookV2] Finalizing dispatch ${updatedDispatch.id}`);
+        const { error: dispatchErr } = await supabase.from("automation_v2_dispatches").update({
           current_step: "FINALIZADO",
           action_executed: true,
           action_executed_at: new Date().toISOString(),
           finalized: true,
           finalized_at: new Date().toISOString()
+        }).eq("id", updatedDispatch.id);
+        
+        if (dispatchErr) {
+          console.error("STAGE 5 FAIL: Error finalizing dispatch:", dispatchErr);
+        }
+      } else if (updatedDispatch) {
+        console.warn(`[WebhookV2] Dispatch ${updatedDispatch.id} NOT finalized because appointment update failed or rows_updated was 0.`);
+        await supabase.from("automation_v2_dispatches").update({
+          error_message: "Falha ao confirmar agendamento: rows_updated = 0 ou erro RLS"
         }).eq("id", updatedDispatch.id);
       }
 
@@ -263,7 +281,7 @@ serve(async (req) => {
         appointment_id: appointmentId,
         phone: phone,
         action: "confirm_single_appointment",
-        status: "success",
+        status: updateSuccess ? "success" : "error",
         payload: {
           callback_received: true,
           button_id: buttonId || normalizedText,
@@ -271,26 +289,30 @@ serve(async (req) => {
           dispatch_id: updatedDispatch?.id,
           appointment_id: appointmentId,
           appointment_status_before: statusBefore,
-          appointment_status_after: "confirmed",
-          action_executed: true,
-          session_closed: !!selectedConversation,
-          flow_finalized: !!updatedDispatch
+          appointment_status_after: updateSuccess ? "confirmed" : statusBefore,
+          rows_updated: updateData?.length || 0,
+          action_executed: updateSuccess,
+          error: apptUpdateErr || (updateSuccess ? null : "No rows updated (RLS or missing ID)"),
+          session_closed: !!selectedConversation && updateSuccess,
+          flow_finalized: !!updatedDispatch && updateSuccess
         }
       });
 
       // STAGE 6: Resposta ao cliente
-      let businessName = "Barbearia";
-      const { data: tenant } = await supabase.from("barbershops").select("name").eq("id", tenantId).maybeSingle();
-      if (tenant?.name) businessName = tenant.name;
+      if (updateSuccess) {
+        let businessName = "Barbearia";
+        const { data: tenant } = await supabase.from("barbershops").select("name").eq("id", tenantId).maybeSingle();
+        if (tenant?.name) businessName = tenant.name;
 
-      if (appt) {
-        const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n💈 ${appt.barber?.name || "Profissional"}\n✂️ ${appt.service?.name || "Serviço"}`;
+        if (appt) {
+          const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n💈 ${appt.barber?.name || "Profissional"}\n✂️ ${appt.service?.name || "Serviço"}`;
 
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
         if (instance) {
           console.log("STAGE 6: Enviando confirmação via WhatsApp");
           await sendMessage(instance, phone, successMsg);
           await supabase.from("automation_webhook_logs").update({ response_sent: true }).eq("id", webhookLog.id);
+        }
         }
       }
     } else {
