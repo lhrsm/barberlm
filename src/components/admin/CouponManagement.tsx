@@ -72,7 +72,7 @@ export function CouponManagement() {
   
   const initialCouponState = {
     code: "",
-    type: "fixed" as const,
+    type: "fixed" as "fixed" | "percentage",
     value: 0,
     minimum_amount: 0,
     max_discount: undefined as number | undefined,
@@ -252,7 +252,7 @@ export function CouponManagement() {
               <div className="grid gap-2">
                 <Label className="text-slate-400">Tipo</Label>
                 <Select 
-                  value={couponForm.type as string} 
+                  value={couponForm.type} 
                   onValueChange={v => setCouponForm({...couponForm, type: v as any})}
                 >
                   <SelectTrigger className="bg-[#2a2b2e] border-slate-700 text-white">
