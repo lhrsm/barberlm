@@ -33,7 +33,8 @@ import {
   Check,
   ExternalLink,
   UserRound,
-  History
+  History,
+  Info
 } from "lucide-react";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
 import { CouponManagement } from "@/components/admin/CouponManagement";
