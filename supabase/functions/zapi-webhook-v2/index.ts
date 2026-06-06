@@ -224,16 +224,24 @@ serve(async (req) => {
       }
       
       // 1. Atualizar agendamento
-      const { error: apptUpdateErr } = await supabase
+      console.log(`[WebhookV2] Attempting to update appointment ${appointmentId} to confirmed`);
+      const { data: updateData, error: apptUpdateErr, count: rowsUpdated } = await supabase
         .from("appointments")
         .update({ 
           status: "confirmed", 
           confirmed_at: new Date().toISOString() 
         })
-        .eq("id", appointmentId);
+        .eq("id", appointmentId)
+        .select();
+      
+      const updateSuccess = !apptUpdateErr && updateData && updateData.length > 0;
       
       if (apptUpdateErr) {
         console.error("STAGE 5 FAIL: Error updating appointment status:", apptUpdateErr);
+      } else if (!updateSuccess) {
+        console.error(`STAGE 5 FAIL: No rows updated for appointment ${appointmentId}. Check if ID exists and RLS allows update.`);
+      } else {
+        console.log(`STAGE 5 SUCCESS: Appointment ${appointmentId} confirmed. Rows updated: ${updateData.length}`);
       }
 
       // 2. Atualizar conversa/sessão
