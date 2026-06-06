@@ -375,17 +375,17 @@ function ProfessionalDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="history" className="mt-0 space-y-4">
-            <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+          <TabsContent value="history" className="mt-8 space-y-6">
+            <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
               <CardHeader className="border-b border-[#D4AF37]/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <CardTitle className="text-xl font-bold text-[#111827]">Histórico de Atendimentos</CardTitle>
-                  <CardDescription className="text-[#6B7280] font-medium">Lista completa dos seus serviços prestados.</CardDescription>
+                  <CardTitle className="text-xl font-black text-white">Histórico de Atendimentos</CardTitle>
+                  <CardDescription className="text-gray-400 font-medium">Lista completa dos seus serviços prestados.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="bg-[#111111] text-white border-[#D4AF37] rounded-[8px] h-9 px-4 font-bold transition-all hover:scale-[1.02]">Tudo</Button>
-                  <Button variant="outline" size="sm" className="bg-white text-black border-[#D4AF37]/30 rounded-[8px] h-9 px-4 font-bold hover:bg-[#D4AF37]/5 transition-all">Este Mês</Button>
-                  <Button variant="outline" size="sm" className="bg-white text-black border-[#D4AF37]/30 rounded-[8px] h-9 px-4 font-bold hover:bg-[#D4AF37]/5 transition-all">
+                  <Button variant="outline" size="sm" className="bg-[#D4AF37] text-black border-0 rounded-lg h-9 px-4 font-black text-[10px] uppercase">Tudo</Button>
+                  <Button variant="outline" size="sm" className="bg-transparent text-white border-[#D4AF37]/30 rounded-lg h-9 px-4 font-black text-[10px] uppercase hover:bg-[#D4AF37]/5 transition-all">Este Mês</Button>
+                  <Button variant="outline" size="sm" className="bg-transparent text-white border-[#D4AF37]/30 rounded-lg h-9 px-4 font-black text-[10px] uppercase hover:bg-[#D4AF37]/5 transition-all">
                     <Filter className="h-4 w-4 mr-2 text-[#D4AF37]" /> Filtros
                   </Button>
                 </div>
@@ -393,30 +393,27 @@ function ProfessionalDashboard() {
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gray-50/50 border-b border-[#D4AF37]/10">
+                    <thead className="bg-[#05070d] border-b border-[#D4AF37]/10">
                       <tr>
-                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Data</th>
-                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Cliente</th>
-                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Serviço</th>
-                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Valor</th>
-                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Data</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Cliente</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Serviço</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Valor</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#D4AF37]/5 bg-white">
+                    <tbody className="divide-y divide-[#D4AF37]/5 bg-[#0b0f17]">
                       {appointments.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-6 py-12 text-center text-[#6B7280] italic font-medium">Nenhum atendimento registrado.</td>
+                          <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic font-medium">Nenhum atendimento registrado.</td>
                         </tr>
                       ) : (
                         appointments.slice(0, 10).map((app, index) => (
-                          <tr key={app.id} className={cn(
-                            "transition-colors hover:bg-[#D4AF37]/5",
-                            index % 2 === 1 ? "bg-gray-50/30" : "bg-white"
-                          )}>
+                          <tr key={app.id} className="transition-colors hover:bg-[#D4AF37]/5">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center gap-3">
                                 <Calendar className="h-4 w-4 text-[#D4AF37]" />
-                                <span className="text-sm font-bold text-[#111827]">{format(new Date(app.start_time), "dd/MM/yyyy")}</span>
+                                <span className="text-sm font-bold text-white">{format(new Date(app.start_time), "dd/MM/yyyy")}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -425,21 +422,21 @@ function ProfessionalDashboard() {
                                   <AvatarImage src={app.customers?.avatar_url} />
                                   <AvatarFallback className="text-[10px] bg-[#D4AF37]/5 text-[#D4AF37] font-bold">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                                 </Avatar>
-                                <span className="text-sm font-bold text-[#111827]">{app.customers?.name || "Cliente"}</span>
+                                <span className="text-sm font-bold text-white">{app.customers?.name || "Cliente"}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm text-[#6B7280] font-medium">{app.services?.name}</span>
+                              <span className="text-sm text-gray-400 font-medium">{app.services?.name}</span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm font-black text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
+                              <span className="text-sm font-black text-white">R$ {Number(app.total_price || 0).toFixed(2)}</span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <Badge className={cn(
-                                "text-[10px] font-black px-2 py-0.5 rounded-[6px]",
-                                app.status === 'completed' ? "bg-green-100 text-green-700" :
-                                app.status === 'cancelled' ? "bg-red-100 text-red-700" :
-                                "bg-blue-100 text-blue-700"
+                                "text-[9px] font-black px-2 py-0.5 rounded-md uppercase border-0",
+                                app.status === 'completed' ? "bg-green-600/20 text-green-500" :
+                                app.status === 'cancelled' ? "bg-red-600/20 text-red-500" :
+                                "bg-blue-600/20 text-blue-500"
                               )}>
                                 {app.status === 'completed' ? 'CONCLUÍDO' : 
                                  app.status === 'cancelled' ? 'CANCELADO' : 'AGENDADO'}
@@ -452,11 +449,11 @@ function ProfessionalDashboard() {
                   </table>
                 </div>
                 {appointments.length > 0 && (
-                  <div className="bg-gray-50/50 p-4 border-t border-[#D4AF37]/10 flex items-center justify-between">
-                    <p className="text-xs text-[#6B7280] font-bold">Mostrando 1-10 de {appointments.length} atendimentos</p>
+                  <div className="bg-[#05070d]/50 p-4 border-t border-[#D4AF37]/10 flex items-center justify-between">
+                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-wider">Mostrando 1-10 de {appointments.length} atendimentos</p>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[8px] border-[#D4AF37] text-[#D4AF37] bg-white hover:bg-[#D4AF37]/5"><ChevronLeft size={18} /></Button>
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[8px] border-[#D4AF37] text-[#D4AF37] bg-white hover:bg-[#D4AF37]/5"><ChevronRight size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-[#D4AF37]/20 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10"><ChevronLeft size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-[#D4AF37]/20 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10"><ChevronRight size={18} /></Button>
                     </div>
                   </div>
                 )}
