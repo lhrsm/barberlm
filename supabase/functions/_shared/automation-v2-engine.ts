@@ -119,6 +119,8 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
 
   if (dispatchError) {
     console.error(`[AutomationV2] CRITICAL: Dispatch creation failed:`, dispatchError);
+    
+    // Log critical error
     await supabase.from("automation_v2_logs").insert({
       tenant_id,
       appointment_id,
@@ -126,7 +128,17 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
       message: 'WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED',
       context: { error: dispatchError, provider_message_id: providerMessageId }
     });
-    // We don't throw here as the message was already sent, but we return the error
+
+    // Mark automation as not healthy for this tenant
+    try {
+      await supabase.from("automation_templates")
+        .update({ is_healthy: false, last_error: 'WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED' })
+        .eq("tenant_id", tenant_id)
+        .eq("key", workflow_key);
+    } catch (e) {
+      console.error("[AutomationV2] Error updating health status:", e);
+    }
+
     return { 
       success: true, 
       warning: "WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED", 

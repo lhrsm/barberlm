@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
+import { sendAutomationMessageV2 } from "../_shared/automation-v2-engine.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -124,17 +125,16 @@ serve(async (req) => {
       if (profile?.whatsapp_enabled && note.target === "customer" && note.phone) {
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
         if (instance?.connected) {
-          const baseUrl = instance.server_url || "https://api.z-api.io";
-          const url = `${baseUrl}/instances/${instance.instance_id}/token/${instance.token}/send-text`;
-          
-          let targetPhone = note.phone.replace(/\D/g, "");
-          if (targetPhone.length === 10 || targetPhone.length === 11) targetPhone = "55" + targetPhone;
-
-          const msgBody = { phone: targetPhone, message: note.message };
-          const headers: any = { "Content-Type": "application/json" };
-          if (instance.client_token) headers["Client-Token"] = instance.client_token;
-          
-          await fetch(url, { method: "POST", headers, body: JSON.stringify(msgBody) });
+          await sendAutomationMessageV2(supabase, {
+            tenant_id: tenantId,
+            workflow_key: type, // appointment_cancelled or appointment_rescheduled
+            customer_phone: note.phone,
+            appointment_id: appointmentId,
+            customer_id: customer?.id,
+            customer_name: customer?.name,
+            message: note.message,
+            instance: instance
+          });
         }
       }
     }
