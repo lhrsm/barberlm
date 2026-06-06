@@ -10,7 +10,11 @@ import {
   XCircle,
   Tag,
   Hash,
-  AlertCircle
+  AlertCircle,
+  Pencil,
+  Copy,
+  Save,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,20 +47,41 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Card, CardContent } from "@/components/ui/card";
+
+interface Coupon {
+  id: string;
+  tenant_id: string;
+  code: string;
+  type: 'fixed' | 'percentage';
+  value: number;
+  minimum_amount: number | null;
+  max_discount: number | null;
+  usage_limit: number | null;
+  used_count: number;
+  starts_at: string;
+  expires_at: string | null;
+  active: boolean;
+  created_at: string;
+}
 
 export function CouponManagement() {
   const queryClient = useQueryClient();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newCoupon, setNewCoupon] = useState({
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState<Partial<Coupon> | null>(null);
+  
+  const initialCouponState = {
     code: "",
-    type: "fixed",
+    type: "fixed" as const,
     value: 0,
     minimum_amount: 0,
     max_discount: undefined as number | undefined,
     usage_limit: undefined as number | undefined,
     expires_at: "",
     active: true
-  });
+  };
+
+  const [couponForm, setCouponForm] = useState(initialCouponState);
 
   const { data: coupons, isLoading } = useQuery({
     queryKey: ["coupons"],
@@ -71,48 +96,53 @@ export function CouponManagement() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as Coupon[];
     }
   });
 
-  const createCouponMutation = useMutation({
-    mutationFn: async (coupon: typeof newCoupon) => {
+  const saveCouponMutation = useMutation({
+    mutationFn: async (data: typeof couponForm & { id?: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Não autenticado");
 
-      const { error } = await supabase
-        .from("coupons")
-        .insert([{
-          tenant_id: user.id,
-          code: coupon.code.toUpperCase().trim(),
-          type: coupon.type,
-          value: coupon.value,
-          minimum_amount: coupon.minimum_amount,
-          max_discount: coupon.max_discount,
-          usage_limit: coupon.usage_limit,
-          expires_at: coupon.expires_at || null,
-          active: coupon.active
-        }]);
+      const payload = {
+        tenant_id: user.id,
+        code: data.code.toUpperCase().trim(),
+        type: data.type,
+        value: data.value,
+        minimum_amount: data.minimum_amount || 0,
+        max_discount: data.max_discount || null,
+        usage_limit: data.usage_limit || null,
+        expires_at: data.expires_at || null,
+        active: data.active
+      };
 
-      if (error) throw error;
+      if (data.id) {
+        const { error } = await supabase
+          .from("coupons")
+          .update(payload)
+          .eq("id", data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("coupons")
+          .insert([payload]);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coupons"] });
-      setIsAddDialogOpen(false);
-      setNewCoupon({
-        code: "",
-        type: "fixed",
-        value: 0,
-        minimum_amount: 0,
-        max_discount: undefined,
-        usage_limit: undefined,
-        expires_at: "",
-        active: true
-      });
-      toast.success("Cupom criado com sucesso!");
+      setIsDialogOpen(false);
+      setEditingCoupon(null);
+      setCouponForm(initialCouponState);
+      toast.success(editingCoupon ? "Cupom atualizado!" : "Cupom criado!");
     },
     onError: (error: any) => {
-      toast.error("Erro ao criar cupom: " + error.message);
+      if (error.code === '23505') {
+        toast.error("Este código de cupom já existe!");
+      } else {
+        toast.error("Erro ao salvar cupom: " + error.message);
+      }
     }
   });
 
@@ -126,7 +156,7 @@ export function CouponManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coupons"] });
-      toast.success("Status do cupom atualizado!");
+      toast.success("Status atualizado!");
     }
   });
 
@@ -144,263 +174,361 @@ export function CouponManagement() {
     }
   });
 
-  if (isLoading) return <div className="p-8 text-center">Carregando cupons...</div>;
+  const handleEdit = (coupon: Coupon) => {
+    setEditingCoupon(coupon);
+    setCouponForm({
+      code: coupon.code,
+      type: coupon.type,
+      value: coupon.value,
+      minimum_amount: coupon.minimum_amount || 0,
+      max_discount: coupon.max_discount || undefined,
+      usage_limit: coupon.usage_limit || undefined,
+      expires_at: coupon.expires_at ? coupon.expires_at.split('T')[0] : "",
+      active: coupon.active
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDuplicate = (coupon: Coupon) => {
+    setEditingCoupon(null);
+    setCouponForm({
+      code: `${coupon.code}-COPIA`,
+      type: coupon.type,
+      value: coupon.value,
+      minimum_amount: coupon.minimum_amount || 0,
+      max_discount: coupon.max_discount || undefined,
+      usage_limit: coupon.usage_limit || undefined,
+      expires_at: coupon.expires_at ? coupon.expires_at.split('T')[0] : "",
+      active: false
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleOpenNew = () => {
+    setEditingCoupon(null);
+    setCouponForm(initialCouponState);
+    setIsDialogOpen(true);
+  };
+
+  if (isLoading) return <div className="p-8 text-center text-slate-400">Carregando cupons...</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <TicketPercent className="text-primary h-6 w-6" />
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-[#ea580c]/10 rounded-lg">
+            <TicketPercent className="text-[#ea580c] h-6 w-6" />
+          </div>
           <div>
-            <h2 className="text-xl font-bold">Cupons de Desconto</h2>
-            <p className="text-sm text-muted-foreground">Gerencie suas promoções e descontos.</p>
+            <h2 className="text-xl font-bold text-white">Cupons de Desconto</h2>
+            <p className="text-sm text-slate-400">Gerencie suas promoções e fidelize clientes.</p>
           </div>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus size={18} /> Novo Cupom
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Criar Novo Cupom</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
+        <Button onClick={handleOpenNew} className="gap-2 bg-[#ea580c] hover:bg-[#ea580c]/90 text-white border-none">
+          <Plus size={18} /> Novo Cupom
+        </Button>
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-[#1a1b1e] border-slate-800 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              {editingCoupon ? <Pencil size={18} /> : <Plus size={18} />}
+              {editingCoupon ? "Editar Cupom" : "Novo Cupom"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="code" className="text-slate-400">Código do Cupom</Label>
+              <Input 
+                id="code" 
+                placeholder="EX: VERÃO20" 
+                value={couponForm.code}
+                onChange={e => setCouponForm({...couponForm, code: e.target.value.toUpperCase()})}
+                className="bg-[#2a2b2e] border-slate-700 text-white placeholder:text-slate-600 focus:ring-[#ea580c]"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="code">Código do Cupom</Label>
-                <Input 
-                  id="code" 
-                  placeholder="EX: VERÃO20" 
-                  value={newCoupon.code}
-                  onChange={e => setNewCoupon({...newCoupon, code: e.target.value})}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label>Tipo</Label>
-                  <Select 
-                    value={newCoupon.type} 
-                    onValueChange={v => setNewCoupon({...newCoupon, type: v as any})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
-                      <SelectItem value="percentage">Percentual (%)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label>Valor do Desconto</Label>
-                  <Input 
-                    type="number" 
-                    value={newCoupon.value}
-                    onChange={e => setNewCoupon({...newCoupon, value: Number(e.target.value)})}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label>Pedido Mínimo (R$)</Label>
-                  <Input 
-                    type="number" 
-                    value={newCoupon.minimum_amount}
-                    onChange={e => setNewCoupon({...newCoupon, minimum_amount: Number(e.target.value)})}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Limite de Uso (Total)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="Opcional"
-                    value={newCoupon.usage_limit || ""}
-                    onChange={e => setNewCoupon({...newCoupon, usage_limit: e.target.value ? Number(e.target.value) : undefined})}
-                  />
-                </div>
+                <Label className="text-slate-400">Tipo</Label>
+                <Select 
+                  value={couponForm.type} 
+                  onValueChange={v => setCouponForm({...couponForm, type: v as any})}
+                >
+                  <SelectTrigger className="bg-[#2a2b2e] border-slate-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1b1e] border-slate-800 text-white">
+                    <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                    <SelectItem value="percentage">Percentual (%)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
-                <Label>Data de Expiração</Label>
+                <Label className="text-slate-400">Valor do Desconto</Label>
                 <Input 
-                  type="date" 
-                  value={newCoupon.expires_at}
-                  onChange={e => setNewCoupon({...newCoupon, expires_at: e.target.value})}
+                  type="number" 
+                  value={couponForm.value}
+                  onChange={e => setCouponForm({...couponForm, value: Number(e.target.value)})}
+                  className="bg-[#2a2b2e] border-slate-700 text-white focus:ring-[#ea580c]"
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsAddDialogOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={() => createCouponMutation.mutate(newCoupon)}
-                disabled={!newCoupon.code || newCoupon.value <= 0}
-              >
-                Criar Cupom
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label className="text-slate-400">Pedido Mínimo (R$)</Label>
+                <Input 
+                  type="number" 
+                  value={couponForm.minimum_amount}
+                  onChange={e => setCouponForm({...couponForm, minimum_amount: Number(e.target.value)})}
+                  className="bg-[#2a2b2e] border-slate-700 text-white focus:ring-[#ea580c]"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-slate-400">Limite de Uso</Label>
+                <Input 
+                  type="number" 
+                  placeholder="∞"
+                  value={couponForm.usage_limit || ""}
+                  onChange={e => setCouponForm({...couponForm, usage_limit: e.target.value ? Number(e.target.value) : undefined})}
+                  className="bg-[#2a2b2e] border-slate-700 text-white focus:ring-[#ea580c]"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label className="text-slate-400">Data de Expiração</Label>
+                <Input 
+                  type="date" 
+                  value={couponForm.expires_at}
+                  onChange={e => setCouponForm({...couponForm, expires_at: e.target.value})}
+                  className="bg-[#2a2b2e] border-slate-700 text-white focus:ring-[#ea580c] [color-scheme:dark]"
+                />
+              </div>
+              <div className="flex items-center justify-between pt-8">
+                <Label className="text-slate-400">Ativo</Label>
+                <Switch 
+                  checked={couponForm.active}
+                  onCheckedChange={v => setCouponForm({...couponForm, active: v})}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDialogOpen(false)}
+              className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => saveCouponMutation.mutate({ ...couponForm, id: editingCoupon?.id })}
+              disabled={saveCouponMutation.isPending || !couponForm.code || couponForm.value <= 0}
+              className="bg-[#ea580c] hover:bg-[#ea580c]/90 text-white"
+            >
+              {saveCouponMutation.isPending ? "Salvando..." : (editingCoupon ? "Salvar Alterações" : "Criar Cupom")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <div className="border-2 border-slate-200 rounded-xl bg-white text-black overflow-hidden shadow-sm">
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Código</TableHead>
-                <TableHead>Desconto</TableHead>
-                <TableHead>Uso / Limite</TableHead>
-                <TableHead>Validade</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+      <Card className="bg-[#1a1b1e] border-slate-800 shadow-xl overflow-hidden">
+        <CardContent className="p-0">
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader className="bg-[#2a2b2e]/50 border-slate-800">
+                <TableRow className="border-slate-800 hover:bg-transparent">
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Código</TableHead>
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Desconto</TableHead>
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Uso / Limite</TableHead>
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Validade</TableHead>
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Status</TableHead>
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {coupons?.length === 0 ? (
+                  <TableRow className="border-none hover:bg-transparent">
+                    <TableCell colSpan={6} className="text-center py-12 text-slate-500 italic">
+                      Nenhum cupom encontrado.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  coupons?.map((coupon) => (
+                    <TableRow key={coupon.id} className="border-slate-800 hover:bg-[#2a2b2e]/30 transition-colors">
+                      <TableCell className="font-bold">
+                        <div className="flex items-center gap-2 text-white">
+                          <div className="p-1.5 bg-slate-800 rounded">
+                            <Tag size={12} className="text-[#ea580c]" />
+                          </div>
+                          {coupon.code}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-emerald-500 font-bold italic">
+                          {coupon.type === 'fixed' ? `R$ ${coupon.value}` : `${coupon.value}%`}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 text-slate-300 text-sm">
+                          <Hash size={12} className="text-slate-500" />
+                          <span className="font-mono">{coupon.used_count || 0}</span>
+                          <span className="text-slate-600">/</span>
+                          <span className="text-slate-400">{coupon.usage_limit || "∞"}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+                          <Calendar size={12} />
+                          {coupon.expires_at ? format(new Date(coupon.expires_at), "dd/MM/yyyy") : "Sem expiração"}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Switch 
+                            checked={!!coupon.active} 
+                            onCheckedChange={(v) => toggleCouponMutation.mutate({ id: coupon.id, active: v })}
+                            className="data-[state=checked]:bg-emerald-500"
+                          />
+                          <Badge className={coupon.active ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-slate-800 text-slate-500 border-slate-700"}>
+                            {coupon.active ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                            onClick={() => handleEdit(coupon)}
+                            title="Editar"
+                          >
+                            <Pencil size={14} />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                            onClick={() => handleDuplicate(coupon)}
+                            title="Duplicar"
+                          >
+                            <Copy size={14} />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                            onClick={() => {
+                              if (confirm("Deseja realmente excluir este cupom?")) {
+                                deleteCouponMutation.mutate(coupon.id);
+                              }
+                            }}
+                            title="Excluir"
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="md:hidden divide-y divide-slate-800">
             {coupons?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground italic">
-                  Nenhum cupom cadastrado.
-                </TableCell>
-              </TableRow>
+              <div className="p-12 text-center text-slate-500 italic">
+                Nenhum cupom encontrado.
+              </div>
             ) : (
               coupons?.map((coupon) => (
-                <TableRow key={coupon.id}>
-                  <TableCell className="font-bold">
-                    <div className="flex items-center gap-2">
-                      <Tag size={14} className="text-primary" />
-                      {coupon.code}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {coupon.type === 'fixed' ? `R$ ${coupon.value}` : `${coupon.value}%`}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1 text-xs">
-                        <Hash size={12} /> {coupon.used_count || 0} / {coupon.usage_limit || "∞"}
+                <div key={coupon.id} className="p-4 space-y-4 hover:bg-[#2a2b2e]/20 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-slate-800 rounded-lg">
+                        <Tag size={16} className="text-[#ea580c]" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Código</p>
+                        <span className="text-base font-black text-white">{coupon.code}</span>
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    {coupon.expires_at ? (
-                      <div className="flex items-center gap-1 text-xs">
-                        <Calendar size={12} />
-                        {format(new Date(coupon.expires_at), "dd/MM/yyyy")}
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Desconto</p>
+                      <span className="text-lg font-black text-emerald-500 italic">
+                        {coupon.type === 'fixed' ? `R$ ${coupon.value}` : `${coupon.value}%`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-[#2a2b2e]/50 p-3 rounded-xl border border-slate-800/50">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Uso / Limite</p>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                        <Hash size={12} className="text-[#ea580c]" />
+                        {coupon.used_count || 0} / {coupon.usage_limit || "∞"}
                       </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Sem expiração</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
+                    </div>
+                    <div className="bg-[#2a2b2e]/50 p-3 rounded-xl border border-slate-800/50">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Validade</p>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                        <Calendar size={12} className="text-[#ea580c]" />
+                        {coupon.expires_at ? format(new Date(coupon.expires_at), "dd/MM/yyyy") : "Sem expiração"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center gap-3">
                       <Switch 
                         checked={!!coupon.active} 
                         onCheckedChange={(v) => toggleCouponMutation.mutate({ id: coupon.id, active: v })}
+                        className="data-[state=checked]:bg-emerald-500"
                       />
-                      <Badge variant={coupon.active ? "default" : "secondary"}>
+                      <Badge className={coupon.active ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-slate-800 text-slate-500 border-slate-700"}>
                         {coupon.active ? "Ativo" : "Inativo"}
                       </Badge>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                      onClick={() => {
-                        if (confirm("Deseja realmente excluir este cupom?")) {
-                          deleteCouponMutation.mutate(coupon.id);
-                        }
-                      }}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-9 w-9 p-0 rounded-lg text-slate-400 hover:bg-slate-800"
+                        onClick={() => handleEdit(coupon)}
+                      >
+                        <Pencil size={14} />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-9 w-9 p-0 rounded-lg text-slate-400 hover:bg-slate-800"
+                        onClick={() => handleDuplicate(coupon)}
+                      >
+                        <Copy size={14} />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-9 w-9 p-0 rounded-lg text-red-400 hover:bg-red-500/10"
+                        onClick={() => {
+                          if (confirm("Deseja realmente excluir este cupom?")) {
+                            deleteCouponMutation.mutate(coupon.id);
+                          }
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               ))
             )}
-          </TableBody>
-        </Table>
-        </div>
-
-        {/* Mobile Cards */}
-        <div className="md:hidden divide-y divide-slate-100">
-          {coupons?.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground italic">
-              Nenhum cupom cadastrado.
-            </div>
-          ) : (
-            coupons?.map((coupon) => (
-              <div key={coupon.id} className="p-4 space-y-4 hover:bg-slate-50 transition-colors">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <Tag size={16} className="text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-slate-400">Código</p>
-                      <span className="text-base font-black text-slate-900">{coupon.code}</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] uppercase font-bold text-slate-400">Desconto</p>
-                    <span className="text-lg font-black text-emerald-600 italic">
-                      {coupon.type === 'fixed' ? `R$ ${coupon.value}` : `${coupon.value}%`}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Uso / Limite</p>
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                      <Hash size={12} className="text-slate-400" />
-                      {coupon.used_count || 0} / {coupon.usage_limit || "∞"}
-                    </div>
-                  </div>
-                  <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Validade</p>
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                      <Calendar size={12} className="text-slate-400" />
-                      {coupon.expires_at ? format(new Date(coupon.expires_at), "dd/MM/yyyy") : "Sem expiração"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2">
-                    <Switch 
-                      checked={!!coupon.active} 
-                      onCheckedChange={(v) => toggleCouponMutation.mutate({ id: coupon.id, active: v })}
-                    />
-                    <Badge variant={coupon.active ? "default" : "secondary"} className="text-[10px] font-black uppercase italic">
-                      {coupon.active ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-9 w-9 p-0 rounded-xl text-red-500 hover:bg-red-50"
-                    onClick={() => {
-                      if (confirm("Deseja realmente excluir este cupom?")) {
-                        deleteCouponMutation.mutate(coupon.id);
-                      }
-                    }}
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
