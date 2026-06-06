@@ -281,7 +281,7 @@ serve(async (req) => {
         appointment_id: appointmentId,
         phone: phone,
         action: "confirm_single_appointment",
-        status: "success",
+        status: updateSuccess ? "success" : "error",
         payload: {
           callback_received: true,
           button_id: buttonId || normalizedText,
@@ -289,20 +289,23 @@ serve(async (req) => {
           dispatch_id: updatedDispatch?.id,
           appointment_id: appointmentId,
           appointment_status_before: statusBefore,
-          appointment_status_after: "confirmed",
-          action_executed: true,
-          session_closed: !!selectedConversation,
-          flow_finalized: !!updatedDispatch
+          appointment_status_after: updateSuccess ? "confirmed" : statusBefore,
+          rows_updated: updateData?.length || 0,
+          action_executed: updateSuccess,
+          error: apptUpdateErr || (updateSuccess ? null : "No rows updated (RLS or missing ID)"),
+          session_closed: !!selectedConversation && updateSuccess,
+          flow_finalized: !!updatedDispatch && updateSuccess
         }
       });
 
       // STAGE 6: Resposta ao cliente
-      let businessName = "Barbearia";
-      const { data: tenant } = await supabase.from("barbershops").select("name").eq("id", tenantId).maybeSingle();
-      if (tenant?.name) businessName = tenant.name;
+      if (updateSuccess) {
+        let businessName = "Barbearia";
+        const { data: tenant } = await supabase.from("barbershops").select("name").eq("id", tenantId).maybeSingle();
+        if (tenant?.name) businessName = tenant.name;
 
-      if (appt) {
-        const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n💈 ${appt.barber?.name || "Profissional"}\n✂️ ${appt.service?.name || "Serviço"}`;
+        if (appt) {
+          const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n💈 ${appt.barber?.name || "Profissional"}\n✂️ ${appt.service?.name || "Serviço"}`;
 
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
         if (instance) {
