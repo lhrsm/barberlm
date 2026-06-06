@@ -377,6 +377,19 @@ function AdminErrors() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
+                             <Button 
+                               variant="ghost" 
+                               size="icon" 
+                               className="h-8 w-8" 
+                               disabled={reprocessingId === item.automation_id}
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 handleReprocess(item);
+                               }}
+                               title="Reprocessar Agora"
+                             >
+                               <RefreshCw className={cn("h-4 w-4", reprocessingId === item.automation_id && "animate-spin text-primary")} />
+                             </Button>
                              <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Ver Logs" onClick={(e) => e.stopPropagation()}>
                                <a href={`/admin/logs?tenant=${item.tenant_id}`} target="_blank" rel="noreferrer">
                                  <Terminal className="h-4 w-4" />
