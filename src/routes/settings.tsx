@@ -301,28 +301,31 @@ function SettingsComponent() {
 
           <form onSubmit={handleSubmit}>
             <TabsContent value="profile" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Meu Perfil</CardTitle>
-                  <CardDescription>Gerencie suas informações pessoais e foto de perfil.</CardDescription>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <UserRound className="text-[#ea580c] h-5 w-5" />
+                    Meu Perfil
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Gerencie suas informações pessoais e foto de perfil premium.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="p-6 space-y-6">
                   <div className="flex flex-col items-center gap-6">
                     <div className="flex flex-col items-center gap-4 w-full">
-                      <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-lg">
+                      <div className="h-28 w-28 rounded-full bg-[#05070d] flex items-center justify-center overflow-hidden border-2 border-[#ea580c]/30 shadow-[0_0_20px_rgba(234,88,12,0.1)]">
                         {formData.logo_url ? (
                           <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
                         ) : (
-                          <UserRound className="h-12 w-12 text-muted-foreground/30" />
+                          <UserRound className="h-14 w-14 text-slate-700" />
                         )}
                       </div>
-                      <div className="w-full space-y-2 text-center">
-                        <Label htmlFor="profile_avatar" className="text-sm font-bold text-slate-500 uppercase tracking-widest">Foto de Perfil</Label>
+                      <div className="w-full max-w-sm space-y-2 text-center">
+                        <Label htmlFor="profile_avatar" className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Foto de Perfil</Label>
                         <Input 
                           id="profile_avatar" 
                           type="file" 
                           accept="image/*"
-                          className="h-12 rounded-[14px] cursor-pointer bg-slate-50/50"
+                          className="h-11 rounded-xl cursor-pointer bg-[#05070d] border-[#1f2937] text-white file:bg-[#ea580c] file:text-black file:font-bold file:border-none file:px-4 file:h-full file:mr-4 hover:border-[#ea580c]/50 transition-all"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file || !user) return;
@@ -341,7 +344,7 @@ function SettingsComponent() {
                               const { data: { publicUrl } } = supabase.storage
                                 .from('barber-avatars')
                                 .getPublicUrl(fileName);
-                                
+                              
                               setFormData({ ...formData, logo_url: publicUrl });
                               toast.success("Foto de perfil atualizada!");
                             } catch (error: any) {
@@ -355,19 +358,20 @@ function SettingsComponent() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                      <Label>E-mail (Login)</Label>
-                      <Input value={user?.email || ""} disabled className="bg-muted" />
-                      <p className="text-[10px] text-muted-foreground">O e-mail não pode ser alterado diretamente.</p>
+                      <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">E-mail (Login)</Label>
+                      <Input value={user?.email || ""} disabled className="bg-[#05070d]/50 border-[#1f2937] text-slate-500 cursor-not-allowed" />
+                      <p className="text-[10px] text-slate-600 font-medium italic">O e-mail não pode ser alterado diretamente.</p>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="profile_name">Nome para Exibição</Label>
+                      <Label htmlFor="profile_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome para Exibição</Label>
                       <Input 
                         id="profile_name" 
                         value={formData.business_name} 
                         onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
                         placeholder="Seu nome"
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl"
                       />
                     </div>
                   </div>
