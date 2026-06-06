@@ -214,7 +214,7 @@ export function CouponManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-[#ea580c]/10 rounded-lg">
             <TicketPercent className="text-[#ea580c] h-6 w-6" />
@@ -224,7 +224,7 @@ export function CouponManagement() {
             <p className="text-sm text-slate-400">Gerencie suas promoções e fidelize clientes.</p>
           </div>
         </div>
-        <Button onClick={handleOpenNew} className="gap-2 bg-[#ea580c] hover:bg-[#ea580c]/90 text-white border-none">
+        <Button onClick={handleOpenNew} size="sm" className="gap-2 bg-[#ea580c] hover:bg-[#ea580c]/90 text-white border-none h-10 px-4">
           <Plus size={18} /> Novo Cupom
         </Button>
       </div>
