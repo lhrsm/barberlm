@@ -215,26 +215,29 @@ export function CouponManagement() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#ea580c]/10 rounded-lg">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-[#ea580c]/10 rounded-2xl shadow-[0_0_15px_rgba(234,88,12,0.1)]">
             <TicketPercent className="text-[#ea580c] h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Cupons de Desconto</h2>
-            <p className="text-sm text-slate-400">Gerencie suas promoções e fidelize clientes.</p>
+            <h2 className="text-2xl font-black uppercase italic tracking-tight text-white">Cupons Premium</h2>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Gerencie promoções e fidelize com elegância.</p>
           </div>
         </div>
-        <Button onClick={handleOpenNew} size="sm" className="gap-2 bg-[#ea580c] hover:bg-[#ea580c]/90 text-white border-none h-10 px-4">
+        <Button 
+          onClick={handleOpenNew} 
+          className="gap-2 bg-[#ea580c] hover:bg-[#ea580c]/90 text-black font-black uppercase italic tracking-widest h-12 px-6 rounded-2xl shadow-[0_10px_20px_rgba(234,88,12,0.2)] hover:scale-105 transition-all"
+        >
           <Plus size={18} /> Novo Cupom
         </Button>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-[#1a1b1e] border-slate-800 text-white">
+        <DialogContent className="sm:max-w-[425px] bg-[#0b0f17] border-[#1f2937] text-white rounded-3xl shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              {editingCoupon ? <Pencil size={18} /> : <Plus size={18} />}
-              {editingCoupon ? "Editar Cupom" : "Novo Cupom"}
+            <DialogTitle className="text-xl font-black uppercase italic tracking-widest flex items-center gap-2">
+              {editingCoupon ? <Pencil size={18} className="text-[#ea580c]" /> : <Plus size={18} className="text-[#ea580c]" />}
+              {editingCoupon ? "Editar Cupom" : "Novo Cupom Premium"}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -314,37 +317,37 @@ export function CouponManagement() {
               </div>
             </div>
           </div>
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-2 border-t border-[#1f2937]/50 pt-4 mt-2">
             <Button 
               variant="outline" 
               onClick={() => setIsDialogOpen(false)}
-              className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
+              className="border-slate-800 text-slate-500 hover:bg-slate-800 hover:text-white rounded-xl h-12"
             >
               Cancelar
             </Button>
             <Button 
               onClick={() => saveCouponMutation.mutate({ ...couponForm, id: editingCoupon?.id })}
               disabled={saveCouponMutation.isPending || !couponForm.code || couponForm.value <= 0}
-              className="bg-[#ea580c] hover:bg-[#ea580c]/90 text-white"
+              className="bg-[#ea580c] hover:bg-[#ea580c]/90 text-black font-black uppercase tracking-widest h-12 rounded-xl flex-1"
             >
-              {saveCouponMutation.isPending ? "Salvando..." : (editingCoupon ? "Salvar Alterações" : "Criar Cupom")}
+              {saveCouponMutation.isPending ? "Salvando..." : (editingCoupon ? "Salvar Alterações" : "Criar Cupom Premium")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Card className="bg-[#1a1b1e] border-slate-800 shadow-xl overflow-hidden">
+      <Card className="bg-[#0b0f17] border border-[#1f2937] shadow-2xl overflow-hidden rounded-[20px]">
         <CardContent className="p-0">
           <div className="hidden md:block">
             <Table>
-              <TableHeader className="bg-[#2a2b2e]/50 border-slate-800">
-                <TableRow className="border-slate-800 hover:bg-transparent">
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Código</TableHead>
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Desconto</TableHead>
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Uso / Limite</TableHead>
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Validade</TableHead>
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Status</TableHead>
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider text-right">Ações</TableHead>
+              <TableHeader className="bg-[#05070d] border-b border-[#1f2937]">
+                <TableRow className="border-none hover:bg-transparent">
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12">Código</TableHead>
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12">Desconto</TableHead>
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12">Uso / Limite</TableHead>
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12">Validade</TableHead>
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12">Status</TableHead>
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -356,26 +359,26 @@ export function CouponManagement() {
                   </TableRow>
                 ) : (
                   coupons?.map((coupon) => (
-                    <TableRow key={coupon.id} className="border-slate-800 hover:bg-[#2a2b2e]/30 transition-colors">
+                    <TableRow key={coupon.id} className="border-b border-[#1f2937]/30 hover:bg-[#ea580c]/5 transition-colors group">
                       <TableCell className="font-bold">
-                        <div className="flex items-center gap-2 text-white">
-                          <div className="p-1.5 bg-slate-800 rounded">
-                            <Tag size={12} className="text-[#ea580c]" />
+                        <div className="flex items-center gap-3 text-white">
+                          <div className="p-2 bg-[#05070d] border border-[#1f2937] rounded-lg group-hover:border-[#ea580c]/30 transition-all">
+                            <Tag size={14} className="text-[#ea580c]" />
                           </div>
-                          {coupon.code}
+                          <span className="font-black italic tracking-tight">{coupon.code}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-emerald-500 font-bold italic">
+                        <span className="text-emerald-500 font-black italic text-base">
                           {coupon.type === 'fixed' ? `R$ ${coupon.value}` : `${coupon.value}%`}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1.5 text-slate-300 text-sm">
-                          <Hash size={12} className="text-slate-500" />
-                          <span className="font-mono">{coupon.used_count || 0}</span>
-                          <span className="text-slate-600">/</span>
-                          <span className="text-slate-400">{coupon.usage_limit || "∞"}</span>
+                        <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold uppercase">
+                          <Hash size={12} className="text-slate-700" />
+                          <span className="text-white">{coupon.used_count || 0}</span>
+                          <span className="text-slate-800">/</span>
+                          <span>{coupon.usage_limit || "∞"}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -397,29 +400,29 @@ export function CouponManagement() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-2 pr-2">
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                            className="h-9 w-9 text-slate-400 hover:text-[#ea580c] hover:bg-[#ea580c]/10 rounded-xl transition-all"
                             onClick={() => handleEdit(coupon)}
                             title="Editar"
                           >
-                            <Pencil size={14} />
+                            <Pencil size={16} />
                           </Button>
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                            className="h-9 w-9 text-slate-400 hover:text-white hover:bg-[#ea580c]/20 rounded-xl transition-all"
                             onClick={() => handleDuplicate(coupon)}
                             title="Duplicar"
                           >
-                            <Copy size={14} />
+                            <Copy size={16} />
                           </Button>
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                            className="h-9 w-9 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
                             onClick={() => {
                               if (confirm("Deseja realmente excluir este cupom?")) {
                                 deleteCouponMutation.mutate(coupon.id);
@@ -427,7 +430,7 @@ export function CouponManagement() {
                             }}
                             title="Excluir"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={16} />
                           </Button>
                         </div>
                       </TableCell>
@@ -438,14 +441,14 @@ export function CouponManagement() {
             </Table>
           </div>
 
-          <div className="md:hidden divide-y divide-slate-800">
+          <div className="md:hidden divide-y divide-[#1f2937]/50 bg-[#0b0f17]">
             {coupons?.length === 0 ? (
-              <div className="p-12 text-center text-slate-500 italic">
+              <div className="p-12 text-center text-slate-600 font-bold uppercase text-[10px] tracking-widest italic">
                 Nenhum cupom encontrado.
               </div>
             ) : (
               coupons?.map((coupon) => (
-                <div key={coupon.id} className="p-4 space-y-4 hover:bg-[#2a2b2e]/20 transition-colors">
+                <div key={coupon.id} className="p-6 space-y-6 hover:bg-[#ea580c]/5 transition-all">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-slate-800 rounded-lg">
@@ -464,19 +467,19 @@ export function CouponManagement() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-[#2a2b2e]/50 p-3 rounded-xl border border-slate-800/50">
-                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Uso / Limite</p>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-[#05070d] p-4 rounded-2xl border border-[#1f2937]/50 shadow-inner">
+                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Uso / Limite</p>
+                      <div className="flex items-center gap-2 text-xs font-black text-white italic">
                         <Hash size={12} className="text-[#ea580c]" />
-                        {coupon.used_count || 0} / {coupon.usage_limit || "∞"}
+                        {coupon.used_count || 0} <span className="text-slate-700">/</span> {coupon.usage_limit || "∞"}
                       </div>
                     </div>
-                    <div className="bg-[#2a2b2e]/50 p-3 rounded-xl border border-slate-800/50">
-                      <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Validade</p>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                    <div className="bg-[#05070d] p-4 rounded-2xl border border-[#1f2937]/50 shadow-inner">
+                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Expiração</p>
+                      <div className="flex items-center gap-2 text-xs font-black text-white italic">
                         <Calendar size={12} className="text-[#ea580c]" />
-                        {coupon.expires_at ? format(new Date(coupon.expires_at), "dd/MM/yyyy") : "Sem expiração"}
+                        {coupon.expires_at ? format(new Date(coupon.expires_at), "dd/MM/yy") : "ILIMITADO"}
                       </div>
                     </div>
                   </div>
@@ -492,34 +495,34 @@ export function CouponManagement() {
                         {coupon.active ? "Ativo" : "Inativo"}
                       </Badge>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-9 w-9 p-0 rounded-lg text-slate-400 hover:bg-slate-800"
+                        className="h-11 w-11 p-0 rounded-xl bg-[#05070d] border border-[#1f2937] text-[#ea580c]"
                         onClick={() => handleEdit(coupon)}
                       >
-                        <Pencil size={14} />
+                        <Pencil size={18} />
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-9 w-9 p-0 rounded-lg text-slate-400 hover:bg-slate-800"
+                        className="h-11 w-11 p-0 rounded-xl bg-[#05070d] border border-[#1f2937] text-white"
                         onClick={() => handleDuplicate(coupon)}
                       >
-                        <Copy size={14} />
+                        <Copy size={18} />
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-9 w-9 p-0 rounded-lg text-red-400 hover:bg-red-500/10"
+                        className="h-11 w-11 p-0 rounded-xl bg-[#05070d] border border-rose-500/20 text-rose-500 hover:bg-rose-500/10"
                         onClick={() => {
                           if (confirm("Deseja realmente excluir este cupom?")) {
                             deleteCouponMutation.mutate(coupon.id);
                           }
                         }}
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={18} />
                       </Button>
                     </div>
                   </div>

@@ -33,7 +33,8 @@ import {
   Check,
   ExternalLink,
   UserRound,
-  History
+  History,
+  Info
 } from "lucide-react";
 import { WhatsAppSettings } from "@/components/settings/WhatsAppSettings";
 import { CouponManagement } from "@/components/admin/CouponManagement";
@@ -261,14 +262,14 @@ function SettingsComponent() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4">
+      <div className="space-y-6 min-h-screen bg-[#05070a] -m-4 sm:-m-6 md:-m-8 p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-white">Configurações</h2>
-            <p className="text-muted-foreground text-sm">Gerencie sua barbearia, integrações e personalização.</p>
+            <h2 className="text-3xl font-black tracking-tight text-white uppercase italic">Configurações</h2>
+            <p className="text-slate-400 text-sm font-medium">Gerencie sua barbearia, integrações e personalização premium.</p>
           </div>
           {plan === "free" && (
-            <Button variant="outline" className="bg-primary/10 border-primary/20 text-primary gap-2" asChild>
+            <Button variant="outline" className="bg-amber-500/10 border-amber-500/20 text-amber-500 gap-2 hover:bg-amber-500 hover:text-black transition-all" asChild>
               <Link to="/subscription">Fazer Upgrade para Pro</Link>
             </Button>
           )}
@@ -276,61 +277,56 @@ function SettingsComponent() {
 
         <Tabs defaultValue="general" className="space-y-6">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
-            <TabsList className="flex w-max min-w-full md:grid md:grid-cols-9 md:w-full bg-white border border-slate-200 text-black">
-              <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
-                <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
-              </TabsTrigger>
-              <TabsTrigger value="profile" className="gap-2 text-xs sm:text-sm">
-                <UserRound size={16} /> <span className="hidden sm:inline">Perfil</span>
-              </TabsTrigger>
-              <TabsTrigger value="appearance" className="gap-2 text-xs sm:text-sm">
-                <Palette size={16} /> <span className="hidden sm:inline">Aparência</span>
-              </TabsTrigger>
-              <TabsTrigger value="scheduling" className="gap-2 text-xs sm:text-sm">
-                <Calendar size={16} /> <span className="hidden sm:inline">Agendamento</span>
-              </TabsTrigger>
-              <TabsTrigger value="coupons" className="gap-2 text-xs sm:text-sm">
-                <Gift size={16} /> <span className="hidden sm:inline">Cupons</span>
-              </TabsTrigger>
-              <TabsTrigger value="whatsapp" className="gap-2 text-xs sm:text-sm">
-                <MessageSquare size={16} /> <span className="hidden sm:inline">WhatsApp</span>
-              </TabsTrigger>
-              <TabsTrigger value="payments" className="gap-2 text-xs sm:text-sm">
-                <CreditCard size={16} /> <span className="hidden sm:inline">Pagamentos</span>
-              </TabsTrigger>
-              <TabsTrigger value="loyalty" className="gap-2 text-xs sm:text-sm">
-                <Gift size={16} /> <span className="hidden sm:inline">Fidelidade</span>
-              </TabsTrigger>
-              <TabsTrigger value="pix" className="gap-2 text-xs sm:text-sm">
-                <QrCode size={16} /> <span className="hidden sm:inline">Chave PIX</span>
-              </TabsTrigger>
+            <TabsList className="flex w-max min-w-full bg-[#0b0f17] border border-[#1f2937] p-1 rounded-2xl h-auto">
+              {[
+                { value: "general", icon: Globe, label: "Geral" },
+                { value: "profile", icon: UserRound, label: "Perfil" },
+                { value: "appearance", icon: Palette, label: "Aparência" },
+                { value: "scheduling", icon: Calendar, label: "Agendamento" },
+                { value: "coupons", icon: Gift, label: "Cupons" },
+                { value: "whatsapp", icon: MessageSquare, label: "WhatsApp" },
+                { value: "payments", icon: CreditCard, label: "Pagamentos" },
+                { value: "loyalty", icon: Gift, label: "Fidelidade" },
+                { value: "pix", icon: QrCode, label: "Chave PIX" },
+              ].map((tab) => (
+                <TabsTrigger 
+                  key={tab.value}
+                  value={tab.value} 
+                  className="gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all data-[state=active]:bg-[#ea580c] data-[state=active]:text-black data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:text-[#ea580c]"
+                >
+                  <tab.icon size={16} /> <span>{tab.label}</span>
+                </TabsTrigger>
+              ))}
             </TabsList>
           </div>
 
           <form onSubmit={handleSubmit}>
             <TabsContent value="profile" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Meu Perfil</CardTitle>
-                  <CardDescription>Gerencie suas informações pessoais e foto de perfil.</CardDescription>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <UserRound className="text-[#ea580c] h-5 w-5" />
+                    Meu Perfil
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Gerencie suas informações pessoais e foto de perfil premium.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="p-6 space-y-6">
                   <div className="flex flex-col items-center gap-6">
                     <div className="flex flex-col items-center gap-4 w-full">
-                      <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-lg">
+                      <div className="h-28 w-28 rounded-full bg-[#05070d] flex items-center justify-center overflow-hidden border-2 border-[#ea580c]/30 shadow-[0_0_20px_rgba(234,88,12,0.1)]">
                         {formData.logo_url ? (
                           <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
                         ) : (
-                          <UserRound className="h-12 w-12 text-muted-foreground/30" />
+                          <UserRound className="h-14 w-14 text-slate-700" />
                         )}
                       </div>
-                      <div className="w-full space-y-2 text-center">
-                        <Label htmlFor="profile_avatar" className="text-sm font-bold text-slate-500 uppercase tracking-widest">Foto de Perfil</Label>
+                      <div className="w-full max-w-sm space-y-2 text-center">
+                        <Label htmlFor="profile_avatar" className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Foto de Perfil</Label>
                         <Input 
                           id="profile_avatar" 
                           type="file" 
                           accept="image/*"
-                          className="h-12 rounded-[14px] cursor-pointer bg-slate-50/50"
+                          className="h-11 rounded-xl cursor-pointer bg-[#05070d] border-[#1f2937] text-white file:bg-[#ea580c] file:text-black file:font-bold file:border-none file:px-4 file:h-full file:mr-4 hover:border-[#ea580c]/50 transition-all"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file || !user) return;
@@ -349,7 +345,7 @@ function SettingsComponent() {
                               const { data: { publicUrl } } = supabase.storage
                                 .from('barber-avatars')
                                 .getPublicUrl(fileName);
-                                
+                              
                               setFormData({ ...formData, logo_url: publicUrl });
                               toast.success("Foto de perfil atualizada!");
                             } catch (error: any) {
@@ -363,19 +359,20 @@ function SettingsComponent() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                      <Label>E-mail (Login)</Label>
-                      <Input value={user?.email || ""} disabled className="bg-muted" />
-                      <p className="text-[10px] text-muted-foreground">O e-mail não pode ser alterado diretamente.</p>
+                      <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">E-mail (Login)</Label>
+                      <Input value={user?.email || ""} disabled className="bg-[#05070d]/50 border-[#1f2937] text-slate-500 cursor-not-allowed" />
+                      <p className="text-[10px] text-slate-600 font-medium italic">O e-mail não pode ser alterado diretamente.</p>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="profile_name">Nome para Exibição</Label>
+                      <Label htmlFor="profile_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome para Exibição</Label>
                       <Input 
                         id="profile_name" 
                         value={formData.business_name} 
                         onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
                         placeholder="Seu nome"
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl"
                       />
                     </div>
                   </div>
@@ -384,11 +381,14 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="general" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
                   <div className="space-y-1">
-                    <CardTitle>Informações do Negócio</CardTitle>
-                    <CardDescription>Logado como: <span className="font-mono text-primary font-bold">{user?.email}</span> (ID: {typeof user?.id === 'string' ? user.id.substring(0, 8) : '---'}...)</CardDescription>
+                    <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                      <Globe className="text-[#ea580c] h-5 w-5" />
+                      Informações do Negócio
+                    </CardTitle>
+                    <CardDescription className="text-slate-400 font-medium">Logado como: <span className="text-[#ea580c]">{user?.email}</span></CardDescription>
                   </div>
                   <Button 
                     variant="outline" 
@@ -396,24 +396,27 @@ function SettingsComponent() {
                     type="button"
                     onClick={handleForceSync}
                     disabled={isSyncing}
-                    className="gap-2"
+                    className="gap-2 border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black transition-all rounded-xl h-10 px-4"
                   >
                     <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
                     {isSyncing ? "Sincronizando..." : "Sincronizar"}
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex flex-col items-center gap-4 py-4 border-b border-slate-100 mb-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Logo da Barbearia</p>
-                    <div className="h-32 w-full max-w-[200px] rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group">
+                <CardContent className="p-6 space-y-8">
+                  <div className="flex flex-col items-center gap-4 py-6 border-b border-[#1f2937]/50 mb-4 bg-[#05070d]/30 rounded-2xl">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ea580c]">Logo da Barbearia</p>
+                    <div className="h-40 w-full max-w-[240px] rounded-2xl bg-[#05070d] border-2 border-dashed border-[#1f2937] flex items-center justify-center overflow-hidden relative group hover:border-[#ea580c]/50 transition-all shadow-inner">
                       {formData.barbershop_logo_url ? (
-                        <img src={formData.barbershop_logo_url} alt="Logo" className="h-full w-full object-contain p-2" />
+                        <img src={formData.barbershop_logo_url} alt="Logo" className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105" />
                       ) : (
                         <div className="text-center p-4">
-                          <ImageIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                          <p className="text-[10px] text-slate-400 font-bold">SEM LOGO</p>
+                          <ImageIcon className="w-10 h-10 text-slate-800 mx-auto mb-2" />
+                          <p className="text-[10px] text-slate-600 font-black tracking-widest uppercase">Sem Logo Definida</p>
                         </div>
                       )}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                        <p className="text-white text-xs font-bold uppercase tracking-widest">Alterar Logo</p>
+                      </div>
                       <Input 
                         type="file" 
                         accept="image/*"
@@ -438,54 +441,60 @@ function SettingsComponent() {
                         }}
                       />
                     </div>
-                    <p className="text-[10px] text-muted-foreground text-center max-w-[250px]">Recomendamos uma imagem com fundo transparente (PNG) ou fundo sólido contrastante.</p>
+                    <p className="text-[10px] text-slate-500 text-center max-w-[250px] font-medium italic">Recomendamos PNG com fundo transparente ou fundo contrastante.</p>
                   </div>
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="business_name">Nome da Barbearia</Label>
-                    <Input 
-                      id="business_name" 
-                      value={formData.business_name} 
-                      onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                      placeholder="Ex: Barbearia do João"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="slug">Endereço da sua Página (URL)</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground text-sm hidden sm:inline">{window.location.origin}/</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid gap-2">
+                      <Label htmlFor="business_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome da Barbearia</Label>
                       <Input 
-                        id="slug" 
-                        value={formData.slug} 
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                        placeholder="minha-barbearia"
+                        id="business_name" 
+                        value={formData.business_name} 
+                        onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                        placeholder="Ex: Barbearia Premium"
                         required
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                       />
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={() => {
-                          const url = `${window.location.origin}/${formData.slug}`;
-                          navigator.clipboard.writeText(url);
-                          toast.success("Link copiado!");
-                        }}
-                        title="Copiar link"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="icon" 
-                        asChild
-                        title="Ver página"
-                      >
-                        <a href={`/${formData.slug}`} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="slug" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">URL da sua Página</Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          id="slug" 
+                          value={formData.slug} 
+                          onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                          placeholder="minha-barbearia"
+                          required
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12 flex-1"
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => {
+                            const url = `${window.location.origin}/${formData.slug}`;
+                            navigator.clipboard.writeText(url);
+                            toast.success("Link copiado!");
+                          }}
+                          className="h-12 w-12 border-[#1f2937] bg-[#05070d] hover:bg-[#1f2937] text-[#ea580c] transition-all rounded-xl"
+                          title="Copiar link"
+                        >
+                          <Copy className="h-5 w-5" />
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                          asChild
+                          className="h-12 w-12 border-[#1f2937] bg-[#05070d] hover:bg-[#1f2937] text-[#ea580c] transition-all rounded-xl"
+                          title="Ver página"
+                        >
+                          <a href={`/${formData.slug}`} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-5 w-5" />
+                          </a>
+                        </Button>
+                      </div>
+                      <p className="text-[10px] text-slate-600 font-medium">Link público: {window.location.origin}/{formData.slug}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -495,65 +504,69 @@ function SettingsComponent() {
 
 
             <TabsContent value="appearance" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Personalização Visual</CardTitle>
-                  <CardDescription>Deixe a página com a cara da sua marca.</CardDescription>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Palette className="text-[#ea580c] h-5 w-5" />
+                    Personalização Visual
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Deixe a página com a cara da sua marca premium.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="grid gap-2">
-                      <Label htmlFor="primary_color">Cor Primária</Label>
+                <CardContent className="p-6 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid gap-3">
+                      <Label htmlFor="primary_color" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cor Primária (Destaques)</Label>
                       <div className="flex gap-2">
                         <Input 
                           id="primary_color" 
                           type="color" 
-                          className="w-12 h-10 p-1"
+                          className="w-14 h-12 p-1 bg-[#05070d] border-[#1f2937] rounded-xl cursor-pointer"
                           value={formData.primary_color} 
                           onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
                         />
                         <Input 
                           value={formData.primary_color} 
                           onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
-                          placeholder="#000000"
+                          placeholder="#EA580C"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                         />
                       </div>
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="secondary_color">Cor de Fundo</Label>
+                    <div className="grid gap-3">
+                      <Label htmlFor="secondary_color" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cor de Fundo</Label>
                       <div className="flex gap-2">
                         <Input 
                           id="secondary_color" 
                           type="color" 
-                          className="w-12 h-10 p-1"
+                          className="w-14 h-12 p-1 bg-[#05070d] border-[#1f2937] rounded-xl cursor-pointer"
                           value={formData.secondary_color} 
                           onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
                         />
                         <Input 
                           value={formData.secondary_color} 
                           onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
-                          placeholder="#F4F4F5"
+                          placeholder="#05070D"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                         />
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t">
-                    <h4 className="font-medium text-sm">Configurações de Fonte</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-6 pt-6 border-t border-[#1f2937]/50">
+                    <h4 className="font-black uppercase italic text-[#ea580c] text-xs tracking-[0.2em]">Configurações de Tipografia</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="grid gap-2">
-                        <Label htmlFor="font_family">Tipografia</Label>
+                        <Label htmlFor="font_family" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Família de Fonte</Label>
                         <Select 
                           value={formData.font_family} 
                           onValueChange={(value) => setFormData({ ...formData, font_family: value })}
                         >
-                          <SelectTrigger id="font_family">
+                          <SelectTrigger id="font_family" className="bg-[#05070d] border-[#1f2937] text-white h-12 rounded-xl focus:ring-[#ea580c]">
                             <SelectValue placeholder="Selecione a fonte" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
                             <SelectItem value="Inter">Inter (Padrão)</SelectItem>
                             <SelectItem value="Roboto">Roboto</SelectItem>
-                            <SelectItem value="Open Sans">Open Sans</SelectItem>
                             <SelectItem value="Montserrat">Montserrat</SelectItem>
                             <SelectItem value="Playfair Display">Playfair Display (Elegante)</SelectItem>
                             <SelectItem value="Oswald">Oswald (Moderna)</SelectItem>
@@ -561,15 +574,15 @@ function SettingsComponent() {
                         </Select>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="font_size">Tamanho da Fonte</Label>
+                        <Label htmlFor="font_size" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tamanho Base</Label>
                         <Select 
                           value={formData.font_size} 
                           onValueChange={(value) => setFormData({ ...formData, font_size: value })}
                         >
-                          <SelectTrigger id="font_size">
+                          <SelectTrigger id="font_size" className="bg-[#05070d] border-[#1f2937] text-white h-12 rounded-xl focus:ring-[#ea580c]">
                             <SelectValue placeholder="Selecione o tamanho" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
                             <SelectItem value="14px">Pequeno (14px)</SelectItem>
                             <SelectItem value="16px">Normal (16px)</SelectItem>
                             <SelectItem value="18px">Médio (18px)</SelectItem>
@@ -578,41 +591,43 @@ function SettingsComponent() {
                         </Select>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="font_color">Cor da Fonte</Label>
+                        <Label htmlFor="font_color" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cor do Texto</Label>
                         <div className="flex gap-2">
                           <Input 
                             id="font_color" 
                             type="color" 
-                            className="w-12 h-10 p-1"
+                            className="w-14 h-12 p-1 bg-[#05070d] border-[#1f2937] rounded-xl cursor-pointer"
                             value={formData.font_color} 
                             onChange={(e) => setFormData({ ...formData, font_color: e.target.value })}
                           />
                           <Input 
                             value={formData.font_color} 
                             onChange={(e) => setFormData({ ...formData, font_color: e.target.value })}
-                            placeholder="#000000"
+                            placeholder="#FFFFFF"
+                            className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t">
-                    <h4 className="font-medium text-sm">Logo da Barbearia</h4>
-                    <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                  <div className="space-y-6 pt-6 border-t border-[#1f2937]/50">
+                    <h4 className="font-black uppercase italic text-[#ea580c] text-xs tracking-[0.2em]">Logo de Rodapé/Fundo</h4>
+                    <div className="flex flex-col sm:flex-row items-center gap-6 bg-[#05070d]/30 p-6 rounded-2xl border border-[#1f2937]/30">
+                      <div className="h-24 w-24 rounded-xl bg-[#05070d] flex items-center justify-center overflow-hidden border border-[#1f2937] shadow-inner shrink-0">
                         {formData.logo_url ? (
-                          <img src={formData.logo_url} alt="Logo Preview" className="h-full w-full object-contain" />
+                          <img src={formData.logo_url} alt="Logo Preview" className="h-full w-full object-contain p-2" />
                         ) : (
-                          <Upload className="h-6 w-6 text-muted-foreground/30" />
+                          <Upload className="h-8 w-8 text-slate-800" />
                         )}
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor="logo_file">Anexar Arquivo de Logo</Label>
+                      <div className="flex-1 space-y-3 w-full">
+                        <Label htmlFor="logo_file" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Anexar Arquivo de Logo</Label>
                         <Input 
                           id="logo_file" 
                           type="file" 
                           accept="image/*"
+                          className="h-11 rounded-xl cursor-pointer bg-[#05070d] border-[#1f2937] text-white file:bg-[#ea580c] file:text-black file:font-bold file:border-none file:px-4 file:h-full file:mr-4"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file || !user) return;
@@ -623,7 +638,7 @@ function SettingsComponent() {
                               const fileName = `${user.id}-logo-${Math.random()}.${fileExt}`;
                               
                               const { error: uploadError } = await supabase.storage
-                                .from('barber-avatars') // Using existing bucket for simplicity
+                                .from('barber-avatars') 
                                 .upload(fileName, file);
                                 
                               if (uploadError) throw uploadError;
@@ -641,16 +656,17 @@ function SettingsComponent() {
                             }
                           }}
                         />
-                        <p className="text-[10px] text-muted-foreground">Recomendado: imagem quadrada ou horizontal com fundo transparente.</p>
+                        <p className="text-[10px] text-slate-500 font-medium italic">Fundo transparente altamente recomendado.</p>
                       </div>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="logo_url">Ou URL do Logo</Label>
+                      <Label htmlFor="logo_url" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Ou Link Direto da Imagem (URL)</Label>
                       <Input 
                         id="logo_url" 
                         value={formData.logo_url} 
                         onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
                         placeholder="https://exemplo.com/logo.png"
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                       />
                     </div>
                   </div>
@@ -659,36 +675,55 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="scheduling" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Configurações de Agendamento</CardTitle>
-                  <CardDescription>Defina como seus clientes podem marcar horários.</CardDescription>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Calendar className="text-[#ea580c] h-5 w-5" />
+                    Configurações de Agendamento
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Defina como seus clientes podem marcar horários premium.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setFormData({ ...formData, scheduling_mode: "manual" })}>
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div 
+                      className={cn(
+                        "flex items-start gap-4 p-5 border rounded-2xl transition-all cursor-pointer group",
+                        formData.scheduling_mode === 'manual' 
+                          ? "bg-[#ea580c]/5 border-[#ea580c] shadow-[0_0_15px_rgba(234,88,12,0.1)]" 
+                          : "bg-[#05070d] border-[#1f2937] hover:border-[#ea580c]/30"
+                      )} 
+                      onClick={() => setFormData({ ...formData, scheduling_mode: "manual" })}
+                    >
                       <div className="mt-1">
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.scheduling_mode === 'manual' ? 'border-primary' : 'border-muted-foreground'}`}>
-                          {formData.scheduling_mode === 'manual' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.scheduling_mode === 'manual' ? 'border-[#ea580c]' : 'border-slate-700'}`}>
+                          {formData.scheduling_mode === 'manual' && <div className="w-2.5 h-2.5 rounded-full bg-[#ea580c]" />}
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-base cursor-pointer">Agendamento Manual</Label>
-                        <p className="text-sm text-muted-foreground">
+                        <Label className="text-base font-black uppercase italic cursor-pointer group-hover:text-[#ea580c] transition-colors">Agendamento Manual</Label>
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed">
                           Seus clientes verão seu contato de WhatsApp e deverão entrar em contato para agendar. Você insere o horário manualmente na agenda.
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setFormData({ ...formData, scheduling_mode: "automatic" })}>
+                    <div 
+                      className={cn(
+                        "flex items-start gap-4 p-5 border rounded-2xl transition-all cursor-pointer group",
+                        formData.scheduling_mode === 'automatic' 
+                          ? "bg-[#ea580c]/5 border-[#ea580c] shadow-[0_0_15px_rgba(234,88,12,0.1)]" 
+                          : "bg-[#05070d] border-[#1f2937] hover:border-[#ea580c]/30"
+                      )} 
+                      onClick={() => setFormData({ ...formData, scheduling_mode: "automatic" })}
+                    >
                       <div className="mt-1">
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.scheduling_mode === 'automatic' ? 'border-primary' : 'border-muted-foreground'}`}>
-                          {formData.scheduling_mode === 'automatic' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.scheduling_mode === 'automatic' ? 'border-[#ea580c]' : 'border-slate-700'}`}>
+                          {formData.scheduling_mode === 'automatic' && <div className="w-2.5 h-2.5 rounded-full bg-[#ea580c]" />}
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-base cursor-pointer">Agendamento Automático (Self-Service)</Label>
-                        <p className="text-sm text-muted-foreground">
+                        <Label className="text-base font-black uppercase italic cursor-pointer group-hover:text-[#ea580c] transition-colors">Agendamento Automático (Self-Service)</Label>
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed">
                           Seus clientes escolhem o serviço, profissional e horário diretamente na sua página. O agendamento é confirmado automaticamente conforme sua disponibilidade.
                         </p>
                       </div>
@@ -696,12 +731,12 @@ function SettingsComponent() {
                   </div>
 
                   {formData.scheduling_mode === 'automatic' && (
-                    <div className="bg-primary/5 p-4 rounded-lg border border-primary/10 animate-in fade-in slide-in-from-top-2">
-                      <div className="flex items-center gap-2 text-primary font-medium mb-1">
-                        <CheckCircle2 size={16} />
-                        <span>Recomendado</span>
+                    <div className="bg-[#ea580c]/10 p-5 rounded-2xl border border-[#ea580c]/20 animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-center gap-2 text-[#ea580c] font-black uppercase text-xs tracking-widest mb-1 italic">
+                        <CheckCircle2 size={14} />
+                        <span>Recomendado para Máxima Conversão</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] text-slate-500 font-bold leading-relaxed uppercase">
                         O modo automático aumenta sua produtividade e permite que clientes agendem mesmo fora do horário comercial.
                       </p>
                     </div>
@@ -714,42 +749,125 @@ function SettingsComponent() {
               <CouponManagement />
             </TabsContent>
 
-            <TabsContent value="whatsapp" className="space-y-4">
+            <TabsContent value="whatsapp" className="space-y-6">
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <MessageSquare className="text-[#ea580c] h-5 w-5" />
+                    Configuração Z-API
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Configure as credenciais da sua instância Z-API para automações premium.</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid gap-2">
+                      <Label htmlFor="whatsapp_number" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">WhatsApp da Barbearia (Formatado)</Label>
+                      <Input 
+                        id="whatsapp_number" 
+                        value={formData.whatsapp_number} 
+                        onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
+                        placeholder="Ex: 5571999999999"
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                      />
+                      <p className="text-[10px] text-amber-500/80 font-black uppercase italic tracking-tighter">Número mestre para disparos de automação.</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="instance_id" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">ID da Instância</Label>
+                      <Input 
+                        id="instance_id" 
+                        value={formData.instance_id} 
+                        onChange={(e) => setFormData({ ...formData, instance_id: e.target.value })}
+                        placeholder="ID da sua instância Z-API"
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="instance_token" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Token da Instância</Label>
+                      <div className="relative">
+                        <Input 
+                          id="instance_token" 
+                          type="password"
+                          value={formData.instance_token} 
+                          onChange={(e) => setFormData({ ...formData, instance_token: e.target.value })}
+                          placeholder="Token secreto"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12 pr-12"
+                        />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-700" />
+                      </div>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="client_token" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Client Token</Label>
+                      <div className="relative">
+                        <Input 
+                          id="client_token" 
+                          type="password"
+                          value={formData.client_token} 
+                          onChange={(e) => setFormData({ ...formData, client_token: e.target.value })}
+                          placeholder="Client token"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12 pr-12"
+                        />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-700" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-[#1f2937]/30 flex flex-wrap gap-3">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-xl font-bold uppercase text-[10px] tracking-widest h-10 px-6"
+                    >
+                      Testar Conexão
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold uppercase text-[10px] tracking-widest h-10 px-6"
+                    >
+                      Sincronizar Webhook
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               <WhatsAppSettings />
             </TabsContent>
 
             <TabsContent value="payments" className="space-y-4">
-              <Card className={cn("bg-white border-2 border-slate-200 text-black", plan === "free" ? "relative overflow-hidden" : "")}>
+              <Card className={cn("bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden", plan === "free" ? "relative" : "")}>
                 {plan === "free" && (
-                  <div className="absolute inset-0 z-10 bg-background/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center">
-                    <div className="bg-primary/10 p-3 rounded-full text-primary mb-4">
-                      <Lock size={32} />
+                  <div className="absolute inset-0 z-10 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                    <div className="bg-[#ea580c]/10 p-4 rounded-full text-[#ea580c] mb-4 shadow-[0_0_30px_rgba(234,88,12,0.2)]">
+                      <Lock size={40} />
                     </div>
-                    <h3 className="text-xl font-bold">Recurso Exclusivo do Plano Pro</h3>
-                    <p className="text-muted-foreground max-w-sm mt-2 mb-6">
+                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">Exclusivo Plano Pro</h3>
+                    <p className="text-slate-400 max-w-sm mt-3 mb-8 font-medium">
                       A integração com gateways de pagamento para receber agendamentos antecipados está disponível apenas para assinantes Pro.
                     </p>
-                    <Button asChild>
+                    <Button className="bg-[#ea580c] hover:bg-[#ea580c]/90 text-black font-bold h-12 px-8 rounded-xl shadow-lg hover:scale-105 transition-all" asChild>
                       <Link to="/subscription">Fazer Upgrade Agora</Link>
                     </Button>
                   </div>
                 )}
-                <CardHeader>
-                  <CardTitle>Gateway de Pagamento</CardTitle>
-                  <CardDescription>Configure como você deseja receber pelos agendamentos.</CardDescription>
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <CreditCard className="text-[#ea580c] h-5 w-5" />
+                    Gateway de Pagamento
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Configure como você deseja receber pelos agendamentos premium.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="p-6 space-y-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="provider">Provedor</Label>
+                    <Label htmlFor="provider" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Provedor de Pagamento</Label>
                     <Select 
                       value={formData.payment_gateway_provider} 
                       onValueChange={(value) => setFormData({ ...formData, payment_gateway_provider: value })}
                       disabled={plan === "free"}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-12 rounded-xl focus:ring-[#ea580c]">
                         <SelectValue placeholder="Selecione um provedor" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
                         <SelectItem value="none">Nenhum (Apenas agendamento)</SelectItem>
                         <SelectItem value="stripe">Stripe</SelectItem>
                         <SelectItem value="mercadopago">Mercado Pago</SelectItem>
@@ -760,16 +878,20 @@ function SettingsComponent() {
                   
                   {formData.payment_gateway_provider !== "none" && (
                     <div className="grid gap-2 animate-in fade-in slide-in-from-top-2">
-                      <Label htmlFor="api_key">Chave de API (Secret Key)</Label>
-                      <Input 
-                        id="api_key" 
-                        type="password"
-                        value={formData.payment_gateway_key} 
-                        onChange={(e) => setFormData({ ...formData, payment_gateway_key: e.target.value })}
-                        placeholder="sk_test_..."
-                        disabled={plan === "free"}
-                      />
-                      <p className="text-xs text-muted-foreground">
+                      <Label htmlFor="api_key" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Chave de API (Secret Key)</Label>
+                      <div className="relative">
+                        <Input 
+                          id="api_key" 
+                          type="password"
+                          value={formData.payment_gateway_key} 
+                          onChange={(e) => setFormData({ ...formData, payment_gateway_key: e.target.value })}
+                          placeholder="sk_test_..."
+                          disabled={plan === "free"}
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12 pr-12"
+                        />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700" />
+                      </div>
+                      <p className="text-[10px] text-slate-600 font-medium italic">
                         Sua chave de API é criptografada e nunca compartilhada.
                       </p>
                     </div>
@@ -778,31 +900,35 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="loyalty" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Sistema de Cashback</CardTitle>
-                  <CardDescription>Configure como seus clientes ganham crédito a cada serviço.</CardDescription>
+            <TabsContent value="loyalty" className="space-y-6">
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Gift className="text-[#ea580c] h-5 w-5" />
+                    Sistema de Cashback
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Configure como seus clientes ganham crédito premium a cada serviço.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Ativar Cashback</Label>
-                      <p className="text-sm text-muted-foreground">
+                <CardContent className="p-6 space-y-6">
+                  <div className="flex items-center justify-between p-5 bg-[#05070d]/50 border border-[#1f2937] rounded-2xl shadow-inner transition-all hover:border-[#ea580c]/30">
+                    <div className="space-y-1">
+                      <Label className="text-base font-black uppercase italic">Ativar Cashback</Label>
+                      <p className="text-[10px] text-slate-500 font-medium tracking-tight uppercase">
                         Habilita o acúmulo de saldo para seus clientes.
                       </p>
                     </div>
                     <Switch 
                       checked={formData.cashback_enabled} 
                       onCheckedChange={(checked) => setFormData({ ...formData, cashback_enabled: checked })}
+                      className="data-[state=checked]:bg-[#ea580c]"
                     />
                   </div>
 
                   {formData.cashback_enabled && (
-                    <div className="grid gap-4 animate-in fade-in slide-in-from-top-2">
-                      <div className="grid gap-2">
-                        <Label htmlFor="cashback_percentage">Porcentagem de Retorno (%)</Label>
-                        <div className="flex items-center gap-4">
+                    <div className="grid gap-6 animate-in fade-in slide-in-from-top-4">
+                      <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                        <Label htmlFor="cashback_percentage" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Porcentagem de Retorno (%)</Label>
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
                           <Input 
                             id="cashback_percentage" 
                             type="number"
@@ -810,36 +936,41 @@ function SettingsComponent() {
                             max="100"
                             value={formData.cashback_percentage} 
                             onChange={(e) => setFormData({ ...formData, cashback_percentage: parseFloat(e.target.value) || 0 })}
-                            className="max-w-[150px]"
+                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full sm:max-w-[150px] text-lg font-black text-center italic"
                           />
-                          <span className="text-sm text-muted-foreground">
-                            A cada R$ 100,00 gastos, o cliente receberá R$ {formData.cashback_percentage.toFixed(2)} de crédito.
+                          <span className="text-xs text-slate-500 font-medium italic">
+                            Ex: A cada R$ 100,00 gastos, o cliente receberá R$ <span className="text-[#ea580c] font-black">{formData.cashback_percentage.toFixed(2)}</span> de crédito.
                           </span>
                         </div>
                       </div>
 
-                      <Alert>
-                        <Gift className="h-4 w-4" />
-                        <AlertTitle>Como funciona?</AlertTitle>
-                        <AlertDescription>
-                          O saldo é gerado automaticamente após a conclusão de um agendamento pago. 
-                          Os clientes podem usar esse saldo para obter descontos em serviços futuros ou na compra de produtos.
-                        </AlertDescription>
-                      </Alert>
+                      <div className="bg-[#ea580c]/5 border border-[#ea580c]/20 p-4 rounded-2xl flex gap-3">
+                        <Info className="h-5 w-5 text-[#ea580c] shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Logística do Cashback</p>
+                          <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase">
+                            O saldo é gerado automaticamente após a conclusão de um agendamento pago. 
+                            Os clientes podem usar esse saldo para obter descontos premium.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Cartão Fidelidade</CardTitle>
-                  <CardDescription>A cada X serviços realizados, o próximo é gratuito.</CardDescription>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Gift className="text-[#ea580c] h-5 w-5" />
+                    Cartão Fidelidade
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">A cada X serviços realizados, o próximo é gratuito.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="free_service_threshold">Meta para Serviço Gratuito</Label>
-                    <div className="flex items-center gap-4">
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                    <Label htmlFor="free_service_threshold" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Meta para Serviço Gratuito</Label>
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
                       <Input 
                         id="free_service_threshold" 
                         type="number"
@@ -847,61 +978,67 @@ function SettingsComponent() {
                         max="100"
                         value={formData.free_service_threshold} 
                         onChange={(e) => setFormData({ ...formData, free_service_threshold: parseInt(e.target.value) || 10 })}
-                        className="max-w-[150px]"
+                        className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full sm:max-w-[150px] text-lg font-black text-center italic"
                       />
-                      <span className="text-sm text-muted-foreground">
-                        Após completar {formData.free_service_threshold} procedimentos, o cliente ganha o próximo gratuitamente.
+                      <span className="text-xs text-slate-500 font-medium italic">
+                        Após completar <span className="text-[#ea580c] font-black">{formData.free_service_threshold}</span> procedimentos, o cliente ganha o próximo gratuitamente.
                       </span>
                     </div>
                   </div>
 
-                  <Alert>
-                    <Gift className="h-4 w-4" />
-                    <AlertTitle>Como funciona?</AlertTitle>
-                    <AlertDescription>
-                      O sistema contabiliza automaticamente cada agendamento marcado como "Concluído". 
-                      O cliente poderá acompanhar o progresso em sua página de histórico.
-                    </AlertDescription>
-                  </Alert>
+                  <div className="bg-[#ea580c]/5 border border-[#ea580c]/20 p-4 rounded-2xl flex gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-[#ea580c] shrink-0" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Regra de Conclusão</p>
+                      <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase">
+                        O sistema contabiliza automaticamente cada agendamento marcado como "Concluído". 
+                        O cliente poderá acompanhar o progresso em sua página exclusiva.
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
             <TabsContent value="pix" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Configuração de Pagamento PIX</CardTitle>
-                  <CardDescription>Cadastre sua chave PIX para recebimentos diretos dos clientes.</CardDescription>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <QrCode className="text-[#ea580c] h-5 w-5" />
+                    Configuração de Pagamento PIX
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Cadastre sua chave PIX para recebimentos diretos premium.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="pix_key">Chave PIX</Label>
+                <CardContent className="p-6 space-y-8">
+                  <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                    <Label htmlFor="pix_key" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Chave PIX (CPF, E-mail, Celular ou Aleatória)</Label>
                     <Input 
                       id="pix_key" 
                       value={formData.pix_key} 
                       onChange={(e) => setFormData({ ...formData, pix_key: e.target.value })}
-                      placeholder="CPF, E-mail, Celular ou Chave Aleatória"
+                      placeholder="Sua chave PIX aqui"
+                      className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl text-lg font-bold"
                     />
-                    <p className="text-xs text-muted-foreground">Esta chave será exibida para o cliente no momento do pagamento.</p>
+                    <p className="text-[10px] text-slate-600 font-bold uppercase italic tracking-wider">Esta chave será exibida para o cliente no momento do pagamento.</p>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t">
-                    <h4 className="font-medium text-sm">QR Code do PIX</h4>
-                    <div className="flex flex-col items-center gap-6">
-                      <div className="h-32 w-32 rounded-lg bg-muted flex items-center justify-center overflow-hidden border shadow-inner">
+                  <div className="space-y-6 pt-6 border-t border-[#1f2937]/50">
+                    <h4 className="font-black uppercase italic text-[#ea580c] text-xs tracking-[0.2em]">QR Code do PIX</h4>
+                    <div className="flex flex-col items-center gap-8 py-6 bg-[#05070d]/30 rounded-2xl border border-[#1f2937]/30">
+                      <div className="h-44 w-44 rounded-2xl bg-[#05070d] flex items-center justify-center overflow-hidden border-2 border-[#1f2937] shadow-[0_0_30px_rgba(0,0,0,0.5)] group relative">
                         {formData.pix_qr_code_url ? (
-                          <img src={formData.pix_qr_code_url} alt="PIX QR Code Preview" className="h-full w-full object-contain" />
+                          <img src={formData.pix_qr_code_url} alt="PIX QR Code Preview" className="h-full w-full object-contain p-2 transition-transform group-hover:scale-110" />
                         ) : (
-                          <QrCode className="h-12 w-12 text-muted-foreground/30" />
+                          <QrCode className="h-16 w-16 text-slate-800" />
                         )}
                       </div>
-                      <div className="w-full space-y-3">
-                        <Label htmlFor="pix_qr_file" className="text-center block text-sm font-bold text-slate-500 uppercase tracking-widest">Upload do QR Code (Imagem)</Label>
+                      <div className="w-full max-w-sm space-y-3 px-6">
+                        <Label htmlFor="pix_qr_file" className="text-center block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Upload do QR Code (Imagem)</Label>
                         <Input 
                           id="pix_qr_file" 
                           type="file" 
                           accept="image/*"
-                          className="h-12 rounded-[14px] cursor-pointer bg-slate-50/50"
+                          className="h-11 rounded-xl cursor-pointer bg-[#05070d] border-[#1f2937] text-white file:bg-[#ea580c] file:text-black file:font-bold file:border-none file:px-4 file:h-full file:mr-4"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file || !user) return;
@@ -930,7 +1067,7 @@ function SettingsComponent() {
                             }
                           }}
                         />
-                        <p className="text-[10px] text-muted-foreground text-center">Upload da imagem do seu QR Code gerado pelo banco para facilitar pagamentos Pix.</p>
+                        <p className="text-[10px] text-slate-600 font-bold text-center uppercase italic">Otimize a experiência de pagamento do seu cliente.</p>
                       </div>
                     </div>
                   </div>
@@ -938,9 +1075,18 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
-            <div className="flex justify-end pt-6">
-              <Button type="submit" className="gap-2 bg-black text-white hover:scale-105 transition-all h-12 px-8 rounded-xl font-bold uppercase tracking-tight" disabled={saving}>
-                <Save size={18} /> {saving ? "Salvando..." : "Salvar Configurações (Confirmar)"}
+            <div className="flex justify-end pt-10 pb-20">
+              <Button 
+                type="submit" 
+                className="gap-3 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 hover:scale-105 active:scale-95 transition-all h-14 px-10 rounded-2xl font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(234,88,12,0.3)] group" 
+                disabled={saving}
+              >
+                {saving ? (
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Save className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+                )}
+                {saving ? "Salvando..." : "Salvar Todas as Configurações"}
               </Button>
             </div>
           </form>
