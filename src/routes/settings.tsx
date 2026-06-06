@@ -817,14 +817,14 @@ function SettingsComponent() {
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-xl font-bold uppercase text-[9px] tracking-widest h-9 px-4 transition-all"
+                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-lg font-bold uppercase text-[8px] tracking-widest h-8 px-3 transition-all"
                     >
                       Testar Conexão
                     </Button>
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold uppercase text-[9px] tracking-widest h-9 px-4 transition-all"
+                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg font-bold uppercase text-[8px] tracking-widest h-8 px-3 transition-all"
                     >
                       Sincronizar Webhook
                     </Button>
@@ -1080,7 +1080,7 @@ function SettingsComponent() {
             <div className="flex justify-end pt-10 pb-20">
               <Button 
                 type="submit" 
-                className="gap-3 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 hover:scale-105 active:scale-95 transition-all h-12 px-8 rounded-xl font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(234,88,12,0.2)] group" 
+                className="gap-2 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 active:scale-95 transition-all h-10 px-6 rounded-xl font-black uppercase tracking-widest shadow-lg group" 
                 disabled={saving}
               >
                 {saving ? (
