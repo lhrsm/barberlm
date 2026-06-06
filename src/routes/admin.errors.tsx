@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { 
   AlertCircle, 
   Terminal, 
@@ -55,10 +56,15 @@ export const Route = createFileRoute("/admin/errors")({
 function AdminErrors() {
   const [dateFilter, setDateFilter] = useState<string>("7d");
   const [automationFilter, setAutomationFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [reasonFilter, setReasonFilter] = useState<string>("all");
   const [searchFilter, setSearchFilter] = useState<string>("");
+  const [sortField, setSortField] = useState<string>("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [selectedIssue, setSelectedIssue] = useState<any>(null);
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
+  const [reprocessingId, setReprocessingId] = useState<string | null>(null);
 
   const { data: auditLogs, isLoading: isLoadingAudit, refetch: refetchAudit } = useQuery({
     queryKey: ["admin-audit-logs"],
@@ -114,11 +120,58 @@ function AdminErrors() {
 
   const filteredAutomations = healthReport?.report?.filter((item: any) => {
     if (automationFilter !== "all" && item.key !== automationFilter) return false;
-    if (searchFilter && !item.tenant_name.toLowerCase().includes(searchFilter.toLowerCase())) return false;
+    if (statusFilter !== "all" && (statusFilter === "healthy" ? !item.is_healthy : item.is_healthy)) return false;
+    if (reasonFilter !== "all" && item.last_error !== reasonFilter) return false;
+    
+    if (searchFilter) {
+      const search = searchFilter.toLowerCase();
+      const matchesTenant = item.tenant_name.toLowerCase().includes(search);
+      const matchesProvider = item.issues?.some((i: any) => 
+        (i.provider_message_id || "").toLowerCase().includes(search) || 
+        (i.details?.provider_message_id || "").toLowerCase().includes(search)
+      );
+      if (!matchesTenant && !matchesProvider) return false;
+    }
     return true;
   }) || [];
 
-  const paginatedAutomations = filteredAutomations.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const sortedAutomations = [...filteredAutomations].sort((a: any, b: any) => {
+    if (sortField === "date") {
+      const dateA = new Date(a.issues?.[0]?.last_occurrence || 0).getTime();
+      const dateB = new Date(b.issues?.[0]?.last_occurrence || 0).getTime();
+      return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+    }
+    if (sortField === "severity") {
+      const scoreA = a.is_healthy ? 0 : 1;
+      const scoreB = b.is_healthy ? 0 : 1;
+      return sortOrder === "desc" ? scoreB - scoreA : scoreA - scoreB;
+    }
+    return 0;
+  });
+
+  const paginatedAutomations = sortedAutomations.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+  const handleReprocess = async (item: any) => {
+    setReprocessingId(item.automation_id);
+    try {
+      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { 
+          tenant_id: item.tenant_id,
+          workflow_key: item.key,
+          force_resend: true
+        }
+      });
+      
+      if (error) throw error;
+      toast.success("Reprocessamento iniciado com sucesso!");
+      refetchHealth();
+    } catch (error: any) {
+      toast.error("Erro ao reprocessar: " + error.message);
+    } finally {
+      setReprocessingId(null);
+    }
+  };
+
   const totalPages = Math.ceil(filteredAutomations.length / itemsPerPage);
 
   const unhealthyCount = healthReport?.summary?.unhealthy || 0;
@@ -203,14 +256,14 @@ function AdminErrors() {
                   <CardTitle>Monitor de Saúde V2</CardTitle>
                   <CardDescription>Lista de automações com falhas de sincronismo detectadas.</CardDescription>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 items-center">
                   <Button variant="outline" size="sm" onClick={exportToCSV} className="h-8 gap-2">
                     <FileSpreadsheet className="h-4 w-4" /> Exportar CSV
                   </Button>
                   <div className="relative w-full md:w-64">
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                     <Input 
-                      placeholder="Buscar por barbearia..." 
+                      placeholder="Tenant ou Provider ID..." 
                       className="pl-8 h-8 text-xs" 
                       value={searchFilter}
                       onChange={(e) => {
@@ -223,15 +276,57 @@ function AdminErrors() {
                     setAutomationFilter(val);
                     setPage(1);
                   }}>
-                    <SelectTrigger className="h-8 w-[150px] text-xs">
+                    <SelectTrigger className="h-8 w-[140px] text-xs">
                       <SelectValue placeholder="Automação" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="all">Todas Automações</SelectItem>
                       <SelectItem value="appointment_confirmation">Confirmação</SelectItem>
                       <SelectItem value="appointment_reminder">Lembrete</SelectItem>
                     </SelectContent>
                   </Select>
+
+                  <Select value={statusFilter} onValueChange={(val) => {
+                    setStatusFilter(val);
+                    setPage(1);
+                  }}>
+                    <SelectTrigger className="h-8 w-[120px] text-xs">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Status</SelectItem>
+                      <SelectItem value="unhealthy">Não Saudável</SelectItem>
+                      <SelectItem value="healthy">Saudável</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={reasonFilter} onValueChange={(val) => {
+                    setReasonFilter(val);
+                    setPage(1);
+                  }}>
+                    <SelectTrigger className="h-8 w-[160px] text-xs">
+                      <SelectValue placeholder="Motivo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Motivos</SelectItem>
+                      <SelectItem value="WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED">Falha de Registro (V2)</SelectItem>
+                      <SelectItem value="ORPHAN_LOG_NO_DISPATCH">Log Órfão</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <div className="h-8 border-l mx-1" />
+
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 gap-2 text-xs"
+                    onClick={() => {
+                      setSortOrder(sortOrder === "desc" ? "asc" : "desc");
+                    }}
+                  >
+                    {sortField === "date" ? <Clock className="h-3 w-3" /> : <ShieldAlert className="h-3 w-3" />}
+                    {sortOrder === "desc" ? "Mais Recentes" : "Mais Antigos"}
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -282,6 +377,19 @@ function AdminErrors() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
+                             <Button 
+                               variant="ghost" 
+                               size="icon" 
+                               className="h-8 w-8" 
+                               disabled={reprocessingId === item.automation_id}
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 handleReprocess(item);
+                               }}
+                               title="Reprocessar Agora"
+                             >
+                               <RefreshCw className={cn("h-4 w-4", reprocessingId === item.automation_id && "animate-spin text-primary")} />
+                             </Button>
                              <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Ver Logs" onClick={(e) => e.stopPropagation()}>
                                <a href={`/admin/logs?tenant=${item.tenant_id}`} target="_blank" rel="noreferrer">
                                  <Terminal className="h-4 w-4" />
@@ -466,7 +574,14 @@ function AdminErrors() {
 
               <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => setSelectedIssue(null)}>Fechar</Button>
-                <Button className="bg-primary text-primary-foreground font-bold">
+                <Button 
+                  className="bg-primary text-primary-foreground font-bold"
+                  disabled={reprocessingId === selectedIssue.automation_id}
+                  onClick={() => handleReprocess(selectedIssue)}
+                >
+                  {reprocessingId === selectedIssue.automation_id ? (
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
                   Sincronizar Manualmente
                 </Button>
               </div>
