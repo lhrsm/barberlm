@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { normalizePhone } from "../_shared/utils.ts";
+import { sendAutomationMessageV2 } from "../_shared/automation-v2-engine.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -78,44 +79,34 @@ serve(async (req) => {
             };
           }
 
-          response = await fetch(`${baseUrl}/instances/${instanceId}/token/${token}/${endpoint}`, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(bodyPayload),
-          });
-          const endTime = Date.now();
-
-          const result = await response.json();
-          const executionTime = endTime - startTime;
-
-          await supabase.from("automation_logs").insert({
+          const options = msg.metadata?.options || {};
+          
+          const sendResult = await sendAutomationMessageV2(supabase, {
             tenant_id: msg.user_id,
-            status: response.ok ? 'sent' : 'error',
-            message_type: 'whatsapp_send',
-            phone: targetPhone,
-            response: {
-              status: response.status,
-              body: result,
-              execution_time_ms: executionTime,
-              instance_id: instanceId,
-              endpoint
-            }
+            workflow_key: msg.metadata?.workflow_key || 'manual_message',
+            customer_phone: targetPhone,
+            message: msg.content,
+            buttons: options.buttons,
+            instance: conn,
+            payload: { message_id_v1: msg.id, metadata: msg.metadata }
           });
 
-          if (response.ok && (result.messageId || result.id || result.messages)) {
+          if (sendResult.success) {
             await supabase.from("whatsapp_messages").update({ 
               status: "sent", 
-              wa_id: (result.messages ? result.messages[0].id : (result.id || result.messageId)),
+              wa_id: sendResult.provider_message_id,
               updated_at: new Date().toISOString()
             }).eq("id", msg.id);
+            
+            results.push({ id: msg.id, result: sendResult });
           } else {
             await supabase.from("whatsapp_messages").update({ 
               status: "failed", 
-              error_message: JSON.stringify(result.error || result),
+              error_message: sendResult.error,
               updated_at: new Date().toISOString()
             }).eq("id", msg.id);
+            results.push({ id: msg.id, error: sendResult.error });
           }
-          results.push({ id: msg.id, result });
         }
       } catch (err) {
         console.error(`Error processing message ${msg.id}:`, err.message);

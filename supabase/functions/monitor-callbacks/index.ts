@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { sendMessage } from "../_shared/whatsapp-settings.ts";
+import { sendAutomationMessageV2 } from "../_shared/automation-v2-engine.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -56,15 +57,17 @@ serve(async (req) => {
 
         if (instance) {
           const fallbackMsg = `Percebi que sua resposta não foi registrada.\n\nPor favor, responda com:\n1️⃣ *Confirmar*\n2️⃣ *Reagendar*\n3️⃣ *Cancelar*`;
-          await sendMessage(instance, dispatch.phone, fallbackMsg);
           
-          await supabase.from("automation_logs").insert({
+          await sendAutomationMessageV2(supabase, {
             tenant_id: dispatch.tenant_id,
+            workflow_key: 'callback_timeout_fallback',
+            customer_phone: dispatch.phone,
             appointment_id: dispatch.appointment_id,
-            phone: dispatch.phone,
-            status: "sent",
-            action: "callback_timeout_fallback_sent",
-            message_type: "text_fallback",
+            appointment_group_id: dispatch.appointment_group_id,
+            customer_id: dispatch.customer_id,
+            customer_name: dispatch.customer_name,
+            message: fallbackMsg,
+            instance: instance,
             payload: { original_dispatch_id: dispatch.id }
           });
         }
