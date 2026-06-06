@@ -22,7 +22,8 @@ import {
   Download,
   FileSpreadsheet,
   X,
-  Info
+  Info,
+  History as HistoryIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -92,6 +93,10 @@ function AdminErrors() {
       
       if (error) throw error;
       return data;
+    },
+    refetchInterval: (query) => {
+      const hasProcessing = query.state.data?.report?.some((r: any) => r.reprocessing_status === 'processing');
+      return hasProcessing ? 3000 : false;
     }
   });
 
@@ -588,14 +593,58 @@ function AdminErrors() {
                 </div>
               )}
 
+              {selectedIssue.reprocessing_history && selectedIssue.reprocessing_history.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold flex items-center gap-2">
+                    <HistoryIcon className="h-4 w-4" /> Histórico de Reprocessamento
+                  </p>
+                  <div className="border rounded-2xl overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-muted/30">
+                        <TableRow>
+                          <TableHead className="h-9">Tentativa</TableHead>
+                          <TableHead className="h-9">Status</TableHead>
+                          <TableHead className="h-9 text-right">Resultado</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedIssue.reprocessing_history.map((h: any, idx: number) => (
+                          <TableRow key={idx}>
+                            <TableCell className="text-xs">
+                              {idx + 1}ª ({format(new Date(h.timestamp), "HH:mm:ss")})
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={h.status === 'completed' ? 'secondary' : 'outline'} className="text-[10px]">
+                                {h.status === 'completed' ? 'Sucesso' : 'Falhou'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {h.dispatch_id ? (
+                                <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-bold" asChild>
+                                  <a href={`/admin/logs?search=${h.dispatch_id}`} target="_blank" rel="noreferrer">
+                                    Ver Dispatch <ExternalLink className="ml-1 h-3 w-3" />
+                                  </a>
+                                </Button>
+                              ) : (
+                                <span className="text-[10px] text-muted-foreground italic">Sem dispatch</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => setSelectedIssue(null)}>Fechar</Button>
                 <Button 
                   className="bg-primary text-primary-foreground font-bold"
-                  disabled={reprocessingId === selectedIssue.automation_id}
+                  disabled={reprocessingId === selectedIssue.automation_id || selectedIssue.reprocessing_status === 'processing'}
                   onClick={() => handleReprocess(selectedIssue)}
                 >
-                  {reprocessingId === selectedIssue.automation_id ? (
+                  {(reprocessingId === selectedIssue.automation_id || selectedIssue.reprocessing_status === 'processing') ? (
                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
                   Sincronizar Manualmente

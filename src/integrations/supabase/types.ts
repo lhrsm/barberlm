@@ -1034,6 +1034,9 @@ export type Database = {
           last_notified_at: string | null
           last_reprocessed_at: string | null
           name: string
+          reprocessing_attempts: number | null
+          reprocessing_config: Json | null
+          reprocessing_history: Json | null
           reprocessing_status: string | null
           template: string
           tenant_id: string
@@ -1050,6 +1053,9 @@ export type Database = {
           last_notified_at?: string | null
           last_reprocessed_at?: string | null
           name: string
+          reprocessing_attempts?: number | null
+          reprocessing_config?: Json | null
+          reprocessing_history?: Json | null
           reprocessing_status?: string | null
           template: string
           tenant_id: string
@@ -1066,6 +1072,9 @@ export type Database = {
           last_notified_at?: string | null
           last_reprocessed_at?: string | null
           name?: string
+          reprocessing_attempts?: number | null
+          reprocessing_config?: Json | null
+          reprocessing_history?: Json | null
           reprocessing_status?: string | null
           template?: string
           tenant_id?: string
