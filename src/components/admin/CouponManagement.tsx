@@ -226,9 +226,9 @@ export function CouponManagement() {
         </div>
         <Button 
           onClick={handleOpenNew} 
-          className="gap-2 bg-[#ea580c] hover:bg-[#ea580c]/90 text-black font-black uppercase italic tracking-widest h-12 px-6 rounded-2xl shadow-[0_10px_20px_rgba(234,88,12,0.2)] hover:scale-105 transition-all"
+          className="gap-2 bg-[#ea580c] hover:bg-[#ea580c]/90 text-black font-black uppercase italic tracking-widest h-11 px-5 rounded-xl shadow-[0_5px_15px_rgba(234,88,12,0.15)] hover:scale-105 transition-all"
         >
-          <Plus size={18} /> Novo Cupom
+          <Plus size={16} /> Novo Cupom
         </Button>
       </div>
 

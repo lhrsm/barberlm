@@ -311,8 +311,8 @@ function SettingsComponent() {
                   <CardDescription className="text-slate-400">Gerencie suas informações pessoais e foto de perfil premium.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
-                  <div className="flex flex-col items-center gap-6">
-                    <div className="flex flex-col items-center gap-4 w-full">
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+                    <div className="flex flex-col items-center gap-4 shrink-0">
                       <div className="h-28 w-28 rounded-full bg-[#05070d] flex items-center justify-center overflow-hidden border-2 border-[#ea580c]/30 shadow-[0_0_20px_rgba(234,88,12,0.1)]">
                         {formData.logo_url ? (
                           <img src={formData.logo_url} alt="Profile" className="h-full w-full object-cover" />
@@ -357,23 +357,23 @@ function SettingsComponent() {
                         />
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="grid gap-2">
-                      <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">E-mail (Login)</Label>
-                      <Input value={user?.email || ""} disabled className="bg-[#05070d]/50 border-[#1f2937] text-slate-500 cursor-not-allowed" />
-                      <p className="text-[10px] text-slate-600 font-medium italic">O e-mail não pode ser alterado diretamente.</p>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="profile_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome para Exibição</Label>
-                      <Input 
-                        id="profile_name" 
-                        value={formData.business_name} 
-                        onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                        placeholder="Seu nome"
-                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl"
-                      />
+
+                    <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                      <div className="grid gap-2">
+                        <Label className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">E-mail (Login)</Label>
+                        <Input value={user?.email || ""} disabled className="bg-[#05070d]/50 border-[#1f2937] text-slate-500 cursor-not-allowed h-12 rounded-xl" />
+                        <p className="text-[10px] text-slate-600 font-medium italic">O e-mail não pode ser alterado diretamente.</p>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="profile_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome para Exibição</Label>
+                        <Input 
+                          id="profile_name" 
+                          value={formData.business_name} 
+                          onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                          placeholder="Seu nome"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -1078,15 +1078,15 @@ function SettingsComponent() {
             <div className="flex justify-end pt-10 pb-20">
               <Button 
                 type="submit" 
-                className="gap-3 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 hover:scale-105 active:scale-95 transition-all h-14 px-10 rounded-2xl font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(234,88,12,0.3)] group" 
+                className="gap-3 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 hover:scale-105 active:scale-95 transition-all h-12 px-8 rounded-xl font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(234,88,12,0.2)] group" 
                 disabled={saving}
               >
                 {saving ? (
-                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  <RefreshCw className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Save className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+                  <Save className="h-4 w-4 group-hover:rotate-12 transition-transform" />
                 )}
-                {saving ? "Salvando..." : "Salvar Todas as Configurações"}
+                {saving ? "Salvando..." : "Salvar Configurações"}
               </Button>
             </div>
           </form>
