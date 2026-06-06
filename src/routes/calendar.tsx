@@ -64,41 +64,41 @@ function getCalendarStatusConfig(status: string) {
   if (['completed', 'concluido', 'concluído', 'done'].includes(normalized)) {
     return {
       label: 'Concluído',
-      className: 'bg-emerald-500 text-white border-emerald-600'
+      className: 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
     };
   }
 
   if (['cancelled', 'canceled', 'cancelado'].includes(normalized)) {
     return {
       label: 'Cancelado',
-      className: 'bg-red-500 text-white border-red-600'
+      className: 'bg-red-600/20 text-red-400 border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.1)]'
     };
   }
 
   if (['confirmed', 'confirmado'].includes(normalized)) {
     return {
       label: 'Confirmado',
-      className: 'bg-sky-500 text-white border-sky-600'
+      className: 'bg-yellow-600/20 text-yellow-400 border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.1)]'
     };
   }
 
   if (['rescheduled', 'reagendado'].includes(normalized)) {
     return {
       label: 'Reagendado',
-      className: 'bg-purple-500 text-white border-purple-600'
+      className: 'bg-purple-600/20 text-purple-400 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.1)]'
     };
   }
 
   if (['awaiting_payment'].includes(normalized)) {
     return {
       label: 'Pgto Pendente',
-      className: 'bg-amber-500 text-white border-amber-600'
+      className: 'bg-amber-600/20 text-amber-400 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
     };
   }
 
   return {
     label: 'Pendente',
-    className: 'bg-orange-500 text-white border-orange-600'
+    className: 'bg-blue-600/20 text-blue-400 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
   };
 }
 
