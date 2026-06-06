@@ -56,6 +56,9 @@ function AdminErrors() {
   const [dateFilter, setDateFilter] = useState<string>("7d");
   const [automationFilter, setAutomationFilter] = useState<string>("all");
   const [searchFilter, setSearchFilter] = useState<string>("");
+  const [selectedIssue, setSelectedIssue] = useState<any>(null);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: auditLogs, isLoading: isLoadingAudit, refetch: refetchAudit } = useQuery({
     queryKey: ["admin-audit-logs"],
@@ -86,11 +89,37 @@ function AdminErrors() {
     }
   });
 
+  const exportToCSV = () => {
+    const reportData = healthReport?.report || [];
+    const headers = ["Barbearia", "Automação", "Status", "Motivo", "Última Falha"];
+    const rows = reportData.map((item: any) => [
+      item.tenant_name,
+      item.key,
+      item.is_healthy ? "Saudável" : "Erro Crítico",
+      item.last_error || "Nenhum",
+      item.issues?.[0]?.last_occurrence || "N/A"
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `saude_automacoes_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredAutomations = healthReport?.report?.filter((item: any) => {
     if (automationFilter !== "all" && item.key !== automationFilter) return false;
     if (searchFilter && !item.tenant_name.toLowerCase().includes(searchFilter.toLowerCase())) return false;
     return true;
   }) || [];
+
+  const paginatedAutomations = filteredAutomations.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const totalPages = Math.ceil(filteredAutomations.length / itemsPerPage);
 
   const unhealthyCount = healthReport?.summary?.unhealthy || 0;
 
