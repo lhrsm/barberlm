@@ -921,40 +921,44 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="pix" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Configuração de Pagamento PIX</CardTitle>
-                  <CardDescription>Cadastre sua chave PIX para recebimentos diretos dos clientes.</CardDescription>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <QrCode className="text-[#ea580c] h-5 w-5" />
+                    Configuração de Pagamento PIX
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Cadastre sua chave PIX para recebimentos diretos premium.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="pix_key">Chave PIX</Label>
+                <CardContent className="p-6 space-y-8">
+                  <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                    <Label htmlFor="pix_key" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Chave PIX (CPF, E-mail, Celular ou Aleatória)</Label>
                     <Input 
                       id="pix_key" 
                       value={formData.pix_key} 
                       onChange={(e) => setFormData({ ...formData, pix_key: e.target.value })}
-                      placeholder="CPF, E-mail, Celular ou Chave Aleatória"
+                      placeholder="Sua chave PIX aqui"
+                      className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl text-lg font-bold"
                     />
-                    <p className="text-xs text-muted-foreground">Esta chave será exibida para o cliente no momento do pagamento.</p>
+                    <p className="text-[10px] text-slate-600 font-bold uppercase italic tracking-wider">Esta chave será exibida para o cliente no momento do pagamento.</p>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t">
-                    <h4 className="font-medium text-sm">QR Code do PIX</h4>
-                    <div className="flex flex-col items-center gap-6">
-                      <div className="h-32 w-32 rounded-lg bg-muted flex items-center justify-center overflow-hidden border shadow-inner">
+                  <div className="space-y-6 pt-6 border-t border-[#1f2937]/50">
+                    <h4 className="font-black uppercase italic text-[#ea580c] text-xs tracking-[0.2em]">QR Code do PIX</h4>
+                    <div className="flex flex-col items-center gap-8 py-6 bg-[#05070d]/30 rounded-2xl border border-[#1f2937]/30">
+                      <div className="h-44 w-44 rounded-2xl bg-[#05070d] flex items-center justify-center overflow-hidden border-2 border-[#1f2937] shadow-[0_0_30px_rgba(0,0,0,0.5)] group relative">
                         {formData.pix_qr_code_url ? (
-                          <img src={formData.pix_qr_code_url} alt="PIX QR Code Preview" className="h-full w-full object-contain" />
+                          <img src={formData.pix_qr_code_url} alt="PIX QR Code Preview" className="h-full w-full object-contain p-2 transition-transform group-hover:scale-110" />
                         ) : (
-                          <QrCode className="h-12 w-12 text-muted-foreground/30" />
+                          <QrCode className="h-16 w-16 text-slate-800" />
                         )}
                       </div>
-                      <div className="w-full space-y-3">
-                        <Label htmlFor="pix_qr_file" className="text-center block text-sm font-bold text-slate-500 uppercase tracking-widest">Upload do QR Code (Imagem)</Label>
+                      <div className="w-full max-w-sm space-y-3 px-6">
+                        <Label htmlFor="pix_qr_file" className="text-center block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Upload do QR Code (Imagem)</Label>
                         <Input 
                           id="pix_qr_file" 
                           type="file" 
                           accept="image/*"
-                          className="h-12 rounded-[14px] cursor-pointer bg-slate-50/50"
+                          className="h-11 rounded-xl cursor-pointer bg-[#05070d] border-[#1f2937] text-white file:bg-[#ea580c] file:text-black file:font-bold file:border-none file:px-4 file:h-full file:mr-4"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file || !user) return;
@@ -983,7 +987,7 @@ function SettingsComponent() {
                             }
                           }}
                         />
-                        <p className="text-[10px] text-muted-foreground text-center">Upload da imagem do seu QR Code gerado pelo banco para facilitar pagamentos Pix.</p>
+                        <p className="text-[10px] text-slate-600 font-bold text-center uppercase italic">Otimize a experiência de pagamento do seu cliente.</p>
                       </div>
                     </div>
                   </div>
@@ -991,9 +995,18 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
-            <div className="flex justify-end pt-6">
-              <Button type="submit" className="gap-2 bg-black text-white hover:scale-105 transition-all h-12 px-8 rounded-xl font-bold uppercase tracking-tight" disabled={saving}>
-                <Save size={18} /> {saving ? "Salvando..." : "Salvar Configurações (Confirmar)"}
+            <div className="flex justify-end pt-10 pb-20">
+              <Button 
+                type="submit" 
+                className="gap-3 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 hover:scale-105 active:scale-95 transition-all h-14 px-10 rounded-2xl font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(234,88,12,0.3)] group" 
+                disabled={saving}
+              >
+                {saving ? (
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Save className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+                )}
+                {saving ? "Salvando..." : "Salvar Todas as Configurações"}
               </Button>
             </div>
           </form>
