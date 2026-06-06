@@ -255,13 +255,23 @@ serve(async (req) => {
       }
 
       // 3. Atualizar dispatch (Fluxo da Automação)
-      if (updatedDispatch) {
-        await supabase.from("automation_v2_dispatches").update({
+      if (updatedDispatch && updateSuccess) {
+        console.log(`[WebhookV2] Finalizing dispatch ${updatedDispatch.id}`);
+        const { error: dispatchErr } = await supabase.from("automation_v2_dispatches").update({
           current_step: "FINALIZADO",
           action_executed: true,
           action_executed_at: new Date().toISOString(),
           finalized: true,
           finalized_at: new Date().toISOString()
+        }).eq("id", updatedDispatch.id);
+        
+        if (dispatchErr) {
+          console.error("STAGE 5 FAIL: Error finalizing dispatch:", dispatchErr);
+        }
+      } else if (updatedDispatch) {
+        console.warn(`[WebhookV2] Dispatch ${updatedDispatch.id} NOT finalized because appointment update failed or rows_updated was 0.`);
+        await supabase.from("automation_v2_dispatches").update({
+          error_message: "Falha ao confirmar agendamento: rows_updated = 0 ou erro RLS"
         }).eq("id", updatedDispatch.id);
       }
 
