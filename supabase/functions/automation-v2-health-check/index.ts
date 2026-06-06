@@ -22,8 +22,16 @@ function canReprocess(lastReprocessed: string | null): boolean {
   return diffSeconds >= 30; // 30 second idempotency window
 }
 
-async function edge_function_invoke_queue(supabase: any, tenant_id: string, workflow_key: string, template_id: string) {
+async function edge_function_invoke_queue(supabase: any, tenant_id: string, workflow_key: string, template_id: string, attempt = 0) {
   try {
+    const { data: template } = await supabase.from("automation_templates")
+      .select("reprocessing_attempts, reprocessing_history, reprocessing_config")
+      .eq("id", template_id)
+      .single();
+
+    const config = template?.reprocessing_config || { max_retries: 3, backoff_factor: 2 };
+    const history = template?.reprocessing_history || [];
+
     const { data, error } = await supabase.functions.invoke('process-automation-queue', {
       body: { 
         tenant_id,
@@ -32,12 +40,47 @@ async function edge_function_invoke_queue(supabase: any, tenant_id: string, work
       }
     });
 
-    const status = (error || !data?.success) ? 'failed' : 'completed';
+    const isSuccess = data?.success && !error;
+    const newStatus = isSuccess ? 'completed' : 'failed';
+    
+    const historyEntry = {
+      timestamp: new Date().toISOString(),
+      attempt: attempt + 1,
+      status: newStatus,
+      error: error?.message || data?.error || (isSuccess ? null : "Unknown error"),
+      dispatch_id: data?.results?.[0]?.id || null
+    };
+
+    const updatedHistory = [...history, historyEntry].slice(-10); // Keep last 10 attempts
+
+    if (!isSuccess && attempt < config.max_retries) {
+      // Exponential backoff
+      const delayMs = Math.pow(config.backoff_factor, attempt) * 5000; // 5s, 10s, 20s...
+      console.log(`[HealthCheck] Retrying reprocess in ${delayMs}ms (Attempt ${attempt + 1})`);
+      
+      await supabase.from("automation_templates")
+        .update({ 
+          reprocessing_status: 'processing',
+          reprocessing_attempts: attempt + 1,
+          reprocessing_history: updatedHistory
+        })
+        .eq("id", template_id);
+
+      setTimeout(() => {
+        edge_function_invoke_queue(supabase, tenant_id, workflow_key, template_id, attempt + 1);
+      }, delayMs);
+      return;
+    }
+
     await supabase.from("automation_templates")
-      .update({ reprocessing_status: status })
+      .update({ 
+        reprocessing_status: newStatus,
+        reprocessing_attempts: isSuccess ? 0 : attempt + 1,
+        reprocessing_history: updatedHistory
+      })
       .eq("id", template_id);
       
-    console.log(`[HealthCheck] Async reprocess ${status} for ${template_id}`);
+    console.log(`[HealthCheck] Async reprocess ${newStatus} for ${template_id}`);
   } catch (e) {
     console.error(`[HealthCheck] Async reprocess fatal error:`, e);
     await supabase.from("automation_templates")
