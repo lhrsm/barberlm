@@ -574,7 +574,14 @@ function AdminErrors() {
 
               <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => setSelectedIssue(null)}>Fechar</Button>
-                <Button className="bg-primary text-primary-foreground font-bold">
+                <Button 
+                  className="bg-primary text-primary-foreground font-bold"
+                  disabled={reprocessingId === selectedIssue.automation_id}
+                  onClick={() => handleReprocess(selectedIssue)}
+                >
+                  {reprocessingId === selectedIssue.automation_id ? (
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
                   Sincronizar Manualmente
                 </Button>
               </div>
