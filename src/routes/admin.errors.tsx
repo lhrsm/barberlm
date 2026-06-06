@@ -22,7 +22,8 @@ import {
   Download,
   FileSpreadsheet,
   X,
-  Info
+  Info,
+  History as HistoryIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
