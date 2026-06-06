@@ -233,11 +233,11 @@ export function CouponManagement() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-[#1a1b1e] border-slate-800 text-white">
+        <DialogContent className="sm:max-w-[425px] bg-[#0b0f17] border-[#1f2937] text-white rounded-3xl shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              {editingCoupon ? <Pencil size={18} /> : <Plus size={18} />}
-              {editingCoupon ? "Editar Cupom" : "Novo Cupom"}
+            <DialogTitle className="text-xl font-black uppercase italic tracking-widest flex items-center gap-2">
+              {editingCoupon ? <Pencil size={18} className="text-[#ea580c]" /> : <Plus size={18} className="text-[#ea580c]" />}
+              {editingCoupon ? "Editar Cupom" : "Novo Cupom Premium"}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
