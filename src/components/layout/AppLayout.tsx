@@ -24,7 +24,10 @@ import {
   Bell,
   MessageSquare,
   Megaphone,
-  Share2
+  Share2,
+  History,
+  User,
+  Layout
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";
@@ -60,9 +63,11 @@ const defaultNavItems = [
 ];
 
 const barberNavItems = (slug: string) => [
-  { label: "Meu Painel", icon: LayoutDashboard, to: `/${slug}/profissional` },
-  { label: "Minha Agenda", icon: Calendar, to: "/calendar" },
+  { label: "Dashboard", icon: Layout, to: `/${slug}/profissional` },
+  { label: "Agenda", icon: Calendar, to: "/calendar" },
+  { label: "Histórico", icon: History, to: `/${slug}/profissional?tab=history` },
   { label: "Financeiro", icon: CircleDollarSign, to: "/finances" },
+  { label: "Perfil", icon: User, to: `/${slug}/profissional?tab=profile` },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -159,7 +164,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <div className="flex flex-col h-screen bg-[#05070d] text-white">
       {shouldBlock && <TrialExpiredBlock />}
       <OnboardingModal />
       {isImpersonating && (
@@ -181,7 +186,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Mobile Top Header */}
-      <header className="md:hidden flex items-center justify-between p-4 border-b bg-card sticky top-0 z-40">
+      <header className="md:hidden flex items-center justify-between p-4 border-b border-[#D4AF37]/10 bg-[#0b0f17] sticky top-0 z-40">
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="p-1.5 bg-primary/10 rounded-lg shrink-0">
             <Scissors className="text-primary h-5 w-5" />
@@ -208,23 +213,26 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
           <nav className="p-4 flex flex-col h-full">
-            <div className="space-y-2 flex-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-4 px-4 py-3 rounded-xl text-base font-medium transition-all",
-                    pathname === item.to
-                      ? "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.3)]"
-                      : "text-muted-foreground hover:bg-accent"
-                  )}
-                >
-                  <item.icon size={22} />
-                  {item.label}
-                </Link>
-              ))}
+            <div className="space-y-3 flex-1 pt-6">
+              {navItems.map((item) => {
+                const isActive = pathname === item.to || (item.to.includes('?') && pathname + window.location.search === item.to);
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-4 px-5 py-4 rounded-2xl text-lg font-black transition-all",
+                      isActive
+                        ? "bg-[#D4AF37] text-black shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+                        : "text-gray-400 hover:bg-white/5"
+                    )}
+                  >
+                    <item.icon size={24} className={isActive ? "text-black" : "text-[#D4AF37]"} />
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
             <div className="pt-4 border-t border-white/10 mt-4">
               <LogoutButton />
@@ -235,29 +243,38 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar for desktop */}
-        <aside className="hidden md:flex flex-col w-64 border-r bg-card shrink-0">
+        <aside className="hidden md:flex flex-col w-64 border-r border-[#D4AF37]/10 bg-[#0b0f17] shrink-0">
           <div className="p-6 flex items-center justify-between border-b border-white/5 mb-2">
             <p className="text-2xl font-black text-white tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
               {businessName}
             </p>
           </div>
 
-          <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-            {navItems.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300",
-                  pathname === item.to
-                    ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.3)]"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                )}
-              >
-                <item.icon size={20} className={cn(pathname === item.to ? "animate-pulse" : "")} />
-                {item.label}
-              </Link>
-            ))}
+          <nav className="flex-1 px-4 space-y-2 overflow-y-auto pt-4">
+            {navItems.map((item) => {
+              const isActive = pathname === item.to || (item.to.includes('?') && pathname + window.location.search === item.to);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 relative overflow-hidden",
+                    isActive
+                      ? "bg-[#D4AF37] text-black shadow-[0_0_20px_rgba(212,175,55,0.2)] scale-[1.02]"
+                      : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  )}
+                >
+                  {isActive && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-black rounded-r-full" />
+                  )}
+                  <item.icon size={20} className={cn(
+                    "transition-transform duration-300 group-hover:scale-110",
+                    isActive ? "text-black" : "text-[#D4AF37]/60 group-hover:text-[#D4AF37]"
+                  )} />
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
           <div className="p-4 border-t">
             <LogoutButton />
@@ -268,7 +285,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Header for Desktop */}
-          <header className="hidden md:flex h-16 items-center justify-end px-8 border-b bg-card shrink-0">
+          <header className="hidden md:flex h-16 items-center justify-end px-8 border-b border-[#D4AF37]/10 bg-[#0b0f17] shrink-0">
             <div className="flex items-center gap-4">
               <NotificationsCenter />
               {role === 'super_admin' && <AdminNotifications />}

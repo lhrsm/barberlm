@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, useSearch } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useProfessionalAuth } from "@/components/professional/ProfessionalAuthProvider";
@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   Calendar, CircleDollarSign, Clock, Users, Scissors, TrendingUp, Edit2, 
   User as UserIcon, LogOut, RefreshCcw, CheckCircle2, Phone, Mail, UserCheck, X,
-  AlertCircle, Eye, ChevronLeft, ChevronRight, Filter
+  AlertCircle, Eye, ChevronLeft, ChevronRight, Filter, Crown, Plus
 } from "lucide-react";
 import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -26,6 +26,11 @@ import { ProfessionalNotifications } from "@/components/professional/Professiona
 import { useAppointmentStatus } from "@/hooks/use-appointment-status";
 
 export const Route = createFileRoute("/$slug/profissional")({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      tab: (search.tab as string) || "appointments"
+    }
+  },
   component: ProfessionalDashboard,
 });
 
@@ -33,6 +38,8 @@ function ProfessionalDashboard() {
   const { session, loading, logout } = useProfessionalAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const search = useSearch({ from: '/$slug/profissional' }) as any;
+  const [currentTab, setCurrentTab] = useState(search.tab || "appointments");
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
   
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -40,6 +47,19 @@ function ProfessionalDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   
+  // Sync tab with URL
+  useEffect(() => {
+    if (search.tab && search.tab !== currentTab) {
+      setCurrentTab(search.tab);
+    }
+  }, [search.tab]);
+
+  // Sync URL with tab
+  const handleTabChange = (val: string) => {
+    setCurrentTab(val);
+    navigate({ search: { tab: val } as any });
+  };
+
   // Dialog States
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showEditSchedule, setShowEditSchedule] = useState(false);
@@ -127,7 +147,7 @@ function ProfessionalDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#05070d] gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
         <p className="text-[#6B7280] text-sm animate-pulse font-medium">Carregando painel do profissional...</p>
       </div>
@@ -136,19 +156,19 @@ function ProfessionalDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-4">
-        <Card className="max-w-md w-full border-red-200 bg-white shadow-2xl rounded-2xl overflow-hidden">
-          <CardHeader className="bg-red-50/50 border-b border-red-100">
-            <div className="flex items-center gap-2 text-red-600 mb-2">
+      <div className="min-h-screen flex items-center justify-center bg-[#05070d] p-4">
+        <Card className="max-w-md w-full border-red-900/20 bg-[#0b0f17] shadow-2xl rounded-2xl overflow-hidden text-white">
+          <CardHeader className="bg-red-950/20 border-b border-red-900/20">
+            <div className="flex items-center gap-2 text-red-500 mb-2">
               <AlertCircle className="h-6 w-6" />
               <CardTitle>Erro no Painel</CardTitle>
             </div>
-            <CardDescription className="text-red-500/80">
+            <CardDescription className="text-red-400/80">
               Ocorreu um problema ao carregar as informações do seu painel.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs font-mono text-gray-600 break-words leading-relaxed">
+            <div className="bg-[#05070d] p-4 rounded-xl border border-red-900/10 text-xs font-mono text-gray-400 break-words leading-relaxed">
               {error}
             </div>
             <Button 
@@ -165,7 +185,7 @@ function ProfessionalDashboard() {
 
   if (!stats && !error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#05070d] gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
         <p className="text-[#6B7280] text-sm font-medium">Sincronizando dados...</p>
       </div>
@@ -188,206 +208,184 @@ function ProfessionalDashboard() {
 
   return (
     <AppLayout>
-      <div className="space-y-8 pb-12 px-4 md:px-0 bg-[#0F1115] min-h-screen">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-[12px] border border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-[#D4AF37]/20 shadow-sm">
+      <div className="space-y-8 pb-12 px-4 md:px-0 bg-[#05070d] min-h-screen text-white">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#0b0f17] p-8 rounded-2xl border border-[#D4AF37]/20 shadow-[0_4px_24px_rgba(0,0,0,0.3)]">
+          <div className="flex items-center gap-6">
+            <Avatar className="h-20 w-20 border-2 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)]">
               <AvatarImage src={barber?.avatar_url} />
-              <AvatarFallback className="bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="bg-[#D4AF37]/10 text-[#D4AF37] text-2xl font-black">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold text-[#111827]">Olá, {session.name} 👋</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className={cn(
-                  "border-[#D4AF37]/30",
-                  barber?.active ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
+              <h1 className="text-3xl font-black text-white tracking-tight">Olá, {session.name} 👋</h1>
+              <div className="flex items-center gap-3 mt-3">
+                <Badge className={cn(
+                  "px-3 py-1 font-black text-[10px] uppercase tracking-wider border-0 shadow-sm",
+                  barber?.active ? "bg-green-600 text-white" : "bg-red-600 text-white"
                 )}>
-                  {barber?.active ? "Disponível" : "Indisponível"}
+                  {barber?.active ? "🟢 Disponível" : "🔴 Indisponível"}
                 </Badge>
-                <span className="text-xs text-[#6B7280]">{barber?.category || "Profissional"}</span>
+                <Badge className="px-3 py-1 bg-[#D4AF37] text-black font-black text-[10px] uppercase tracking-wider border-0 shadow-sm">
+                  👑 {barber?.category || "Profissional"}
+                </Badge>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <ProfessionalNotifications barberId={session.barber_id} />
             <Button 
               variant="outline" 
               size="icon" 
               onClick={fetchData} 
-              className="h-10 w-10 rounded-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10"
+              className="h-12 w-12 rounded-2xl border-[#D4AF37]/30 bg-[#05070d] text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]"
             >
-              <RefreshCcw className="h-5 w-5" />
+              <RefreshCcw className="h-6 w-6" />
             </Button>
             <Button 
               variant="ghost" 
-              size="sm" 
               onClick={logout} 
-              className="text-red-500 hover:bg-red-50 rounded-[10px]"
+              className="text-red-400 hover:bg-red-950/30 rounded-2xl h-12 px-6 font-bold"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-5 w-5 mr-2" /> Sair
             </Button>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-bold text-[#111827]">Hoje</CardTitle>
-              <Users className="h-4 w-4 text-[#D4AF37]" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#111827]">{stats.today}</div>
-              <p className="text-xs text-[#6B7280] mt-1 font-medium">{stats.week} na semana</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-bold text-[#111827]">Faturamento Mês</CardTitle>
-              <CircleDollarSign className="h-4 w-4 text-[#D4AF37]" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#111827]">R$ {stats.revenueMonth.toFixed(2)}</div>
-              <p className="text-xs text-[#6B7280] mt-1 font-medium">Ticket: R$ {stats.avgTicket.toFixed(2)}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-bold text-[#111827]">Cancelamentos</CardTitle>
-              <X className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#111827]">{stats.cancelledMonth}</div>
-              <p className="text-xs text-[#6B7280] mt-1 font-medium">No mês atual</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] transition-all hover:shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-bold text-[#111827]">Próximo</CardTitle>
-              <Clock className="h-4 w-4 text-[#D4AF37]" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold truncate text-[#111827]">
-                {stats.nextApp ? format(new Date(stats.nextApp.start_time), "HH:mm") : "---"}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {[
+            { title: "Atendimentos Hoje", value: stats.today, icon: Calendar },
+            { title: "Atendimentos Semana", value: stats.week, icon: Users },
+            { title: "Atendimentos Mês", value: stats.month, icon: Scissors },
+            { title: "Faturamento Mês", value: `R$ ${stats.revenueMonth.toFixed(2)}`, icon: CircleDollarSign },
+            { title: "Comissão Mês", value: `R$ ${stats.commissionMonth.toFixed(2)}`, icon: Crown },
+            { title: "Ticket Médio", value: `R$ ${stats.avgTicket.toFixed(2)}`, icon: TrendingUp },
+            { title: "Cancelamentos", value: stats.cancelledMonth, icon: X },
+            { title: "Próximo Atendimento", value: stats.nextApp ? format(new Date(stats.nextApp.start_time), "HH:mm") : "---", icon: Clock },
+          ].map((stat, i) => (
+            <Card key={i} className="bg-[#0b0f17] border-[#D4AF37]/20 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl p-6 transition-all hover:border-[#D4AF37]/50 hover:shadow-[0_8px_24px_rgba(212,175,55,0.1)]">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">{stat.title}</span>
+                <stat.icon className="h-6 w-6 text-[#D4AF37]" />
               </div>
-              <p className="text-xs text-[#6B7280] mt-1 truncate font-medium">
-                {stats.nextApp ? `Com ${stats.nextApp.customers?.name || 'Cliente'}` : "Sem agendamentos"}
-              </p>
-            </CardContent>
-          </Card>
+              <div className="text-3xl font-black text-white">{stat.value}</div>
+            </Card>
+          ))}
         </div>
 
-        <Tabs defaultValue="appointments" className="w-full">
-          <TabsList className="bg-transparent p-0 gap-3 mb-8 flex overflow-x-auto h-auto">
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="bg-[#0b0f17] p-1.5 gap-2 flex overflow-x-auto h-auto rounded-2xl border border-[#D4AF37]/10 w-fit">
             <TabsTrigger 
               value="appointments" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] data-[state=active]:shadow-[0_4px_16px_rgba(212,175,55,0.2)] bg-white text-[#111827] border border-[#D4AF37] rounded-[10px] py-3.5 transition-all duration-250 ease-in-out hover:bg-[#F9F4E6] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(212,175,55,0.15)] data-[state=active]:hover:bg-[#111111] data-[state=active]:hover:shadow-[0_6px_20px_rgba(212,175,55,0.25)] font-bold"
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
             >
               <Calendar className="h-4 w-4" /> Agenda
             </TabsTrigger>
             <TabsTrigger 
               value="history" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] data-[state=active]:shadow-[0_4px_16px_rgba(212,175,55,0.2)] bg-white text-[#111827] border border-[#D4AF37] rounded-[10px] py-3.5 transition-all duration-250 ease-in-out hover:bg-[#F9F4E6] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(212,175,55,0.15)] data-[state=active]:hover:bg-[#111111] data-[state=active]:hover:shadow-[0_6px_20px_rgba(212,175,55,0.25)] font-bold"
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
             >
               <TrendingUp className="h-4 w-4" /> Histórico
             </TabsTrigger>
             <TabsTrigger 
               value="profile" 
-              className="gap-2 flex-1 data-[state=active]:bg-[#111111] data-[state=active]:text-[#D4AF37] data-[state=active]:border-[#D4AF37] data-[state=active]:shadow-[0_4px_16_rgba(212,175,55,0.2)] bg-white text-[#111827] border border-[#D4AF37] rounded-[10px] py-3.5 transition-all duration-250 ease-in-out hover:bg-[#F9F4E6] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(212,175,55,0.15)] data-[state=active]:hover:bg-[#111111] data-[state=active]:hover:shadow-[0_6px_20px_rgba(212,175,55,0.25)] font-bold"
+              className="gap-2 px-8 py-3 rounded-xl transition-all data-[state=active]:bg-[#D4AF37] data-[state=active]:text-black text-gray-400 font-black uppercase text-xs tracking-wider"
             >
               <UserIcon className="h-4 w-4" /> Perfil
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="appointments" className="mt-0 space-y-4">
-            <div className="flex items-center justify-between mb-2">
+          <TabsContent value="appointments" className="mt-8 space-y-6">
+            <div className="flex items-center justify-between">
               <h2 className="text-[#D4AF37] font-black uppercase text-xs tracking-[0.2em]">Agendamentos de Hoje</h2>
               <Button 
                 size="sm"
-                className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-black px-4 h-9 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="bg-[#D4AF37] hover:bg-[#B8962E] text-black rounded-xl font-black px-6 h-11 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(212,175,55,0.2)]"
                 onClick={() => toast.info("Funcionalidade de novo agendamento disponível em breve no painel do profissional.")}
               >
-                <Calendar className="h-4 w-4 mr-2 text-[#D4AF37]" /> Novo Agendamento
+                <Plus className="h-4 w-4 mr-2" /> Novo Agendamento
               </Button>
             </div>
+            
             <div className="grid gap-4">
               {appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).length === 0 ? (
-                <Card className="border-dashed border-[#D4AF37]/50 py-16 text-center bg-white rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
+                <Card className="border-dashed border-[#D4AF37]/20 py-16 text-center bg-[#0b0f17] rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
                   <CardContent className="flex flex-col items-center">
                     <Calendar className="h-16 w-16 text-[#D4AF37] opacity-20 mb-4" />
-                    <p className="text-[#6B7280] font-medium">Nenhum atendimento para hoje.</p>
+                    <p className="text-gray-400 font-medium text-lg">Nenhum atendimento para hoje.</p>
                   </CardContent>
                 </Card>
               ) : (
                 appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).map(app => (
-                  <Card key={app.id} className="overflow-hidden bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px]">
+                  <Card key={app.id} className="overflow-hidden bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl transition-all hover:border-[#D4AF37]/30">
                     <div className="flex flex-col md:flex-row md:items-center">
-                      <div className="w-full md:w-32 bg-[#D4AF37]/5 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#D4AF37]/20">
-                        <span className="text-3xl font-black text-[#111827]">{format(new Date(app.start_time), "HH:mm")}</span>
+                      <div className="w-full md:w-32 bg-[#D4AF37]/5 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#D4AF37]/10">
+                        <span className="text-3xl font-black text-white">{format(new Date(app.start_time), "HH:mm")}</span>
                         <span className="text-[10px] uppercase font-black text-[#D4AF37] tracking-wider mt-1">Hoje</span>
                       </div>
-                      <div className="flex-1 p-6 flex items-center gap-4">
-                        <Avatar className="h-12 w-12 border border-[#D4AF37]/10 shadow-sm">
+                      
+                      <div className="flex-1 p-6 flex items-center gap-6">
+                        <Avatar className="h-14 w-14 border-2 border-[#D4AF37]/20 shadow-md">
                           <AvatarImage src={app.customers?.avatar_url} />
-                          <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37] font-bold">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37] font-black">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
+                        
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-lg truncate text-[#111827]">{app.customers?.name || "Cliente"}</h4>
-                          <p className="text-sm text-[#6B7280] flex items-center gap-2 font-medium">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h4 className="font-black text-xl truncate text-white">{app.customers?.name || "Cliente"}</h4>
+                            <Badge className={cn(
+                              "px-2 py-0.5 font-black text-[9px] uppercase border-0",
+                              app.status === 'completed' ? "bg-green-600" :
+                              app.status === 'cancelled' ? "bg-red-600" :
+                              app.status === 'confirmed' ? "bg-yellow-500 text-black" : "bg-blue-600"
+                            )}>
+                              {app.status === 'completed' ? 'CONCLUÍDO' : 
+                               app.status === 'cancelled' ? 'CANCELADO' : 
+                               app.status === 'confirmed' ? 'CONFIRMADO' : 'AGENDADO'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-400 flex items-center gap-2 font-medium">
                             <Scissors size={14} className="text-[#D4AF37]" /> {app.services?.name}
+                            <span className="text-gray-600">•</span>
+                            <span className="font-black text-white">R$ {Number(app.total_price || 0).toFixed(2)}</span>
                           </p>
                         </div>
-                        <div className="text-right flex flex-col items-end gap-2">
-                           {app.status === 'cancelled' ? (
-                             <Badge variant="outline" className="text-[10px] font-black px-2 py-0.5 text-zinc-400 border-zinc-200 bg-white">
-                               SEM COBRANÇA
-                             </Badge>
-                           ) : (
-                             <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'} className={cn(
-                               "text-[10px] font-black px-2 py-0.5",
-                               app.payment_status === 'paid' ? "bg-green-600 text-white border-transparent" : "text-[#D4AF37] border-[#D4AF37] bg-white"
-                             )}>
-                               {app.payment_status === 'paid' ? 'PAGO' : 'PENDENTE'}
-                             </Badge>
-                           )}
-                          <span className="font-black text-lg text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
-                        </div>
                       </div>
-                      <div className="p-6 bg-gray-50/50 flex items-center gap-3 border-t md:border-t-0 md:border-l border-[#D4AF37]/10">
+
+                      <div className="p-6 bg-[#05070d]/50 flex items-center gap-3 border-t md:border-t-0 md:border-l border-[#D4AF37]/10">
                         {app.status === 'scheduled' || app.status === 'confirmed' ? (
                           <>
                             <Button 
                               size="sm" 
                               onClick={() => handleAction(app, 'completed')} 
-                              className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-11 transition-all hover:scale-[1.02] active:scale-[0.98] flex-1"
+                              className="bg-[#D4AF37] hover:bg-[#B8962E] text-black rounded-xl font-black px-6 h-11 transition-all hover:scale-[1.02] flex-1"
                             >
-                              <CheckCircle2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Concluir
+                              <CheckCircle2 className="h-4 w-4 mr-2" /> Concluir
                             </Button>
                             <Button 
                               size="sm" 
                               variant="outline" 
                               onClick={() => { setSelectedAppointment(app); setShowCancelDialog(true); }} 
-                              className="bg-white hover:bg-red-50 text-red-500 border-red-200 rounded-[10px] font-bold px-4 h-11 flex-1"
+                              className="bg-transparent hover:bg-red-950/20 text-red-500 border-red-900/50 rounded-xl font-black px-6 h-11 flex-1"
                             >
                               <X className="h-4 w-4 mr-2" /> Cancelar
                             </Button>
                             <Button 
                               size="sm"
-                              className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] h-11 w-11 p-0 flex items-center justify-center transition-all hover:scale-[1.05]"
+                              className="bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white border border-[#D4AF37]/20 rounded-xl h-11 w-11 p-0 transition-all hover:scale-[1.05]"
                               onClick={() => toast.info(`Detalhes de ${app.customers?.name}`)}
                             >
                               <Eye className="h-4 w-4 text-[#D4AF37]" />
                             </Button>
                           </>
                         ) : (
-                          <Badge className={cn(
-                            "w-full justify-center py-2 font-black rounded-[8px]",
-                            app.status === 'completed' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                          )}>
-                            {app.status === 'completed' ? 'CONCLUÍDO' : 'CANCELADO'}
-                          </Badge>
+                          <div className="flex flex-col items-center gap-1 w-full min-w-[140px]">
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Status Final</span>
+                            <Badge className={cn(
+                              "w-full justify-center py-2 font-black rounded-lg uppercase text-[11px]",
+                              app.status === 'completed' ? "bg-green-600/10 text-green-500 border border-green-600/20" : "bg-red-600/10 text-red-500 border border-red-600/20"
+                            )}>
+                              {app.status === 'completed' ? 'Finalizado' : 'Cancelado'}
+                            </Badge>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -397,17 +395,17 @@ function ProfessionalDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="history" className="mt-0 space-y-4">
-            <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+          <TabsContent value="history" className="mt-8 space-y-6">
+            <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
               <CardHeader className="border-b border-[#D4AF37]/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <CardTitle className="text-xl font-bold text-[#111827]">Histórico de Atendimentos</CardTitle>
-                  <CardDescription className="text-[#6B7280] font-medium">Lista completa dos seus serviços prestados.</CardDescription>
+                  <CardTitle className="text-xl font-black text-white">Histórico de Atendimentos</CardTitle>
+                  <CardDescription className="text-gray-400 font-medium">Lista completa dos seus serviços prestados.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="bg-[#111111] text-white border-[#D4AF37] rounded-[8px] h-9 px-4 font-bold transition-all hover:scale-[1.02]">Tudo</Button>
-                  <Button variant="outline" size="sm" className="bg-white text-black border-[#D4AF37]/30 rounded-[8px] h-9 px-4 font-bold hover:bg-[#D4AF37]/5 transition-all">Este Mês</Button>
-                  <Button variant="outline" size="sm" className="bg-white text-black border-[#D4AF37]/30 rounded-[8px] h-9 px-4 font-bold hover:bg-[#D4AF37]/5 transition-all">
+                  <Button variant="outline" size="sm" className="bg-[#D4AF37] text-black border-0 rounded-lg h-9 px-4 font-black text-[10px] uppercase">Tudo</Button>
+                  <Button variant="outline" size="sm" className="bg-transparent text-white border-[#D4AF37]/30 rounded-lg h-9 px-4 font-black text-[10px] uppercase hover:bg-[#D4AF37]/5 transition-all">Este Mês</Button>
+                  <Button variant="outline" size="sm" className="bg-transparent text-white border-[#D4AF37]/30 rounded-lg h-9 px-4 font-black text-[10px] uppercase hover:bg-[#D4AF37]/5 transition-all">
                     <Filter className="h-4 w-4 mr-2 text-[#D4AF37]" /> Filtros
                   </Button>
                 </div>
@@ -415,30 +413,27 @@ function ProfessionalDashboard() {
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gray-50/50 border-b border-[#D4AF37]/10">
+                    <thead className="bg-[#05070d] border-b border-[#D4AF37]/10">
                       <tr>
-                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Data</th>
-                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Cliente</th>
-                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Serviço</th>
-                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Valor</th>
-                        <th className="px-6 py-4 text-left text-xs font-black text-[#D4AF37] uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Data</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Cliente</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Serviço</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Valor</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#D4AF37]/5 bg-white">
+                    <tbody className="divide-y divide-[#D4AF37]/5 bg-[#0b0f17]">
                       {appointments.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-6 py-12 text-center text-[#6B7280] italic font-medium">Nenhum atendimento registrado.</td>
+                          <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic font-medium">Nenhum atendimento registrado.</td>
                         </tr>
                       ) : (
                         appointments.slice(0, 10).map((app, index) => (
-                          <tr key={app.id} className={cn(
-                            "transition-colors hover:bg-[#D4AF37]/5",
-                            index % 2 === 1 ? "bg-gray-50/30" : "bg-white"
-                          )}>
+                          <tr key={app.id} className="transition-colors hover:bg-[#D4AF37]/5">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center gap-3">
                                 <Calendar className="h-4 w-4 text-[#D4AF37]" />
-                                <span className="text-sm font-bold text-[#111827]">{format(new Date(app.start_time), "dd/MM/yyyy")}</span>
+                                <span className="text-sm font-bold text-white">{format(new Date(app.start_time), "dd/MM/yyyy")}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -447,21 +442,21 @@ function ProfessionalDashboard() {
                                   <AvatarImage src={app.customers?.avatar_url} />
                                   <AvatarFallback className="text-[10px] bg-[#D4AF37]/5 text-[#D4AF37] font-bold">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                                 </Avatar>
-                                <span className="text-sm font-bold text-[#111827]">{app.customers?.name || "Cliente"}</span>
+                                <span className="text-sm font-bold text-white">{app.customers?.name || "Cliente"}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm text-[#6B7280] font-medium">{app.services?.name}</span>
+                              <span className="text-sm text-gray-400 font-medium">{app.services?.name}</span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm font-black text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
+                              <span className="text-sm font-black text-white">R$ {Number(app.total_price || 0).toFixed(2)}</span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <Badge className={cn(
-                                "text-[10px] font-black px-2 py-0.5 rounded-[6px]",
-                                app.status === 'completed' ? "bg-green-100 text-green-700" :
-                                app.status === 'cancelled' ? "bg-red-100 text-red-700" :
-                                "bg-blue-100 text-blue-700"
+                                "text-[9px] font-black px-2 py-0.5 rounded-md uppercase border-0",
+                                app.status === 'completed' ? "bg-green-600/20 text-green-500" :
+                                app.status === 'cancelled' ? "bg-red-600/20 text-red-500" :
+                                "bg-blue-600/20 text-blue-500"
                               )}>
                                 {app.status === 'completed' ? 'CONCLUÍDO' : 
                                  app.status === 'cancelled' ? 'CANCELADO' : 'AGENDADO'}
@@ -474,11 +469,11 @@ function ProfessionalDashboard() {
                   </table>
                 </div>
                 {appointments.length > 0 && (
-                  <div className="bg-gray-50/50 p-4 border-t border-[#D4AF37]/10 flex items-center justify-between">
-                    <p className="text-xs text-[#6B7280] font-bold">Mostrando 1-10 de {appointments.length} atendimentos</p>
+                  <div className="bg-[#05070d]/50 p-4 border-t border-[#D4AF37]/10 flex items-center justify-between">
+                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-wider">Mostrando 1-10 de {appointments.length} atendimentos</p>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[8px] border-[#D4AF37] text-[#D4AF37] bg-white hover:bg-[#D4AF37]/5"><ChevronLeft size={18} /></Button>
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[8px] border-[#D4AF37] text-[#D4AF37] bg-white hover:bg-[#D4AF37]/5"><ChevronRight size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-[#D4AF37]/20 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10"><ChevronLeft size={18} /></Button>
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-[#D4AF37]/20 text-[#D4AF37] bg-transparent hover:bg-[#D4AF37]/10"><ChevronRight size={18} /></Button>
                     </div>
                   </div>
                 )}
@@ -486,54 +481,61 @@ function ProfessionalDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="profile" className="mt-0">
+          <TabsContent value="profile" className="mt-8">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+              <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
                 <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
-                  <CardTitle className="text-xl font-bold text-[#111827]">Perfil Profissional</CardTitle>
+                  <CardTitle className="text-xl font-black text-white">Perfil Profissional</CardTitle>
                   <Button 
                     size="sm" 
                     onClick={() => setShowEditProfile(true)}
-                    className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30 rounded-xl font-black px-6 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Edit2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Editar
+                    <Edit2 className="h-4 w-4 mr-2" /> Editar
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-6 pt-8 px-6 pb-8">
-                  <div className="flex flex-col items-center gap-4">
-                    <Avatar className="h-28 w-28 border-4 border-[#D4AF37] shadow-xl">
-                      <AvatarImage src={barber?.avatar_url} />
-                      <AvatarFallback className="text-4xl font-black bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
+                <CardContent className="space-y-8 pt-8 px-6 pb-8">
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="relative">
+                      <Avatar className="h-32 w-32 border-4 border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+                        <AvatarImage src={barber?.avatar_url} />
+                        <AvatarFallback className="text-4xl font-black bg-[#D4AF37]/10 text-[#D4AF37]">{session.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-2 -right-2 bg-green-500 h-6 w-6 rounded-full border-4 border-[#0b0f17]"></div>
+                    </div>
                     <div className="text-center">
-                      <h3 className="text-2xl font-black text-[#111827]">{barber?.name}</h3>
-                      <p className="text-sm text-[#D4AF37] font-black uppercase tracking-widest mt-1">{barber?.category || "Profissional"}</p>
+                      <h3 className="text-2xl font-black text-white">{barber?.name}</h3>
+                      <p className="text-sm text-[#D4AF37] font-black uppercase tracking-[0.2em] mt-2">{barber?.category || "Profissional"}</p>
                     </div>
                   </div>
                   
-                  <div className="space-y-6 pt-6 border-t border-[#D4AF37]/10">
-                    <div className="space-y-2">
-                      <p className="text-xs font-black uppercase text-[#D4AF37] tracking-wider">Bio / Descrição</p>
-                      <p className="text-sm text-[#111827] leading-relaxed font-medium bg-gray-50 p-4 rounded-[10px] border border-gray-100">
+                  <div className="space-y-6 pt-6 border-t border-[#D4AF37]/5">
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black uppercase text-[#D4AF37] tracking-[0.2em]">Bio / Descrição</p>
+                      <p className="text-sm text-gray-300 leading-relaxed font-medium bg-[#05070d] p-5 rounded-2xl border border-[#D4AF37]/5">
                         {barber?.bio || "Sem descrição informada."}
                       </p>
                     </div>
                     <div className="grid gap-4">
-                      <div className="flex items-center gap-4 text-sm text-[#111827] bg-[#D4AF37]/5 p-4 rounded-[10px] border border-[#D4AF37]/10 font-bold">
-                        <Phone className="h-5 w-5 text-[#D4AF37]" />
+                      <div className="flex items-center gap-4 text-sm text-white bg-[#05070d] p-4 rounded-xl border border-[#D4AF37]/5 font-bold">
+                        <div className="h-10 w-10 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
+                          <Phone className="h-5 w-5 text-[#D4AF37]" />
+                        </div>
                         <span>{barber?.phone || "Não informado"}</span>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-[#111827] bg-[#D4AF37]/5 p-4 rounded-[10px] border border-[#D4AF37]/10 font-bold">
-                        <Mail className="h-5 w-5 text-[#D4AF37]" />
+                      <div className="flex items-center gap-4 text-sm text-white bg-[#05070d] p-4 rounded-xl border border-[#D4AF37]/5 font-bold">
+                        <div className="h-10 w-10 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
+                          <Mail className="h-5 w-5 text-[#D4AF37]" />
+                        </div>
                         <span>{barber?.email || "Não informado"}</span>
                       </div>
                     </div>
                     {barber?.specialties && barber.specialties.length > 0 && (
-                      <div className="space-y-2 pt-2">
-                        <p className="text-xs font-black uppercase text-[#D4AF37] tracking-wider">Especialidades</p>
+                      <div className="space-y-3 pt-2">
+                        <p className="text-[10px] font-black uppercase text-[#D4AF37] tracking-[0.2em]">Especialidades</p>
                         <div className="flex flex-wrap gap-2">
                           {barber.specialties.map((spec: string, i: number) => (
-                            <Badge key={i} variant="outline" className="border-[#D4AF37]/30 text-[#111827] bg-white font-bold text-[10px] uppercase py-1 px-3 rounded-[6px]">
+                            <Badge key={i} variant="outline" className="border-[#D4AF37]/20 text-[#D4AF37] bg-[#D4AF37]/5 font-black text-[9px] uppercase py-1.5 px-4 rounded-lg tracking-wider">
                               {spec}
                             </Badge>
                           ))}
@@ -544,15 +546,15 @@ function ProfessionalDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px] overflow-hidden">
+              <Card className="bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden">
                 <CardHeader className="flex flex-row items-center justify-between border-b border-[#D4AF37]/10 p-6">
-                  <CardTitle className="text-xl font-bold text-[#111827]">Horários</CardTitle>
+                  <CardTitle className="text-xl font-black text-white">Horários de Trabalho</CardTitle>
                   <Button 
                     size="sm" 
                     onClick={() => setShowEditSchedule(true)}
-                    className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-transparent hover:bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30 rounded-xl font-black px-6 h-10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Edit2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Ajustar
+                    <Clock className="h-4 w-4 mr-2" /> Ajustar
                   </Button>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -563,11 +565,11 @@ function ProfessionalDashboard() {
                         if (!config) return null;
                         return (
                           <div key={dayKey} className={cn(
-                            "flex items-center justify-between p-4 rounded-[10px] border transition-all",
-                            config.enabled ? "bg-white border-[#D4AF37]/30 shadow-sm" : "bg-gray-50 border-transparent opacity-50"
+                            "flex items-center justify-between p-4 rounded-xl border transition-all",
+                            config.enabled ? "bg-[#05070d] border-[#D4AF37]/20 shadow-sm" : "bg-[#0b0f17] border-transparent opacity-30"
                           )}>
-                            <span className="text-sm font-bold text-[#111827]">{dayNames[dayKey]}</span>
-                            <div className="flex items-center gap-2 text-xs font-black bg-[#D4AF37]/10 text-[#D4AF37] px-4 py-1.5 rounded-full border border-[#D4AF37]/20 uppercase tracking-tighter">
+                            <span className="text-sm font-black text-white uppercase tracking-wider">{dayNames[dayKey]}</span>
+                            <div className="flex items-center gap-2 text-[10px] font-black bg-[#D4AF37] text-black px-4 py-1.5 rounded-lg uppercase tracking-widest">
                               {config.enabled ? `${config.start} - ${config.end}` : "Fechado"}
                             </div>
                           </div>
@@ -576,7 +578,7 @@ function ProfessionalDashboard() {
                     ) : (
                       <div className="flex flex-col items-center justify-center py-12 text-center">
                         <Clock className="h-12 w-12 text-[#D4AF37] opacity-20 mb-4" />
-                        <p className="text-[#6B7280] font-medium">Nenhum horário cadastrado.</p>
+                        <p className="text-gray-500 font-medium">Nenhum horário cadastrado.</p>
                       </div>
                     )}
                   </div>
