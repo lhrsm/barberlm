@@ -215,16 +215,19 @@ export function CouponManagement() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#ea580c]/10 rounded-lg">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-[#ea580c]/10 rounded-2xl shadow-[0_0_15px_rgba(234,88,12,0.1)]">
             <TicketPercent className="text-[#ea580c] h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Cupons de Desconto</h2>
-            <p className="text-sm text-slate-400">Gerencie suas promoções e fidelize clientes.</p>
+            <h2 className="text-2xl font-black uppercase italic tracking-tight text-white">Cupons Premium</h2>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Gerencie promoções e fidelize com elegância.</p>
           </div>
         </div>
-        <Button onClick={handleOpenNew} size="sm" className="gap-2 bg-[#ea580c] hover:bg-[#ea580c]/90 text-white border-none h-10 px-4">
+        <Button 
+          onClick={handleOpenNew} 
+          className="gap-2 bg-[#ea580c] hover:bg-[#ea580c]/90 text-black font-black uppercase italic tracking-widest h-12 px-6 rounded-2xl shadow-[0_10px_20px_rgba(234,88,12,0.2)] hover:scale-105 transition-all"
+        >
           <Plus size={18} /> Novo Cupom
         </Button>
       </div>
