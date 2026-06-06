@@ -186,7 +186,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Mobile Top Header */}
-      <header className="md:hidden flex items-center justify-between p-4 border-b bg-card sticky top-0 z-40">
+      <header className="md:hidden flex items-center justify-between p-4 border-b border-[#D4AF37]/10 bg-[#0b0f17] sticky top-0 z-40">
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="p-1.5 bg-primary/10 rounded-lg shrink-0">
             <Scissors className="text-primary h-5 w-5" />
