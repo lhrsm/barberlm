@@ -285,7 +285,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Main content area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Header for Desktop */}
-          <header className="hidden md:flex h-16 items-center justify-end px-8 border-b bg-card shrink-0">
+          <header className="hidden md:flex h-16 items-center justify-end px-8 border-b border-[#D4AF37]/10 bg-[#0b0f17] shrink-0">
             <div className="flex items-center gap-4">
               <NotificationsCenter />
               {role === 'super_admin' && <AdminNotifications />}
