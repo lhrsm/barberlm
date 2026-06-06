@@ -204,16 +204,25 @@ function AdminErrors() {
                   <CardDescription>Lista de automações com falhas de sincronismo detectadas.</CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={exportToCSV} className="h-8 gap-2">
+                    <FileSpreadsheet className="h-4 w-4" /> Exportar CSV
+                  </Button>
                   <div className="relative w-full md:w-64">
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                     <Input 
                       placeholder="Buscar por barbearia..." 
                       className="pl-8 h-8 text-xs" 
                       value={searchFilter}
-                      onChange={(e) => setSearchFilter(e.target.value)}
+                      onChange={(e) => {
+                        setSearchFilter(e.target.value);
+                        setPage(1);
+                      }}
                     />
                   </div>
-                  <Select value={automationFilter} onValueChange={setAutomationFilter}>
+                  <Select value={automationFilter} onValueChange={(val) => {
+                    setAutomationFilter(val);
+                    setPage(1);
+                  }}>
                     <SelectTrigger className="h-8 w-[150px] text-xs">
                       <SelectValue placeholder="Automação" />
                     </SelectTrigger>
