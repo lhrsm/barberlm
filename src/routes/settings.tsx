@@ -1080,7 +1080,7 @@ function SettingsComponent() {
             <div className="flex justify-end pt-10 pb-20">
               <Button 
                 type="submit" 
-                className="gap-2 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 active:scale-95 transition-all h-10 px-6 rounded-xl font-black uppercase tracking-widest shadow-lg group" 
+                className="gap-2 bg-[#ea580c] text-black hover:bg-[#ea580c]/90 active:scale-95 transition-all h-9 px-6 rounded-lg font-black uppercase text-[10px] tracking-widest shadow-lg group" 
                 disabled={saving}
               >
                 {saving ? (

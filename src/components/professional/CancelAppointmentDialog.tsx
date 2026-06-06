@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { AlertCircle, X } from "lucide-react";
+import { AlertTriangle, X, Info } from "lucide-react";
 
 export function CancelAppointmentDialog({ isOpen, onClose, appointment, onConfirm }: any) {
   const [reason, setReason] = useState("");
@@ -38,6 +38,7 @@ export function CancelAppointmentDialog({ isOpen, onClose, appointment, onConfir
       onClose();
     } catch (e: any) {
       console.error("Erro ao cancelar:", e);
+      toast.error("Erro ao cancelar agendamento.");
     } finally {
       setLoading(false);
     }
@@ -45,43 +46,53 @@ export function CancelAppointmentDialog({ isOpen, onClose, appointment, onConfir
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white border-[#D4AF37] rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
-        <DialogHeader className="pb-4 border-b border-[#D4AF37]/10">
-          <DialogTitle className="text-xl font-black flex items-center gap-2 text-[#111827]">
-            <AlertCircle className="h-6 w-6 text-red-500" /> Cancelar Atendimento
+      <DialogContent className="max-w-md bg-[#0b0f17] border-red-900/30 rounded-2xl shadow-2xl text-white">
+        <DialogHeader className="pb-4 border-b border-white/5">
+          <DialogTitle className="text-xl font-black flex items-center gap-3 text-red-500 uppercase tracking-wider">
+            <AlertTriangle className="h-6 w-6" /> Cancelar Atendimento
           </DialogTitle>
         </DialogHeader>
+        
         <div className="space-y-6 py-6">
-          <div className="bg-red-50 border border-red-100 p-4 rounded-[10px]">
-            <p className="text-sm text-red-700 font-medium leading-relaxed">
-              Você está prestes a cancelar o atendimento para <span className="font-black underline">{appointment?.customers?.name || "Cliente"}</span>. Esta ação não pode ser desfeita.
-            </p>
+          <div className="bg-red-950/20 border border-red-900/20 p-5 rounded-xl">
+            <div className="flex gap-3">
+              <Info className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+              <p className="text-sm text-red-200/80 font-medium leading-relaxed">
+                Você está prestes a cancelar o atendimento de <span className="text-white font-black underline">{appointment?.customers?.name || "Cliente"}</span>. Esta ação enviará uma notificação ao cliente.
+              </p>
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-[#D4AF37] tracking-wider">Motivo do Cancelamento</label>
+          
+          <div className="space-y-3">
+            <label className="text-[10px] font-black uppercase text-[#D4AF37] tracking-[0.2em] ml-1">Motivo do Cancelamento</label>
             <Textarea 
               placeholder="Ex: Profissional teve um imprevisto, cliente solicitou via telefone..." 
               value={reason} 
               onChange={(e) => setReason(e.target.value)}
-              className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 min-h-[120px] rounded-[10px] font-medium text-[#111827] bg-white placeholder:text-[#6B7280]"
+              className="bg-[#05070d] border-white/10 focus-visible:ring-red-500/40 min-h-[120px] rounded-xl text-white placeholder:text-gray-600 font-medium resize-none transition-all focus:border-red-500/50"
             />
+            <p className="text-[10px] text-gray-500 font-medium italic">O motivo será compartilhado com o cliente para transparência.</p>
           </div>
         </div>
-        <DialogFooter className="gap-2 sm:gap-0 pt-4 border-t border-[#D4AF37]/10">
+        
+        <DialogFooter className="gap-3 pt-4 border-t border-white/5">
           <Button 
             variant="ghost" 
             onClick={onClose}
-            className="text-[#6B7280] hover:bg-gray-100 font-bold rounded-[10px]"
+            className="text-gray-400 hover:text-white hover:bg-white/5 font-bold rounded-xl h-10 px-6"
           >
-            Voltar
+            <X className="h-4 w-4 mr-2" /> Voltar
           </Button>
           <Button 
-            variant="destructive" 
             onClick={handleConfirm} 
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white font-black px-6 h-11 rounded-[10px] transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="bg-red-600 hover:bg-red-700 text-white font-black px-8 h-10 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-red-900/20"
           >
-            {loading ? "Cancelando..." : "Confirmar Cancelamento"}
+            {loading ? (
+              <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              "Confirmar Cancelamento"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

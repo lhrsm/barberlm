@@ -236,16 +236,16 @@ function ProfessionalDashboard() {
               variant="outline" 
               size="icon" 
               onClick={fetchData} 
-              className="h-12 w-12 rounded-2xl border-[#D4AF37]/30 bg-[#05070d] text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]"
+              className="h-10 w-10 rounded-full border-[#D4AF37]/30 bg-[#05070d] text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]"
             >
-              <RefreshCcw className="h-6 w-6" />
+              <RefreshCcw className="h-5 w-5" />
             </Button>
             <Button 
               variant="ghost" 
               onClick={logout} 
-              className="text-red-400 hover:bg-red-950/30 rounded-2xl h-12 px-6 font-bold"
+              className="text-red-400 hover:bg-red-950/30 rounded-xl h-10 px-4 font-bold text-sm"
             >
-              <LogOut className="h-5 w-5 mr-2" /> Sair
+              <LogOut className="h-4 w-4 mr-2" /> Sair
             </Button>
           </div>
         </div>
