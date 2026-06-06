@@ -252,7 +252,7 @@ export function CouponManagement() {
               <div className="grid gap-2">
                 <Label className="text-slate-400">Tipo</Label>
                 <Select 
-                  value={couponForm.type} 
+                  value={couponForm.type as string} 
                   onValueChange={v => setCouponForm({...couponForm, type: v as any})}
                 >
                   <SelectTrigger className="bg-[#2a2b2e] border-slate-700 text-white">
