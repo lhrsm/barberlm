@@ -119,12 +119,57 @@ function AdminErrors() {
 
   const filteredAutomations = healthReport?.report?.filter((item: any) => {
     if (automationFilter !== "all" && item.key !== automationFilter) return false;
-    if (searchFilter && !item.tenant_name.toLowerCase().includes(searchFilter.toLowerCase())) return false;
+    if (statusFilter !== "all" && (statusFilter === "healthy" ? !item.is_healthy : item.is_healthy)) return false;
+    if (reasonFilter !== "all" && item.last_error !== reasonFilter) return false;
+    
+    if (searchFilter) {
+      const search = searchFilter.toLowerCase();
+      const matchesTenant = item.tenant_name.toLowerCase().includes(search);
+      const matchesProvider = item.issues?.some((i: any) => 
+        (i.provider_message_id || "").toLowerCase().includes(search) || 
+        (i.details?.provider_message_id || "").toLowerCase().includes(search)
+      );
+      if (!matchesTenant && !matchesProvider) return false;
+    }
     return true;
   }) || [];
 
-  const paginatedAutomations = filteredAutomations.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalPages = Math.ceil(filteredAutomations.length / itemsPerPage);
+  const sortedAutomations = [...filteredAutomations].sort((a: any, b: any) => {
+    if (sortField === "date") {
+      const dateA = new Date(a.issues?.[0]?.last_occurrence || 0).getTime();
+      const dateB = new Date(b.issues?.[0]?.last_occurrence || 0).getTime();
+      return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+    }
+    if (sortField === "severity") {
+      const scoreA = a.is_healthy ? 0 : 1;
+      const scoreB = b.is_healthy ? 0 : 1;
+      return sortOrder === "desc" ? scoreB - scoreA : scoreA - scoreB;
+    }
+    return 0;
+  });
+
+  const paginatedAutomations = sortedAutomations.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+  const handleReprocess = async (item: any) => {
+    setReprocessingId(item.automation_id);
+    try {
+      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { 
+          tenant_id: item.tenant_id,
+          workflow_key: item.key,
+          force_resend: true
+        }
+      });
+      
+      if (error) throw error;
+      toast.success("Reprocessamento iniciado com sucesso!");
+      refetchHealth();
+    } catch (error: any) {
+      toast.error("Erro ao reprocessar: " + error.message);
+    } finally {
+      setReprocessingId(null);
+    }
+  };
 
   const unhealthyCount = healthReport?.summary?.unhealthy || 0;
 
