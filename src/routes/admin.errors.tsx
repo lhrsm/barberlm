@@ -381,6 +381,99 @@ function AdminErrors() {
           </Card>
         </TabsContent>
       </Tabs>
+      <Dialog open={!!selectedIssue} onOpenChange={() => setSelectedIssue(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-black italic uppercase">
+              <ShieldAlert className="h-5 w-5 text-rose-500" />
+              Detalhes da Ocorrência
+            </DialogTitle>
+            <DialogDescription>
+              Diagnóstico técnico para sincronismo de mensagens V2.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedIssue && (
+            <div className="space-y-6 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-muted/50 border">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Barbearia</p>
+                  <p className="font-bold">{selectedIssue.tenant_name}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-muted/50 border">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Status de Saúde</p>
+                  <Badge variant={selectedIssue.is_healthy ? "secondary" : "destructive"}>
+                    {selectedIssue.is_healthy ? "Operacional" : "Interrompida"}
+                  </Badge>
+                </div>
+              </div>
+
+              <Card className="border-rose-200 bg-rose-50/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Info className="h-4 w-4 text-rose-500" /> Causa Raiz Detectada
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-3 rounded-xl bg-background border text-xs font-mono">
+                    Motivo: <span className="text-rose-600 font-bold">{selectedIssue.last_error || "WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED"}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    A API do WhatsApp (Z-API) confirmou o recebimento da mensagem, porém a transação de banco de dados para criar o registro de despacho (dispatch) falhou ou foi interrompida. Isso impede o rastreamento do callback e a confirmação automática do agendamento.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {selectedIssue.issues && selectedIssue.issues.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold flex items-center gap-2">
+                    <Terminal className="h-4 w-4" /> Histórico de Erros Sincronizados
+                  </p>
+                  <div className="border rounded-2xl overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-muted/30">
+                        <TableRow>
+                          <TableHead className="h-9">Data/Hora</TableHead>
+                          <TableHead className="h-9">ID Provedor</TableHead>
+                          <TableHead className="h-9 text-right">Ação</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedIssue.issues.map((issue: any, idx: number) => (
+                          <TableRow key={idx}>
+                            <TableCell className="text-xs font-mono">
+                              {issue.last_occurrence || issue.log_time ? 
+                                format(new Date(issue.last_occurrence || issue.log_time), "dd/MM HH:mm:ss", { locale: ptBR }) 
+                                : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-xs font-mono text-muted-foreground truncate max-w-[150px]">
+                              {issue.provider_message_id || issue.details?.provider_message_id || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-bold" asChild>
+                                <a href={`/admin/logs?search=${issue.provider_message_id || issue.details?.provider_message_id}`} target="_blank" rel="noreferrer">
+                                  Ver Log <ExternalLink className="ml-1 h-3 w-3" />
+                                </a>
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setSelectedIssue(null)}>Fechar</Button>
+                <Button className="bg-primary text-primary-foreground font-bold">
+                  Sincronizar Manualmente
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
