@@ -241,36 +241,43 @@ function CalendarComponent() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full space-y-6 bg-white p-4 md:p-8 rounded-2xl">
+      <div className="flex flex-col h-full space-y-6 bg-[#05070d] p-4 md:p-8 rounded-2xl min-h-screen text-white">
         {!canAddAppointment && (
-          <Alert className="bg-amber-50 border-amber-200">
-            <Crown className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-800">Limite de Agendamentos</AlertTitle>
-            <AlertDescription className="flex items-center justify-between text-amber-700">
+          <Alert className="bg-amber-950/30 border-amber-900/50">
+            <Crown className="h-4 w-4 text-[#D4AF37]" />
+            <AlertTitle className="text-[#D4AF37]">Limite de Agendamentos</AlertTitle>
+            <AlertDescription className="flex items-center justify-between text-gray-400">
               Você atingiu o limite mensal de {limits.monthlyAppointments} agendamentos.
-              <Button variant="link" size="sm" asChild className="p-0 h-auto text-amber-900 font-bold underline">
+              <Button variant="link" size="sm" asChild className="p-0 h-auto text-[#D4AF37] font-bold underline">
                 <Link to="/subscription">Fazer Upgrade</Link>
               </Button>
             </AlertDescription>
           </Alert>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-[#0b0f17] p-8 rounded-2xl border border-[#D4AF37]/20 shadow-xl">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black flex items-center gap-3 text-zinc-900">
-              <CalendarIcon className="text-sky-500 h-6 w-6 sm:h-8 sm:w-8" />
+            <h2 className="text-3xl font-black flex items-center gap-4 text-white tracking-tight">
+              <CalendarIcon className="text-[#D4AF37] h-8 w-8" />
               Agenda
             </h2>
-            <p className="text-zinc-500 text-sm font-medium mt-1">Gerencie os agendamentos da barbearia</p>
+            <div className="flex items-center gap-4 mt-2">
+               <p className="text-gray-400 text-sm font-medium">
+                 {appointments.length} atendimentos hoje • <span className="text-[#D4AF37] font-black">R$ {appointments.reduce((acc, a) => acc + Number(a.total_price || 0), 0).toFixed(2)}</span>
+               </p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center bg-zinc-100 p-1 rounded-xl border border-zinc-200">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center bg-[#05070d] p-1.5 rounded-xl border border-[#D4AF37]/10">
               <Button 
                 variant={view === "day" ? "default" : "ghost"} 
                 size="sm" 
                 onClick={() => setView("day")}
-                className={cn("rounded-lg h-9 px-6 font-bold transition-all", view === "day" ? "bg-white text-sky-600 shadow-sm hover:bg-white" : "text-zinc-500 hover:text-zinc-900")}
+                className={cn(
+                  "rounded-lg h-9 px-8 font-black text-xs uppercase tracking-wider transition-all", 
+                  view === "day" ? "bg-[#D4AF37] text-black shadow-lg hover:bg-[#D4AF37]" : "text-gray-500 hover:text-white"
+                )}
               >
                 Dia
               </Button>
@@ -278,7 +285,10 @@ function CalendarComponent() {
                 variant={view === "week" ? "default" : "ghost"} 
                 size="sm" 
                 onClick={() => setView("week")}
-                className={cn("rounded-lg h-9 px-6 font-bold transition-all", view === "week" ? "bg-white text-sky-600 shadow-sm hover:bg-white" : "text-zinc-500 hover:text-zinc-900")}
+                className={cn(
+                  "rounded-lg h-9 px-8 font-black text-xs uppercase tracking-wider transition-all", 
+                  view === "week" ? "bg-[#D4AF37] text-black shadow-lg hover:bg-[#D4AF37]" : "text-gray-500 hover:text-white"
+                )}
               >
                 Semana
               </Button>
@@ -297,13 +307,13 @@ function CalendarComponent() {
               onSuccess={() => fetchData()}
               trigger={
                 <Button 
-                  className="gap-2 bg-white text-black hover:bg-white/90 border border-input shadow-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 rounded-xl h-11 px-6" 
+                  className="gap-2 bg-[#D4AF37] text-black hover:bg-[#B8962E] font-black transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] rounded-xl h-11 px-8 shadow-[0_0_20px_rgba(212,175,55,0.2)]" 
                   onClick={() => {
                     setModalInitialData({ editingId: undefined });
                     setIsDialogOpen(true);
                   }}
                 >
-                  <Plus size={20} /> <span className="font-bold">Novo Agendamento</span>
+                  <Plus size={20} /> <span className="uppercase text-xs tracking-widest">Novo Agendamento</span>
                 </Button>
               }
             />
