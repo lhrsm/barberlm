@@ -6,6 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function shouldNotify(lastNotified: string | null, deduplicationMinutes: number): boolean {
+  if (!lastNotified) return true;
+  const lastDate = new Date(lastNotified);
+  const now = new Date();
+  const diffMinutes = (now.getTime() - lastDate.getTime()) / (1000 * 60);
+  return diffMinutes >= deduplicationMinutes;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
