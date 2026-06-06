@@ -156,19 +156,19 @@ function ProfessionalDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-4">
-        <Card className="max-w-md w-full border-red-200 bg-white shadow-2xl rounded-2xl overflow-hidden">
-          <CardHeader className="bg-red-50/50 border-b border-red-100">
-            <div className="flex items-center gap-2 text-red-600 mb-2">
+      <div className="min-h-screen flex items-center justify-center bg-[#05070d] p-4">
+        <Card className="max-w-md w-full border-red-900/20 bg-[#0b0f17] shadow-2xl rounded-2xl overflow-hidden text-white">
+          <CardHeader className="bg-red-950/20 border-b border-red-900/20">
+            <div className="flex items-center gap-2 text-red-500 mb-2">
               <AlertCircle className="h-6 w-6" />
               <CardTitle>Erro no Painel</CardTitle>
             </div>
-            <CardDescription className="text-red-500/80">
+            <CardDescription className="text-red-400/80">
               Ocorreu um problema ao carregar as informações do seu painel.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs font-mono text-gray-600 break-words leading-relaxed">
+            <div className="bg-[#05070d] p-4 rounded-xl border border-red-900/10 text-xs font-mono text-gray-400 break-words leading-relaxed">
               {error}
             </div>
             <Button 
