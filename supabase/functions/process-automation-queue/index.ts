@@ -236,6 +236,7 @@ serve(async (req) => {
             const { data: conversation, error: convError } = await supabase.from("automation_conversations").insert({
               tenant_id: itemTenantId,
               appointment_id: appointment.id,
+              customer_id: appointment.customer_id,
               customer_phone: phone,
               phone: phone,
               phone_normalized: phone,
@@ -245,6 +246,11 @@ serve(async (req) => {
               current_state: "AWAITING_MAIN_ACTION",
               expected_response: "confirmation_menu",
               expires_at: expiresAt.toISOString(),
+              provider_message_id: providerMessageId,
+              context: {
+                automation_id: automation.id,
+                template_key: automation.key
+              }
             }).select().single();
 
             if (convError) {
@@ -257,7 +263,7 @@ serve(async (req) => {
           }
 
           // REGISTRO NO HISTÓRICO DE ENVIO (V2)
-          const { error: dispatchError } = await supabase.from("automation_v2_dispatches").insert({
+          const { data: dispatch, error: dispatchError } = await supabase.from("automation_v2_dispatches").insert({
             tenant_id: itemTenantId,
             appointment_id: appointment.id,
             appointment_group_id: appointment.group_id || appointment.appointment_group_id,
@@ -266,9 +272,12 @@ serve(async (req) => {
             flow_type: 'single', 
             phone: phone,
             customer_name: appointment.customer?.name,
+            customer_phone: phone,
             status: "sent",
+            channel: 'whatsapp',
             message_id: providerMessageId,
             provider_message_id: providerMessageId,
+            zaap_id: instance.instance_id,
             sent_at: new Date().toISOString(),
             payload: { 
               data: testData, 
@@ -277,11 +286,21 @@ serve(async (req) => {
             },
             provider_response: sendResult.response,
             session_id: conversationId,
-            current_step: "AWAITING_MAIN_ACTION"
-          });
+            current_step: "AWAITING_MAIN_ACTION",
+            callback_received: false
+          }).select().single();
 
           if (dispatchError) {
-            console.error(`[ProcessQueue] Error creating dispatch record:`, dispatchError);
+            console.error(`[ProcessQueue] CRITICAL: Error creating dispatch record:`, dispatchError);
+            // Log to automation_v2_logs if dispatch fails
+            await supabase.from("automation_v2_logs").insert({
+              tenant_id: itemTenantId,
+              appointment_id: appointment.id,
+              level: 'error',
+              message: 'Falha ao registrar dispatch v2',
+              context: { error: dispatchError, provider_message_id: providerMessageId }
+            });
+            throw new Error(`Falha ao registrar dispatch: ${dispatchError.message}`);
           }
 
           // Mantendo compatibilidade com tabelas legadas se necessário, 

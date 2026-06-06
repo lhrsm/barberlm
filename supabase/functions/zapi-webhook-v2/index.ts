@@ -107,12 +107,14 @@ serve(async (req) => {
   });
 
   if (referenceMessageId) {
-    dispatchUpdateQuery = dispatchUpdateQuery.eq("message_id", referenceMessageId);
+    // Try both fields for the message ID from Z-API
+    dispatchUpdateQuery = dispatchUpdateQuery.or(`message_id.eq.${referenceMessageId},provider_message_id.eq.${referenceMessageId}`);
   } else {
-    // Fallback by phone - last 12 hours (increased from 2h to be more robust)
+    // Fallback by phone - last 12 hours
     const twelveHoursAgo = new Date(Date.now() - (12 * 60 * 60 * 1000)).toISOString();
     dispatchUpdateQuery = dispatchUpdateQuery
       .eq("phone", phone)
+      .eq("callback_received", false) // Update the most recent pending one
       .gte("created_at", twelveHoursAgo)
       .order("created_at", { ascending: false })
       .limit(1);
