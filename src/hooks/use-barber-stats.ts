@@ -18,7 +18,7 @@ export async function fetchBarberStats(barberId: string) {
 
   const { data: allApps, error } = await supabase
     .from("appointments")
-    .select("*, customers(name, phone, avatar_url), services(name, total_price)")
+    .select("*, customers(name, phone, avatar_url), services(name)")
     .eq("barber_id", barberId);
 
   if (error || !allApps) return null;
