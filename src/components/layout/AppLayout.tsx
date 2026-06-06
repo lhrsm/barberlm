@@ -213,23 +213,26 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
           <nav className="p-4 flex flex-col h-full">
-            <div className="space-y-2 flex-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-4 px-4 py-3 rounded-xl text-base font-medium transition-all",
-                    pathname === item.to
-                      ? "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.3)]"
-                      : "text-muted-foreground hover:bg-accent"
-                  )}
-                >
-                  <item.icon size={22} />
-                  {item.label}
-                </Link>
-              ))}
+            <div className="space-y-3 flex-1 pt-6">
+              {navItems.map((item) => {
+                const isActive = pathname === item.to || (item.to.includes('?') && pathname + window.location.search === item.to);
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-4 px-5 py-4 rounded-2xl text-lg font-black transition-all",
+                      isActive
+                        ? "bg-[#D4AF37] text-black shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+                        : "text-gray-400 hover:bg-white/5"
+                    )}
+                  >
+                    <item.icon size={24} className={isActive ? "text-black" : "text-[#D4AF37]"} />
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
             <div className="pt-4 border-t border-white/10 mt-4">
               <LogoutButton />
