@@ -2329,6 +2329,7 @@ export type Database = {
         Row: {
           address: string | null
           barbers_range: string | null
+          barbershop_logo_url: string | null
           blocked_at: string | null
           business_name: string | null
           cashback_enabled: boolean
@@ -2367,6 +2368,7 @@ export type Database = {
         Insert: {
           address?: string | null
           barbers_range?: string | null
+          barbershop_logo_url?: string | null
           blocked_at?: string | null
           business_name?: string | null
           cashback_enabled?: boolean
@@ -2405,6 +2407,7 @@ export type Database = {
         Update: {
           address?: string | null
           barbers_range?: string | null
+          barbershop_logo_url?: string | null
           blocked_at?: string | null
           business_name?: string | null
           cashback_enabled?: boolean

@@ -274,10 +274,9 @@ function SettingsComponent() {
           )}
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <Tabs defaultValue="general" className="space-y-6">
-            <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
-              <TabsList className="flex w-max min-w-full md:grid md:grid-cols-9 md:w-full bg-white border border-slate-200 text-black">
+        <Tabs defaultValue="general" className="space-y-6">
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
+            <TabsList className="flex w-max min-w-full md:grid md:grid-cols-9 md:w-full bg-white border border-slate-200 text-black">
               <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
                 <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
               </TabsTrigger>
@@ -294,7 +293,6 @@ function SettingsComponent() {
                 <Gift size={16} /> <span className="hidden sm:inline">Cupons</span>
               </TabsTrigger>
               <TabsTrigger value="whatsapp" className="gap-2 text-xs sm:text-sm">
-
                 <MessageSquare size={16} /> <span className="hidden sm:inline">WhatsApp</span>
               </TabsTrigger>
               <TabsTrigger value="payments" className="gap-2 text-xs sm:text-sm">
@@ -309,6 +307,7 @@ function SettingsComponent() {
             </TabsList>
           </div>
 
+          <form onSubmit={handleSubmit}>
             <TabsContent value="profile" className="space-y-4">
               <Card className="bg-white border-2 border-slate-200 text-black">
                 <CardHeader>
@@ -792,6 +791,10 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
+            <TabsContent value="coupons" className="space-y-4">
+              <CouponManagement />
+            </TabsContent>
+
             <TabsContent value="whatsapp" className="space-y-4">
               <WhatsAppSettings />
             </TabsContent>
@@ -1016,13 +1019,13 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-6">
               <Button type="submit" className="gap-2 bg-black text-white hover:scale-105 transition-all h-12 px-8 rounded-xl font-bold uppercase tracking-tight" disabled={saving}>
                 <Save size={18} /> {saving ? "Salvando..." : "Salvar Configurações (Confirmar)"}
               </Button>
             </div>
-          </Tabs>
-        </form>
+          </form>
+        </Tabs>
       </div>
     </AppLayout>
   );
