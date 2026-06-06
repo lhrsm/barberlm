@@ -753,37 +753,40 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="payments" className="space-y-4">
-              <Card className={cn("bg-white border-2 border-slate-200 text-black", plan === "free" ? "relative overflow-hidden" : "")}>
+              <Card className={cn("bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden", plan === "free" ? "relative" : "")}>
                 {plan === "free" && (
-                  <div className="absolute inset-0 z-10 bg-background/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center">
-                    <div className="bg-primary/10 p-3 rounded-full text-primary mb-4">
-                      <Lock size={32} />
+                  <div className="absolute inset-0 z-10 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                    <div className="bg-[#ea580c]/10 p-4 rounded-full text-[#ea580c] mb-4 shadow-[0_0_30px_rgba(234,88,12,0.2)]">
+                      <Lock size={40} />
                     </div>
-                    <h3 className="text-xl font-bold">Recurso Exclusivo do Plano Pro</h3>
-                    <p className="text-muted-foreground max-w-sm mt-2 mb-6">
+                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">Exclusivo Plano Pro</h3>
+                    <p className="text-slate-400 max-w-sm mt-3 mb-8 font-medium">
                       A integração com gateways de pagamento para receber agendamentos antecipados está disponível apenas para assinantes Pro.
                     </p>
-                    <Button asChild>
+                    <Button className="bg-[#ea580c] hover:bg-[#ea580c]/90 text-black font-bold h-12 px-8 rounded-xl shadow-lg hover:scale-105 transition-all" asChild>
                       <Link to="/subscription">Fazer Upgrade Agora</Link>
                     </Button>
                   </div>
                 )}
-                <CardHeader>
-                  <CardTitle>Gateway de Pagamento</CardTitle>
-                  <CardDescription>Configure como você deseja receber pelos agendamentos.</CardDescription>
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <CreditCard className="text-[#ea580c] h-5 w-5" />
+                    Gateway de Pagamento
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Configure como você deseja receber pelos agendamentos premium.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="p-6 space-y-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="provider">Provedor</Label>
+                    <Label htmlFor="provider" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Provedor de Pagamento</Label>
                     <Select 
                       value={formData.payment_gateway_provider} 
                       onValueChange={(value) => setFormData({ ...formData, payment_gateway_provider: value })}
                       disabled={plan === "free"}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white h-12 rounded-xl focus:ring-[#ea580c]">
                         <SelectValue placeholder="Selecione um provedor" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-[#0b0f17] border-[#1f2937] text-white">
                         <SelectItem value="none">Nenhum (Apenas agendamento)</SelectItem>
                         <SelectItem value="stripe">Stripe</SelectItem>
                         <SelectItem value="mercadopago">Mercado Pago</SelectItem>
@@ -794,16 +797,20 @@ function SettingsComponent() {
                   
                   {formData.payment_gateway_provider !== "none" && (
                     <div className="grid gap-2 animate-in fade-in slide-in-from-top-2">
-                      <Label htmlFor="api_key">Chave de API (Secret Key)</Label>
-                      <Input 
-                        id="api_key" 
-                        type="password"
-                        value={formData.payment_gateway_key} 
-                        onChange={(e) => setFormData({ ...formData, payment_gateway_key: e.target.value })}
-                        placeholder="sk_test_..."
-                        disabled={plan === "free"}
-                      />
-                      <p className="text-xs text-muted-foreground">
+                      <Label htmlFor="api_key" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Chave de API (Secret Key)</Label>
+                      <div className="relative">
+                        <Input 
+                          id="api_key" 
+                          type="password"
+                          value={formData.payment_gateway_key} 
+                          onChange={(e) => setFormData({ ...formData, payment_gateway_key: e.target.value })}
+                          placeholder="sk_test_..."
+                          disabled={plan === "free"}
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12 pr-12"
+                        />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700" />
+                      </div>
+                      <p className="text-[10px] text-slate-600 font-medium italic">
                         Sua chave de API é criptografada e nunca compartilhada.
                       </p>
                     </div>
