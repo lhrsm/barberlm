@@ -24,7 +24,10 @@ import {
   Bell,
   MessageSquare,
   Megaphone,
-  Share2
+  Share2,
+  History,
+  User,
+  Layout
 } from "lucide-react";
 import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { NotificationsCenter } from "@/components/notifications/NotificationsCenter";
