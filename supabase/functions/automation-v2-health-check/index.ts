@@ -15,9 +15,49 @@ serve(async (req) => {
   );
 
   try {
-    const { tenant_id, check_all = false } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const { action, tenant_id, workflow_key, check_all = false } = body;
 
-    // 1. Get unhealthy automations
+    // Handle internal notification trigger
+    if (action === 'notify_unhealthy') {
+      console.log(`[HealthCheck] Notification trigger for ${tenant_id} / ${workflow_key}`);
+      
+      const { data: tenant } = await supabase.from("tenants").select("name").eq("id", tenant_id).single();
+      
+      const message = `🚨 *ALERTA DE AUTOMAÇÃO CRÍTICO*\n\n` +
+        `*Tenant:* ${tenant?.name || tenant_id}\n` +
+        `*Automação:* ${workflow_key}\n` +
+        `*Erro:* WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED\n` +
+        `*ID Mensagem:* ${body.provider_message_id}\n\n` +
+        `O WhatsApp foi enviado com sucesso, mas o registro no banco de dados falhou. A automação foi marcada como não saudável.\n\n` +
+        `🔗 [Ver Histórico](https://painel.barbearia.com.br/admin/automation-health?tenant=${tenant_id})\n` +
+        `🔗 [Ver Logs](https://painel.barbearia.com.br/admin/logs?search=${body.provider_message_id})`;
+
+      // Generic notification table insert (common pattern in this project)
+      await supabase.from("notifications").insert({
+        tenant_id,
+        title: "Erro Crítico de Automação",
+        message: message,
+        type: "critical_error",
+        metadata: body
+      });
+
+      // If Slack webhook exists in env, send there too
+      const slackWebhook = Deno.env.get("SLACK_WEBHOOK_URL");
+      if (slackWebhook) {
+        await fetch(slackWebhook, {
+          method: 'POST',
+          body: JSON.stringify({ text: message }),
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, notified: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Standard Health Check Logic
     let query = supabase.from("automation_templates").select("*, tenant:tenants(name)");
     
     if (tenant_id) {
@@ -32,14 +72,13 @@ serve(async (req) => {
     const report = [];
 
     for (const automation of automations || []) {
-      // Find logs related to this automation
       const { data: logs } = await supabase
         .from("automation_v2_logs")
         .select("*")
         .eq("tenant_id", automation.tenant_id)
         .or(`message.eq.WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED,message.ilike.%${automation.key}%`)
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(20);
 
       const criticalLogs = logs?.filter(l => l.message === "WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED") || [];
       
@@ -53,10 +92,6 @@ serve(async (req) => {
         });
       }
 
-      // Check if is_healthy matches the log state
-      const shouldBeHealthy = criticalLogs.length === 0;
-      
-      // Verification logic: look for "Mensagem enviada" without a corresponding dispatch
       const sentLogs = logs?.filter(l => l.message.includes("Mensagem enviada")) || [];
       for (const log of sentLogs) {
           const providerId = log.context?.provider_message_id;
@@ -80,10 +115,10 @@ serve(async (req) => {
       report.push({
         automation_id: automation.id,
         key: automation.key,
+        tenant_id: automation.tenant_id,
         tenant_name: automation.tenant?.name || "N/A",
         is_healthy: automation.is_healthy,
         last_error: automation.last_error,
-        should_be_healthy: shouldBeHealthy && issues.length === 0,
         issues: issues
       });
     }
