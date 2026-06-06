@@ -14,6 +14,38 @@ function shouldNotify(lastNotified: string | null, deduplicationMinutes: number)
   return diffMinutes >= deduplicationMinutes;
 }
 
+function canReprocess(lastReprocessed: string | null): boolean {
+  if (!lastReprocessed) return true;
+  const lastDate = new Date(lastReprocessed);
+  const now = new Date();
+  const diffSeconds = (now.getTime() - lastDate.getTime()) / 1000;
+  return diffSeconds >= 30; // 30 second idempotency window
+}
+
+async function edge_function_invoke_queue(supabase: any, tenant_id: string, workflow_key: string, template_id: string) {
+  try {
+    const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+      body: { 
+        tenant_id,
+        workflow_key,
+        force_resend: true
+      }
+    });
+
+    const status = (error || !data?.success) ? 'failed' : 'completed';
+    await supabase.from("automation_templates")
+      .update({ reprocessing_status: status })
+      .eq("id", template_id);
+      
+    console.log(`[HealthCheck] Async reprocess ${status} for ${template_id}`);
+  } catch (e) {
+    console.error(`[HealthCheck] Async reprocess fatal error:`, e);
+    await supabase.from("automation_templates")
+      .update({ reprocessing_status: 'failed' })
+      .eq("id", template_id);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -88,6 +120,45 @@ serve(async (req) => {
       }
 
       return new Response(JSON.stringify({ success: true, notified: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Handle reprocess action
+    if (action === 'reprocess') {
+      const { data: template } = await supabase.from("automation_templates")
+        .select("id, last_reprocessed_at, reprocessing_status")
+        .eq("tenant_id", tenant_id)
+        .eq("key", workflow_key)
+        .single();
+
+      if (!template) {
+        return new Response(JSON.stringify({ success: false, error: "Template not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // 1. Idempotency Check
+      if (!canReprocess(template.last_reprocessed_at) || template.reprocessing_status === 'processing') {
+        return new Response(JSON.stringify({ success: false, error: "REPROCESS_ALREADY_IN_PROGRESS", last_reprocessed: template.last_reprocessed_at }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // 2. Mark as processing
+      await supabase.from("automation_templates")
+        .update({ 
+          reprocessing_status: 'processing', 
+          last_reprocessed_at: new Date().toISOString() 
+        })
+        .eq("id", template.id);
+
+      // 3. Trigger async job (invoke queue processor)
+      // Note: We don't await the full result here to keep it async for the UI
+      edge_function_invoke_queue(supabase, tenant_id, workflow_key, template.id);
+
+      return new Response(JSON.stringify({ success: true, status: 'processing' }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

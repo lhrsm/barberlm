@@ -154,17 +154,25 @@ function AdminErrors() {
   const handleReprocess = async (item: any) => {
     setReprocessingId(item.automation_id);
     try {
-      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+    const { data, error } = await supabase.functions.invoke('automation-v2-health-check', {
         body: { 
+          action: 'reprocess',
           tenant_id: item.tenant_id,
-          workflow_key: item.key,
-          force_resend: true
+          workflow_key: item.key
         }
       });
       
-      if (error) throw error;
-      toast.success("Reprocessamento iniciado com sucesso!");
-      refetchHealth();
+      if (error || !data.success) {
+        if (data?.error === "REPROCESS_ALREADY_IN_PROGRESS") {
+          toast.info("Este registro já está sendo processado.");
+          return;
+        }
+        throw error || new Error(data?.error);
+      }
+      
+      toast.info("Trabalho de reprocessamento iniciado em segundo plano.");
+      // The polling or refetch will happen via react-query
+      setTimeout(() => refetchHealth(), 2000);
     } catch (error: any) {
       toast.error("Erro ao reprocessar: " + error.message);
     } finally {
@@ -381,15 +389,23 @@ function AdminErrors() {
                                variant="ghost" 
                                size="icon" 
                                className="h-8 w-8" 
-                               disabled={reprocessingId === item.automation_id}
+                               disabled={reprocessingId === item.automation_id || item.reprocessing_status === 'processing'}
                                onClick={(e) => {
                                  e.stopPropagation();
                                  handleReprocess(item);
                                }}
                                title="Reprocessar Agora"
                              >
-                               <RefreshCw className={cn("h-4 w-4", reprocessingId === item.automation_id && "animate-spin text-primary")} />
+                               <RefreshCw className={cn(
+                                 "h-4 w-4", 
+                                 (reprocessingId === item.automation_id || item.reprocessing_status === 'processing') && "animate-spin text-primary"
+                               )} />
                              </Button>
+                             {item.reprocessing_status === 'failed' && (
+                               <Badge variant="outline" className="text-[8px] bg-rose-500/10 text-rose-500 border-rose-500/20 px-1">
+                                 Falhou
+                               </Badge>
+                             )}
                              <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Ver Logs" onClick={(e) => e.stopPropagation()}>
                                <a href={`/admin/logs?tenant=${item.tenant_id}`} target="_blank" rel="noreferrer">
                                  <Terminal className="h-4 w-4" />
