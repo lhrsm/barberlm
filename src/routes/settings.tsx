@@ -791,6 +791,10 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
+            <TabsContent value="coupons" className="space-y-4">
+              <CouponManagement />
+            </TabsContent>
+
             <TabsContent value="whatsapp" className="space-y-4">
               <WhatsAppSettings />
             </TabsContent>
