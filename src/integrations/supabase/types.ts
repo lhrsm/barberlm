@@ -1031,6 +1031,7 @@ export type Database = {
           created_at: string | null
           id: string
           key: string
+          last_notified_at: string | null
           name: string
           template: string
           tenant_id: string
@@ -1044,6 +1045,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           key: string
+          last_notified_at?: string | null
           name: string
           template: string
           tenant_id: string
@@ -1057,6 +1059,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           key?: string
+          last_notified_at?: string | null
           name?: string
           template?: string
           tenant_id?: string
@@ -2942,6 +2945,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_health_settings: {
+        Row: {
+          alert_emails: string[] | null
+          created_at: string | null
+          deduplication_minutes: number | null
+          id: string
+          notify_on_critical_error: boolean | null
+          slack_webhook_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alert_emails?: string[] | null
+          created_at?: string | null
+          deduplication_minutes?: number | null
+          id?: string
+          notify_on_critical_error?: boolean | null
+          slack_webhook_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alert_emails?: string[] | null
+          created_at?: string | null
+          deduplication_minutes?: number | null
+          id?: string
+          notify_on_critical_error?: boolean | null
+          slack_webhook_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       system_settings: {
         Row: {
