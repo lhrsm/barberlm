@@ -33,6 +33,8 @@ function ProfessionalDashboard() {
   const { session, loading, logout } = useProfessionalAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const search = useSearch({ from: '/$slug/profissional' }) as any;
+  const currentTab = search.tab || "appointments";
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
   
   const [appointments, setAppointments] = useState<any[]>([]);
