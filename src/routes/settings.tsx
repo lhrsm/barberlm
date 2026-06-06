@@ -819,31 +819,35 @@ function SettingsComponent() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="loyalty" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Sistema de Cashback</CardTitle>
-                  <CardDescription>Configure como seus clientes ganham crédito a cada serviço.</CardDescription>
+            <TabsContent value="loyalty" className="space-y-6">
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Gift className="text-[#ea580c] h-5 w-5" />
+                    Sistema de Cashback
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Configure como seus clientes ganham crédito premium a cada serviço.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Ativar Cashback</Label>
-                      <p className="text-sm text-muted-foreground">
+                <CardContent className="p-6 space-y-6">
+                  <div className="flex items-center justify-between p-5 bg-[#05070d]/50 border border-[#1f2937] rounded-2xl shadow-inner transition-all hover:border-[#ea580c]/30">
+                    <div className="space-y-1">
+                      <Label className="text-base font-black uppercase italic">Ativar Cashback</Label>
+                      <p className="text-[10px] text-slate-500 font-medium tracking-tight uppercase">
                         Habilita o acúmulo de saldo para seus clientes.
                       </p>
                     </div>
                     <Switch 
                       checked={formData.cashback_enabled} 
                       onCheckedChange={(checked) => setFormData({ ...formData, cashback_enabled: checked })}
+                      className="data-[state=checked]:bg-[#ea580c]"
                     />
                   </div>
 
                   {formData.cashback_enabled && (
-                    <div className="grid gap-4 animate-in fade-in slide-in-from-top-2">
-                      <div className="grid gap-2">
-                        <Label htmlFor="cashback_percentage">Porcentagem de Retorno (%)</Label>
-                        <div className="flex items-center gap-4">
+                    <div className="grid gap-6 animate-in fade-in slide-in-from-top-4">
+                      <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                        <Label htmlFor="cashback_percentage" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Porcentagem de Retorno (%)</Label>
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
                           <Input 
                             id="cashback_percentage" 
                             type="number"
@@ -851,36 +855,41 @@ function SettingsComponent() {
                             max="100"
                             value={formData.cashback_percentage} 
                             onChange={(e) => setFormData({ ...formData, cashback_percentage: parseFloat(e.target.value) || 0 })}
-                            className="max-w-[150px]"
+                            className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full sm:max-w-[150px] text-lg font-black text-center italic"
                           />
-                          <span className="text-sm text-muted-foreground">
-                            A cada R$ 100,00 gastos, o cliente receberá R$ {formData.cashback_percentage.toFixed(2)} de crédito.
+                          <span className="text-xs text-slate-500 font-medium italic">
+                            Ex: A cada R$ 100,00 gastos, o cliente receberá R$ <span className="text-[#ea580c] font-black">{formData.cashback_percentage.toFixed(2)}</span> de crédito.
                           </span>
                         </div>
                       </div>
 
-                      <Alert>
-                        <Gift className="h-4 w-4" />
-                        <AlertTitle>Como funciona?</AlertTitle>
-                        <AlertDescription>
-                          O saldo é gerado automaticamente após a conclusão de um agendamento pago. 
-                          Os clientes podem usar esse saldo para obter descontos em serviços futuros ou na compra de produtos.
-                        </AlertDescription>
-                      </Alert>
+                      <div className="bg-[#ea580c]/5 border border-[#ea580c]/20 p-4 rounded-2xl flex gap-3">
+                        <Info className="h-5 w-5 text-[#ea580c] shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Logística do Cashback</p>
+                          <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase">
+                            O saldo é gerado automaticamente após a conclusão de um agendamento pago. 
+                            Os clientes podem usar esse saldo para obter descontos premium.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Cartão Fidelidade</CardTitle>
-                  <CardDescription>A cada X serviços realizados, o próximo é gratuito.</CardDescription>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Gift className="text-[#ea580c] h-5 w-5" />
+                    Cartão Fidelidade
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">A cada X serviços realizados, o próximo é gratuito.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="free_service_threshold">Meta para Serviço Gratuito</Label>
-                    <div className="flex items-center gap-4">
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid gap-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl">
+                    <Label htmlFor="free_service_threshold" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Meta para Serviço Gratuito</Label>
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
                       <Input 
                         id="free_service_threshold" 
                         type="number"
@@ -888,22 +897,24 @@ function SettingsComponent() {
                         max="100"
                         value={formData.free_service_threshold} 
                         onChange={(e) => setFormData({ ...formData, free_service_threshold: parseInt(e.target.value) || 10 })}
-                        className="max-w-[150px]"
+                        className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] h-12 rounded-xl w-full sm:max-w-[150px] text-lg font-black text-center italic"
                       />
-                      <span className="text-sm text-muted-foreground">
-                        Após completar {formData.free_service_threshold} procedimentos, o cliente ganha o próximo gratuitamente.
+                      <span className="text-xs text-slate-500 font-medium italic">
+                        Após completar <span className="text-[#ea580c] font-black">{formData.free_service_threshold}</span> procedimentos, o cliente ganha o próximo gratuitamente.
                       </span>
                     </div>
                   </div>
 
-                  <Alert>
-                    <Gift className="h-4 w-4" />
-                    <AlertTitle>Como funciona?</AlertTitle>
-                    <AlertDescription>
-                      O sistema contabiliza automaticamente cada agendamento marcado como "Concluído". 
-                      O cliente poderá acompanhar o progresso em sua página de histórico.
-                    </AlertDescription>
-                  </Alert>
+                  <div className="bg-[#ea580c]/5 border border-[#ea580c]/20 p-4 rounded-2xl flex gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-[#ea580c] shrink-0" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-black uppercase tracking-widest italic text-[#ea580c]">Regra de Conclusão</p>
+                      <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase">
+                        O sistema contabiliza automaticamente cada agendamento marcado como "Concluído". 
+                        O cliente poderá acompanhar o progresso em sua página exclusiva.
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
