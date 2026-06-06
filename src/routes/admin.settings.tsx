@@ -134,6 +134,7 @@ function AdminSettings() {
           {[
             { id: "geral", label: "Geral", icon: Globe },
             { id: "faturamento", label: "Faturamento", icon: CreditCard },
+            { id: "saude", label: "Saúde & Alertas", icon: ShieldAlert },
             { id: "seguranca", label: "Segurança", icon: Shield },
             { id: "integracoes", label: "Integrações", icon: Share2 },
           ].map((tab) => (
