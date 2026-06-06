@@ -164,7 +164,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <div className="flex flex-col h-screen bg-[#05070d] text-white">
       {shouldBlock && <TrialExpiredBlock />}
       <OnboardingModal />
       {isImpersonating && (
