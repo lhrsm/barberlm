@@ -21,7 +21,12 @@ export async function fetchBarberStats(barberId: string) {
     .select("*, customers(name, phone, avatar_url), services(name)")
     .eq("barber_id", barberId);
 
-  if (error || !allApps) return null;
+  if (error) {
+    console.error("Error fetching barber stats:", error);
+    throw error;
+  }
+  
+  if (!allApps) return null;
 
   const todayApps = allApps.filter(a => a.start_time >= tStart && a.start_time <= tEnd && a.status !== 'cancelled');
   const todayCount = todayApps.length;
