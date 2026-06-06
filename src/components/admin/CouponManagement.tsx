@@ -359,26 +359,26 @@ export function CouponManagement() {
                   </TableRow>
                 ) : (
                   coupons?.map((coupon) => (
-                    <TableRow key={coupon.id} className="border-slate-800 hover:bg-[#2a2b2e]/30 transition-colors">
+                    <TableRow key={coupon.id} className="border-b border-[#1f2937]/30 hover:bg-[#ea580c]/5 transition-colors group">
                       <TableCell className="font-bold">
-                        <div className="flex items-center gap-2 text-white">
-                          <div className="p-1.5 bg-slate-800 rounded">
-                            <Tag size={12} className="text-[#ea580c]" />
+                        <div className="flex items-center gap-3 text-white">
+                          <div className="p-2 bg-[#05070d] border border-[#1f2937] rounded-lg group-hover:border-[#ea580c]/30 transition-all">
+                            <Tag size={14} className="text-[#ea580c]" />
                           </div>
-                          {coupon.code}
+                          <span className="font-black italic tracking-tight">{coupon.code}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-emerald-500 font-bold italic">
+                        <span className="text-emerald-500 font-black italic text-base">
                           {coupon.type === 'fixed' ? `R$ ${coupon.value}` : `${coupon.value}%`}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1.5 text-slate-300 text-sm">
-                          <Hash size={12} className="text-slate-500" />
-                          <span className="font-mono">{coupon.used_count || 0}</span>
-                          <span className="text-slate-600">/</span>
-                          <span className="text-slate-400">{coupon.usage_limit || "∞"}</span>
+                        <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold uppercase">
+                          <Hash size={12} className="text-slate-700" />
+                          <span className="text-white">{coupon.used_count || 0}</span>
+                          <span className="text-slate-800">/</span>
+                          <span>{coupon.usage_limit || "∞"}</span>
                         </div>
                       </TableCell>
                       <TableCell>
