@@ -674,36 +674,55 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="scheduling" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader>
-                  <CardTitle>Configurações de Agendamento</CardTitle>
-                  <CardDescription>Defina como seus clientes podem marcar horários.</CardDescription>
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Calendar className="text-[#ea580c] h-5 w-5" />
+                    Configurações de Agendamento
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Defina como seus clientes podem marcar horários premium.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setFormData({ ...formData, scheduling_mode: "manual" })}>
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div 
+                      className={cn(
+                        "flex items-start gap-4 p-5 border rounded-2xl transition-all cursor-pointer group",
+                        formData.scheduling_mode === 'manual' 
+                          ? "bg-[#ea580c]/5 border-[#ea580c] shadow-[0_0_15px_rgba(234,88,12,0.1)]" 
+                          : "bg-[#05070d] border-[#1f2937] hover:border-[#ea580c]/30"
+                      )} 
+                      onClick={() => setFormData({ ...formData, scheduling_mode: "manual" })}
+                    >
                       <div className="mt-1">
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.scheduling_mode === 'manual' ? 'border-primary' : 'border-muted-foreground'}`}>
-                          {formData.scheduling_mode === 'manual' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.scheduling_mode === 'manual' ? 'border-[#ea580c]' : 'border-slate-700'}`}>
+                          {formData.scheduling_mode === 'manual' && <div className="w-2.5 h-2.5 rounded-full bg-[#ea580c]" />}
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-base cursor-pointer">Agendamento Manual</Label>
-                        <p className="text-sm text-muted-foreground">
+                        <Label className="text-base font-black uppercase italic cursor-pointer group-hover:text-[#ea580c] transition-colors">Agendamento Manual</Label>
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed">
                           Seus clientes verão seu contato de WhatsApp e deverão entrar em contato para agendar. Você insere o horário manualmente na agenda.
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setFormData({ ...formData, scheduling_mode: "automatic" })}>
+                    <div 
+                      className={cn(
+                        "flex items-start gap-4 p-5 border rounded-2xl transition-all cursor-pointer group",
+                        formData.scheduling_mode === 'automatic' 
+                          ? "bg-[#ea580c]/5 border-[#ea580c] shadow-[0_0_15px_rgba(234,88,12,0.1)]" 
+                          : "bg-[#05070d] border-[#1f2937] hover:border-[#ea580c]/30"
+                      )} 
+                      onClick={() => setFormData({ ...formData, scheduling_mode: "automatic" })}
+                    >
                       <div className="mt-1">
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.scheduling_mode === 'automatic' ? 'border-primary' : 'border-muted-foreground'}`}>
-                          {formData.scheduling_mode === 'automatic' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.scheduling_mode === 'automatic' ? 'border-[#ea580c]' : 'border-slate-700'}`}>
+                          {formData.scheduling_mode === 'automatic' && <div className="w-2.5 h-2.5 rounded-full bg-[#ea580c]" />}
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-base cursor-pointer">Agendamento Automático (Self-Service)</Label>
-                        <p className="text-sm text-muted-foreground">
+                        <Label className="text-base font-black uppercase italic cursor-pointer group-hover:text-[#ea580c] transition-colors">Agendamento Automático (Self-Service)</Label>
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed">
                           Seus clientes escolhem o serviço, profissional e horário diretamente na sua página. O agendamento é confirmado automaticamente conforme sua disponibilidade.
                         </p>
                       </div>
@@ -711,12 +730,12 @@ function SettingsComponent() {
                   </div>
 
                   {formData.scheduling_mode === 'automatic' && (
-                    <div className="bg-primary/5 p-4 rounded-lg border border-primary/10 animate-in fade-in slide-in-from-top-2">
-                      <div className="flex items-center gap-2 text-primary font-medium mb-1">
-                        <CheckCircle2 size={16} />
-                        <span>Recomendado</span>
+                    <div className="bg-[#ea580c]/10 p-5 rounded-2xl border border-[#ea580c]/20 animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-center gap-2 text-[#ea580c] font-black uppercase text-xs tracking-widest mb-1 italic">
+                        <CheckCircle2 size={14} />
+                        <span>Recomendado para Máxima Conversão</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] text-slate-500 font-bold leading-relaxed uppercase">
                         O modo automático aumenta sua produtividade e permite que clientes agendem mesmo fora do horário comercial.
                       </p>
                     </div>
