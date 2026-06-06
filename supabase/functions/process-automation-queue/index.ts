@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { sendMessage } from "../_shared/whatsapp-settings.ts";
+import { sendAutomationMessageV2 } from "../_shared/automation-v2-engine.ts";
 import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
 
 const corsHeaders = {
@@ -194,76 +195,39 @@ serve(async (req) => {
         const phone = appointment.customer?.phone;
         if (!phone) throw new Error("Phone missing");
 
-        const sendResult = await sendMessage(instance, phone, renderedTemplate, sendOptions);
+        const sendResult = await sendAutomationMessageV2(supabase, {
+          tenant_id: itemTenantId,
+          workflow_key: automation.key,
+          appointment_id: appointment.id,
+          appointment_group_id: appointment.group_id || appointment.appointment_group_id,
+          customer_id: appointment.customer_id,
+          customer_phone: phone,
+          customer_name: appointment.customer?.name,
+          message: renderedTemplate,
+          buttons: sendOptions.buttons,
+          payload: { data: testData, diagnostic: diagInfo },
+          instance: instance
+        });
+
         if (sendResult.success) {
-          const providerMessageId = sendResult.response?.messageId || sendResult.response?.id;
-          
-          // REGISTRO DE SESSÃO V2
-          let session_id = null;
-          if (automation.key === 'appointment_confirmation') {
-            const expiresAt = new Date();
-            expiresAt.setHours(expiresAt.getHours() + 2);
-
-            const { data: session, error: sessError } = await supabase.from("automation_v2_sessions").insert({
-              tenant_id: itemTenantId,
-              customer_id: appointment.customer_id,
-              phone: phone,
-              flow_type: 'single',
-              current_step: "AWAITING_MAIN_ACTION",
-              status: "active",
-              appointment_id: appointment.id,
-              appointment_group_id: appointment.group_id || appointment.appointment_group_id,
-              provider_message_id: providerMessageId,
-              expires_at: expiresAt.toISOString(),
-              context: { automation_id: automation.id, workflow_key: automation.key }
-            }).select().single();
-
-            if (!sessError) session_id = session.id;
-            else console.error("[ProcessQueue] Session Error:", sessError);
+          if (sendResult.warning === "WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED") {
+             throw new Error("WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED");
           }
 
-          // REGISTRO OBRIGATÓRIO DE DISPATCH V2
-          const { error: dispatchError } = await supabase.from("automation_v2_dispatches").insert({
-            tenant_id: itemTenantId,
-            appointment_id: appointment.id,
-            appointment_group_id: appointment.group_id || appointment.appointment_group_id,
-            customer_id: appointment.customer_id,
-            customer_phone: phone,
-            workflow_key: automation.key,
-            flow_type: 'single', 
-            phone: phone,
-            customer_name: appointment.customer?.name,
-            channel: 'whatsapp',
-            message_id: providerMessageId,
-            provider_message_id: providerMessageId,
-            zaap_id: instance.instance_id,
-            status: "sent",
-            sent_at: new Date().toISOString(),
-            payload: { data: testData, diagnostic: diagInfo, rendered_message: renderedTemplate },
-            provider_response: sendResult.response,
-            session_id: session_id,
-            current_step: "AWAITING_MAIN_ACTION",
-            callback_received: false
-          });
+          await supabase.from("automation_queue").update({ 
+            status: "success", 
+            attempts: (item.attempts || 0) + 1, 
+            updated_at: new Date().toISOString() 
+          }).eq("id", item.id);
 
-          if (dispatchError) {
-            console.error(`[ProcessQueue] CRITICAL: Dispatch Error:`, dispatchError);
-            await supabase.from("automation_v2_logs").insert({
-              tenant_id: itemTenantId,
-              appointment_id: appointment.id,
-              level: 'error',
-              message: 'Falha ao registrar dispatch v2',
-              context: { error: dispatchError, provider_message_id: providerMessageId }
-            });
-            throw new Error(`Falha ao registrar dispatch: ${dispatchError.message}`);
-          }
+          await supabase.from("appointments").update({ 
+            confirmation_sent: true, 
+            confirmation_sent_at: new Date().toISOString() 
+          }).eq("id", appointment.id);
 
-          await supabase.from("automation_queue").update({ status: "success", attempts: (item.attempts || 0) + 1, updated_at: new Date().toISOString() }).eq("id", item.id);
-          await supabase.from("appointments").update({ confirmation_sent: true, confirmation_sent_at: new Date().toISOString() }).eq("id", appointment.id);
           results.push({ id: item.id, success: true });
-
         } else {
-          throw new Error(sendResult.error || "Z-API failed");
+          throw new Error(sendResult.error || "Failed to send automation message");
         }
       } catch (err: any) {
         console.error(`[ProcessQueue] Fail:`, err.message);

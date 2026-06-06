@@ -134,7 +134,14 @@ serve(async (req) => {
       const { data: appt } = await supabase.from("appointments").select("*, service:services(name), barber:barbers(name)").eq("id", appointmentId).single();
       const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", tenantId).maybeSingle();
       if (appt && instance) {
-        const businessName = (await supabase.from("barbershops").select("name").eq("id", tenantId).single()).data?.name || "Barbearia";
+        let businessName = "Barbearia";
+        const { data: tenantData } = await supabase.from("tenants").select("name").eq("id", tenantId).maybeSingle();
+        if (tenantData?.name && !['Barbearia', 'Barbershop'].includes(tenantData.name)) businessName = tenantData.name;
+        else {
+          const { data: profileData } = await supabase.from("profiles").select("business_name").eq("id", tenantId).maybeSingle();
+          if (profileData?.business_name) businessName = profileData.business_name;
+        }
+
         const successMsg = `✅ Agendamento confirmado com sucesso!\n\nEstamos te esperando na ${businessName}.\n\n📅 ${formatBrazilDate(appt.start_time)}\n⏰ ${formatBrazilTime(appt.start_time)}\n💈 ${appt.barber?.name || "Profissional"}\n✂️ ${appt.service?.name || "Serviço"}`;
         await sendMessage(instance, phone, successMsg);
       }
@@ -144,7 +151,7 @@ serve(async (req) => {
             appointment_id: appointmentId,
             level: 'error',
             message: 'Falha ao confirmar agendamento via callback',
-            context: { error: apptUpdateErr, rows_updated: updateData?.length || 0 }
+            context: { error: apptUpdateErr, rows_updated: updateData?.length || 0, appointment_id: appointmentId, session_id: selectedSession?.id, dispatch_id: updatedDispatch?.id }
         });
     }
   }
