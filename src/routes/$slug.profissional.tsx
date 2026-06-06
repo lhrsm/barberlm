@@ -26,6 +26,11 @@ import { ProfessionalNotifications } from "@/components/professional/Professiona
 import { useAppointmentStatus } from "@/hooks/use-appointment-status";
 
 export const Route = createFileRoute("/$slug/profissional")({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      tab: (search.tab as string) || "appointments"
+    }
+  },
   component: ProfessionalDashboard,
 });
 
