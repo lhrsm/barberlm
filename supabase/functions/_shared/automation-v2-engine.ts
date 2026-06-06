@@ -135,8 +135,20 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
         .update({ is_healthy: false, last_error: 'WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED' })
         .eq("tenant_id", tenant_id)
         .eq("key", workflow_key);
+        
+      // Trigger notification
+      await supabase.functions.invoke('automation-v2-health-check', {
+        body: { 
+          action: 'notify_unhealthy',
+          tenant_id,
+          workflow_key,
+          error: 'WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED',
+          appointment_id,
+          provider_message_id: providerMessageId
+        }
+      });
     } catch (e) {
-      console.error("[AutomationV2] Error updating health status:", e);
+      console.error("[AutomationV2] Error updating health status or notifying:", e);
     }
 
     return { 
