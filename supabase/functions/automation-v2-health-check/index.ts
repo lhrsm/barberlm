@@ -22,6 +22,30 @@ function canReprocess(lastReprocessed: string | null): boolean {
   return diffSeconds >= 30; // 30 second idempotency window
 }
 
+async function edge_function_invoke_queue(supabase: any, tenant_id: string, workflow_key: string, template_id: string) {
+  try {
+    const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+      body: { 
+        tenant_id,
+        workflow_key,
+        force_resend: true
+      }
+    });
+
+    const status = (error || !data?.success) ? 'failed' : 'completed';
+    await supabase.from("automation_templates")
+      .update({ reprocessing_status: status })
+      .eq("id", template_id);
+      
+    console.log(`[HealthCheck] Async reprocess ${status} for ${template_id}`);
+  } catch (e) {
+    console.error(`[HealthCheck] Async reprocess fatal error:`, e);
+    await supabase.from("automation_templates")
+      .update({ reprocessing_status: 'failed' })
+      .eq("id", template_id);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
