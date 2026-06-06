@@ -596,7 +596,7 @@ function AdminErrors() {
               {selectedIssue.reprocessing_history && selectedIssue.reprocessing_history.length > 0 && (
                 <div className="space-y-3">
                   <p className="text-sm font-bold flex items-center gap-2">
-                    <History className="h-4 w-4" /> Histórico de Reprocessamento
+                    <HistoryIcon className="h-4 w-4" /> Histórico de Reprocessamento
                   </p>
                   <div className="border rounded-2xl overflow-hidden">
                     <Table>
