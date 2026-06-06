@@ -441,14 +441,14 @@ export function CouponManagement() {
             </Table>
           </div>
 
-          <div className="md:hidden divide-y divide-slate-800">
+          <div className="md:hidden divide-y divide-[#1f2937]/50 bg-[#0b0f17]">
             {coupons?.length === 0 ? (
-              <div className="p-12 text-center text-slate-500 italic">
+              <div className="p-12 text-center text-slate-600 font-bold uppercase text-[10px] tracking-widest italic">
                 Nenhum cupom encontrado.
               </div>
             ) : (
               coupons?.map((coupon) => (
-                <div key={coupon.id} className="p-4 space-y-4 hover:bg-[#2a2b2e]/20 transition-colors">
+                <div key={coupon.id} className="p-6 space-y-6 hover:bg-[#ea580c]/5 transition-all">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-slate-800 rounded-lg">
