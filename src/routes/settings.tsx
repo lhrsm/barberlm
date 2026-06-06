@@ -749,7 +749,87 @@ function SettingsComponent() {
               <CouponManagement />
             </TabsContent>
 
-            <TabsContent value="whatsapp" className="space-y-4">
+            <TabsContent value="whatsapp" className="space-y-6">
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <MessageSquare className="text-[#ea580c] h-5 w-5" />
+                    Configuração Z-API
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Configure as credenciais da sua instância Z-API para automações premium.</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid gap-2">
+                      <Label htmlFor="whatsapp_number" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">WhatsApp da Barbearia (Formatado)</Label>
+                      <Input 
+                        id="whatsapp_number" 
+                        value={formData.whatsapp_number} 
+                        onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
+                        placeholder="Ex: 5571999999999"
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                      />
+                      <p className="text-[10px] text-amber-500/80 font-black uppercase italic tracking-tighter">Número mestre para disparos de automação.</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="instance_id" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">ID da Instância</Label>
+                      <Input 
+                        id="instance_id" 
+                        value={formData.instance_id} 
+                        onChange={(e) => setFormData({ ...formData, instance_id: e.target.value })}
+                        placeholder="ID da sua instância Z-API"
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="instance_token" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Token da Instância</Label>
+                      <div className="relative">
+                        <Input 
+                          id="instance_token" 
+                          type="password"
+                          value={formData.instance_token} 
+                          onChange={(e) => setFormData({ ...formData, instance_token: e.target.value })}
+                          placeholder="Token secreto"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12 pr-12"
+                        />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-700" />
+                      </div>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="client_token" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Client Token</Label>
+                      <div className="relative">
+                        <Input 
+                          id="client_token" 
+                          type="password"
+                          value={formData.client_token} 
+                          onChange={(e) => setFormData({ ...formData, client_token: e.target.value })}
+                          placeholder="Client token"
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12 pr-12"
+                        />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-700" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-[#1f2937]/30 flex flex-wrap gap-3">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black rounded-xl font-bold uppercase text-[10px] tracking-widest h-10 px-6"
+                    >
+                      Testar Conexão
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold uppercase text-[10px] tracking-widest h-10 px-6"
+                    >
+                      Sincronizar Webhook
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               <WhatsAppSettings />
             </TabsContent>
 
