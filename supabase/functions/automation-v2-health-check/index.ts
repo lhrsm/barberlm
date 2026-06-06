@@ -14,6 +14,14 @@ function shouldNotify(lastNotified: string | null, deduplicationMinutes: number)
   return diffMinutes >= deduplicationMinutes;
 }
 
+function canReprocess(lastReprocessed: string | null): boolean {
+  if (!lastReprocessed) return true;
+  const lastDate = new Date(lastReprocessed);
+  const now = new Date();
+  const diffSeconds = (now.getTime() - lastDate.getTime()) / 1000;
+  return diffSeconds >= 30; // 30 second idempotency window
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
