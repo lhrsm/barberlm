@@ -176,64 +176,101 @@ export function WhatsAppSettings() {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white border-2 border-slate-200 text-black shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl flex items-center gap-2">
-            <MessageSquare className="text-blue-600" />
+      <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+        <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+          <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+            <MessageSquare className="text-[#ea580c]" />
             Z-API WhatsApp
           </CardTitle>
-          <CardDescription>
-            Gerencie suas instâncias do WhatsApp via Z-API.
+          <CardDescription className="text-slate-400">
+            Gerencie suas instâncias do WhatsApp via Z-API com tecnologia premium.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-6 space-y-4">
           {connections.map((conn) => (
-            <div key={conn.id} className="flex items-center justify-between p-4 border rounded-xl">
-              <div>
-                <p className="font-bold">{conn.phone || "Número Principal"}</p>
-                <p className="text-xs text-muted-foreground">ID: {conn.instance_id}</p>
+            <div key={conn.id} className="flex items-center justify-between p-4 bg-[#05070d] border border-[#1f2937] rounded-2xl hover:border-[#ea580c]/30 transition-all group">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-[#ea580c]/10 rounded-xl">
+                  <MessageSquare className="text-[#ea580c] h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-black italic uppercase tracking-tight text-white">{conn.phone || "Número Principal"}</p>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">ID: {conn.instance_id}</p>
+                </div>
               </div>
-              <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteConnection(conn.id)}>
-                <Trash2 size={18} />
-              </Button>
+              <div className="flex items-center gap-3">
+                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 font-black uppercase text-[10px] tracking-widest italic px-3">
+                  Conectado
+                </Badge>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all" 
+                  onClick={() => handleDeleteConnection(conn.id)}
+                >
+                  <Trash2 size={18} />
+                </Button>
+              </div>
             </div>
           ))}
-          {connections.length === 0 && <p className="text-center text-slate-500 py-4">Nenhuma instância conectada.</p>}
+          {connections.length === 0 && (
+            <div className="text-center py-10 bg-[#05070d]/50 rounded-2xl border border-dashed border-[#1f2937]">
+              <Info className="h-10 w-10 text-slate-800 mx-auto mb-3" />
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs italic">Nenhuma instância conectada.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="templates">
-        <TabsList>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="logs">Mensagens</TabsTrigger>
+      <Tabs defaultValue="templates" className="space-y-4">
+        <TabsList className="bg-[#0b0f17] border border-[#1f2937] p-1 rounded-2xl">
+          <TabsTrigger value="templates" className="flex-1 rounded-xl data-[state=active]:bg-[#ea580c] data-[state=active]:text-black font-black uppercase tracking-widest text-[10px] italic h-10">Templates</TabsTrigger>
+          <TabsTrigger value="logs" className="flex-1 rounded-xl data-[state=active]:bg-[#ea580c] data-[state=active]:text-black font-black uppercase tracking-widest text-[10px] italic h-10">Mensagens</TabsTrigger>
         </TabsList>
-        <TabsContent value="templates" className="pt-4">
-          <Card>
-            <CardContent className="space-y-4 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <TabsContent value="templates" className="pt-2 animate-in fade-in slide-in-from-top-4">
+          <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {['appointment_confirmation', 'reminder', 'cancellation', 'cashback'].map(type => (
-                  <div key={type} className="space-y-2">
-                    <Label className="capitalize">{type.replace('_', ' ')}</Label>
+                  <div key={type} className="space-y-3 p-5 bg-[#05070d] border border-[#1f2937] rounded-2xl hover:border-[#ea580c]/20 transition-all">
+                    <Label className="font-black uppercase italic tracking-widest text-[#ea580c] text-[10px]">{type.replace('_', ' ')}</Label>
                     <Textarea 
                       value={getTemplateContent(type)}
                       onChange={e => saveTemplate(type, e.target.value)}
+                      className="bg-[#0b0f17] border-[#1f2937] text-white focus:border-[#ea580c] min-h-[120px] rounded-xl resize-none font-medium text-sm leading-relaxed"
                     />
+                    <div className="flex justify-end">
+                       <Button size="sm" variant="ghost" className="text-[#ea580c] hover:bg-[#ea580c]/10 text-[10px] font-black uppercase tracking-widest">
+                          <History size={12} className="mr-1" /> Ver Histórico
+                       </Button>
+                    </div>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="logs">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="divide-y">
-                {messages.map(msg => (
-                  <div key={msg.id} className="py-2 text-sm flex justify-between">
-                    <span>{msg.content}</span>
-                    <Badge variant="outline">{msg.status}</Badge>
+        <TabsContent value="logs" className="pt-2 animate-in fade-in slide-in-from-top-4">
+          <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+            <CardContent className="p-6">
+              <div className="space-y-2 divide-y divide-[#1f2937]/30">
+                {messages.length > 0 ? messages.map(msg => (
+                  <div key={msg.id} className="py-4 flex justify-between items-center group">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 bg-[#ea580c]/5 rounded-lg flex items-center justify-center">
+                        <Send size={14} className="text-[#ea580c]" />
+                      </div>
+                      <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors truncate max-w-[200px] sm:max-w-md">{msg.content}</span>
+                    </div>
+                    <Badge variant="outline" className="font-black uppercase text-[8px] tracking-widest border-[#1f2937] text-slate-500">
+                      {msg.status}
+                    </Badge>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center py-10">
+                    <p className="text-slate-600 font-bold uppercase text-[10px] tracking-[0.2em]">Nenhuma mensagem registrada.</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
