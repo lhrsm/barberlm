@@ -92,6 +92,10 @@ function AdminErrors() {
       
       if (error) throw error;
       return data;
+    },
+    refetchInterval: (query) => {
+      const hasProcessing = query.state.data?.report?.some((r: any) => r.reprocessing_status === 'processing');
+      return hasProcessing ? 3000 : false;
     }
   });
 
