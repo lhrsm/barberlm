@@ -119,7 +119,7 @@ export async function sendMessage(
 
       if (response.ok) return { success: true, response: data, error: null };
       console.log('BUTTONS SEND ERROR (API):', data.message || data.error);
-    } catch (error) {
+    } catch (error: any) {
       console.log('BUTTONS SEND ERROR (Fetch):', error.message);
     }
   }
