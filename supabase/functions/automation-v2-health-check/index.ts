@@ -55,7 +55,7 @@ serve(async (req) => {
         `🔗 [Ver Detalhes da Falha](https://painel.barbearia.com.br/admin/errors?tenant=${tenant_id}&key=${workflow_key})\n` +
         `🔗 [Ver Logs da Sessão](https://painel.barbearia.com.br/admin/logs?search=${body.provider_message_id})`;
 
-      // Generic notification table insert (common pattern in this project)
+      // Generic notification table insert
       await supabase.from("notifications").insert({
         tenant_id,
         title: "Erro Crítico de Automação",
@@ -64,14 +64,27 @@ serve(async (req) => {
         metadata: body
       });
 
-      // If Slack webhook exists in env, send there too
-      const slackWebhook = Deno.env.get("SLACK_WEBHOOK_URL");
+      // Update last_notified_at
+      if (template) {
+        await supabase.from("automation_templates")
+          .update({ last_notified_at: new Date().toISOString() })
+          .eq("id", template.id);
+      }
+
+      // 1. Send to Slack Webhook (Global or Specific)
+      const slackWebhook = healthSettings?.slack_webhook_url || Deno.env.get("SLACK_WEBHOOK_URL");
       if (slackWebhook) {
         await fetch(slackWebhook, {
           method: 'POST',
           body: JSON.stringify({ text: message }),
           headers: { 'Content-Type': 'application/json' }
         });
+      }
+
+      // 2. Send to Email targets (if infrastructure exists)
+      if (healthSettings?.alert_emails && healthSettings.alert_emails.length > 0) {
+        // Logic to trigger email sending function would go here
+        console.log(`[HealthCheck] Would notify emails: ${healthSettings.alert_emails.join(', ')}`);
       }
 
       return new Response(JSON.stringify({ success: true, notified: true }), {
