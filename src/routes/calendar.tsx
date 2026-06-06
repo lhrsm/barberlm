@@ -397,18 +397,18 @@ function CalendarComponent() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-7 divide-x divide-zinc-100">
+                <div className="grid grid-cols-7 divide-x divide-[#D4AF37]/5">
                   {weekDays.map(day => (
                     <div key={day.toString()} className="flex flex-col">
-                      <div className="p-3 text-center border-b border-zinc-100 bg-zinc-50/50">
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{format(day, "EEE", { locale: ptBR })}</p>
-                        <p className="text-lg font-bold text-zinc-900">{format(day, "d")}</p>
+                      <div className="p-4 text-center border-b border-[#D4AF37]/10 bg-[#05070d]/50">
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{format(day, "EEE", { locale: ptBR })}</p>
+                        <p className="text-xl font-black text-white">{format(day, "d")}</p>
                       </div>
-                      <div className="flex-1 divide-y divide-zinc-100 min-h-[600px]">
+                      <div className="flex-1 divide-y divide-[#D4AF37]/5 min-h-[700px]">
                         {HOURS.map(hour => (
                           <div 
                             key={hour} 
-                            className="h-[60px] p-1 cursor-pointer hover:bg-zinc-50 transition-colors border-b border-zinc-100"
+                            className="h-[80px] p-2 cursor-pointer hover:bg-[#D4AF37]/5 transition-all border-b border-[#D4AF37]/5"
                             onClick={() => {
                               setModalInitialData({ time: `${hour.toString().padStart(2, '0')}:00`, date: format(day, "yyyy-MM-dd"), step: 1, editingId: undefined });
                               setIsDialogOpen(true);
@@ -416,7 +416,6 @@ function CalendarComponent() {
                           >
                              {getAppointmentsForTime(day, hour).map(app => {
                               const statusConfig = getCalendarStatusConfig(app.status);
-                              console.log('CALENDAR CARD STATUS', app.id, app.status);
 
                               return (
                                 <div 
@@ -427,19 +426,15 @@ function CalendarComponent() {
                                     setDetailsModalOpen(true);
                                   }}
                                   className={cn(
-                                    "h-full p-2 rounded-lg shadow-md border-2 text-[10px] flex flex-col justify-center gap-0.5 transition-all duration-300 hover:scale-[1.05] hover:z-10 hover:shadow-lg",
+                                    "p-2 rounded-lg shadow-xl border-2 cursor-pointer transition-all duration-300 hover:scale-[1.05] flex flex-col gap-1 mb-1 overflow-hidden",
                                     statusConfig.className
                                   )}
                                 >
-                                  <div className="flex items-center justify-between">
-                                    <div className="font-black text-[8px] opacity-80">{format(parseISO(app.start_time), "HH:mm")}</div>
-                                    <div className="font-black text-[7px] bg-white/20 px-1 rounded uppercase">{statusConfig.label}</div>
-                                  </div>
-                                  <div className="font-bold truncate leading-none">{app.customers?.name}</div>
-                                  <div className="opacity-80 text-[7px] truncate">{app.services?.name}</div>
+                                  <span className="font-black text-[9px] leading-tight text-white">{app.customers?.name || "Cliente"}</span>
+                                  <span className="opacity-80 text-[8px] truncate font-bold uppercase tracking-tighter">{app.services?.name || "Serviço"}</span>
                                 </div>
                               );
-                             })}
+                            })}
                           </div>
                         ))}
                       </div>
@@ -450,23 +445,23 @@ function CalendarComponent() {
             </div>
           </ScrollArea>
         </Card>
-
-        <AppointmentDetailsModal
-          open={detailsModalOpen}
-          onOpenChange={setDetailsModalOpen}
-          appointmentId={selectedAppointmentId}
-          onSuccess={() => fetchData()}
-          onReschedule={(app) => {
-            setModalInitialData({ 
-              date: format(parseISO(app.start_time), "yyyy-MM-dd"), 
-              time: format(parseISO(app.start_time), "HH:mm"), 
-              step: 1, 
-              editingId: app.id 
-            });
-            setIsDialogOpen(true);
-          }}
-        />
       </div>
+
+      <AppointmentDetailsModal
+        open={detailsModalOpen}
+        onOpenChange={setDetailsModalOpen}
+        appointmentId={selectedAppointmentId}
+        onSuccess={() => fetchData()}
+        onReschedule={(app) => {
+          setModalInitialData({ 
+            date: format(parseISO(app.start_time), "yyyy-MM-dd"), 
+            time: format(parseISO(app.start_time), "HH:mm"), 
+            step: 1, 
+            editingId: app.id 
+          });
+          setIsDialogOpen(true);
+        }}
+      />
     </AppLayout>
   );
 }
