@@ -258,7 +258,7 @@ function ProfessionalDashboard() {
           ))}
         </div>
 
-        <Tabs value={currentTab} onValueChange={(val) => navigate({ search: (prev: any) => ({ ...prev, tab: val }) })} className="w-full">
+        <Tabs value={currentTab} onValueChange={(val) => navigate({ search: { tab: val } })} className="w-full">
           <TabsList className="bg-[#0b0f17] p-1.5 gap-2 flex overflow-x-auto h-auto rounded-2xl border border-[#D4AF37]/10 w-fit">
             <TabsTrigger 
               value="appointments" 
