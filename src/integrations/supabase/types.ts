@@ -1032,7 +1032,9 @@ export type Database = {
           id: string
           key: string
           last_notified_at: string | null
+          last_reprocessed_at: string | null
           name: string
+          reprocessing_status: string | null
           template: string
           tenant_id: string
           trigger_event: string
@@ -1046,7 +1048,9 @@ export type Database = {
           id?: string
           key: string
           last_notified_at?: string | null
+          last_reprocessed_at?: string | null
           name: string
+          reprocessing_status?: string | null
           template: string
           tenant_id: string
           trigger_event: string
@@ -1060,7 +1064,9 @@ export type Database = {
           id?: string
           key?: string
           last_notified_at?: string | null
+          last_reprocessed_at?: string | null
           name?: string
+          reprocessing_status?: string | null
           template?: string
           tenant_id?: string
           trigger_event?: string
