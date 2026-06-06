@@ -400,29 +400,29 @@ export function CouponManagement() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-2 pr-2">
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                            className="h-9 w-9 text-slate-400 hover:text-[#ea580c] hover:bg-[#ea580c]/10 rounded-xl transition-all"
                             onClick={() => handleEdit(coupon)}
                             title="Editar"
                           >
-                            <Pencil size={14} />
+                            <Pencil size={16} />
                           </Button>
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                            className="h-9 w-9 text-slate-400 hover:text-white hover:bg-[#ea580c]/20 rounded-xl transition-all"
                             onClick={() => handleDuplicate(coupon)}
                             title="Duplicar"
                           >
-                            <Copy size={14} />
+                            <Copy size={16} />
                           </Button>
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                            className="h-9 w-9 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
                             onClick={() => {
                               if (confirm("Deseja realmente excluir este cupom?")) {
                                 deleteCouponMutation.mutate(coupon.id);
@@ -430,7 +430,7 @@ export function CouponManagement() {
                             }}
                             title="Excluir"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={16} />
                           </Button>
                         </div>
                       </TableCell>
