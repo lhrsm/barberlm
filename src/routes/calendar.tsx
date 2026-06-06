@@ -320,35 +320,37 @@ function CalendarComponent() {
           </div>
         </div>
 
-        <Card className="flex-1 overflow-hidden flex flex-col bg-white border border-zinc-200 rounded-2xl shadow-md shadow-zinc-200/70 text-zinc-900">
-          <div className="p-5 border-b border-zinc-100 flex items-center justify-between bg-white">
-            <div className="flex items-center gap-6">
+        <Card className="flex-1 overflow-hidden flex flex-col bg-[#0b0f17] border border-[#D4AF37]/20 rounded-2xl shadow-2xl">
+          <div className="p-6 border-b border-[#D4AF37]/10 flex items-center justify-between bg-[#0b0f17]">
+            <div className="flex items-center gap-8">
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" className="rounded-xl border-zinc-200 hover:border-sky-300 hover:bg-sky-50 transition-all h-9 w-9" onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}>
-                  <ChevronLeft size={18} />
+                <Button variant="outline" size="icon" className="rounded-xl border-[#D4AF37]/20 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all h-10 w-10 text-[#D4AF37]" onClick={() => setCurrentDate(subDays(currentDate, view === 'day' ? 1 : 7))}>
+                  <ChevronLeft size={20} />
                 </Button>
-                <Button variant="outline" size="icon" className="rounded-xl border-zinc-200 hover:border-sky-300 hover:bg-sky-50 transition-all h-9 w-9" onClick={() => setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))}>
-                  <ChevronRight size={18} />
+                <Button variant="outline" size="icon" className="rounded-xl border-[#D4AF37]/20 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all h-10 w-10 text-[#D4AF37]" onClick={() => setCurrentDate(addDays(currentDate, view === 'day' ? 1 : 7))}>
+                  <ChevronRight size={20} />
                 </Button>
               </div>
-              <h3 className="font-bold text-lg min-w-[240px] text-center capitalize tracking-tight text-zinc-900">
+              <h3 className="font-black text-xl min-w-[300px] text-center capitalize tracking-tight text-white">
                 {format(currentDate, view === 'day' ? "EEEE, d 'de' MMMM" : "'Semana de' d 'de' MMMM", { locale: ptBR })}
               </h3>
             </div>
-            <Button variant="ghost" size="sm" className="font-semibold text-sky-600 hover:bg-sky-50 rounded-xl" onClick={() => setCurrentDate(new Date())}>Hoje</Button>
+            <div className="flex items-center gap-3">
+               <Button variant="ghost" size="sm" className="font-black text-[10px] uppercase tracking-widest text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded-xl px-6" onClick={() => setCurrentDate(new Date())}>Hoje</Button>
+            </div>
           </div>
 
-          <ScrollArea className="flex-1 overflow-x-auto scroll-smooth">
+          <ScrollArea className="flex-1 overflow-x-auto">
             <div className="min-w-full sm:min-w-[700px] lg:min-w-0">
               {view === 'day' ? (
-                <div className="flex flex-col divide-y divide-zinc-100">
+                <div className="flex flex-col divide-y divide-[#D4AF37]/5">
                   {HOURS.map(hour => (
-                    <div key={hour} className="flex group min-h-[100px]">
-                      <div className="w-24 py-6 px-4 text-right text-xs text-zinc-400 font-semibold border-r border-zinc-100 bg-zinc-50/50">
+                    <div key={hour} className="flex group min-h-[120px]">
+                      <div className="w-28 py-8 px-6 text-right text-sm text-gray-500 font-black border-r border-[#D4AF37]/10 bg-[#05070d]/30">
                         {hour.toString().padStart(2, '0')}:00
                       </div>
                       <div 
-                        className="flex-1 p-3 relative gap-3 flex flex-row sm:flex-wrap overflow-x-auto sm:overflow-x-visible content-start bg-white transition-all cursor-pointer hover:bg-zinc-50 snap-x snap-mandatory hide-scrollbar"
+                        className="flex-1 p-4 relative gap-4 flex flex-row sm:flex-wrap overflow-x-auto sm:overflow-x-visible content-start bg-[#0b0f17] transition-all cursor-pointer hover:bg-[#05070d] snap-x snap-mandatory"
                         onClick={() => {
                           setModalInitialData({ time: `${hour.toString().padStart(2, '0')}:00`, date: format(currentDate, "yyyy-MM-dd"), step: 1, editingId: undefined });
                           setIsDialogOpen(true);
@@ -356,7 +358,6 @@ function CalendarComponent() {
                       >
                         {getAppointmentsForTime(currentDate, hour).map(app => {
                           const statusConfig = getCalendarStatusConfig(app.status);
-                          console.log('CALENDAR CARD STATUS', app.id, app.status);
                           
                           return (
                             <div 
@@ -367,20 +368,27 @@ function CalendarComponent() {
                                 setDetailsModalOpen(true);
                               }}
                               className={cn(
-                                "px-3 py-2 rounded-xl shadow-lg border-2 cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:shadow-xl flex flex-col gap-1 min-w-[240px] sm:min-w-[180px] snap-center shrink-0",
+                                "px-5 py-4 rounded-2xl shadow-2xl border-2 cursor-pointer transition-all duration-300 hover:scale-[1.05] flex flex-col gap-2 min-w-[280px] sm:min-w-[220px] snap-center shrink-0",
                                 statusConfig.className
                               )}
                             >
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="font-black tracking-tight text-[11px]">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="font-black tracking-tight text-xs">
                                   {format(parseISO(app.start_time), "HH:mm")}
                                 </span>
-                                <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[8px] font-black uppercase px-1.5 py-0">
+                                <Badge className="bg-white/10 hover:bg-white/20 text-white border-none text-[9px] font-black uppercase px-2 py-0.5 rounded-md">
                                   {statusConfig.label}
                                 </Badge>
                               </div>
-                              <span className="font-bold truncate text-[12px] leading-none mt-0.5">{app.customers?.name || "Cliente"}</span>
-                              <span className="opacity-90 text-[10px] truncate font-medium">{app.services?.name || "Serviço"}</span>
+                              <span className="font-black truncate text-sm leading-tight text-white mt-1">{app.customers?.name || "Cliente"}</span>
+                              <div className="flex items-center gap-2 opacity-80">
+                                <Scissors size={12} />
+                                <span className="text-[10px] truncate font-bold uppercase tracking-wider">{app.services?.name || "Serviço"}</span>
+                              </div>
+                              <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase text-white/60">{app.barbers?.name || "Barbeiro"}</span>
+                                <span className="text-xs font-black text-white">R$ {Number(app.total_price || 0).toFixed(2)}</span>
+                              </div>
                             </div>
                           );
                         })}
