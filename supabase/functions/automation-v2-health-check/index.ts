@@ -15,12 +15,14 @@ serve(async (req) => {
   );
 
   try {
-    const { check_all = false } = await req.json().catch(() => ({}));
+    const { tenant_id, check_all = false } = await req.json().catch(() => ({}));
 
     // 1. Get unhealthy automations
     let query = supabase.from("automation_templates").select("*, tenant:tenants(name)");
     
-    if (!check_all) {
+    if (tenant_id) {
+      query = query.eq("tenant_id", tenant_id);
+    } else if (!check_all) {
       query = query.eq("is_healthy", false);
     }
 
@@ -30,54 +32,49 @@ serve(async (req) => {
     const report = [];
 
     for (const automation of automations || []) {
-      const issues = [];
-      
-      // Check for specific critical error in logs
-      const { data: logs, error: logError } = await supabase
+      // Find logs related to this automation
+      const { data: logs } = await supabase
         .from("automation_v2_logs")
         .select("*")
         .eq("tenant_id", automation.tenant_id)
-        .eq("message", "WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED")
+        .or(`message.eq.WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED,message.ilike.%${automation.key}%`)
         .order("created_at", { ascending: false })
-        .limit(5);
+        .limit(10);
 
-      if (logs && logs.length > 0) {
+      const criticalLogs = logs?.filter(l => l.message === "WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED") || [];
+      
+      const issues = [];
+      if (criticalLogs.length > 0) {
         issues.push({
           type: "WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED",
-          count: logs.length,
-          last_occurrence: logs[0].created_at,
-          details: logs[0].context
+          count: criticalLogs.length,
+          last_occurrence: criticalLogs[0].created_at,
+          details: criticalLogs[0].context
         });
       }
 
-      // Check for missed dispatches: messages sent according to logs but no dispatch entry
-      // This is a more complex cross-check
-      const { data: sentLogs } = await supabase
-        .from("automation_v2_logs")
-        .select("*")
-        .eq("tenant_id", automation.tenant_id)
-        .ilike("message", "Mensagem enviada%")
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      for (const log of sentLogs || []) {
-        const providerId = log.context?.provider_message_id;
-        if (providerId) {
-          const { data: dispatch } = await supabase
-            .from("automation_v2_dispatches")
-            .select("id")
-            .eq("provider_message_id", providerId)
-            .maybeSingle();
-
-          if (!dispatch) {
-            issues.push({
-              type: "ORPHAN_LOG_NO_DISPATCH",
-              log_id: log.id,
-              provider_message_id: providerId,
-              created_at: log.created_at
-            });
+      // Check if is_healthy matches the log state
+      const shouldBeHealthy = criticalLogs.length === 0;
+      
+      // Verification logic: look for "Mensagem enviada" without a corresponding dispatch
+      const sentLogs = logs?.filter(l => l.message.includes("Mensagem enviada")) || [];
+      for (const log of sentLogs) {
+          const providerId = log.context?.provider_message_id;
+          if (providerId) {
+              const { data: dispatch } = await supabase
+                  .from("automation_v2_dispatches")
+                  .select("id")
+                  .eq("provider_message_id", providerId)
+                  .maybeSingle();
+              
+              if (!dispatch) {
+                  issues.push({
+                      type: "DISPATCH_MISSING_FOR_SENT_MESSAGE",
+                      provider_message_id: providerId,
+                      log_time: log.created_at
+                  });
+              }
           }
-        }
       }
 
       report.push({
@@ -86,7 +83,8 @@ serve(async (req) => {
         tenant_name: automation.tenant?.name || "N/A",
         is_healthy: automation.is_healthy,
         last_error: automation.last_error,
-        issues
+        should_be_healthy: shouldBeHealthy && issues.length === 0,
+        issues: issues
       });
     }
 
@@ -96,7 +94,7 @@ serve(async (req) => {
       summary: {
         total_checked: report.length,
         unhealthy: report.filter(r => !r.is_healthy).length,
-        critical_issues: report.reduce((acc, r) => acc + r.issues.length, 0)
+        issues_detected: report.some(r => r.issues.length > 0)
       },
       report 
     }), {
