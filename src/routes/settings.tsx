@@ -261,14 +261,14 @@ function SettingsComponent() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4">
+      <div className="space-y-6 min-h-screen bg-[#05070a] -m-4 sm:-m-6 md:-m-8 p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-white">Configurações</h2>
-            <p className="text-muted-foreground text-sm">Gerencie sua barbearia, integrações e personalização.</p>
+            <h2 className="text-3xl font-black tracking-tight text-white uppercase italic">Configurações</h2>
+            <p className="text-slate-400 text-sm font-medium">Gerencie sua barbearia, integrações e personalização premium.</p>
           </div>
           {plan === "free" && (
-            <Button variant="outline" className="bg-primary/10 border-primary/20 text-primary gap-2" asChild>
+            <Button variant="outline" className="bg-amber-500/10 border-amber-500/20 text-amber-500 gap-2 hover:bg-amber-500 hover:text-black transition-all" asChild>
               <Link to="/subscription">Fazer Upgrade para Pro</Link>
             </Button>
           )}
@@ -276,34 +276,26 @@ function SettingsComponent() {
 
         <Tabs defaultValue="general" className="space-y-6">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
-            <TabsList className="flex w-max min-w-full md:grid md:grid-cols-9 md:w-full bg-white border border-slate-200 text-black">
-              <TabsTrigger value="general" className="gap-2 text-xs sm:text-sm">
-                <Globe size={16} /> <span className="hidden sm:inline">Geral</span>
-              </TabsTrigger>
-              <TabsTrigger value="profile" className="gap-2 text-xs sm:text-sm">
-                <UserRound size={16} /> <span className="hidden sm:inline">Perfil</span>
-              </TabsTrigger>
-              <TabsTrigger value="appearance" className="gap-2 text-xs sm:text-sm">
-                <Palette size={16} /> <span className="hidden sm:inline">Aparência</span>
-              </TabsTrigger>
-              <TabsTrigger value="scheduling" className="gap-2 text-xs sm:text-sm">
-                <Calendar size={16} /> <span className="hidden sm:inline">Agendamento</span>
-              </TabsTrigger>
-              <TabsTrigger value="coupons" className="gap-2 text-xs sm:text-sm">
-                <Gift size={16} /> <span className="hidden sm:inline">Cupons</span>
-              </TabsTrigger>
-              <TabsTrigger value="whatsapp" className="gap-2 text-xs sm:text-sm">
-                <MessageSquare size={16} /> <span className="hidden sm:inline">WhatsApp</span>
-              </TabsTrigger>
-              <TabsTrigger value="payments" className="gap-2 text-xs sm:text-sm">
-                <CreditCard size={16} /> <span className="hidden sm:inline">Pagamentos</span>
-              </TabsTrigger>
-              <TabsTrigger value="loyalty" className="gap-2 text-xs sm:text-sm">
-                <Gift size={16} /> <span className="hidden sm:inline">Fidelidade</span>
-              </TabsTrigger>
-              <TabsTrigger value="pix" className="gap-2 text-xs sm:text-sm">
-                <QrCode size={16} /> <span className="hidden sm:inline">Chave PIX</span>
-              </TabsTrigger>
+            <TabsList className="flex w-max min-w-full bg-[#0b0f17] border border-[#1f2937] p-1 rounded-2xl h-auto">
+              {[
+                { value: "general", icon: Globe, label: "Geral" },
+                { value: "profile", icon: UserRound, label: "Perfil" },
+                { value: "appearance", icon: Palette, label: "Aparência" },
+                { value: "scheduling", icon: Calendar, label: "Agendamento" },
+                { value: "coupons", icon: Gift, label: "Cupons" },
+                { value: "whatsapp", icon: MessageSquare, label: "WhatsApp" },
+                { value: "payments", icon: CreditCard, label: "Pagamentos" },
+                { value: "loyalty", icon: Gift, label: "Fidelidade" },
+                { value: "pix", icon: QrCode, label: "Chave PIX" },
+              ].map((tab) => (
+                <TabsTrigger 
+                  key={tab.value}
+                  value={tab.value} 
+                  className="gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all data-[state=active]:bg-[#ea580c] data-[state=active]:text-black data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:text-[#ea580c]"
+                >
+                  <tab.icon size={16} /> <span>{tab.label}</span>
+                </TabsTrigger>
+              ))}
             </TabsList>
           </div>
 
