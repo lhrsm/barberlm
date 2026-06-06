@@ -380,11 +380,14 @@ function SettingsComponent() {
             </TabsContent>
 
             <TabsContent value="general" className="space-y-4">
-              <Card className="bg-white border-2 border-slate-200 text-black">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden">
+                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
                   <div className="space-y-1">
-                    <CardTitle>Informações do Negócio</CardTitle>
-                    <CardDescription>Logado como: <span className="font-mono text-primary font-bold">{user?.email}</span> (ID: {typeof user?.id === 'string' ? user.id.substring(0, 8) : '---'}...)</CardDescription>
+                    <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                      <Globe className="text-[#ea580c] h-5 w-5" />
+                      Informações do Negócio
+                    </CardTitle>
+                    <CardDescription className="text-slate-400 font-medium">Logado como: <span className="text-[#ea580c]">{user?.email}</span></CardDescription>
                   </div>
                   <Button 
                     variant="outline" 
@@ -392,24 +395,27 @@ function SettingsComponent() {
                     type="button"
                     onClick={handleForceSync}
                     disabled={isSyncing}
-                    className="gap-2"
+                    className="gap-2 border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black transition-all rounded-xl h-10 px-4"
                   >
                     <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
                     {isSyncing ? "Sincronizando..." : "Sincronizar"}
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex flex-col items-center gap-4 py-4 border-b border-slate-100 mb-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Logo da Barbearia</p>
-                    <div className="h-32 w-full max-w-[200px] rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group">
+                <CardContent className="p-6 space-y-8">
+                  <div className="flex flex-col items-center gap-4 py-6 border-b border-[#1f2937]/50 mb-4 bg-[#05070d]/30 rounded-2xl">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ea580c]">Logo da Barbearia</p>
+                    <div className="h-40 w-full max-w-[240px] rounded-2xl bg-[#05070d] border-2 border-dashed border-[#1f2937] flex items-center justify-center overflow-hidden relative group hover:border-[#ea580c]/50 transition-all shadow-inner">
                       {formData.barbershop_logo_url ? (
-                        <img src={formData.barbershop_logo_url} alt="Logo" className="h-full w-full object-contain p-2" />
+                        <img src={formData.barbershop_logo_url} alt="Logo" className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105" />
                       ) : (
                         <div className="text-center p-4">
-                          <ImageIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                          <p className="text-[10px] text-slate-400 font-bold">SEM LOGO</p>
+                          <ImageIcon className="w-10 h-10 text-slate-800 mx-auto mb-2" />
+                          <p className="text-[10px] text-slate-600 font-black tracking-widest uppercase">Sem Logo Definida</p>
                         </div>
                       )}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                        <p className="text-white text-xs font-bold uppercase tracking-widest">Alterar Logo</p>
+                      </div>
                       <Input 
                         type="file" 
                         accept="image/*"
@@ -434,54 +440,60 @@ function SettingsComponent() {
                         }}
                       />
                     </div>
-                    <p className="text-[10px] text-muted-foreground text-center max-w-[250px]">Recomendamos uma imagem com fundo transparente (PNG) ou fundo sólido contrastante.</p>
+                    <p className="text-[10px] text-slate-500 text-center max-w-[250px] font-medium italic">Recomendamos PNG com fundo transparente ou fundo contrastante.</p>
                   </div>
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="business_name">Nome da Barbearia</Label>
-                    <Input 
-                      id="business_name" 
-                      value={formData.business_name} 
-                      onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                      placeholder="Ex: Barbearia do João"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="slug">Endereço da sua Página (URL)</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground text-sm hidden sm:inline">{window.location.origin}/</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid gap-2">
+                      <Label htmlFor="business_name" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nome da Barbearia</Label>
                       <Input 
-                        id="slug" 
-                        value={formData.slug} 
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                        placeholder="minha-barbearia"
+                        id="business_name" 
+                        value={formData.business_name} 
+                        onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                        placeholder="Ex: Barbearia Premium"
                         required
+                        className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
                       />
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={() => {
-                          const url = `${window.location.origin}/${formData.slug}`;
-                          navigator.clipboard.writeText(url);
-                          toast.success("Link copiado!");
-                        }}
-                        title="Copiar link"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="icon" 
-                        asChild
-                        title="Ver página"
-                      >
-                        <a href={`/${formData.slug}`} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="slug" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">URL da sua Página</Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          id="slug" 
+                          value={formData.slug} 
+                          onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                          placeholder="minha-barbearia"
+                          required
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12 flex-1"
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => {
+                            const url = `${window.location.origin}/${formData.slug}`;
+                            navigator.clipboard.writeText(url);
+                            toast.success("Link copiado!");
+                          }}
+                          className="h-12 w-12 border-[#1f2937] bg-[#05070d] hover:bg-[#1f2937] text-[#ea580c] transition-all rounded-xl"
+                          title="Copiar link"
+                        >
+                          <Copy className="h-5 w-5" />
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                          asChild
+                          className="h-12 w-12 border-[#1f2937] bg-[#05070d] hover:bg-[#1f2937] text-[#ea580c] transition-all rounded-xl"
+                          title="Ver página"
+                        >
+                          <a href={`/${formData.slug}`} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-5 w-5" />
+                          </a>
+                        </Button>
+                      </div>
+                      <p className="text-[10px] text-slate-600 font-medium">Link público: {window.location.origin}/{formData.slug}</p>
                     </div>
                   </div>
                 </CardContent>
