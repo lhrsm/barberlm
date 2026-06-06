@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Clock } from "lucide-react";
+import { Clock, Save, X, Calendar } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const dayNames: Record<string, string> = {
   monday: "Segunda-feira",
@@ -28,7 +29,6 @@ export function EditScheduleDialog({ isOpen, onClose, barber, onUpdate }: any) {
   useEffect(() => {
     if (barber && isOpen) {
       if (barber.working_hours && Object.keys(barber.working_hours).length > 0) {
-        // Merge with defaults to ensure all days exist
         const merged: any = {};
         sortedDays.forEach(day => {
           merged[day] = barber.working_hours[day] || { start: "09:00", end: "18:00", enabled: false };
@@ -79,48 +79,67 @@ export function EditScheduleDialog({ isOpen, onClose, barber, onUpdate }: any) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] flex flex-col bg-white border-[#D4AF37] rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
-        <DialogHeader className="border-b border-[#D4AF37]/10 pb-6">
-          <DialogTitle className="text-xl font-black flex items-center gap-2 text-[#111827]">
-            <Clock className="h-6 w-6 text-[#D4AF37]" /> Editar Horários
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col bg-[#0b0f17] border-[#D4AF37]/20 rounded-2xl shadow-2xl text-white p-0 overflow-hidden">
+        <DialogHeader className="p-6 border-b border-[#D4AF37]/10 bg-[#0b0f17]">
+          <DialogTitle className="text-xl font-black flex items-center gap-3 text-[#D4AF37] uppercase tracking-wider">
+            <Calendar className="h-6 w-6" /> Configurar Agenda
           </DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1 pr-4">
+        
+        <ScrollArea className="flex-1 px-6">
           <div className="space-y-4 py-6">
             {sortedDays.map(day => (
-              <div key={day} className="bg-white border border-[#D4AF37]/20 p-5 rounded-[12px] shadow-sm space-y-4 transition-all hover:border-[#D4AF37]/40">
-                <div className="flex items-center justify-between">
-                  <Label className="font-black text-sm text-[#111827] uppercase tracking-wide">{dayNames[day]}</Label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-[#6B7280]">
-                      {hours[day]?.enabled ? "ABERTO" : "FECHADO"}
+              <div 
+                key={day} 
+                className={cn(
+                  "border rounded-2xl p-5 transition-all duration-300",
+                  hours[day]?.enabled 
+                    ? "bg-[#D4AF37]/5 border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]" 
+                    : "bg-[#05070d] border-white/5 opacity-60"
+                )}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col">
+                    <Label className="font-black text-sm text-white uppercase tracking-wide">{dayNames[day]}</Label>
+                    <span className={cn(
+                      "text-[9px] font-bold tracking-widest mt-0.5",
+                      hours[day]?.enabled ? "text-[#D4AF37]" : "text-gray-600"
+                    )}>
+                      {hours[day]?.enabled ? "EXPEDIENTE ATIVO" : "FECHADO / FOLGA"}
                     </span>
-                    <Switch 
-                      checked={hours[day]?.enabled}
-                      onCheckedChange={() => handleToggle(day)}
-                      className="data-[state=checked]:bg-[#D4AF37]"
-                    />
                   </div>
+                  <Switch 
+                    checked={hours[day]?.enabled}
+                    onCheckedChange={() => handleToggle(day)}
+                    className="data-[state=checked]:bg-[#D4AF37]"
+                  />
                 </div>
+                
                 {hours[day]?.enabled && (
-                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-black text-[#D4AF37] tracking-wider">Início</Label>
-                      <Input 
-                        type="time" 
-                        value={hours[day].start}
-                        onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
-                        className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 h-10 rounded-[8px] font-bold text-[#111827] bg-white"
-                      />
+                      <Label className="text-[9px] uppercase font-black text-[#D4AF37]/70 tracking-widest ml-1">Início</Label>
+                      <div className="relative">
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]/50" />
+                        <Input 
+                          type="time" 
+                          value={hours[day].start}
+                          onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
+                          className="bg-[#05070d] border-[#D4AF37]/20 focus-visible:ring-[#D4AF37]/40 h-11 pl-10 rounded-xl font-bold text-white transition-all"
+                        />
+                      </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] uppercase font-black text-[#D4AF37] tracking-wider">Fim</Label>
-                      <Input 
-                        type="time" 
-                        value={hours[day].end}
-                        onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
-                        className="border-[#D4AF37]/30 focus-visible:ring-[#D4AF37]/20 h-10 rounded-[8px] font-bold text-[#111827] bg-white"
-                      />
+                      <Label className="text-[9px] uppercase font-black text-[#D4AF37]/70 tracking-widest ml-1">Fim</Label>
+                      <div className="relative">
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]/50" />
+                        <Input 
+                          type="time" 
+                          value={hours[day].end}
+                          onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
+                          className="bg-[#05070d] border-[#D4AF37]/20 focus-visible:ring-[#D4AF37]/40 h-11 pl-10 rounded-xl font-bold text-white transition-all"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -128,20 +147,27 @@ export function EditScheduleDialog({ isOpen, onClose, barber, onUpdate }: any) {
             ))}
           </div>
         </ScrollArea>
-        <DialogFooter className="pt-6 border-t border-[#D4AF37]/10 gap-2 sm:gap-0">
+        
+        <DialogFooter className="p-6 border-t border-[#D4AF37]/10 bg-[#0b0f17] gap-3">
           <Button 
             variant="ghost" 
             onClick={onClose}
-            className="text-[#6B7280] hover:bg-gray-100 font-bold rounded-[10px]"
+            className="text-gray-400 hover:text-white hover:bg-white/5 font-bold rounded-xl h-10 px-6"
           >
-            Cancelar
+            <X className="h-4 w-4 mr-2" /> Cancelar
           </Button>
           <Button 
             onClick={handleSave} 
             disabled={loading}
-            className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-black px-6 h-11 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="bg-[#D4AF37] hover:bg-[#B8962E] text-black border-0 rounded-xl font-black px-8 h-10 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(212,175,55,0.2)]"
           >
-            {loading ? "Salvando..." : "Salvar Horários"}
+            {loading ? (
+              <div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" /> Salvar Horários
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
