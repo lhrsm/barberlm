@@ -55,10 +55,15 @@ export const Route = createFileRoute("/admin/errors")({
 function AdminErrors() {
   const [dateFilter, setDateFilter] = useState<string>("7d");
   const [automationFilter, setAutomationFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [reasonFilter, setReasonFilter] = useState<string>("all");
   const [searchFilter, setSearchFilter] = useState<string>("");
+  const [sortField, setSortField] = useState<string>("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [selectedIssue, setSelectedIssue] = useState<any>(null);
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
+  const [reprocessingId, setReprocessingId] = useState<string | null>(null);
 
   const { data: auditLogs, isLoading: isLoadingAudit, refetch: refetchAudit } = useQuery({
     queryKey: ["admin-audit-logs"],
