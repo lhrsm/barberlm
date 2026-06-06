@@ -336,18 +336,18 @@ export function CouponManagement() {
         </DialogContent>
       </Dialog>
 
-      <Card className="bg-[#1a1b1e] border-slate-800 shadow-xl overflow-hidden">
+      <Card className="bg-[#0b0f17] border border-[#1f2937] shadow-2xl overflow-hidden rounded-[20px]">
         <CardContent className="p-0">
           <div className="hidden md:block">
             <Table>
-              <TableHeader className="bg-[#2a2b2e]/50 border-slate-800">
-                <TableRow className="border-slate-800 hover:bg-transparent">
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Código</TableHead>
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Desconto</TableHead>
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Uso / Limite</TableHead>
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Validade</TableHead>
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Status</TableHead>
-                  <TableHead className="text-slate-400 font-bold uppercase text-[10px] tracking-wider text-right">Ações</TableHead>
+              <TableHeader className="bg-[#05070d] border-b border-[#1f2937]">
+                <TableRow className="border-none hover:bg-transparent">
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12">Código</TableHead>
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12">Desconto</TableHead>
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12">Uso / Limite</TableHead>
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12">Validade</TableHead>
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12">Status</TableHead>
+                  <TableHead className="text-[#ea580c] font-black uppercase text-[10px] tracking-[0.2em] h-12 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
