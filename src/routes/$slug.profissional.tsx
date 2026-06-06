@@ -273,93 +273,99 @@ function ProfessionalDashboard() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="appointments" className="mt-0 space-y-4">
-            <div className="flex items-center justify-between mb-2">
+          <TabsContent value="appointments" className="mt-8 space-y-6">
+            <div className="flex items-center justify-between">
               <h2 className="text-[#D4AF37] font-black uppercase text-xs tracking-[0.2em]">Agendamentos de Hoje</h2>
               <Button 
                 size="sm"
-                className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-black px-4 h-9 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="bg-[#D4AF37] hover:bg-[#B8962E] text-black rounded-xl font-black px-6 h-11 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(212,175,55,0.2)]"
                 onClick={() => toast.info("Funcionalidade de novo agendamento disponível em breve no painel do profissional.")}
               >
-                <Calendar className="h-4 w-4 mr-2 text-[#D4AF37]" /> Novo Agendamento
+                <Plus className="h-4 w-4 mr-2" /> Novo Agendamento
               </Button>
             </div>
+            
             <div className="grid gap-4">
               {appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).length === 0 ? (
-                <Card className="border-dashed border-[#D4AF37]/50 py-16 text-center bg-white rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
+                <Card className="border-dashed border-[#D4AF37]/20 py-16 text-center bg-[#0b0f17] rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
                   <CardContent className="flex flex-col items-center">
                     <Calendar className="h-16 w-16 text-[#D4AF37] opacity-20 mb-4" />
-                    <p className="text-[#6B7280] font-medium">Nenhum atendimento para hoje.</p>
+                    <p className="text-gray-400 font-medium text-lg">Nenhum atendimento para hoje.</p>
                   </CardContent>
                 </Card>
               ) : (
                 appointments.filter(a => isSameDay(new Date(a.start_time), new Date())).map(app => (
-                  <Card key={app.id} className="overflow-hidden bg-white border-[#D4AF37] shadow-[0_4px_16px_rgba(0,0,0,0.15)] rounded-[12px]">
+                  <Card key={app.id} className="overflow-hidden bg-[#0b0f17] border-[#D4AF37]/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)] rounded-2xl transition-all hover:border-[#D4AF37]/30">
                     <div className="flex flex-col md:flex-row md:items-center">
-                      <div className="w-full md:w-32 bg-[#D4AF37]/5 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#D4AF37]/20">
-                        <span className="text-3xl font-black text-[#111827]">{format(new Date(app.start_time), "HH:mm")}</span>
+                      <div className="w-full md:w-32 bg-[#D4AF37]/5 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#D4AF37]/10">
+                        <span className="text-3xl font-black text-white">{format(new Date(app.start_time), "HH:mm")}</span>
                         <span className="text-[10px] uppercase font-black text-[#D4AF37] tracking-wider mt-1">Hoje</span>
                       </div>
-                      <div className="flex-1 p-6 flex items-center gap-4">
-                        <Avatar className="h-12 w-12 border border-[#D4AF37]/10 shadow-sm">
+                      
+                      <div className="flex-1 p-6 flex items-center gap-6">
+                        <Avatar className="h-14 w-14 border-2 border-[#D4AF37]/20 shadow-md">
                           <AvatarImage src={app.customers?.avatar_url} />
-                          <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37] font-bold">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback className="bg-[#D4AF37]/5 text-[#D4AF37] font-black">{app.customers?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
+                        
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-lg truncate text-[#111827]">{app.customers?.name || "Cliente"}</h4>
-                          <p className="text-sm text-[#6B7280] flex items-center gap-2 font-medium">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h4 className="font-black text-xl truncate text-white">{app.customers?.name || "Cliente"}</h4>
+                            <Badge className={cn(
+                              "px-2 py-0.5 font-black text-[9px] uppercase border-0",
+                              app.status === 'completed' ? "bg-green-600" :
+                              app.status === 'cancelled' ? "bg-red-600" :
+                              app.status === 'confirmed' ? "bg-yellow-500 text-black" : "bg-blue-600"
+                            )}>
+                              {app.status === 'completed' ? 'CONCLUÍDO' : 
+                               app.status === 'cancelled' ? 'CANCELADO' : 
+                               app.status === 'confirmed' ? 'CONFIRMADO' : 'AGENDADO'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-400 flex items-center gap-2 font-medium">
                             <Scissors size={14} className="text-[#D4AF37]" /> {app.services?.name}
+                            <span className="text-gray-600">•</span>
+                            <span className="font-black text-white">R$ {Number(app.total_price || 0).toFixed(2)}</span>
                           </p>
                         </div>
-                        <div className="text-right flex flex-col items-end gap-2">
-                           {app.status === 'cancelled' ? (
-                             <Badge variant="outline" className="text-[10px] font-black px-2 py-0.5 text-zinc-400 border-zinc-200 bg-white">
-                               SEM COBRANÇA
-                             </Badge>
-                           ) : (
-                             <Badge variant={app.payment_status === 'paid' ? 'default' : 'outline'} className={cn(
-                               "text-[10px] font-black px-2 py-0.5",
-                               app.payment_status === 'paid' ? "bg-green-600 text-white border-transparent" : "text-[#D4AF37] border-[#D4AF37] bg-white"
-                             )}>
-                               {app.payment_status === 'paid' ? 'PAGO' : 'PENDENTE'}
-                             </Badge>
-                           )}
-                          <span className="font-black text-lg text-[#111827]">R$ {Number(app.total_price || 0).toFixed(2)}</span>
-                        </div>
                       </div>
-                      <div className="p-6 bg-gray-50/50 flex items-center gap-3 border-t md:border-t-0 md:border-l border-[#D4AF37]/10">
+
+                      <div className="p-6 bg-[#05070d]/50 flex items-center gap-3 border-t md:border-t-0 md:border-l border-[#D4AF37]/10">
                         {app.status === 'scheduled' || app.status === 'confirmed' ? (
                           <>
                             <Button 
                               size="sm" 
                               onClick={() => handleAction(app, 'completed')} 
-                              className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] font-bold px-4 h-11 transition-all hover:scale-[1.02] active:scale-[0.98] flex-1"
+                              className="bg-[#D4AF37] hover:bg-[#B8962E] text-black rounded-xl font-black px-6 h-11 transition-all hover:scale-[1.02] flex-1"
                             >
-                              <CheckCircle2 className="h-4 w-4 mr-2 text-[#D4AF37]" /> Concluir
+                              <CheckCircle2 className="h-4 w-4 mr-2" /> Concluir
                             </Button>
                             <Button 
                               size="sm" 
                               variant="outline" 
                               onClick={() => { setSelectedAppointment(app); setShowCancelDialog(true); }} 
-                              className="bg-white hover:bg-red-50 text-red-500 border-red-200 rounded-[10px] font-bold px-4 h-11 flex-1"
+                              className="bg-transparent hover:bg-red-950/20 text-red-500 border-red-900/50 rounded-xl font-black px-6 h-11 flex-1"
                             >
                               <X className="h-4 w-4 mr-2" /> Cancelar
                             </Button>
                             <Button 
                               size="sm"
-                              className="bg-[#111111] hover:bg-[#1a1a1a] text-white border border-[#D4AF37] rounded-[10px] h-11 w-11 p-0 flex items-center justify-center transition-all hover:scale-[1.05]"
+                              className="bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white border border-[#D4AF37]/20 rounded-xl h-11 w-11 p-0 transition-all hover:scale-[1.05]"
                               onClick={() => toast.info(`Detalhes de ${app.customers?.name}`)}
                             >
                               <Eye className="h-4 w-4 text-[#D4AF37]" />
                             </Button>
                           </>
                         ) : (
-                          <Badge className={cn(
-                            "w-full justify-center py-2 font-black rounded-[8px]",
-                            app.status === 'completed' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                          )}>
-                            {app.status === 'completed' ? 'CONCLUÍDO' : 'CANCELADO'}
-                          </Badge>
+                          <div className="flex flex-col items-center gap-1 w-full min-w-[140px]">
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Status Final</span>
+                            <Badge className={cn(
+                              "w-full justify-center py-2 font-black rounded-lg uppercase text-[11px]",
+                              app.status === 'completed' ? "bg-green-600/10 text-green-500 border border-green-600/20" : "bg-red-600/10 text-red-500 border border-red-600/20"
+                            )}>
+                              {app.status === 'completed' ? 'Finalizado' : 'Cancelado'}
+                            </Badge>
+                          </div>
                         )}
                       </div>
                     </div>
