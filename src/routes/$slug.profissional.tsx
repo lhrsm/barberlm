@@ -39,7 +39,7 @@ function ProfessionalDashboard() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const search = useSearch({ from: '/$slug/profissional' }) as any;
-  const currentTab = search.tab || "appointments";
+  const [currentTab, setCurrentTab] = useState(search.tab || "appointments");
   const { updateStatus: centralUpdateStatus } = useAppointmentStatus();
   
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -47,6 +47,19 @@ function ProfessionalDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   
+  // Sync tab with URL
+  useEffect(() => {
+    if (search.tab && search.tab !== currentTab) {
+      setCurrentTab(search.tab);
+    }
+  }, [search.tab]);
+
+  // Sync URL with tab
+  const handleTabChange = (val: string) => {
+    setCurrentTab(val);
+    navigate({ search: { tab: val } as any });
+  };
+
   // Dialog States
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showEditSchedule, setShowEditSchedule] = useState(false);
