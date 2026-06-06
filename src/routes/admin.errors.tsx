@@ -258,8 +258,12 @@ function AdminErrors() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredAutomations.map((item: any) => (
-                      <TableRow key={item.automation_id}>
+                    paginatedAutomations.map((item: any) => (
+                      <TableRow 
+                        key={item.automation_id}
+                        className={cn("cursor-pointer hover:bg-muted/50 transition-colors", !item.is_healthy && "bg-rose-50/10")}
+                        onClick={() => setSelectedIssue(item)}
+                      >
                         <TableCell className="font-medium">{item.tenant_name}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-[10px] uppercase">
@@ -278,13 +282,13 @@ function AdminErrors() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                             <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Ver Logs">
+                             <Button variant="ghost" size="icon" className="h-8 w-8" asChild title="Ver Logs" onClick={(e) => e.stopPropagation()}>
                                <a href={`/admin/logs?tenant=${item.tenant_id}`} target="_blank" rel="noreferrer">
                                  <Terminal className="h-4 w-4" />
                                </a>
                              </Button>
-                             <Button variant="ghost" size="icon" className="h-8 w-8" title="Tentar Corrigir">
-                               <RefreshCw className="h-4 w-4" />
+                             <Button variant="ghost" size="icon" className="h-8 w-8" title="Ver Detalhes">
+                               <ChevronRight className="h-4 w-4" />
                              </Button>
                           </div>
                         </TableCell>
@@ -293,6 +297,30 @@ function AdminErrors() {
                   )}
                 </TableBody>
               </Table>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-end space-x-2 py-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    Anterior
+                  </Button>
+                  <div className="text-xs text-muted-foreground">
+                    Página {page} de {totalPages}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
