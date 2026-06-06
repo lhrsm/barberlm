@@ -185,7 +185,7 @@ function ProfessionalDashboard() {
 
   if (!stats && !error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#05070d] gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
         <p className="text-[#6B7280] text-sm font-medium">Sincronizando dados...</p>
       </div>
