@@ -256,14 +256,14 @@ function AdminErrors() {
                   <CardTitle>Monitor de Saúde V2</CardTitle>
                   <CardDescription>Lista de automações com falhas de sincronismo detectadas.</CardDescription>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 items-center">
                   <Button variant="outline" size="sm" onClick={exportToCSV} className="h-8 gap-2">
                     <FileSpreadsheet className="h-4 w-4" /> Exportar CSV
                   </Button>
                   <div className="relative w-full md:w-64">
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                     <Input 
-                      placeholder="Buscar por barbearia..." 
+                      placeholder="Tenant ou Provider ID..." 
                       className="pl-8 h-8 text-xs" 
                       value={searchFilter}
                       onChange={(e) => {
@@ -276,15 +276,57 @@ function AdminErrors() {
                     setAutomationFilter(val);
                     setPage(1);
                   }}>
-                    <SelectTrigger className="h-8 w-[150px] text-xs">
+                    <SelectTrigger className="h-8 w-[140px] text-xs">
                       <SelectValue placeholder="Automação" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="all">Todas Automações</SelectItem>
                       <SelectItem value="appointment_confirmation">Confirmação</SelectItem>
                       <SelectItem value="appointment_reminder">Lembrete</SelectItem>
                     </SelectContent>
                   </Select>
+
+                  <Select value={statusFilter} onValueChange={(val) => {
+                    setStatusFilter(val);
+                    setPage(1);
+                  }}>
+                    <SelectTrigger className="h-8 w-[120px] text-xs">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Status</SelectItem>
+                      <SelectItem value="unhealthy">Não Saudável</SelectItem>
+                      <SelectItem value="healthy">Saudável</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={reasonFilter} onValueChange={(val) => {
+                    setReasonFilter(val);
+                    setPage(1);
+                  }}>
+                    <SelectTrigger className="h-8 w-[160px] text-xs">
+                      <SelectValue placeholder="Motivo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Motivos</SelectItem>
+                      <SelectItem value="WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED">Falha de Registro (V2)</SelectItem>
+                      <SelectItem value="ORPHAN_LOG_NO_DISPATCH">Log Órfão</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <div className="h-8 border-l mx-1" />
+
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 gap-2 text-xs"
+                    onClick={() => {
+                      setSortOrder(sortOrder === "desc" ? "asc" : "desc");
+                    }}
+                  >
+                    {sortField === "date" ? <Clock className="h-3 w-3" /> : <ShieldAlert className="h-3 w-3" />}
+                    {sortOrder === "desc" ? "Mais Recentes" : "Mais Antigos"}
+                  </Button>
                 </div>
               </div>
             </CardHeader>
