@@ -22,9 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-
-
-
 interface AutomationTestModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -52,13 +49,18 @@ export function AutomationTestModal({
   const [showDebug, setShowDebug] = useState(false);
   const [isLoadingDebug, setIsLoadingDebug] = useState(false);
 
-
-
+  const getActiveSession = async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session) {
+      toast.error("Sessão expirada. Faça login novamente.");
+      return null;
+    }
+    return session;
+  };
 
   const fetchRealData = async (appointmentId?: string) => {
     setIsLoadingRealData(true);
     try {
-      // 1. Fetch recent appointments
       const { data: appointments, error: appError } = await (supabase as any)
         .from("appointments")
         .select(`
@@ -79,30 +81,25 @@ export function AutomationTestModal({
       if (appointments && appointments.length > 0) {
         setRecentAppointments(appointments);
         
-        // Use provided ID or the latest one
         const targetId = appointmentId || appointments[0].id;
         const appointment = appointments.find((a: any) => a.id === targetId) || appointments[0];
         
         setSelectedAppointmentId(appointment.id);
 
-        // Fetch remaining details for the selected one
         const { data: service } = await (supabase as any)
           .from("services")
           .select("name, price")
           .eq("id", appointment.service_id)
           .maybeSingle();
 
-        // 3. Resolve Professional Name manually (Step by Step)
         let profName = "Profissional não encontrado";
         const profId = appointment.barber_id || appointment.professional_id;
         
         if (profId) {
-            // Try barbers
             const { data: barberData } = await (supabase as any).from("barbers").select("name").eq("id", profId).maybeSingle();
             if (barberData?.name) {
                 profName = barberData.name;
             } else {
-                // Try profiles
                 const { data: profileData } = await (supabase as any).from("profiles").select("full_name").eq("id", profId).maybeSingle();
                 if (profileData?.full_name) profName = profileData.full_name;
             }
@@ -137,7 +134,6 @@ export function AutomationTestModal({
     }
   };
 
-
   const fetchLastTestResult = async () => {
     setIsLoadingLastTest(true);
     try {
@@ -157,7 +153,6 @@ export function AutomationTestModal({
       setIsLoadingLastTest(false);
     }
   };
-
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -185,6 +180,9 @@ export function AutomationTestModal({
   }, [isOpen, testType]);
 
   const fetchDebugPayload = async () => {
+    const session = await getActiveSession();
+    if (!session) return;
+
     if (!selectedAppointmentId && testType === "real") {
       toast.error("Selecione um agendamento para ver o payload.");
       return;
@@ -192,17 +190,19 @@ export function AutomationTestModal({
 
     setIsLoadingDebug(true);
     try {
-      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+      const { data, error } = await supabase.functions.invoke('automation-v2-test-workflow', {
         body: { 
           tenant_id: automation.tenant_id, 
           appointment_id: selectedAppointmentId || recentAppointments[0]?.id,
-          dry_run: true 
+          dry_run: true,
+          workflow_key: automation.key,
+          template_variant: automation.key === 'barbershop_anniversary' ? anniversarySubType : (automation.key === 'appointment_reminder' ? reminderSubType : null)
         }
       });
 
       if (error) throw error;
-      if (data?.results?.[0]?.dry_run) {
-        setDebugPayload(data.results[0].payload);
+      if (data?.dry_run) {
+        setDebugPayload(data.payload);
         setShowDebug(true);
       } else {
         throw new Error("Payload não retornado");
@@ -214,8 +214,6 @@ export function AutomationTestModal({
       setIsLoadingDebug(false);
     }
   };
-
-
 
   const getTestData = () => {
     if (testType === "real") return realData;
@@ -276,38 +274,25 @@ export function AutomationTestModal({
   const renderedTemplate = replaceVariables(getBaseTemplate(), testData);
 
   const handleSimulateTrigger = async () => {
-    if (!selectedAppointmentId) {
-      toast.error("Nenhum agendamento selecionado.");
-      return;
-    }
+    const session = await getActiveSession();
+    if (!session) return;
 
     setIsSimulating(true);
     try {
-      // Manual trigger by inserting event
-      const { error } = await (supabase as any).from("automation_events").insert({
-        tenant_id: automation.tenant_id,
-        event_name: 'appointment.created',
-        entity_type: 'appointment',
-        entity_id: selectedAppointmentId,
-        payload: { 
-          simulation: true, 
-          triggered_by: 'manual_test',
-          appointment_id: selectedAppointmentId
+      const { data, error } = await supabase.functions.invoke('automation-v2-test-workflow', {
+        body: {
+          tenant_id: automation.tenant_id,
+          workflow_key: automation.key,
+          event_name: automation.trigger_event || 'test.manual',
+          test_mode: true,
+          simulate_only: true,
+          appointment_id: selectedAppointmentId || recentAppointments[0]?.id
         }
       });
 
-      if (error) {
-        // Fallback to direct queue insert if automation_events fails
-        const { error: queueError } = await (supabase as any).from("automation_queue").insert({
-          tenant_id: automation.tenant_id,
-          automation_id: automation.id,
-          appointment_id: selectedAppointmentId,
-          status: 'pending'
-        });
-        if (queueError) throw queueError;
-      }
+      if (error) throw error;
 
-      toast.success("Evento simulado! Tarefa enfileirada com sucesso.");
+      toast.success("Evento simulado com sucesso!");
       fetchLastTestResult();
     } catch (error: any) {
       toast.error("Erro ao simular: " + error.message);
@@ -317,6 +302,9 @@ export function AutomationTestModal({
   };
 
   const handleTest = async () => {
+    const session = await getActiveSession();
+    if (!session) return;
+
     if (!selectedAppointmentId && testType === "real") {
       toast.error("Selecione um agendamento para o teste.");
       return;
@@ -326,89 +314,16 @@ export function AutomationTestModal({
     const loadingToastId = toast.loading("Processando envio de teste...");
 
     try {
-      if (testType === "fictitious") {
-         if (!phone || phone.length < 10) {
-            toast.error("Informe um telefone válido para o teste fictício.");
-            return;
-         }
-         
-          const { data: zapiData, error: zapiError } = await supabase.functions.invoke('zapi-api', {
-            body: {
-              action: 'send-test-message',
-              instanceId: (await supabase.from('whatsapp_instances').select('id').eq('tenant_id', automation.tenant_id).single()).data?.id,
-              data: { phone, message: renderedTemplate }
-            }
-          });
-          
-          if (zapiError || !zapiData?.success) throw new Error(zapiError?.message || zapiData?.error || "Erro no provedor");
-          
-          const providerMsgId = zapiData?.result?.messageId || zapiData?.result?.id;
-
-          // Manual Dispatch V2 Record
-          const requiresCallback = () => {
-            if (automation?.key === 'barbershop_anniversary') return false;
-            if (automation?.key === 'customer_birthday') return false;
-            if (automation?.key === 'appointment_confirmation') return false;
-            if (automation?.key === 'appointment_reminder') {
-              return reminderSubType === '30m';
-            }
-            return automation.requires_callback || false;
-          };
-
-          await (supabase as any).from("automation_v2_dispatches").insert({
-            tenant_id: automation.tenant_id,
-            workflow_key: automation.key || 'test_manual',
-            event_name: automation.trigger_event || 'test.manual',
-            test_mode: true,
-            flow_type: 'single',
-            phone: phone,
-            customer_phone: phone,
-            customer_name: testData.customer_name,
-            status: "sent",
-            message_id: providerMsgId,
-            provider_message_id: providerMsgId,
-            sent_at: new Date().toISOString(),
-            payload: { 
-              test_data: testData, 
-              rendered: renderedTemplate, 
-              test_type: "fictitious",
-              anniversary_message_type: anniversarySubType,
-              reminder_type: reminderSubType
-            },
-            provider_response: zapiData?.result,
-            callback_received: false,
-            requires_callback: requiresCallback()
-          });
-
-          await (supabase as any).from("automation_logs").insert({
-            automation_id: automation.id,
-            tenant_id: automation.tenant_id,
-            phone: phone,
-            status: "success",
-            message_type: "test_manual",
-            processed_template: renderedTemplate,
-            original_template: automation.template,
-            provider: "zapi",
-            sent_at: new Date().toISOString(),
-            payload: { test_data: testData, rendered: renderedTemplate, test_type: "fictitious", origin: "test_manual", source: "test_manual" },
-            response: zapiData?.result
-          });
-
-          toast.success("Teste fictício enviado!");
-          return;
-      }
-
-      // Real appointment test
-      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+      const { data, error } = await supabase.functions.invoke('automation-v2-test-workflow', {
         body: { 
           tenant_id: automation.tenant_id, 
           appointment_id: selectedAppointmentId || recentAppointments[0]?.id,
-          automation_id: automation.id,
-          force_resend: true,
-          payload: {
-            anniversary_message_type: anniversarySubType,
-            reminder_type: reminderSubType
-          }
+          workflow_key: automation.key,
+          event_name: automation.trigger_event,
+          test_mode: true,
+          template_variant: automation.key === 'barbershop_anniversary' ? anniversarySubType : (automation.key === 'appointment_reminder' ? reminderSubType : null),
+          phone: testType === "fictitious" ? phone : null,
+          fictitious: testType === "fictitious"
         }
       });
 
@@ -417,13 +332,8 @@ export function AutomationTestModal({
       }
 
       if (data?.success) {
-        const itemResult = data.results?.[0];
-        if (itemResult?.success) {
-           toast.success("Teste enviado com sucesso!");
-           fetchLastTestResult();
-        } else {
-           throw new Error(itemResult?.error || data.message || "Falha no disparo");
-        }
+        toast.success("Teste enviado com sucesso!");
+        fetchLastTestResult();
       } else {
         throw new Error(data?.error || "Falha no processamento da função");
       }
@@ -441,6 +351,7 @@ export function AutomationTestModal({
       setIsTesting(false);
     }
   };
+
   const handleTestCallback = async (text: string) => {
     if (!phone && testType === "fictitious") {
       toast.error("Informe o telefone usado no envio inicial.");
