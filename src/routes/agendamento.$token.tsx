@@ -200,8 +200,8 @@ function AppointmentManagementPage() {
         p_source: 'public_link'
       });
 
-      if (rpcError) throw rpcError;
-      if (!data.success) throw new Error(data.error);
+      const response = data as any;
+      if (rpcError || !response || !response.success) throw new Error(rpcError?.message || response?.error || "Erro desconhecido");
 
       // Notifications
       await createNotification({
