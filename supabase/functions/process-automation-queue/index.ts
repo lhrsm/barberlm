@@ -32,7 +32,8 @@ serve(async (req) => {
           *,
           customer:customers(name, phone),
           service:services(name, price)
-        )
+        ),
+        customer:customers(name, phone)
       `);
 
     if (force_resend && appointment_id) {
