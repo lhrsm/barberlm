@@ -573,6 +573,75 @@ function AppointmentGroupPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Dialog open={isRescheduling} onOpenChange={setIsRescheduling}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-3xl sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tight">Reagendar Agendamento</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Escolha uma nova data e horário para {rescheduleData?.service_name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Nova Data</label>
+              <input 
+                type="date" 
+                value={selectedDate}
+                min={format(new Date(), "yyyy-MM-dd")}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Horários Disponíveis</label>
+              {fetchingTimes ? (
+                <div className="flex justify-center p-4">
+                  <RefreshCcw className="animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                  {availableTimes.length > 0 ? (
+                    availableTimes.map(time => (
+                      <Button
+                        key={time}
+                        variant={selectedTime === time ? "default" : "outline"}
+                        onClick={() => setSelectedTime(time)}
+                        className={cn(
+                          "h-10 rounded-xl text-xs font-bold",
+                          selectedTime === time ? "bg-primary text-black" : "bg-zinc-900 border-zinc-800 text-zinc-400"
+                        )}
+                      >
+                        {time}
+                      </Button>
+                    ))
+                  ) : (
+                    <p className="col-span-3 text-center text-xs text-zinc-500 py-4 font-bold uppercase tracking-widest">Nenhum horário disponível</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col gap-3 pt-4">
+            <Button 
+              onClick={handleRescheduleSubmit}
+              disabled={submitting || !selectedTime}
+              className="bg-primary hover:bg-primary/90 text-black rounded-xl h-12 w-full font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
+            >
+              {submitting ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Confirmar Reagendamento"}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsRescheduling(false)}
+              className="bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px]"
+            >
+              Manter Horário Atual
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
