@@ -318,7 +318,7 @@ export function AppointmentModal({
         end_time: endTime.toISOString(),
         total_price: service?.price || 0,
         original_total: service?.price || 0,
-        status: "scheduled",
+        status: "confirmed",
         payment_status: paymentStatus,
         payment_method: paymentMethod === 'wallet' ? 'credits' : (paymentMethod || 'cash'),
         credit_used: paymentMethod === 'wallet' ? (service?.price || 0) : 0,

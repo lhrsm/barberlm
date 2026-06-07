@@ -44,12 +44,15 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
 
   // 1. Send via WhatsApp
   const sendOptions: any = {};
+  // DEPRECATED: Buttons are no longer sent. Using text links in the future.
+  /*
   if (buttons && buttons.length > 0) {
     sendOptions.buttons = buttons.map((b: any, index: number) => ({
       id: b.id || `button_${index}`,
       label: b.label || b.text
     }));
   }
+  */
 
   const sendResult = await sendMessage(instance, customer_phone, message, sendOptions);
 
@@ -67,11 +70,9 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
 
   const providerMessageId = sendResult.response?.messageId || sendResult.response?.id;
 
-  // 2. Create session if it's a flow that expects response
+  // 2. Interactive sessions are DEPRECATED.
   let session_id = null;
-  const isAppointmentConfirmation = workflow_key === 'appointment_confirmation';
-  const isUrgentReminder = workflow_key === 'appointment_reminder' && payload.reminder_type === '30m';
-  const isConfirmation = isAppointmentConfirmation || isUrgentReminder || (buttons && buttons.length > 0);
+  const isConfirmation = false; // Force false as we don't use sessions anymore
   
   if (isConfirmation) {
     const expiresAt = new Date();

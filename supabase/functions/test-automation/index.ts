@@ -129,7 +129,7 @@ serve(async (req) => {
       } else if (variant === "1h") {
         messageTemplate = `Olá {customer_name} 👋\n\nSeu atendimento na {barbershop_name} está chegando.\n\n⏰ Falta apenas 1 hora para o seu agendamento.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}`;
       } else if (variant === "30m") {
-        messageTemplate = `Olá {customer_name} 👋\n\nFaltam 30 minutos para o seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}\n\nDeseja confirmar, reagendar ou cancelar?`;
+        messageTemplate = `Olá {customer_name} 👋\n\nFaltam 30 minutos para o seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}`;
       }
     }
 
@@ -171,13 +171,7 @@ serve(async (req) => {
     if (!targetPhone) throw new Error("Telefone de destino não encontrado.");
 
     const buttons = [];
-    if (workflow_key === 'appointment_reminder' && template_variant === '30m') {
-      buttons.push(
-        { id: "reminder_confirm", label: "Confirmar agendamento" },
-        { id: "reminder_reschedule", label: "Reagendar" },
-        { id: "reminder_cancel", label: "Cancelar" }
-      );
-    }
+    // DEPRECATED: Buttons no longer attached to tests.
 
     const sendResult = await sendAutomationMessageV2(supabase, {
       tenant_id: tenantId,
