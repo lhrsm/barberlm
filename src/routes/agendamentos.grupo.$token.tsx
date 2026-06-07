@@ -59,6 +59,12 @@ function AppointmentGroupPage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [isRescheduling, setIsRescheduling] = useState(false);
+  const [rescheduleData, setRescheduleData] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedTime, setSelectedTime] = useState("");
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [fetchingTimes, setFetchingTimes] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   
   useEffect(() => {
     if (token) {
@@ -134,11 +140,10 @@ function AppointmentGroupPage() {
     }
   };
 
-  const handleCancelSelected = async () => {
+  const handleCancelSelected = async (preference: 'credit' | 'refund' = 'credit') => {
     if (selectedIds.length === 0) return;
     setCancelling(true);
     try {
-      // Loop through selected and cancel individually for now (or create a new RPC for bulk)
       for (const id of selectedIds) {
         const appt = appointments.find(a => a.id === id);
         if (!appt) continue;
@@ -154,14 +159,27 @@ function AppointmentGroupPage() {
         };
 
         if (isPaid) {
-            // Default to credit for bulk cancellation for simplicity
-            rpcName = 'convert_appointment_to_credit';
-            rpcParams = {
+            if (preference === 'refund') {
+              rpcName = 'request_appointment_refund';
+              rpcParams = {
                 p_appointment_id: id,
                 p_customer_id: group.customer_id,
                 p_tenant_id: group.tenant_id,
-                p_amount: Number(appt.service_amount)
-            };
+                p_amount: Number(appt.service_amount),
+                p_pix_key: 'Solicitado via Link de Grupo',
+                p_pix_key_type: 'bulk_request',
+                p_account_holder_name: group.customer_name,
+                p_notes: 'Cancelamento parcial de grupo'
+              };
+            } else {
+              rpcName = 'convert_appointment_to_credit';
+              rpcParams = {
+                  p_appointment_id: id,
+                  p_customer_id: group.customer_id,
+                  p_tenant_id: group.tenant_id,
+                  p_amount: Number(appt.service_amount)
+              };
+            }
         }
 
         const { error: rpcError } = await supabase.rpc(rpcName as any, rpcParams);
@@ -182,6 +200,149 @@ function AppointmentGroupPage() {
       toast.error(err.message || "Erro ao cancelar agendamentos");
     } finally {
       setCancelling(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isRescheduling && selectedDate && rescheduleData) {
+      fetchAvailableTimes();
+    }
+  }, [isRescheduling, selectedDate, rescheduleData]);
+
+  async function fetchAvailableTimes() {
+    if (!rescheduleData) return;
+    setFetchingTimes(true);
+    try {
+      const startDay = `${selectedDate}T00:00:00Z`;
+      const endDay = `${selectedDate}T23:59:59Z`;
+      
+      const { data: dayAppts } = await supabase
+        .from("appointments")
+        .select("id, start_time, end_time, status")
+        .eq("barber_id", rescheduleData.professional_id)
+        .in("status", ["scheduled", "confirmed", "in_progress", "awaiting_payment"])
+        .gte("start_time", startDay)
+        .lte("start_time", endDay);
+      
+      const { data: barber } = await supabase
+        .from("barbers")
+        .select("working_hours")
+        .eq("id", rescheduleData.professional_id)
+        .single();
+
+      if (!barber) return;
+
+      const dayName = format(parseISO(selectedDate), "eeee", { locale: ptBR }).toLowerCase();
+      const dayMap: Record<string, string> = {
+        'segunda-feira': 'monday', 'terça-feira': 'tuesday', 'quarta-feira': 'wednesday',
+        'quinta-feira': 'thursday', 'sexta-feira': 'friday', 'sábado': 'saturday', 'domingo': 'sunday'
+      };
+      const dayKey = dayMap[dayName] || dayName;
+      const workingHours = (barber.working_hours as any)?.[dayKey];
+
+      if (!workingHours || !workingHours.enabled) {
+        setAvailableTimes([]);
+        return;
+      }
+
+      const times = [];
+      const [startHour, startMin] = workingHours.start.split(':').map(Number);
+      const [endHour, endMin] = workingHours.end.split(':').map(Number);
+      const [y, m, d] = selectedDate.split('-').map(Number);
+
+      for (let hour = startHour; hour <= endHour; hour++) {
+        for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
+          if (hour === endHour && min >= endMin) break;
+          
+          const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+          const checkTime = new Date(y, m - 1, d, hour, min, 0);
+          
+          if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
+
+          const checkTimeMs = checkTime.getTime();
+          const duration = 30; 
+          const serviceEndMs = checkTimeMs + duration * 60 * 1000;
+
+          const isBusy = dayAppts?.some(app => {
+            if (app.id === rescheduleData.id) return false;
+            const appStart = new Date(app.start_time).getTime();
+            const appEnd = new Date(app.end_time).getTime();
+            return checkTimeMs < appEnd && serviceEndMs > appStart;
+          });
+
+          if (!isBusy) times.push(timeStr);
+        }
+      }
+      setAvailableTimes(times);
+    } catch (err) {
+      console.error("Error fetching times:", err);
+    } finally {
+      setFetchingTimes(false);
+    }
+  }
+
+  const handleRescheduleSubmit = async () => {
+    if (!selectedTime || !rescheduleData) {
+      toast.error("Por favor, selecione um horário.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const timeWithSeconds = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
+      const startTime = parseISO(`${selectedDate}T${timeWithSeconds}`);
+      const oldStart = parseISO(rescheduleData.start_time);
+      const oldEnd = rescheduleData.end_time ? parseISO(rescheduleData.end_time) : addMinutes(oldStart, 30);
+      const durationMinutes = Math.round((oldEnd.getTime() - oldStart.getTime()) / 60000) || 30;
+      const endTime = addMinutes(startTime, durationMinutes);
+
+      const { data, error: rpcError } = await supabase.rpc('reschedule_appointment', {
+        p_appointment_id: rescheduleData.id,
+        p_new_start_time: startTime.toISOString(),
+        p_new_end_time: endTime.toISOString(),
+        p_changed_by_type: 'customer',
+        p_source: 'public_link'
+      });
+
+      const response = data as any;
+      if (rpcError || !response || !response.success) throw new Error(rpcError?.message || response?.error || "Erro desconhecido");
+
+      await createNotification({
+        userId: group.tenant_id,
+        type: 'appointment_rescheduled',
+        title: "Agendamento Reagendado",
+        message: `${group.customer_name} reagendou para ${format(startTime, "dd/MM 'às' HH:mm")}`,
+        barberId: rescheduleData.professional_id,
+        metadata: { appointmentId: rescheduleData.id }
+      });
+
+      triggerAutomation({
+        tenant_id: group.tenant_id,
+        event_name: 'appointment.rescheduled',
+        appointment_id: rescheduleData.id
+      }).catch(console.error);
+
+      toast.success("Agendamento reagendado com sucesso!");
+      setIsRescheduling(false);
+      setRescheduleData(null);
+      fetchGroup(); 
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao reagendar");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openReschedule = () => {
+    if (selectedIds.length !== 1) {
+      toast.error("Selecione exatamente um agendamento para reagendar.");
+      return;
+    }
+    const appt = appointments.find(a => a.id === selectedIds[0]);
+    if (appt) {
+      setRescheduleData(appt);
+      setSelectedDate(format(parseISO(appt.start_time), "yyyy-MM-dd"));
+      setIsRescheduling(true);
     }
   };
 
@@ -327,6 +488,15 @@ function AppointmentGroupPage() {
               <div className="flex gap-2">
                 <Button 
                   size="sm"
+                  variant="outline"
+                  onClick={openReschedule}
+                  disabled={selectedIds.length !== 1}
+                  className="rounded-xl h-10 font-bold uppercase tracking-widest text-[10px] bg-zinc-900 border-zinc-800 text-white"
+                >
+                  <RefreshCcw className="mr-2 h-3 w-3" /> Reagendar
+                </Button>
+                <Button 
+                  size="sm"
                   variant="destructive"
                   onClick={() => setIsCancelModalOpen(true)}
                   className="rounded-xl h-10 font-bold uppercase tracking-widest text-[10px]"
@@ -362,24 +532,112 @@ function AppointmentGroupPage() {
             </DialogTitle>
             <DialogDescription className="text-zinc-400 font-medium pt-2">
               Deseja realmente cancelar os {selectedIds.length} agendamentos selecionados?
-              {group.payment_status === 'paid' && " Os valores pagos serão convertidos em crédito automaticamente."}
+              {group.payment_status === 'paid' && " Escolha como deseja receber o valor pago."}
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4">
+          <DialogFooter className="flex flex-col gap-3 pt-4">
+            {group.payment_status === 'paid' ? (
+              <>
+                <Button 
+                  onClick={() => handleCancelSelected('credit')}
+                  disabled={cancelling}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-600/20"
+                >
+                  {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Converter em Crédito"}
+                </Button>
+                <Button 
+                  onClick={() => handleCancelSelected('refund')}
+                  disabled={cancelling}
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
+                >
+                  {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Solicitar Estorno (Pix)"}
+                </Button>
+              </>
+            ) : (
+              <Button 
+                onClick={() => handleCancelSelected('credit')}
+                disabled={cancelling}
+                className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
+              >
+                {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Sim, Cancelar"}
+              </Button>
+            )}
             <Button 
               variant="outline" 
               onClick={() => setIsCancelModalOpen(false)}
-              className="bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 flex-1 font-bold uppercase tracking-widest text-[10px]"
+              className="bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px]"
             >
               Manter Agendamentos
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isRescheduling} onOpenChange={setIsRescheduling}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-3xl sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tight">Reagendar Agendamento</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Escolha uma nova data e horário para {rescheduleData?.service_name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Nova Data</label>
+              <input 
+                type="date" 
+                value={selectedDate}
+                min={format(new Date(), "yyyy-MM-dd")}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Horários Disponíveis</label>
+              {fetchingTimes ? (
+                <div className="flex justify-center p-4">
+                  <RefreshCcw className="animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                  {availableTimes.length > 0 ? (
+                    availableTimes.map(time => (
+                      <Button
+                        key={time}
+                        variant={selectedTime === time ? "default" : "outline"}
+                        onClick={() => setSelectedTime(time)}
+                        className={cn(
+                          "h-10 rounded-xl text-xs font-bold",
+                          selectedTime === time ? "bg-primary text-black" : "bg-zinc-900 border-zinc-800 text-zinc-400"
+                        )}
+                      >
+                        {time}
+                      </Button>
+                    ))
+                  ) : (
+                    <p className="col-span-3 text-center text-xs text-zinc-500 py-4 font-bold uppercase tracking-widest">Nenhum horário disponível</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col gap-3 pt-4">
             <Button 
-              onClick={handleCancelSelected}
-              disabled={cancelling}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 flex-1 font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
+              onClick={handleRescheduleSubmit}
+              disabled={submitting || !selectedTime}
+              className="bg-primary hover:bg-primary/90 text-black rounded-xl h-12 w-full font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
             >
-              {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Sim, Cancelar"}
+              {submitting ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Confirmar Reagendamento"}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsRescheduling(false)}
+              className="bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px]"
+            >
+              Manter Horário Atual
             </Button>
           </DialogFooter>
         </DialogContent>

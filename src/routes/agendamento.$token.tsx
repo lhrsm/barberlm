@@ -256,7 +256,7 @@ function AppointmentManagementPage() {
         p_appointment_id: appointment.id,
         p_cancelled_by: 'customer',
         p_source: 'public_link',
-        p_refund_preference: 'none'
+        p_refund_preference: preference === 'refund' ? 'refund' : (preference === 'credit' ? 'credit' : 'none')
       };
 
       if (isPaid) {
@@ -357,7 +357,7 @@ function AppointmentManagementPage() {
   const isConfirmed = appointment.status === 'confirmed' || appointment.status === 'scheduled';
   const isCancelled = appointment.status === 'cancelled';
   const isCompleted = appointment.status === 'completed';
-  const canReschedule = isConfirmed && !isCompleted && !isCancelled;
+  const canReschedule = (isConfirmed || appointment.status === 'awaiting_payment') && !isCompleted && !isCancelled;
   
   // Janela de cancelamento
   const isWithinCancellationWindow = useMemo(() => {
@@ -370,7 +370,7 @@ function AppointmentManagementPage() {
     return diffInHours >= windowHours;
   }, [appointment]);
 
-  const canCancel = isConfirmed && !isCompleted && !isCancelled && isWithinCancellationWindow;
+  const canCancel = (isConfirmed || appointment.status === 'awaiting_payment') && !isCompleted && !isCancelled && isWithinCancellationWindow;
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 flex flex-col items-center">
