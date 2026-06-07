@@ -925,7 +925,25 @@ function ShopPageComponent() {
       }
 
       // Generate Group ID for multiple appointments
-      const appointmentGroupId = crypto.randomUUID();
+      const isMultiple = finalCart.length > 1;
+      let appointmentGroupId = null;
+      let groupToken = null;
+
+      if (isMultiple) {
+        groupToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const { data: groupData, error: groupError } = await supabase.from("appointment_groups").insert([{
+          tenant_id: shop.id,
+          customer_id: finalCustId,
+          group_token: groupToken,
+          total_amount: calculateTotal(),
+          payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
+          status: 'active'
+        }]).select().single();
+
+        if (groupError) throw groupError;
+        appointmentGroupId = groupData.id;
+      }
+
       const finalPaymentMethod = paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop');
 
       // 2. Create Appointments
@@ -933,7 +951,7 @@ function ShopPageComponent() {
       console.log('ACTION:', 'insert');
       console.log('APPOINTMENT GROUP ID:', appointmentGroupId);
       
-      const appointmentPromises = finalCart.map(item => {
+      const appointmentPromises = finalCart.map((item, index) => {
         const timeWithSeconds = item.start_time.length === 5 ? `${item.start_time}:00` : item.start_time;
         const startTime = parseISO(`${item.date}T${timeWithSeconds}`);
         const endTime = addMinutes(startTime, item.duration);
@@ -953,6 +971,8 @@ function ShopPageComponent() {
           payment_method: finalPaymentMethod,
           source: 'online',
           appointment_group_id: appointmentGroupId,
+          service_amount: item.price,
+          group_sequence: index + 1,
           items: [{
             id: item.service_id,
             name: item.service_name,
@@ -1110,7 +1130,13 @@ function ShopPageComponent() {
       
       setTimeout(() => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
-        navigate({ to: `/${slug}/portal`, replace: true });
+        if (isMultiple && groupToken) {
+          navigate({ to: `/agendamentos/grupo/${groupToken}`, search: { tenant: shop.id }, replace: true });
+        } else if (createdAppointments.length === 1 && createdAppointments[0].management_token) {
+          navigate({ to: `/agendamento/${createdAppointments[0].management_token}`, search: { tenant: shop.id }, replace: true });
+        } else {
+          navigate({ to: `/${slug}/portal`, replace: true });
+        }
       }, 1500);
 
     } catch (error: any) {

@@ -108,11 +108,11 @@ function AppointmentManagementPage() {
       setAppointment(appt);
       
       // Load barber working hours for rescheduling
-      if (appt.professional_id || appt.barber_id) {
+      if (appt.professional_id) {
         const { data: barbData } = await supabase
           .from("barbers")
           .select("*")
-          .eq("id", appt.professional_id || appt.barber_id)
+          .eq("id", appt.professional_id)
           .single();
         setBarber(barbData);
       }
@@ -225,7 +225,7 @@ function AppointmentManagementPage() {
         type: 'appointment_rescheduled',
         title: "Agendamento Reagendado",
         message: `${appointment.customer_name} reagendou para ${format(startTime, "dd/MM 'às' HH:mm")}`,
-        barberId: appointment.professional_id || appointment.barber_id,
+        barberId: appointment.professional_id,
         metadata: { appointmentId: appointment.id }
       });
 
@@ -307,7 +307,7 @@ function AppointmentManagementPage() {
         type: 'appointment_cancelled',
         title: isPaid ? (preference === 'refund' ? "Solicitação de Estorno" : "Cancelamento com Crédito") : "Agendamento Cancelado",
         message: `${appointment.customer_name} cancelou o agendamento e ${isPaid ? (preference === 'refund' ? 'solicitou estorno via Pix' : 'converteu em crédito') : 'não solicitou estorno'}.`,
-        barberId: appointment.professional_id || appointment.barber_id,
+        barberId: appointment.professional_id,
         metadata: { appointmentId: appointment.id }
       });
 
@@ -387,6 +387,19 @@ function AppointmentManagementPage() {
         </div>
 
         <AnimatePresence mode="wait">
+          {appointment.appointment_group_id && (
+            <div className="mb-4">
+              <Button 
+                variant="link" 
+                className="text-primary font-black uppercase tracking-widest text-[10px] p-0 h-auto"
+                asChild
+              >
+                <a href={`/agendamentos/grupo/${appointment.group_token}?tenant=${appointment.tenant_id}`}>
+                  <ArrowLeft className="mr-1 h-3 w-3" /> Ver Todos os Meus Agendamentos
+                </a>
+              </Button>
+            </div>
+          )}
           {!isRescheduling ? (
             <motion.div
               key="details"
