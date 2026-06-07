@@ -4126,6 +4126,8 @@ export type Database = {
           service_name: string
           start_time: string
           status: string
+          tenant_id: string
+          tenant_status: string
         }[]
       }
       get_cron_status: {
