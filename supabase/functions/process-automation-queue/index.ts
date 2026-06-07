@@ -40,16 +40,18 @@ serve(async (req) => {
       query = query.eq("appointment_id", appointment_id);
     } else {
       query = query.or("status.eq.pending,status.eq.failed");
-      query = query.lt("attempts", 3);
+      query = query.lt("attempts", 5); // Aumentado para 5 para suportar mais retentativas
       
       const now = new Date().toISOString();
-      query = query.or(`scheduled_for.is.null,scheduled_for.lte.${now}`);
+      // Filtra por agendado para agora ou no passado E (próxima retentativa é nula ou no passado)
+      query = query.and(`scheduled_for.is.null,scheduled_for.lte.${now}`);
+      query = query.or(`next_retry_at.is.null,next_retry_at.lte.${now}`);
       
       if (tenant_id) query = query.eq("tenant_id", tenant_id);
       if (appointment_id) query = query.eq("appointment_id", appointment_id);
     }
 
-    const { data: queueItems, error: queueError } = await query.limit(10);
+    const { data: queueItems, error: queueError } = await query.order('created_at', { ascending: true }).limit(20);
 
     if (queueError) throw queueError;
     
@@ -258,16 +260,30 @@ serve(async (req) => {
              throw new Error("WHATSAPP_SENT_BUT_DISPATCH_NOT_CREATED");
           }
 
+          const now = new Date().toISOString();
           await supabase.from("automation_queue").update({ 
             status: "success", 
             attempts: (item.attempts || 0) + 1, 
-            updated_at: new Date().toISOString() 
+            retry_count: (item.retry_count || 0) + 1,
+            last_retry_at: now,
+            updated_at: now 
           }).eq("id", item.id);
+
+          // Registrar log de sucesso
+          await supabase.from("whatsapp_delivery_logs").insert({
+            tenant_id: itemTenantId,
+            queue_id: item.id,
+            appointment_id: appointment?.id,
+            status: 'success',
+            attempt_number: (item.attempts || 0) + 1,
+            provider_response: sendResult.response,
+            sent_at: now
+          });
 
           if (appointment?.id) {
             await supabase.from("appointments").update({ 
               confirmation_sent: true, 
-              confirmation_sent_at: new Date().toISOString() 
+              confirmation_sent_at: now 
             }).eq("id", appointment.id);
           }
 
@@ -277,8 +293,42 @@ serve(async (req) => {
         }
       } catch (err: any) {
         console.error(`[ProcessQueue] Fail:`, err.message);
-        await supabase.from("automation_queue").update({ status: "failed", error_message: err.message, attempts: (item.attempts || 0) + 1, updated_at: new Date().toISOString() }).eq("id", item.id);
-        results.push({ id: item.id, success: false, error: err.message });
+        const now = new Date().toISOString();
+        const nextAttempts = (item.attempts || 0) + 1;
+        
+        // Calcular próximo horário de retentativa com backoff exponencial e jitter
+        let delayMinutes = 5;
+        if (nextAttempts === 2) delayMinutes = 15;
+        else if (nextAttempts === 3) delayMinutes = 60;
+        else if (nextAttempts === 4) delayMinutes = 240;
+        else if (nextAttempts >= 5) delayMinutes = 1440;
+
+        // Adicionar jitter (variância de 10%)
+        const jitter = Math.floor(Math.random() * (delayMinutes * 0.1 * 60)); // jitter em segundos
+        const nextRetryAt = new Date(Date.now() + (delayMinutes * 60 * 1000) + (jitter * 1000)).toISOString();
+
+        await supabase.from("automation_queue").update({ 
+          status: nextAttempts >= 5 ? "failed" : "pending", 
+          error_message: err.message, 
+          attempts: nextAttempts,
+          retry_count: (item.retry_count || 0) + 1,
+          last_retry_at: now,
+          next_retry_at: nextRetryAt,
+          updated_at: now 
+        }).eq("id", item.id);
+
+        // Registrar log de falha
+        await supabase.from("whatsapp_delivery_logs").insert({
+          tenant_id: itemTenantId,
+          queue_id: item.id,
+          appointment_id: appointment?.id,
+          status: 'failed',
+          error_message: err.message,
+          attempt_number: nextAttempts,
+          sent_at: now
+        });
+
+        results.push({ id: item.id, success: false, error: err.message, next_retry_at: nextRetryAt });
       }
     }
 
