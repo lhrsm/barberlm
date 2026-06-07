@@ -22,10 +22,12 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy, Trash2, Clock } from "lucide-react";
+import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy, Trash2, Clock, Pencil, BarChart3, RefreshCcw } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/barbers")({
   component: BarbersComponent,
@@ -52,7 +54,7 @@ const DAY_LABELS: Record<string, string> = {
 };
 
 function BarbersComponent() {
-  const { user, loading, role } = useAuth();
+  const { user, loading: authLoading, role } = useAuth();
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
@@ -61,6 +63,8 @@ function BarbersComponent() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingBarber, setEditingBarber] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [newBarber, setNewBarber] = useState({ 
     name: "", 
     phone: "", 
@@ -74,23 +78,34 @@ function BarbersComponent() {
   const canAddBarber = checkLimit("barbers");
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate({ to: "/auth" });
       return;
     }
 
-    if (!loading && user && role === 'super_admin') {
+    if (!authLoading && user && role === 'super_admin') {
       navigate({ to: "/admin" });
       return;
     }
-  }, [user, loading, role, navigate]);
+  }, [user, authLoading, role, navigate]);
 
   useEffect(() => {
     if (user && role !== 'super_admin') {
-      fetchBarbers();
-      fetchServices();
+      fetchData();
     }
   }, [user, role]);
+
+  async function fetchData() {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await Promise.all([fetchBarbers(), fetchServices()]);
+    } catch (err: any) {
+      setError(err.message || "Erro ao carregar dados");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function fetchServices() {
     if (!user) return;
@@ -100,7 +115,7 @@ function BarbersComponent() {
       .eq("tenant_id", user.id)
       .eq("active", true)
       .order("name");
-    if (error) toast.error("Erro ao buscar serviços");
+    if (error) throw error;
     else setServices(data || []);
   }
 
@@ -110,14 +125,15 @@ function BarbersComponent() {
       .from("barbers")
       .select(`
         *,
-        barber_services(service_id)
+        barber_services(service_id),
+        appointments:appointments(count)
       `)
       .eq("tenant_id", user.id)
       .order("name");
     
     if (error) {
       console.error(error);
-      toast.error("Erro ao buscar barbeiros");
+      throw error;
     } else {
       setBarbers(data || []);
     }
@@ -405,12 +421,12 @@ function BarbersComponent() {
     }
   }
 
-  if (loading || !user) return null;
+  if (authLoading || !user) return null;
 
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-white">Profissionais</h2>
             <p className="text-muted-foreground text-sm">Cadastre os barbeiros da sua equipe.</p>
@@ -418,14 +434,14 @@ function BarbersComponent() {
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="gap-2" 
+                className="gap-2 w-full md:w-auto h-[42px] md:h-[48px] px-6 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-xl transition-all hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] border-none" 
                 variant={canAddBarber ? "default" : "secondary"}
                 onClick={() => {
                   setSelectedServices([]);
                   setIsAddDialogOpen(true);
                 }}
               >
-                <UserPlus size={18} /> Novo Barbeiro
+                <UserPlus size={20} /> Novo Barbeiro
               </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar sm:max-w-[500px]">
@@ -657,98 +673,168 @@ function BarbersComponent() {
           </Alert>
         )}
 
-        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {barbers.length === 0 ? (
-            <div className="col-span-full text-center py-12 border rounded-xl bg-card text-muted-foreground">
-              <UserRound size={48} className="mx-auto mb-4 opacity-20" />
-              <p>Nenhum profissional cadastrado ainda.</p>
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="p-6 border border-amber-500/10 rounded-[20px] bg-[#0b0f17] space-y-4">
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-20 w-20 rounded-full bg-slate-800" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-6 w-3/4 bg-slate-800" />
+                    <Skeleton className="h-4 w-1/2 bg-slate-800" />
+                  </div>
+                </div>
+                <div className="space-y-2 pt-4">
+                  <Skeleton className="h-4 w-full bg-slate-800" />
+                  <Skeleton className="h-4 w-full bg-slate-800" />
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Skeleton className="h-10 flex-1 bg-slate-800" />
+                  <Skeleton className="h-10 w-10 bg-slate-800" />
+                  <Skeleton className="h-10 w-10 bg-slate-800" />
+                </div>
+              </div>
+            ))
+          ) : error ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-20 border border-dashed border-red-500/20 rounded-[20px] bg-[#0b0f17] text-center">
+              <AlertTriangle size={48} className="text-red-500 mb-4 opacity-50" />
+              <h3 className="text-xl font-semibold text-white mb-2">Ops! Algo deu errado</h3>
+              <p className="text-muted-foreground mb-6 max-w-md">{error}</p>
+              <Button onClick={() => fetchData()} variant="outline" className="gap-2 border-amber-500/20 hover:bg-amber-500/10 text-amber-500">
+                <RefreshCcw size={16} /> Tentar novamente
+              </Button>
+            </div>
+          ) : barbers.length === 0 ? (
+            <div className="col-span-full text-center py-20 border border-dashed border-amber-500/20 rounded-[20px] bg-[#0b0f17] text-muted-foreground">
+              <UserRound size={64} className="mx-auto mb-4 opacity-10 text-amber-500" />
+              <p className="text-lg font-medium text-white/60">Nenhum profissional cadastrado ainda.</p>
+              <p className="text-sm mt-1">Comece adicionando seu primeiro barbeiro.</p>
             </div>
           ) : (
             barbers.map((barber) => (
-              <div key={barber.id} className="p-4 md:p-6 border-2 border-slate-200 rounded-xl bg-white shadow-sm hover:border-slate-400 transition-all duration-300 text-black">
-                <div className="flex items-center gap-4 mb-4">
-                  <Avatar className="h-12 w-12">
-                    {barber.avatar_url ? (
-                      <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {typeof barber.name === 'string' ? barber.name.substring(0, 2).toUpperCase() : "??"}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-lg text-slate-900">{barber.name}</h3>
-                      <button 
-                        onClick={() => handleToggleStatus(barber)}
-                        className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors ${
-                          barber.active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'
-                        }`}
-                      >
-                        {barber.active ? 'Ativo' : 'Inativo'}
-                      </button>
+              <div 
+                key={barber.id} 
+                className="group relative p-6 border border-amber-500/20 rounded-[20px] bg-[#0b0f17] shadow-xl hover:border-amber-500/50 transition-all duration-500 hover:-translate-y-1 flex flex-col justify-between"
+              >
+                <div className="absolute top-4 right-4 z-10">
+                  <Badge 
+                    onClick={() => handleToggleStatus(barber)}
+                    className={`cursor-pointer transition-all hover:scale-105 ${
+                      barber.active 
+                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/20' 
+                        : 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border-red-500/20'
+                    }`}
+                  >
+                    {barber.active ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                </div>
+
+                <div>
+                  <div className="flex items-start gap-5 mb-6">
+                    <div className="relative">
+                      <Avatar className="h-20 w-20 border-2 border-amber-500/30 ring-4 ring-amber-500/5 transition-transform duration-500 group-hover:scale-105">
+                        {barber.avatar_url ? (
+                          <img src={barber.avatar_url} alt={barber.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <AvatarFallback className="bg-amber-500/10 text-amber-500 text-xl font-bold">
+                            {typeof barber.name === 'string' ? barber.name.substring(0, 2).toUpperCase() : "??"}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="absolute -bottom-1 -right-1 bg-[#0b0f17] p-1 rounded-full">
+                        <div className="flex items-center gap-1 bg-amber-500 px-1.5 py-0.5 rounded-full text-[10px] font-black text-black">
+                          <Star size={10} fill="currentColor" />
+                          {barber.average_rating || "5.0"}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 mt-0.5 mb-1">
-                      <Star size={12} className="text-yellow-500" fill="currentColor" />
-                      <span className="text-xs font-bold">{barber.average_rating || "5.0"}</span>
-                      <span className="text-[10px] text-slate-500">({barber.total_ratings || 0})</span>
+                    
+                    <div className="flex-1 min-w-0 pt-1">
+                      <h3 className="font-bold text-xl text-white truncate group-hover:text-amber-400 transition-colors">{barber.name}</h3>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <Badge variant="outline" className={`text-[10px] font-bold tracking-wider uppercase py-0 ${
+                          barber.category === 'Freelancer' 
+                            ? 'border-blue-500/30 text-blue-400 bg-blue-500/5' 
+                            : 'border-purple-500/30 text-purple-400 bg-purple-500/5'
+                        }`}>
+                          {barber.category}
+                        </Badge>
+                        {barber.category === 'Freelancer' && (
+                          <Badge variant="outline" className="text-[10px] font-bold tracking-wider uppercase py-0 border-orange-500/30 text-orange-400 bg-orange-500/5">
+                            {barber.commission_rate}% Comis.
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex gap-2 mt-1">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        barber.category === 'Freelancer' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-purple-50 text-purple-700 border border-purple-100'
-                      }`}>
-                        {barber.category}
-                      </span>
-                      {barber.category === 'Freelancer' && (
-                        <span className="text-[10px] px-2 py-0.5 bg-orange-50 text-orange-700 rounded-full font-medium border border-orange-100">
-                          {barber.commission_rate}% Comissão
-                        </span>
-                      )}
+                  </div>
+
+                  <div className="space-y-3 mb-8 px-1">
+                    <div className="flex items-center gap-3 text-white/60 text-sm hover:text-white transition-colors">
+                      <div className="p-1.5 rounded-lg bg-white/5">
+                        <Phone size={14} className="text-amber-500/70" />
+                      </div>
+                      <span className="truncate">{barber.phone || "Não informado"}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-white/60 text-sm hover:text-white transition-colors">
+                      <div className="p-1.5 rounded-lg bg-white/5">
+                        <Mail size={14} className="text-amber-500/70" />
+                      </div>
+                      <span className="truncate">{barber.email || "Não informado"}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-white/60 text-sm hover:text-white transition-colors">
+                      <div className="p-1.5 rounded-lg bg-white/5">
+                        <BarChart3 size={14} className="text-amber-500/70" />
+                      </div>
+                      <span>{barber.appointments?.[0]?.count || 0} Atendimentos</span>
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2 text-sm text-slate-600">
-                  <div className="flex items-center gap-2">
-                    <Phone size={14} className="text-slate-400" />
-                    <span>{barber.phone || "Não informado"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail size={14} className="text-slate-400" />
-                    <span>{barber.email || "Não informado"}</span>
-                  </div>
-                </div>
-                <div className="mt-6 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-                  <Button variant="outline" size="sm" className="flex-1 h-10" onClick={() => toast.info("Relatório em breve")}>Desempenho</Button>
-                  {plan !== 'free' && (
+
+                <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-white/5">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 h-10 border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-black transition-all duration-300 font-semibold"
+                    onClick={() => toast.info("Relatório em breve")}
+                  >
+                    Desempenho
+                  </Button>
+                  
+                  <div className="flex items-center gap-1">
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 text-slate-400 hover:text-primary hover:bg-primary/5"
-                      onClick={() => handleDuplicateBarber(barber)}
-                    >
-                      <Copy size={14} />
-                    </Button>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="flex-1 sm:flex-none h-10 hover:bg-slate-100"
+                      className="h-10 w-10 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-xl transition-all"
                       onClick={() => {
                         setEditingBarber(barber);
                         setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
                         setIsEditDialogOpen(true);
                       }}
+                      title="Editar"
                     >
-                      Editar
+                      <Pencil size={18} />
                     </Button>
+                    
+                    {plan !== 'free' && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-10 w-10 text-white/40 hover:text-amber-400 hover:bg-amber-400/10 rounded-xl transition-all"
+                        onClick={() => handleDuplicateBarber(barber)}
+                        title="Duplicar"
+                      >
+                        <Copy size={18} />
+                      </Button>
+                    )}
+                    
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 text-slate-400 hover:text-destructive hover:bg-destructive/10"
+                      className="h-10 w-10 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
                       onClick={() => handleDeleteBarber(barber.id)}
+                      title="Excluir"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={18} />
                     </Button>
                   </div>
                 </div>
