@@ -243,10 +243,12 @@ serve(async (req) => {
             updated_at: new Date().toISOString() 
           }).eq("id", item.id);
 
-          await supabase.from("appointments").update({ 
-            confirmation_sent: true, 
-            confirmation_sent_at: new Date().toISOString() 
-          }).eq("id", appointment.id);
+          if (appointment?.id) {
+            await supabase.from("appointments").update({ 
+              confirmation_sent: true, 
+              confirmation_sent_at: new Date().toISOString() 
+            }).eq("id", appointment.id);
+          }
 
           results.push({ id: item.id, success: true });
         } else {
