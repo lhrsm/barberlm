@@ -19,8 +19,10 @@ import {
   ChevronLeft,
   CalendarDays,
   Trash2,
-  Check
+  Check,
+  CircleDollarSign
 } from "lucide-react";
+
 import { format, parseISO, addMinutes, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -749,6 +751,7 @@ function AppointmentGroupPage() {
     </div>
   );
 }
+
 
 
 export default AppointmentGroupPage;
