@@ -801,6 +801,7 @@ export type Database = {
           id: string
           idempotency_key: string | null
           payload: Json | null
+          reference_year: number | null
           scheduled_for: string | null
           status: string
           tenant_id: string
@@ -818,6 +819,7 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           payload?: Json | null
+          reference_year?: number | null
           scheduled_for?: string | null
           status?: string
           tenant_id: string
@@ -835,6 +837,7 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           payload?: Json | null
+          reference_year?: number | null
           scheduled_for?: string | null
           status?: string
           tenant_id?: string
@@ -4083,6 +4086,7 @@ export type Database = {
       get_customers_with_birthday_today: {
         Args: { target_day: number; target_month: number }
         Returns: {
+          birth_date: string
           id: string
           name: string
           phone: string

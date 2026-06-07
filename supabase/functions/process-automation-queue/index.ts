@@ -32,7 +32,8 @@ serve(async (req) => {
           *,
           customer:customers(name, phone),
           service:services(name, price)
-        )
+        ),
+        customer:customers(name, phone)
       `);
 
     if (force_resend && appointment_id) {
@@ -111,9 +112,10 @@ serve(async (req) => {
       try {
         const { appointment, automation, tenant_id: itemTenantId } = item;
         
-        if (!appointment || !automation) throw new Error("Data incomplete");
+        const isBirthday = automation?.key === 'customer_birthday';
+        if (!automation || (!appointment && !isBirthday)) throw new Error("Data incomplete");
 
-        if (!force_resend && appointment.confirmation_sent) {
+        if (!force_resend && appointment?.confirmation_sent) {
           const { data: activeSess } = await supabase
             .from("automation_v2_sessions")
             .select("id")
@@ -141,7 +143,7 @@ serve(async (req) => {
           if (profileData?.business_name) barbershopName = profileData.business_name;
         }
 
-        const profId = appointment.barber_id || appointment.professional_id;
+        const profId = appointment?.barber_id || appointment?.professional_id;
         let profName = "Profissional";
         let resolvedTable = "none";
 
@@ -162,13 +164,14 @@ serve(async (req) => {
         };
 
         const testData = {
-          customer_name: appointment.customer?.name || "Cliente",
+          customer_name: appointment?.customer?.name || item.payload?.customer_name || "Cliente",
           barbershop_name: barbershopName,
-          service_name: appointment.service?.name || "Serviço",
+          service_name: appointment?.service?.name || "Serviço",
           professional_name: profName,
-          appointment_date: formatBrazilDate(appointment.start_time),
-          appointment_time: formatBrazilTime(appointment.start_time),
-          service_price: `R$ ${appointment.total_price || appointment.service?.price || 0}`,
+          appointment_date: appointment?.start_time ? formatBrazilDate(appointment.start_time) : "",
+          appointment_time: appointment?.start_time ? formatBrazilTime(appointment.start_time) : "",
+          service_price: appointment ? `R$ ${appointment.total_price || appointment.service?.price || 0}` : "R$ 0",
+          birth_date: item.payload?.birth_date || "",
         };
 
         const sendOptions: any = {};
@@ -213,20 +216,20 @@ serve(async (req) => {
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).single();
         if (!instance) throw new Error("WhatsApp not configured");
 
-        const phone = appointment.customer?.phone;
+        const phone = appointment?.customer?.phone || item.customer?.phone;
         if (!phone) throw new Error("Phone missing");
 
         const sendResult = await sendAutomationMessageV2(supabase, {
           tenant_id: itemTenantId,
           workflow_key: automation.key,
-          appointment_id: appointment.id,
-          appointment_group_id: appointment.group_id || appointment.appointment_group_id,
-          customer_id: appointment.customer_id,
+          appointment_id: appointment?.id,
+          appointment_group_id: appointment?.group_id || appointment?.appointment_group_id,
+          customer_id: appointment?.customer_id || item.customer_id,
           customer_phone: phone,
-          customer_name: appointment.customer?.name,
+          customer_name: testData.customer_name,
           message: renderedTemplate,
           buttons: sendOptions.buttons,
-          payload: { data: testData, diagnostic: diagInfo },
+          payload: { ...testData, diagnostic: diagInfo, reference_year: item.reference_year },
           instance: instance
         });
 
@@ -241,10 +244,12 @@ serve(async (req) => {
             updated_at: new Date().toISOString() 
           }).eq("id", item.id);
 
-          await supabase.from("appointments").update({ 
-            confirmation_sent: true, 
-            confirmation_sent_at: new Date().toISOString() 
-          }).eq("id", appointment.id);
+          if (appointment?.id) {
+            await supabase.from("appointments").update({ 
+              confirmation_sent: true, 
+              confirmation_sent_at: new Date().toISOString() 
+            }).eq("id", appointment.id);
+          }
 
           results.push({ id: item.id, success: true });
         } else {
