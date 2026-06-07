@@ -86,6 +86,7 @@ function SettingsComponent() {
     instance_id: "",
     instance_token: "",
     client_token: "",
+    opening_date: "",
   });
 
 
@@ -166,6 +167,7 @@ function SettingsComponent() {
           instance_id: settingsData?.instance_id || "",
           instance_token: settingsData?.instance_token || "",
           client_token: settingsData?.client_token || "",
+          opening_date: profile.opening_date || "",
         });
       } else {
         toast.error("Perfil não encontrado.");
@@ -227,6 +229,7 @@ function SettingsComponent() {
         pix_key: profileUpdateData.pix_key,
         pix_qr_code_url: profileUpdateData.pix_qr_code_url,
         whatsapp_number: profileUpdateData.whatsapp_number,
+        opening_date: profileUpdateData.opening_date || null,
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", user.id);
@@ -496,6 +499,16 @@ function SettingsComponent() {
                           </Button>
                         </div>
                         <p className="text-[10px] text-slate-600 font-medium italic">Link público: {window.location.origin}/{formData.slug}</p>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="opening_date" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Data de inauguração da barbearia</Label>
+                        <Input 
+                          id="opening_date" 
+                          type="date"
+                          value={formData.opening_date} 
+                          onChange={(e) => setFormData({ ...formData, opening_date: e.target.value })}
+                          className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                        />
                       </div>
                     </div>
                   </div>

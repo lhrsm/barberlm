@@ -113,7 +113,8 @@ serve(async (req) => {
         const { appointment, automation, tenant_id: itemTenantId } = item;
         
         const isBirthday = automation?.key === 'customer_birthday';
-        if (!automation || (!appointment && !isBirthday)) throw new Error("Data incomplete");
+        const isAnniversary = automation?.key === 'barbershop_anniversary';
+        if (!automation || (!appointment && !isBirthday && !isAnniversary)) throw new Error("Data incomplete");
 
         if (!force_resend && appointment?.confirmation_sent) {
           const { data: activeSess } = await supabase
@@ -201,6 +202,19 @@ serve(async (req) => {
           }
         } else if (automation.key === 'customer_birthday') {
            renderedTemplate = `Olá ${testData.customer_name} 🎉\n\nA ${testData.barbershop_name} te felicita pelo seu aniversário!\n\nQue seu dia seja especial e cheio de boas comemorações. 🥳\n\nE para comemorar com a gente, você ganhou um cupom especial para usar em nossos produtos ou serviços na barbearia.\n\n🎁 Cupom: ANIVERSARIO10\n\nEsperamos você para celebrar esse momento com estilo! 💈`;
+        } else if (automation.key === 'barbershop_anniversary') {
+           const type = item.payload?.anniversary_message_type || "anniversary_day";
+           if (type === "reminder_7_days") {
+              renderedTemplate = automation.additional_templates?.reminder_7_days || `Olá ${testData.customer_name} 👋\n\nO aniversário da ${testData.barbershop_name} está chegando! 🎉\n\nFaltam apenas 7 dias para celebrarmos mais um ano dessa história com você.\n\nPrepare-se, porque vem comemoração especial por aí! 💈`;
+              Object.entries(testData).forEach(([key, value]) => {
+                renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
+              });
+           } else {
+              renderedTemplate = automation.template;
+              Object.entries(testData).forEach(([key, value]) => {
+                renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
+              });
+           }
         } else {
           renderedTemplate = automation.template;
           Object.entries(testData).forEach(([key, value]) => {
@@ -229,7 +243,13 @@ serve(async (req) => {
           customer_name: testData.customer_name,
           message: renderedTemplate,
           buttons: sendOptions.buttons,
-          payload: { ...testData, diagnostic: diagInfo, reference_year: item.reference_year },
+          payload: { 
+            ...testData, 
+            diagnostic: diagInfo, 
+            reference_year: item.reference_year,
+            anniversary_year: item.payload?.anniversary_year,
+            anniversary_message_type: item.payload?.anniversary_message_type
+          },
           instance: instance
         });
 
