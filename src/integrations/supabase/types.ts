@@ -826,8 +826,11 @@ export type Database = {
           event_name: string | null
           id: string
           idempotency_key: string | null
+          last_retry_at: string | null
+          next_retry_at: string | null
           payload: Json | null
           reference_year: number | null
+          retry_count: number | null
           scheduled_for: string | null
           status: string
           tenant_id: string
@@ -844,8 +847,11 @@ export type Database = {
           event_name?: string | null
           id?: string
           idempotency_key?: string | null
+          last_retry_at?: string | null
+          next_retry_at?: string | null
           payload?: Json | null
           reference_year?: number | null
+          retry_count?: number | null
           scheduled_for?: string | null
           status?: string
           tenant_id: string
@@ -862,8 +868,11 @@ export type Database = {
           event_name?: string | null
           id?: string
           idempotency_key?: string | null
+          last_retry_at?: string | null
+          next_retry_at?: string | null
           payload?: Json | null
           reference_year?: number | null
+          retry_count?: number | null
           scheduled_for?: string | null
           status?: string
           tenant_id?: string
@@ -4277,6 +4286,7 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_next_retry: { Args: { attempts: number }; Returns: string }
       cancel_appointment: {
         Args: {
           p_appointment_id: string
