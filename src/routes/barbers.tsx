@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,12 +22,28 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy, Trash2, Clock, Pencil, BarChart3, RefreshCcw } from "lucide-react";
+import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy, Trash2, Clock, Pencil, BarChart3, RefreshCcw, Search, Filter } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/barbers")({
   component: BarbersComponent,
@@ -65,6 +81,16 @@ function BarbersComponent() {
   const [editingBarber, setEditingBarber] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Search and Filter States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  
+  // Delete Confirmation State
+  const [barberToDelete, setBarberToDelete] = useState<any>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   const [newBarber, setNewBarber] = useState({ 
     name: "", 
     phone: "", 
@@ -154,8 +180,6 @@ function BarbersComponent() {
   }
 
   async function handleDeleteBarber(id: string) {
-    if (!confirm("Tem certeza que deseja excluir este profissional? Esta ação não pode ser desfeita.")) return;
-
     const { error } = await supabase
       .from("barbers")
       .delete()
@@ -167,8 +191,26 @@ function BarbersComponent() {
       toast.success("Barbeiro excluído com sucesso!");
       fetchBarbers();
       refreshLimits();
+      setIsDeleteDialogOpen(false);
+      setBarberToDelete(null);
     }
   }
+
+  const filteredBarbers = useMemo(() => {
+    return barbers.filter((barber) => {
+      const matchesSearch = barber.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          barber.phone?.includes(searchQuery) ||
+                          barber.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = statusFilter === "all" || 
+                          (statusFilter === "active" && barber.active) ||
+                          (statusFilter === "inactive" && !barber.active);
+      
+      const matchesCategory = categoryFilter === "all" || barber.category === categoryFilter;
+
+      return matchesSearch && matchesStatus && matchesCategory;
+    });
+  }, [barbers, searchQuery, statusFilter, categoryFilter]);
 
   async function handleAddBarber(e: React.FormEvent) {
     e.preventDefault();
@@ -426,15 +468,54 @@ function BarbersComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight text-white">Profissionais</h2>
-            <p className="text-muted-foreground text-sm">Cadastre os barbeiros da sua equipe.</p>
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-6 flex-1">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-white">Profissionais</h2>
+              <p className="text-muted-foreground text-sm">Cadastre os barbeiros da sua equipe.</p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-2xl">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 h-4 w-4" />
+                <Input
+                  placeholder="Buscar profissional..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-[#0b0f17] border-amber-500/10 focus:border-amber-500/30 text-white h-11 rounded-xl"
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[130px] bg-[#0b0f17] border-amber-500/10 text-white h-11 rounded-xl">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0b0f17] border-amber-500/10 text-white">
+                    <SelectItem value="all">Todos Status</SelectItem>
+                    <SelectItem value="active">Ativos</SelectItem>
+                    <SelectItem value="inactive">Inativos</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-[140px] bg-[#0b0f17] border-amber-500/10 text-white h-11 rounded-xl">
+                    <SelectValue placeholder="Categoria" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0b0f17] border-amber-500/10 text-white">
+                    <SelectItem value="all">Categorias</SelectItem>
+                    <SelectItem value="Proprietário">Proprietário</SelectItem>
+                    <SelectItem value="Freelancer">Freelancer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
+
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="gap-2 w-full md:w-auto h-[42px] md:h-[48px] px-6 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-xl transition-all hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] border-none" 
+                className="gap-2 w-full xl:w-auto h-[48px] px-8 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl transition-all hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] border-none shrink-0" 
                 variant={canAddBarber ? "default" : "secondary"}
                 onClick={() => {
                   setSelectedServices([]);
@@ -704,14 +785,14 @@ function BarbersComponent() {
                 <RefreshCcw size={16} /> Tentar novamente
               </Button>
             </div>
-          ) : barbers.length === 0 ? (
+          ) : filteredBarbers.length === 0 ? (
             <div className="col-span-full text-center py-20 border border-dashed border-amber-500/20 rounded-[20px] bg-[#0b0f17] text-muted-foreground">
               <UserRound size={64} className="mx-auto mb-4 opacity-10 text-amber-500" />
-              <p className="text-lg font-medium text-white/60">Nenhum profissional cadastrado ainda.</p>
-              <p className="text-sm mt-1">Comece adicionando seu primeiro barbeiro.</p>
+              <p className="text-lg font-medium text-white/60">Nenhum profissional encontrado.</p>
+              <p className="text-sm mt-1">Tente ajustar seus filtros ou busca.</p>
             </div>
           ) : (
-            barbers.map((barber) => (
+            filteredBarbers.map((barber) => (
               <div 
                 key={barber.id} 
                 className="group relative p-6 border border-amber-500/20 rounded-[20px] bg-[#0b0f17] shadow-xl hover:border-amber-500/50 transition-all duration-500 hover:-translate-y-1 flex flex-col justify-between"
@@ -791,51 +872,87 @@ function BarbersComponent() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-white/5">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 h-10 border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-black transition-all duration-300 font-semibold"
-                    onClick={() => toast.info("Relatório em breve")}
-                  >
-                    Desempenho
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 h-10 border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-black transition-all duration-300 font-semibold"
+                          onClick={() => toast.info("Relatório em breve")}
+                        >
+                          Desempenho
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Ver métricas e desempenho do profissional</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   
                   <div className="flex items-center gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-10 w-10 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-xl transition-all"
-                      onClick={() => {
-                        setEditingBarber(barber);
-                        setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
-                        setIsEditDialogOpen(true);
-                      }}
-                      title="Editar"
-                    >
-                      <Pencil size={18} />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-10 w-10 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-xl transition-all"
+                            onClick={() => {
+                              setEditingBarber(barber);
+                              setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
+                              setIsEditDialogOpen(true);
+                            }}
+                          >
+                            <Pencil size={18} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Editar informações do profissional</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     
                     {plan !== 'free' && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-10 w-10 text-white/40 hover:text-amber-400 hover:bg-amber-400/10 rounded-xl transition-all"
-                        onClick={() => handleDuplicateBarber(barber)}
-                        title="Duplicar"
-                      >
-                        <Copy size={18} />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-10 w-10 text-white/40 hover:text-amber-400 hover:bg-amber-400/10 rounded-xl transition-all"
+                              onClick={() => handleDuplicateBarber(barber)}
+                            >
+                              <Copy size={18} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Duplicar este profissional</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                     
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-10 w-10 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
-                      onClick={() => handleDeleteBarber(barber.id)}
-                      title="Excluir"
-                    >
-                      <Trash2 size={18} />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-10 w-10 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
+                            onClick={() => {
+                              setBarberToDelete(barber);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 size={18} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Remover profissional permanentemente</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
               </div>
@@ -1045,6 +1162,32 @@ function BarbersComponent() {
             )}
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent className="bg-[#0b0f17] border border-amber-500/20 text-white rounded-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-xl font-bold flex items-center gap-2">
+                <AlertTriangle className="text-red-500" />
+                Confirmar Exclusão
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-white/60">
+                Você tem certeza que deseja excluir o profissional <span className="text-white font-semibold">{barberToDelete?.name}</span>?
+                Esta ação não pode ser desfeita e removerá todos os dados vinculados a este barbeiro.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="mt-6">
+              <AlertDialogCancel className="bg-transparent border-white/10 text-white hover:bg-white/5 hover:text-white rounded-xl">
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => barberToDelete && handleDeleteBarber(barberToDelete.id)}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl border-none"
+              >
+                Excluir Permanentemente
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
