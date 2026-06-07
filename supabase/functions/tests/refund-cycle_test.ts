@@ -7,9 +7,17 @@ const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 Deno.test("Refund Cycle and Duplicate Protection Test", async () => {
-  // 1. Setup mock data
-  const tenantId = '00000000-0000-0000-0000-000000000000'; // Assume a valid tenant UUID or create one
-  const customerId = '00000000-0000-0000-0000-000000000001';
+  // 1. Setup mock data from real records
+  const { data: profile } = await supabase.from("profiles").select("id").limit(1).single();
+  const { data: customer } = await supabase.from("customers").select("id").limit(1).single();
+  
+  if (!profile || !customer) {
+    console.log("Skipping test: No profiles or customers found in database.");
+    return;
+  }
+
+  const tenantId = profile.id;
+  const customerId = customer.id;
   
   // Create a mock appointment
   const { data: appointment, error: apptError } = await supabase
@@ -42,6 +50,7 @@ Deno.test("Refund Cycle and Duplicate Protection Test", async () => {
       p_account_holder_name: 'Test Holder'
     });
 
+    if (error1) throw error1;
     assertEquals(refund1.success, true, "First refund request should succeed");
 
     // 3. Test duplicate refund request
