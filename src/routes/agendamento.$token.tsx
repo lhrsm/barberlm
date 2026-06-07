@@ -370,7 +370,7 @@ function AppointmentManagementPage() {
     return diffInHours >= windowHours;
   }, [appointment]);
 
-  const canCancel = isConfirmed && !isCompleted && !isCancelled && isWithinCancellationWindow;
+  const canCancel = (isConfirmed || appointment.status === 'awaiting_payment') && !isCompleted && !isCancelled && isWithinCancellationWindow;
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 flex flex-col items-center">
