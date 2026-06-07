@@ -3051,6 +3051,7 @@ export type Database = {
       services: {
         Row: {
           active: boolean | null
+          category: string | null
           created_at: string
           description: string | null
           duration_minutes: number
@@ -3062,6 +3063,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          category?: string | null
           created_at?: string
           description?: string | null
           duration_minutes: number
@@ -3073,6 +3075,7 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          category?: string | null
           created_at?: string
           description?: string | null
           duration_minutes?: number
