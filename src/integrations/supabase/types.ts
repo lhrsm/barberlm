@@ -1048,6 +1048,7 @@ export type Database = {
       automation_templates: {
         Row: {
           active: boolean | null
+          additional_templates: Json | null
           buttons: Json | null
           channel: string
           created_at: string | null
@@ -1068,6 +1069,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          additional_templates?: Json | null
           buttons?: Json | null
           channel?: string
           created_at?: string | null
@@ -1088,6 +1090,7 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          additional_templates?: Json | null
           buttons?: Json | null
           channel?: string
           created_at?: string | null
