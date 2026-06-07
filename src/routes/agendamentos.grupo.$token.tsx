@@ -59,6 +59,12 @@ function AppointmentGroupPage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [isRescheduling, setIsRescheduling] = useState(false);
+  const [rescheduleData, setRescheduleData] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedTime, setSelectedTime] = useState("");
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [fetchingTimes, setFetchingTimes] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   
   useEffect(() => {
     if (token) {
