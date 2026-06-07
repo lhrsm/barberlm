@@ -1722,7 +1722,11 @@ function AutomationsComponent() {
                                 variant="ghost" 
                                 size="sm" 
                                 className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider bg-white/5 hover:bg-amber-500 hover:text-slate-900 rounded-lg focus-visible:ring-2 focus-visible:ring-amber-500 transition-all"
-                                onClick={() => openLogDetail(log)}
+                                onClick={() => {
+                                  setSelectedLog(log);
+                                  setIsLogDetailOpen(true);
+                                  fetchDeliveryLogs(log.id);
+                                }}
                                 title="Ver Detalhes"
                               >
                                 <Terminal size={12} className="mr-1.5" /> Detalhes
