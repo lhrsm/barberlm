@@ -131,10 +131,10 @@ serve(async (req) => {
       } else if (variant === "30m") {
         messageTemplate = `Olá {customer_name} 👋\n\nFaltam 30 minutos para o seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}`;
       } else if (variant === "management_link") {
-        messageTemplate = `Olá {customer_name} 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\n🔗 Gerencie seu agendamento aqui:\nhttps://barberlm.lovable.app/agendamento/${appointment?.management_token || 'TOKEN_TESTE'}\n\nObrigado!`;
+        messageTemplate = `Olá {customer_name} 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\n🔗 Gerencie seu agendamento aqui:\nhttps://barberlm.lovable.app/agendamento/${appointment?.management_token || 'TOKEN_TESTE'}?tenant=${tenantId}\n\nObrigado!`;
       }
     } else if (workflow_key === 'appointment_confirmation') {
-      messageTemplate = `Olá {customer_name} 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\n🔗 Gerencie seu agendamento aqui:\nhttps://barberlm.lovable.app/agendamento/${appointment?.management_token || 'TOKEN_TESTE'}\n\nObrigado!`;
+      messageTemplate = `Olá {customer_name} 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\n🔗 Gerencie seu agendamento aqui:\nhttps://barberlm.lovable.app/agendamento/${appointment?.management_token || 'TOKEN_TESTE'}?tenant=${tenantId}\n\nObrigado!`;
     }
 
     const renderedMessage = processAutomationTemplate(messageTemplate, sampleData);

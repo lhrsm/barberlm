@@ -1,33 +1,13 @@
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useLocation } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  Scissors, 
-  CheckCircle2, 
-  XCircle,
-  AlertCircle,
-  MapPin,
-  Phone,
-  ArrowLeft
-} from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
-export const Route = createFileRoute("/agendamento/$token")({
-  component: AppointmentManagementPage,
-});
-
+...
 function AppointmentManagementPage() {
   const { token } = Route.useParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const expectedTenantId = searchParams.get('tenant');
   const [loading, setLoading] = useState(true);
   const [appointment, setAppointment] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
