@@ -4188,6 +4188,18 @@ export type Database = {
         Returns: string
       }
       reconcile_automation_logs: { Args: never; Returns: undefined }
+      reschedule_appointment: {
+        Args: {
+          p_appointment_id: string
+          p_changed_by_id?: string
+          p_changed_by_type: string
+          p_metadata?: Json
+          p_new_end_time: string
+          p_new_start_time: string
+          p_source?: string
+        }
+        Returns: Json
+      }
       seed_default_workflows_v2: { Args: never; Returns: undefined }
       update_appointment_status: {
         Args: {
