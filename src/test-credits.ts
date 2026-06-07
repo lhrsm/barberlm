@@ -13,8 +13,19 @@ async function testCreditFlow() {
     const { data: tenant } = await supabase.from('profiles').select('id').limit(1).single();
     if (!tenant) throw new Error("No tenant found");
 
-    const { data: customer } = await supabase.from('customers').select('id, credits').eq('tenant_id', tenant.id).limit(1).single();
-    if (!customer) throw new Error("No customer found");
+    // Try to find any customer or create a dummy one
+    let { data: customer } = await supabase.from('customers').select('id, credits').eq('tenant_id', tenant.id).limit(1).maybeSingle();
+    
+    if (!customer) {
+        console.log("No customer found, creating a dummy one...");
+        const { data: newCustomer, error: createErr } = await supabase.from('customers').insert({
+            tenant_id: tenant.id,
+            name: 'Test Customer',
+            phone: '11999999999'
+        }).select().single();
+        if (createErr) throw createErr;
+        customer = newCustomer;
+    }
 
     const initialCredits = Number(customer.credits || 0);
     console.log(`Initial Credits for customer ${customer.id}: R$ ${initialCredits}`);
