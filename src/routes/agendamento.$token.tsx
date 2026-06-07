@@ -357,7 +357,7 @@ function AppointmentManagementPage() {
   const isConfirmed = appointment.status === 'confirmed' || appointment.status === 'scheduled';
   const isCancelled = appointment.status === 'cancelled';
   const isCompleted = appointment.status === 'completed';
-  const canReschedule = isConfirmed && !isCompleted && !isCancelled;
+  const canReschedule = (isConfirmed || appointment.status === 'awaiting_payment') && !isCompleted && !isCancelled;
   
   // Janela de cancelamento
   const isWithinCancellationWindow = useMemo(() => {
