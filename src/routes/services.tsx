@@ -348,21 +348,21 @@ function ServicesComponent() {
             Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="p-6 border border-amber-500/10 rounded-[20px] bg-[#0b0f17] space-y-4">
                 <div className="flex justify-between">
-                  <Skeleton className="h-6 w-1/2 bg-slate-800" />
-                  <Skeleton className="h-6 w-1/4 bg-slate-800" />
+                  <Skeleton className="h-7 w-1/2 bg-amber-500/5" />
+                  <Skeleton className="h-7 w-1/4 bg-amber-500/5" />
                 </div>
                 <div className="space-y-2">
-                  <Skeleton className="h-4 w-full bg-slate-800" />
-                  <Skeleton className="h-4 w-3/4 bg-slate-800" />
+                  <Skeleton className="h-4 w-full bg-amber-500/5" />
+                  <Skeleton className="h-4 w-3/4 bg-amber-500/5" />
                 </div>
                 <div className="flex gap-2 pt-4">
-                  <Skeleton className="h-8 w-20 bg-slate-800" />
-                  <Skeleton className="h-8 w-20 bg-slate-800" />
+                  <Skeleton className="h-5 w-16 rounded-full bg-amber-500/5" />
+                  <Skeleton className="h-5 w-16 rounded-full bg-amber-500/5" />
                 </div>
-                <div className="flex gap-2 pt-4">
-                  <Skeleton className="h-10 flex-1 bg-slate-800" />
-                  <Skeleton className="h-10 w-10 bg-slate-800" />
-                  <Skeleton className="h-10 w-10 bg-slate-800" />
+                <div className="flex gap-2 pt-6">
+                  <Skeleton className="h-10 flex-1 rounded-xl bg-amber-500/5" />
+                  <Skeleton className="h-10 w-10 rounded-xl bg-amber-500/5" />
+                  <Skeleton className="h-10 w-10 rounded-xl bg-amber-500/5" />
                 </div>
               </div>
             ))
