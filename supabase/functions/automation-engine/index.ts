@@ -88,6 +88,19 @@ async function scheduleAppointmentReminders(supabase: any) {
 
     if (diffHours < 12) continue;
 
+    const { data: reminderTemplate } = await supabase
+      .from("automation_templates")
+      .select("id")
+      .eq("tenant_id", app.tenant_id)
+      .eq("key", "appointment_reminder")
+      .eq("active", true)
+      .maybeSingle();
+
+    if (!reminderTemplate) {
+      console.log(`[AutomationEngine] No active reminder template for tenant ${app.tenant_id}`);
+      continue;
+    }
+
     const intervals = [
       { type: "6h", minutes: 360 },
       { type: "1h", minutes: 60 },
@@ -101,8 +114,9 @@ async function scheduleAppointmentReminders(supabase: any) {
       if (scheduledFor.getTime() < new Date().getTime()) continue;
 
       try {
-        await supabase.from("automation_queue").insert({
+        const { error: insertError } = await supabase.from("automation_queue").insert({
           tenant_id: app.tenant_id,
+          automation_id: reminderTemplate.id,
           appointment_id: app.id,
           customer_id: app.customer_id,
           workflow_key: "appointment_reminder",
@@ -111,8 +125,16 @@ async function scheduleAppointmentReminders(supabase: any) {
           scheduled_for: scheduledFor.toISOString(),
           payload: { reminder_type: interval.type }
         });
+        
+        if (insertError) {
+          if (insertError.code !== '23505') { // Not a unique violation
+            console.error(`[AutomationEngine] Insert error for ${interval.type}:`, insertError);
+          }
+        } else {
+          console.log(`[AutomationEngine] Scheduled ${interval.type} reminder for app ${app.id}`);
+        }
       } catch (e) {
-        // Unique constraint will prevent duplicates
+        // Silent
       }
     }
   }
