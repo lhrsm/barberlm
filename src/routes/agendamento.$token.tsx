@@ -53,7 +53,9 @@ function AppointmentManagementPage() {
   const [error, setError] = useState<string | null>(null);
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  
+  const [showCreditModal, setShowCreditModal] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
   // Reschedule state
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedTime, setSelectedTime] = useState("");
@@ -61,7 +63,6 @@ function AppointmentManagementPage() {
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [barber, setBarber] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (token) {

@@ -304,9 +304,21 @@ export function AppointmentModal({
       }
 
       const service = services.find(s => s.id === selectedService);
+      const customer = customers.find(c => c.id === selectedCustomer);
       const timeWithSeconds = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
       const startTime = parseISO(`${selectedDate}T${timeWithSeconds}`);
       const endTime = addMinutes(startTime, service?.duration_minutes || 30);
+
+      const totalPrice = service?.price || 0;
+      let finalAmount = totalPrice;
+      let usedCredits = 0;
+
+      // Logic for using existing credits
+      if (paymentMethod === 'wallet' || (customer?.credits && customer.credits > 0)) {
+        const availableCredits = Number(customer?.credits || 0);
+        usedCredits = Math.min(availableCredits, totalPrice);
+        finalAmount = totalPrice - usedCredits;
+      }
 
       const appointmentPayload: any = {
         user_id: tenantId,
@@ -316,15 +328,15 @@ export function AppointmentModal({
         barber_id: selectedBarber,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
-        total_price: service?.price || 0,
-        original_total: service?.price || 0,
+        total_price: totalPrice,
+        original_total: totalPrice,
         status: "confirmed",
-        payment_status: paymentStatus,
-        payment_method: paymentMethod === 'wallet' ? 'credits' : (paymentMethod || 'cash'),
-        credit_used: paymentMethod === 'wallet' ? (service?.price || 0) : 0,
-        final_amount: paymentMethod === 'wallet' ? 0 : (paymentStatus === 'paid' ? 0 : (service?.price || 0)),
+        payment_status: finalAmount === 0 ? 'paid' : paymentStatus,
+        payment_method: usedCredits > 0 && finalAmount === 0 ? 'credits' : (paymentMethod || 'cash'),
+        credit_used: usedCredits,
+        final_amount: paymentStatus === 'paid' ? 0 : finalAmount,
         source: 'admin',
-        confirmation_sent: false, // Ensure confirmation is false by default
+        confirmation_sent: false,
         items: [{
           id: selectedService,
           name: service?.name,
@@ -362,8 +374,15 @@ export function AppointmentModal({
         appointmentData = data;
       }
 
+      // Deduct credits from customer if used
+      if (usedCredits > 0) {
+        await supabase
+          .from("customers")
+          .update({ credits: Number(customer?.credits || 0) - usedCredits })
+          .eq("id", selectedCustomer);
+      }
+
       // Notifications
-      const customer = customers.find(c => c.id === selectedCustomer);
       const barber = barbers.find(b => b.id === selectedBarber);
       const notificationMessage = `${customer?.name} agendou ${service?.name} às ${selectedTime}`;
 
@@ -588,7 +607,14 @@ export function AppointmentModal({
                       </div>
                       <div className="flex justify-between pt-2">
                         <span className="font-bold">Total:</span>
-                        <span className="font-bold text-primary">R$ {services.find(s => s.id === selectedService)?.price}</span>
+                        <div className="text-right">
+                          <span className="font-bold text-primary block">R$ {services.find(s => s.id === selectedService)?.price}</span>
+                          {customers.find(c => c.id === selectedCustomer)?.credits > 0 && (
+                            <span className="text-[10px] text-emerald-600 font-bold uppercase">
+                              Saldo disponível: R$ {Number(customers.find(c => c.id === selectedCustomer)?.credits).toFixed(2)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     
@@ -621,7 +647,9 @@ export function AppointmentModal({
                           <SelectItem value="cash">Dinheiro</SelectItem>
                           <SelectItem value="card">Cartão</SelectItem>
                           <SelectItem value="pix">PIX</SelectItem>
-                          <SelectItem value="wallet">Créditos do Cliente</SelectItem>
+                          <SelectItem value="wallet">
+                            Créditos (Saldo: R$ {Number(customers.find(c => c.id === selectedCustomer)?.credits || 0).toFixed(2)})
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
