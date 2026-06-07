@@ -256,7 +256,7 @@ function AppointmentManagementPage() {
         p_appointment_id: appointment.id,
         p_cancelled_by: 'customer',
         p_source: 'public_link',
-        p_refund_preference: 'none'
+        p_refund_preference: preference === 'refund' ? 'refund' : (preference === 'credit' ? 'credit' : 'none')
       };
 
       if (isPaid) {
