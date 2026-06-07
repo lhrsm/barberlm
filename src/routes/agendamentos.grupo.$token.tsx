@@ -488,6 +488,15 @@ function AppointmentGroupPage() {
               <div className="flex gap-2">
                 <Button 
                   size="sm"
+                  variant="outline"
+                  onClick={openReschedule}
+                  disabled={selectedIds.length !== 1}
+                  className="rounded-xl h-10 font-bold uppercase tracking-widest text-[10px] bg-zinc-900 border-zinc-800 text-white"
+                >
+                  <RefreshCcw className="mr-2 h-3 w-3" /> Reagendar
+                </Button>
+                <Button 
+                  size="sm"
                   variant="destructive"
                   onClick={() => setIsCancelModalOpen(true)}
                   className="rounded-xl h-10 font-bold uppercase tracking-widest text-[10px]"
