@@ -143,7 +143,7 @@ serve(async (req) => {
           if (profileData?.business_name) barbershopName = profileData.business_name;
         }
 
-        const profId = appointment.barber_id || appointment.professional_id;
+        const profId = appointment?.barber_id || appointment?.professional_id;
         let profName = "Profissional";
         let resolvedTable = "none";
 
