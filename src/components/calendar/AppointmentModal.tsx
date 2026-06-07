@@ -599,32 +599,36 @@ export function AppointmentModal({
                         <span className="font-medium">{services.find(s => s.id === selectedService)?.name}</span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
-                        <span className="text-muted-foreground">Data:</span>
-                        <span className="font-medium">{format(parseISO(selectedDate), "dd/MM/yyyy")}</span>
-                      </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-muted-foreground">Hora:</span>
-                        <span className="font-medium">{selectedTime}</span>
+                        <span className="text-muted-foreground">Data/Hora:</span>
+                        <span className="font-medium">{format(parseISO(selectedDate), "dd/MM/yyyy")} às {selectedTime}</span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">Cliente:</span>
                         <span className="font-medium">{customers.find(c => c.id === selectedCustomer)?.name}</span>
                       </div>
-                      <div className="flex justify-between pt-2">
-                        <span className="font-bold">Total:</span>
-                        <div className="text-right">
-                          <span className="font-bold text-primary block">R$ {services.find(s => s.id === selectedService)?.price}</span>
-                          {customers.find(c => c.id === selectedCustomer)?.credits > 0 && (
-                            <span className="text-[10px] text-emerald-600 font-bold uppercase">
-                              Saldo disponível: R$ {Number(customers.find(c => c.id === selectedCustomer)?.credits).toFixed(2)}
-                            </span>
-                          )}
+                      
+                      <div className="space-y-1 pt-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Valor do Serviço:</span>
+                          <span>R$ {services.find(s => s.id === selectedService)?.price}</span>
+                        </div>
+                        
+                        {Number(customers.find(c => c.id === selectedCustomer)?.credits || 0) > 0 && (
+                          <div className="flex justify-between text-sm text-emerald-600 font-bold">
+                            <span>Crédito Aplicado:</span>
+                            <span>-R$ {Math.min(Number(customers.find(c => c.id === selectedCustomer)?.credits || 0), services.find(s => s.id === selectedService)?.price || 0).toFixed(2)}</span>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between pt-2 border-t font-bold text-lg">
+                          <span>Total a Pagar:</span>
+                          <span className="text-primary">R$ {Math.max(0, (services.find(s => s.id === selectedService)?.price || 0) - (Number(customers.find(c => c.id === selectedCustomer)?.credits || 0))).toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="space-y-2 mt-4">
-                      <Label>Status do Pagamento</Label>
+                      <Label>Status do Pagamento (Restante)</Label>
                       <Select 
                         value={paymentStatus} 
                         onValueChange={setPaymentStatus}
@@ -633,14 +637,14 @@ export function AppointmentModal({
                           <SelectValue placeholder="Selecione o status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Pendente (Pagar na Barbearia)</SelectItem>
-                          <SelectItem value="paid">Pago (Já recebido)</SelectItem>
+                          <SelectItem value="pending">Pendente</SelectItem>
+                          <SelectItem value="paid">Pago</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Forma de Pagamento</Label>
+                      <Label>Forma de Pagamento (Restante)</Label>
                       <Select 
                         value={paymentMethod} 
                         onValueChange={setPaymentMethod}
