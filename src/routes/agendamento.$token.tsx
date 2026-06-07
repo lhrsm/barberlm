@@ -239,23 +239,39 @@ function AppointmentManagementPage() {
   const handleCancel = async () => {
     setCancelling(true);
     try {
-      const { data, error: rpcError } = await supabase.rpc('cancel_appointment', {
+      // Logic for cancellation with credit conversion if paid
+      const isPaid = appointment.payment_status === 'paid' && Number(appointment.final_amount || appointment.total_price) > 0;
+      
+      let rpcName = 'cancel_appointment';
+      let rpcParams: any = {
         p_appointment_id: appointment.id,
         p_cancelled_by: 'customer',
         p_source: 'public_link',
-        p_refund_preference: 'none' // For now, client management via link doesn't handle credits/refunds
-      });
+        p_refund_preference: 'none'
+      };
+
+      if (isPaid) {
+        rpcName = 'convert_appointment_to_credit';
+        rpcParams = {
+          p_appointment_id: appointment.id,
+          p_customer_id: appointment.customer_id,
+          p_tenant_id: appointment.tenant_id,
+          p_amount: Number(appointment.final_amount || appointment.total_price)
+        };
+      }
+
+      const { data, error: rpcError } = await supabase.rpc(rpcName as any, rpcParams);
 
       if (rpcError) throw rpcError;
       
       const response = data as any;
-      if (response && response.error) throw new Error(response.error);
+      if (response && response.success === false) throw new Error(response.error || "Erro ao processar");
 
       await createNotification({
         userId: appointment.tenant_id,
         type: 'appointment_cancelled',
-        title: "Agendamento Cancelado",
-        message: `${appointment.customer_name} cancelou o agendamento de ${format(parseISO(appointment.start_time), "dd/MM 'às' HH:mm")}`,
+        title: isPaid ? "Cancelamento com Crédito" : "Agendamento Cancelado",
+        message: `${appointment.customer_name} cancelou o agendamento e ${isPaid ? 'converteu em crédito' : 'não solicitou estorno'}.`,
         barberId: appointment.professional_id || appointment.barber_id,
         metadata: { appointmentId: appointment.id }
       });
@@ -266,7 +282,7 @@ function AppointmentManagementPage() {
         appointment_id: appointment.id
       }).catch(console.error);
 
-      toast.success("Agendamento cancelado com sucesso.");
+      toast.success(isPaid ? "Agendamento cancelado e valor convertido em crédito!" : "Agendamento cancelado com sucesso.");
       setIsCancelModalOpen(false);
       fetchAppointment();
     } catch (err: any) {

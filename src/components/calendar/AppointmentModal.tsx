@@ -313,8 +313,8 @@ export function AppointmentModal({
       let finalAmount = totalPrice;
       let usedCredits = 0;
 
-      // Logic for using existing credits
-      if (paymentMethod === 'wallet' || (customer?.credits && customer.credits > 0)) {
+      // Use customer available credits if payment method is "wallet" or if they have balance
+      if (paymentMethod === 'wallet' || (customer?.credits && Number(customer.credits) > 0)) {
         const availableCredits = Number(customer?.credits || 0);
         usedCredits = Math.min(availableCredits, totalPrice);
         finalAmount = totalPrice - usedCredits;
@@ -332,9 +332,9 @@ export function AppointmentModal({
         original_total: totalPrice,
         status: "confirmed",
         payment_status: finalAmount === 0 ? 'paid' : paymentStatus,
-        payment_method: usedCredits > 0 && finalAmount === 0 ? 'credits' : (paymentMethod || 'cash'),
+        payment_method: usedCredits > 0 ? (finalAmount === 0 ? 'credits' : 'mixed') : (paymentMethod || 'cash'),
         credit_used: usedCredits,
-        final_amount: paymentStatus === 'paid' ? 0 : finalAmount,
+        final_amount: finalAmount,
         source: 'admin',
         confirmation_sent: false,
         items: [{
@@ -345,6 +345,18 @@ export function AppointmentModal({
           quantity: 1
         }]
       };
+
+      // If credits used, call RPC to deduct atomically
+      if (usedCredits > 0) {
+        const { data: creditRes, error: creditErr } = await supabase.rpc('use_customer_credits', {
+          p_customer_id: selectedCustomer,
+          p_amount: usedCredits
+        });
+
+        if (creditErr || !(creditRes as any)?.success) {
+          throw new Error((creditRes as any)?.error || "Erro ao utilizar créditos");
+        }
+      }
 
       let appointmentData;
       if (editingAppointmentId) {
@@ -374,13 +386,6 @@ export function AppointmentModal({
         appointmentData = data;
       }
 
-      // Deduct credits from customer if used
-      if (usedCredits > 0) {
-        await supabase
-          .from("customers")
-          .update({ credits: Number(customer?.credits || 0) - usedCredits })
-          .eq("id", selectedCustomer);
-      }
 
       // Notifications
       const barber = barbers.find(b => b.id === selectedBarber);
