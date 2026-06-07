@@ -72,12 +72,19 @@ async function scheduleAppointmentReminders(supabase: any) {
     .order("start_time", { ascending: true })
     .limit(100);
 
-  if (error || !appointments) return;
-
+  if (error) {
+    console.error("[AutomationEngine] Appointments error:", error);
+    return;
+  }
+  
+  console.log(`[AutomationEngine] Found ${appointments?.length || 0} potential appointments`);
+  
   for (const app of appointments) {
     const startTime = new Date(app.start_time);
     const createdAt = new Date(app.created_at);
     const diffHours = (startTime.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+
+    console.log(`[AutomationEngine] Checking app ${app.id}: diffHours=${diffHours.toFixed(1)}`);
 
     if (diffHours < 12) continue;
 
