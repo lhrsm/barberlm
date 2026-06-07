@@ -119,7 +119,9 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
     current_step: isConfirmation ? "AWAITING_MAIN_ACTION" : "completed",
     callback_received: !isConfirmation,
     finalized: !isConfirmation,
-    finalized_at: !isConfirmation ? new Date().toISOString() : null
+    finalized_at: !isConfirmation ? new Date().toISOString() : null,
+    anniversary_year: payload.anniversary_year,
+    anniversary_message_type: payload.anniversary_message_type
   };
 
   // Add birthday_year for idempotency if applicable
