@@ -205,7 +205,10 @@ serve(async (req) => {
         } else if (automation.key === 'barbershop_anniversary') {
            const type = item.payload?.anniversary_message_type || "anniversary_day";
            if (type === "reminder_7_days") {
-              renderedTemplate = `Olá ${testData.customer_name} 👋\n\nO aniversário da ${testData.barbershop_name} está chegando! 🎉\n\nFaltam apenas 7 dias para celebrarmos mais um ano dessa história com você.\n\nPrepare-se, porque vem comemoração especial por aí! 💈`;
+              renderedTemplate = automation.additional_templates?.reminder_7_days || `Olá ${testData.customer_name} 👋\n\nO aniversário da ${testData.barbershop_name} está chegando! 🎉\n\nFaltam apenas 7 dias para celebrarmos mais um ano dessa história com você.\n\nPrepare-se, porque vem comemoração especial por aí! 💈`;
+              Object.entries(testData).forEach(([key, value]) => {
+                renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
+              });
            } else {
               renderedTemplate = automation.template;
               Object.entries(testData).forEach(([key, value]) => {
