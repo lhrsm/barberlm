@@ -181,6 +181,25 @@ serve(async (req) => {
             { id: "main_cancel", label: "Cancelar" }
           ];
           renderedTemplate = `Olá ${testData.customer_name} 👋\n\nSeu agendamento na ${testData.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n📅 Data: ${testData.appointment_date}\n⏰ Horário: ${testData.appointment_time}\n\nO que deseja fazer?`;
+        } else if (automation.key === 'appointment_reminder') {
+          const type = item.payload?.reminder_type || "6h";
+          if (type === "30m") {
+            sendOptions.buttons = [
+              { id: "reminder_confirm", label: "Confirmar agendamento" },
+              { id: "reminder_reschedule", label: "Reagendar" },
+              { id: "reminder_cancel", label: "Cancelar" }
+            ];
+          }
+          
+          if (type === "6h") {
+            renderedTemplate = `Olá ${testData.customer_name} 👋\n\nPassando para lembrar do seu agendamento na ${testData.barbershop_name}.\n\n📋 Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n📅 Data: ${testData.appointment_date}\n⏰ Horário: ${testData.appointment_time}\n\nEstamos te esperando!`;
+          } else if (type === "1h") {
+            renderedTemplate = `Olá ${testData.customer_name} 👋\n\nSeu atendimento na ${testData.barbershop_name} está chegando.\n\n⏰ Falta apenas 1 hora para o seu agendamento.\n\n📋 Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n⏰ Horário: ${testData.appointment_time}`;
+          } else if (type === "30m") {
+            renderedTemplate = `Olá ${testData.customer_name} 👋\n\nFaltam 30 minutos para o seu agendamento na ${testData.barbershop_name}.\n\n📋 Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n⏰ Horário: ${testData.appointment_time}\n\nDeseja confirmar, reagendar ou cancelar?`;
+          }
+        } else if (automation.key === 'customer_birthday') {
+           renderedTemplate = `Olá ${testData.customer_name} 🎉\n\nA ${testData.barbershop_name} te felicita pelo seu aniversário!\n\nQue seu dia seja especial e cheio de boas comemorações. 🥳\n\nE para comemorar com a gente, você ganhou um cupom especial para usar em nossos produtos ou serviços na barbearia.\n\n🎁 Cupom: ANIVERSARIO10\n\nEsperamos você para celebrar esse momento com estilo! 💈`;
         } else {
           renderedTemplate = automation.template;
           Object.entries(testData).forEach(([key, value]) => {

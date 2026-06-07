@@ -4080,6 +4080,15 @@ export type Database = {
           cron_status: string
         }[]
       }
+      get_customers_with_birthday_today: {
+        Args: { target_day: number; target_month: number }
+        Returns: {
+          id: string
+          name: string
+          phone: string
+          tenant_id: string
+        }[]
+      }
       get_my_profile_role: { Args: never; Returns: string }
       get_my_tenant_id: { Args: never; Returns: string }
       get_server_info: { Args: never; Returns: Json }
