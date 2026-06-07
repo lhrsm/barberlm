@@ -180,8 +180,6 @@ function BarbersComponent() {
   }
 
   async function handleDeleteBarber(id: string) {
-    if (!confirm("Tem certeza que deseja excluir este profissional? Esta ação não pode ser desfeita.")) return;
-
     const { error } = await supabase
       .from("barbers")
       .delete()
@@ -193,8 +191,26 @@ function BarbersComponent() {
       toast.success("Barbeiro excluído com sucesso!");
       fetchBarbers();
       refreshLimits();
+      setIsDeleteDialogOpen(false);
+      setBarberToDelete(null);
     }
   }
+
+  const filteredBarbers = useMemo(() => {
+    return barbers.filter((barber) => {
+      const matchesSearch = barber.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          barber.phone?.includes(searchQuery) ||
+                          barber.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = statusFilter === "all" || 
+                          (statusFilter === "active" && barber.active) ||
+                          (statusFilter === "inactive" && !barber.active);
+      
+      const matchesCategory = categoryFilter === "all" || barber.category === categoryFilter;
+
+      return matchesSearch && matchesStatus && matchesCategory;
+    });
+  }, [barbers, searchQuery, statusFilter, categoryFilter]);
 
   async function handleAddBarber(e: React.FormEvent) {
     e.preventDefault();
