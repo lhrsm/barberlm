@@ -468,15 +468,54 @@ function BarbersComponent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight text-white">Profissionais</h2>
-            <p className="text-muted-foreground text-sm">Cadastre os barbeiros da sua equipe.</p>
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-6 flex-1">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-white">Profissionais</h2>
+              <p className="text-muted-foreground text-sm">Cadastre os barbeiros da sua equipe.</p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-2xl">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 h-4 w-4" />
+                <Input
+                  placeholder="Buscar profissional..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-[#0b0f17] border-amber-500/10 focus:border-amber-500/30 text-white h-11 rounded-xl"
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[130px] bg-[#0b0f17] border-amber-500/10 text-white h-11 rounded-xl">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0b0f17] border-amber-500/10 text-white">
+                    <SelectItem value="all">Todos Status</SelectItem>
+                    <SelectItem value="active">Ativos</SelectItem>
+                    <SelectItem value="inactive">Inativos</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-[140px] bg-[#0b0f17] border-amber-500/10 text-white h-11 rounded-xl">
+                    <SelectValue placeholder="Categoria" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0b0f17] border-amber-500/10 text-white">
+                    <SelectItem value="all">Categorias</SelectItem>
+                    <SelectItem value="Proprietário">Proprietário</SelectItem>
+                    <SelectItem value="Freelancer">Freelancer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
+
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="gap-2 w-full md:w-auto h-[42px] md:h-[48px] px-6 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-xl transition-all hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] border-none" 
+                className="gap-2 w-full xl:w-auto h-[48px] px-8 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl transition-all hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] border-none shrink-0" 
                 variant={canAddBarber ? "default" : "secondary"}
                 onClick={() => {
                   setSelectedServices([]);
