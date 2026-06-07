@@ -390,6 +390,13 @@ function AutomationsComponent() {
           .select()
           .single();
         if (newSettings) setReconciliationSettings(newSettings);
+      }
+    } catch (error: any) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+      setStatsLoading(false);
+    }
   }
 
   const fetchDeliveryLogs = async (dispatchId?: string) => {
