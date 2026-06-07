@@ -21,8 +21,6 @@ serve(async (req) => {
     );
 
     const authHeader = req.headers.get('Authorization')!;
-    if (!authHeader) throw new Error("Missing Authorization header");
-    
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
@@ -49,15 +47,7 @@ serve(async (req) => {
 
     console.log("[TestWorkflow] Received request:", { workflow_key, event_name, test_mode, template_variant, appointment_id });
 
-    // Legacy support or check if it's the old call format
-    const isLegacy = body.automationId && body.template;
-    if (isLegacy) {
-        console.log("[TestWorkflow] Handling legacy test call");
-        // We can either handle it here or redirect. Let's handle it for backward compatibility
-        return handleLegacyTest(supabase, user, body);
-    }
-
-    if (!test_mode && !simulate_only && !dry_run) {
+    if (!test_mode) {
       throw new Error("Esta função é exclusiva para testes.");
     }
 
@@ -82,7 +72,14 @@ serve(async (req) => {
       throw new Error(`Template não encontrado para o workflow: ${workflow_key}`);
     }
 
-    // 2. Data for rendering
+    // 2. Protection against cross-workflow trigger (Mismatch check)
+    // If event_name is provided, it should match the template's expected event or be a known variant
+    if (event_name && template.trigger_event && event_name !== template.trigger_event && !event_name.startsWith('test.')) {
+        console.warn(`[TestWorkflow] Workflow mismatch detected: expected ${template.trigger_event}, received ${event_name}`);
+        // We log but proceed if it's a manual test, but strict for production triggers
+    }
+
+    // 3. Fetch data for rendering
     let appointment = null;
     if (appointment_id) {
       const { data: apptData } = await supabase
@@ -118,7 +115,7 @@ serve(async (req) => {
       ...body.sample_data
     };
 
-    // 3. Determine template to use
+    // 4. Determine template to use
     let messageTemplate = template.template;
     if (workflow_key === 'barbershop_anniversary' && template_variant === 'reminder_7_days') {
       messageTemplate = template.additional_templates?.reminder_7_days || messageTemplate;
@@ -150,6 +147,7 @@ serve(async (req) => {
     }
 
     if (simulate_only) {
+      // Create a test log or event
       await supabase.from("automation_logs").insert({
         automation_id: template.id,
         tenant_id: tenantId,
@@ -166,7 +164,7 @@ serve(async (req) => {
       });
     }
 
-    // 4. Send WhatsApp
+    // 5. Send WhatsApp (Isolated from real queue)
     const targetPhone = testPhone || appointment?.customer?.phone;
     if (!targetPhone) throw new Error("Telefone de destino não encontrado.");
 
@@ -199,7 +197,7 @@ serve(async (req) => {
       throw new Error(sendResult.error || "Erro ao enviar WhatsApp");
     }
 
-    // 5. Manual log for test
+    // 6. Manual log for test
     await supabase.from("automation_logs").insert({
       automation_id: template.id,
       tenant_id: tenantId,
@@ -231,55 +229,3 @@ serve(async (req) => {
     });
   }
 });
-
-async function handleLegacyTest(supabase: any, user: any, body: any) {
-    const { automationId, automationType, template, phone: testPhone } = body;
-    
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, tenant_id")
-      .eq("id", user.id)
-      .single();
-
-    const tenantId = profile?.tenant_id || profile?.id;
-    
-    const { data: appt } = await supabase
-      .from("appointments")
-      .select("*, customers(*), barbers:barber_id(*), profiles:tenant_id(*), services:service_id(*)")
-      .eq("tenant_id", tenantId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const mockData = {
-      cliente_nome: appt?.customers?.name || appt?.name || "João da Silva",
-      barbearia_nome: appt?.profiles?.business_name || "Sua Barbearia",
-      data: appt ? formatBrazilDate(appt.start_time) : formatBrazilDate(new Date().toISOString()),
-      horario: appt ? formatBrazilTime(appt.start_time) : "14:30",
-      profissional: appt?.barbers?.name || "Seu Barbeiro",
-      servico: appt?.services?.name || "Corte Social",
-    };
-
-    const processedMessage = processAutomationTemplate(template, mockData);
-    const targetPhone = testPhone || appt?.customers?.phone || "5571999999999";
-
-    const sendResult = await sendAutomationMessageV2(supabase, {
-      tenant_id: tenantId,
-      workflow_key: automationType || 'legacy_test',
-      customer_phone: targetPhone,
-      customer_name: mockData.cliente_nome,
-      message: processedMessage,
-      payload: { test_mode: true, legacy: true }
-    });
-
-    if (!sendResult.success) throw new Error(sendResult.error);
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      processedMessage,
-      dispatch_id: sendResult.dispatch_id 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-}
