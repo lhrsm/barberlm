@@ -1726,6 +1726,59 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="refunds" className="pt-4 space-y-4">
+            {/* Refund Filters */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-zinc-900/30 border border-zinc-800 rounded-xl">
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Status</Label>
+                <Select value={refundStatusFilter} onValueChange={setRefundStatusFilter}>
+                  <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white">
+                    <SelectValue placeholder="Filtrar por status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#05070d] border-[#1f2937] text-white">
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    <SelectItem value="requested">Solicitados</SelectItem>
+                    <SelectItem value="approved">Aprovados</SelectItem>
+                    <SelectItem value="completed">Concluídos</SelectItem>
+                    <SelectItem value="rejected">Rejeitados</SelectItem>
+                    <SelectItem value="cancelled">Cancelados</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">De (Data)</Label>
+                <Input 
+                  type="date" 
+                  value={refundDateStartFilter} 
+                  onChange={(e) => setRefundDateStartFilter(e.target.value)}
+                  className="bg-[#05070d] border-[#1f2937] text-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Até (Data)</Label>
+                <Input 
+                  type="date" 
+                  value={refundDateEndFilter} 
+                  onChange={(e) => setRefundDateEndFilter(e.target.value)}
+                  className="bg-[#05070d] border-[#1f2937] text-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Busca (ID)</Label>
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                  <Input 
+                    placeholder="Appointment/Payment ID" 
+                    value={refundSearchTerm}
+                    onChange={(e) => setRefundSearchTerm(e.target.value)}
+                    className="bg-[#05070d] border-[#1f2937] text-white pl-9"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="border border-border rounded-xl bg-card text-foreground overflow-x-auto custom-scrollbar shadow-sm">
               <Table className="min-w-[800px] md:min-w-0">
                 <TableHeader className="bg-background">
