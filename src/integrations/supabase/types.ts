@@ -1165,16 +1165,19 @@ export type Database = {
           customer_name: string | null
           customer_phone: string | null
           error: string | null
+          error_log: Json | null
           finalized: boolean | null
           finalized_at: string | null
           flow_type: string
           id: string
+          last_retry_at: string | null
           message_id: string | null
           payload: Json | null
           phone: string
           provider_message_id: string | null
           provider_response: Json | null
           requires_callback: boolean | null
+          retry_count: number | null
           sent_at: string | null
           session_id: string | null
           status: string
@@ -1202,16 +1205,19 @@ export type Database = {
           customer_name?: string | null
           customer_phone?: string | null
           error?: string | null
+          error_log?: Json | null
           finalized?: boolean | null
           finalized_at?: string | null
           flow_type?: string
           id?: string
+          last_retry_at?: string | null
           message_id?: string | null
           payload?: Json | null
           phone: string
           provider_message_id?: string | null
           provider_response?: Json | null
           requires_callback?: boolean | null
+          retry_count?: number | null
           sent_at?: string | null
           session_id?: string | null
           status?: string
@@ -1239,16 +1245,19 @@ export type Database = {
           customer_name?: string | null
           customer_phone?: string | null
           error?: string | null
+          error_log?: Json | null
           finalized?: boolean | null
           finalized_at?: string | null
           flow_type?: string
           id?: string
+          last_retry_at?: string | null
           message_id?: string | null
           payload?: Json | null
           phone?: string
           provider_message_id?: string | null
           provider_response?: Json | null
           requires_callback?: boolean | null
+          retry_count?: number | null
           sent_at?: string | null
           session_id?: string | null
           status?: string
@@ -2830,40 +2839,52 @@ export type Database = {
       }
       refund_requests: {
         Row: {
+          admin_notes: string | null
           amount: number
           appointment_id: string
+          completed_at: string | null
           created_at: string
           customer_id: string
           id: string
           notes: string | null
+          payment_id: string | null
           payment_method: string
           processed_at: string | null
+          refund_method: string | null
           requested_at: string
           status: string
           tenant_id: string
         }
         Insert: {
+          admin_notes?: string | null
           amount: number
           appointment_id: string
+          completed_at?: string | null
           created_at?: string
           customer_id: string
           id?: string
           notes?: string | null
+          payment_id?: string | null
           payment_method: string
           processed_at?: string | null
+          refund_method?: string | null
           requested_at?: string
           status?: string
           tenant_id: string
         }
         Update: {
+          admin_notes?: string | null
           amount?: number
           appointment_id?: string
+          completed_at?: string | null
           created_at?: string
           customer_id?: string
           id?: string
           notes?: string | null
+          payment_id?: string | null
           payment_method?: string
           processed_at?: string | null
+          refund_method?: string | null
           requested_at?: string
           status?: string
           tenant_id?: string
@@ -3748,6 +3769,70 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_delivery_logs: {
+        Row: {
+          appointment_id: string | null
+          created_at: string | null
+          dispatch_id: string | null
+          error_message: string | null
+          id: string
+          payload: Json | null
+          response: Json | null
+          retry_count: number | null
+          status: string
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string | null
+          dispatch_id?: string | null
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          response?: Json | null
+          retry_count?: number | null
+          status: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string | null
+          dispatch_id?: string | null
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          response?: Json | null
+          retry_count?: number | null
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_delivery_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_delivery_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_delivery_logs_dispatch_id_fkey"
+            columns: ["dispatch_id"]
+            isOneToOne: false
+            referencedRelation: "automation_v2_dispatches"
             referencedColumns: ["id"]
           },
         ]

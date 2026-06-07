@@ -13,7 +13,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight } from "lucide-react";
+import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight, Search } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Handshake } from "lucide-react";
 import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History } from "lucide-react";
@@ -77,6 +77,12 @@ function FinancesComponent() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [refundRequests, setRefundRequests] = useState<any[]>([]);
   const [loadingRefunds, setLoadingRefunds] = useState(false);
+  
+  // Refund filters
+  const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
+  const [refundDateStartFilter, setRefundDateStartFilter] = useState<string>("");
+  const [refundDateEndFilter, setRefundDateEndFilter] = useState<string>("");
+  const [refundSearchTerm, setRefundSearchTerm] = useState<string>("");
 
   const TIMEZONE = "America/Sao_Paulo";
 
@@ -224,11 +230,35 @@ function FinancesComponent() {
     if (!user) return;
     setLoadingRefunds(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("refund_requests")
         .select("*, customer:customers(name), appointment:appointments(service_name, start_time)")
-        .eq("tenant_id", user.id)
-        .order("created_at", { ascending: false });
+        .eq("tenant_id", user.id);
+      
+      if (refundStatusFilter !== "all") {
+        query = query.eq("status", refundStatusFilter);
+      }
+      
+      if (refundDateStartFilter) {
+        query = query.gte("created_at", `${refundDateStartFilter}T00:00:00Z`);
+      }
+      
+      if (refundDateEndFilter) {
+        query = query.lte("created_at", `${refundDateEndFilter}T23:59:59Z`);
+      }
+
+      if (refundSearchTerm) {
+        // Search by appointment_id or payment_id
+        // Since we can't easily OR different types in Supabase JS client with .or() for UUID vs string without extra care,
+        // we'll use a more flexible approach if possible or just filter by payment_id if it's not a UUID
+        if (refundSearchTerm.length === 36) { // Likely UUID
+           query = query.or(`appointment_id.eq.${refundSearchTerm},payment_id.ilike.%${refundSearchTerm}%`);
+        } else {
+           query = query.ilike('payment_id', `%${refundSearchTerm}%`);
+        }
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
       
       if (error) throw error;
       setRefundRequests(data || []);
@@ -238,6 +268,12 @@ function FinancesComponent() {
       setLoadingRefunds(false);
     }
   }
+
+  useEffect(() => {
+    if (user) {
+      fetchRefundRequests();
+    }
+  }, [refundStatusFilter, refundDateStartFilter, refundDateEndFilter, refundSearchTerm]);
 
   async function handleUpdateRefundStatus(refundId: string, newStatus: string, notes?: string) {
     try {
@@ -1690,6 +1726,59 @@ function FinancesComponent() {
           </TabsContent>
 
           <TabsContent value="refunds" className="pt-4 space-y-4">
+            {/* Refund Filters */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-zinc-900/30 border border-zinc-800 rounded-xl">
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Status</Label>
+                <Select value={refundStatusFilter} onValueChange={setRefundStatusFilter}>
+                  <SelectTrigger className="bg-[#05070d] border-[#1f2937] text-white">
+                    <SelectValue placeholder="Filtrar por status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#05070d] border-[#1f2937] text-white">
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    <SelectItem value="requested">Solicitados</SelectItem>
+                    <SelectItem value="approved">Aprovados</SelectItem>
+                    <SelectItem value="completed">Concluídos</SelectItem>
+                    <SelectItem value="rejected">Rejeitados</SelectItem>
+                    <SelectItem value="cancelled">Cancelados</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">De (Data)</Label>
+                <Input 
+                  type="date" 
+                  value={refundDateStartFilter} 
+                  onChange={(e) => setRefundDateStartFilter(e.target.value)}
+                  className="bg-[#05070d] border-[#1f2937] text-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Até (Data)</Label>
+                <Input 
+                  type="date" 
+                  value={refundDateEndFilter} 
+                  onChange={(e) => setRefundDateEndFilter(e.target.value)}
+                  className="bg-[#05070d] border-[#1f2937] text-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Busca (ID)</Label>
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                  <Input 
+                    placeholder="Appointment/Payment ID" 
+                    value={refundSearchTerm}
+                    onChange={(e) => setRefundSearchTerm(e.target.value)}
+                    className="bg-[#05070d] border-[#1f2937] text-white pl-9"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="border border-border rounded-xl bg-card text-foreground overflow-x-auto custom-scrollbar shadow-sm">
               <Table className="min-w-[800px] md:min-w-0">
                 <TableHeader className="bg-background">
