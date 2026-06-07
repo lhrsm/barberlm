@@ -116,6 +116,7 @@ function AutomationsComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [deliveryLogs, setDeliveryLogs] = useState<any[]>([]);
   const [loadingDeliveryLogs, setLoadingDeliveryLogs] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
   const [lastManualUpdate, setLastManualUpdate] = useState<Date | null>(null);
@@ -798,6 +799,46 @@ function AutomationsComponent() {
     }
   };
 
+
+  const handleResendWhatsApp = async (log: any) => {
+    if (isResending) return;
+    setIsResending(true);
+    const toastId = toast.loading("Preparando reenvio manual...");
+    try {
+      // Tenta encontrar o item na fila original para clonar ou criar um novo
+      const { data: queueItem } = await supabase
+        .from("automation_queue")
+        .select("*")
+        .or(`id.eq.${log.queue_id || ''},appointment_id.eq.${log.appointment_id || ''}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { 
+          tenant_id: tenantId, 
+          appointment_id: log.appointment_id,
+          automation_id: log.automation_id || queueItem?.automation_id,
+          workflow_key: log.workflow_key,
+          force_resend: true,
+          payload: queueItem?.payload || log.payload
+        }
+      });
+
+      if (error) throw error;
+      
+      toast.success("Notificação enviada para a fila de reenvio!", { id: toastId });
+      fetchData();
+      if (selectedLog?.id === log.id) {
+        fetchDeliveryLogs(log.id);
+      }
+    } catch (error: any) {
+      console.error("Resend error:", error);
+      toast.error("Erro ao reenviar: " + (error.message || "Erro desconhecido"), { id: toastId });
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleExportAudit = (log: any, format: 'csv' | 'json') => {
     if (!auditLogs.length) return;
