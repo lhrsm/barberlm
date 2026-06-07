@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Handshake } from "lucide-react";
 import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatInTimeZone, toDate } from "date-fns-tz";
@@ -74,6 +75,8 @@ function FinancesComponent() {
   const [barberDateFilter, setBarberDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [refundRequests, setRefundRequests] = useState<any[]>([]);
+  const [loadingRefunds, setLoadingRefunds] = useState(false);
 
   const TIMEZONE = "America/Sao_Paulo";
 
@@ -116,6 +119,7 @@ function FinancesComponent() {
       fetchTransactions(barberIdFilter);
       fetchBarbers();
       fetchAppointments(barberIdFilter);
+      fetchRefundRequests();
 
       // Realtime subscription
       const channel = supabase
@@ -136,6 +140,14 @@ function FinancesComponent() {
         }, () => {
           fetchAppointments(barberIdFilter);
           fetchTransactions(barberIdFilter);
+        })
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'refund_requests',
+          filter: `tenant_id=eq.${user.id}`
+        }, () => {
+          fetchRefundRequests();
         })
         .subscribe();
 
@@ -206,6 +218,49 @@ function FinancesComponent() {
 
     const { data } = await query.order("start_time", { ascending: false });
     setAppointments(data || []);
+  }
+
+  async function fetchRefundRequests() {
+    if (!user) return;
+    setLoadingRefunds(true);
+    try {
+      const { data, error } = await supabase
+        .from("refund_requests")
+        .select("*, customer:customers(name), appointment:appointments(service_name, start_time)")
+        .eq("tenant_id", user.id)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      setRefundRequests(data || []);
+    } catch (err: any) {
+      toast.error("Erro ao buscar solicitações de estorno");
+    } finally {
+      setLoadingRefunds(false);
+    }
+  }
+
+  async function handleUpdateRefundStatus(refundId: string, newStatus: string, notes?: string) {
+    try {
+      const updatePayload: any = { 
+        status: newStatus, 
+        updated_at: new Date().toISOString()
+      };
+
+      if (notes !== undefined) updatePayload.admin_notes = notes;
+      if (newStatus === 'completed') updatePayload.completed_at = new Date().toISOString();
+
+      const { error } = await supabase
+        .from("refund_requests")
+        .update(updatePayload)
+        .eq("id", refundId);
+
+      if (error) throw error;
+      
+      toast.success(`Solicitação ${newStatus === 'approved' ? 'aprovada' : newStatus === 'completed' ? 'marcada como paga' : 'rejeitada'}!`);
+      fetchRefundRequests();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao atualizar status");
+    }
   }
 
   const [totalCredits, setTotalCredits] = useState(0);

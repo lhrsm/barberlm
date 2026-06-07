@@ -4278,6 +4278,19 @@ export type Database = {
         Returns: string
       }
       reconcile_automation_logs: { Args: never; Returns: undefined }
+      request_appointment_refund: {
+        Args: {
+          p_account_holder_name: string
+          p_amount: number
+          p_appointment_id: string
+          p_customer_id: string
+          p_notes?: string
+          p_pix_key: string
+          p_pix_key_type: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       reschedule_appointment: {
         Args: {
           p_appointment_id: string
