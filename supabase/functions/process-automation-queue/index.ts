@@ -162,13 +162,14 @@ serve(async (req) => {
         };
 
         const testData = {
-          customer_name: appointment.customer?.name || "Cliente",
+          customer_name: appointment?.customer?.name || item.payload?.customer_name || "Cliente",
           barbershop_name: barbershopName,
-          service_name: appointment.service?.name || "Serviço",
+          service_name: appointment?.service?.name || "Serviço",
           professional_name: profName,
-          appointment_date: formatBrazilDate(appointment.start_time),
-          appointment_time: formatBrazilTime(appointment.start_time),
-          service_price: `R$ ${appointment.total_price || appointment.service?.price || 0}`,
+          appointment_date: appointment?.start_time ? formatBrazilDate(appointment.start_time) : "",
+          appointment_time: appointment?.start_time ? formatBrazilTime(appointment.start_time) : "",
+          service_price: appointment ? `R$ ${appointment.total_price || appointment.service?.price || 0}` : "R$ 0",
+          birth_date: item.payload?.birth_date || "",
         };
 
         const sendOptions: any = {};
