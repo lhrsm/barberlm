@@ -19,8 +19,13 @@ serve(async (req) => {
     
     // Timezone: America/Sao_Paulo
     const now = new Date();
-    const today = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-    const currentYear = today.getFullYear();
+    // Use offset to get Sao Paulo time
+    const spOffset = -3; // UTC-3
+    const today = new Date(now.getTime() + (spOffset * 60 * 60 * 1000));
+    
+    const currentYear = today.getUTCFullYear();
+    const currentMonth = today.getUTCMonth();
+    const currentDate = today.getUTCDate();
     
     // 1. Find barbershops (profiles) with opening_date
     const { data: shops, error: shopsError } = await supabase
@@ -38,12 +43,17 @@ serve(async (req) => {
     for (const shop of (shops || [])) {
       const openingDate = new Date(shop.opening_date);
       
-      // Calculate this year's anniversary
-      const anniversaryThisYear = new Date(currentYear, openingDate.getUTCMonth(), openingDate.getUTCDate());
+      // Anniversary day and month
+      const annMonth = openingDate.getUTCMonth();
+      const annDate = openingDate.getUTCDate();
       
-      // Check if today is anniversary or 7 days before
-      const diffTime = anniversaryThisYear.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      // Calculate anniversary this year
+      const anniversaryThisYear = new Date(Date.UTC(currentYear, annMonth, annDate));
+      
+      // Calculate diff in days
+      const todayUTC = new Date(Date.UTC(currentYear, currentMonth, currentDate));
+      const diffTime = anniversaryThisYear.getTime() - todayUTC.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
       
       let messageType: "reminder_7_days" | "anniversary_day" | null = null;
       
@@ -54,10 +64,9 @@ serve(async (req) => {
       }
 
       if (messageType) {
-        console.log(`[AnniversaryScheduler] Shop ${shop.business_name} (${shop.id}) has ${messageType} today!`);
+        console.log(`[AnniversaryScheduler] Shop ${shop.business_name} (${shop.id}) has ${messageType} today! (diffDays: ${diffDays})`);
         
         // Find active customers for this shop
-        // In this project, customers are linked via user_id (which is the profile id of the barber/tenant)
         const { data: customers, error: customersError } = await supabase
           .from("customers")
           .select("id, name, phone")
@@ -68,11 +77,24 @@ serve(async (req) => {
           continue;
         }
 
-        console.log(`[AnniversaryScheduler] Triggering messages for ${customers?.length || 0} customers.`);
+        // Get the template id
+        const { data: template } = await supabase
+          .from("automation_templates")
+          .select("id, active")
+          .eq("tenant_id", shop.tenant_id || shop.id)
+          .eq("key", "barbershop_anniversary")
+          .maybeSingle();
+
+        if (!template || !template.active) {
+          console.log(`[AnniversaryScheduler] Template not found or inactive for shop ${shop.id}`);
+          continue;
+        }
+
+        console.log(`[AnniversaryScheduler] Queueing messages for ${customers?.length || 0} customers.`);
 
         for (const customer of (customers || [])) {
-          // Check if already sent for this year and type (Idempotency)
-          const { data: existing } = await supabase
+          // Check if already sent OR ALREADY IN QUEUE for this year and type
+          const { data: existingDispatch } = await supabase
             .from("automation_v2_dispatches")
             .select("id")
             .eq("tenant_id", shop.tenant_id || shop.id)
@@ -82,64 +104,34 @@ serve(async (req) => {
             .eq("anniversary_message_type", messageType)
             .maybeSingle();
 
-          if (existing) {
-            console.log(`[AnniversaryScheduler] Skipping customer ${customer.id} - already sent.`);
-            continue;
-          }
+          if (existingDispatch) continue;
 
-          // Trigger automation engine for this customer
-          // The engine will handle the template and actual sending
-          // We can use process-automation-queue or invoke automation-v2-engine directly
-          // For simplicity and following project pattern, we'll create a record in automation_v2_dispatches 
-          // but wait, we need to send the message too.
-          
-          try {
-            // Get the template
-            const { data: template } = await supabase
-              .from("automation_templates")
-              .select("*")
-              .eq("tenant_id", shop.tenant_id || shop.id)
-              .eq("key", "barbershop_anniversary")
-              .maybeSingle();
+          const { data: existingQueue } = await supabase
+            .from("automation_queue")
+            .select("id")
+            .eq("tenant_id", shop.tenant_id || shop.id)
+            .eq("customer_id", customer.id)
+            .eq("workflow_key", "barbershop_anniversary")
+            .filter("payload->>anniversary_year", "eq", currentYear.toString())
+            .filter("payload->>anniversary_message_type", "eq", messageType)
+            .maybeSingle();
 
-            if (!template || !template.active) continue;
+          if (existingQueue) continue;
 
-            let renderedMessage = "";
-            if (messageType === "reminder_7_days") {
-              renderedMessage = `Olá ${customer.name || 'Cliente'} 👋\n\nO aniversário da ${shop.business_name} está chegando! 🎉\n\nFaltam apenas 7 dias para celebrarmos mais um ano dessa história com você.\n\nPrepare-se, porque vem comemoração especial por aí! 💈`;
-            } else {
-              renderedMessage = template.template.replace("{customer_name}", customer.name || 'Cliente').replace("{barbershop_name}", shop.business_name);
+          // Insert into queue
+          await supabase.from("automation_queue").insert({
+            tenant_id: shop.tenant_id || shop.id,
+            customer_id: customer.id,
+            automation_id: template.id,
+            workflow_key: "barbershop_anniversary",
+            status: "pending",
+            payload: {
+              customer_name: customer.name,
+              anniversary_message_type: messageType,
+              anniversary_year: currentYear,
+              coupon_code: "FESTEJE10"
             }
-
-            // Call the engine to send
-            const { data: engineResponse, error: engineError } = await supabase.functions.invoke("process-automation-queue", {
-              body: {
-                action: "trigger_direct",
-                params: {
-                  tenant_id: shop.tenant_id || shop.id,
-                  workflow_key: "barbershop_anniversary",
-                  customer_id: customer.id,
-                  customer_phone: customer.phone,
-                  customer_name: customer.name,
-                  message: renderedMessage,
-                  payload: {
-                    anniversary_message_type: messageType,
-                    anniversary_year: currentYear,
-                    coupon_code: "FESTEJE10"
-                  }
-                }
-              }
-            });
-
-            if (engineError) throw engineError;
-            
-            // The engine already creates the dispatch, but we need to ensure anniversary_year and type are set for idempotency.
-            // Since we added these columns, the engine's sendAutomationMessageV2 needs to know about them.
-            // I'll update the engine to pick these up from payload.
-            
-          } catch (e) {
-            console.error(`Error triggering for customer ${customer.id}:`, e);
-          }
+          });
         }
         
         results.push({ shop: shop.business_name, messageType, customersCount: customers?.length || 0 });
