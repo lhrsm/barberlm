@@ -220,14 +220,14 @@ serve(async (req) => {
         const sendResult = await sendAutomationMessageV2(supabase, {
           tenant_id: itemTenantId,
           workflow_key: automation.key,
-          appointment_id: appointment.id,
-          appointment_group_id: appointment.group_id || appointment.appointment_group_id,
-          customer_id: appointment.customer_id,
+          appointment_id: appointment?.id,
+          appointment_group_id: appointment?.group_id || appointment?.appointment_group_id,
+          customer_id: appointment?.customer_id || item.customer_id,
           customer_phone: phone,
-          customer_name: appointment.customer?.name,
+          customer_name: testData.customer_name,
           message: renderedTemplate,
           buttons: sendOptions.buttons,
-          payload: { data: testData, diagnostic: diagInfo },
+          payload: { ...testData, diagnostic: diagInfo, reference_year: item.reference_year },
           instance: instance
         });
 
