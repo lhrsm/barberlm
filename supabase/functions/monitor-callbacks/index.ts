@@ -30,6 +30,7 @@ serve(async (req) => {
     const { data: pendingDispatches, error: fetchErr } = await supabase
       .from("automation_v2_dispatches")
       .select("*")
+      .eq("requires_callback", true)
       .eq("callback_received", false)
       .eq("status", "sent")
       .lt("created_at", fiveMinutesAgo)

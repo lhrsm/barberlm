@@ -325,9 +325,10 @@ function AutomationsComponent() {
       const { count: totalSent } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
       const { count: totalSuccess } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "sent");
       const { count: totalFailed } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "error");
-      const { count: totalCallbacks } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("callback_received", true);
+      const { count: totalCallbacks } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("requires_callback", true).eq("callback_received", true);
       const { count: totalDispatches } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
       const { count: totalSessions } = await anySupabase.from("automation_v2_sessions").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
+      const { count: pendingCallbacksCount } = await anySupabase.from("automation_v2_dispatches").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("requires_callback", true).eq("callback_received", false);
       const { count: totalDuplicate } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("action", "duplicate_confirmation_blocked");
       const { count: totalNotFound } = await supabase.from("automation_logs").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "not_found");
       const { data: lastLogData } = await anySupabase.from("automation_v2_dispatches").select("created_at").eq("tenant_id", tenantId).eq("status", "sent").order("created_at", { ascending: false }).limit(1).maybeSingle();
@@ -363,7 +364,7 @@ function AutomationsComponent() {
         notFound: totalNotFound || 0,
         lastSent: lastLogData?.created_at || null,
         lastUpdate: new Date(),
-        pendingCallbacks: (totalSent || 0) - (totalCallbacks || 0),
+        pendingCallbacks: pendingCallbacksCount || 0,
         callbacksReceived: totalCallbacks || 0,
         dispatchesCreated: totalDispatches || 0,
         sessionsCreated: totalSessions || 0
@@ -423,6 +424,7 @@ function AutomationsComponent() {
         .from("automation_v2_dispatches")
         .select("*")
         .eq("tenant_id", tenantId)
+        .eq("requires_callback", true)
         .eq("callback_received", false)
         .eq("status", "sent")
         .order("created_at", { ascending: false })
