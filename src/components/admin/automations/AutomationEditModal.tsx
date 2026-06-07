@@ -53,6 +53,7 @@ export function AutomationEditModal({
     template: "",
     buttons: [],
     trigger_event: "appointment.created",
+    requires_callback: false,
   });
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export function AutomationEditModal({
         template: automation.template || "",
         buttons: automation.buttons || [],
         trigger_event: automation.trigger_event || "appointment.created",
+        requires_callback: automation.requires_callback ?? false,
       });
     }
   }, [automation]);
@@ -85,6 +87,7 @@ export function AutomationEditModal({
           channel: formData.channel,
           template: formData.template,
           buttons: formData.buttons,
+          requires_callback: formData.requires_callback,
         })
         .eq("id", automation.id);
 
@@ -120,6 +123,18 @@ export function AutomationEditModal({
               id="active"
               checked={formData.active}
               onCheckedChange={(checked) => setFormData({ ...formData, active: checked })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="requires_callback">Exige resposta do cliente</Label>
+              <p className="text-[10px] text-muted-foreground">Ative para automações com botões que aguardam interação.</p>
+            </div>
+            <Switch
+              id="requires_callback"
+              checked={formData.requires_callback}
+              onCheckedChange={(checked) => setFormData({ ...formData, requires_callback: checked })}
             />
           </div>
 
