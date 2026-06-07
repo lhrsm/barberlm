@@ -1162,6 +1162,32 @@ function BarbersComponent() {
             )}
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent className="bg-[#0b0f17] border border-amber-500/20 text-white rounded-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-xl font-bold flex items-center gap-2">
+                <AlertTriangle className="text-red-500" />
+                Confirmar Exclusão
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-white/60">
+                Você tem certeza que deseja excluir o profissional <span className="text-white font-semibold">{barberToDelete?.name}</span>?
+                Esta ação não pode ser desfeita e removerá todos os dados vinculados a este barbeiro.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="mt-6">
+              <AlertDialogCancel className="bg-transparent border-white/10 text-white hover:bg-white/5 hover:text-white rounded-xl">
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => barberToDelete && handleDeleteBarber(barberToDelete.id)}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl border-none"
+              >
+                Excluir Permanentemente
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
