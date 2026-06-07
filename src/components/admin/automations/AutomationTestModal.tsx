@@ -38,6 +38,8 @@ export function AutomationTestModal({
 }: AutomationTestModalProps) {
   const [phone, setPhone] = useState("");
   const [testType, setTestType] = useState("fictitious");
+  const [anniversarySubType, setAnniversarySubType] = useState("anniversary_day");
+  const [reminderSubType, setReminderSubType] = useState("30m");
   const [isTesting, setIsTesting] = useState(false);
   const [isLoadingRealData, setIsLoadingRealData] = useState(false);
   const [realData, setRealData] = useState<any>(null);
@@ -240,7 +242,38 @@ export function AutomationTestModal({
     return result;
   };
 
-  const renderedTemplate = replaceVariables(automation?.template || "", testData);
+  const getBaseTemplate = () => {
+    if (automation?.key === 'barbershop_anniversary') {
+      if (anniversarySubType === 'reminder_7_days') {
+        return automation.additional_templates?.reminder_7_days || `Olá {customer_name} 👋\n\nO aniversário da {barbershop_name} está chegando! 🎉\n\nFaltam apenas 7 dias para celebrarmos mais um ano dessa história com você.\n\nPrepare-se, porque vem comemoração especial por aí! 💈`;
+      }
+      return automation.template || `Olá {customer_name} 🎉\n\nHoje é aniversário da {barbershop_name}! 💈\n\nE quem ganha presente é você.\n\nPara comemorar com a gente, você recebeu um cupom especial para usar em nossos produtos ou serviços na barbearia.\n\n🎁 Cupom: FESTEJE10\n\nAproveite hoje e venha celebrar esse momento com a gente!`;
+    }
+    
+    if (automation?.key === 'appointment_reminder') {
+      if (reminderSubType === '6h') {
+        return `Olá {customer_name} 👋\n\nPassando para lembrar do seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nEstamos te esperando!`;
+      }
+      if (reminderSubType === '1h') {
+        return `Olá {customer_name} 👋\n\nSeu atendimento na {barbershop_name} está chegando.\n\n⏰ Falta apenas 1 hora para o seu agendamento.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}`;
+      }
+      if (reminderSubType === '30m') {
+        return `Olá {customer_name} 👋\n\nFaltam 30 minutos para o seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}\n\nDeseja confirmar, reagendar ou cancelar?`;
+      }
+    }
+
+    if (automation?.key === 'customer_birthday') {
+      return automation.template || `Olá {customer_name} 🎉\n\nA {barbershop_name} te felicita pelo seu aniversário!\n\nQue seu dia seja especial e cheio de boas comemorações. 🥳\n\nE para comemorar com a gente, você ganhou um cupom especial para usar em nossos produtos ou serviços na barbearia.\n\n🎁 Cupom: ANIVERSARIO10\n\nEsperamos você para celebrar esse momento com estilo! 💈`;
+    }
+
+    if (automation?.key === 'appointment_confirmation') {
+      return `Olá {customer_name} 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}`;
+    }
+
+    return automation?.template || "";
+  };
+
+  const renderedTemplate = replaceVariables(getBaseTemplate(), testData);
 
   const handleSimulateTrigger = async () => {
     if (!selectedAppointmentId) {
@@ -315,6 +348,8 @@ export function AutomationTestModal({
           await (supabase as any).from("automation_v2_dispatches").insert({
             tenant_id: automation.tenant_id,
             workflow_key: automation.key || 'test_manual',
+            event_name: automation.trigger_event || 'test.manual',
+            test_mode: true,
             flow_type: 'single',
             phone: phone,
             customer_phone: phone,
@@ -466,6 +501,70 @@ export function AutomationTestModal({
               </label>
             </RadioGroup>
           </div>
+
+          {automation?.key === 'barbershop_anniversary' && (
+            <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+              <Label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Tipo de Mensagem</Label>
+              <RadioGroup value={anniversarySubType} onValueChange={setAnniversarySubType} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label 
+                  htmlFor="reminder_7_days"
+                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    anniversarySubType === "reminder_7_days" ? "bg-amber-500/10 border-amber-500/50" : "bg-slate-900/50 border-slate-800"
+                  }`}
+                >
+                  <RadioGroupItem value="reminder_7_days" id="reminder_7_days" className="border-amber-500" />
+                  <span className="text-sm font-medium">7 dias antes</span>
+                </label>
+                
+                <label 
+                  htmlFor="anniversary_day"
+                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    anniversarySubType === "anniversary_day" ? "bg-amber-500/10 border-amber-500/50" : "bg-slate-900/50 border-slate-800"
+                  }`}
+                >
+                  <RadioGroupItem value="anniversary_day" id="anniversary_day" className="border-amber-500" />
+                  <span className="text-sm font-medium">No dia</span>
+                </label>
+              </RadioGroup>
+            </div>
+          )}
+
+          {automation?.key === 'appointment_reminder' && (
+            <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+              <Label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Momento do Lembrete</Label>
+              <RadioGroup value={reminderSubType} onValueChange={setReminderSubType} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <label 
+                  htmlFor="6h"
+                  className={`flex items-center gap-2 p-2 rounded-xl border cursor-pointer transition-all ${
+                    reminderSubType === "6h" ? "bg-amber-500/10 border-amber-500/50" : "bg-slate-900/50 border-slate-800"
+                  }`}
+                >
+                  <RadioGroupItem value="6h" id="6h" className="border-amber-500" />
+                  <span className="text-[10px] font-medium">6 horas</span>
+                </label>
+                
+                <label 
+                  htmlFor="1h"
+                  className={`flex items-center gap-2 p-2 rounded-xl border cursor-pointer transition-all ${
+                    reminderSubType === "1h" ? "bg-amber-500/10 border-amber-500/50" : "bg-slate-900/50 border-slate-800"
+                  }`}
+                >
+                  <RadioGroupItem value="1h" id="1h" className="border-amber-500" />
+                  <span className="text-[10px] font-medium">1 hora</span>
+                </label>
+
+                <label 
+                  htmlFor="30m"
+                  className={`flex items-center gap-2 p-2 rounded-xl border cursor-pointer transition-all ${
+                    reminderSubType === "30m" ? "bg-amber-500/10 border-amber-500/50" : "bg-slate-900/50 border-slate-800"
+                  }`}
+                >
+                  <RadioGroupItem value="30m" id="30m" className="border-amber-500" />
+                  <span className="text-[10px] font-medium">30 min</span>
+                </label>
+              </RadioGroup>
+            </div>
+          )}
 
           {testType === "real" && recentAppointments.length > 0 && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
