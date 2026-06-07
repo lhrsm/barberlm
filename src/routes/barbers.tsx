@@ -785,14 +785,14 @@ function BarbersComponent() {
                 <RefreshCcw size={16} /> Tentar novamente
               </Button>
             </div>
-          ) : barbers.length === 0 ? (
+          ) : filteredBarbers.length === 0 ? (
             <div className="col-span-full text-center py-20 border border-dashed border-amber-500/20 rounded-[20px] bg-[#0b0f17] text-muted-foreground">
               <UserRound size={64} className="mx-auto mb-4 opacity-10 text-amber-500" />
-              <p className="text-lg font-medium text-white/60">Nenhum profissional cadastrado ainda.</p>
-              <p className="text-sm mt-1">Comece adicionando seu primeiro barbeiro.</p>
+              <p className="text-lg font-medium text-white/60">Nenhum profissional encontrado.</p>
+              <p className="text-sm mt-1">Tente ajustar seus filtros ou busca.</p>
             </div>
           ) : (
-            barbers.map((barber) => (
+            filteredBarbers.map((barber) => (
               <div 
                 key={barber.id} 
                 className="group relative p-6 border border-amber-500/20 rounded-[20px] bg-[#0b0f17] shadow-xl hover:border-amber-500/50 transition-all duration-500 hover:-translate-y-1 flex flex-col justify-between"
