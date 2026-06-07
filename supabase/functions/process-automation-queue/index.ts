@@ -175,14 +175,12 @@ serve(async (req) => {
         let renderedTemplate = "";
 
         if (automation.key === 'appointment_confirmation') {
-          sendOptions.buttons = [
-            { id: "main_confirm", label: "Confirmar agendamento" },
-            { id: "main_reschedule", label: "Reagendar" },
-            { id: "main_cancel", label: "Cancelar" }
-          ];
-          renderedTemplate = `Olá ${testData.customer_name} 👋\n\nSeu agendamento na ${testData.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n📅 Data: ${testData.appointment_date}\n⏰ Horário: ${testData.appointment_time}\n\nO que deseja fazer?`;
+          // Rule: No buttons on initial confirmation
+          renderedTemplate = `Olá ${testData.customer_name} 👋\n\nSeu agendamento na ${testData.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n📅 Data: ${testData.appointment_date}\n⏰ Horário: ${testData.appointment_time}`;
         } else if (automation.key === 'appointment_reminder') {
           const type = item.payload?.reminder_type || "6h";
+          
+          // Rule: Only 30m reminder has buttons
           if (type === "30m") {
             sendOptions.buttons = [
               { id: "reminder_confirm", label: "Confirmar agendamento" },

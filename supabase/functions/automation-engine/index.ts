@@ -72,14 +72,34 @@ async function scheduleAppointmentReminders(supabase: any) {
     .order("start_time", { ascending: true })
     .limit(100);
 
-  if (error || !appointments) return;
-
+  if (error) {
+    console.error("[AutomationEngine] Appointments error:", error);
+    return;
+  }
+  
+  console.log(`[AutomationEngine] Found ${appointments?.length || 0} potential appointments`);
+  
   for (const app of appointments) {
     const startTime = new Date(app.start_time);
     const createdAt = new Date(app.created_at);
     const diffHours = (startTime.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
 
+    console.log(`[AutomationEngine] Checking app ${app.id}: diffHours=${diffHours.toFixed(1)}`);
+
     if (diffHours < 12) continue;
+
+    const { data: reminderTemplate } = await supabase
+      .from("automation_templates")
+      .select("id")
+      .eq("tenant_id", app.tenant_id)
+      .eq("key", "appointment_reminder")
+      .eq("active", true)
+      .maybeSingle();
+
+    if (!reminderTemplate) {
+      console.log(`[AutomationEngine] No active reminder template for tenant ${app.tenant_id}`);
+      continue;
+    }
 
     const intervals = [
       { type: "6h", minutes: 360 },
@@ -94,8 +114,9 @@ async function scheduleAppointmentReminders(supabase: any) {
       if (scheduledFor.getTime() < new Date().getTime()) continue;
 
       try {
-        await supabase.from("automation_queue").insert({
+        const { error: insertError } = await supabase.from("automation_queue").insert({
           tenant_id: app.tenant_id,
+          automation_id: reminderTemplate.id,
           appointment_id: app.id,
           customer_id: app.customer_id,
           workflow_key: "appointment_reminder",
@@ -104,8 +125,16 @@ async function scheduleAppointmentReminders(supabase: any) {
           scheduled_for: scheduledFor.toISOString(),
           payload: { reminder_type: interval.type }
         });
+        
+        if (insertError) {
+          if (insertError.code !== '23505') { // Not a unique violation
+            console.error(`[AutomationEngine] Insert error for ${interval.type}:`, insertError);
+          }
+        } else {
+          console.log(`[AutomationEngine] Scheduled ${interval.type} reminder for app ${app.id}`);
+        }
       } catch (e) {
-        // Unique constraint will prevent duplicates
+        // Silent
       }
     }
   }
@@ -131,6 +160,19 @@ async function scheduleBirthdayMessages(supabase: any) {
   }
 
   for (const customer of customers) {
+    const { data: bdayTemplate } = await supabase
+      .from("automation_templates")
+      .select("id")
+      .eq("tenant_id", customer.tenant_id)
+      .eq("key", "customer_birthday")
+      .eq("active", true)
+      .maybeSingle();
+
+    if (!bdayTemplate) {
+      console.log(`[AutomationEngine] No active birthday template for tenant ${customer.tenant_id}`);
+      continue;
+    }
+
     // Scheduled for 09:00 AM Brazil time today
     const scheduledFor = new Date(nowBrazil);
     scheduledFor.setHours(9, 0, 0, 0);
@@ -142,6 +184,7 @@ async function scheduleBirthdayMessages(supabase: any) {
     try {
       await supabase.from("automation_queue").insert({
         tenant_id: customer.tenant_id,
+        automation_id: bdayTemplate.id,
         customer_id: customer.id,
         workflow_key: "customer_birthday",
         event_name: "customer.birthday",

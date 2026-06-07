@@ -69,7 +69,7 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
 
   // 2. Create session if it's a flow that expects response
   let session_id = null;
-  const isConfirmation = workflow_key === 'appointment_confirmation' || (buttons && buttons.length > 0);
+  const isConfirmation = (buttons && buttons.length > 0);
   
   if (isConfirmation) {
     const expiresAt = new Date();
