@@ -313,8 +313,8 @@ export function AppointmentModal({
       let finalAmount = totalPrice;
       let usedCredits = 0;
 
-      // Logic for using existing credits
-      if (paymentMethod === 'wallet' || (customer?.credits && customer.credits > 0)) {
+      // Use customer available credits if payment method is "wallet" or if they have balance
+      if (paymentMethod === 'wallet' || (customer?.credits && Number(customer.credits) > 0)) {
         const availableCredits = Number(customer?.credits || 0);
         usedCredits = Math.min(availableCredits, totalPrice);
         finalAmount = totalPrice - usedCredits;
@@ -332,9 +332,9 @@ export function AppointmentModal({
         original_total: totalPrice,
         status: "confirmed",
         payment_status: finalAmount === 0 ? 'paid' : paymentStatus,
-        payment_method: usedCredits > 0 && finalAmount === 0 ? 'credits' : (paymentMethod || 'cash'),
+        payment_method: usedCredits > 0 ? (finalAmount === 0 ? 'credits' : 'mixed') : (paymentMethod || 'cash'),
         credit_used: usedCredits,
-        final_amount: paymentStatus === 'paid' ? 0 : finalAmount,
+        final_amount: finalAmount,
         source: 'admin',
         confirmation_sent: false,
         items: [{
@@ -345,6 +345,18 @@ export function AppointmentModal({
           quantity: 1
         }]
       };
+
+      // If credits used, call RPC to deduct atomically
+      if (usedCredits > 0) {
+        const { data: creditRes, error: creditErr } = await supabase.rpc('use_customer_credits', {
+          p_customer_id: selectedCustomer,
+          p_amount: usedCredits
+        });
+
+        if (creditErr || !(creditRes as any)?.success) {
+          throw new Error((creditRes as any)?.error || "Erro ao utilizar créditos");
+        }
+      }
 
       let appointmentData;
       if (editingAppointmentId) {
@@ -374,13 +386,6 @@ export function AppointmentModal({
         appointmentData = data;
       }
 
-      // Deduct credits from customer if used
-      if (usedCredits > 0) {
-        await supabase
-          .from("customers")
-          .update({ credits: Number(customer?.credits || 0) - usedCredits })
-          .eq("id", selectedCustomer);
-      }
 
       // Notifications
       const barber = barbers.find(b => b.id === selectedBarber);
@@ -594,32 +599,36 @@ export function AppointmentModal({
                         <span className="font-medium">{services.find(s => s.id === selectedService)?.name}</span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
-                        <span className="text-muted-foreground">Data:</span>
-                        <span className="font-medium">{format(parseISO(selectedDate), "dd/MM/yyyy")}</span>
-                      </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-muted-foreground">Hora:</span>
-                        <span className="font-medium">{selectedTime}</span>
+                        <span className="text-muted-foreground">Data/Hora:</span>
+                        <span className="font-medium">{format(parseISO(selectedDate), "dd/MM/yyyy")} às {selectedTime}</span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">Cliente:</span>
                         <span className="font-medium">{customers.find(c => c.id === selectedCustomer)?.name}</span>
                       </div>
-                      <div className="flex justify-between pt-2">
-                        <span className="font-bold">Total:</span>
-                        <div className="text-right">
-                          <span className="font-bold text-primary block">R$ {services.find(s => s.id === selectedService)?.price}</span>
-                          {customers.find(c => c.id === selectedCustomer)?.credits > 0 && (
-                            <span className="text-[10px] text-emerald-600 font-bold uppercase">
-                              Saldo disponível: R$ {Number(customers.find(c => c.id === selectedCustomer)?.credits).toFixed(2)}
-                            </span>
-                          )}
+                      
+                      <div className="space-y-1 pt-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Valor do Serviço:</span>
+                          <span>R$ {services.find(s => s.id === selectedService)?.price}</span>
+                        </div>
+                        
+                        {Number(customers.find(c => c.id === selectedCustomer)?.credits || 0) > 0 && (
+                          <div className="flex justify-between text-sm text-emerald-600 font-bold">
+                            <span>Crédito Aplicado:</span>
+                            <span>-R$ {Math.min(Number(customers.find(c => c.id === selectedCustomer)?.credits || 0), services.find(s => s.id === selectedService)?.price || 0).toFixed(2)}</span>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between pt-2 border-t font-bold text-lg">
+                          <span>Total a Pagar:</span>
+                          <span className="text-primary">R$ {Math.max(0, (services.find(s => s.id === selectedService)?.price || 0) - (Number(customers.find(c => c.id === selectedCustomer)?.credits || 0))).toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="space-y-2 mt-4">
-                      <Label>Status do Pagamento</Label>
+                      <Label>Status do Pagamento (Restante)</Label>
                       <Select 
                         value={paymentStatus} 
                         onValueChange={setPaymentStatus}
@@ -628,14 +637,14 @@ export function AppointmentModal({
                           <SelectValue placeholder="Selecione o status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Pendente (Pagar na Barbearia)</SelectItem>
-                          <SelectItem value="paid">Pago (Já recebido)</SelectItem>
+                          <SelectItem value="pending">Pendente</SelectItem>
+                          <SelectItem value="paid">Pago</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Forma de Pagamento</Label>
+                      <Label>Forma de Pagamento (Restante)</Label>
                       <Select 
                         value={paymentMethod} 
                         onValueChange={setPaymentMethod}
