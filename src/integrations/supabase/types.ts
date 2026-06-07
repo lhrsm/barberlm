@@ -4118,10 +4118,13 @@ export type Database = {
       get_appointment_by_management_token: {
         Args: { p_token: string }
         Returns: {
+          barber_id: string
           business_name: string
           business_phone: string
           customer_name: string
+          end_time: string
           id: string
+          professional_id: string
           professional_name: string
           service_name: string
           start_time: string
