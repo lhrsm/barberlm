@@ -134,11 +134,10 @@ function AppointmentGroupPage() {
     }
   };
 
-  const handleCancelSelected = async () => {
+  const handleCancelSelected = async (preference: 'credit' | 'refund' = 'credit') => {
     if (selectedIds.length === 0) return;
     setCancelling(true);
     try {
-      // Loop through selected and cancel individually for now (or create a new RPC for bulk)
       for (const id of selectedIds) {
         const appt = appointments.find(a => a.id === id);
         if (!appt) continue;
@@ -154,14 +153,27 @@ function AppointmentGroupPage() {
         };
 
         if (isPaid) {
-            // Default to credit for bulk cancellation for simplicity
-            rpcName = 'convert_appointment_to_credit';
-            rpcParams = {
+            if (preference === 'refund') {
+              rpcName = 'request_appointment_refund';
+              rpcParams = {
                 p_appointment_id: id,
                 p_customer_id: group.customer_id,
                 p_tenant_id: group.tenant_id,
-                p_amount: Number(appt.service_amount)
-            };
+                p_amount: Number(appt.service_amount),
+                p_pix_key: 'Solicitado via Link de Grupo',
+                p_pix_key_type: 'bulk_request',
+                p_account_holder_name: group.customer_name,
+                p_notes: 'Cancelamento parcial de grupo'
+              };
+            } else {
+              rpcName = 'convert_appointment_to_credit';
+              rpcParams = {
+                  p_appointment_id: id,
+                  p_customer_id: group.customer_id,
+                  p_tenant_id: group.tenant_id,
+                  p_amount: Number(appt.service_amount)
+              };
+            }
         }
 
         const { error: rpcError } = await supabase.rpc(rpcName as any, rpcParams);
