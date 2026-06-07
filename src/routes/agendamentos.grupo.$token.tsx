@@ -374,24 +374,43 @@ function AppointmentGroupPage() {
             </DialogTitle>
             <DialogDescription className="text-zinc-400 font-medium pt-2">
               Deseja realmente cancelar os {selectedIds.length} agendamentos selecionados?
-              {group.payment_status === 'paid' && " Os valores pagos serão convertidos em crédito automaticamente."}
+              {group.payment_status === 'paid' && " Escolha como deseja receber o valor pago."}
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4">
+          <DialogFooter className="flex flex-col gap-3 pt-4">
+            {group.payment_status === 'paid' ? (
+              <>
+                <Button 
+                  onClick={() => handleCancelSelected('credit')}
+                  disabled={cancelling}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-600/20"
+                >
+                  {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Converter em Crédito"}
+                </Button>
+                <Button 
+                  onClick={() => handleCancelSelected('refund')}
+                  disabled={cancelling}
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
+                >
+                  {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Solicitar Estorno (Pix)"}
+                </Button>
+              </>
+            ) : (
+              <Button 
+                onClick={() => handleCancelSelected('credit')}
+                disabled={cancelling}
+                className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
+              >
+                {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Sim, Cancelar"}
+              </Button>
+            )}
             <Button 
               variant="outline" 
               onClick={() => setIsCancelModalOpen(false)}
-              className="bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 flex-1 font-bold uppercase tracking-widest text-[10px]"
+              className="bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 w-full font-bold uppercase tracking-widest text-[10px]"
             >
               Manter Agendamentos
-            </Button>
-            <Button 
-              onClick={handleCancelSelected}
-              disabled={cancelling}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 flex-1 font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
-            >
-              {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Sim, Cancelar"}
             </Button>
           </DialogFooter>
         </DialogContent>
