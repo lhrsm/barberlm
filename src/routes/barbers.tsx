@@ -872,51 +872,87 @@ function BarbersComponent() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-white/5">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 h-10 border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-black transition-all duration-300 font-semibold"
-                    onClick={() => toast.info("Relatório em breve")}
-                  >
-                    Desempenho
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 h-10 border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-black transition-all duration-300 font-semibold"
+                          onClick={() => toast.info("Relatório em breve")}
+                        >
+                          Desempenho
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Ver métricas e desempenho do profissional</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   
                   <div className="flex items-center gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-10 w-10 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-xl transition-all"
-                      onClick={() => {
-                        setEditingBarber(barber);
-                        setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
-                        setIsEditDialogOpen(true);
-                      }}
-                      title="Editar"
-                    >
-                      <Pencil size={18} />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-10 w-10 text-white/40 hover:text-blue-400 hover:bg-blue-400/10 rounded-xl transition-all"
+                            onClick={() => {
+                              setEditingBarber(barber);
+                              setSelectedServices(barber.barber_services?.map((bs: any) => bs.service_id) || []);
+                              setIsEditDialogOpen(true);
+                            }}
+                          >
+                            <Pencil size={18} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Editar informações do profissional</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     
                     {plan !== 'free' && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-10 w-10 text-white/40 hover:text-amber-400 hover:bg-amber-400/10 rounded-xl transition-all"
-                        onClick={() => handleDuplicateBarber(barber)}
-                        title="Duplicar"
-                      >
-                        <Copy size={18} />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-10 w-10 text-white/40 hover:text-amber-400 hover:bg-amber-400/10 rounded-xl transition-all"
+                              onClick={() => handleDuplicateBarber(barber)}
+                            >
+                              <Copy size={18} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Duplicar este profissional</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                     
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-10 w-10 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
-                      onClick={() => handleDeleteBarber(barber.id)}
-                      title="Excluir"
-                    >
-                      <Trash2 size={18} />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-10 w-10 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
+                            onClick={() => {
+                              setBarberToDelete(barber);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 size={18} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Remover profissional permanentemente</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
               </div>
