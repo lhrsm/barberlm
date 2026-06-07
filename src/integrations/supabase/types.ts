@@ -172,6 +172,7 @@ export type Database = {
           notes: string | null
           original_total: number | null
           payment_breakdown: Json | null
+          payment_id: string | null
           payment_method: string | null
           payment_status: string | null
           pix_amount: number | null
@@ -232,6 +233,7 @@ export type Database = {
           notes?: string | null
           original_total?: number | null
           payment_breakdown?: Json | null
+          payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
           pix_amount?: number | null
@@ -292,6 +294,7 @@ export type Database = {
           notes?: string | null
           original_total?: number | null
           payment_breakdown?: Json | null
+          payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
           pix_amount?: number | null
@@ -2074,6 +2077,77 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_credits: {
+        Row: {
+          amount: number
+          appointment_id: string | null
+          available_amount: number | null
+          created_at: string | null
+          customer_id: string
+          id: string
+          payment_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string | null
+          used_amount: number
+        }
+        Insert: {
+          amount?: number
+          appointment_id?: string | null
+          available_amount?: number | null
+          created_at?: string | null
+          customer_id: string
+          id?: string
+          payment_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string | null
+          used_amount?: number
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string | null
+          available_amount?: number | null
+          created_at?: string | null
+          customer_id?: string
+          id?: string
+          payment_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+          used_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_credits_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_credits_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
+          },
+          {
+            foreignKeyName: "customer_credits_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_credits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4098,6 +4172,15 @@ export type Database = {
           p_changed_by_type?: string
           p_metadata?: Json
           p_source?: string
+        }
+        Returns: Json
+      }
+      convert_appointment_to_credit: {
+        Args: {
+          p_amount: number
+          p_appointment_id: string
+          p_customer_id: string
+          p_tenant_id: string
         }
         Returns: Json
       }
