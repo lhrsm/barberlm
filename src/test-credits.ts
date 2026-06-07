@@ -14,12 +14,12 @@ async function testCreditFlow() {
     if (!tenant) throw new Error("No tenant found");
 
     // Try to find any customer or create a dummy one
-    let { data: customer } = await supabase.from('customers').select('id, credits').eq('tenant_id', tenant.id).limit(1).maybeSingle();
+    let { data: customer } = await supabase.from('customers').select('id, credits').eq('user_id', tenant.id).limit(1).maybeSingle();
     
     if (!customer) {
         console.log("No customer found, creating a dummy one...");
         const { data: newCustomer, error: createErr } = await supabase.from('customers').insert({
-            tenant_id: tenant.id,
+            user_id: tenant.id,
             name: 'Test Customer',
             phone: '11999999999'
         }).select().single();
@@ -34,21 +34,25 @@ async function testCreditFlow() {
     console.log("\n--- Scenario 1: Paid Pix -> Convert to Credit ---");
     
     // Create a dummy paid appointment
+    // We need a service and barber ID to satisfy references
+    const { data: barber } = await supabase.from('barbers').select('id').eq('user_id', tenant.id).limit(1).single();
+    const { data: service } = await supabase.from('services').select('id').eq('user_id', tenant.id).limit(1).single();
+
+    if (!barber || !service) throw new Error("Need at least one barber and one service to test");
+
     const { data: appointment, error: apptErr } = await supabase.from('appointments').insert({
-      tenant_id: tenant.id,
       user_id: tenant.id,
       customer_id: customer.id,
-      service_id: '00000000-0000-0000-0000-000000000000', // Assuming a service exists or using a dummy UUID
-      barber_id: '00000000-0000-0000-0000-000000000000',
+      service_id: service.id,
+      barber_id: barber.id,
       start_time: new Date().toISOString(),
       end_time: new Date(Date.now() + 3600000).toISOString(),
       total_price: 100,
-      final_amount: 100,
       payment_status: 'paid',
       payment_method: 'pix',
       payment_id: 'pix_test_123',
       status: 'confirmed'
-    }).select().single();
+    } as any).select().single();
 
     if (apptErr) {
         console.error("Error creating test appointment:", apptErr);
