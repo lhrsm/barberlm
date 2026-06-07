@@ -79,8 +79,8 @@ Deno.test({
       .select("*")
       .eq("queue_id", queueId);
     
-    assertEquals(deliveryLogs.length, 1);
-    assertEquals(deliveryLogs[0].status, 'failed');
+    assertEquals(deliveryLogs?.length, 1);
+    assertEquals(deliveryLogs?.[0].status, 'failed');
 
     // 3. Test: Duplicate Protection
     console.log("Testing duplicate protection...");
