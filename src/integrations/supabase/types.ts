@@ -4350,7 +4350,7 @@ export type Database = {
           p_cancelled_by: string
           p_changed_by_id?: string
           p_refund_preference?: string
-          p_source: string
+          p_source?: string
         }
         Returns: Json
       }
@@ -4529,7 +4529,7 @@ export type Database = {
         Args: {
           p_appointment_id: string
           p_changed_by_id?: string
-          p_changed_by_type: string
+          p_changed_by_type?: string
           p_metadata?: Json
           p_new_end_time: string
           p_new_start_time: string
