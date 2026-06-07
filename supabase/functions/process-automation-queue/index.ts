@@ -112,7 +112,8 @@ serve(async (req) => {
       try {
         const { appointment, automation, tenant_id: itemTenantId } = item;
         
-        if (!appointment || !automation) throw new Error("Data incomplete");
+        const isBirthday = automation?.key === 'customer_birthday';
+        if (!automation || (!appointment && !isBirthday)) throw new Error("Data incomplete");
 
         if (!force_resend && appointment.confirmation_sent) {
           const { data: activeSess } = await supabase
