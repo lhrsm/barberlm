@@ -22,10 +22,12 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy, Trash2, Clock } from "lucide-react";
+import { UserPlus, UserRound, Phone, Mail, AlertTriangle, Upload, Loader2, Star, Crown, Copy, Trash2, Clock, Pencil, BarChart3, RefreshCcw } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/barbers")({
   component: BarbersComponent,
@@ -52,7 +54,7 @@ const DAY_LABELS: Record<string, string> = {
 };
 
 function BarbersComponent() {
-  const { user, loading, role } = useAuth();
+  const { user, loading: authLoading, role } = useAuth();
   const navigate = useNavigate();
   const { plan, limits, usage, checkLimit, refresh: refreshLimits } = usePlanLimits();
   const [barbers, setBarbers] = useState<any[]>([]);
@@ -61,6 +63,8 @@ function BarbersComponent() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingBarber, setEditingBarber] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [newBarber, setNewBarber] = useState({ 
     name: "", 
     phone: "", 
@@ -74,23 +78,34 @@ function BarbersComponent() {
   const canAddBarber = checkLimit("barbers");
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate({ to: "/auth" });
       return;
     }
 
-    if (!loading && user && role === 'super_admin') {
+    if (!authLoading && user && role === 'super_admin') {
       navigate({ to: "/admin" });
       return;
     }
-  }, [user, loading, role, navigate]);
+  }, [user, authLoading, role, navigate]);
 
   useEffect(() => {
     if (user && role !== 'super_admin') {
-      fetchBarbers();
-      fetchServices();
+      fetchData();
     }
   }, [user, role]);
+
+  async function fetchData() {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await Promise.all([fetchBarbers(), fetchServices()]);
+    } catch (err: any) {
+      setError(err.message || "Erro ao carregar dados");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function fetchServices() {
     if (!user) return;
@@ -100,7 +115,7 @@ function BarbersComponent() {
       .eq("tenant_id", user.id)
       .eq("active", true)
       .order("name");
-    if (error) toast.error("Erro ao buscar serviços");
+    if (error) throw error;
     else setServices(data || []);
   }
 
@@ -110,14 +125,15 @@ function BarbersComponent() {
       .from("barbers")
       .select(`
         *,
-        barber_services(service_id)
+        barber_services(service_id),
+        appointments:appointments(count)
       `)
       .eq("tenant_id", user.id)
       .order("name");
     
     if (error) {
       console.error(error);
-      toast.error("Erro ao buscar barbeiros");
+      throw error;
     } else {
       setBarbers(data || []);
     }
