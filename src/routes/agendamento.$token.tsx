@@ -256,7 +256,7 @@ function AppointmentManagementPage() {
           p_appointment_id: appointment.id,
           p_customer_id: appointment.customer_id,
           p_tenant_id: appointment.tenant_id,
-          p_amount: Number(appointment.final_amount || appointment.total_price)
+          p_amount: Number(appointment.final_amount ?? appointment.total_price)
         };
       }
 
