@@ -414,7 +414,6 @@ function AutomationsComponent() {
       setLoadingDeliveryLogs(false);
     }
   };
-  }
 
   const fetchWebhookLogs = async () => {
     if (!tenantId) return;
