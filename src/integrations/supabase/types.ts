@@ -160,6 +160,7 @@ export type Database = {
           credit_card_amount: number | null
           credit_used: number | null
           credits_used: number | null
+          customer_action_source: string | null
           customer_id: string | null
           debit_card_amount: number | null
           discount_amount: number | null
@@ -167,6 +168,7 @@ export type Database = {
           final_amount: number | null
           id: string
           items: Json | null
+          management_token: string | null
           notes: string | null
           original_total: number | null
           payment_breakdown: Json | null
@@ -179,6 +181,7 @@ export type Database = {
           refund_type: string | null
           reminder_sent: boolean | null
           reminder_sent_at: string | null
+          rescheduled_from_id: string | null
           service_id: string | null
           source: string | null
           start_time: string
@@ -217,6 +220,7 @@ export type Database = {
           credit_card_amount?: number | null
           credit_used?: number | null
           credits_used?: number | null
+          customer_action_source?: string | null
           customer_id?: string | null
           debit_card_amount?: number | null
           discount_amount?: number | null
@@ -224,6 +228,7 @@ export type Database = {
           final_amount?: number | null
           id?: string
           items?: Json | null
+          management_token?: string | null
           notes?: string | null
           original_total?: number | null
           payment_breakdown?: Json | null
@@ -236,6 +241,7 @@ export type Database = {
           refund_type?: string | null
           reminder_sent?: boolean | null
           reminder_sent_at?: string | null
+          rescheduled_from_id?: string | null
           service_id?: string | null
           source?: string | null
           start_time: string
@@ -274,6 +280,7 @@ export type Database = {
           credit_card_amount?: number | null
           credit_used?: number | null
           credits_used?: number | null
+          customer_action_source?: string | null
           customer_id?: string | null
           debit_card_amount?: number | null
           discount_amount?: number | null
@@ -281,6 +288,7 @@ export type Database = {
           final_amount?: number | null
           id?: string
           items?: Json | null
+          management_token?: string | null
           notes?: string | null
           original_total?: number | null
           payment_breakdown?: Json | null
@@ -293,6 +301,7 @@ export type Database = {
           refund_type?: string | null
           reminder_sent?: boolean | null
           reminder_sent_at?: string | null
+          rescheduled_from_id?: string | null
           service_id?: string | null
           source?: string | null
           start_time?: string
@@ -326,6 +335,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "customers"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_rescheduled_from_id_fkey"
+            columns: ["rescheduled_from_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_rescheduled_from_id_fkey"
+            columns: ["rescheduled_from_id"]
+            isOneToOne: false
+            referencedRelation: "vw_automation_debug"
+            referencedColumns: ["appointment_id"]
           },
           {
             foreignKeyName: "appointments_service_id_fkey"
@@ -4092,6 +4115,19 @@ export type Database = {
         Returns: undefined
       }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
+      get_appointment_by_management_token: {
+        Args: { p_token: string }
+        Returns: {
+          business_name: string
+          business_phone: string
+          customer_name: string
+          id: string
+          professional_name: string
+          service_name: string
+          start_time: string
+          status: string
+        }[]
+      }
       get_cron_status: {
         Args: never
         Returns: {

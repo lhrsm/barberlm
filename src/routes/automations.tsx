@@ -85,7 +85,10 @@ Seu agendamento na {barbershop_name} foi realizado com sucesso.
 📅 Data: {appointment_date}
 ⏰ Horário: {appointment_time}
 
-Em breve você poderá gerenciar seu agendamento por um link seguro.
+ Em breve você poderá gerenciar seu agendamento por um link seguro.
+ 
+ 🔗 Gerencie seu agendamento aqui:
+ {management_link}
 
 Obrigado!`;
 
