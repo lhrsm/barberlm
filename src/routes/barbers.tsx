@@ -421,12 +421,12 @@ function BarbersComponent() {
     }
   }
 
-  if (loading || !user) return null;
+  if (authLoading || !user) return null;
 
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-white">Profissionais</h2>
             <p className="text-muted-foreground text-sm">Cadastre os barbeiros da sua equipe.</p>
@@ -434,14 +434,14 @@ function BarbersComponent() {
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="gap-2" 
+                className="gap-2 w-full md:w-auto h-[42px] md:h-[48px] px-6 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-xl transition-all hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] border-none" 
                 variant={canAddBarber ? "default" : "secondary"}
                 onClick={() => {
                   setSelectedServices([]);
                   setIsAddDialogOpen(true);
                 }}
               >
-                <UserPlus size={18} /> Novo Barbeiro
+                <UserPlus size={20} /> Novo Barbeiro
               </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto custom-scrollbar sm:max-w-[500px]">
