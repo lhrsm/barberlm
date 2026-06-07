@@ -54,6 +54,7 @@ export function AutomationEditModal({
     buttons: [],
     trigger_event: "appointment.created",
     requires_callback: false,
+    additional_templates: {},
   });
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export function AutomationEditModal({
         buttons: automation.buttons || [],
         trigger_event: automation.trigger_event || "appointment.created",
         requires_callback: automation.requires_callback ?? false,
+        additional_templates: automation.additional_templates || {},
       });
     }
   }, [automation]);
@@ -88,6 +90,7 @@ export function AutomationEditModal({
           template: formData.template,
           buttons: formData.buttons,
           requires_callback: formData.requires_callback,
+          additional_templates: formData.additional_templates,
         })
         .eq("id", automation.id);
 
@@ -163,7 +166,7 @@ export function AutomationEditModal({
           </div>
 
           <div className="grid gap-2">
-            <Label>Template da mensagem</Label>
+            <Label>{automation?.key === 'barbershop_anniversary' ? 'Mensagem do dia do aniversário' : 'Template da mensagem'}</Label>
             <div className="flex flex-wrap gap-1 mb-2">
               {VARIABLES.map((v) => (
                 <Button
@@ -184,6 +187,46 @@ export function AutomationEditModal({
               placeholder="Digite a mensagem..."
             />
           </div>
+
+          {automation?.key === 'barbershop_anniversary' && (
+            <div className="grid gap-2">
+              <Label>Mensagem 7 dias antes</Label>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {VARIABLES.map((v) => (
+                  <Button
+                    key={v.value + "_7d"}
+                    variant="outline"
+                    size="sm"
+                    className="text-[10px] h-7 px-2"
+                    onClick={() => {
+                      const prev = formData.additional_templates?.reminder_7_days || "";
+                      setFormData({
+                        ...formData,
+                        additional_templates: {
+                          ...formData.additional_templates,
+                          reminder_7_days: prev + v.value
+                        }
+                      });
+                    }}
+                  >
+                    {v.label}
+                  </Button>
+                ))}
+              </div>
+              <Textarea
+                rows={8}
+                value={formData.additional_templates?.reminder_7_days || ""}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  additional_templates: {
+                    ...formData.additional_templates,
+                    reminder_7_days: e.target.value
+                  }
+                })}
+                placeholder="Olá {customer_name}! O aniversário da {barbershop_name} está chegando..."
+              />
+            </div>
+          )}
           
           {/* Simple Button Editor (Can be expanded if needed) */}
           <div className="grid gap-2">
