@@ -190,7 +190,7 @@ export function AutomationTestModal({
 
     setIsLoadingDebug(true);
     try {
-      const { data, error } = await supabase.functions.invoke('automation-v2-test-workflow', {
+      const { data, error } = await supabase.functions.invoke('test-automation', {
         body: { 
           tenant_id: automation.tenant_id, 
           appointment_id: selectedAppointmentId || recentAppointments[0]?.id,
@@ -214,6 +214,7 @@ export function AutomationTestModal({
       setIsLoadingDebug(false);
     }
   };
+
 
   const getTestData = () => {
     if (testType === "real") return realData;
@@ -279,7 +280,7 @@ export function AutomationTestModal({
 
     setIsSimulating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('automation-v2-test-workflow', {
+      const { data, error } = await supabase.functions.invoke('test-automation', {
         body: {
           tenant_id: automation.tenant_id,
           workflow_key: automation.key,
@@ -301,6 +302,7 @@ export function AutomationTestModal({
     }
   };
 
+
   const handleTest = async () => {
     const session = await getActiveSession();
     if (!session) return;
@@ -314,7 +316,7 @@ export function AutomationTestModal({
     const loadingToastId = toast.loading("Processando envio de teste...");
 
     try {
-      const { data, error } = await supabase.functions.invoke('automation-v2-test-workflow', {
+      const { data, error } = await supabase.functions.invoke('test-automation', {
         body: { 
           tenant_id: automation.tenant_id, 
           appointment_id: selectedAppointmentId || recentAppointments[0]?.id,
@@ -351,6 +353,7 @@ export function AutomationTestModal({
       setIsTesting(false);
     }
   };
+
 
   const handleTestCallback = async (text: string) => {
     if (!phone && testType === "fictitious") {
