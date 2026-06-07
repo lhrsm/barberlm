@@ -225,7 +225,7 @@ function AppointmentManagementPage() {
         type: 'appointment_rescheduled',
         title: "Agendamento Reagendado",
         message: `${appointment.customer_name} reagendou para ${format(startTime, "dd/MM 'às' HH:mm")}`,
-        barberId: appointment.professional_id || appointment.barber_id,
+        barberId: appointment.professional_id,
         metadata: { appointmentId: appointment.id }
       });
 
@@ -307,7 +307,7 @@ function AppointmentManagementPage() {
         type: 'appointment_cancelled',
         title: isPaid ? (preference === 'refund' ? "Solicitação de Estorno" : "Cancelamento com Crédito") : "Agendamento Cancelado",
         message: `${appointment.customer_name} cancelou o agendamento e ${isPaid ? (preference === 'refund' ? 'solicitou estorno via Pix' : 'converteu em crédito') : 'não solicitou estorno'}.`,
-        barberId: appointment.professional_id || appointment.barber_id,
+        barberId: appointment.professional_id,
         metadata: { appointmentId: appointment.id }
       });
 
