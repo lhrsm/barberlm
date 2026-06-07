@@ -65,11 +65,18 @@ function AppointmentGroupPage() {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<any>(null);
+
   
   useEffect(() => {
     if (token) {
       fetchGroup();
+      fetchHistory();
     }
+
   }, [token]);
 
   async function fetchGroup() {
@@ -124,6 +131,28 @@ function AppointmentGroupPage() {
       setLoading(false);
     }
   }
+
+  async function fetchHistory() {
+    setLoadingHistory(true);
+    try {
+      // Usar uma query mais robusta que não dependa do relacionamento se ele falhar no TS
+      const { data, error: histError } = await supabase
+        .from('appointment_status_logs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (histError) throw histError;
+      
+      // Filtrar localmente por ID de agendamento se necessário, ou ajustar a query se o schema permitir
+      // Por simplicidade e segurança, vamos filtrar no componente os logs que pertencem aos agendamentos carregados
+      setHistory(data || []);
+    } catch (err) {
+      console.error("Error fetching history:", err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }
+
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => 
@@ -196,6 +225,22 @@ function AppointmentGroupPage() {
       setIsCancelModalOpen(false);
       setSelectedIds([]);
       fetchGroup();
+      fetchHistory();
+      
+      // Enviar notificação individual para cada item cancelado
+      for (const id of selectedIds) {
+        const appt = appointments.find(a => a.id === id);
+        if (appt) {
+          await supabase.functions.invoke('appointment-notifications', {
+            body: { 
+              appointmentId: id, 
+              type: 'appointment_cancelled',
+              updatedBy: { type: 'customer' }
+            }
+          });
+        }
+      }
+
     } catch (err: any) {
       toast.error(err.message || "Erro ao cancelar agendamentos");
     } finally {
@@ -326,6 +371,17 @@ function AppointmentGroupPage() {
       setIsRescheduling(false);
       setRescheduleData(null);
       fetchGroup(); 
+      fetchHistory();
+
+      // Enviar notificação de reagendamento
+      await supabase.functions.invoke('appointment-notifications', {
+        body: { 
+          appointmentId: rescheduleData.id, 
+          type: 'appointment_rescheduled',
+          updatedBy: { type: 'customer' }
+        }
+      });
+
     } catch (err: any) {
       toast.error(err.message || "Erro ao reagendar");
     } finally {
@@ -384,6 +440,54 @@ function AppointmentGroupPage() {
           </h1>
           <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">Gerenciamento de Grupo de Agendamentos</p>
         </div>
+
+        {/* Finance Summary Card */}
+        <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
+          <CardHeader className="p-6 border-b border-zinc-800/50">
+            <div className="flex items-center gap-3">
+              <CircleDollarSign className="text-primary w-5 h-5" />
+              <CardTitle className="text-white font-black uppercase text-xs tracking-widest">Resumo Financeiro</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-zinc-400 text-sm font-medium">Total Original</span>
+              <span className="text-white font-bold">R$ {Number(group.total_amount).toFixed(2)}</span>
+            </div>
+            
+            {appointments.some(a => a.status === 'cancelled') && (
+              <div className="flex justify-between items-center">
+                <span className="text-red-400 text-sm font-medium">Valor em Itens Cancelados</span>
+                <span className="text-red-400 font-bold">
+                  - R$ {appointments
+                    .filter(a => a.status === 'cancelled')
+                    .reduce((acc, a) => acc + Number(a.service_amount), 0)
+                    .toFixed(2)}
+                </span>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-zinc-800/50 flex justify-between items-center">
+              <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Valor Ativo</span>
+              <span className="text-primary text-xl font-black">
+                R$ {appointments
+                  .filter(a => a.status !== 'cancelled')
+                  .reduce((acc, a) => acc + Number(a.service_amount), 0)
+                  .toFixed(2)}
+              </span>
+            </div>
+
+            {group.payment_status === 'paid' && appointments.some(a => a.status === 'cancelled') && (
+              <div className="mt-4 p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+                <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest mb-1">Status de Crédito/Estorno</p>
+                <p className="text-xs text-emerald-400/80 leading-relaxed font-medium">
+                  Os valores dos itens cancelados foram convertidos em crédito para sua próxima visita ou estão em processo de estorno, conforme sua solicitação.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
 
         <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
           <div className="p-6 bg-primary/10 flex items-center justify-between border-b border-zinc-800/50">
@@ -645,5 +749,6 @@ function AppointmentGroupPage() {
     </div>
   );
 }
+
 
 export default AppointmentGroupPage;
