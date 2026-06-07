@@ -4118,10 +4118,13 @@ export type Database = {
       get_appointment_by_management_token: {
         Args: { p_token: string }
         Returns: {
+          barber_id: string
           business_name: string
           business_phone: string
           customer_name: string
+          end_time: string
           id: string
+          professional_id: string
           professional_name: string
           service_name: string
           start_time: string
@@ -4188,6 +4191,18 @@ export type Database = {
         Returns: string
       }
       reconcile_automation_logs: { Args: never; Returns: undefined }
+      reschedule_appointment: {
+        Args: {
+          p_appointment_id: string
+          p_changed_by_id?: string
+          p_changed_by_type: string
+          p_metadata?: Json
+          p_new_end_time: string
+          p_new_start_time: string
+          p_source?: string
+        }
+        Returns: Json
+      }
       seed_default_workflows_v2: { Args: never; Returns: undefined }
       update_appointment_status: {
         Args: {

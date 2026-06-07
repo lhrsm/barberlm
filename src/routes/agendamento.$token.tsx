@@ -1,8 +1,8 @@
 
 import { createFileRoute, useLocation } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Calendar, 
   Clock, 
@@ -13,14 +13,21 @@ import {
   AlertCircle,
   MapPin,
   Phone,
-  ArrowLeft
+  ArrowLeft,
+  RefreshCcw,
+  ChevronRight,
+  ChevronLeft,
+  CalendarDays
 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, addMinutes, isSameDay, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { createNotification } from "@/utils/notifications";
+import { triggerAutomation } from "@/utils/automation";
 
 export const Route = createFileRoute("/agendamento/$token")({
   component: AppointmentManagementPage,
@@ -35,6 +42,16 @@ function AppointmentManagementPage() {
   const [loading, setLoading] = useState(true);
   const [appointment, setAppointment] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  
+  // Reschedule state
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedTime, setSelectedTime] = useState("");
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [fetchingTimes, setFetchingTimes] = useState(false);
+  const [barber, setBarber] = useState<any>(null);
+  const [dayAppointments, setDayAppointments] = useState<any[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -58,27 +75,160 @@ function AppointmentManagementPage() {
 
       const appt = data[0];
 
-      // 1. Validar se o agendamento pertence ao tenant esperado (se fornecido na URL)
       if (expectedTenantId && appt.tenant_id !== expectedTenantId) {
-        console.warn(`[Security] Token ${token} tried to be accessed with wrong tenant ${expectedTenantId}. Actual tenant: ${appt.tenant_id}`);
         setError("Este agendamento pertence a outra barbearia ou o link está incorreto.");
         return;
       }
 
-      // 2. Validar status do tenant (barbearia)
       if (appt.tenant_status === 'blocked' || appt.tenant_status === 'suspended') {
-        setError("Esta barbearia está temporariamente indisponível para novos acessos.");
+        setError("Esta barbearia está temporariamente indisponível.");
         return;
       }
 
       setAppointment(appt);
+      
+      // Load barber working hours for rescheduling
+      if (appt.professional_id || appt.barber_id) {
+        const { data: barbData } = await supabase
+          .from("barbers")
+          .select("*")
+          .eq("id", appt.professional_id || appt.barber_id)
+          .single();
+        setBarber(barbData);
+      }
     } catch (err: any) {
       console.error("Error fetching appointment:", err);
-      setError("Erro ao carregar agendamento. Verifique o link e tente novamente.");
+      setError("Erro ao carregar agendamento.");
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (isRescheduling && selectedDate && appointment) {
+      fetchAvailableTimes();
+    }
+  }, [isRescheduling, selectedDate, appointment]);
+
+  async function fetchAvailableTimes() {
+    if (!appointment || !barber) return;
+    setFetchingTimes(true);
+    try {
+      // 1. Fetch appointments for the day to check conflicts
+      const startDay = `${selectedDate}T00:00:00Z`;
+      const endDay = `${selectedDate}T23:59:59Z`;
+      
+      const { data: dayAppts } = await supabase
+        .from("appointments")
+        .select("id, start_time, end_time, status")
+        .eq("barber_id", barber.id)
+        .in("status", ["scheduled", "confirmed", "in_progress", "awaiting_payment"])
+        .gte("start_time", startDay)
+        .lte("start_time", endDay);
+      
+      const dayName = format(parseISO(selectedDate), "eeee", { locale: ptBR }).toLowerCase();
+      const dayMap: Record<string, string> = {
+        'segunda-feira': 'monday', 'terça-feira': 'tuesday', 'quarta-feira': 'wednesday',
+        'quinta-feira': 'thursday', 'sexta-feira': 'friday', 'sábado': 'saturday', 'domingo': 'sunday'
+      };
+      const dayKey = dayMap[dayName] || dayName;
+      const workingHours = barber.working_hours?.[dayKey];
+
+      if (!workingHours || !workingHours.enabled) {
+        setAvailableTimes([]);
+        return;
+      }
+
+      const times = [];
+      const [startHour, startMin] = workingHours.start.split(':').map(Number);
+      const [endHour, endMin] = workingHours.end.split(':').map(Number);
+      const [y, m, d] = selectedDate.split('-').map(Number);
+
+      for (let hour = startHour; hour <= endHour; hour++) {
+        for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
+          if (hour === endHour && min >= endMin) break;
+          
+          const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+          const checkTime = new Date(y, m - 1, d, hour, min, 0);
+          
+          if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
+
+          const checkTimeMs = checkTime.getTime();
+          // Assuming duration from original appointment or default 30
+          const duration = 30; 
+          const serviceEndMs = checkTimeMs + duration * 60 * 1000;
+
+          const isBusy = dayAppts?.some(app => {
+            if (app.id === appointment.id) return false;
+            const appStart = new Date(app.start_time).getTime();
+            const appEnd = new Date(app.end_time).getTime();
+            return checkTimeMs < appEnd && serviceEndMs > appStart;
+          });
+
+          if (!isBusy) times.push(timeStr);
+        }
+      }
+      setAvailableTimes(times);
+    } catch (err) {
+      console.error("Error fetching times:", err);
+    } finally {
+      setFetchingTimes(false);
+    }
+  }
+
+  const handleReschedule = async () => {
+    if (!selectedTime) {
+      toast.error("Por favor, selecione um horário.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const timeWithSeconds = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
+      const startTime = parseISO(`${selectedDate}T${timeWithSeconds}`);
+      // Simple logic: maintain same duration
+      const oldStart = parseISO(appointment.start_time);
+      const oldEnd = appointment.end_time ? parseISO(appointment.end_time) : addMinutes(oldStart, 30);
+      const durationMinutes = Math.round((oldEnd.getTime() - oldStart.getTime()) / 60000) || 30;
+      const endTime = addMinutes(startTime, durationMinutes);
+
+      const { data, error: rpcError } = await supabase.rpc('reschedule_appointment', {
+        p_appointment_id: appointment.id,
+        p_new_start_time: startTime.toISOString(),
+        p_new_end_time: endTime.toISOString(),
+        p_changed_by_type: 'customer',
+        p_source: 'public_link'
+      });
+
+      const response = data as any;
+      if (rpcError || !response || !response.success) throw new Error(rpcError?.message || response?.error || "Erro desconhecido");
+
+      // Notifications
+      await createNotification({
+        userId: appointment.tenant_id,
+        type: 'appointment_rescheduled',
+        title: "Agendamento Reagendado",
+        message: `${appointment.customer_name} reagendou para ${format(startTime, "dd/MM 'às' HH:mm")}`,
+        barberId: appointment.professional_id || appointment.barber_id,
+        metadata: { appointmentId: appointment.id }
+      });
+
+      // Automation Trigger for customer
+      triggerAutomation({
+        tenant_id: appointment.tenant_id,
+        event_name: 'appointment.rescheduled',
+        appointment_id: appointment.id
+      }).catch(console.error);
+
+      toast.success("Seu agendamento foi reagendado com sucesso!");
+      setIsRescheduling(false);
+      fetchAppointment(); // Refresh view
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao reagendar");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -106,6 +256,7 @@ function AppointmentManagementPage() {
   const isConfirmed = appointment.status === 'confirmed' || appointment.status === 'scheduled';
   const isCancelled = appointment.status === 'cancelled';
   const isCompleted = appointment.status === 'completed';
+  const canReschedule = isConfirmed && !isCompleted && !isCancelled;
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 flex flex-col items-center">
@@ -121,101 +272,185 @@ function AppointmentManagementPage() {
           <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">Gerenciamento de Agendamento</p>
         </div>
 
-        <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
-          <div className={cn(
-            "p-6 flex items-center justify-center gap-3",
-            isConfirmed ? "bg-emerald-500/10" : (isCancelled ? "bg-red-500/10" : "bg-primary/10")
-          )}>
-            {isConfirmed ? (
-              <>
-                <CheckCircle2 className="text-emerald-500 w-5 h-5" />
-                <span className="text-emerald-500 font-black uppercase text-xs tracking-widest">Seu agendamento já está confirmado.</span>
-              </>
-            ) : isCancelled ? (
-              <>
-                <XCircle className="text-red-500 w-5 h-5" />
-                <span className="text-red-500 font-black uppercase text-xs tracking-widest">Agendamento Cancelado</span>
-              </>
-            ) : isCompleted ? (
-              <>
-                <CheckCircle2 className="text-primary w-5 h-5" />
-                <span className="text-primary font-black uppercase text-xs tracking-widest">Atendimento Finalizado</span>
-              </>
-            ) : (
-              <>
-                <AlertCircle className="text-primary w-5 h-5" />
-                <span className="text-primary font-black uppercase text-xs tracking-widest">{appointment.status}</span>
-              </>
-            )}
-          </div>
+        <AnimatePresence mode="wait">
+          {!isRescheduling ? (
+            <motion.div
+              key="details"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+            >
+              <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
+                <div className={cn(
+                  "p-6 flex items-center justify-center gap-3",
+                  isConfirmed ? "bg-emerald-500/10" : (isCancelled ? "bg-red-500/10" : "bg-primary/10")
+                )}>
+                  {isConfirmed ? (
+                    <>
+                      <CheckCircle2 className="text-emerald-500 w-5 h-5" />
+                      <span className="text-emerald-500 font-black uppercase text-xs tracking-widest">Seu agendamento já está confirmado.</span>
+                    </>
+                  ) : isCancelled ? (
+                    <>
+                      <XCircle className="text-red-500 w-5 h-5" />
+                      <span className="text-red-500 font-black uppercase text-xs tracking-widest">Agendamento Cancelado</span>
+                    </>
+                  ) : isCompleted ? (
+                    <>
+                      <CheckCircle2 className="text-primary w-5 h-5" />
+                      <span className="text-primary font-black uppercase text-xs tracking-widest">Atendimento Finalizado</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="text-primary w-5 h-5" />
+                      <span className="text-primary font-black uppercase text-xs tracking-widest">{appointment.status}</span>
+                    </>
+                  )}
+                </div>
 
-          <CardContent className="p-8 space-y-8">
-            <div className="flex flex-col gap-1">
-              <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Olá,</span>
-              <h2 className="text-2xl font-black tracking-tight">{appointment.customer_name}</h2>
-            </div>
+                <CardContent className="p-8 space-y-8">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Olá,</span>
+                    <h2 className="text-2xl font-black tracking-tight">{appointment.customer_name}</h2>
+                  </div>
 
-            <div className="grid gap-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                  <Scissors className="text-primary w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-0.5">Serviço</p>
-                  <p className="font-bold text-white leading-tight">{appointment.service_name}</p>
-                </div>
-              </div>
+                  <div className="grid gap-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                        <Scissors className="text-primary w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-0.5">Serviço</p>
+                        <p className="font-bold text-white leading-tight">{appointment.service_name}</p>
+                      </div>
+                    </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                  <User className="text-primary w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-0.5">Profissional</p>
-                  <p className="font-bold text-white leading-tight">{appointment.professional_name}</p>
-                </div>
-              </div>
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                        <User className="text-primary w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-0.5">Profissional</p>
+                        <p className="font-bold text-white leading-tight">{appointment.professional_name}</p>
+                      </div>
+                    </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                  <Calendar className="text-primary w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-0.5">Data</p>
-                  <p className="font-bold text-white leading-tight">
-                    {format(parseISO(appointment.start_time), "dd 'de' MMMM", { locale: ptBR })}
-                  </p>
-                </div>
-              </div>
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                        <Calendar className="text-primary w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-0.5">Data</p>
+                        <p className="font-bold text-white leading-tight">
+                          {format(parseISO(appointment.start_time), "dd 'de' MMMM", { locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                  <Clock className="text-primary w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-0.5">Horário</p>
-                  <p className="font-bold text-white leading-tight">
-                    {format(parseISO(appointment.start_time), "HH:mm", { locale: ptBR })}
-                  </p>
-                </div>
-              </div>
-            </div>
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                        <Clock className="text-primary w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-0.5">Horário</p>
+                        <p className="font-bold text-white leading-tight">
+                          {format(parseISO(appointment.start_time), "HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-            <div className="pt-4 border-t border-zinc-800/50">
-              <p className="text-center text-zinc-500 text-xs italic">
-                Em breve você poderá reagendar ou cancelar seu horário diretamente por aqui.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+                  {canReschedule && (
+                    <div className="pt-6 border-t border-zinc-800/50">
+                      <Button 
+                        onClick={() => setIsRescheduling(true)}
+                        className="w-full h-12 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase tracking-widest text-xs"
+                      >
+                        <RefreshCcw className="mr-2 h-4 w-4" /> Reagendar Atendimento
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="reschedule"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
+                <div className="p-6 bg-primary/10 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CalendarDays className="text-primary w-5 h-5" />
+                    <span className="text-primary font-black uppercase text-xs tracking-widest">Novo Horário</span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setIsRescheduling(false)} className="text-zinc-500 hover:text-white">
+                    Cancelar
+                  </Button>
+                </div>
+
+                <CardContent className="p-8 space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Selecione a Data</label>
+                    <input 
+                      type="date" 
+                      min={format(new Date(), "yyyy-MM-dd")}
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Horários Disponíveis</label>
+                    {fetchingTimes ? (
+                      <div className="flex justify-center py-8">
+                        <RefreshCcw className="animate-spin text-primary h-6 w-6" />
+                      </div>
+                    ) : availableTimes.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {availableTimes.map((time) => (
+                          <button
+                            key={time}
+                            onClick={() => setSelectedTime(time)}
+                            className={cn(
+                              "h-10 rounded-lg text-xs font-bold border transition-all",
+                              selectedTime === time 
+                                ? "bg-primary border-primary text-black" 
+                                : "bg-transparent border-zinc-800 text-zinc-400 hover:border-zinc-600"
+                            )}
+                          >
+                            {time}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-center py-8 text-zinc-500 text-xs italic">Nenhum horário disponível para esta data.</p>
+                    )}
+                  </div>
+
+                  <Button 
+                    onClick={handleReschedule}
+                    disabled={submitting || !selectedTime}
+                    className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20 mt-4"
+                  >
+                    {submitting ? <RefreshCcw className="animate-spin mr-2 h-4 w-4" /> : "Confirmar Novo Horário"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="flex flex-col gap-3">
           <Button 
-            className="h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest shadow-xl shadow-primary/20"
+            className="h-14 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-800 font-black uppercase tracking-widest shadow-xl"
             asChild
           >
             <a href={`https://wa.me/${appointment.business_phone?.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
-              Falar com a Barbearia
+              <Phone className="mr-2 h-4 w-4" /> Falar com a Barbearia
             </a>
           </Button>
           
