@@ -94,7 +94,7 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
   }
 
   // 3. Create dispatch (V2)
-  const { data: dispatch, error: dispatchError } = await supabase.from("automation_v2_dispatches").insert({
+  const dispatchPayload: any = {
     tenant_id,
     appointment_id,
     appointment_group_id,
@@ -115,7 +115,14 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
     session_id: session_id,
     current_step: "AWAITING_MAIN_ACTION",
     callback_received: false
-  }).select().single();
+  };
+
+  // Add birthday_year for idempotency if applicable
+  if (workflow_key === 'customer_birthday' && payload.reference_year) {
+    dispatchPayload.birthday_year = payload.reference_year;
+  }
+
+  const { data: dispatch, error: dispatchError } = await supabase.from("automation_v2_dispatches").insert(dispatchPayload).select().single();
 
   if (dispatchError) {
     console.error(`[AutomationV2] CRITICAL: Dispatch creation failed:`, dispatchError);

@@ -175,39 +175,63 @@ async function scheduleBirthdayMessages(supabase: any) {
   console.log(`[AutomationEngine] Found ${customers.length} customers with birthday today`);
 
   for (const customer of customers) {
-    // Check if already sent in automation_v2_dispatches this year
-    const { data: existingDispatch } = await supabase
-      .from("automation_v2_dispatches")
-      .select("id")
-      .eq("customer_id", customer.id)
-      .eq("workflow_key", "customer_birthday")
-      .gte("sent_at", `${year}-01-01T00:00:00Z`)
-      .lte("sent_at", `${year}-12-31T23:59:59Z`)
-      .maybeSingle();
-
-    if (existingDispatch) {
-      console.log(`[AutomationEngine] Birthday already sent this year for customer ${customer.id}`);
-      continue;
-    }
-
-    const { data: bdayTemplate } = await supabase
-      .from("automation_templates")
-      .select("id")
-      .eq("tenant_id", customer.tenant_id)
-      .eq("key", "customer_birthday")
-      .eq("active", true)
-      .maybeSingle();
-
-    if (!bdayTemplate) {
-      console.log(`[AutomationEngine] No active birthday template for tenant ${customer.tenant_id}`);
-      continue;
-    }
-
-    // Default to 09:00 AM Brazil time today
-    const scheduledFor = new Date(nowBrazil);
-    scheduledFor.setHours(9, 0, 0, 0);
-
     try {
+      // 1. Double check if already sent in automation_v2_dispatches this year
+      // The database constraint is the ultimate source of truth, but we check here for better logging
+      const { data: existingDispatch, error: dispatchError } = await supabase
+        .from("automation_v2_dispatches")
+        .select("id")
+        .eq("tenant_id", customer.tenant_id)
+        .eq("customer_id", customer.id)
+        .eq("workflow_key", "customer_birthday")
+        .eq("birthday_year", year)
+        .maybeSingle();
+
+      if (dispatchError) {
+        console.error(`[AutomationEngine] Error checking dispatch for ${customer.id}:`, dispatchError);
+      }
+
+      if (existingDispatch) {
+        console.log(`[AutomationEngine] Birthday already sent this year for customer ${customer.id} (${customer.name})`);
+        continue;
+      }
+
+      // 2. Check if already in queue for this year
+      const { data: existingQueue, error: queueCheckError } = await supabase
+        .from("automation_queue")
+        .select("id")
+        .eq("tenant_id", customer.tenant_id)
+        .eq("customer_id", customer.id)
+        .eq("workflow_key", "customer_birthday")
+        .eq("reference_year", year)
+        .maybeSingle();
+      
+      if (queueCheckError) {
+        console.error(`[AutomationEngine] Error checking queue for ${customer.id}:`, queueCheckError);
+      }
+
+      if (existingQueue) {
+        console.log(`[AutomationEngine] Birthday already in queue for customer ${customer.id} (${customer.name})`);
+        continue;
+      }
+
+      const { data: bdayTemplate } = await supabase
+        .from("automation_templates")
+        .select("id")
+        .eq("tenant_id", customer.tenant_id)
+        .eq("key", "customer_birthday")
+        .eq("active", true)
+        .maybeSingle();
+
+      if (!bdayTemplate) {
+        console.log(`[AutomationEngine] No active birthday template for tenant ${customer.tenant_id}`);
+        continue;
+      }
+
+      // Default to 09:00 AM Brazil time today
+      const scheduledFor = new Date(nowBrazil);
+      scheduledFor.setHours(9, 0, 0, 0);
+
       const { error: insertError } = await supabase.from("automation_queue").insert({
         tenant_id: customer.tenant_id,
         automation_id: bdayTemplate.id,
@@ -224,11 +248,17 @@ async function scheduleBirthdayMessages(supabase: any) {
         }
       });
       
-      if (!insertError) {
-        console.log(`[AutomationEngine] Queued birthday for ${customer.name} (Tenant: ${customer.tenant_id})`);
+      if (insertError) {
+        if (insertError.code === '23505') {
+          console.log(`[AutomationEngine] Birthday duplicate prevented by DB for ${customer.name} (${year})`);
+        } else {
+          console.error(`[AutomationEngine] Insert error for ${customer.name}:`, insertError);
+        }
+      } else {
+        console.log(`[AutomationEngine] Queued birthday for ${customer.name} (Tenant: ${customer.tenant_id}, Year: ${year})`);
       }
-    } catch (e) {
-      // Unique constraint will prevent duplicates
+    } catch (e: any) {
+      console.error(`[AutomationEngine] Unexpected error processing customer ${customer.id}:`, e.message);
     }
   }
 }
