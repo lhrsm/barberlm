@@ -256,6 +256,28 @@ function FinancesComponent() {
 
       if (error) throw error;
       
+      // Trigger notification for status update
+      if (['approved', 'completed', 'rejected'].includes(newStatus)) {
+        // Fetch appointment_id for the refund
+        const { data: refund } = await supabase
+          .from("refund_requests")
+          .select("appointment_id, amount")
+          .eq("id", refundId)
+          .single();
+
+        if (refund) {
+          await supabase.functions.invoke('appointment-notifications', {
+            body: { 
+              appointmentId: refund.appointment_id, 
+              type: 'refund_updated',
+              status: newStatus,
+              amount: refund.amount,
+              updatedBy: { type: 'admin' }
+            }
+          });
+        }
+      }
+
       toast.success(`Solicitação ${newStatus === 'approved' ? 'aprovada' : newStatus === 'completed' ? 'marcada como paga' : 'rejeitada'}!`);
       fetchRefundRequests();
     } catch (err: any) {
