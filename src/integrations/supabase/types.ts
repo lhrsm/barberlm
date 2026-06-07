@@ -82,6 +82,57 @@ export type Database = {
           },
         ]
       }
+      appointment_groups: {
+        Row: {
+          created_at: string | null
+          customer_id: string | null
+          group_token: string
+          id: string
+          payment_status: string | null
+          status: string | null
+          tenant_id: string
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id?: string | null
+          group_token: string
+          id?: string
+          payment_status?: string | null
+          status?: string | null
+          tenant_id: string
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string | null
+          group_token?: string
+          id?: string
+          payment_status?: string | null
+          status?: string | null
+          tenant_id?: string
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_groups_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_groups_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_status_logs: {
         Row: {
           appointment_id: string
@@ -166,6 +217,7 @@ export type Database = {
           discount_amount: number | null
           end_time: string
           final_amount: number | null
+          group_sequence: number | null
           id: string
           items: Json | null
           management_token: string | null
@@ -183,6 +235,7 @@ export type Database = {
           reminder_sent: boolean | null
           reminder_sent_at: string | null
           rescheduled_from_id: string | null
+          service_amount: number | null
           service_id: string | null
           source: string | null
           start_time: string
@@ -227,6 +280,7 @@ export type Database = {
           discount_amount?: number | null
           end_time: string
           final_amount?: number | null
+          group_sequence?: number | null
           id?: string
           items?: Json | null
           management_token?: string | null
@@ -244,6 +298,7 @@ export type Database = {
           reminder_sent?: boolean | null
           reminder_sent_at?: string | null
           rescheduled_from_id?: string | null
+          service_amount?: number | null
           service_id?: string | null
           source?: string | null
           start_time: string
@@ -288,6 +343,7 @@ export type Database = {
           discount_amount?: number | null
           end_time?: string
           final_amount?: number | null
+          group_sequence?: number | null
           id?: string
           items?: Json | null
           management_token?: string | null
@@ -305,6 +361,7 @@ export type Database = {
           reminder_sent?: boolean | null
           reminder_sent_at?: string | null
           rescheduled_from_id?: string | null
+          service_amount?: number | null
           service_id?: string | null
           source?: string | null
           start_time?: string
@@ -4364,6 +4421,30 @@ export type Database = {
           status: string
           tenant_id: string
           tenant_status: string
+        }[]
+      }
+      get_appointment_group_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          appointment_id: string
+          appointment_status: string
+          business_name: string
+          customer_id: string
+          customer_name: string
+          end_time: string
+          group_id: string
+          group_sequence: number
+          group_status: string
+          management_token: string
+          payment_status: string
+          professional_id: string
+          professional_name: string
+          service_amount: number
+          service_id: string
+          service_name: string
+          start_time: string
+          tenant_id: string
+          total_amount: number
         }[]
       }
       get_cron_status: {
