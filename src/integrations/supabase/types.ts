@@ -795,39 +795,51 @@ export type Database = {
           attempts: number | null
           automation_id: string
           created_at: string | null
+          customer_id: string | null
           error_message: string | null
+          event_name: string | null
           id: string
           idempotency_key: string | null
           payload: Json | null
+          scheduled_for: string | null
           status: string
           tenant_id: string
           updated_at: string | null
+          workflow_key: string | null
         }
         Insert: {
           appointment_id?: string | null
           attempts?: number | null
           automation_id: string
           created_at?: string | null
+          customer_id?: string | null
           error_message?: string | null
+          event_name?: string | null
           id?: string
           idempotency_key?: string | null
           payload?: Json | null
+          scheduled_for?: string | null
           status?: string
           tenant_id: string
           updated_at?: string | null
+          workflow_key?: string | null
         }
         Update: {
           appointment_id?: string | null
           attempts?: number | null
           automation_id?: string
           created_at?: string | null
+          customer_id?: string | null
           error_message?: string | null
+          event_name?: string | null
           id?: string
           idempotency_key?: string | null
           payload?: Json | null
+          scheduled_for?: string | null
           status?: string
           tenant_id?: string
           updated_at?: string | null
+          workflow_key?: string | null
         }
         Relationships: [
           {
@@ -849,6 +861,13 @@ export type Database = {
             columns: ["automation_id"]
             isOneToOne: false
             referencedRelation: "automation_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_queue_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
           {
