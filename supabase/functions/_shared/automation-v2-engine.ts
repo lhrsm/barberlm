@@ -69,7 +69,9 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
 
   // 2. Create session if it's a flow that expects response
   let session_id = null;
-  const isConfirmation = (buttons && buttons.length > 0);
+  const isAppointmentConfirmation = workflow_key === 'appointment_confirmation';
+  const isUrgentReminder = workflow_key === 'appointment_reminder' && payload.reminder_type === '30m';
+  const isConfirmation = isAppointmentConfirmation || isUrgentReminder || (buttons && buttons.length > 0);
   
   if (isConfirmation) {
     const expiresAt = new Date();
@@ -113,8 +115,11 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
     payload: { ...payload, rendered_message: message },
     provider_response: sendResult.response,
     session_id: session_id,
-    current_step: "AWAITING_MAIN_ACTION",
-    callback_received: false
+    requires_callback: isConfirmation,
+    current_step: isConfirmation ? "AWAITING_MAIN_ACTION" : "completed",
+    callback_received: !isConfirmation,
+    finalized: !isConfirmation,
+    finalized_at: !isConfirmation ? new Date().toISOString() : null
   };
 
   // Add birthday_year for idempotency if applicable

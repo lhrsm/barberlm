@@ -1140,6 +1140,7 @@ export type Database = {
           phone: string
           provider_message_id: string | null
           provider_response: Json | null
+          requires_callback: boolean | null
           sent_at: string | null
           session_id: string | null
           status: string
@@ -1174,6 +1175,7 @@ export type Database = {
           phone: string
           provider_message_id?: string | null
           provider_response?: Json | null
+          requires_callback?: boolean | null
           sent_at?: string | null
           session_id?: string | null
           status?: string
@@ -1208,6 +1210,7 @@ export type Database = {
           phone?: string
           provider_message_id?: string | null
           provider_response?: Json | null
+          requires_callback?: boolean | null
           sent_at?: string | null
           session_id?: string | null
           status?: string
