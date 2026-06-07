@@ -1060,6 +1060,7 @@ export type Database = {
           reprocessing_config: Json | null
           reprocessing_history: Json | null
           reprocessing_status: string | null
+          requires_callback: boolean | null
           template: string
           tenant_id: string
           trigger_event: string
@@ -1079,6 +1080,7 @@ export type Database = {
           reprocessing_config?: Json | null
           reprocessing_history?: Json | null
           reprocessing_status?: string | null
+          requires_callback?: boolean | null
           template: string
           tenant_id: string
           trigger_event: string
@@ -1098,6 +1100,7 @@ export type Database = {
           reprocessing_config?: Json | null
           reprocessing_history?: Json | null
           reprocessing_status?: string | null
+          requires_callback?: boolean | null
           template?: string
           tenant_id?: string
           trigger_event?: string
@@ -1117,6 +1120,8 @@ export type Database = {
         Row: {
           action_executed: boolean | null
           action_executed_at: string | null
+          anniversary_message_type: string | null
+          anniversary_year: number | null
           appointment_group_id: string | null
           appointment_id: string | null
           birthday_year: number | null
@@ -1152,6 +1157,8 @@ export type Database = {
         Insert: {
           action_executed?: boolean | null
           action_executed_at?: string | null
+          anniversary_message_type?: string | null
+          anniversary_year?: number | null
           appointment_group_id?: string | null
           appointment_id?: string | null
           birthday_year?: number | null
@@ -1187,6 +1194,8 @@ export type Database = {
         Update: {
           action_executed?: boolean | null
           action_executed_at?: string | null
+          anniversary_message_type?: string | null
+          anniversary_year?: number | null
           appointment_group_id?: string | null
           appointment_id?: string | null
           birthday_year?: number | null
@@ -2553,6 +2562,7 @@ export type Database = {
           google_maps_url: string | null
           id: string
           logo_url: string | null
+          opening_date: string | null
           payment_gateway_key: string | null
           payment_gateway_provider: string | null
           pix_key: string | null
@@ -2592,6 +2602,7 @@ export type Database = {
           google_maps_url?: string | null
           id: string
           logo_url?: string | null
+          opening_date?: string | null
           payment_gateway_key?: string | null
           payment_gateway_provider?: string | null
           pix_key?: string | null
@@ -2631,6 +2642,7 @@ export type Database = {
           google_maps_url?: string | null
           id?: string
           logo_url?: string | null
+          opening_date?: string | null
           payment_gateway_key?: string | null
           payment_gateway_provider?: string | null
           pix_key?: string | null
