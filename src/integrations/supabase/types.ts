@@ -2125,14 +2125,14 @@ export type Database = {
           {
             foreignKeyName: "customer_credits_appointment_id_fkey"
             columns: ["appointment_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "appointments"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "customer_credits_appointment_id_fkey"
             columns: ["appointment_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "vw_automation_debug"
             referencedColumns: ["appointment_id"]
           },
@@ -4299,6 +4299,14 @@ export type Database = {
           p_metadata?: Json
           p_new_status: string
           p_source?: string
+        }
+        Returns: Json
+      }
+      use_customer_credits: {
+        Args: {
+          p_amount: number
+          p_appointment_id?: string
+          p_customer_id: string
         }
         Returns: Json
       }
