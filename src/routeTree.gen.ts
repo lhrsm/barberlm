@@ -43,6 +43,7 @@ import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as SlugProfissionalRouteImport } from './routes/$slug.profissional'
 import { Route as SlugPortalRouteImport } from './routes/$slug.portal'
+import { Route as AgendamentosGrupoTokenRouteImport } from './routes/agendamentos.grupo.$token'
 import { Route as ApiWebhooksZapiBarbershopIdRouteImport } from './routes/api/webhooks/zapi/$barbershopId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -216,6 +217,11 @@ const SlugPortalRoute = SlugPortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => SlugRoute,
 } as any)
+const AgendamentosGrupoTokenRoute = AgendamentosGrupoTokenRouteImport.update({
+  id: '/agendamentos/grupo/$token',
+  path: '/agendamentos/grupo/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWebhooksZapiBarbershopIdRoute =
   ApiWebhooksZapiBarbershopIdRouteImport.update({
     id: '/api/webhooks/zapi/$barbershopId',
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin/': typeof AdminIndexRoute
+  '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -301,6 +308,7 @@ export interface FileRoutesByTo {
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin': typeof AdminIndexRoute
+  '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -340,6 +348,7 @@ export interface FileRoutesById {
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/admin/': typeof AdminIndexRoute
+  '/agendamentos/grupo/$token': typeof AgendamentosGrupoTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/webhooks/zapi/$barbershopId': typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -380,6 +389,7 @@ export interface FileRouteTypes {
     | '/agendamento/$token'
     | '/checkout/return'
     | '/admin/'
+    | '/agendamentos/grupo/$token'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesByTo: FileRoutesByTo
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/agendamento/$token'
     | '/checkout/return'
     | '/admin'
+    | '/agendamentos/grupo/$token'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   id:
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/agendamento/$token'
     | '/checkout/return'
     | '/admin/'
+    | '/agendamentos/grupo/$token'
     | '/api/public/payments/webhook'
     | '/api/webhooks/zapi/$barbershopId'
   fileRoutesById: FileRoutesById
@@ -480,6 +492,7 @@ export interface RootRouteChildren {
   TutorialsRoute: typeof TutorialsRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  AgendamentosGrupoTokenRoute: typeof AgendamentosGrupoTokenRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiWebhooksZapiBarbershopIdRoute: typeof ApiWebhooksZapiBarbershopIdRoute
 }
@@ -724,6 +737,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SlugPortalRouteImport
       parentRoute: typeof SlugRoute
     }
+    '/agendamentos/grupo/$token': {
+      id: '/agendamentos/grupo/$token'
+      path: '/agendamentos/grupo/$token'
+      fullPath: '/agendamentos/grupo/$token'
+      preLoaderRoute: typeof AgendamentosGrupoTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/webhooks/zapi/$barbershopId': {
       id: '/api/webhooks/zapi/$barbershopId'
       path: '/api/webhooks/zapi/$barbershopId'
@@ -806,6 +826,7 @@ const rootRouteChildren: RootRouteChildren = {
   TutorialsRoute: TutorialsRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  AgendamentosGrupoTokenRoute: AgendamentosGrupoTokenRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiWebhooksZapiBarbershopIdRoute: ApiWebhooksZapiBarbershopIdRoute,
 }
