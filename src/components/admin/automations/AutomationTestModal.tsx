@@ -345,6 +345,16 @@ export function AutomationTestModal({
           const providerMsgId = zapiData?.result?.messageId || zapiData?.result?.id;
 
           // Manual Dispatch V2 Record
+          const requiresCallback = () => {
+            if (automation?.key === 'barbershop_anniversary') return false;
+            if (automation?.key === 'customer_birthday') return false;
+            if (automation?.key === 'appointment_confirmation') return false;
+            if (automation?.key === 'appointment_reminder') {
+              return reminderSubType === '30m';
+            }
+            return automation.requires_callback || false;
+          };
+
           await (supabase as any).from("automation_v2_dispatches").insert({
             tenant_id: automation.tenant_id,
             workflow_key: automation.key || 'test_manual',
@@ -358,9 +368,16 @@ export function AutomationTestModal({
             message_id: providerMsgId,
             provider_message_id: providerMsgId,
             sent_at: new Date().toISOString(),
-            payload: { test_data: testData, rendered: renderedTemplate, test_type: "fictitious" },
+            payload: { 
+              test_data: testData, 
+              rendered: renderedTemplate, 
+              test_type: "fictitious",
+              anniversary_message_type: anniversarySubType,
+              reminder_type: reminderSubType
+            },
             provider_response: zapiData?.result,
-            callback_received: false
+            callback_received: false,
+            requires_callback: requiresCallback()
           });
 
           await (supabase as any).from("automation_logs").insert({
