@@ -572,7 +572,8 @@ function ShopPageComponent() {
           trial_end,
           plan,
           effective_plan,
-          selected_plan
+          selected_plan,
+          opening_date
         `)
         .eq("slug", normalizedSlug)
         .maybeSingle();
@@ -1288,6 +1289,17 @@ function ShopPageComponent() {
 
       // Validations
       const now = new Date();
+      
+      // Special validation for FESTEJE10
+      if (coupon.code === 'FESTEJE10' && shop?.opening_date) {
+        const openingDate = new Date(shop.opening_date);
+        // Comparar dia e mês
+        if (now.getDate() !== openingDate.getUTCDate() || now.getMonth() !== openingDate.getUTCMonth()) {
+           toast.error("Este cupom só pode ser utilizado no dia do aniversário da barbearia.");
+           return;
+        }
+      }
+
       if (coupon.expires_at && new Date(coupon.expires_at) < now) {
         toast.error("Este cupom já expirou.");
         return;
