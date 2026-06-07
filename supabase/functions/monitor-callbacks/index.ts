@@ -43,35 +43,14 @@ serve(async (req) => {
 
     for (const dispatch of (pendingDispatches || [])) {
       try {
-        console.log(`[Monitor] Timeout for dispatch ${dispatch.id} (${dispatch.phone})`);
+        console.log(`[Monitor] Cleanup for dispatch ${dispatch.id} (${dispatch.phone}) - Mark as finalized`);
         
         await supabase.from("automation_v2_dispatches").update({
-          current_step: "CALLBACK_TIMEOUT",
-          error: "Timeout aguardando callback (5 min+)"
+          current_step: "FINALIZADO_AUTOMATICAMENTE",
+          requires_callback: false,
+          finalized: true,
+          finalized_at: new Date().toISOString()
         }).eq("id", dispatch.id);
-
-        const { data: instance } = await supabase
-          .from("whatsapp_instances")
-          .select("*")
-          .eq("tenant_id", dispatch.tenant_id)
-          .maybeSingle();
-
-        if (instance) {
-          const fallbackMsg = `Percebi que sua resposta não foi registrada.\n\nPor favor, responda com:\n1️⃣ *Confirmar*\n2️⃣ *Reagendar*\n3️⃣ *Cancelar*`;
-          
-          await sendAutomationMessageV2(supabase, {
-            tenant_id: dispatch.tenant_id,
-            workflow_key: 'callback_timeout_fallback',
-            customer_phone: dispatch.phone,
-            appointment_id: dispatch.appointment_id,
-            appointment_group_id: dispatch.appointment_group_id,
-            customer_id: dispatch.customer_id,
-            customer_name: dispatch.customer_name,
-            message: fallbackMsg,
-            instance: instance,
-            payload: { original_dispatch_id: dispatch.id }
-          });
-        }
 
         results.push({ id: dispatch.id, status: "processed" });
       } catch (e) {

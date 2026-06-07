@@ -948,7 +948,7 @@ function ShopPageComponent() {
           end_time: endTime.toISOString(),
           total_price: item.price,
           original_total: item.price,
-          status: "scheduled",
+          status: "confirmed",
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
           payment_method: finalPaymentMethod,
           source: 'online',

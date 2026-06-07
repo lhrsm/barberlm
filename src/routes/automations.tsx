@@ -85,7 +85,9 @@ Seu agendamento na {barbershop_name} foi realizado com sucesso.
 📅 Data: {appointment_date}
 ⏰ Horário: {appointment_time}
 
-O que deseja fazer?`;
+Em breve você poderá gerenciar seu agendamento por um link seguro.
+
+Obrigado!`;
 
 function AutomationsComponent() {
   const { tenantId } = useTenant();
@@ -216,12 +218,8 @@ function AutomationsComponent() {
             trigger_event: 'appointment.created',
             channel: 'whatsapp',
             active: true,
-            template: DEFAULT_TEMPLATE,
-            buttons: [
-              { label: "Confirmar agendamento", action: "confirm" },
-              { label: "Reagendar", action: "reschedule" },
-              { label: "Cancelar", action: "cancel" }
-            ]
+            template: `Olá {customer_name} 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nEm breve você poderá gerenciar seu agendamento por um link seguro.\n\nObrigado!`,
+            buttons: []
           })
           .select()
           .single();

@@ -105,8 +105,9 @@ serve(async (req) => {
   }
 
   // 3. EXECUTAR AÇÃO
-  const isConfirm = buttonId === "main_confirm" || ["1", "confirmar", "confirmar agendamento"].includes(normalizedText);
-  const matchedAction = isConfirm ? "confirm" : (buttonId === "main_reschedule" ? "reschedule" : (buttonId === "main_cancel" ? "cancel" : "none"));
+  // DEPRECATED: Interactive actions via WhatsApp buttons are no longer supported.
+  // Using public management links in the future.
+  const matchedAction = "none";
 
   if (matchedAction === "confirm") {
     const { data: updateData, error: apptUpdateErr } = await supabase
