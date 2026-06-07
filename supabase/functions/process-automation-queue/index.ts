@@ -215,7 +215,7 @@ serve(async (req) => {
         const { data: instance } = await supabase.from("whatsapp_instances").select("*").eq("tenant_id", itemTenantId).single();
         if (!instance) throw new Error("WhatsApp not configured");
 
-        const phone = appointment.customer?.phone;
+        const phone = appointment?.customer?.phone || item.customer?.phone;
         if (!phone) throw new Error("Phone missing");
 
         const sendResult = await sendAutomationMessageV2(supabase, {
