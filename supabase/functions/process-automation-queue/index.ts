@@ -18,9 +18,9 @@ serve(async (req) => {
   );
 
   try {
-    const { tenant_id, appointment_id, automation_id, workflow_key, force_resend, dry_run } = await req.json().catch(() => ({}));
+    const { tenant_id, appointment_id, automation_id, workflow_key, force_resend, dry_run, payload: requestPayload } = await req.json().catch(() => ({}));
     
-    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, automation_id, workflow_key, force_resend, dry_run });
+    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, automation_id, workflow_key, force_resend, dry_run, requestPayload });
 
     // 1. Fetch items to process
     let query = supabase
@@ -96,7 +96,8 @@ serve(async (req) => {
         status: "pending",
         attempts: 0,
         appointment,
-        automation
+        automation,
+        payload: requestPayload || {}
       }];
     }
 
@@ -248,7 +249,9 @@ serve(async (req) => {
             diagnostic: diagInfo, 
             reference_year: item.reference_year,
             anniversary_year: item.payload?.anniversary_year,
-            anniversary_message_type: item.payload?.anniversary_message_type
+            anniversary_message_type: item.payload?.anniversary_message_type,
+            reminder_type: item.payload?.reminder_type,
+            test_mode: force_resend ? true : false
           },
           instance: instance
         });
