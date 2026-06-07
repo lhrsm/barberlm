@@ -19,8 +19,10 @@ import {
   ChevronLeft,
   CalendarDays,
   Trash2,
-  Check
+  Check,
+  CircleDollarSign
 } from "lucide-react";
+
 import { format, parseISO, addMinutes, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -65,11 +67,18 @@ function AppointmentGroupPage() {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<any>(null);
+
   
   useEffect(() => {
     if (token) {
       fetchGroup();
+      fetchHistory();
     }
+
   }, [token]);
 
   async function fetchGroup() {
@@ -124,6 +133,28 @@ function AppointmentGroupPage() {
       setLoading(false);
     }
   }
+
+  async function fetchHistory() {
+    setLoadingHistory(true);
+    try {
+      // Usar uma query mais robusta que não dependa do relacionamento se ele falhar no TS
+      const { data, error: histError } = await supabase
+        .from('appointment_status_logs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (histError) throw histError;
+      
+      // Filtrar localmente por ID de agendamento se necessário, ou ajustar a query se o schema permitir
+      // Por simplicidade e segurança, vamos filtrar no componente os logs que pertencem aos agendamentos carregados
+      setHistory(data || []);
+    } catch (err) {
+      console.error("Error fetching history:", err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }
+
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => 
@@ -196,6 +227,22 @@ function AppointmentGroupPage() {
       setIsCancelModalOpen(false);
       setSelectedIds([]);
       fetchGroup();
+      fetchHistory();
+      
+      // Enviar notificação individual para cada item cancelado
+      for (const id of selectedIds) {
+        const appt = appointments.find(a => a.id === id);
+        if (appt) {
+          await supabase.functions.invoke('appointment-notifications', {
+            body: { 
+              appointmentId: id, 
+              type: 'appointment_cancelled',
+              updatedBy: { type: 'customer' }
+            }
+          });
+        }
+      }
+
     } catch (err: any) {
       toast.error(err.message || "Erro ao cancelar agendamentos");
     } finally {
@@ -326,6 +373,17 @@ function AppointmentGroupPage() {
       setIsRescheduling(false);
       setRescheduleData(null);
       fetchGroup(); 
+      fetchHistory();
+
+      // Enviar notificação de reagendamento
+      await supabase.functions.invoke('appointment-notifications', {
+        body: { 
+          appointmentId: rescheduleData.id, 
+          type: 'appointment_rescheduled',
+          updatedBy: { type: 'customer' }
+        }
+      });
+
     } catch (err: any) {
       toast.error(err.message || "Erro ao reagendar");
     } finally {
@@ -384,6 +442,54 @@ function AppointmentGroupPage() {
           </h1>
           <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">Gerenciamento de Grupo de Agendamentos</p>
         </div>
+
+        {/* Finance Summary Card */}
+        <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
+          <CardHeader className="p-6 border-b border-zinc-800/50">
+            <div className="flex items-center gap-3">
+              <CircleDollarSign className="text-primary w-5 h-5" />
+              <CardTitle className="text-white font-black uppercase text-xs tracking-widest">Resumo Financeiro</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-zinc-400 text-sm font-medium">Total Original</span>
+              <span className="text-white font-bold">R$ {Number(group.total_amount).toFixed(2)}</span>
+            </div>
+            
+            {appointments.some(a => a.status === 'cancelled') && (
+              <div className="flex justify-between items-center">
+                <span className="text-red-400 text-sm font-medium">Valor em Itens Cancelados</span>
+                <span className="text-red-400 font-bold">
+                  - R$ {appointments
+                    .filter(a => a.status === 'cancelled')
+                    .reduce((acc, a) => acc + Number(a.service_amount), 0)
+                    .toFixed(2)}
+                </span>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-zinc-800/50 flex justify-between items-center">
+              <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">Valor Ativo</span>
+              <span className="text-primary text-xl font-black">
+                R$ {appointments
+                  .filter(a => a.status !== 'cancelled')
+                  .reduce((acc, a) => acc + Number(a.service_amount), 0)
+                  .toFixed(2)}
+              </span>
+            </div>
+
+            {group.payment_status === 'paid' && appointments.some(a => a.status === 'cancelled') && (
+              <div className="mt-4 p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+                <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest mb-1">Status de Crédito/Estorno</p>
+                <p className="text-xs text-emerald-400/80 leading-relaxed font-medium">
+                  Os valores dos itens cancelados foram convertidos em crédito para sua próxima visita ou estão em processo de estorno, conforme sua solicitação.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
 
         <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
           <div className="p-6 bg-primary/10 flex items-center justify-between border-b border-zinc-800/50">
@@ -642,8 +748,76 @@ function AppointmentGroupPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* History Modal */}
+      <Dialog open={showHistoryModal} onOpenChange={setShowHistoryModal}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-[2rem] max-w-md overflow-hidden p-0">
+          <DialogHeader className="p-8 border-b border-zinc-800/50">
+            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+              <RefreshCcw className="text-primary w-6 h-6" />
+            </div>
+            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Histórico do Item</DialogTitle>
+            <DialogDescription className="text-zinc-500 font-medium">
+              Acompanhe as alterações feitas no serviço {selectedHistoryItem?.service_name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-6 max-h-[400px] overflow-y-auto space-y-6">
+            {loadingHistory ? (
+              <div className="flex justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : history.filter(h => h.appointment_id === selectedHistoryItem?.id).length > 0 ? (
+              <div className="relative border-l-2 border-zinc-800/50 ml-3 pl-6 space-y-8">
+                {history.filter(h => h.appointment_id === selectedHistoryItem?.id).map((log) => (
+                  <div key={log.id} className="relative">
+                    <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-zinc-900 border-2 border-primary flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                        {format(parseISO(log.created_at), "dd/MM/yyyy HH:mm")}
+                      </span>
+                      <p className="text-white font-bold text-sm">
+                        {log.new_status === 'cancelled' ? 'Agendamento Cancelado' : 
+                         log.metadata?.action === 'rescheduled' ? 'Agendamento Reagendado' : 
+                         `Status alterado para ${log.new_status}`}
+                      </p>
+                      {log.metadata?.reason && (
+                        <p className="text-zinc-400 text-xs mt-1 italic">"{log.metadata.reason}"</p>
+                      )}
+                      {log.metadata?.amount && (
+                        <p className="text-primary text-xs font-bold mt-1">
+                          Valor: R$ {Number(log.metadata.amount).toFixed(2)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <Clock className="w-10 h-10 text-zinc-800 mx-auto mb-3" />
+                <p className="text-zinc-500 text-sm">Nenhuma alteração registrada até o momento.</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="p-6 bg-zinc-900/30 border-t border-zinc-800/50">
+            <Button 
+              variant="outline" 
+              className="w-full border-zinc-800 bg-transparent text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px] h-12 rounded-2xl hover:bg-white/5 transition-all"
+              onClick={() => setShowHistoryModal(false)}
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+
+
 
 export default AppointmentGroupPage;
