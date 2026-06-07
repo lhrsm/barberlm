@@ -115,7 +115,7 @@ serve(async (req) => {
         const isBirthday = automation?.key === 'customer_birthday';
         if (!automation || (!appointment && !isBirthday)) throw new Error("Data incomplete");
 
-        if (!force_resend && appointment.confirmation_sent) {
+        if (!force_resend && appointment?.confirmation_sent) {
           const { data: activeSess } = await supabase
             .from("automation_v2_sessions")
             .select("id")
