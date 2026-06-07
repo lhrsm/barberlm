@@ -77,6 +77,12 @@ function FinancesComponent() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [refundRequests, setRefundRequests] = useState<any[]>([]);
   const [loadingRefunds, setLoadingRefunds] = useState(false);
+  
+  // Refund filters
+  const [refundStatusFilter, setRefundStatusFilter] = useState<string>("all");
+  const [refundDateStartFilter, setRefundDateStartFilter] = useState<string>("");
+  const [refundDateEndFilter, setRefundDateEndFilter] = useState<string>("");
+  const [refundSearchTerm, setRefundSearchTerm] = useState<string>("");
 
   const TIMEZONE = "America/Sao_Paulo";
 
@@ -224,11 +230,35 @@ function FinancesComponent() {
     if (!user) return;
     setLoadingRefunds(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("refund_requests")
         .select("*, customer:customers(name), appointment:appointments(service_name, start_time)")
-        .eq("tenant_id", user.id)
-        .order("created_at", { ascending: false });
+        .eq("tenant_id", user.id);
+      
+      if (refundStatusFilter !== "all") {
+        query = query.eq("status", refundStatusFilter);
+      }
+      
+      if (refundDateStartFilter) {
+        query = query.gte("created_at", `${refundDateStartFilter}T00:00:00Z`);
+      }
+      
+      if (refundDateEndFilter) {
+        query = query.lte("created_at", `${refundDateEndFilter}T23:59:59Z`);
+      }
+
+      if (refundSearchTerm) {
+        // Search by appointment_id or payment_id
+        // Since we can't easily OR different types in Supabase JS client with .or() for UUID vs string without extra care,
+        // we'll use a more flexible approach if possible or just filter by payment_id if it's not a UUID
+        if (refundSearchTerm.length === 36) { // Likely UUID
+           query = query.or(`appointment_id.eq.${refundSearchTerm},payment_id.ilike.%${refundSearchTerm}%`);
+        } else {
+           query = query.ilike('payment_id', `%${refundSearchTerm}%`);
+        }
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
       
       if (error) throw error;
       setRefundRequests(data || []);
@@ -238,6 +268,12 @@ function FinancesComponent() {
       setLoadingRefunds(false);
     }
   }
+
+  useEffect(() => {
+    if (user) {
+      fetchRefundRequests();
+    }
+  }, [refundStatusFilter, refundDateStartFilter, refundDateEndFilter, refundSearchTerm]);
 
   async function handleUpdateRefundStatus(refundId: string, newStatus: string, notes?: string) {
     try {
