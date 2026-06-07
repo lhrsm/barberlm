@@ -160,6 +160,19 @@ async function scheduleBirthdayMessages(supabase: any) {
   }
 
   for (const customer of customers) {
+    const { data: bdayTemplate } = await supabase
+      .from("automation_templates")
+      .select("id")
+      .eq("tenant_id", customer.tenant_id)
+      .eq("key", "customer_birthday")
+      .eq("active", true)
+      .maybeSingle();
+
+    if (!bdayTemplate) {
+      console.log(`[AutomationEngine] No active birthday template for tenant ${customer.tenant_id}`);
+      continue;
+    }
+
     // Scheduled for 09:00 AM Brazil time today
     const scheduledFor = new Date(nowBrazil);
     scheduledFor.setHours(9, 0, 0, 0);
@@ -171,6 +184,7 @@ async function scheduleBirthdayMessages(supabase: any) {
     try {
       await supabase.from("automation_queue").insert({
         tenant_id: customer.tenant_id,
+        automation_id: bdayTemplate.id,
         customer_id: customer.id,
         workflow_key: "customer_birthday",
         event_name: "customer.birthday",
