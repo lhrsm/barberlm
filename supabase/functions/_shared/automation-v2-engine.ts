@@ -164,9 +164,17 @@ export async function sendAutomationMessageV2(supabase: any, params: AutomationM
   await supabase.from("automation_v2_logs").insert({
     tenant_id,
     appointment_id,
+    customer_id,
     level: 'info',
     message: `Mensagem enviada via ${workflow_key}`,
-    context: { dispatch_id: dispatch.id, provider_message_id: providerMessageId }
+    context: { 
+      dispatch_id: dispatch.id, 
+      provider_message_id: providerMessageId,
+      customer_name,
+      workflow_key,
+      status: 'sent',
+      ...payload
+    }
   });
 
   return {
