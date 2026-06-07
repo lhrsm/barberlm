@@ -241,14 +241,17 @@ function FinancesComponent() {
 
   async function handleUpdateRefundStatus(refundId: string, newStatus: string, notes?: string) {
     try {
+      const updatePayload: any = { 
+        status: newStatus, 
+        updated_at: new Date().toISOString()
+      };
+
+      if (notes !== undefined) updatePayload.admin_notes = notes;
+      if (newStatus === 'completed') updatePayload.completed_at = new Date().toISOString();
+
       const { error } = await supabase
         .from("refund_requests")
-        .update({ 
-          status: newStatus, 
-          admin_notes: notes,
-          completed_at: newStatus === 'completed' ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq("id", refundId);
 
       if (error) throw error;
