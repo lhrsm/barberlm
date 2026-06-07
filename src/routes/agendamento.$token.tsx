@@ -290,6 +290,18 @@ function AppointmentManagementPage() {
       const response = data as any;
       if (response && response.success === false) throw new Error(response.error || "Erro ao processar");
 
+      // Trigger notification if it was a refund request
+      if (preference === 'refund' && isPaid) {
+        await supabase.functions.invoke('appointment-notifications', {
+          body: { 
+            appointmentId: appointment.id, 
+            type: 'refund_requested',
+            amount: amount,
+            updatedBy: { type: 'customer' }
+          }
+        });
+      }
+
       await createNotification({
         userId: appointment.tenant_id,
         type: 'appointment_cancelled',

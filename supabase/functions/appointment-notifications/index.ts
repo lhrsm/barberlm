@@ -109,6 +109,27 @@ serve(async (req) => {
           message: `O atendimento de ${placeholders.cliente_nome} foi reagendado para ${newTime} por ${updatedBy.type === 'barber' ? placeholders.barbeiro_nome : 'administrador'}.`
         });
       }
+    } else if (type === "refund_requested") {
+      const amount = body.amount || 0;
+      notifications.push({
+        target: "admin",
+        message: `Solicitação de Estorno: O cliente ${placeholders.cliente_nome} solicitou o estorno de R$ ${amount.toFixed(2)} referente ao agendamento de ${placeholders.data}.`
+      });
+      notifications.push({
+        target: "customer",
+        phone: customer?.phone,
+        message: `Olá ${placeholders.cliente_nome}, sua solicitação de estorno no valor de R$ ${amount.toFixed(2)} foi recebida e será analisada pela barbearia ${placeholders.barbearia_nome}.`
+      });
+    } else if (type === "refund_updated") {
+      const amount = body.amount || 0;
+      const status = body.status;
+      let statusText = status === 'approved' ? 'aprovada' : status === 'completed' ? 'concluída' : 'rejeitada';
+      
+      notifications.push({
+        target: "customer",
+        phone: customer?.phone,
+        message: `Olá ${placeholders.cliente_nome}, sua solicitação de estorno no valor de R$ ${amount.toFixed(2)} foi ${statusText} pela barbearia ${placeholders.barbearia_nome}.`
+      });
     }
 
     // Send notifications

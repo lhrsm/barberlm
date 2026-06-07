@@ -2777,6 +2777,57 @@ export type Database = {
           },
         ]
       }
+      refund_audits: {
+        Row: {
+          changed_by_id: string | null
+          changed_by_type: string
+          changes: Json | null
+          created_at: string | null
+          id: string
+          new_status: string
+          old_status: string | null
+          refund_id: string
+          tenant_id: string
+        }
+        Insert: {
+          changed_by_id?: string | null
+          changed_by_type: string
+          changes?: Json | null
+          created_at?: string | null
+          id?: string
+          new_status: string
+          old_status?: string | null
+          refund_id: string
+          tenant_id: string
+        }
+        Update: {
+          changed_by_id?: string | null
+          changed_by_type?: string
+          changes?: Json | null
+          created_at?: string | null
+          id?: string
+          new_status?: string
+          old_status?: string | null
+          refund_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refund_audits_refund_id_fkey"
+            columns: ["refund_id"]
+            isOneToOne: false
+            referencedRelation: "refund_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refund_audits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       refund_requests: {
         Row: {
           amount: number

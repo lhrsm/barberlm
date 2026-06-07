@@ -16,7 +16,7 @@ import {
 import { Phone, ArrowRight, User, Timer, DollarSign, Package, MessageSquare, CreditCard, ChevronRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Handshake } from "lucide-react";
-import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
+import { Users, FileText, Calendar, Plus, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Clock, Check, X, Scissors, CircleDollarSign, CheckCircle2, XCircle, RefreshCcw, History } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatInTimeZone, toDate } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
@@ -256,6 +256,28 @@ function FinancesComponent() {
 
       if (error) throw error;
       
+      // Trigger notification for status update
+      if (['approved', 'completed', 'rejected'].includes(newStatus)) {
+        // Fetch appointment_id for the refund
+        const { data: refund } = await supabase
+          .from("refund_requests")
+          .select("appointment_id, amount")
+          .eq("id", refundId)
+          .single();
+
+        if (refund) {
+          await supabase.functions.invoke('appointment-notifications', {
+            body: { 
+              appointmentId: refund.appointment_id, 
+              type: 'refund_updated',
+              status: newStatus,
+              amount: refund.amount,
+              updatedBy: { type: 'admin' }
+            }
+          });
+        }
+      }
+
       toast.success(`Solicitação ${newStatus === 'approved' ? 'aprovada' : newStatus === 'completed' ? 'marcada como paga' : 'rejeitada'}!`);
       fetchRefundRequests();
     } catch (err: any) {
@@ -806,12 +828,15 @@ function FinancesComponent() {
         </div>
 
         <Tabs defaultValue="transactions" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[600px] bg-card border border-border text-foreground">
+          <TabsList className={cn("grid w-full bg-card border border-border text-foreground", role !== 'barber' ? "grid-cols-4 max-w-[800px]" : "grid-cols-3 max-w-[600px]")}>
             <TabsTrigger value="transactions" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <FileText size={16} /> Lançamentos
             </TabsTrigger>
             <TabsTrigger value="pending" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Clock size={16} /> Pendentes
+            </TabsTrigger>
+            <TabsTrigger value="refunds" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <RefreshCcw size={16} /> Estornos
             </TabsTrigger>
             {role !== 'barber' && (
               <TabsTrigger value="barbers" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -1663,6 +1688,111 @@ function FinancesComponent() {
               )}
             </div>
           </TabsContent>
+
+          <TabsContent value="refunds" className="pt-4 space-y-4">
+            <div className="border border-border rounded-xl bg-card text-foreground overflow-x-auto custom-scrollbar shadow-sm">
+              <Table className="min-w-[800px] md:min-w-0">
+                <TableHeader className="bg-background">
+                  <TableRow className="hover:bg-transparent border-border">
+                    <TableHead className="text-muted-foreground">Solicitado em</TableHead>
+                    <TableHead className="text-muted-foreground">Cliente</TableHead>
+                    <TableHead className="text-muted-foreground">Serviço</TableHead>
+                    <TableHead className="text-muted-foreground">Valor</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-muted-foreground text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {refundRequests.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground italic">
+                        Nenhuma solicitação de estorno encontrada.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    refundRequests.map((req) => (
+                      <TableRow key={req.id} className="border-border hover:bg-muted/50 transition-colors">
+                        <TableCell className="text-xs">
+                          {format(new Date(req.created_at), "dd/MM/yyyy HH:mm")}
+                        </TableCell>
+                        <TableCell className="font-bold">{req.customer?.name || "Cliente"}</TableCell>
+                        <TableCell className="text-xs">{req.appointment?.service_name || "Serviço"}</TableCell>
+                        <TableCell className="font-black text-red-500">R$ {Number(req.amount).toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={cn(
+                            "font-bold uppercase text-[10px]",
+                            req.status === 'requested' ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" :
+                            req.status === 'approved' ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+                            req.status === 'completed' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                            "bg-red-500/10 text-red-500 border-red-500/20"
+                          )}>
+                            {req.status === 'requested' ? 'Pendente' : 
+                             req.status === 'approved' ? 'Aprovado' :
+                             req.status === 'completed' ? 'Concluído' : 'Rejeitado'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 gap-1 text-primary hover:bg-primary/10">
+                                  <History size={14} /> Auditoria
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white max-w-md">
+                                <DialogHeader>
+                                  <DialogTitle className="flex items-center gap-2">
+                                    <History className="h-5 w-5 text-primary" /> Histórico de Alterações
+                                  </DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 my-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                  <AuditTrail refundId={req.id} />
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+
+                            {req.status === 'requested' && (
+                              <>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold"
+                                  onClick={() => handleUpdateRefundStatus(req.id, 'approved')}
+                                >
+                                  Aprovar
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50 font-bold"
+                                  onClick={() => {
+                                    const reason = prompt("Motivo da rejeição:");
+                                    if (reason) handleUpdateRefundStatus(req.id, 'rejected', reason);
+                                  }}
+                                >
+                                  Rejeitar
+                                </Button>
+                              </>
+                            )}
+                            {req.status === 'approved' && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 font-bold"
+                                onClick={() => handleUpdateRefundStatus(req.id, 'completed')}
+                              >
+                                Marcar como Pago
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
       
@@ -1677,5 +1807,73 @@ function FinancesComponent() {
         }}
       />
     </AppLayout>
+  );
+}
+
+function AuditTrail({ refundId }: { refundId: string }) {
+  const [audits, setAudits] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAudits() {
+      const { data } = await supabase
+        .from("refund_audits")
+        .select("*")
+        .eq("refund_id", refundId)
+        .order("created_at", { ascending: false });
+      setAudits(data || []);
+      setLoading(false);
+    }
+    fetchAudits();
+  }, [refundId]);
+
+  if (loading) return <div className="flex justify-center p-4"><RefreshCcw className="animate-spin h-5 w-5 text-primary" /></div>;
+
+  return (
+    <div className="space-y-4">
+      {audits.length === 0 ? (
+        <p className="text-zinc-500 text-sm italic text-center">Nenhum registro de auditoria encontrado.</p>
+      ) : (
+        audits.map((audit) => (
+          <div key={audit.id} className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800/50 relative overflow-hidden">
+            <div className="flex justify-between items-start mb-2">
+              <Badge variant="outline" className={cn(
+                "text-[9px] font-black uppercase tracking-widest",
+                audit.new_status === 'requested' ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" :
+                audit.new_status === 'approved' ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+                audit.new_status === 'completed' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                "bg-red-500/10 text-red-500 border-red-500/20"
+              )}>
+                {audit.new_status}
+              </Badge>
+              <span className="text-[10px] text-zinc-500 font-medium">
+                {format(new Date(audit.created_at), "dd/MM HH:mm")}
+              </span>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-zinc-300">
+                <span className="text-zinc-500 uppercase text-[9px] font-black mr-1 tracking-tighter">Alterado por:</span> 
+                {audit.changed_by_type === 'admin' ? 'Administrador' : 'Sistema'}
+              </p>
+              {audit.old_status && (
+                <p className="text-[10px] text-zinc-500">
+                  Status anterior: <span className="line-through">{audit.old_status}</span>
+                </p>
+              )}
+              {audit.changes && Object.keys(audit.changes).length > 0 && (
+                <div className="mt-2 pt-2 border-t border-zinc-800/50">
+                   <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Modificações</p>
+                   {Object.entries(audit.changes).map(([field, vals]: [string, any]) => (
+                     <p key={field} className="text-[10px] text-zinc-400">
+                       <span className="capitalize">{field}</span>: {typeof vals.old !== 'undefined' ? `${vals.old} → ` : ''}{vals.new}
+                     </p>
+                   ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
   );
 }
