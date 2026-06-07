@@ -1156,7 +1156,10 @@ function AutomationsComponent() {
                     </div>
 
                     <CardDescription className="text-slate-400 text-xs leading-relaxed mb-3 line-clamp-2">
-                      Envia automaticamente uma mensagem para o cliente após a criação de um agendamento.
+                      {auto.key === 'appointment_confirmation' && "Envia automaticamente uma mensagem para o cliente após a criação de um agendamento."}
+                      {auto.key === 'appointment_reminder' && "Lembretes automáticos 6h, 1h e 30min antes do agendamento."}
+                      {auto.key === 'customer_birthday' && "Mensagem de parabéns no dia do aniversário do cliente com cupom."}
+                      {!['appointment_confirmation', 'appointment_reminder', 'customer_birthday'].includes(auto.key) && "Automação personalizada de atendimento."}
                     </CardDescription>
 
                     <div className="flex items-center gap-2 mb-2">
