@@ -4429,6 +4429,7 @@ export type Database = {
           appointment_id: string
           appointment_status: string
           business_name: string
+          business_phone: string
           customer_id: string
           customer_name: string
           end_time: string
