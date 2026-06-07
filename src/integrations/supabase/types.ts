@@ -2576,6 +2576,7 @@ export type Database = {
           barbershop_logo_url: string | null
           blocked_at: string | null
           business_name: string | null
+          cancellation_window_hours: number | null
           cashback_enabled: boolean
           cashback_percentage: number
           created_at: string
@@ -2616,6 +2617,7 @@ export type Database = {
           barbershop_logo_url?: string | null
           blocked_at?: string | null
           business_name?: string | null
+          cancellation_window_hours?: number | null
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
@@ -2656,6 +2658,7 @@ export type Database = {
           barbershop_logo_url?: string | null
           blocked_at?: string | null
           business_name?: string | null
+          cancellation_window_hours?: number | null
           cashback_enabled?: boolean
           cashback_percentage?: number
           created_at?: string
@@ -4121,6 +4124,7 @@ export type Database = {
           barber_id: string
           business_name: string
           business_phone: string
+          cancellation_window_hours: number
           customer_name: string
           end_time: string
           id: string
