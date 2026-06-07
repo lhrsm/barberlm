@@ -40,6 +40,10 @@ serve(async (req) => {
     } else {
       query = query.or("status.eq.pending,status.eq.failed");
       query = query.lt("attempts", 3);
+      
+      const now = new Date().toISOString();
+      query = query.or(`scheduled_for.is.null,scheduled_for.lte.${now}`);
+      
       if (tenant_id) query = query.eq("tenant_id", tenant_id);
       if (appointment_id) query = query.eq("appointment_id", appointment_id);
     }
