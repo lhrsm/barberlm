@@ -108,11 +108,11 @@ function AppointmentManagementPage() {
       setAppointment(appt);
       
       // Load barber working hours for rescheduling
-      if (appt.professional_id || appt.barber_id) {
+      if (appt.professional_id) {
         const { data: barbData } = await supabase
           .from("barbers")
           .select("*")
-          .eq("id", appt.professional_id || appt.barber_id)
+          .eq("id", appt.professional_id)
           .single();
         setBarber(barbData);
       }
