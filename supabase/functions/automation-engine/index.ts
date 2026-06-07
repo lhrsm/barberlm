@@ -147,6 +147,19 @@ async function scheduleBirthdayMessages(supabase: any) {
   const day = nowBrazil.getDate();
   const month = nowBrazil.getMonth() + 1;
   const year = nowBrazil.getFullYear();
+  
+  // Rule: Window 09:00 - 11:59 AM (Sao Paulo)
+  const hourStr = formatBrazilTime(nowBrazil).split(':')[0];
+  const hour = parseInt(hourStr);
+
+  if (hour < 9) {
+    console.log(`[AutomationEngine] Too early for birthdays (${hourStr}:00). Waiting for 09:00 AM.`);
+    return;
+  }
+  if (hour >= 12) {
+    console.log(`[AutomationEngine] Too late for birthdays (${hourStr}:00). Window closed at 11:59 AM.`);
+    return;
+  }
 
   // Find customers whose birthday is today
   const { data: customers, error } = await supabase.rpc('get_customers_with_birthday_today', {
@@ -159,7 +172,24 @@ async function scheduleBirthdayMessages(supabase: any) {
     return;
   }
 
+  console.log(`[AutomationEngine] Found ${customers.length} customers with birthday today`);
+
   for (const customer of customers) {
+    // Check if already sent in automation_v2_dispatches this year
+    const { data: existingDispatch } = await supabase
+      .from("automation_v2_dispatches")
+      .select("id")
+      .eq("customer_id", customer.id)
+      .eq("workflow_key", "customer_birthday")
+      .gte("sent_at", `${year}-01-01T00:00:00Z`)
+      .lte("sent_at", `${year}-12-31T23:59:59Z`)
+      .maybeSingle();
+
+    if (existingDispatch) {
+      console.log(`[AutomationEngine] Birthday already sent this year for customer ${customer.id}`);
+      continue;
+    }
+
     const { data: bdayTemplate } = await supabase
       .from("automation_templates")
       .select("id")
@@ -173,27 +203,32 @@ async function scheduleBirthdayMessages(supabase: any) {
       continue;
     }
 
-    // Scheduled for 09:00 AM Brazil time today
+    // Default to 09:00 AM Brazil time today
     const scheduledFor = new Date(nowBrazil);
     scheduledFor.setHours(9, 0, 0, 0);
 
-    // If 09:00 AM has already passed today, schedule for now or skip? 
-    // Usually, we want to send it today regardless if we just started.
-    const finalSchedule = scheduledFor.getTime() < nowBrazil.getTime() ? nowBrazil : scheduledFor;
-
     try {
-      await supabase.from("automation_queue").insert({
+      const { error: insertError } = await supabase.from("automation_queue").insert({
         tenant_id: customer.tenant_id,
         automation_id: bdayTemplate.id,
         customer_id: customer.id,
         workflow_key: "customer_birthday",
         event_name: "customer.birthday",
         status: "pending",
-        scheduled_for: finalSchedule.toISOString(),
-        payload: { year: year }
+        scheduled_for: scheduledFor.toISOString(),
+        reference_year: year,
+        payload: { 
+          year: year,
+          customer_name: customer.name,
+          birth_date: customer.birth_date
+        }
       });
+      
+      if (!insertError) {
+        console.log(`[AutomationEngine] Queued birthday for ${customer.name} (Tenant: ${customer.tenant_id})`);
+      }
     } catch (e) {
-      // Unique constraint will prevent duplicate sends in the same year/day
+      // Unique constraint will prevent duplicates
     }
   }
 }
