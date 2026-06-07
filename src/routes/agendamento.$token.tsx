@@ -17,7 +17,8 @@ import {
   RefreshCcw,
   ChevronRight,
   ChevronLeft,
-  CalendarDays
+  CalendarDays,
+  Trash2
 } from "lucide-react";
 import { format, parseISO, addMinutes, isSameDay, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -28,6 +29,14 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createNotification } from "@/utils/notifications";
 import { triggerAutomation } from "@/utils/automation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/agendamento/$token")({
   component: AppointmentManagementPage,
@@ -43,6 +52,7 @@ function AppointmentManagementPage() {
   const [appointment, setAppointment] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isRescheduling, setIsRescheduling] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   
   // Reschedule state
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -50,8 +60,8 @@ function AppointmentManagementPage() {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [barber, setBarber] = useState<any>(null);
-  const [dayAppointments, setDayAppointments] = useState<any[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -114,7 +124,6 @@ function AppointmentManagementPage() {
     if (!appointment || !barber) return;
     setFetchingTimes(true);
     try {
-      // 1. Fetch appointments for the day to check conflicts
       const startDay = `${selectedDate}T00:00:00Z`;
       const endDay = `${selectedDate}T23:59:59Z`;
       
@@ -154,7 +163,6 @@ function AppointmentManagementPage() {
           if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
 
           const checkTimeMs = checkTime.getTime();
-          // Assuming duration from original appointment or default 30
           const duration = 30; 
           const serviceEndMs = checkTimeMs + duration * 60 * 1000;
 
@@ -186,7 +194,6 @@ function AppointmentManagementPage() {
     try {
       const timeWithSeconds = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
       const startTime = parseISO(`${selectedDate}T${timeWithSeconds}`);
-      // Simple logic: maintain same duration
       const oldStart = parseISO(appointment.start_time);
       const oldEnd = appointment.end_time ? parseISO(appointment.end_time) : addMinutes(oldStart, 30);
       const durationMinutes = Math.round((oldEnd.getTime() - oldStart.getTime()) / 60000) || 30;
@@ -203,7 +210,6 @@ function AppointmentManagementPage() {
       const response = data as any;
       if (rpcError || !response || !response.success) throw new Error(rpcError?.message || response?.error || "Erro desconhecido");
 
-      // Notifications
       await createNotification({
         userId: appointment.tenant_id,
         type: 'appointment_rescheduled',
@@ -213,7 +219,6 @@ function AppointmentManagementPage() {
         metadata: { appointmentId: appointment.id }
       });
 
-      // Automation Trigger for customer
       triggerAutomation({
         tenant_id: appointment.tenant_id,
         event_name: 'appointment.rescheduled',
@@ -222,11 +227,51 @@ function AppointmentManagementPage() {
 
       toast.success("Seu agendamento foi reagendado com sucesso!");
       setIsRescheduling(false);
-      fetchAppointment(); // Refresh view
+      fetchAppointment(); 
     } catch (err: any) {
       toast.error(err.message || "Erro ao reagendar");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      const { data, error: rpcError } = await supabase.rpc('cancel_appointment', {
+        p_appointment_id: appointment.id,
+        p_cancelled_by: 'customer',
+        p_source: 'public_link',
+        p_refund_preference: 'none' // For now, client management via link doesn't handle credits/refunds
+      });
+
+      if (rpcError) throw rpcError;
+      
+      const response = data as any;
+      if (response && response.error) throw new Error(response.error);
+
+      await createNotification({
+        userId: appointment.tenant_id,
+        type: 'appointment_cancelled',
+        title: "Agendamento Cancelado",
+        message: `${appointment.customer_name} cancelou o agendamento de ${format(parseISO(appointment.start_time), "dd/MM 'às' HH:mm")}`,
+        barberId: appointment.professional_id || appointment.barber_id,
+        metadata: { appointmentId: appointment.id }
+      });
+
+      triggerAutomation({
+        tenant_id: appointment.tenant_id,
+        event_name: 'appointment.cancelled',
+        appointment_id: appointment.id
+      }).catch(console.error);
+
+      toast.success("Agendamento cancelado com sucesso.");
+      setIsCancelModalOpen(false);
+      fetchAppointment();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao cancelar agendamento");
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -257,6 +302,7 @@ function AppointmentManagementPage() {
   const isCancelled = appointment.status === 'cancelled';
   const isCompleted = appointment.status === 'completed';
   const canReschedule = isConfirmed && !isCompleted && !isCancelled;
+  const canCancel = isConfirmed && !isCompleted && !isCancelled;
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 flex flex-col items-center">
@@ -360,16 +406,26 @@ function AppointmentManagementPage() {
                     </div>
                   </div>
 
-                  {canReschedule && (
-                    <div className="pt-6 border-t border-zinc-800/50">
+                  <div className="pt-6 border-t border-zinc-800/50 space-y-3">
+                    {canReschedule && (
                       <Button 
                         onClick={() => setIsRescheduling(true)}
                         className="w-full h-12 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase tracking-widest text-xs"
                       >
                         <RefreshCcw className="mr-2 h-4 w-4" /> Reagendar Atendimento
                       </Button>
-                    </div>
-                  )}
+                    )}
+                    
+                    {canCancel && (
+                      <Button 
+                        variant="ghost"
+                        onClick={() => setIsCancelModalOpen(true)}
+                        className="w-full h-12 rounded-xl text-red-500 hover:text-red-400 hover:bg-red-500/5 font-bold uppercase tracking-widest text-xs"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" /> Cancelar Agendamento
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -467,6 +523,45 @@ function AppointmentManagementPage() {
           Powered by Barbex
         </p>
       </motion.div>
+
+      {/* Cancel Confirmation Modal */}
+      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-3xl sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tight flex items-center gap-2">
+              <AlertCircle className="text-red-500 h-6 w-6" /> Cancelar Agendamento
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400 font-medium pt-2">
+              Deseja realmente cancelar este agendamento? Esta ação não poderá ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800/50 my-4">
+             <div className="flex flex-col gap-1">
+                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resumo do Cancelamento</p>
+                <p className="text-sm font-bold text-white">{appointment.service_name}</p>
+                <p className="text-xs text-zinc-400">
+                  {format(parseISO(appointment.start_time), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                </p>
+             </div>
+          </div>
+          <DialogFooter className="flex flex-col sm:flex-row gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsCancelModalOpen(false)}
+              className="bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-xl h-12 flex-1 font-bold uppercase tracking-widest text-[10px]"
+            >
+              Manter Agendamento
+            </Button>
+            <Button 
+              onClick={handleCancel}
+              disabled={cancelling}
+              className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 flex-1 font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20"
+            >
+              {cancelling ? <RefreshCcw className="animate-spin h-4 w-4" /> : "Sim, Cancelar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
