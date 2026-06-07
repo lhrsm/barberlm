@@ -748,9 +748,75 @@ function AppointmentGroupPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* History Modal */}
+      <Dialog open={showHistoryModal} onOpenChange={setShowHistoryModal}>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-[2rem] max-w-md overflow-hidden p-0">
+          <DialogHeader className="p-8 border-b border-zinc-800/50">
+            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+              <RefreshCcw className="text-primary w-6 h-6" />
+            </div>
+            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Histórico do Item</DialogTitle>
+            <DialogDescription className="text-zinc-500 font-medium">
+              Acompanhe as alterações feitas no serviço {selectedHistoryItem?.service_name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-6 max-h-[400px] overflow-y-auto space-y-6">
+            {loadingHistory ? (
+              <div className="flex justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : history.filter(h => h.appointment_id === selectedHistoryItem?.id).length > 0 ? (
+              <div className="relative border-l-2 border-zinc-800/50 ml-3 pl-6 space-y-8">
+                {history.filter(h => h.appointment_id === selectedHistoryItem?.id).map((log) => (
+                  <div key={log.id} className="relative">
+                    <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-zinc-900 border-2 border-primary flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                        {format(parseISO(log.created_at), "dd/MM/yyyy HH:mm")}
+                      </span>
+                      <p className="text-white font-bold text-sm">
+                        {log.new_status === 'cancelled' ? 'Agendamento Cancelado' : 
+                         log.metadata?.action === 'rescheduled' ? 'Agendamento Reagendado' : 
+                         `Status alterado para ${log.new_status}`}
+                      </p>
+                      {log.metadata?.reason && (
+                        <p className="text-zinc-400 text-xs mt-1 italic">"{log.metadata.reason}"</p>
+                      )}
+                      {log.metadata?.amount && (
+                        <p className="text-primary text-xs font-bold mt-1">
+                          Valor: R$ {Number(log.metadata.amount).toFixed(2)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <Clock className="w-10 h-10 text-zinc-800 mx-auto mb-3" />
+                <p className="text-zinc-500 text-sm">Nenhuma alteração registrada até o momento.</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="p-6 bg-zinc-900/30 border-t border-zinc-800/50">
+            <Button 
+              variant="outline" 
+              className="w-full border-zinc-800 bg-transparent text-zinc-400 font-black uppercase tracking-[0.2em] text-[10px] h-12 rounded-2xl hover:bg-white/5 transition-all"
+              onClick={() => setShowHistoryModal(false)}
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
 
 
