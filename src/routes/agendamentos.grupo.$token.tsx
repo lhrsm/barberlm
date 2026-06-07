@@ -91,6 +91,7 @@ function AppointmentGroupPage() {
         customer_id: data[0].customer_id,
         customer_name: data[0].customer_name,
         business_name: data[0].business_name,
+        business_phone: data[0].business_phone,
         total_amount: data[0].total_amount,
         payment_status: data[0].payment_status,
         status: data[0].group_status
