@@ -20,7 +20,7 @@ serve(async (req) => {
 
     // Just call the engine to process the queue
     const { data, error } = await supabase.functions.invoke('automation-engine', {
-      body: { action: 'process_queue' }
+      body: { action: 'run' }
     });
 
     if (error) throw error;
