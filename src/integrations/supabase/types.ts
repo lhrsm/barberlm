@@ -1119,6 +1119,7 @@ export type Database = {
           action_executed_at: string | null
           appointment_group_id: string | null
           appointment_id: string | null
+          birthday_year: number | null
           callback_button_id: string | null
           callback_payload: Json | null
           callback_received: boolean | null
@@ -1152,6 +1153,7 @@ export type Database = {
           action_executed_at?: string | null
           appointment_group_id?: string | null
           appointment_id?: string | null
+          birthday_year?: number | null
           callback_button_id?: string | null
           callback_payload?: Json | null
           callback_received?: boolean | null
@@ -1185,6 +1187,7 @@ export type Database = {
           action_executed_at?: string | null
           appointment_group_id?: string | null
           appointment_id?: string | null
+          birthday_year?: number | null
           callback_button_id?: string | null
           callback_payload?: Json | null
           callback_received?: boolean | null
