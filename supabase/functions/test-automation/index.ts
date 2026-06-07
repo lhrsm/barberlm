@@ -1,22 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { processAutomationTemplate } from "../_shared/template-parser.ts";
-import { normalizePhone } from "../_shared/utils.ts";
+import { sendAutomationMessageV2 } from "../_shared/automation-v2-engine.ts";
+import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-
 serve(async (req) => {
-  console.log('EDGE FUNCTION STARTED: test-automation');
-  console.log('REQUEST METHOD:', req.method);
-
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
-
 
   try {
     const supabase = createClient(
@@ -24,12 +20,46 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { automationId, automationType, template, phone: testPhone } = await req.json();
-
     const authHeader = req.headers.get('Authorization')!;
-    const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (!authHeader) throw new Error("Missing Authorization header");
+    
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
-    if (!user) throw new Error("Não autorizado");
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Sessão expirada. Faça login novamente." }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    const body = await req.json();
+    const { 
+      workflow_key, 
+      event_name, 
+      test_mode, 
+      template_variant, 
+      phone: testPhone, 
+      tenant_id: requestedTenantId,
+      appointment_id,
+      simulate_only,
+      dry_run,
+      fictitious
+    } = body;
+
+    console.log("[TestWorkflow] Received request:", { workflow_key, event_name, test_mode, template_variant, appointment_id });
+
+    // Legacy support or check if it's the old call format
+    const isLegacy = body.automationId && body.template;
+    if (isLegacy) {
+        console.log("[TestWorkflow] Handling legacy test call");
+        // We can either handle it here or redirect. Let's handle it for backward compatibility
+        return handleLegacyTest(supabase, user, body);
+    }
+
+    if (!test_mode && !simulate_only && !dry_run) {
+      throw new Error("Esta função é exclusiva para testes.");
+    }
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -37,50 +67,182 @@ serve(async (req) => {
       .eq("id", user.id)
       .single();
 
-    const tenantId = profile?.tenant_id || profile?.id;
+    const tenantId = requestedTenantId || profile?.tenant_id || profile?.id;
     if (!tenantId) throw new Error("Tenant não encontrado");
 
-    // BUSCA SEMPRE CONFIGURAÇÃO ATUAL DO BANCO (SINGLE SOURCE OF TRUTH)
-    const { data: settings } = await supabase
-      .from("barbershop_settings")
+    // 1. Fetch the specific template
+    const { data: template, error: templateError } = await supabase
+      .from("automation_templates")
       .select("*")
-      .eq("barber_id", tenantId)
+      .eq("tenant_id", tenantId)
+      .eq("key", workflow_key)
       .maybeSingle();
 
-    let connection = settings;
+    if (templateError || !template) {
+      throw new Error(`Template não encontrado para o workflow: ${workflow_key}`);
+    }
 
-    if (!connection) {
-      console.log(`[Test] No settings found in barbershop_settings. Checking legacy...`);
-      const { data: legacyConn } = await supabase
-        .from("whatsapp_connections")
-        .select("*")
-        .or(`tenant_id.eq.${tenantId},barbershop_id.eq.${tenantId}`)
-        .maybeSingle();
-      
-      if (!legacyConn) {
-        throw new Error("WhatsApp principal da barbearia não configurado (Single source missing).");
+    // 2. Data for rendering
+    let appointment = null;
+    if (appointment_id) {
+      const { data: apptData } = await supabase
+        .from("appointments")
+        .select(`
+          *,
+          customer:customers(name, phone),
+          service:services(name, price),
+          barber:barbers(name)
+        `)
+        .eq("id", appointment_id)
+        .single();
+      appointment = apptData;
+    }
+
+    let barbershopName = "Sua Barbearia";
+    const { data: tenantData } = await supabase.from("tenants").select("name").eq("id", tenantId).maybeSingle();
+    if (tenantData?.name && !['Barbearia', 'Barbershop'].includes(tenantData.name)) {
+      barbershopName = tenantData.name;
+    } else {
+      const { data: profileData } = await supabase.from("profiles").select("business_name").eq("id", tenantId).maybeSingle();
+      if (profileData?.business_name) barbershopName = profileData.business_name;
+    }
+
+    const sampleData = {
+      customer_name: appointment?.customer?.name || "Cliente Teste",
+      barbershop_name: barbershopName,
+      service_name: appointment?.service?.name || "Corte Social",
+      professional_name: appointment?.barber?.name || "Barbeiro",
+      appointment_date: appointment?.start_time ? formatBrazilDate(appointment.start_time) : formatBrazilDate(new Date().toISOString()),
+      appointment_time: appointment?.start_time ? formatBrazilTime(appointment.start_time) : "14:30",
+      service_price: appointment ? `R$ ${appointment.total_price || appointment.service?.price || 0}` : "R$ 50,00",
+      ...body.sample_data
+    };
+
+    // 3. Determine template to use
+    let messageTemplate = template.template;
+    if (workflow_key === 'barbershop_anniversary' && template_variant === 'reminder_7_days') {
+      messageTemplate = template.additional_templates?.reminder_7_days || messageTemplate;
+    } else if (workflow_key === 'appointment_reminder') {
+      const variant = template_variant || "6h";
+      if (variant === "6h") {
+        messageTemplate = `Olá {customer_name} 👋\n\nPassando para lembrar do seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nEstamos te esperando!`;
+      } else if (variant === "1h") {
+        messageTemplate = `Olá {customer_name} 👋\n\nSeu atendimento na {barbershop_name} está chegando.\n\n⏰ Falta apenas 1 hora para o seu agendamento.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}`;
+      } else if (variant === "30m") {
+        messageTemplate = `Olá {customer_name} 👋\n\nFaltam 30 minutos para o seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}\n\nDeseja confirmar, reagendar ou cancelar?`;
       }
-      connection = legacyConn;
     }
 
-    // Live check
-    console.log(`[Test] Performing live check for instance ${connection.instance_id}...`);
-    const statusUrl = `${connection.server_url || "https://api.z-api.io"}/instances/${connection.instance_id}/token/${connection.instance_token}/status`;
-    const statusHeaders: any = { "Content-Type": "application/json" };
-    if (connection.client_token) {
-      statusHeaders["client-token"] = connection.client_token;
-    }
-    const statusRes = await fetch(statusUrl, { method: "GET", headers: statusHeaders });
-    const statusData = await statusRes.json();
-    console.log(`[Test] INSTANCE ID: ${connection.instance_id}`);
-    console.log(`[Test] TOKEN: ${connection.instance_token}`);
-    console.log(`[Test] STATUS RESPONSE RAW:`, JSON.stringify(statusData));
-    console.log(`[Test] CONNECTED RESULT:`, statusData?.connected);
+    const renderedMessage = processAutomationTemplate(messageTemplate, sampleData);
 
-    if (statusData?.connected !== true) {
-      throw new Error("WhatsApp principal da barbearia não conectado na Z-API (Validado via /status).");
+    if (dry_run) {
+      return new Response(JSON.stringify({ 
+        success: true, 
+        dry_run: true, 
+        payload: { 
+          message: renderedMessage, 
+          workflow_key, 
+          template_id: template.id 
+        } 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
+    if (simulate_only) {
+      await supabase.from("automation_logs").insert({
+        automation_id: template.id,
+        tenant_id: tenantId,
+        barber_id: user.id,
+        status: "simulated",
+        message_type: "simulation",
+        processed_template: renderedMessage,
+        sent_at: new Date().toISOString(),
+        payload: { test_mode: true, simulation: true, workflow_key }
+      });
+
+      return new Response(JSON.stringify({ success: true, message: "Simulação registrada." }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 4. Send WhatsApp
+    const targetPhone = testPhone || appointment?.customer?.phone;
+    if (!targetPhone) throw new Error("Telefone de destino não encontrado.");
+
+    const buttons = [];
+    if (workflow_key === 'appointment_reminder' && template_variant === '30m') {
+      buttons.push(
+        { id: "reminder_confirm", label: "Confirmar agendamento" },
+        { id: "reminder_reschedule", label: "Reagendar" },
+        { id: "reminder_cancel", label: "Cancelar" }
+      );
+    }
+
+    const sendResult = await sendAutomationMessageV2(supabase, {
+      tenant_id: tenantId,
+      workflow_key: workflow_key,
+      appointment_id: fictitious ? null : appointment_id,
+      customer_id: fictitious ? null : appointment?.customer_id,
+      customer_phone: targetPhone,
+      customer_name: sampleData.customer_name,
+      message: renderedMessage,
+      buttons: buttons,
+      payload: { 
+        test_mode: true, 
+        template_variant,
+        reminder_type: template_variant 
+      }
+    });
+
+    if (!sendResult.success) {
+      throw new Error(sendResult.error || "Erro ao enviar WhatsApp");
+    }
+
+    // 5. Manual log for test
+    await supabase.from("automation_logs").insert({
+      automation_id: template.id,
+      tenant_id: tenantId,
+      barber_id: user.id,
+      phone: targetPhone,
+      status: "success",
+      message_type: "test_manual",
+      processed_template: renderedMessage,
+      original_template: template.template,
+      sent_at: new Date().toISOString(),
+      payload: { test_mode: true, template_variant, dispatch_id: sendResult.dispatch_id },
+      response: sendResult.provider_response
+    });
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      message: "Teste enviado com sucesso",
+      dispatch_id: sendResult.dispatch_id
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+
+  } catch (error: any) {
+    console.error("Test Workflow Error:", error.message);
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 400,
+    });
+  }
+});
+
+async function handleLegacyTest(supabase: any, user: any, body: any) {
+    const { automationId, automationType, template, phone: testPhone } = body;
+    
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, tenant_id")
+      .eq("id", user.id)
+      .single();
+
+    const tenantId = profile?.tenant_id || profile?.id;
+    
     const { data: appt } = await supabase
       .from("appointments")
       .select("*, customers(*), barbers:barber_id(*), profiles:tenant_id(*), services:service_id(*)")
@@ -91,83 +253,33 @@ serve(async (req) => {
 
     const mockData = {
       cliente_nome: appt?.customers?.name || appt?.name || "João da Silva",
-      barbearia_nome: appt?.profiles?.business_name || connection.instance_name || "Sua Barbearia",
-      data: appt ? new Date(appt.start_time).toLocaleDateString('pt-BR') : "26/05/2026",
-      horario: appt ? new Date(appt.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : "14:30",
-      profissional: appt?.barbers?.name || appt?.profiles?.responsible_name || "Seu Barbeiro",
+      barbearia_nome: appt?.profiles?.business_name || "Sua Barbearia",
+      data: appt ? formatBrazilDate(appt.start_time) : formatBrazilDate(new Date().toISOString()),
+      horario: appt ? formatBrazilTime(appt.start_time) : "14:30",
+      profissional: appt?.barbers?.name || "Seu Barbeiro",
       servico: appt?.services?.name || "Corte Social",
     };
 
     const processedMessage = processAutomationTemplate(template, mockData);
+    const targetPhone = testPhone || appt?.customers?.phone || "5571999999999";
 
-    const targetPhone = testPhone || connection.phone || "5571999999999"; 
-
-    const instanceId = connection.instance_id;
-    const token = connection.instance_token;
-    const baseUrl = connection.server_url || "https://api.z-api.io";
-
-    const headers: any = { 
-      "Content-Type": "application/json" 
-    };
-    if (connection.client_token) {
-      headers["client-token"] = connection.client_token;
-    }
-
-    let zapiResult: any = {};
-    let ok = false;
-
-    try {
-      const sendUrl = `${baseUrl}/instances/${instanceId}/token/${token}/send-text`;
-      console.log(`[Test] Sending to ${targetPhone} via ${sendUrl}`);
-      const response = await fetch(sendUrl, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          phone: normalizePhone(targetPhone),
-          message: processedMessage
-        })
-      });
-
-      zapiResult = await response.json();
-      console.log(`[Test] ZAPI SEND RESPONSE:`, JSON.stringify(zapiResult));
-      ok = response.ok;
-    } catch (fetchErr) {
-      zapiResult = { error: fetchErr.message };
-      ok = false;
-    }
-
-    await supabase.from("automation_logs").insert({
-      automation_id: automationId,
+    const sendResult = await sendAutomationMessageV2(supabase, {
       tenant_id: tenantId,
-      barber_id: user.id,
-      status: ok ? "success" : "error",
-      message_type: automationType + "_test",
-      phone: normalizePhone(targetPhone),
-      original_template: template,
-      processed_template: processedMessage,
-      response: zapiResult,
-      error_message: ok ? null : (zapiResult.message || zapiResult.error || "Erro na Z-API"),
-      sent_at: new Date().toISOString()
+      workflow_key: automationType || 'legacy_test',
+      customer_phone: targetPhone,
+      customer_name: mockData.cliente_nome,
+      message: processedMessage,
+      payload: { test_mode: true, legacy: true }
     });
 
-    if (!ok) {
-      throw new Error(zapiResult.message || zapiResult.error || "Erro na Z-API");
-    }
+    if (!sendResult.success) throw new Error(sendResult.error);
 
     return new Response(JSON.stringify({ 
       success: true, 
       processedMessage,
-      zapiResult 
+      dispatch_id: sendResult.dispatch_id 
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-
-  } catch (error) {
-    console.error("Test Automation Error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
-    });
-  }
-});
+}
