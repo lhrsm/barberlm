@@ -87,6 +87,7 @@ function SettingsComponent() {
     instance_token: "",
     client_token: "",
     opening_date: "",
+    cancellation_window_hours: 2,
   });
 
 
@@ -168,6 +169,7 @@ function SettingsComponent() {
           instance_token: settingsData?.instance_token || "",
           client_token: settingsData?.client_token || "",
           opening_date: profile.opening_date || "",
+          cancellation_window_hours: profile.cancellation_window_hours ?? 2,
         });
       } else {
         toast.error("Perfil não encontrado.");
@@ -230,6 +232,7 @@ function SettingsComponent() {
         pix_qr_code_url: profileUpdateData.pix_qr_code_url,
         whatsapp_number: profileUpdateData.whatsapp_number,
         opening_date: profileUpdateData.opening_date || null,
+        cancellation_window_hours: parseInt(profileUpdateData.cancellation_window_hours) || 2,
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", user.id);
@@ -756,6 +759,33 @@ function SettingsComponent() {
                       </p>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#0b0f17] border border-[#1f2937] text-white rounded-[20px] shadow-xl overflow-hidden mt-6">
+                <CardHeader className="border-b border-[#1f2937]/50 bg-[#0b0f17]/50 p-6">
+                  <CardTitle className="text-xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                    <Trash2 className="text-[#ea580c] h-5 w-5" />
+                    Política de Cancelamento
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">Configure as regras para cancelamentos de clientes via link público.</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="cancellation_window" className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Antecedência Mínima para Cancelamento (Horas)</Label>
+                    <Input 
+                      id="cancellation_window" 
+                      type="number"
+                      min="0"
+                      value={formData.cancellation_window_hours} 
+                      onChange={(e) => setFormData({ ...formData, cancellation_window_hours: e.target.value })}
+                      placeholder="Ex: 2"
+                      className="bg-[#05070d] border-[#1f2937] text-white focus:border-[#ea580c] transition-all rounded-xl h-12"
+                    />
+                    <p className="text-[10px] text-slate-500 font-medium italic">
+                      O cliente só poderá cancelar através do link se faltarem mais que {formData.cancellation_window_hours} horas para o atendimento.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

@@ -302,7 +302,19 @@ function AppointmentManagementPage() {
   const isCancelled = appointment.status === 'cancelled';
   const isCompleted = appointment.status === 'completed';
   const canReschedule = isConfirmed && !isCompleted && !isCancelled;
-  const canCancel = isConfirmed && !isCompleted && !isCancelled;
+  
+  // Janela de cancelamento
+  const isWithinCancellationWindow = useMemo(() => {
+    if (!appointment?.start_time) return false;
+    const startTime = parseISO(appointment.start_time);
+    const now = new Date();
+    const windowHours = appointment.cancellation_window_hours ?? 2;
+    const diffInMs = startTime.getTime() - now.getTime();
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+    return diffInHours >= windowHours;
+  }, [appointment]);
+
+  const canCancel = isConfirmed && !isCompleted && !isCancelled && isWithinCancellationWindow;
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 flex flex-col items-center">
@@ -416,6 +428,15 @@ function AppointmentManagementPage() {
                       </Button>
                     )}
                     
+                    {isConfirmed && !isCompleted && !isCancelled && !isWithinCancellationWindow && (
+                      <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex gap-3 mb-3">
+                        <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                        <p className="text-[10px] text-amber-500 font-bold uppercase leading-tight tracking-tight">
+                          O cancelamento online não está mais disponível para este agendamento (limite de {appointment.cancellation_window_hours ?? 2}h excedido). Entre em contato com a barbearia.
+                        </p>
+                      </div>
+                    )}
+
                     {canCancel && (
                       <Button 
                         variant="ghost"

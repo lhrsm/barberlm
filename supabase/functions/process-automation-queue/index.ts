@@ -183,6 +183,9 @@ serve(async (req) => {
           // Rule: No buttons on initial confirmation. Direct confirmation flow with management link.
           const managementUrl = `https://barberlm.lovable.app/agendamento/${appointment?.management_token || ''}?tenant=${itemTenantId}`;
           renderedTemplate = `Olá ${testData.customer_name} 👋\n\nSeu agendamento na ${testData.barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n📅 Data: ${testData.appointment_date}\n⏰ Horário: ${testData.appointment_time}\n\n🔗 Gerencie seu agendamento aqui:\n${managementUrl}\n\nObrigado!`;
+        } else if (automation.key === 'cancellation') {
+          const managementUrl = `https://barberlm.lovable.app/agendamento/${appointment?.management_token || ''}?tenant=${itemTenantId}`;
+          renderedTemplate = `Olá ${testData.customer_name} 👋\n\nInformamos que seu agendamento na ${testData.barbershop_name} para o dia ${testData.appointment_date} às ${testData.appointment_time} foi CANCELADO.\n\n🔗 Você pode visualizar os detalhes aqui:\n${managementUrl}\n\nEsperamos te ver em breve! 💈`;
         } else if (automation.key === 'appointment_reminder') {
           const type = item.payload?.reminder_type || "6h";
           
