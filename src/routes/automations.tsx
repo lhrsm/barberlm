@@ -1583,16 +1583,16 @@ function AutomationsComponent() {
                             {logs[0].status === 'sent' ? <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4">SUCESSO</Badge> : <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] h-4">{logs[0].status?.toUpperCase() || 'ERRO'}</Badge>}
                           </p>
                         </div>
-                        <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Callback</p>
                           <div className="flex flex-col gap-1">
-                            {logs[0].callback_received ? (
+                            {!logs[0].requires_callback ? (
+                              <Badge className="bg-slate-500/10 text-slate-500 border-slate-500/20 text-[9px] h-4 uppercase">NÃO SE APLICA</Badge>
+                            ) : logs[0].callback_received ? (
                               <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] h-4 uppercase">RECEBIDO</Badge>
                             ) : (
                               <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] h-4 uppercase">PENDENTE</Badge>
                             )}
                           </div>
-                        </div>
                         <div className="space-y-1.5">
                           <p className="text-[9px] text-slate-500 uppercase font-bold">Z-API Status</p>
                           <p className="text-[10px] font-mono text-sky-400">
@@ -1678,7 +1678,11 @@ function AutomationsComponent() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex flex-col gap-1">
-                              {log.callback_received ? (
+                              {!log.requires_callback ? (
+                                <Badge variant="outline" className="bg-slate-500/5 text-slate-500/70 border-slate-500/20 text-[9px] font-bold px-1.5 py-0 rounded flex items-center gap-1 w-fit uppercase">
+                                  Não se aplica
+                                </Badge>
+                              ) : log.callback_received ? (
                                 <div className="flex flex-col gap-1">
                                   <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 w-fit uppercase">
                                     <CheckCheck size={12} strokeWidth={3} /> {log.callback_button_id || 'RECEBIDO'}
