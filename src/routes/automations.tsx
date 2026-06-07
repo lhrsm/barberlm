@@ -114,6 +114,8 @@ function AutomationsComponent() {
   const [filterAutomation, setFilterAutomation] = useState("all");
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [deliveryLogs, setDeliveryLogs] = useState<any[]>([]);
+  const [loadingDeliveryLogs, setLoadingDeliveryLogs] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
   const [lastManualUpdate, setLastManualUpdate] = useState<Date | null>(null);
@@ -199,6 +201,7 @@ function AutomationsComponent() {
     if (!tenantId) return;
     setLoading(true);
     setStatsLoading(true);
+    fetchDeliveryLogs();
     try {
 
       // 1. Fetch automations from the new table
@@ -387,18 +390,30 @@ function AutomationsComponent() {
           .select()
           .single();
         if (newSettings) setReconciliationSettings(newSettings);
+  }
+
+  const fetchDeliveryLogs = async (dispatchId?: string) => {
+    if (!tenantId) return;
+    setLoadingDeliveryLogs(true);
+    try {
+      let query = supabase
+        .from("whatsapp_delivery_logs")
+        .select("*")
+        .eq("tenant_id", tenantId);
+      
+      if (dispatchId) {
+        query = query.eq("dispatch_id", dispatchId);
       }
-      // Fetch webhook logs
-      await fetchWebhookLogs();
-      await fetchPendingCallbacks();
 
-
+      const { data, error } = await query.order("created_at", { ascending: false }).limit(50);
+      if (error) throw error;
+      setDeliveryLogs(data || []);
     } catch (error: any) {
-      console.error(error);
-      toast.error("Erro ao carregar dados", { description: error.message });
+      console.error("Error fetching delivery logs:", error);
     } finally {
-      setLoading(false);
+      setLoadingDeliveryLogs(false);
     }
+  };
   }
 
   const fetchWebhookLogs = async () => {
@@ -2062,6 +2077,55 @@ function AutomationsComponent() {
                     <Clock size={14} className="text-slate-400" />
                     {new Date(selectedLog.created_at).toLocaleString('pt-BR')}
                   </div>
+                </div>
+              </div>
+
+              {/* DELIVERY AUDIT TRAIL */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Activity size={18} className="text-amber-500" />
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-slate-300">Auditoria de Entrega e Retentativas</h3>
+                </div>
+                
+                <div className="bg-[#081229] border border-white/5 rounded-2xl p-4 overflow-hidden shadow-xl">
+                   {loadingDeliveryLogs ? (
+                     <div className="flex justify-center p-8"><Loader2 className="animate-spin h-6 w-6 text-amber-500" /></div>
+                   ) : deliveryLogs.length === 0 ? (
+                     <div className="p-8 text-center text-slate-500 italic text-sm">
+                       Nenhum registro de auditoria encontrado para este envio.
+                     </div>
+                   ) : (
+                     <div className="space-y-3">
+                       {deliveryLogs.filter(d => d.dispatch_id === selectedLog.id).map((audit, i) => (
+                         <div key={audit.id} className="flex gap-4 p-3 rounded-xl bg-white/[0.02] border border-white/5 items-start">
+                           <div className="flex flex-col items-center gap-1 mt-1">
+                             <div className={cn(
+                               "w-2.5 h-2.5 rounded-full",
+                               audit.status === 'sent' || audit.status === 'delivered' || audit.status === 'read' ? 'bg-emerald-500' :
+                               audit.status === 'failed' ? 'bg-rose-500' : 'bg-amber-500'
+                             )} />
+                             {i < deliveryLogs.filter(d => d.dispatch_id === selectedLog.id).length - 1 && <div className="w-0.5 h-8 bg-white/5" />}
+                           </div>
+                           <div className="flex-1 space-y-1">
+                             <div className="flex justify-between">
+                               <span className="text-xs font-bold text-white uppercase tracking-wider">{audit.status}</span>
+                               <span className="text-[10px] text-slate-500 font-mono">{new Date(audit.created_at).toLocaleString('pt-BR')}</span>
+                             </div>
+                             {audit.error_message && (
+                               <p className="text-[11px] text-rose-400 bg-rose-500/5 p-2 rounded-lg border border-rose-500/10 font-mono">
+                                 {audit.error_message}
+                               </p>
+                             )}
+                             {audit.retry_count > 0 && (
+                               <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-bold uppercase">
+                                 Retentativa #{audit.retry_count}
+                               </span>
+                             )}
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   )}
                 </div>
               </div>
 
