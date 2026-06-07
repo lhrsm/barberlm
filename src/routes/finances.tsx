@@ -260,46 +260,6 @@ function FinancesComponent() {
     }
   }
 
-  async function fetchRefundRequests() {
-    if (!user) return;
-    setLoadingRefunds(true);
-    try {
-      const { data, error } = await supabase
-        .from("refund_requests")
-        .select("*, customer:customers(name), appointment:appointments(service_name, start_time)")
-        .eq("tenant_id", user.id)
-        .order("created_at", { ascending: false });
-      
-      if (error) throw error;
-      setRefundRequests(data || []);
-    } catch (err: any) {
-      toast.error("Erro ao buscar solicitações de estorno");
-    } finally {
-      setLoadingRefunds(false);
-    }
-  }
-
-  async function handleUpdateRefundStatus(refundId: string, newStatus: string, notes?: string) {
-    try {
-      const { error } = await supabase
-        .from("refund_requests")
-        .update({ 
-          status: newStatus, 
-          admin_notes: notes,
-          completed_at: newStatus === 'completed' ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", refundId);
-
-      if (error) throw error;
-      
-      toast.success(`Solicitação ${newStatus === 'approved' ? 'aprovada' : newStatus === 'completed' ? 'marcada como paga' : 'rejeitada'}!`);
-      fetchRefundRequests();
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao atualizar status");
-    }
-  }
-
   const [totalCredits, setTotalCredits] = useState(0);
   const [totalCashback, setTotalCashback] = useState(0);
 
