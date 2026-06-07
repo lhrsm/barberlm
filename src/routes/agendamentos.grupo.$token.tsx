@@ -203,6 +203,149 @@ function AppointmentGroupPage() {
     }
   };
 
+  useEffect(() => {
+    if (isRescheduling && selectedDate && rescheduleData) {
+      fetchAvailableTimes();
+    }
+  }, [isRescheduling, selectedDate, rescheduleData]);
+
+  async function fetchAvailableTimes() {
+    if (!rescheduleData) return;
+    setFetchingTimes(true);
+    try {
+      const startDay = `${selectedDate}T00:00:00Z`;
+      const endDay = `${selectedDate}T23:59:59Z`;
+      
+      const { data: dayAppts } = await supabase
+        .from("appointments")
+        .select("id, start_time, end_time, status")
+        .eq("barber_id", rescheduleData.professional_id)
+        .in("status", ["scheduled", "confirmed", "in_progress", "awaiting_payment"])
+        .gte("start_time", startDay)
+        .lte("start_time", endDay);
+      
+      const { data: barber } = await supabase
+        .from("barbers")
+        .select("working_hours")
+        .eq("id", rescheduleData.professional_id)
+        .single();
+
+      if (!barber) return;
+
+      const dayName = format(parseISO(selectedDate), "eeee", { locale: ptBR }).toLowerCase();
+      const dayMap: Record<string, string> = {
+        'segunda-feira': 'monday', 'terça-feira': 'tuesday', 'quarta-feira': 'wednesday',
+        'quinta-feira': 'thursday', 'sexta-feira': 'friday', 'sábado': 'saturday', 'domingo': 'sunday'
+      };
+      const dayKey = dayMap[dayName] || dayName;
+      const workingHours = (barber.working_hours as any)?.[dayKey];
+
+      if (!workingHours || !workingHours.enabled) {
+        setAvailableTimes([]);
+        return;
+      }
+
+      const times = [];
+      const [startHour, startMin] = workingHours.start.split(':').map(Number);
+      const [endHour, endMin] = workingHours.end.split(':').map(Number);
+      const [y, m, d] = selectedDate.split('-').map(Number);
+
+      for (let hour = startHour; hour <= endHour; hour++) {
+        for (let min = (hour === startHour ? startMin : 0); min < 60; min += 30) {
+          if (hour === endHour && min >= endMin) break;
+          
+          const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+          const checkTime = new Date(y, m - 1, d, hour, min, 0);
+          
+          if (isSameDay(checkTime, new Date()) && checkTime < new Date()) continue;
+
+          const checkTimeMs = checkTime.getTime();
+          const duration = 30; 
+          const serviceEndMs = checkTimeMs + duration * 60 * 1000;
+
+          const isBusy = dayAppts?.some(app => {
+            if (app.id === rescheduleData.id) return false;
+            const appStart = new Date(app.start_time).getTime();
+            const appEnd = new Date(app.end_time).getTime();
+            return checkTimeMs < appEnd && serviceEndMs > appStart;
+          });
+
+          if (!isBusy) times.push(timeStr);
+        }
+      }
+      setAvailableTimes(times);
+    } catch (err) {
+      console.error("Error fetching times:", err);
+    } finally {
+      setFetchingTimes(false);
+    }
+  }
+
+  const handleRescheduleSubmit = async () => {
+    if (!selectedTime || !rescheduleData) {
+      toast.error("Por favor, selecione um horário.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const timeWithSeconds = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
+      const startTime = parseISO(`${selectedDate}T${timeWithSeconds}`);
+      const oldStart = parseISO(rescheduleData.start_time);
+      const oldEnd = rescheduleData.end_time ? parseISO(rescheduleData.end_time) : addMinutes(oldStart, 30);
+      const durationMinutes = Math.round((oldEnd.getTime() - oldStart.getTime()) / 60000) || 30;
+      const endTime = addMinutes(startTime, durationMinutes);
+
+      const { data, error: rpcError } = await supabase.rpc('reschedule_appointment', {
+        p_appointment_id: rescheduleData.id,
+        p_new_start_time: startTime.toISOString(),
+        p_new_end_time: endTime.toISOString(),
+        p_changed_by_type: 'customer',
+        p_source: 'public_link'
+      });
+
+      const response = data as any;
+      if (rpcError || !response || !response.success) throw new Error(rpcError?.message || response?.error || "Erro desconhecido");
+
+      await createNotification({
+        userId: group.tenant_id,
+        type: 'appointment_rescheduled',
+        title: "Agendamento Reagendado",
+        message: `${group.customer_name} reagendou para ${format(startTime, "dd/MM 'às' HH:mm")}`,
+        barberId: rescheduleData.professional_id,
+        metadata: { appointmentId: rescheduleData.id }
+      });
+
+      triggerAutomation({
+        tenant_id: group.tenant_id,
+        event_name: 'appointment.rescheduled',
+        appointment_id: rescheduleData.id
+      }).catch(console.error);
+
+      toast.success("Agendamento reagendado com sucesso!");
+      setIsRescheduling(false);
+      setRescheduleData(null);
+      fetchGroup(); 
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao reagendar");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openReschedule = () => {
+    if (selectedIds.length !== 1) {
+      toast.error("Selecione exatamente um agendamento para reagendar.");
+      return;
+    }
+    const appt = appointments.find(a => a.id === selectedIds[0]);
+    if (appt) {
+      setRescheduleData(appt);
+      setSelectedDate(format(parseISO(appt.start_time), "yyyy-MM-dd"));
+      setIsRescheduling(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
