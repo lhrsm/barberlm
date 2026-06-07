@@ -4404,25 +4404,19 @@ export type Database = {
         Returns: undefined
       }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
-      get_appointment_by_management_token: {
-        Args: { p_token: string }
-        Returns: {
-          barber_id: string
-          business_name: string
-          business_phone: string
-          cancellation_window_hours: number
-          customer_name: string
-          end_time: string
-          id: string
-          professional_id: string
-          professional_name: string
-          service_name: string
-          start_time: string
-          status: string
-          tenant_id: string
-          tenant_status: string
-        }[]
-      }
+      get_appointment_by_management_token:
+        | {
+            Args: { p_token: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.get_appointment_by_management_token(p_token => text), public.get_appointment_by_management_token(p_token => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"[]
+          }
+        | {
+            Args: { p_token: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.get_appointment_by_management_token(p_token => text), public.get_appointment_by_management_token(p_token => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"[]
+          }
       get_appointment_group_by_token: {
         Args: { p_token: string }
         Returns: {

@@ -387,6 +387,19 @@ function AppointmentManagementPage() {
         </div>
 
         <AnimatePresence mode="wait">
+          {appointment.appointment_group_id && (
+            <div className="mb-4">
+              <Button 
+                variant="link" 
+                className="text-primary font-black uppercase tracking-widest text-[10px] p-0 h-auto"
+                asChild
+              >
+                <a href={`/agendamentos/grupo/${appointment.group_token}?tenant=${appointment.tenant_id}`}>
+                  <ArrowLeft className="mr-1 h-3 w-3" /> Ver Todos os Meus Agendamentos
+                </a>
+              </Button>
+            </div>
+          )}
           {!isRescheduling ? (
             <motion.div
               key="details"
