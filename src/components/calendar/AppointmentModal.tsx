@@ -448,11 +448,6 @@ export function AppointmentModal({
           console.error("Failed to trigger automation:", err);
         });
       }
-          }
-        }
-      }
-
-
 
       toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
       setOpen(false);
