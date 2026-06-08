@@ -434,10 +434,11 @@ function AppointmentManagementPage() {
                   <div className="pt-6 border-t border-zinc-800/50 space-y-3">
                     {canReschedule && (
                       <Button 
+                      <Button 
                         onClick={() => setIsRescheduling(true)}
-                        className="w-full h-12 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase tracking-widest text-xs"
+                        className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase tracking-widest text-lg md:text-sm shadow-lg"
                       >
-                        <RefreshCcw className="mr-2 h-4 w-4" /> Reagendar Atendimento
+                        <RefreshCcw className="mr-3 h-6 w-6 md:h-4 md:w-4" /> Reagendar Atendimento
                       </Button>
                     )}
                     
@@ -445,9 +446,9 @@ function AppointmentManagementPage() {
                       <Button 
                         variant="ghost"
                         onClick={() => setIsCancelModalOpen(true)}
-                        className="w-full h-12 md:h-12 rounded-xl text-red-500 hover:text-red-400 hover:bg-red-500/5 font-bold uppercase tracking-widest text-sm md:text-xs px-4"
+                        className="w-full h-[64px] rounded-2xl text-red-500 hover:text-red-400 hover:bg-red-500/5 font-bold uppercase tracking-widest text-lg md:text-sm px-4"
                       >
-                        <Trash2 className="mr-2 h-5 w-5 md:h-4 md:w-4" /> Cancelar Agendamento
+                        <Trash2 className="mr-3 h-6 w-6 md:h-4 md:w-4" /> Cancelar Agendamento
                       </Button>
                     )}
                   </div>
