@@ -307,11 +307,17 @@ function AppointmentManagementPage() {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
 
     // Verificar se existe pagamento Pix confirmado
-    const isPixPaid = ['pix', 'PIX', 'Pix'].includes(appointment.payment_method) && 
+    const isPixPaid = (['pix', 'PIX', 'Pix'].includes(appointment.payment_method) || (appointment.pix_amount && Number(appointment.pix_amount) > 0)) && 
                       ['paid', 'confirmed', 'completed', 'aprovado', 'pago'].includes(appointment.payment_status);
     
+    const hasCreditsOrCashback = (appointment.credits_used && Number(appointment.credits_used) > 0) || 
+                                 (appointment.cashback_used && Number(appointment.cashback_used) > 0);
+
     if (isPixPaid) {
       setIsPixCancelModalOpen(true);
+    } else if (hasCreditsOrCashback) {
+      if (!confirm("Este agendamento foi pago com créditos/cashback. O valor será devolvido ao seu saldo para uso futuro. Confirmar cancelamento?")) return;
+      handleCancel('none');
     } else {
       setIsCancelModalOpen(true);
     }

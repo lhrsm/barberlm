@@ -402,14 +402,11 @@ function FinancesComponent() {
       }, 0);
 
     // 2. Estornos Pagos (Saídas Financeiras Reais)
-    // Regra: Somar apenas estornos pagos/concluídos
     const totalRefundsPaid = (refundRequests || [])
       .filter(r => r && r.status === 'completed')
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
-    // Moving netRevenue calculation down after realCashIncome is defined
-
-    // 4. Créditos Utilizados (Valor que deixou de entrar em dinheiro)
+    // 3. Créditos Utilizados
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
@@ -423,21 +420,39 @@ function FinancesComponent() {
         return acc + val;
       }, 0);
 
-    // 4. Créditos Concedidos (Disponíveis para uso futuro)
-    // Regra: Somar customer_credits status available/partially_used/used
-    // Note: We need a separate state or fetch for total customer credits if we want to be precise,
-    // but here we use what's granted in this period if that's what's meant, 
-    // or the overall total if we have it.
-    // Given the context, we'll use the totalCredits state we already have from fetchBalances.
+    // 4. Cashback Utilizado
+    const cashbackConsumed = effectiveTransactions
+      .filter((t) => t.type === "income")
+      .reduce((acc, t) => {
+        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment) {
+          return acc + Number(t.cashback_amount || 0);
+        }
+        let val = Number(t.appointment?.cashback_used || 0);
+        if (val === 0 && t.appointment?.payment_method === 'cashback') {
+          val = parseFloat(String(t.amount)) || 0;
+        }
+        return acc + val;
+      }, 0);
+
+    // 5. Créditos Devolvidos (Cancelamentos)
+    const creditsReversed = effectiveTransactions
+      .filter((t) => t.type === "adjustment" && t.description?.includes("Créditos"))
+      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+
+    // 6. Cashback Devolvido (Cancelamentos)
+    const cashbackReversed = effectiveTransactions
+      .filter((t) => t.type === "adjustment" && t.description?.includes("Cashback"))
+      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+
+    // 7. Créditos Concedidos
     const creditsGranted = totalCredits;
 
-    // 5. Estornos Solicitados (Aguardando ação)
-    // Regra: Somar refund_requests com status requested
+    // 8. Estornos Solicitados
     const totalRefundsRequested = (refundRequests || [])
       .filter(r => r && r.status === 'requested')
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
-    // 6. Entrada em Caixa (Fluxo de Caixa Real antes de saídas)
+    // 9. Entrada em Caixa (Fluxo de Caixa Real)
     const realCashIncome = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
@@ -449,17 +464,12 @@ function FinancesComponent() {
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
 
-    // 7. Receita Líquida
-    // Regra: entrada em caixa - estornos pagos
+    // 10. Receita Líquida
     const netRevenue = realCashIncome - totalRefundsPaid;
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => {
-        // We already subtract totalRefundsPaid in netRevenue and balance, 
-        // but expense card should show all exits. 
-        // If refund transactions are already in effectiveTransactions as 'expense', they will be counted twice if we add totalRefundsPaid manually.
-        // Let's ensure we count them correctly.
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
     
@@ -480,6 +490,8 @@ function FinancesComponent() {
       realCashIncome,
       creditsConsumed,
       creditsGranted,
+      creditsReversed,
+      cashbackReversed,
       totalRefundsRequested,
       totalRefundsPaid,
       netRevenue,
@@ -488,7 +500,7 @@ function FinancesComponent() {
       balance: realCashIncome - expense - totalRefundsPaid,
       freelancersPart, 
       barbershopPart: operationalRevenue - freelancersPart,
-      cashbackConsumed: 0
+      cashbackConsumed
     };
   }, [transactions, refundRequests, barbers, appointments, totalCredits]);
 
@@ -831,7 +843,7 @@ function FinancesComponent() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-emerald-600">R$ {summary.netRevenue.toFixed(2)}</div>
-                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Caixa - Estornos Pagos - Créditos</p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Caixa - Estornos Pagos - Créditos - Cashback</p>
                 </CardContent>
               </Card>
 
@@ -886,6 +898,45 @@ function FinancesComponent() {
             <CardContent>
               <div className="text-2xl font-bold text-indigo-400">R$ {summary.creditsConsumed.toFixed(2)}</div>
               <p className="text-[10px] text-muted-foreground font-medium mt-1">Utilizados em agendamentos</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Cashback Utilizado</CardTitle>
+              <div className="p-2 bg-orange-500/10 rounded-lg">
+                <History className="h-4 w-4 text-orange-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-400">R$ {summary.cashbackConsumed.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Utilizados em agendamentos</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Créditos Devolvidos</CardTitle>
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <RefreshCcw className="h-4 w-4 text-emerald-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-400">R$ {summary.creditsReversed.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Retornados por cancelamento</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Cashback Devolvido</CardTitle>
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <RefreshCcw className="h-4 w-4 text-emerald-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-400">R$ {summary.cashbackReversed.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Retornados por cancelamento</p>
             </CardContent>
           </Card>
 
