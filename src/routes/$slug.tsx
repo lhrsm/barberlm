@@ -926,14 +926,14 @@ function ShopPageComponent() {
 
       const isMultipleAppt = finalCart.length > 1;
       let appointmentGroupId = null;
-      let groupTokenVal = null;
+      let groupTokenValLocal: string | null = null;
 
       if (isMultipleAppt) {
-        groupTokenVal = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        groupTokenValLocal = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         const { data: groupData, error: groupError } = await (supabase as any).from("appointment_groups").insert([{
           tenant_id: shop.id,
           customer_id: finalCustId,
-          token: groupTokenVal,
+          token: groupTokenValLocal,
           total_amount: calculateTotal(),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
           status: 'active'
@@ -1128,7 +1128,7 @@ function ShopPageComponent() {
       setPaymentMethod(null);
       
       const isMultipleFinal = createdAppointments.length > 1;
-      const groupTokenFinal = (createdAppointments[0] as any)?.group_token || groupTokenVal;
+      const groupTokenFinal = (createdAppointments[0] as any)?.group_token || groupTokenValLocal;
 
       setTimeout(() => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
