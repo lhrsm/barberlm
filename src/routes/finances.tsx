@@ -453,7 +453,13 @@ function FinancesComponent() {
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+      .reduce((acc, t) => {
+        // We already subtract totalRefundsPaid in netRevenue and balance, 
+        // but expense card should show all exits. 
+        // If refund transactions are already in effectiveTransactions as 'expense', they will be counted twice if we add totalRefundsPaid manually.
+        // Let's ensure we count them correctly.
+        return acc + (parseFloat(String(t.amount)) || 0);
+      }, 0);
     
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
