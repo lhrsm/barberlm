@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { sendMessage } from "../_shared/whatsapp-settings.ts";
 import { sendAutomationMessageV2 } from "../_shared/automation-v2-engine.ts";
 import { formatBrazilDate, formatBrazilTime } from "../_shared/utils.ts";
+import { processAutomationTemplate } from "../_shared/template-parser.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
