@@ -240,9 +240,12 @@ function AppointmentManagementPage() {
     }
   };
 
-  const handleCancel = async (preference: 'credit' | 'refund' | 'none' = 'credit') => {
+  const handleCancel = async (preference: 'credit' | 'refund' | 'none' = 'none', refundDetails?: any) => {
     setCancelling(true);
     try {
+      // Registrar log de início de cancelamento
+      console.log(`AUDIT [Cancel]: Started cancel for ${appointment.id} with pref ${preference}`);
+      
       const { data, error: rpcError } = await supabase.rpc('cancel_appointment', {
         p_appointment_id: appointment.id,
         p_cancelled_by: 'customer',
@@ -254,13 +257,30 @@ function AppointmentManagementPage() {
       const response = data as any;
       if (response && response.success === false) throw new Error(response.error || "Erro ao processar");
 
+      // Se for estorno, salvar os dados do Pix separadamente se necessário ou via RPC se suportado
+      if (preference === 'refund' && refundDetails) {
+        await supabase
+          .from('refund_requests')
+          .update({
+            holder_name: refundDetails.holderName,
+            pix_key: refundDetails.pixKey,
+            pix_type: refundDetails.pixType,
+            notes: refundDetails.notes
+          })
+          .eq('appointment_id', appointment.id)
+          .eq('status', 'requested');
+      }
+
       await createNotification({
         userId: appointment.tenant_id,
         type: 'appointment_cancelled',
         title: "Agendamento Cancelado",
         message: `${appointment.customer_name} cancelou o agendamento.`,
         barberId: appointment.professional_id || appointment.barber_id,
-        metadata: { appointmentId: appointment.id }
+        metadata: { 
+          appointmentId: appointment.id,
+          refund_preference: preference
+        }
       });
 
       triggerAutomation({
@@ -271,6 +291,7 @@ function AppointmentManagementPage() {
 
       toast.success("Agendamento cancelado com sucesso.");
       setIsCancelModalOpen(false);
+      setShowRefundForm(false);
       fetchAppointment();
     } catch (err: any) {
       toast.error(err.message || "Erro ao cancelar agendamento");
@@ -420,13 +441,13 @@ function AppointmentManagementPage() {
                       </Button>
                     )}
                     
-                    {canCancel && (
+                    {(canCancel || isConfirmed) && (
                       <Button 
                         variant="ghost"
                         onClick={() => setIsCancelModalOpen(true)}
-                        className="w-full h-12 rounded-xl text-red-500 hover:text-red-400 hover:bg-red-500/5 font-bold uppercase tracking-widest text-xs"
+                        className="w-full h-12 md:h-12 rounded-xl text-red-500 hover:text-red-400 hover:bg-red-500/5 font-bold uppercase tracking-widest text-sm md:text-xs px-4"
                       >
-                        <Trash2 className="mr-2 h-4 w-4" /> Cancelar Agendamento
+                        <Trash2 className="mr-2 h-5 w-5 md:h-4 md:w-4" /> Cancelar Agendamento
                       </Button>
                     )}
                   </div>
