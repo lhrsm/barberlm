@@ -48,8 +48,12 @@ serve(async (req) => {
         customer:customers(name, phone)
       `);
 
-    if (force_resend && appointment_id) {
-      query = query.eq("appointment_id", appointment_id);
+    if (force_resend && (appointment_id || requestGroupId)) {
+      if (requestGroupId) {
+        query = query.eq("appointment_group_id", requestGroupId);
+      } else {
+        query = query.eq("appointment_id", appointment_id);
+      }
     } else {
       query = query.or("status.eq.pending,status.eq.failed");
       query = query.filter("attempts", "lt", 5); 
