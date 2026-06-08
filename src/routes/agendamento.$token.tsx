@@ -341,19 +341,11 @@ function AppointmentManagementPage() {
   const isConfirmed = appointment.status === 'confirmed' || appointment.status === 'scheduled';
   const isCancelled = appointment.status === 'cancelled';
   const isCompleted = appointment.status === 'completed';
-  const canReschedule = (isConfirmed || appointment.status === 'awaiting_payment') && !isCompleted && !isCancelled;
+  const isExpired = appointment.status === 'expired';
   
-  const isWithinCancellationWindow = (() => {
-    if (!appointment?.start_time) return false;
-    const startTime = parseISO(appointment.start_time);
-    const now = new Date();
-    const windowHours = appointment.cancellation_window_hours ?? 2;
-    const diffInMs = startTime.getTime() - now.getTime();
-    const diffInHours = diffInMs / (1000 * 60 * 60);
-    return diffInHours >= windowHours;
-  })();
-
-  const canCancel = (isConfirmed || appointment.status === 'awaiting_payment' || appointment.payment_status === 'confirmed' || appointment.payment_status === 'paid') && !isCompleted && !isCancelled && isWithinCancellationWindow;
+  const canReschedule = (isConfirmed || appointment.status === 'awaiting_payment') && !isCompleted && !isCancelled && !isExpired;
+  
+  const canCancel = isConfirmed && !isCompleted && !isCancelled && !isExpired;
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 flex flex-col items-center">
