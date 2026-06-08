@@ -436,18 +436,16 @@ export function AppointmentModal({
         })
       ]);
 
-      const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", tenantId).single();
-
-      if (profile?.whatsapp_enabled) {
-        console.log("Triggering automation flow...");
-        triggerAutomation({
-          tenant_id: tenantId,
-          event_name: 'appointment.created',
-          appointment_id: appointmentData.id
-        }).catch(err => {
-          console.error("Failed to trigger automation:", err);
-        });
-      }
+      // 6. Trigger Automation System (V2)
+      // All validations (whatsapp_enabled, phone, etc) are now centralized in triggerAutomation
+      console.log("Triggering automation flow for:", appointmentData.id);
+      triggerAutomation({
+        tenant_id: tenantId,
+        event_name: editingAppointmentId ? 'appointment.rescheduled' : 'appointment.created',
+        appointment_id: appointmentData.id
+      }).catch(err => {
+        console.error("Failed to trigger automation:", err);
+      });
 
       toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
       setOpen(false);
