@@ -212,6 +212,7 @@ function AutomationsComponent() {
     setLoading(true);
     setStatsLoading(true);
     fetchDeliveryLogs();
+    fetchQueueStats();
     try {
 
       // 1. Fetch automations from the new table
