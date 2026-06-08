@@ -2171,9 +2171,12 @@ export type Database = {
           appointment_id: string | null
           available_amount: number | null
           created_at: string | null
+          credit_type: string | null
           customer_id: string
+          expires_at: string | null
           id: string
           payment_id: string | null
+          source_payment_id: string | null
           status: string
           tenant_id: string
           updated_at: string | null
@@ -2184,9 +2187,12 @@ export type Database = {
           appointment_id?: string | null
           available_amount?: number | null
           created_at?: string | null
+          credit_type?: string | null
           customer_id: string
+          expires_at?: string | null
           id?: string
           payment_id?: string | null
+          source_payment_id?: string | null
           status?: string
           tenant_id: string
           updated_at?: string | null
@@ -2197,9 +2203,12 @@ export type Database = {
           appointment_id?: string | null
           available_amount?: number | null
           created_at?: string | null
+          credit_type?: string | null
           customer_id?: string
+          expires_at?: string | null
           id?: string
           payment_id?: string | null
+          source_payment_id?: string | null
           status?: string
           tenant_id?: string
           updated_at?: string | null
@@ -2736,7 +2745,11 @@ export type Database = {
           business_name: string | null
           cancellation_window_hours: number | null
           cashback_enabled: boolean
+          cashback_expiration_days: number | null
+          cashback_fixed_value: number | null
+          cashback_minimum_amount: number | null
           cashback_percentage: number
+          cashback_type: string | null
           created_at: string
           effective_plan: string | null
           email: string | null
@@ -2777,7 +2790,11 @@ export type Database = {
           business_name?: string | null
           cancellation_window_hours?: number | null
           cashback_enabled?: boolean
+          cashback_expiration_days?: number | null
+          cashback_fixed_value?: number | null
+          cashback_minimum_amount?: number | null
           cashback_percentage?: number
+          cashback_type?: string | null
           created_at?: string
           effective_plan?: string | null
           email?: string | null
@@ -2818,7 +2835,11 @@ export type Database = {
           business_name?: string | null
           cancellation_window_hours?: number | null
           cashback_enabled?: boolean
+          cashback_expiration_days?: number | null
+          cashback_fixed_value?: number | null
+          cashback_minimum_amount?: number | null
           cashback_percentage?: number
+          cashback_type?: string | null
           created_at?: string
           effective_plan?: string | null
           email?: string | null
