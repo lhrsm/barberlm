@@ -683,14 +683,21 @@ function ClientPortalComponent() {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
     
     // Check if it's a confirmed PIX payment
-    const isPixPaid = ['pix', 'PIX', 'Pix'].includes(app.payment_method) && 
+    const isPixPaid = (['pix', 'PIX', 'Pix'].includes(app.payment_method) || (app.pix_amount && Number(app.pix_amount) > 0)) && 
                       ['paid', 'confirmed', 'completed', 'aprovado', 'pago'].includes(app.payment_status);
+
+    const hasCreditsOrCashback = (app.credits_used && Number(app.credits_used) > 0) || 
+                                 (app.cashback_used && Number(app.cashback_used) > 0);
 
     if (isPixPaid) {
       setCancellingAppointment(app);
       setIsRefundModalOpen(true);
       setShowRefundForm(false);
       return;
+    }
+
+    if (hasCreditsOrCashback) {
+      if (!confirm("Este agendamento foi pago com créditos/cashback. O valor será devolvido ao seu saldo para uso futuro. Confirmar cancelamento?")) return;
     }
 
     setSubmitting(true);
