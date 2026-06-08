@@ -640,6 +640,52 @@ function AppointmentManagementPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Pix Cancellation Modal */}
+      <Dialog open={isPixCancelModalOpen} onOpenChange={setIsPixCancelModalOpen}>
+        <DialogContent className="bg-[#0b0f17] border border-zinc-800 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
+          <DialogHeader className="text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <DollarSign className="text-primary w-8 h-8" />
+            </div>
+            <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Estorno ou Crédito?</DialogTitle>
+            <DialogDescription className="text-zinc-400 text-sm font-medium leading-relaxed">
+              Detectamos um pagamento via Pix para este agendamento. O que deseja fazer com o valor pago?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 mt-6">
+            <Button 
+              className="w-full h-14 bg-primary hover:bg-primary/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
+              onClick={() => {
+                setIsPixCancelModalOpen(false);
+                handleCancel('credits');
+              }}
+              disabled={cancelling}
+            >
+              Transformar em Crédito
+            </Button>
+            <Button 
+              variant="outline"
+              className="w-full h-14 border-zinc-800 hover:bg-zinc-800/50 text-white font-black uppercase italic tracking-tighter rounded-2xl"
+              onClick={() => {
+                setIsPixCancelModalOpen(false);
+                setShowRefundForm(true);
+                setIsCancelModalOpen(true);
+              }}
+              disabled={cancelling}
+            >
+              Solicitar Estorno
+            </Button>
+            <Button 
+              variant="ghost"
+              className="w-full h-12 text-zinc-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
+              onClick={() => setIsPixCancelModalOpen(false)}
+            >
+              Voltar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
