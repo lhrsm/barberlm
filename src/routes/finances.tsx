@@ -382,7 +382,7 @@ function FinancesComponent() {
 
     // 6. Estornos Solicitados (Aguardando ação)
     const totalRefundsRequested = refundRequests
-      .filter(r => r.status === 'requested')
+      .filter(r => r.status === 'requested' || r.status === 'approved')
       .reduce((acc, r) => acc + Number(r.amount), 0);
 
     // 7. Entrada em Caixa (Fluxo de Caixa Real)
