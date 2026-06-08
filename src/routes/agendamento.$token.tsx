@@ -338,7 +338,7 @@ function AppointmentManagementPage() {
     return diffInHours >= windowHours;
   })();
 
-  const canCancel = (isConfirmed || appointment.status === 'awaiting_payment') && !isCompleted && !isCancelled && isWithinCancellationWindow;
+  const canCancel = (isConfirmed || appointment.status === 'awaiting_payment' || appointment.payment_status === 'confirmed' || appointment.payment_status === 'paid') && !isCompleted && !isCancelled && isWithinCancellationWindow;
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 flex flex-col items-center">
@@ -390,7 +390,7 @@ function AppointmentManagementPage() {
                       </>
                     )}
                   </div>
-                  {!isCancelled && appointment.payment_status === 'paid' && (
+                  {!isCancelled && (appointment.payment_status === 'paid' || appointment.payment_status === 'confirmed') && (
                     <Badge className="bg-emerald-500/20 text-emerald-500 border-none font-black text-[10px] uppercase px-3 py-1">
                       Pagamento Confirmado
                     </Badge>
@@ -523,20 +523,20 @@ function AppointmentManagementPage() {
           <DialogHeader className="mb-4">
             <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-red-500">Cancelar Agendamento</DialogTitle>
             <DialogDescription className="text-zinc-400 font-medium">
-              {appointment.payment_status === 'paid' 
-                ? "Identificamos que este agendamento já foi pago. O que deseja fazer com o valor?"
+              {(appointment.payment_status === 'paid' || appointment.payment_status === 'confirmed')
+                ? "Este agendamento foi pago via Pix. Escolha se deseja transformar o valor em crédito para usar na barbearia ou solicitar estorno."
                 : "Tem certeza que deseja cancelar seu horário? Esta ação não poderá ser desfeita."}
             </DialogDescription>
           </DialogHeader>
 
-          {appointment.payment_status === 'paid' && !showRefundForm ? (
+          {(appointment.payment_status === 'paid' || appointment.payment_status === 'confirmed') && !showRefundForm ? (
             <div className="flex flex-col gap-4 py-4">
               <Button 
                 onClick={() => handleCancel('credits')}
                 disabled={cancelling}
                 className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-lg border border-zinc-700 shadow-lg"
               >
-                Transformar em créditos
+                Transformar em crédito
               </Button>
               <Button 
                 onClick={() => setShowRefundForm(true)}
