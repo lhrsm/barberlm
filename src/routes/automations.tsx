@@ -1088,6 +1088,11 @@ function AutomationsComponent() {
     
     // Fallbacks
     if (log.payload?.diagnostic === 'trigger_executed') return "Gatilho Detectado";
+    if (log.payload?.diagnostic === 'automation_trigger_started') return "Início Automação";
+    if (log.payload?.diagnostic === 'whatsapp_inactive') return "Integração Inativa";
+    if (log.payload?.diagnostic === 'automation_payload_built') return "Payload Montado";
+    if (log.payload?.diagnostic === 'whatsapp_send_failed') return "Erro no Envio";
+    if (log.payload?.diagnostic === 'whatsapp_send_success') return "WhatsApp Enviado";
     if (log.status === 'sent' || log.status === 'success') return "Sucesso";
     if (log.status === 'error' || log.status === 'failed') return "Erro no Processamento";
     if (log.status === 'not_found') return "Agendamento N/E";
