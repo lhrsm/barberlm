@@ -1369,57 +1369,57 @@ function AutomationsComponent() {
                   </Button>
                 </CardContent>
               </Card>
-1319: 
-1320:               {/* Card Fila de Automações */}
-1321:               <Card className="group relative flex flex-col bg-[#0F172A] border-2 border-amber-500/40 rounded-[24px] shadow-[0_10px_45px_rgba(245,158,11,0.15)] hover:border-amber-500/60 transition-all duration-300 overflow-hidden">
-1322:                 <CardHeader className="p-6">
-1323:                   <div className="flex justify-between items-start mb-4">
-1324:                     <div className="flex items-center gap-4">
-1325:                       <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-amber-500 shadow-lg shadow-amber-500/20">
-1326:                         <Clock className="text-white" size={24} />
-1327:                       </div>
-1328:                       <div>
-1329:                         <CardTitle className="text-xl font-bold text-white">Fila de Automações</CardTitle>
-1330:                         <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mt-1 flex items-center gap-1">
-1331:                           <div className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" /> Processamento Automático
-1332:                         </p>
-1333:                       </div>
-1334:                     </div>
-1335:                   </div>
-1336:                   <CardDescription className="text-slate-400 text-xs leading-relaxed">
-1337:                     Itens aguardando processamento no servidor. O sistema processa automaticamente a cada 5 minutos.
-1338:                   </CardDescription>
-1339:                 </CardHeader>
-1340:                 <CardContent className="px-6 flex-1 flex flex-col gap-4">
-1341:                   <div className="grid grid-cols-3 gap-2">
-1342:                     <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-1343:                       <p className="text-[8px] font-bold text-slate-500 uppercase mb-1">Pendentes</p>
-1344:                       <p className="text-xl font-black text-white">{queueStats.pending}</p>
-1345:                     </div>
-1346:                     <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3 text-center">
-1347:                       <p className="text-[8px] font-bold text-emerald-400 uppercase mb-1">Sucesso</p>
-1348:                       <p className="text-xl font-black text-emerald-400">{queueStats.sent}</p>
-1349:                     </div>
-1350:                     <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-3 text-center">
-1351:                       <p className="text-[8px] font-bold text-rose-400 uppercase mb-1">Falhas</p>
-1352:                       <p className="text-xl font-black text-rose-400">{queueStats.failed}</p>
-1353:                     </div>
-1354:                   </div>
-1355: 
-1356:                   <div className="flex items-center justify-between px-2 text-[10px] font-bold uppercase tracking-tighter text-slate-500">
-1357:                     <span>Último Processamento</span>
-1358:                     <span className="text-slate-300">{queueStats.lastRun ? new Date(queueStats.lastRun).toLocaleString('pt-BR') : 'Sem registros'}</span>
-1359:                   </div>
-1360: 
-1361:                   <Button 
-1362:                     className="w-full mt-2 h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-tighter shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02]"
-1363:                     onClick={handleProcessQueue}
-1364:                     disabled={isProcessingQueue}
-1365:                   >
-1366:                     {isProcessingQueue ? <Loader2 size={16} className="mr-2 animate-spin" /> : <RefreshCw size={16} className="mr-2" />}
-1367:                     Processar Fila Agora
-1368:                   </Button>
-1369:                 </CardContent>
+              {/* Card Fila de Automações */}
+              <Card className="group relative flex flex-col bg-[#0F172A] border-2 border-amber-500/40 rounded-[24px] shadow-[0_10px_45px_rgba(245,158,11,0.15)] hover:border-amber-500/60 transition-all duration-300 overflow-hidden">
+                <CardHeader className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-amber-500 shadow-lg shadow-amber-500/20">
+                        <Clock className="text-white" size={24} />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl font-bold text-white">Fila de Automações</CardTitle>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mt-1 flex items-center gap-1">
+                          <div className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" /> Processamento Automático
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <CardDescription className="text-slate-400 text-xs leading-relaxed">
+                    Itens aguardando processamento no servidor. O sistema processa automaticamente a cada 5 minutos.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="px-6 flex-1 flex flex-col gap-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                      <p className="text-[8px] font-bold text-slate-500 uppercase mb-1">Pendentes</p>
+                      <p className="text-xl font-black text-white">{queueStats.pending}</p>
+                    </div>
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3 text-center">
+                      <p className="text-[8px] font-bold text-emerald-400 uppercase mb-1">Sucesso</p>
+                      <p className="text-xl font-black text-emerald-400">{queueStats.sent}</p>
+                    </div>
+                    <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-3 text-center">
+                      <p className="text-[8px] font-bold text-rose-400 uppercase mb-1">Falhas</p>
+                      <p className="text-xl font-black text-rose-400">{queueStats.failed}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between px-2 text-[10px] font-bold uppercase tracking-tighter text-slate-500">
+                    <span>Último Processamento</span>
+                    <span className="text-slate-300">{queueStats.lastRun ? new Date(queueStats.lastRun).toLocaleString('pt-BR') : 'Sem registros'}</span>
+                  </div>
+
+                  <Button 
+                    className="w-full mt-2 h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-tighter shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02]"
+                    onClick={handleProcessQueue}
+                    disabled={isProcessingQueue}
+                  >
+                    {isProcessingQueue ? <Loader2 size={16} className="mr-2 animate-spin" /> : <RefreshCw size={16} className="mr-2" />}
+                    Processar Fila Agora
+                  </Button>
+                </CardContent>
+              </Card>
 
               {automations.filter(a => a.key !== 'appointment_confirmation').map((auto) => (
                 <Card 
