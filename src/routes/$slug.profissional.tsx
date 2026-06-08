@@ -331,16 +331,23 @@ function ProfessionalDashboard() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-1">
                             <h4 className="font-black text-xl truncate text-white">{app.customers?.name || "Cliente"}</h4>
-                            <Badge className={cn(
-                              "px-2 py-0.5 font-black text-[9px] uppercase border-0",
-                              app.status === 'completed' ? "bg-green-600" :
-                              app.status === 'cancelled' ? "bg-red-600" :
-                              app.status === 'confirmed' ? "bg-yellow-500 text-black" : "bg-blue-600"
-                            )}>
-                              {app.status === 'completed' ? 'CONCLUÍDO' : 
-                               app.status === 'cancelled' ? 'CANCELADO' : 
-                               app.status === 'confirmed' ? 'CONFIRMADO' : 'AGENDADO'}
-                            </Badge>
+                            <div className="flex flex-col gap-1.5 items-end">
+                              <Badge className={cn(
+                                "px-2 py-0.5 font-black text-[9px] uppercase border-0",
+                                app.status === 'completed' ? "bg-green-600" :
+                                app.status === 'cancelled' ? "bg-red-600" :
+                                app.status === 'confirmed' ? "bg-yellow-500 text-black" : "bg-blue-600"
+                              )}>
+                                {app.status === 'completed' ? 'CONCLUÍDO' : 
+                                 app.status === 'cancelled' ? 'CANCELADO' : 
+                                 app.status === 'confirmed' ? 'CONFIRMADO' : 'AGENDADO'}
+                              </Badge>
+                              {app.status !== 'cancelled' && app.payment_status === 'paid' && (
+                                <Badge className="bg-green-600/10 text-green-500 border-0 font-black text-[8px] uppercase px-1.5 py-0">
+                                  PAGO
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                           <p className="text-sm text-gray-400 flex items-center gap-2 font-medium">
                             <Scissors size={14} className="text-[#D4AF37]" /> {app.services?.name}

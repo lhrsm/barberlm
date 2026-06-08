@@ -3018,10 +3018,14 @@ function ShopPageComponent() {
                               onClick={handleFinalizeBooking}
                               className="w-full h-14 rounded-xl bg-black hover:bg-zinc-800 text-white font-semibold shadow-md transition-all"
                             >
-                              {submitting ? "Confirmando..." : (!paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento"))}
+                              {submitting ? (
+                                <RefreshCcw className="animate-spin h-5 w-5 mr-2" />
+                              ) : (
+                                !paymentMethod && calculateTotal() > 0 ? "Escolha uma forma de pagamento" : (calculateTotal() > 0 && paymentMethod === 'pix' ? "Confirmar e pagar" : "Confirmar agendamento")
+                              )}
                             </Button>
                             
-                            {paymentMethod && (
+                            {paymentMethod && !submitting && (
                               <Button 
                                 variant="outline" 
                                 className="w-full h-12 bg-white text-black hover:bg-zinc-50 border border-zinc-200 rounded-xl font-medium transition-all duration-200" 
