@@ -1514,6 +1514,18 @@ function DashboardComponent() {
                   <p className="text-[10px] font-bold uppercase tracking-tighter text-yellow-500/60 mt-1">Novos saldos de cashback</p>
                 </CardContent>
               </Card>
+              <Card className="bg-white border-2 border-indigo-500/30 shadow-lg shadow-indigo-500/5 hover:border-indigo-500/60 transition-all duration-300">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-black uppercase tracking-widest text-indigo-900">Clientes com Cashback</CardTitle>
+                  <div className="p-2 bg-indigo-500/10 rounded-lg">
+                    <Users className="h-4 w-4 text-indigo-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-black tracking-tighter text-indigo-700">{stats.total.customersWithCashback}</div>
+                  <p className="text-[10px] font-bold uppercase tracking-tighter text-indigo-500/60 mt-1">Clientes com saldo ativo</p>
+                </CardContent>
+              </Card>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pt-4">
