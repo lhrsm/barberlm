@@ -930,10 +930,10 @@ function ShopPageComponent() {
 
       if (isMultipleAppt) {
         groupTokenValLocal = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        const { data: groupData, error: groupError } = await (supabase as any).from("appointment_groups").insert([{
+        const { data: groupData, error: groupError } = await supabase.from("appointment_groups").insert([{
           tenant_id: shop.id,
           customer_id: finalCustId,
-          token: groupTokenValLocal,
+          group_token: groupTokenValLocal,
           total_amount: calculateTotal(),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
           status: 'active'
