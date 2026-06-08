@@ -204,6 +204,7 @@ export const triggerAutomation = async ({
         tenant_id, 
         workflow_key: workflowKey,
         appointment_id,
+        appointment_group_id: appointmentGroupId,
         force_resend: true,
         source: 'real_appointment_flow_immediate'
       }
