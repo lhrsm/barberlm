@@ -1133,11 +1133,11 @@ function ShopPageComponent() {
       setTimeout(() => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
         if (isMultipleFinal && groupTokenFinal) {
-          navigate({ to: `/${slug}/portal`, replace: true });
+          navigate({ to: `/agendamentos/grupo/${groupTokenFinal}` as any, search: { tenant: shop.id } as any, replace: true });
         } else if (createdAppointments.length === 1 && (createdAppointments[0] as any).management_token) {
           navigate({ to: `/agendamento/${(createdAppointments[0] as any).management_token}` as any, search: { tenant: shop.id } as any, replace: true });
         } else {
-          navigate({ to: `/${slug}/portal`, replace: true });
+          navigate({ to: `/${slug}/portal` as any, replace: true });
         }
       }, 1500);
 
