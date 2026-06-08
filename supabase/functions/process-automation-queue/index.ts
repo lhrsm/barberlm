@@ -185,7 +185,7 @@ serve(async (req) => {
 
         const sendOptions: any = {};
         let renderedTemplate = "";
-        let baseTemplate = automation.template || "";
+        let baseTemplate = automation?.template || "";
 
         const managementUrl = `https://barbex.shop/agendamento/${appointment?.management_token || appointment?.id}?tenant=${itemTenantId}`;
         const templateData = {
