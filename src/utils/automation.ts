@@ -141,7 +141,7 @@ export const triggerAutomation = async ({
     // 7. Create entry in automation_queue to ensure it's processed (Fallback mechanism)
     const { data: queueItem, error: queueError } = await anySupabase.from("automation_queue").insert({
       tenant_id,
-      automation_id: automationId,
+      automation_id: templateId, // Correctly point to 'automation_templates'
       appointment_id,
       event_name,
       workflow_key: workflowKey,
