@@ -223,6 +223,7 @@ export type Database = {
           management_token: string | null
           notes: string | null
           original_total: number | null
+          paid_at: string | null
           payment_breakdown: Json | null
           payment_id: string | null
           payment_method: string | null
@@ -286,6 +287,7 @@ export type Database = {
           management_token?: string | null
           notes?: string | null
           original_total?: number | null
+          paid_at?: string | null
           payment_breakdown?: Json | null
           payment_id?: string | null
           payment_method?: string | null
@@ -349,6 +351,7 @@ export type Database = {
           management_token?: string | null
           notes?: string | null
           original_total?: number | null
+          paid_at?: string | null
           payment_breakdown?: Json | null
           payment_id?: string | null
           payment_method?: string | null
