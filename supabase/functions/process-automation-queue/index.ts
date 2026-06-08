@@ -175,13 +175,44 @@ serve(async (req) => {
         const serviceName = appointment?.service?.name || item.payload?.service_name || "Serviço";
         
         let managementUrl = "";
-        if (appointment) {
+        let groupAppointments = [];
+        
+        if (appointment_group_id && isNewAppointment) {
+          console.log(`[ProcessQueue] 👥 Group detected (${appointment_group_id}), loading group appointments`);
+          const { data: gAppts, error: gError } = await supabase
+            .from("appointments")
+            .select(`
+              start_time,
+              service_amount,
+              service:services(name),
+              barber:barbers(name)
+            `)
+            .eq("appointment_group_id", appointment_group_id)
+            .order("group_sequence", { ascending: true });
+          
+          if (!gError && gAppts && gAppts.length > 0) {
+            groupAppointments = gAppts;
+            console.log(`[ProcessQueue] ✅ Loaded ${groupAppointments.length} group appointments`);
+          } else {
+            console.warn("[ProcessQueue] ⚠️ Failed to load group appointments", gError);
+          }
+
+          const { data: groupData } = await supabase
+            .from("appointment_groups")
+            .select("group_token")
+            .eq("id", appointment_group_id)
+            .maybeSingle();
+          
+          if (groupData?.group_token) {
+            managementUrl = `https://barbex.shop/agendamentos/grupo/${groupData.group_token}?tenant=${itemTenantId}`;
+          }
+        } else if (appointment) {
           const groupToken = appointment.appointment_group?.group_token;
           if (groupToken) {
-            managementUrl = `https://barbex.shop/agendamentos/grupo/${groupToken}`;
+            managementUrl = `https://barbex.shop/agendamentos/grupo/${groupToken}?tenant=${itemTenantId}`;
           } else {
             const token = appointment.management_token || appointment.id;
-            managementUrl = `https://barbex.shop/agendamento/${token}`;
+            managementUrl = `https://barbex.shop/agendamento/${token}?tenant=${itemTenantId}`;
           }
         }
 
