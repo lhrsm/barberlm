@@ -151,6 +151,9 @@ function AutomationsComponent() {
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
   const [diagnosticData, setDiagnosticData] = useState<any>(null);
   const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [queueItems, setQueueItems] = useState<any[]>([]);
+  const [queueStats, setQueueStats] = useState({ pending: 0, sent: 0, failed: 0, lastRun: null });
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const itemsPerPage = 10;
 
 
