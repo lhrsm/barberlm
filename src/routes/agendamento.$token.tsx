@@ -457,13 +457,12 @@ function AppointmentManagementPage() {
                       </Button>
                     )}
                     
-                    {(canCancel || isConfirmed) && (
+                    {canCancel && (
                       <Button 
-                        variant="ghost"
-                        onClick={() => setIsCancelModalOpen(true)}
-                        className="w-full h-[64px] rounded-2xl text-red-500 hover:text-red-400 hover:bg-red-500/5 font-bold uppercase tracking-widest text-lg md:text-sm px-4"
+                        onClick={handleInitialCancelClick}
+                        className="w-full h-[64px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-lg md:text-sm shadow-lg shadow-red-900/20"
                       >
-                        <Trash2 className="mr-3 h-6 w-6 md:h-4 md:w-4" /> Cancelar Agendamento
+                        <Trash2 className="mr-3 h-6 w-6 md:h-4 md:w-4" /> Cancelar Atendimento
                       </Button>
                     )}
                   </div>
