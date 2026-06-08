@@ -403,7 +403,7 @@ function FinancesComponent() {
 
     // 2. Estornos Pagos (Saídas Financeiras Reais)
     const totalRefundsPaid = (refundRequests || [])
-      .filter(r => r && r.status === 'completed')
+      .filter(r => r && (r.status === 'completed' || r.status === 'paid'))
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
     // 3. Créditos Utilizados
@@ -436,16 +436,18 @@ function FinancesComponent() {
 
     // 5. Créditos Devolvidos (Cancelamentos)
     const creditsReversed = effectiveTransactions
-      .filter((t) => t.type === "adjustment" && t.description?.includes("Créditos"))
+      .filter((t) => t.type === "credit_reversed")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
 
     // 6. Cashback Devolvido (Cancelamentos)
     const cashbackReversed = effectiveTransactions
-      .filter((t) => t.type === "adjustment" && t.description?.includes("Cashback"))
+      .filter((t) => t.type === "cashback_reversed")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
 
-    // 7. Créditos Concedidos
-    const creditsGranted = totalCredits;
+    // 7. Créditos Concedidos (Novos créditos de Pix ou outros)
+    const creditsGranted = effectiveTransactions
+      .filter((t) => t.type === "credit_granted")
+      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
 
     // 8. Estornos Solicitados
     const totalRefundsRequested = (refundRequests || [])
