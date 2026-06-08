@@ -314,6 +314,11 @@ export function AppointmentDetailsModal({
                   <DollarSign size={12} /> Valor Total
                 </p>
                 <p className="text-2xl font-black text-[#D4AF37]">R$ {(appointment.total_price || 0).toFixed(2)}</p>
+                {appointment.cashback_earned > 0 && (
+                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">
+                    + R$ {Number(appointment.cashback_earned).toFixed(2)} Cashback Gerado
+                  </p>
+                )}
               </div>
           </div>
 
