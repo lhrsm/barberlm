@@ -105,12 +105,18 @@ export function AppointmentDetailsModal({
 
   const handleCancelClick = () => {
     if (!appointment) return;
-    const isPixPaid = (appointment.payment_method === 'pix' || appointment.payment_method === 'mixed') && 
-                      ['paid', 'confirmed', 'completed'].includes(appointment.payment_status);
+    const isPixPaid = (['pix', 'PIX', 'Pix', 'mixed', 'misto'].includes(appointment.payment_method) || (appointment.pix_amount && Number(appointment.pix_amount) > 0)) && 
+                      ['paid', 'confirmed', 'completed', 'pago', 'aprovado'].includes(appointment.payment_status);
     
+    const hasCreditsOrCashback = (appointment.credits_used && Number(appointment.credits_used) > 0) || 
+                                 (appointment.cashback_used && Number(appointment.cashback_used) > 0);
+
     if (isPixPaid) {
       if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
       setIsPixCancelModalOpen(true);
+    } else if (hasCreditsOrCashback) {
+      if (!confirm("Este agendamento foi pago com créditos/cashback. O valor será devolvido ao saldo do cliente para uso futuro. Confirmar cancelamento?")) return;
+      updateStatus('cancelled');
     } else {
       if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
       updateStatus('cancelled');
