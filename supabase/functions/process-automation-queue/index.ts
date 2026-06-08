@@ -114,11 +114,15 @@ serve(async (req) => {
 
     for (const item of itemsToProcess) {
       try {
-        const { appointment, automation, tenant_id: itemTenantId } = item;
+        const { appointment, automation, tenant_id: itemTenantId, workflow_key, automation_type } = item;
         
-        const isBirthday = automation?.key === 'customer_birthday';
-        const isAnniversary = automation?.key === 'barbershop_anniversary';
-        if (!automation || (!appointment && !isBirthday && !isAnniversary)) throw new Error("Data incomplete");
+        const currentWorkflowKey = workflow_key || automation?.key || automation_type;
+        const isBirthday = currentWorkflowKey === 'customer_birthday';
+        const isAnniversary = currentWorkflowKey === 'barbershop_anniversary';
+        const isNewAppointment = currentWorkflowKey === 'appointment_confirmation' || currentWorkflowKey === 'new_appointment';
+
+        if (!currentWorkflowKey) throw new Error("Workflow key or automation type missing");
+        if (!appointment && !isBirthday && !isAnniversary) throw new Error("Data incomplete: appointment missing");
 
         if (!force_resend && appointment?.confirmation_sent) {
           const { data: activeSess } = await supabase
