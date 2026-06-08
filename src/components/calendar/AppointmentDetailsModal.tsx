@@ -151,10 +151,21 @@ export function AppointmentDetailsModal({
     const Icon = config.icon;
 
     return (
-      <Badge className={cn("gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg", config.color, config.textColor)}>
-        <Icon size={12} />
-        {getStatusLabel(status)}
-      </Badge>
+      <div className="flex flex-col gap-2">
+        <Badge className={cn("w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg", config.color, config.textColor)}>
+          <Icon size={12} />
+          {getStatusLabel(status)}
+        </Badge>
+        {status !== 'cancelled' && (
+          <Badge className={cn(
+            "w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg",
+            appointment.payment_status === 'paid' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-amber-500/10 border-amber-500/30 text-amber-500"
+          )}>
+            <DollarSign size={12} />
+            {appointment.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
+          </Badge>
+        )}
+      </div>
     );
   };
 
@@ -202,9 +213,18 @@ export function AppointmentDetailsModal({
                   <DialogTitle className="text-2xl font-black tracking-tight text-white">
                     {appointment.customers?.name || "Cliente Final"}
                   </DialogTitle>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col gap-2 mt-1">
                     {getStatusBadge(appointment.status)}
-                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-[#05070d] px-2 py-0.5 rounded border border-[#D4AF37]/10">
+                    {appointment.status !== 'cancelled' && (
+                      <Badge className={cn(
+                        "w-fit gap-1.5 font-black uppercase tracking-wider text-[10px] px-3 py-1 border rounded-lg",
+                        appointment.payment_status === 'paid' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-amber-500/10 border-amber-500/30 text-amber-500"
+                      )}>
+                        <DollarSign size={12} />
+                        {appointment.payment_status === 'paid' ? 'Pago' : 'Pagamento Pendente'}
+                      </Badge>
+                    )}
+                    <span className="text-[10px] w-fit font-black text-gray-500 uppercase tracking-widest bg-[#05070d] px-2 py-0.5 rounded border border-[#D4AF37]/10">
                       ID: {appointment.id.slice(0, 8)}
                     </span>
                   </div>

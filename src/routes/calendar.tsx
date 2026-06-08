@@ -376,7 +376,7 @@ function CalendarComponent() {
                                 <span className="font-black tracking-tight text-xs">
                                   {format(parseISO(app.start_time), "HH:mm")}
                                 </span>
-                                <Badge className="bg-white/10 hover:bg-white/20 text-white border-none text-[9px] font-black uppercase px-2 py-0.5 rounded-md">
+                                <Badge className={cn("border-none text-[9px] font-black uppercase px-2 py-0.5 rounded-md", statusConfig.className)}>
                                   {statusConfig.label}
                                 </Badge>
                               </div>

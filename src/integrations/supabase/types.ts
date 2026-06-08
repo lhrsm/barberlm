@@ -4375,7 +4375,7 @@ export type Database = {
         Args: {
           p_appointment_id: string
           p_changed_by_id?: string
-          p_changed_by_type?: string
+          p_changed_by_type: string
           p_metadata?: Json
           p_source?: string
         }
@@ -4487,6 +4487,10 @@ export type Database = {
       get_workflow_key_for_event: {
         Args: { p_event_name: string; p_flow_type?: string }
         Returns: string
+      }
+      handle_payment_success: {
+        Args: { p_appointment_id: string; p_payment_id: string }
+        Returns: undefined
       }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }

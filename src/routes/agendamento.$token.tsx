@@ -445,17 +445,30 @@ function AppointmentManagementPage() {
             >
               <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
                 <div className={cn(
-                  "p-6 flex items-center justify-center gap-3",
+                  "p-6 flex flex-col items-center justify-center gap-2",
                   isConfirmed ? "bg-emerald-500/10" : (isCancelled ? "bg-red-500/10" : "bg-primary/10")
                 )}>
-                  {isConfirmed ? (
-                    <>
-                      <CheckCircle2 className="text-emerald-500 w-5 h-5" />
-                      <span className="text-emerald-500 font-black uppercase text-xs tracking-widest">Seu agendamento já está confirmado.</span>
-                    </>
-                  ) : isCancelled ? (
-                    <>
-                      <XCircle className="text-red-500 w-5 h-5" />
+                  <div className="flex items-center gap-3">
+                    {isConfirmed ? (
+                      <>
+                        <CheckCircle2 className="text-emerald-500 w-5 h-5" />
+                        <span className="text-emerald-500 font-black uppercase text-xs tracking-widest">Agendamento Confirmado</span>
+                      </>
+                    ) : isCancelled ? (
+                      <>
+                        <XCircle className="text-red-500 w-5 h-5" />
+                        <span className="text-red-500 font-black uppercase text-xs tracking-widest">Agendamento Cancelado</span>
+                      </>
+                    ) : (
+                      <span className="text-primary font-black uppercase text-xs tracking-widest">Agendamento em Análise</span>
+                    )}
+                  </div>
+                  {!isCancelled && appointment.payment_status === 'paid' && (
+                    <Badge className="bg-emerald-500/20 text-emerald-500 border-none font-black text-[10px] uppercase px-3 py-1">
+                      Pagamento Confirmado
+                    </Badge>
+                  )}
+                </div>
                       <span className="text-red-500 font-black uppercase text-xs tracking-widest">Agendamento Cancelado</span>
                     </>
                   ) : isCompleted ? (
