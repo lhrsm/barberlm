@@ -440,16 +440,16 @@ export function AppointmentModal({
 
       if (profile?.whatsapp_enabled) {
         console.log("Creating item in automation_queue for V2 trigger...");
-        await supabase.from("automation_queue").insert([{
+        const queuePayload: any = {
           tenant_id: tenantId,
           appointment_id: appointmentData.id,
-          automation_id: undefined, // Changed from null to undefined for TypeScript
           workflow_key: 'appointment_confirmation',
           event_name: 'appointment.created',
           status: 'pending',
           attempts: 0,
           scheduled_for: new Date().toISOString()
-        }]);
+        };
+        await supabase.from("automation_queue").insert([queuePayload]);
 
         console.log("Triggering process-automation-queue edge function...");
         triggerAutomation({
