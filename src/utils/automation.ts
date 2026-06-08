@@ -27,7 +27,8 @@ export const triggerAutomation = async ({
       .select(`
         *,
         customer:customers(id, name, phone),
-        tenant:tenants(id, name)
+        tenant:tenants(id, name),
+        appointment_group:appointment_groups(id, group_token)
       `)
       .eq("id", appointment_id)
       .single();
