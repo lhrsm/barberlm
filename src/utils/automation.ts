@@ -173,56 +173,50 @@ export const triggerAutomation = async ({
     // 9. Invoke the processing edge function to handle it immediately
     console.log(`[Automation] 🚀 Invoking process-automation-queue for ${workflowKey}`);
     
-    try {
-      const { data, error: invokeError } = await supabase.functions.invoke('process-automation-queue', {
-        body: { 
-          tenant_id, 
-          workflow_key: workflowKey,
-          appointment_id,
-          force_resend: true,
-          source: 'real_appointment_flow'
-        }
-      });
-
-      if (invokeError) {
-        throw invokeError;
+    // Non-blocking trigger of the edge function
+    supabase.functions.invoke('process-automation-queue', {
+      body: { 
+        tenant_id, 
+        workflow_key: workflowKey,
+        appointment_id,
+        force_resend: true,
+        source: 'real_appointment_flow_immediate'
       }
-
-      // Final Success Log
-      try {
-        await anySupabase.from("automation_logs").insert({
+    }).then(({ data, error: invokeError }) => {
+      if (invokeError) {
+        console.error("[Automation] ❌ Immediate process-automation-queue invocation failed:", invokeError);
+        // Log failure but don't throw as it's already in the queue for the cron/fallback
+        anySupabase.from("automation_logs").insert({
+          tenant_id,
+          automation_id: automationId || null,
+          appointment_id,
+          status: "failed",
+          error_message: invokeError.message,
+          message_type: "diagnostic",
+          payload: { 
+            diagnostic: "immediate_send_failed", 
+            error: invokeError.message 
+          }
+        }).catch(() => {});
+      } else {
+        console.log("[Automation] ✅ Immediate process success:", data);
+        anySupabase.from("automation_logs").insert({
           tenant_id,
           automation_id: automationId || null,
           appointment_id,
           status: "success",
           message_type: "diagnostic",
           payload: { 
-            diagnostic: "whatsapp_send_success",
+            diagnostic: "immediate_send_success",
             response: data
           }
-        });
-      } catch (e) {}
+        }).catch(() => {});
+      }
+    }).catch(err => {
+      console.error("[Automation] ❌ Fatal error in immediate invocation:", err);
+    });
 
-      console.log("[Automation] ✅ Process queue response:", data);
-      return { success: true, data };
-    } catch (invokeErr: any) {
-      console.error("[Automation] ❌ Error invoking process-automation-queue:", invokeErr);
-      try {
-        await anySupabase.from("automation_logs").insert({
-          tenant_id,
-          automation_id: automationId || null,
-          appointment_id,
-          status: "failed",
-          error_message: invokeErr.message,
-          message_type: "diagnostic",
-          payload: { 
-            diagnostic: "whatsapp_send_failed", 
-            error: invokeErr.message 
-          }
-        });
-      } catch (e) {}
-      return { success: false, error: invokeErr };
-    }
+    return { success: true };
   } catch (err: any) {
     // Top-level catch: strictly non-blocking for the UI
     console.error("[Automation] ❌ Unexpected top-level error in triggerAutomation:", err);
