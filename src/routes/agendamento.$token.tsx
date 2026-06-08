@@ -483,14 +483,16 @@ function AppointmentManagementPage() {
         </AnimatePresence>
 
         <div className="flex flex-col gap-3">
-          <Button 
-            className="h-14 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white font-black uppercase tracking-widest shadow-xl"
-            asChild
-          >
-            <a href={`https://wa.me/${appointment.business_phone?.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
-              <Phone className="mr-2 h-4 w-4" /> Falar com a Barbearia
-            </a>
-          </Button>
+          {appointment.business_phone && (
+            <Button 
+              className="h-14 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white font-black uppercase tracking-widest shadow-xl"
+              asChild
+            >
+              <a href={`https://wa.me/${appointment.business_phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
+                <Phone className="mr-2 h-4 w-4" /> Falar com a Barbearia
+              </a>
+            </Button>
+          )}
         </div>
       </motion.div>
 
