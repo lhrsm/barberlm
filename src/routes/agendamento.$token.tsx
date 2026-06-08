@@ -243,21 +243,20 @@ function AppointmentManagementPage() {
   const handleCancel = async (preference: 'credits' | 'refund' | 'none' = 'none', refundDetails?: any) => {
     setCancelling(true);
     try {
-      // Registrar log de início de cancelamento
       console.log(`AUDIT [Cancel]: Started cancel for ${appointment.id} with pref ${preference}`);
       
       const { data, error: rpcError } = await supabase.rpc('cancel_appointment', {
         p_appointment_id: appointment.id,
         p_cancelled_by: 'customer',
         p_source: 'public_link',
-        p_refund_preference: preference
+        p_refund_preference: preference,
+        p_changed_by_id: null
       });
 
       if (rpcError) throw rpcError;
       const response = data as any;
       if (response && response.success === false) throw new Error(response.error || "Erro ao processar");
 
-      // Se for estorno, salvar os dados do Pix separadamente se necessário ou via RPC se suportado
       if (preference === 'refund' && refundDetails) {
         await supabase
           .from('refund_requests')
@@ -294,6 +293,7 @@ function AppointmentManagementPage() {
       setShowRefundForm(false);
       fetchAppointment();
     } catch (err: any) {
+      console.error("AUDIT [Cancel Error]:", err);
       toast.error(err.message || "Erro ao cancelar agendamento");
     } finally {
       setCancelling(false);
