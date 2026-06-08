@@ -250,7 +250,7 @@ function AppointmentManagementPage() {
         p_cancelled_by: 'customer',
         p_source: 'public_link',
         p_refund_preference: preference,
-        p_changed_by_id: null
+        p_changed_by_id: undefined
       });
 
       if (rpcError) throw rpcError;
