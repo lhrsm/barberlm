@@ -402,14 +402,11 @@ function FinancesComponent() {
       }, 0);
 
     // 2. Estornos Pagos (Saídas Financeiras Reais)
-    // Regra: Somar apenas estornos pagos/concluídos
     const totalRefundsPaid = (refundRequests || [])
       .filter(r => r && r.status === 'completed')
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
-    // Moving netRevenue calculation down after realCashIncome is defined
-
-    // 4. Créditos Utilizados (Valor que deixou de entrar em dinheiro)
+    // 3. Créditos Utilizados
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
@@ -423,21 +420,39 @@ function FinancesComponent() {
         return acc + val;
       }, 0);
 
-    // 4. Créditos Concedidos (Disponíveis para uso futuro)
-    // Regra: Somar customer_credits status available/partially_used/used
-    // Note: We need a separate state or fetch for total customer credits if we want to be precise,
-    // but here we use what's granted in this period if that's what's meant, 
-    // or the overall total if we have it.
-    // Given the context, we'll use the totalCredits state we already have from fetchBalances.
+    // 4. Cashback Utilizado
+    const cashbackConsumed = effectiveTransactions
+      .filter((t) => t.type === "income")
+      .reduce((acc, t) => {
+        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment) {
+          return acc + Number(t.cashback_amount || 0);
+        }
+        let val = Number(t.appointment?.cashback_used || 0);
+        if (val === 0 && t.appointment?.payment_method === 'cashback') {
+          val = parseFloat(String(t.amount)) || 0;
+        }
+        return acc + val;
+      }, 0);
+
+    // 5. Créditos Devolvidos (Cancelamentos)
+    const creditsReversed = effectiveTransactions
+      .filter((t) => t.type === "adjustment" && t.description?.includes("Créditos"))
+      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+
+    // 6. Cashback Devolvido (Cancelamentos)
+    const cashbackReversed = effectiveTransactions
+      .filter((t) => t.type === "adjustment" && t.description?.includes("Cashback"))
+      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+
+    // 7. Créditos Concedidos
     const creditsGranted = totalCredits;
 
-    // 5. Estornos Solicitados (Aguardando ação)
-    // Regra: Somar refund_requests com status requested
+    // 8. Estornos Solicitados
     const totalRefundsRequested = (refundRequests || [])
       .filter(r => r && r.status === 'requested')
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
-    // 6. Entrada em Caixa (Fluxo de Caixa Real antes de saídas)
+    // 9. Entrada em Caixa (Fluxo de Caixa Real)
     const realCashIncome = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
@@ -449,8 +464,7 @@ function FinancesComponent() {
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
 
-    // 7. Receita Líquida
-    // Regra: entrada em caixa - estornos pagos
+    // 10. Receita Líquida
     const netRevenue = realCashIncome - totalRefundsPaid;
 
     const expense = effectiveTransactions
