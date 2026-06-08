@@ -243,21 +243,20 @@ function AppointmentManagementPage() {
   const handleCancel = async (preference: 'credits' | 'refund' | 'none' = 'none', refundDetails?: any) => {
     setCancelling(true);
     try {
-      // Registrar log de início de cancelamento
       console.log(`AUDIT [Cancel]: Started cancel for ${appointment.id} with pref ${preference}`);
       
       const { data, error: rpcError } = await supabase.rpc('cancel_appointment', {
         p_appointment_id: appointment.id,
         p_cancelled_by: 'customer',
         p_source: 'public_link',
-        p_refund_preference: preference
+        p_refund_preference: preference,
+        p_changed_by_id: undefined
       });
 
       if (rpcError) throw rpcError;
       const response = data as any;
       if (response && response.success === false) throw new Error(response.error || "Erro ao processar");
 
-      // Se for estorno, salvar os dados do Pix separadamente se necessário ou via RPC se suportado
       if (preference === 'refund' && refundDetails) {
         await supabase
           .from('refund_requests')
@@ -294,6 +293,7 @@ function AppointmentManagementPage() {
       setShowRefundForm(false);
       fetchAppointment();
     } catch (err: any) {
+      console.error("AUDIT [Cancel Error]:", err);
       toast.error(err.message || "Erro ao cancelar agendamento");
     } finally {
       setCancelling(false);
@@ -434,10 +434,11 @@ function AppointmentManagementPage() {
                   <div className="pt-6 border-t border-zinc-800/50 space-y-3">
                     {canReschedule && (
                       <Button 
+
                         onClick={() => setIsRescheduling(true)}
-                        className="w-full h-12 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase tracking-widest text-xs"
+                        className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase tracking-widest text-lg md:text-sm shadow-lg"
                       >
-                        <RefreshCcw className="mr-2 h-4 w-4" /> Reagendar Atendimento
+                        <RefreshCcw className="mr-3 h-6 w-6 md:h-4 md:w-4" /> Reagendar Atendimento
                       </Button>
                     )}
                     
@@ -445,9 +446,9 @@ function AppointmentManagementPage() {
                       <Button 
                         variant="ghost"
                         onClick={() => setIsCancelModalOpen(true)}
-                        className="w-full h-12 md:h-12 rounded-xl text-red-500 hover:text-red-400 hover:bg-red-500/5 font-bold uppercase tracking-widest text-sm md:text-xs px-4"
+                        className="w-full h-[64px] rounded-2xl text-red-500 hover:text-red-400 hover:bg-red-500/5 font-bold uppercase tracking-widest text-lg md:text-sm px-4"
                       >
-                        <Trash2 className="mr-2 h-5 w-5 md:h-4 md:w-4" /> Cancelar Agendamento
+                        <Trash2 className="mr-3 h-6 w-6 md:h-4 md:w-4" /> Cancelar Agendamento
                       </Button>
                     )}
                   </div>
@@ -493,7 +494,7 @@ function AppointmentManagementPage() {
                   <Button 
                     onClick={handleReschedule}
                     disabled={submitting || !selectedTime}
-                    className="w-full h-14 rounded-2xl bg-primary text-black font-black uppercase tracking-widest"
+                    className="w-full h-[64px] rounded-2xl bg-primary text-black font-black uppercase tracking-widest text-lg"
                   >
                     {submitting ? "Processando..." : "Confirmar Novo Horário"}
                   </Button>
@@ -506,11 +507,11 @@ function AppointmentManagementPage() {
         <div className="flex flex-col gap-3">
           {appointment.business_phone && (
             <Button 
-              className="h-14 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white font-black uppercase tracking-widest shadow-xl"
+              className="h-[64px] rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white font-black uppercase tracking-widest text-lg shadow-xl"
               asChild
             >
               <a href={`https://wa.me/${appointment.business_phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
-                <Phone className="mr-2 h-4 w-4" /> Falar com a Barbearia
+                <Phone className="mr-3 h-6 w-6" /> Falar com a Barbearia
               </a>
             </Button>
           )}
@@ -533,21 +534,21 @@ function AppointmentManagementPage() {
               <Button 
                 onClick={() => handleCancel('credits')}
                 disabled={cancelling}
-                className="w-full h-14 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-xs border border-zinc-700 shadow-lg"
+                className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-lg border border-zinc-700 shadow-lg"
               >
                 Transformar em créditos
               </Button>
               <Button 
                 onClick={() => setShowRefundForm(true)}
                 disabled={cancelling}
-                className="w-full h-14 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-xs border border-zinc-700 shadow-lg"
+                className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-lg border border-zinc-700 shadow-lg"
               >
                 Solicitar estorno
               </Button>
               <Button 
                 variant="ghost"
                 onClick={() => setIsCancelModalOpen(false)}
-                className="w-full h-12 rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-[10px]"
+                className="w-full h-[64px] rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-sm"
               >
                 Voltar
               </Button>
@@ -593,33 +594,33 @@ function AppointmentManagementPage() {
               <Button 
                 onClick={() => handleCancel('refund', refundData)}
                 disabled={cancelling || !refundData.pixKey || !refundData.holderName}
-                className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs shadow-lg mt-4"
+                className="w-full h-[64px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-lg shadow-lg mt-4"
               >
                 {cancelling ? "Processando..." : "Confirmar Estorno"}
               </Button>
               <Button 
                 variant="ghost"
                 onClick={() => setShowRefundForm(false)}
-                className="w-full h-12 rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-[10px]"
+                className="w-full h-[64px] rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-sm"
               >
                 Voltar
               </Button>
             </div>
           ) : (
-            <DialogFooter className="flex flex-col sm:flex-row gap-4 mt-6">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsCancelModalOpen(false)} 
-                className="h-14 rounded-2xl flex-1 uppercase font-black text-xs tracking-widest border-zinc-800 text-zinc-400 order-2 sm:order-1"
-              >
-                Manter
-              </Button>
+            <DialogFooter className="flex flex-col gap-4 mt-6">
               <Button 
                 onClick={() => handleCancel('none')} 
                 disabled={cancelling}
-                className="h-14 rounded-2xl flex-1 bg-red-600 hover:bg-red-700 text-white uppercase font-black text-xs tracking-widest order-1 sm:order-2 shadow-lg shadow-red-900/20"
+                className="w-full h-[64px] rounded-2xl bg-red-600 hover:bg-red-700 text-white uppercase font-black text-lg tracking-widest shadow-lg shadow-red-900/20"
               >
-                {cancelling ? "..." : "Confirmar"}
+                {cancelling ? "Processando..." : "Confirmar Cancelamento"}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsCancelModalOpen(false)} 
+                className="w-full h-[64px] rounded-2xl uppercase font-black text-sm tracking-widest border-zinc-800 text-zinc-400"
+              >
+                Manter Agendamento
               </Button>
             </DialogFooter>
           )}
