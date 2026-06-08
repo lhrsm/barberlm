@@ -390,7 +390,7 @@ function AppointmentManagementPage() {
                       </>
                     )}
                   </div>
-                  {!isCancelled && appointment.payment_status === 'paid' && (
+                  {!isCancelled && (appointment.payment_status === 'paid' || appointment.payment_status === 'confirmed') && (
                     <Badge className="bg-emerald-500/20 text-emerald-500 border-none font-black text-[10px] uppercase px-3 py-1">
                       Pagamento Confirmado
                     </Badge>
