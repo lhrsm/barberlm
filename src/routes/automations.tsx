@@ -469,6 +469,55 @@ function AutomationsComponent() {
       console.error("Error fetching pending callbacks:", error);
     }
   };
+  
+  const fetchQueueStats = async () => {
+    if (!tenantId) return;
+    try {
+      const { count: pending } = await supabase.from("automation_queue").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "pending");
+      const { count: sent } = await supabase.from("automation_queue").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "success");
+      const { count: failed } = await supabase.from("automation_queue").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "failed");
+      const { data: lastItem } = await supabase.from("automation_queue").select("updated_at").eq("tenant_id", tenantId).eq("status", "success").order("updated_at", { ascending: false }).limit(1).maybeSingle();
+
+      setQueueStats({
+        pending: pending || 0,
+        sent: sent || 0,
+        failed: failed || 0,
+        lastRun: lastItem?.updated_at || null as any
+      });
+      
+      const { data: recentQueue } = await supabase.from("automation_queue").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(10);
+      setQueueItems(recentQueue || []);
+    } catch (error) {
+      console.error("Error fetching queue stats:", error);
+    }
+  };
+
+  const handleProcessQueue = async () => {
+    if (!tenantId) return;
+    setIsProcessingQueue(true);
+    const toastId = toast.loading("Processando fila de automações...");
+    try {
+      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { tenant_id: tenantId }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.success) {
+        const processedCount = data.results?.length || 0;
+        toast.success(`Fila processada! ${processedCount} itens processados.`, { id: toastId });
+        fetchQueueStats();
+        fetchData();
+      } else {
+        throw new Error(data?.error || "Erro ao processar fila");
+      }
+    } catch (error: any) {
+      console.error("Error processing queue:", error);
+      toast.error("Erro ao processar: " + error.message, { id: toastId });
+    } finally {
+      setIsProcessingQueue(false);
+    }
+  };
 
   const handleDiagnoseLastAppointment = async () => {
     if (!tenantId) return;
