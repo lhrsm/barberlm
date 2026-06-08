@@ -503,7 +503,8 @@ function AppointmentManagementPage() {
                   <Button 
                     onClick={handleReschedule}
                     disabled={submitting || !selectedTime}
-                    className="w-full h-[64px] rounded-2xl bg-primary text-black font-black uppercase tracking-widest text-lg"
+                    className="w-full min-h-[64px] rounded-2xl bg-primary text-black font-black uppercase tracking-widest text-lg flex items-center justify-center text-center p-4 overflow-hidden"
+                    style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
                   >
                     {submitting ? "Processando..." : "Confirmar Novo Horário"}
                   </Button>
