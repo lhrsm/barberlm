@@ -120,6 +120,12 @@ function AutomationsComponent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
   const [lastManualUpdate, setLastManualUpdate] = useState<Date | null>(null);
+  // Diagnóstico do último agendamento
+  const [lastAppointmentId, setLastAppointmentId] = useState<string | null>(null);
+  const [lastAppDiagnostic, setLastAppDiagnostic] = useState<any>(null);
+  const [isLoadingLastAppDiag, setIsLoadingLastAppDiag] = useState(false);
+  const [isLastAppDiagOpen, setIsLastAppDiagOpen] = useState(false);
+
   const [logStats, setLogStats] = useState<any>({ 
     sent: 0, 
     success: 0, 

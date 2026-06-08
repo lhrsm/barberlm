@@ -443,7 +443,7 @@ export function AppointmentModal({
         await supabase.from("automation_queue").insert([{
           tenant_id: tenantId,
           appointment_id: appointmentData.id,
-          automation_id: null, // Processor will find it by key
+          automation_id: undefined, // Changed from null to undefined for TypeScript
           workflow_key: 'appointment_confirmation',
           event_name: 'appointment.created',
           status: 'pending',
