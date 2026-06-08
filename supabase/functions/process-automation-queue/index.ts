@@ -41,12 +41,15 @@ serve(async (req) => {
       query = query.eq("appointment_id", appointment_id);
     } else {
       query = query.or("status.eq.pending,status.eq.failed");
-      query = query.lt("attempts", 5); // Aumentado para 5 para suportar mais retentativas
+      query = query.filter("attempts", "lt", 5); // Aumentado para 5 para suportar mais retentativas
       
       const now = new Date().toISOString();
       // Filtra por agendado para agora ou no passado E (próxima retentativa é nula ou no passado)
-      query = query.and(`scheduled_for.is.null,scheduled_for.lte.${now}`);
-      query = query.or(`next_retry_at.is.null,next_retry_at.lte.${now}`);
+      // query = query.and(`scheduled_for.is.null,scheduled_for.lte.${now}`); 
+      // query = query.or(`next_retry_at.is.null,next_retry_at.lte.${now}`);
+      // Simplificado para evitar .and/.or do SDK antigo
+      query = query.or(`scheduled_for.is.null,scheduled_for.lte.${now}`);
+
       
       if (tenant_id) query = query.eq("tenant_id", tenant_id);
       if (appointment_id) query = query.eq("appointment_id", appointment_id);
