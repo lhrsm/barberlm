@@ -930,10 +930,10 @@ function ShopPageComponent() {
 
       if (isMultipleAppt) {
         groupTokenVal = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        const { data: groupData, error: groupError } = await supabase.from("appointment_groups").insert([{
+        const { data: groupData, error: groupError } = await (supabase as any).from("appointment_groups").insert([{
           tenant_id: shop.id,
           customer_id: finalCustId,
-          group_token: groupTokenVal,
+          token: groupTokenVal,
           total_amount: calculateTotal(),
           payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
           status: 'active'
@@ -1135,7 +1135,7 @@ function ShopPageComponent() {
         if (isMultipleFinal && groupTokenFinal) {
           navigate({ to: `/${slug}/portal`, replace: true });
         } else if (createdAppointments.length === 1 && (createdAppointments[0] as any).management_token) {
-          navigate({ to: `/agendamento/${(createdAppointments[0] as any).management_token}`, search: { tenant: shop.id }, replace: true });
+          navigate({ to: `/agendamento/${(createdAppointments[0] as any).management_token}` as any, search: { tenant: shop.id } as any, replace: true });
         } else {
           navigate({ to: `/${slug}/portal`, replace: true });
         }
