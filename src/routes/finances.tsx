@@ -843,7 +843,7 @@ function FinancesComponent() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-emerald-600">R$ {summary.netRevenue.toFixed(2)}</div>
-                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Caixa - Estornos Pagos - Créditos</p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Caixa - Estornos Pagos - Créditos - Cashback</p>
                 </CardContent>
               </Card>
 
