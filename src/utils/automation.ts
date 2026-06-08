@@ -8,23 +8,44 @@ interface AutomationTriggerParams {
 
 /**
  * Triggers an automation event by creating a queue item and invoking the processing edge function.
+ * Optimized for reliability and includes detailed logging for audit.
  */
 export const triggerAutomation = async ({
   tenant_id,
   event_name,
   appointment_id
 }: AutomationTriggerParams) => {
-  console.log(`[Automation] Triggering ${event_name} for appointment ${appointment_id}`);
+  console.log(`[Automation] 🟢 Starting trigger for ${event_name} on appointment ${appointment_id}`);
   
   const anySupabase = supabase as any;
   
   try {
-    // 1. Find the relevant automation template
-    // We map frontend events to automation keys
+    // 1. Fetch full appointment details to validate requirements
+    const { data: appointment, error: fetchError } = await anySupabase
+      .from("appointments")
+      .select(`
+        *,
+        customer:customers(id, name, phone),
+        tenant:tenants(id, name)
+      `)
+      .eq("id", appointment_id)
+      .single();
+
+    if (fetchError || !appointment) {
+      console.error("[Automation] ❌ Appointment not found:", fetchError);
+      return { success: false, error: "Appointment not found" };
+    }
+
+    const customerPhone = appointment.customer?.phone;
+    const managementToken = appointment.management_token;
+    const customerId = appointment.customer?.id;
+
+    // 2. Map frontend events to automation keys
     let workflowKey = "appointment_confirmation";
     if (event_name === 'appointment.cancelled') workflowKey = "cancellation";
-    else if (event_name === 'appointment.rescheduled') workflowKey = "appointment_confirmation"; // Rescheduled also uses confirmation template usually
+    else if (event_name === 'appointment.rescheduled') workflowKey = "appointment_confirmation";
 
+    // 3. Find the relevant automation template
     const { data: template } = await anySupabase
       .from("automation_templates")
       .select("id, active")
@@ -34,8 +55,67 @@ export const triggerAutomation = async ({
 
     const automationId = template?.id;
 
-    // 2. Create entry in automation_queue to ensure it's processed
-    // This provides a fallback if the edge function call fails
+    // 4. Initial Audit Log: appointment_created / automation_trigger_started
+    if (automationId) {
+      await anySupabase.from("automation_logs").insert({
+        tenant_id,
+        automation_id: automationId,
+        appointment_id,
+        customer_id: customerId,
+        phone: customerPhone,
+        status: "pending",
+        message_type: "diagnostic",
+        payload: { 
+          diagnostic: "automation_trigger_started", 
+          event_name, 
+          workflow_key: workflowKey,
+          source: "real_appointment_flow",
+          automation_type: "new_appointment",
+          management_token_exists: !!managementToken,
+          customer_phone_exists: !!customerPhone,
+          template_active: template?.active
+        }
+      });
+    }
+
+    // 5. Hard validations before sending
+    if (!managementToken) {
+      console.warn("[Automation] ⚠️ Missing management_token, skipping immediate send");
+      return { success: false, error: "Missing management_token" };
+    }
+
+    if (!customerPhone) {
+      console.warn("[Automation] ⚠️ Missing customer phone, cannot send WhatsApp");
+      return { success: false, error: "Missing customer phone" };
+    }
+
+    // 6. Check if WhatsApp integration is active for this tenant
+    const { data: profile } = await anySupabase
+      .from("profiles")
+      .select("whatsapp_enabled, whatsapp_instance_id")
+      .eq("id", tenant_id)
+      .single();
+
+    if (!profile?.whatsapp_enabled || !profile?.whatsapp_instance_id) {
+      console.warn("[Automation] ⚠️ WhatsApp integration not active for tenant", tenant_id);
+      if (automationId) {
+        await anySupabase.from("automation_logs").insert({
+          tenant_id,
+          automation_id: automationId,
+          appointment_id,
+          status: "skipped",
+          message_type: "diagnostic",
+          payload: { 
+            diagnostic: "whatsapp_inactive",
+            whatsapp_enabled: profile?.whatsapp_enabled,
+            has_instance: !!profile?.whatsapp_instance_id
+          }
+        });
+      }
+      return { success: false, error: "WhatsApp inactive" };
+    }
+
+    // 7. Create entry in automation_queue to ensure it's processed (Fallback mechanism)
     const { data: queueItem, error: queueError } = await anySupabase.from("automation_queue").insert({
       tenant_id,
       automation_id: automationId,
@@ -48,10 +128,10 @@ export const triggerAutomation = async ({
     }).select().single();
 
     if (queueError) {
-       console.error("[Automation] Error creating queue item:", queueError);
+       console.error("[Automation] ❌ Error creating queue item:", queueError);
     }
 
-    // 3. Diagnostic log: start
+    // 8. Payload Build Log
     if (automationId) {
       await anySupabase.from("automation_logs").insert({
         tenant_id,
@@ -60,51 +140,66 @@ export const triggerAutomation = async ({
         status: "pending",
         message_type: "diagnostic",
         payload: { 
-          diagnostic: "trigger_called", 
-          event_name, 
-          workflow_key: workflowKey,
-          template_found: !!template,
-          template_active: template?.active,
-          source: "frontend_trigger",
-          queue_id: queueItem?.id
+          diagnostic: "automation_payload_built",
+          queue_id: queueItem?.id,
+          target_phone: customerPhone,
+          workflow: workflowKey
         }
       });
-    } else {
-      console.warn("[Automation] No template found for", workflowKey);
     }
 
-    // 4. Invoke the processing edge function to handle the queue immediately
-    const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+    // 9. Invoke the processing edge function to handle it immediately
+    // Using force_resend: true to ensure immediate processing similar to the test button
+    console.log(`[Automation] 🚀 Invoking process-automation-queue for ${workflowKey}`);
+    
+    const { data, error: invokeError } = await supabase.functions.invoke('process-automation-queue', {
       body: { 
         tenant_id, 
         workflow_key: workflowKey,
         appointment_id,
-        force_resend: false
+        force_resend: true,
+        source: 'real_appointment_flow'
       }
     });
 
-    if (error) {
-      console.error("[Automation] Error invoking process-automation-queue:", error);
+    if (invokeError) {
+      console.error("[Automation] ❌ Error invoking process-automation-queue:", invokeError);
       if (automationId) {
         await anySupabase.from("automation_logs").insert({
           tenant_id,
           automation_id: automationId,
           appointment_id,
-          status: "error",
+          status: "failed",
+          error_message: invokeError.message,
           message_type: "diagnostic",
           payload: { 
-            diagnostic: "process_queue_error", 
-            error: error.message 
+            diagnostic: "whatsapp_send_failed", 
+            error: invokeError.message 
           }
         });
       }
-      return { success: false, error };
+      return { success: false, error: invokeError };
     }
 
-    console.log("[Automation] Process queue response:", data);
+    // 10. Final Success Log
+    if (automationId) {
+      await anySupabase.from("automation_logs").insert({
+        tenant_id,
+        automation_id: automationId,
+        appointment_id,
+        status: "success",
+        message_type: "diagnostic",
+        payload: { 
+          diagnostic: "whatsapp_send_success",
+          response: data
+        }
+      });
+    }
+
+    console.log("[Automation] ✅ Process queue response:", data);
     return { success: true, data };
   } catch (err: any) {
-    console.error("[Automation] Unexpected error:", err);
+    console.error("[Automation] ❌ Unexpected error:", err);
     return { success: false, error: err };
   }
 };
