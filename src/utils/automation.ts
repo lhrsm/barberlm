@@ -159,20 +159,18 @@ export const triggerAutomation = async ({
 
     if (invokeError) {
       console.error("[Automation] ❌ Error invoking process-automation-queue:", invokeError);
-      if (automationId) {
-        await anySupabase.from("automation_logs").insert({
-          tenant_id,
-          automation_id: automationId,
-          appointment_id,
-          status: "failed",
-          error_message: invokeError.message,
-          message_type: "diagnostic",
-          payload: { 
-            diagnostic: "whatsapp_send_failed", 
-            error: invokeError.message 
-          }
-        });
-      }
+      await anySupabase.from("automation_logs").insert({
+        tenant_id,
+        automation_id: automationId || null,
+        appointment_id,
+        status: "failed",
+        error_message: invokeError.message,
+        message_type: "diagnostic",
+        payload: { 
+          diagnostic: "whatsapp_send_failed", 
+          error: invokeError.message 
+        }
+      });
       return { success: false, error: invokeError };
     }
 
