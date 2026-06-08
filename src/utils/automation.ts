@@ -27,7 +27,8 @@ export const triggerAutomation = async ({
       .select(`
         *,
         customer:customers(id, name, phone),
-        tenant:tenants(id, name)
+        tenant:tenants(id, name),
+        appointment_group:appointment_groups(id, group_token)
       `)
       .eq("id", appointment_id)
       .single();
@@ -149,11 +150,32 @@ export const triggerAutomation = async ({
 
     // 8. Create entry in automation_queue to ensure it's processed (Reliability layer)
     let queueItem = null;
+    const appointmentGroupId = appointment.appointment_group_id || appointment.appointment_group?.id;
+    
     try {
+      // Check for group deduplication if it's a new appointment
+      if (appointmentGroupId && workflowKey === 'appointment_confirmation') {
+        console.log(`[Automation] 👥 Group appointment detected (${appointmentGroupId}), checking for existing queue item`);
+        
+        const { data: existingQueue } = await anySupabase
+          .from("automation_queue")
+          .select("id")
+          .eq("appointment_group_id", appointmentGroupId)
+          .eq("workflow_key", workflowKey)
+          .in("status", ["pending", "processing", "success"])
+          .maybeSingle();
+        
+        if (existingQueue) {
+          console.log("[Automation] ⏭️ Group queue item already exists, skipping duplicate creation");
+          return { success: true, diagnostic: "group_queue_duplicate_skipped" };
+        }
+      }
+
       const { data: qItem, error: queueError } = await anySupabase.from("automation_queue").insert({
         tenant_id,
         automation_id: templateId, 
         appointment_id,
+        appointment_group_id: appointmentGroupId,
         event_name,
         workflow_key: workflowKey,
         status: "pending",
@@ -165,6 +187,9 @@ export const triggerAutomation = async ({
         console.error("[Automation] ❌ Error creating queue item:", queueError);
       } else {
         queueItem = qItem;
+        if (appointmentGroupId) {
+          console.log("[Automation] ✅ group_queue_created");
+        }
       }
     } catch (qErr) {
       console.error("[Automation] ❌ Exception creating queue item:", qErr);
@@ -179,6 +204,7 @@ export const triggerAutomation = async ({
         tenant_id, 
         workflow_key: workflowKey,
         appointment_id,
+        appointment_group_id: appointmentGroupId,
         force_resend: true,
         source: 'real_appointment_flow_immediate'
       }

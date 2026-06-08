@@ -19,9 +19,18 @@ serve(async (req) => {
   );
 
   try {
-    const { tenant_id, appointment_id, automation_id, workflow_key, force_resend, dry_run, payload: requestPayload } = await req.json().catch(() => ({}));
+    const { 
+      tenant_id, 
+      appointment_id, 
+      appointment_group_id: requestGroupId,
+      automation_id, 
+      workflow_key, 
+      force_resend, 
+      dry_run, 
+      payload: requestPayload 
+    } = await req.json().catch(() => ({}));
     
-    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, automation_id, workflow_key, force_resend, dry_run, requestPayload });
+    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, requestGroupId, automation_id, workflow_key, force_resend, dry_run, requestPayload });
 
     // 1. Fetch items to process
     let query = supabase
@@ -39,8 +48,12 @@ serve(async (req) => {
         customer:customers(name, phone)
       `);
 
-    if (force_resend && appointment_id) {
-      query = query.eq("appointment_id", appointment_id);
+    if (force_resend && (appointment_id || requestGroupId)) {
+      if (requestGroupId) {
+        query = query.eq("appointment_group_id", requestGroupId);
+      } else {
+        query = query.eq("appointment_id", appointment_id);
+      }
     } else {
       query = query.or("status.eq.pending,status.eq.failed");
       query = query.filter("attempts", "lt", 5); 
@@ -59,21 +72,48 @@ serve(async (req) => {
     let itemsToProcess = queueItems || [];
 
     // 2. Virtual item creation for forced resend
-    if (itemsToProcess.length === 0 && force_resend && appointment_id) {
+    if (itemsToProcess.length === 0 && force_resend && (appointment_id || requestGroupId)) {
       console.log("[ProcessQueue] No queue item found for forced resend, attempting virtual item creation");
       
-      const { data: appointment, error: appError } = await supabase
-        .from("appointments")
-        .select(`
-          *,
-          customer:customers(name, phone),
-          service:services(name, price),
-          barber:barbers(name)
-        `)
-        .eq("id", appointment_id)
-        .single();
+      let appointment = null;
+      let appTenantId = tenant_id;
+
+      if (appointment_id) {
+        const { data: appData, error: appError } = await supabase
+          .from("appointments")
+          .select(`
+            *,
+            customer:customers(name, phone),
+            service:services(name, price),
+            barber:barbers(name)
+          `)
+          .eq("id", appointment_id)
+          .single();
+        
+        if (!appError && appData) {
+          appointment = appData;
+          appTenantId = appTenantId || appointment.tenant_id;
+        }
+      } else if (requestGroupId) {
+        // Find one appointment from the group to use as base
+        const { data: groupAppts } = await supabase
+          .from("appointments")
+          .select(`
+            *,
+            customer:customers(name, phone),
+            service:services(name, price),
+            barber:barbers(name)
+          `)
+          .eq("appointment_group_id", requestGroupId)
+          .limit(1);
+        
+        if (groupAppts && groupAppts.length > 0) {
+          appointment = groupAppts[0];
+          appTenantId = appTenantId || appointment.tenant_id;
+        }
+      }
       
-      if (appError || !appointment) {
+      if (!appointment && !requestGroupId) {
         throw new Error("Appointment not found for virtual resend");
       }
 
@@ -81,17 +121,18 @@ serve(async (req) => {
       if (automation_id) {
         automationQuery = automationQuery.eq("id", automation_id);
       } else if (workflow_key) {
-        automationQuery = automationQuery.eq("key", workflow_key).eq("tenant_id", tenant_id || appointment.tenant_id);
+        automationQuery = automationQuery.eq("key", workflow_key).eq("tenant_id", appTenantId);
       } else {
-        automationQuery = automationQuery.eq("key", "appointment_confirmation").eq("tenant_id", tenant_id || appointment.tenant_id);
+        automationQuery = automationQuery.eq("key", "appointment_confirmation").eq("tenant_id", appTenantId);
       }
 
       const { data: automation, error: autoError } = await automationQuery.maybeSingle();
 
       itemsToProcess = [{
         id: "virtual-" + crypto.randomUUID(),
-        tenant_id: tenant_id || appointment.tenant_id,
-        appointment_id: appointment.id,
+        tenant_id: appTenantId,
+        appointment_id: appointment?.id,
+        appointment_group_id: requestGroupId,
         automation_id: automation?.id,
         status: "pending",
         attempts: 0,
@@ -112,26 +153,32 @@ serve(async (req) => {
     for (const item of itemsToProcess) {
       try {
         console.log(`[ProcessQueue] Processing item ${item.id}`);
-        const { appointment, automation, tenant_id: itemTenantId, workflow_key, automation_type, id: queueId } = item;
+        const { appointment, automation, tenant_id: itemTenantId, workflow_key, automation_type, id: queueId, appointment_group_id } = item;
         
         const currentWorkflowKey = workflow_key || automation?.key || automation_type || 'new_appointment';
         const isBirthday = currentWorkflowKey === 'customer_birthday';
         const isAnniversary = currentWorkflowKey === 'barbershop_anniversary';
         const isNewAppointment = currentWorkflowKey === 'appointment_confirmation' || currentWorkflowKey === 'new_appointment';
 
-        if (!appointment && !isBirthday && !isAnniversary) {
-          throw new Error("Data incomplete: appointment missing");
+        if (!appointment && !isBirthday && !isAnniversary && !appointment_group_id) {
+          throw new Error("Data incomplete: appointment or group missing");
         }
 
         // Deduplication check
-        if (!force_resend && appointment?.id) {
-          const { data: alreadySent } = await supabase
+        if (!force_resend) {
+          const dupQuery = supabase
             .from("automation_logs")
             .select("id")
-            .eq("appointment_id", appointment.id)
             .eq("automation_id", automation?.id || item.automation_id)
-            .eq("status", "sent")
-            .maybeSingle();
+            .eq("status", "sent");
+          
+          if (appointment_group_id) {
+            dupQuery.eq("appointment_group_id", appointment_group_id);
+          } else if (appointment?.id) {
+            dupQuery.eq("appointment_id", appointment.id);
+          }
+
+          const { data: alreadySent } = await dupQuery.maybeSingle();
 
           if (alreadySent) {
             console.log(`[ProcessQueue] Already sent for appointment ${appointment.id}`);
@@ -169,13 +216,44 @@ serve(async (req) => {
         const serviceName = appointment?.service?.name || item.payload?.service_name || "Serviço";
         
         let managementUrl = "";
-        if (appointment) {
+        let groupAppointments = [];
+        
+        if (appointment_group_id && isNewAppointment) {
+          console.log(`[ProcessQueue] 👥 Group detected (${appointment_group_id}), loading group appointments`);
+          const { data: gAppts, error: gError } = await supabase
+            .from("appointments")
+            .select(`
+              start_time,
+              service_amount,
+              service:services(name),
+              barber:barbers(name)
+            `)
+            .eq("appointment_group_id", appointment_group_id)
+            .order("group_sequence", { ascending: true });
+          
+          if (!gError && gAppts && gAppts.length > 0) {
+            groupAppointments = gAppts;
+            console.log(`[ProcessQueue] ✅ Loaded ${groupAppointments.length} group appointments`);
+          } else {
+            console.warn("[ProcessQueue] ⚠️ Failed to load group appointments", gError);
+          }
+
+          const { data: groupData } = await supabase
+            .from("appointment_groups")
+            .select("group_token")
+            .eq("id", appointment_group_id)
+            .maybeSingle();
+          
+          if (groupData?.group_token) {
+            managementUrl = `https://barbex.shop/agendamentos/grupo/${groupData.group_token}?tenant=${itemTenantId}`;
+          }
+        } else if (appointment) {
           const groupToken = appointment.appointment_group?.group_token;
           if (groupToken) {
-            managementUrl = `https://barbex.shop/agendamentos/grupo/${groupToken}`;
+            managementUrl = `https://barbex.shop/agendamentos/grupo/${groupToken}?tenant=${itemTenantId}`;
           } else {
             const token = appointment.management_token || appointment.id;
-            managementUrl = `https://barbex.shop/agendamento/${token}`;
+            managementUrl = `https://barbex.shop/agendamento/${token}?tenant=${itemTenantId}`;
           }
         }
 
@@ -195,7 +273,29 @@ serve(async (req) => {
 
         let baseTemplate = automation?.template || "";
         if (isNewAppointment && !baseTemplate) {
-          baseTemplate = `Olá, {customer_name}! 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nPara reagendar ou cancelar, acesse o link abaixo:\n{management_link}\n\nObrigado!`;
+          if (groupAppointments.length > 1) {
+            console.log("[ProcessQueue] 🛠️ Building consolidated group message");
+            let summary = "";
+            let totalAmount = 0;
+            
+            groupAppointments.forEach((ga: any, index: number) => {
+              const dateStr = formatBrazilDate(ga.start_time);
+              const timeStr = formatBrazilTime(ga.start_time);
+              const amount = Number(ga.service_amount) || 0;
+              totalAmount += amount;
+              
+              summary += `${index + 1}. ${ga.service?.name || "Serviço"}\n`;
+              summary += `💈 Profissional: ${ga.barber?.name || "Profissional"}\n`;
+              summary += `📅 Data: ${dateStr}\n`;
+              summary += `⏰ Horário: ${timeStr}\n`;
+              summary += `💰 Valor: R$ ${amount.toFixed(2)}\n\n`;
+            });
+
+            baseTemplate = `Olá, {customer_name}! 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo dos agendamentos:\n\n${summary}Total: R$ ${totalAmount.toFixed(2)}\n\nPara reagendar ou cancelar, acesse:\n{management_link}\n\nObrigado!`;
+            console.log("[ProcessQueue] ✅ group_message_built");
+          } else {
+            baseTemplate = `Olá, {customer_name}! 👋\n\nSeu agendamento na {barbershop_name} foi realizado com sucesso.\n\n📋 Resumo do agendamento:\n\n✅ Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nPara reagendar ou cancelar, acesse o link abaixo:\n{management_link}\n\nObrigado!`;
+          }
         }
 
         let renderedMessage = processAutomationTemplate(baseTemplate, templateData);
@@ -265,9 +365,14 @@ serve(async (req) => {
             tenant_id: itemTenantId,
             automation_id: automation?.id || item.automation_id,
             appointment_id: appointment?.id,
+            appointment_group_id: appointment_group_id,
             status: 'sent',
             payload: { message: renderedMessage, ...templateData }
           });
+          
+          if (appointment_group_id) {
+            console.log("[ProcessQueue] ✅ group_whatsapp_sent");
+          }
 
           if (appointment?.id) {
             await supabase.from("appointments").update({ 
