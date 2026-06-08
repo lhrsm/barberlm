@@ -249,7 +249,7 @@ function AppointmentManagementPage() {
       const { data, error: rpcError } = await supabase.rpc('cancel_appointment', {
         p_appointment_id: appointment.id,
         p_cancelled_by: 'customer',
-        p_source: 'public_link',
+        p_source: 'user_panel',
         p_refund_preference: preference,
         p_changed_by_id: undefined
       });
