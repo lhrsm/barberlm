@@ -4404,10 +4404,10 @@ export type Database = {
       complete_appointment: {
         Args: {
           p_appointment_id: string
-          p_changed_by_id?: string
+          p_changed_by_id: string
           p_changed_by_type: string
           p_metadata?: Json
-          p_source?: string
+          p_source: string
         }
         Returns: Json
       }
