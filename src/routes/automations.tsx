@@ -151,6 +151,9 @@ function AutomationsComponent() {
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
   const [diagnosticData, setDiagnosticData] = useState<any>(null);
   const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [queueItems, setQueueItems] = useState<any[]>([]);
+  const [queueStats, setQueueStats] = useState({ pending: 0, sent: 0, failed: 0, lastRun: null });
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const itemsPerPage = 10;
 
 
@@ -209,6 +212,7 @@ function AutomationsComponent() {
     setLoading(true);
     setStatsLoading(true);
     fetchDeliveryLogs();
+    fetchQueueStats();
     try {
 
       // 1. Fetch automations from the new table
@@ -463,6 +467,55 @@ function AutomationsComponent() {
       setPendingCallbacks(data || []);
     } catch (error: any) {
       console.error("Error fetching pending callbacks:", error);
+    }
+  };
+  
+  const fetchQueueStats = async () => {
+    if (!tenantId) return;
+    try {
+      const { count: pending } = await supabase.from("automation_queue").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "pending");
+      const { count: sent } = await supabase.from("automation_queue").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "success");
+      const { count: failed } = await supabase.from("automation_queue").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "failed");
+      const { data: lastItem } = await supabase.from("automation_queue").select("updated_at").eq("tenant_id", tenantId).eq("status", "success").order("updated_at", { ascending: false }).limit(1).maybeSingle();
+
+      setQueueStats({
+        pending: pending || 0,
+        sent: sent || 0,
+        failed: failed || 0,
+        lastRun: lastItem?.updated_at || null as any
+      });
+      
+      const { data: recentQueue } = await supabase.from("automation_queue").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(10);
+      setQueueItems(recentQueue || []);
+    } catch (error) {
+      console.error("Error fetching queue stats:", error);
+    }
+  };
+
+  const handleProcessQueue = async () => {
+    if (!tenantId) return;
+    setIsProcessingQueue(true);
+    const toastId = toast.loading("Processando fila de automações...");
+    try {
+      const { data, error } = await supabase.functions.invoke('process-automation-queue', {
+        body: { tenant_id: tenantId }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.success) {
+        const processedCount = data.results?.length || 0;
+        toast.success(`Fila processada! ${processedCount} itens processados.`, { id: toastId });
+        fetchQueueStats();
+        fetchData();
+      } else {
+        throw new Error(data?.error || "Erro ao processar fila");
+      }
+    } catch (error: any) {
+      console.error("Error processing queue:", error);
+      toast.error("Erro ao processar: " + error.message, { id: toastId });
+    } finally {
+      setIsProcessingQueue(false);
     }
   };
 
@@ -1313,6 +1366,57 @@ function AutomationsComponent() {
                     }}
                   >
                     <Play size={16} className="mr-2 fill-current" /> Testar Automação Agora
+                  </Button>
+                </CardContent>
+              </Card>
+              {/* Card Fila de Automações */}
+              <Card className="group relative flex flex-col bg-[#0F172A] border-2 border-amber-500/40 rounded-[24px] shadow-[0_10px_45px_rgba(245,158,11,0.15)] hover:border-amber-500/60 transition-all duration-300 overflow-hidden">
+                <CardHeader className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-amber-500 shadow-lg shadow-amber-500/20">
+                        <Clock className="text-white" size={24} />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl font-bold text-white">Fila de Automações</CardTitle>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mt-1 flex items-center gap-1">
+                          <div className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" /> Processamento Automático
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <CardDescription className="text-slate-400 text-xs leading-relaxed">
+                    Itens aguardando processamento no servidor. O sistema processa automaticamente a cada 5 minutos.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="px-6 flex-1 flex flex-col gap-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                      <p className="text-[8px] font-bold text-slate-500 uppercase mb-1">Pendentes</p>
+                      <p className="text-xl font-black text-white">{queueStats.pending}</p>
+                    </div>
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3 text-center">
+                      <p className="text-[8px] font-bold text-emerald-400 uppercase mb-1">Sucesso</p>
+                      <p className="text-xl font-black text-emerald-400">{queueStats.sent}</p>
+                    </div>
+                    <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-3 text-center">
+                      <p className="text-[8px] font-bold text-rose-400 uppercase mb-1">Falhas</p>
+                      <p className="text-xl font-black text-rose-400">{queueStats.failed}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between px-2 text-[10px] font-bold uppercase tracking-tighter text-slate-500">
+                    <span>Último Processamento</span>
+                    <span className="text-slate-300">{queueStats.lastRun ? new Date(queueStats.lastRun).toLocaleString('pt-BR') : 'Sem registros'}</span>
+                  </div>
+
+                  <Button 
+                    className="w-full mt-2 h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-tighter shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02]"
+                    onClick={handleProcessQueue}
+                    disabled={isProcessingQueue}
+                  >
+                    {isProcessingQueue ? <Loader2 size={16} className="mr-2 animate-spin" /> : <RefreshCw size={16} className="mr-2" />}
+                    Processar Fila Agora
                   </Button>
                 </CardContent>
               </Card>

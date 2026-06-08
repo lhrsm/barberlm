@@ -879,7 +879,8 @@ export type Database = {
         Row: {
           appointment_id: string | null
           attempts: number | null
-          automation_id: string
+          automation_id: string | null
+          automation_type: string | null
           created_at: string | null
           customer_id: string | null
           error_message: string | null
@@ -889,6 +890,7 @@ export type Database = {
           last_retry_at: string | null
           next_retry_at: string | null
           payload: Json | null
+          processed_at: string | null
           reference_year: number | null
           retry_count: number | null
           scheduled_for: string | null
@@ -900,7 +902,8 @@ export type Database = {
         Insert: {
           appointment_id?: string | null
           attempts?: number | null
-          automation_id: string
+          automation_id?: string | null
+          automation_type?: string | null
           created_at?: string | null
           customer_id?: string | null
           error_message?: string | null
@@ -910,6 +913,7 @@ export type Database = {
           last_retry_at?: string | null
           next_retry_at?: string | null
           payload?: Json | null
+          processed_at?: string | null
           reference_year?: number | null
           retry_count?: number | null
           scheduled_for?: string | null
@@ -921,7 +925,8 @@ export type Database = {
         Update: {
           appointment_id?: string | null
           attempts?: number | null
-          automation_id?: string
+          automation_id?: string | null
+          automation_type?: string | null
           created_at?: string | null
           customer_id?: string | null
           error_message?: string | null
@@ -931,6 +936,7 @@ export type Database = {
           last_retry_at?: string | null
           next_retry_at?: string | null
           payload?: Json | null
+          processed_at?: string | null
           reference_year?: number | null
           retry_count?: number | null
           scheduled_for?: string | null
