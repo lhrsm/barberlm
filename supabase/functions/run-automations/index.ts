@@ -16,23 +16,36 @@ serve(async (req) => {
   );
 
   try {
-    console.log('[RunAutomations] Cron started. Invoking Automation Engine...');
+    console.log('[RunAutomations] Universal processing started...');
 
-    // Just call the engine to process the queue
-    const { data, error } = await supabase.functions.invoke('automation-engine', {
+    // 1. Process standard automation engine (Reminders, Birthdays)
+    console.log('[RunAutomations] Triggering automation-engine...');
+    const { data: engineData, error: engineError } = await supabase.functions.invoke('automation-engine', {
       body: { action: 'run' }
     });
+    if (engineError) console.error('[RunAutomations] Engine error:', engineError);
 
-    if (error) throw error;
+    // 2. Explicitly trigger process-automation-queue to ensure immediate items are handled
+    // The automation-engine might already call this, but we do it again for redundancy
+    console.log('[RunAutomations] Triggering process-automation-queue...');
+    const { data: queueData, error: queueError } = await supabase.functions.invoke('process-automation-queue', {
+      body: {}
+    });
+    if (queueError) console.error('[RunAutomations] Queue error:', queueError);
 
-    console.log('[RunAutomations] Engine finished:', data);
+    console.log('[RunAutomations] All processes finished.');
 
-    return new Response(JSON.stringify({ success: true, engine_result: data }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      engine_result: engineData,
+      queue_result: queueData,
+      timestamp: new Date().toISOString()
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (error: any) {
-    console.error("[RunAutomations] Error:", error);
+    console.error("[RunAutomations] Fatal error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
