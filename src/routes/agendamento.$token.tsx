@@ -434,7 +434,7 @@ function AppointmentManagementPage() {
                   <div className="pt-6 border-t border-zinc-800/50 space-y-3">
                     {canReschedule && (
                       <Button 
-                      <Button 
+
                         onClick={() => setIsRescheduling(true)}
                         className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase tracking-widest text-lg md:text-sm shadow-lg"
                       >
