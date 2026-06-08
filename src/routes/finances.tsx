@@ -335,6 +335,32 @@ function FinancesComponent() {
           });
         }
       }
+      if (newStatus === 'completed') {
+        const { data: refund } = await supabase
+          .from("refund_requests")
+          .select("amount, appointment_id, tenant_id")
+          .eq("id", refundId)
+          .single();
+
+        if (refund) {
+          const { data: appt } = await supabase
+            .from("appointments")
+            .select("services(name), customers(name), barber_id")
+            .eq("id", refund.appointment_id)
+            .single();
+
+          await supabase.from("transactions").insert({
+            amount: refund.amount,
+            type: "expense",
+            description: `Estorno Pago: ${appt?.services?.name || "Serviço"} - ${appt?.customers?.name || "Cliente"}`,
+            category: "Estorno",
+            barber_id: appt?.barber_id,
+            appointment_id: refund.appointment_id,
+            user_id: refund.tenant_id,
+            date: new Date().toISOString().split('T')[0]
+          });
+        }
+      }
 
       toast.success(`Solicitação ${newStatus === 'approved' ? 'aprovada' : newStatus === 'completed' ? 'marcada como paga' : 'rejeitada'}!`);
       fetchRefundRequests();
