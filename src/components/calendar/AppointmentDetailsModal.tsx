@@ -416,38 +416,67 @@ export function AppointmentDetailsModal({
               className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-[0_0_20px_rgba(37,99,235,0.2)] transition-all active:scale-95"
               onClick={async () => {
                 setActionLoading(true);
-                const { error } = await supabase
-                  .from("appointments")
-                  .update({ 
-                    // @ts-ignore
-                    payment_status: 'paid',
-                    // @ts-ignore
-                    paid_at: new Date().toISOString()
-                  })
-                  .eq("id", appointment.id);
+                const paymentStatusBefore = appointment.payment_status;
                 
-                if (error) {
-                  toast.error("Erro ao marcar como pago");
-                } else {
-                  toast.success("Pagamento marcado como pago");
-                  
-                  // Invalidar caches centralizados
-                  const queryKeys = [
-                    ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
-                    ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
-                    ['admin-dashboard'], ['professional-dashboard'], ['professional-appointments'],
-                    ['credits'], ['finances'], ['financial-dashboard'], ['customer-portal'],
-                    ['barber-dashboard'], ['customer-appointments']
-                  ];
-
-                  queryKeys.forEach(key => {
-                    queryClient.invalidateQueries({ queryKey: key });
+                try {
+                  console.log('Marking appointment as paid:', { 
+                    appointment_id: appointment.id,
+                    payment_status_before: paymentStatusBefore
                   });
 
-                  fetchAppointment();
-                  if (onSuccess) onSuccess();
+                  const { data, error, count } = await supabase
+                    .from("appointments")
+                    .update({ 
+                      payment_status: 'paid',
+                      paid_at: new Date().toISOString()
+                    })
+                    .eq("id", appointment.id)
+                    .select('payment_status, paid_at');
+                  
+                  if (error) {
+                    console.error('Error marking as paid:', error);
+                    toast.error(`Erro ao marcar como pago: ${error.message || 'Erro desconhecido'}`);
+                    
+                    // Log mandatory details on error
+                    console.log('PAYMENT_UPDATE_ERROR_LOG', {
+                      appointment_id: appointment.id,
+                      payment_status_before: paymentStatusBefore,
+                      error: error.message,
+                      schema_columns_checked: ['payment_status', 'paid_at']
+                    });
+                  } else {
+                    console.log('PAYMENT_UPDATE_SUCCESS_LOG', {
+                      appointment_id: appointment.id,
+                      payment_status_before: paymentStatusBefore,
+                      payment_status_after: data?.[0]?.payment_status,
+                      rows_updated: count,
+                      schema_columns_checked: ['payment_status', 'paid_at']
+                    });
+
+                    toast.success("Pagamento marcado como pago");
+                    
+                    // Invalidar caches centralizados
+                    const queryKeys = [
+                      ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
+                      ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
+                      ['admin-dashboard'], ['professional-dashboard'], ['professional-appointments'],
+                      ['credits'], ['finances'], ['financial-dashboard'], ['customer-portal'],
+                      ['barber-dashboard'], ['customer-appointments']
+                    ];
+
+                    queryKeys.forEach(key => {
+                      queryClient.invalidateQueries({ queryKey: key });
+                    });
+
+                    fetchAppointment();
+                    if (onSuccess) onSuccess();
+                  }
+                } catch (err: any) {
+                  console.error('Fatal error in markAsPaid:', err);
+                  toast.error(`Erro crítico: ${err.message || 'Erro inesperado'}`);
+                } finally {
+                  setActionLoading(false);
                 }
-                setActionLoading(false);
               }}
               disabled={actionLoading}
             >
