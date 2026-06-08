@@ -56,27 +56,26 @@ export const triggerAutomation = async ({
     const automationId = template?.id;
 
     // 4. Initial Audit Log: appointment_created / automation_trigger_started
-    if (automationId) {
-      await anySupabase.from("automation_logs").insert({
-        tenant_id,
-        automation_id: automationId,
-        appointment_id,
-        customer_id: customerId,
-        phone: customerPhone,
-        status: "pending",
-        message_type: "diagnostic",
-        payload: { 
-          diagnostic: "automation_trigger_started", 
-          event_name, 
-          workflow_key: workflowKey,
-          source: "real_appointment_flow",
-          automation_type: "new_appointment",
-          management_token_exists: !!managementToken,
-          customer_phone_exists: !!customerPhone,
-          template_active: template?.active
-        }
-      });
-    }
+    await anySupabase.from("automation_logs").insert({
+      tenant_id,
+      automation_id: automationId || null,
+      appointment_id,
+      customer_id: customerId,
+      phone: customerPhone,
+      status: "pending",
+      message_type: "diagnostic",
+      payload: { 
+        diagnostic: "automation_trigger_started", 
+        event_name, 
+        workflow_key: workflowKey,
+        source: "real_appointment_flow",
+        automation_type: "new_appointment",
+        management_token_exists: !!managementToken,
+        customer_phone_exists: !!customerPhone,
+        template_active: template?.active,
+        has_automation_id: !!automationId
+      }
+    });
 
     // 5. Hard validations before sending
     if (!managementToken) {
