@@ -304,9 +304,11 @@ function AppointmentManagementPage() {
   const [isPixCancelModalOpen, setIsPixCancelModalOpen] = useState(false);
 
   const handleInitialCancelClick = () => {
+    if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+
     // Verificar se existe pagamento Pix confirmado
-    // appointment.payment_method === 'pix' e appointment.payment_status in ['paid', 'confirmed', 'completed']
-    const isPixPaid = appointment.payment_method === 'pix' && ['paid', 'confirmed', 'completed'].includes(appointment.payment_status);
+    const isPixPaid = ['pix', 'PIX', 'Pix'].includes(appointment.payment_method) && 
+                      ['paid', 'confirmed', 'completed', 'aprovado', 'pago'].includes(appointment.payment_status);
     
     if (isPixPaid) {
       setIsPixCancelModalOpen(true);
