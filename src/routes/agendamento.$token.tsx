@@ -404,13 +404,13 @@ function AppointmentManagementPage() {
                   )}
                 </div>
 
-                <CardContent className="p-8 space-y-8">
+                <CardContent className="p-8 pb-10 space-y-8">
                   <div className="flex flex-col gap-1">
                     <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Olá,</span>
                     <h2 className="text-2xl font-black tracking-tight">{appointment.customer_name}</h2>
                   </div>
 
-                  <div className="grid gap-6">
+                  <div className="grid gap-8">
                     <div className="flex items-start gap-4">
                       <Scissors className="text-primary w-5 h-5 mt-1" />
                       <div>
@@ -438,23 +438,26 @@ function AppointmentManagementPage() {
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-zinc-800/50 space-y-3">
+                  <div className="pt-8 border-t border-zinc-800/50 flex flex-col gap-4">
                     {canReschedule && (
                       <Button 
-
                         onClick={() => setIsRescheduling(true)}
-                        className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase tracking-widest text-lg md:text-sm shadow-lg"
+                        className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden"
+                        style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
                       >
-                        <RefreshCcw className="mr-3 h-6 w-6 md:h-4 md:w-4" /> Reagendar Atendimento
+                        <RefreshCcw className="mr-3 h-6 w-6 shrink-0" /> 
+                        <span>Reagendar Atendimento</span>
                       </Button>
                     )}
                     
                     {canCancel && (
                       <Button 
                         onClick={handleInitialCancelClick}
-                        className="w-full h-[64px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-lg md:text-sm shadow-lg shadow-red-900/20"
+                        className="w-full min-h-[64px] md:min-h-[56px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-semibold uppercase tracking-widest text-base md:text-lg flex items-center justify-center text-center p-4 overflow-hidden shadow-lg shadow-red-900/20"
+                        style={{ whiteSpace: 'normal', wordBreak: 'break-word', textWrap: 'balance' }}
                       >
-                        <Trash2 className="mr-3 h-6 w-6 md:h-4 md:w-4" /> Cancelar Atendimento
+                        <Trash2 className="mr-3 h-6 w-6 shrink-0" /> 
+                        <span>Cancelar Agendamento</span>
                       </Button>
                     )}
                   </div>
