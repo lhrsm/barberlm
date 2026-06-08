@@ -400,6 +400,20 @@ function DashboardComponent() {
     }
 
     toast.success(`Pagamento marcado como ${newStatus === 'paid' ? 'pago' : 'pendente'}`);
+    
+    // Invalidar caches centralizados para garantir consistência em todos os painéis
+    const queryKeys = [
+      ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
+      ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
+      ['admin-dashboard'], ['professional-dashboard'], ['professional-appointments'],
+      ['credits'], ['finances'], ['financial-dashboard'], ['customer-portal'],
+      ['barber-dashboard'], ['customer-appointments']
+    ];
+
+    queryKeys.forEach(key => {
+      queryClient.invalidateQueries({ queryKey: key });
+    });
+
     fetchTodayAppointments();
     fetchStats();
   }
@@ -1418,10 +1432,11 @@ function DashboardComponent() {
                                     </Button>
                                     <Badge className={cn(
                                       app.status === 'scheduled' ? 'bg-blue-100 text-blue-700 border-blue-200' : 
+                                      app.status === 'confirmed' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
                                       app.status === 'completed' ? 'bg-emerald-600 text-white' : 
                                       'bg-destructive text-white'
                                     )} variant="outline">
-                                      {app.status === 'scheduled' ? 'Agendado' : app.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                                      {app.status === 'scheduled' ? 'Agendado' : app.status === 'confirmed' ? 'Confirmado' : app.status === 'completed' ? 'Concluído' : 'Cancelado'}
                                     </Badge>
                                   </>
                                 )}

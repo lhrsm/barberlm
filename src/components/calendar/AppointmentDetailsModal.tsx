@@ -430,10 +430,21 @@ export function AppointmentDetailsModal({
                   toast.error("Erro ao marcar como pago");
                 } else {
                   toast.success("Pagamento marcado como pago");
+                  
+                  // Invalidar caches centralizados
+                  const queryKeys = [
+                    ['appointments'], ['calendar'], ['dashboard'], ['customerAppointments'],
+                    ['calendar-appointments'], ['dashboard-appointments'], ['admin-stats'],
+                    ['admin-dashboard'], ['professional-dashboard'], ['professional-appointments'],
+                    ['credits'], ['finances'], ['financial-dashboard'], ['customer-portal'],
+                    ['barber-dashboard'], ['customer-appointments']
+                  ];
+
+                  queryKeys.forEach(key => {
+                    queryClient.invalidateQueries({ queryKey: key });
+                  });
+
                   fetchAppointment();
-                  queryClient.invalidateQueries({ queryKey: ['appointments'] });
-                  queryClient.invalidateQueries({ queryKey: ['calendar'] });
-                  queryClient.invalidateQueries({ queryKey: ['dashboard'] });
                   if (onSuccess) onSuccess();
                 }
                 setActionLoading(false);

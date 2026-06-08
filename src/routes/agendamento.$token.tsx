@@ -344,23 +344,23 @@ function AppointmentManagementPage() {
               <Card className="bg-[#0b0f17] border border-zinc-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6">
                 <div className={cn(
                   "p-6 flex flex-col items-center justify-center gap-2",
-                  isConfirmed ? "bg-emerald-500/10" : (isCancelled ? "bg-red-500/10" : "bg-primary/10")
+                  isConfirmed ? "bg-emerald-500/10" : (isCancelled ? "bg-red-500/10" : (isCompleted ? "bg-emerald-500/10" : "bg-primary/10"))
                 )}>
                   <div className="flex items-center gap-3">
-                    {isConfirmed ? (
+                    {appointment.status === 'confirmed' || appointment.status === 'scheduled' ? (
                       <>
                         <CheckCircle2 className="text-emerald-500 w-5 h-5" />
                         <span className="text-emerald-500 font-black uppercase text-xs tracking-widest">Agendamento Confirmado</span>
                       </>
-                    ) : isCancelled ? (
+                    ) : appointment.status === 'cancelled' ? (
                       <>
                         <XCircle className="text-red-500 w-5 h-5" />
                         <span className="text-red-500 font-black uppercase text-xs tracking-widest">Agendamento Cancelado</span>
                       </>
-                    ) : isCompleted ? (
+                    ) : appointment.status === 'completed' ? (
                       <>
-                        <CheckCircle2 className="text-primary w-5 h-5" />
-                        <span className="text-primary font-black uppercase text-xs tracking-widest">Atendimento Finalizado</span>
+                        <CheckCircle2 className="text-emerald-500 w-5 h-5" />
+                        <span className="text-emerald-500 font-black uppercase text-xs tracking-widest">Atendimento Finalizado</span>
                       </>
                     ) : (
                       <>
