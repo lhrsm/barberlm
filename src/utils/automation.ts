@@ -9,6 +9,7 @@ interface AutomationTriggerParams {
 /**
  * Triggers an automation event by creating a queue item and invoking the processing edge function.
  * Optimized for reliability and includes detailed logging for audit.
+ * Centralized protection to ensure appointment flow is NEVER blocked by automation failures.
  */
 export const triggerAutomation = async ({
   tenant_id,
@@ -48,6 +49,7 @@ export const triggerAutomation = async ({
     // 3. Find the relevant automation in the main automations table (required for logging)
     let automationId = null;
     try {
+      // get_or_create_automation is protected in DB to never fail, but we catch here too
       const { data: autoId, error: rpcError } = await anySupabase.rpc('get_or_create_automation', {
         p_tenant_id: tenant_id,
         p_type: workflowKey === 'appointment_confirmation' ? 'new_appointment' : workflowKey
@@ -56,8 +58,8 @@ export const triggerAutomation = async ({
       if (!rpcError && autoId) {
         automationId = autoId;
       } else {
-        console.warn("[Automation] ⚠️ Failed to get/create automation record:", rpcError);
-        // Fallback: try to find any automation for this tenant
+        console.warn("[Automation] ⚠️ Failed to get/create automation record via RPC:", rpcError);
+        // Fallback: try to find any existing automation for this tenant
         const { data: existingAuto } = await anySupabase
           .from("automations")
           .select("id")
@@ -81,29 +83,34 @@ export const triggerAutomation = async ({
     const templateId = template?.id;
 
     // 5. Initial Audit Log: appointment_created / automation_trigger_started
-    await anySupabase.from("automation_logs").insert({
-      tenant_id,
-      automation_id: automationId, // Now guaranteed to be a valid ID from 'automations' table or null
-      appointment_id,
-      customer_id: customerId,
-      phone: customerPhone,
-      status: "pending",
-      message_type: "diagnostic",
-      payload: { 
-        diagnostic: "automation_trigger_started", 
-        event_name, 
-        workflow_key: workflowKey,
-        source: "real_appointment_flow",
-        automation_type: "new_appointment",
-        management_token_exists: !!managementToken,
-        customer_phone_exists: !!customerPhone,
-        template_active: template?.active,
-        has_automation_id: !!automationId,
-        template_id: templateId
-      }
-    });
+    // Wrapped in its own try/catch to ensure it doesn't block the rest of the logic
+    try {
+      await anySupabase.from("automation_logs").insert({
+        tenant_id,
+        automation_id: automationId, 
+        appointment_id,
+        customer_id: customerId,
+        phone: customerPhone,
+        status: "pending",
+        message_type: "diagnostic",
+        payload: { 
+          diagnostic: "automation_trigger_started", 
+          event_name, 
+          workflow_key: workflowKey,
+          source: "real_appointment_flow_frontend",
+          automation_type: "new_appointment",
+          management_token_exists: !!managementToken,
+          customer_phone_exists: !!customerPhone,
+          template_active: template?.active,
+          has_automation_id: !!automationId,
+          template_id: templateId
+        }
+      });
+    } catch (logErr) {
+      console.warn("[Automation] ⚠️ Failed to record initial audit log:", logErr);
+    }
 
-    // 5. Hard validations before sending
+    // 6. Hard validations before sending (Soft exit, not an error that should block)
     if (!managementToken) {
       console.warn("[Automation] ⚠️ Missing management_token, skipping immediate send");
       return { success: false, error: "Missing management_token" };
@@ -114,7 +121,7 @@ export const triggerAutomation = async ({
       return { success: false, error: "Missing customer phone" };
     }
 
-    // 6. Check if WhatsApp integration is active for this tenant
+    // 7. Check if WhatsApp integration is active for this tenant
     const { data: profile } = await anySupabase
       .from("profiles")
       .select("whatsapp_enabled, whatsapp_instance_id")
@@ -123,100 +130,103 @@ export const triggerAutomation = async ({
 
     if (!profile?.whatsapp_enabled || !profile?.whatsapp_instance_id) {
       console.warn("[Automation] ⚠️ WhatsApp integration not active for tenant", tenant_id);
-      await anySupabase.from("automation_logs").insert({
-        tenant_id,
-        automation_id: automationId || null,
-        appointment_id,
-        status: "skipped",
-        message_type: "diagnostic",
-        payload: { 
-          diagnostic: "whatsapp_inactive",
-          whatsapp_enabled: profile?.whatsapp_enabled,
-          has_instance: !!profile?.whatsapp_instance_id
-        }
-      });
+      try {
+        await anySupabase.from("automation_logs").insert({
+          tenant_id,
+          automation_id: automationId || null,
+          appointment_id,
+          status: "skipped",
+          message_type: "diagnostic",
+          payload: { 
+            diagnostic: "whatsapp_inactive",
+            whatsapp_enabled: profile?.whatsapp_enabled,
+            has_instance: !!profile?.whatsapp_instance_id
+          }
+        });
+      } catch (e) {}
       return { success: false, error: "WhatsApp inactive" };
     }
 
-    // 7. Create entry in automation_queue to ensure it's processed (Fallback mechanism)
-    const { data: queueItem, error: queueError } = await anySupabase.from("automation_queue").insert({
-      tenant_id,
-      automation_id: templateId, // Correctly point to 'automation_templates'
-      appointment_id,
-      event_name,
-      workflow_key: workflowKey,
-      status: "pending",
-      attempts: 0,
-      scheduled_for: new Date().toISOString()
-    }).select().single();
-
-    if (queueError) {
-       console.error("[Automation] ❌ Error creating queue item:", queueError);
-    }
-
-    // 8. Payload Build Log
-    await anySupabase.from("automation_logs").insert({
-      tenant_id,
-      automation_id: automationId || null,
-      appointment_id,
-      status: "pending",
-      message_type: "diagnostic",
-      payload: { 
-        diagnostic: "automation_payload_built",
-        queue_id: queueItem?.id,
-        target_phone: customerPhone,
-        workflow: workflowKey
+    // 8. Create entry in automation_queue to ensure it's processed (Reliability layer)
+    let queueItem = null;
+    try {
+      const { data: qItem, error: queueError } = await anySupabase.from("automation_queue").insert({
+        tenant_id,
+        automation_id: templateId, 
+        appointment_id,
+        event_name,
+        workflow_key: workflowKey,
+        status: "pending",
+        attempts: 0,
+        scheduled_for: new Date().toISOString()
+      }).select().single();
+      
+      if (queueError) {
+        console.error("[Automation] ❌ Error creating queue item:", queueError);
+      } else {
+        queueItem = qItem;
       }
-    });
+    } catch (qErr) {
+      console.error("[Automation] ❌ Exception creating queue item:", qErr);
+    }
 
     // 9. Invoke the processing edge function to handle it immediately
-    // Using force_resend: true to ensure immediate processing similar to the test button
     console.log(`[Automation] 🚀 Invoking process-automation-queue for ${workflowKey}`);
     
-    const { data, error: invokeError } = await supabase.functions.invoke('process-automation-queue', {
-      body: { 
-        tenant_id, 
-        workflow_key: workflowKey,
-        appointment_id,
-        force_resend: true,
-        source: 'real_appointment_flow'
-      }
-    });
-
-    if (invokeError) {
-      console.error("[Automation] ❌ Error invoking process-automation-queue:", invokeError);
-      await anySupabase.from("automation_logs").insert({
-        tenant_id,
-        automation_id: automationId || null,
-        appointment_id,
-        status: "failed",
-        error_message: invokeError.message,
-        message_type: "diagnostic",
-        payload: { 
-          diagnostic: "whatsapp_send_failed", 
-          error: invokeError.message 
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke('process-automation-queue', {
+        body: { 
+          tenant_id, 
+          workflow_key: workflowKey,
+          appointment_id,
+          force_resend: true,
+          source: 'real_appointment_flow'
         }
       });
-      return { success: false, error: invokeError };
-    }
 
-    // 10. Final Success Log
-    await anySupabase.from("automation_logs").insert({
-      tenant_id,
-      automation_id: automationId || null,
-      appointment_id,
-      status: "success",
-      message_type: "diagnostic",
-      payload: { 
-        diagnostic: "whatsapp_send_success",
-        response: data
+      if (invokeError) {
+        throw invokeError;
       }
-    });
 
-    console.log("[Automation] ✅ Process queue response:", data);
-    return { success: true, data };
+      // Final Success Log
+      try {
+        await anySupabase.from("automation_logs").insert({
+          tenant_id,
+          automation_id: automationId || null,
+          appointment_id,
+          status: "success",
+          message_type: "diagnostic",
+          payload: { 
+            diagnostic: "whatsapp_send_success",
+            response: data
+          }
+        });
+      } catch (e) {}
+
+      console.log("[Automation] ✅ Process queue response:", data);
+      return { success: true, data };
+    } catch (invokeErr: any) {
+      console.error("[Automation] ❌ Error invoking process-automation-queue:", invokeErr);
+      try {
+        await anySupabase.from("automation_logs").insert({
+          tenant_id,
+          automation_id: automationId || null,
+          appointment_id,
+          status: "failed",
+          error_message: invokeErr.message,
+          message_type: "diagnostic",
+          payload: { 
+            diagnostic: "whatsapp_send_failed", 
+            error: invokeErr.message 
+          }
+        });
+      } catch (e) {}
+      return { success: false, error: invokeErr };
+    }
   } catch (err: any) {
-    console.error("[Automation] ❌ Unexpected error:", err);
+    // Top-level catch: strictly non-blocking for the UI
+    console.error("[Automation] ❌ Unexpected top-level error in triggerAutomation:", err);
     return { success: false, error: err };
   }
 };
+
