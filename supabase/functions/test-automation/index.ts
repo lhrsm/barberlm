@@ -204,8 +204,13 @@ serve(async (req) => {
     }
 
     // 5. Manual log for test
+    const { data: autoId } = await supabase.rpc('get_or_create_automation', {
+      p_tenant_id: tenantId,
+      p_type: workflow_key === 'appointment_confirmation' ? 'new_appointment' : workflow_key
+    });
+
     await supabase.from("automation_logs").insert({
-      automation_id: template.id,
+      automation_id: autoId || null,
       tenant_id: tenantId,
       barber_id: user.id,
       phone: targetPhone,
@@ -214,7 +219,7 @@ serve(async (req) => {
       processed_template: renderedMessage,
       original_template: template.template,
       sent_at: new Date().toISOString(),
-      payload: { test_mode: true, template_variant, dispatch_id: sendResult.dispatch_id },
+      payload: { test_mode: true, template_variant, dispatch_id: sendResult.dispatch_id, template_id: template.id },
       response: sendResult.provider_response
     });
 
