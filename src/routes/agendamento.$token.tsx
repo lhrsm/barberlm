@@ -18,7 +18,8 @@ import {
   ChevronRight,
   ChevronLeft,
   CalendarDays,
-  Trash2
+  Trash2,
+  DollarSign
 } from "lucide-react";
 import { format, parseISO, addMinutes, isSameDay, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -300,6 +301,20 @@ function AppointmentManagementPage() {
     }
   };
 
+  const [isPixCancelModalOpen, setIsPixCancelModalOpen] = useState(false);
+
+  const handleInitialCancelClick = () => {
+    // Verificar se existe pagamento Pix confirmado
+    // appointment.payment_method === 'pix' e appointment.payment_status in ['paid', 'confirmed', 'completed']
+    const isPixPaid = appointment.payment_method === 'pix' && ['paid', 'confirmed', 'completed'].includes(appointment.payment_status);
+    
+    if (isPixPaid) {
+      setIsPixCancelModalOpen(true);
+    } else {
+      setIsCancelModalOpen(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -442,13 +457,12 @@ function AppointmentManagementPage() {
                       </Button>
                     )}
                     
-                    {(canCancel || isConfirmed) && (
+                    {canCancel && (
                       <Button 
-                        variant="ghost"
-                        onClick={() => setIsCancelModalOpen(true)}
-                        className="w-full h-[64px] rounded-2xl text-red-500 hover:text-red-400 hover:bg-red-500/5 font-bold uppercase tracking-widest text-lg md:text-sm px-4"
+                        onClick={handleInitialCancelClick}
+                        className="w-full h-[64px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-lg md:text-sm shadow-lg shadow-red-900/20"
                       >
-                        <Trash2 className="mr-3 h-6 w-6 md:h-4 md:w-4" /> Cancelar Agendamento
+                        <Trash2 className="mr-3 h-6 w-6 md:h-4 md:w-4" /> Cancelar Atendimento
                       </Button>
                     )}
                   </div>
@@ -624,6 +638,52 @@ function AppointmentManagementPage() {
               </Button>
             </DialogFooter>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Pix Cancellation Modal */}
+      <Dialog open={isPixCancelModalOpen} onOpenChange={setIsPixCancelModalOpen}>
+        <DialogContent className="bg-[#0b0f17] border border-zinc-800 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
+          <DialogHeader className="text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <DollarSign className="text-primary w-8 h-8" />
+            </div>
+            <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Estorno ou Crédito?</DialogTitle>
+            <DialogDescription className="text-zinc-400 text-sm font-medium leading-relaxed">
+              Detectamos um pagamento via Pix para este agendamento. O que deseja fazer com o valor pago?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 mt-6">
+            <Button 
+              className="w-full h-14 bg-primary hover:bg-primary/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
+              onClick={() => {
+                setIsPixCancelModalOpen(false);
+                handleCancel('credits');
+              }}
+              disabled={cancelling}
+            >
+              Transformar em Crédito
+            </Button>
+            <Button 
+              variant="outline"
+              className="w-full h-14 border-zinc-800 hover:bg-zinc-800/50 text-white font-black uppercase italic tracking-tighter rounded-2xl"
+              onClick={() => {
+                setIsPixCancelModalOpen(false);
+                setShowRefundForm(true);
+                setIsCancelModalOpen(true);
+              }}
+              disabled={cancelling}
+            >
+              Solicitar Estorno
+            </Button>
+            <Button 
+              variant="ghost"
+              className="w-full h-12 text-zinc-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
+              onClick={() => setIsPixCancelModalOpen(false)}
+            >
+              Voltar
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -230,9 +230,10 @@ function FinancesComponent() {
     if (!user) return;
     setLoadingRefunds(true);
     try {
+      // Step 1: Fetch refund requests with basic columns first to avoid complex join errors
       let query = supabase
         .from("refund_requests")
-        .select("*, customer:customers(name), appointment:appointments(service_name, start_time)")
+        .select("*")
         .eq("tenant_id", user.id);
       
       if (refundStatusFilter !== "all") {
@@ -248,9 +249,6 @@ function FinancesComponent() {
       }
 
       if (refundSearchTerm) {
-        // Search by appointment_id or payment_id
-        // Since we can't easily OR different types in Supabase JS client with .or() for UUID vs string without extra care,
-        // we'll use a more flexible approach if possible or just filter by payment_id if it's not a UUID
         if (refundSearchTerm.length === 36) { // Likely UUID
            query = query.or(`appointment_id.eq.${refundSearchTerm},payment_id.ilike.%${refundSearchTerm}%`);
         } else {
@@ -258,12 +256,36 @@ function FinancesComponent() {
         }
       }
 
-      const { data, error } = await query.order("created_at", { ascending: false });
+      const { data: refunds, error } = await query.order("created_at", { ascending: false });
       
       if (error) throw error;
-      setRefundRequests(data || []);
+      
+      if (!refunds || refunds.length === 0) {
+        setRefundRequests([]);
+        return;
+      }
+
+      // Step 2: Fetch related customers and appointments manually to avoid join errors
+      const customerIds = [...new Set(refunds.map(r => r.customer_id))];
+      const appointmentIds = [...new Set(refunds.map(r => r.appointment_id))];
+
+      const [{ data: customers }, { data: appts }] = await Promise.all([
+        supabase.from("customers").select("id, name").in("id", customerIds),
+        supabase.from("appointments").select("id, service_id, start_time, total_price").in("id", appointmentIds)
+      ]);
+
+      // Step 3: Map data
+      const enrichedRefunds = refunds.map(r => ({
+        ...r,
+        customer: customers?.find(c => c.id === r.customer_id) || { name: "Cliente não encontrado" },
+        appointment: appts?.find(a => a.id === r.appointment_id) || { service_name: "N/A", start_time: null }
+      }));
+
+      setRefundRequests(enrichedRefunds);
     } catch (err: any) {
+      console.error("Error fetching refunds:", err);
       toast.error("Erro ao buscar solicitações de estorno");
+      setRefundRequests([]); // Clear on error to avoid stale data
     } finally {
       setLoadingRefunds(false);
     }
@@ -354,6 +376,7 @@ function FinancesComponent() {
       }, 0);
 
     // 2. Estornos Pagos (Saídas Financeiras Reais)
+    // Regra: Somar apenas estornos pagos/concluídos
     const totalRefundsPaid = refundRequests
       .filter(r => r.status === 'completed')
       .reduce((acc, r) => acc + Number(r.amount), 0);
@@ -372,20 +395,21 @@ function FinancesComponent() {
         return acc + val;
       }, 0);
 
-    // 4. Receita Líquida (Sugestão: Bruta - Estornos Pagos - Créditos Utilizados)
-    const netRevenue = operationalRevenue - totalRefundsPaid - creditsConsumed;
+    // 4. Créditos Concedidos (Disponíveis para uso futuro)
+    // Regra: Somar customer_credits status available/partially_used/used
+    // Note: We need a separate state or fetch for total customer credits if we want to be precise,
+    // but here we use what's granted in this period if that's what's meant, 
+    // or the overall total if we have it.
+    // Given the context, we'll use the totalCredits state we already have from fetchBalances.
+    const creditsGranted = totalCredits;
 
-    // 5. Créditos Concedidos (Obrigação futura / Não é receita nova)
-    const creditsGranted = refundRequests
-      .filter(r => r.status === 'completed' && r.refund_method === 'credits')
-      .reduce((acc, r) => acc + Number(r.amount), 0);
-
-    // 6. Estornos Solicitados (Aguardando ação)
+    // 5. Estornos Solicitados (Aguardando ação)
+    // Regra: Somar refund_requests com status requested
     const totalRefundsRequested = refundRequests
-      .filter(r => r.status === 'requested' || r.status === 'approved')
+      .filter(r => r.status === 'requested')
       .reduce((acc, r) => acc + Number(r.amount), 0);
 
-    // 7. Entrada em Caixa (Fluxo de Caixa Real)
+    // 6. Entrada em Caixa (Fluxo de Caixa Real antes de saídas)
     const realCashIncome = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
@@ -396,6 +420,10 @@ function FinancesComponent() {
         if (method === 'cashback' || method === 'credits') return acc;
         return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
+
+    // 7. Receita Líquida
+    // Regra: entrada em caixa - estornos pagos - créditos utilizados
+    const netRevenue = realCashIncome - totalRefundsPaid - creditsConsumed;
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
@@ -426,9 +454,9 @@ function FinancesComponent() {
       balance: realCashIncome - expense - totalRefundsPaid,
       freelancersPart, 
       barbershopPart: operationalRevenue - freelancersPart,
-      cashbackConsumed: 0 // Adding to avoid TS errors in the UI if it's used elsewhere
+      cashbackConsumed: 0
     };
-  }, [transactions, refundRequests, barbers, appointments]);
+  }, [transactions, refundRequests, barbers, appointments, totalCredits]);
 
   useEffect(() => {
     async function fetchBalances() {
@@ -741,7 +769,7 @@ function FinancesComponent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">R$ {summary.income.toFixed(2)}</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">Total de serviços concluídos</p>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Total de serviços agendados/concluídos</p>
             </CardContent>
           </Card>
 
@@ -762,27 +790,27 @@ function FinancesComponent() {
             <>
               <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-semibold">Cashback Utilizado</CardTitle>
-                  <div className="p-2 bg-orange-500/10 rounded-lg">
-                    <Wallet className="h-4 w-4 text-orange-500" />
+                  <CardTitle className="text-sm font-semibold">Receita Líquida</CardTitle>
+                  <div className="p-2 bg-emerald-500/10 rounded-lg">
+                    <TrendingUp className="h-4 w-4 text-emerald-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-orange-500">R$ {summary.cashbackConsumed.toFixed(2)}</div>
-                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Abatido via cashback</p>
+                  <div className="text-2xl font-bold text-emerald-600">R$ {summary.netRevenue.toFixed(2)}</div>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Caixa - Estornos Pagos - Créditos</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-semibold">Saídas</CardTitle>
+                  <CardTitle className="text-sm font-semibold">Saídas (Estornos Pagos)</CardTitle>
                   <div className="p-2 bg-red-500/10 rounded-lg">
                     <TrendingDown className="h-4 w-4 text-red-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-red-500">R$ {summary.expense.toFixed(2)}</div>
-                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Despesas e estornos</p>
+                  <div className="text-2xl font-bold text-red-500">R$ {summary.totalRefundsPaid.toFixed(2)}</div>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Estornos Pix concluídos</p>
                 </CardContent>
               </Card>
             </>
@@ -790,31 +818,42 @@ function FinancesComponent() {
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold">{role === 'barber' ? 'Minha Comissão' : 'Freelancers'}</CardTitle>
-              <div className="p-2 bg-indigo-500/10 rounded-lg">
-                <Users className="h-4 w-4 text-indigo-500" />
+              <CardTitle className="text-sm font-semibold">Estornos Solicitados</CardTitle>
+              <div className="p-2 bg-orange-500/10 rounded-lg">
+                <Clock className="h-4 w-4 text-orange-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-indigo-400">R$ {summary.freelancersPart.toFixed(2)}</div>
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">{role === 'barber' ? 'Minha parte garantida' : 'Comissões (Total serviços)'}</p>
+              <div className="text-2xl font-bold text-orange-500">R$ {summary.totalRefundsRequested.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Aguardando processamento</p>
             </CardContent>
           </Card>
 
-          {role !== 'barber' && (
-            <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold">Créditos Utilizados</CardTitle>
-                <div className="p-2 bg-purple-500/10 rounded-lg">
-                  <Wallet className="h-4 w-4 text-purple-500" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-purple-400">R$ {summary.creditsConsumed.toFixed(2)}</div>
-                <p className="text-[10px] text-muted-foreground font-medium mt-1">Abatido via créditos</p>
-              </CardContent>
-            </Card>
-          )}
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Créditos Concedidos</CardTitle>
+              <div className="p-2 bg-purple-500/10 rounded-lg">
+                <Wallet className="h-4 w-4 text-purple-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-400">R$ {summary.creditsGranted.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Total de créditos em posse dos clientes</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Créditos Utilizados</CardTitle>
+              <div className="p-2 bg-indigo-500/10 rounded-lg">
+                <User className="h-4 w-4 text-indigo-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-indigo-400">R$ {summary.creditsConsumed.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Utilizados em agendamentos</p>
+            </CardContent>
+          </Card>
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
