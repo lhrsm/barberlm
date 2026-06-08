@@ -149,7 +149,7 @@ function AppointmentGroupPage() {
       console.log("[GroupPage] 🔍 Fetching business profile", groupData.tenant_id);
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('business_name, phone')
+        .select('business_name, whatsapp_number')
         .eq('id', groupData.tenant_id)
         .maybeSingle();
 
@@ -165,9 +165,9 @@ function AppointmentGroupPage() {
         id: groupData.id,
         tenant_id: groupData.tenant_id,
         customer_id: groupData.customer_id,
-        customer_name: customerData?.name || "Cliente",
-        business_name: profileData?.business_name || "Barbearia",
-        business_phone: profileData?.phone || "",
+        customer_name: (customerData as any)?.name || "Cliente",
+        business_name: (profileData as any)?.business_name || "Barbearia",
+        business_phone: (profileData as any)?.whatsapp_number || "",
         total_amount: groupData.total_amount,
         payment_status: groupData.payment_status,
         status: groupData.status
