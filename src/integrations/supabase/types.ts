@@ -4410,18 +4410,15 @@ export type Database = {
       get_appointment_by_management_token: {
         Args: { p_token: string }
         Returns: {
-          appointment_group_id: string
+          barber_id: string
           business_name: string
-          business_phone: string
           cancel_token: string
           cancellation_window_hours: number
           customer_id: string
           customer_name: string
           end_time: string
-          final_amount: number
-          group_token: string
           id: string
-          manage_token: string
+          management_token: string
           payment_status: string
           professional_id: string
           professional_name: string
@@ -4430,7 +4427,6 @@ export type Database = {
           start_time: string
           status: string
           tenant_id: string
-          tenant_status: string
           total_price: number
         }[]
       }
