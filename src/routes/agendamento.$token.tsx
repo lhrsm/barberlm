@@ -529,7 +529,7 @@ function AppointmentManagementPage() {
             </DialogDescription>
           </DialogHeader>
 
-          {appointment.payment_status === 'paid' && !showRefundForm ? (
+          {(appointment.payment_status === 'paid' || appointment.payment_status === 'confirmed') && !showRefundForm ? (
             <div className="flex flex-col gap-4 py-4">
               <Button 
                 onClick={() => handleCancel('credits')}
