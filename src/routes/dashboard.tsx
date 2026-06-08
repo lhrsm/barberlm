@@ -387,8 +387,10 @@ function DashboardComponent() {
     const { error } = await supabase
       .from("appointments")
       .update({ 
-        payment_status: newStatus as any,
-        paid_at: (newStatus === 'paid' ? new Date().toISOString() : null) as any
+        // @ts-ignore - Database type definitions might be restrictive
+        payment_status: newStatus,
+        // @ts-ignore
+        paid_at: newStatus === 'paid' ? new Date().toISOString() : null
       })
       .eq("id", appointment.id);
 
