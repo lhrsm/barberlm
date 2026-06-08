@@ -129,21 +129,19 @@ export const triggerAutomation = async ({
     }
 
     // 8. Payload Build Log
-    if (automationId) {
-      await anySupabase.from("automation_logs").insert({
-        tenant_id,
-        automation_id: automationId,
-        appointment_id,
-        status: "pending",
-        message_type: "diagnostic",
-        payload: { 
-          diagnostic: "automation_payload_built",
-          queue_id: queueItem?.id,
-          target_phone: customerPhone,
-          workflow: workflowKey
-        }
-      });
-    }
+    await anySupabase.from("automation_logs").insert({
+      tenant_id,
+      automation_id: automationId || null,
+      appointment_id,
+      status: "pending",
+      message_type: "diagnostic",
+      payload: { 
+        diagnostic: "automation_payload_built",
+        queue_id: queueItem?.id,
+        target_phone: customerPhone,
+        workflow: workflowKey
+      }
+    });
 
     // 9. Invoke the processing edge function to handle it immediately
     // Using force_resend: true to ensure immediate processing similar to the test button
