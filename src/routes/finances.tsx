@@ -1575,36 +1575,10 @@ function FinancesComponent() {
                               variant="ghost" 
                               size="sm" 
                               className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={async () => {
-                                if (!confirm("Deseja cancelar este agendamento? O valor será registrado como saída se houver custo associado.")) return;
-                                
-                                const { error } = await supabase
-                                  .from("appointments")
-                                  .update({ status: 'cancelled' as any })
-                                  .eq("id", app.id);
-                                
-                                if (error) {
-                                  toast.error("Erro ao cancelar agendamento");
-                                } else {
-                                  // Se o agendamento foi pago, registramos a saída
-                                  if (app.payment_status === 'paid') {
-                                    await supabase.from("transactions").insert({
-                                      amount: app.total_price,
-                                      type: "expense",
-                                      description: `Cancelamento (Estorno): ${app.services?.name} - ${app.customers?.name}`,
-                                      category: "Cancelamento",
-                                      barber_id: app.barber_id,
-                                      appointment_id: app.id,
-                                      user_id: user.id,
-                                      date: new Date().toISOString().split('T')[0]
-                                    });
-                                    toast.success("Agendamento cancelado e estorno registrado como saída!");
-                                  } else {
-                                    toast.success("Agendamento cancelado com sucesso!");
-                                  }
-                                  fetchAppointments();
-                                  fetchTransactions();
-                                }
+                              onClick={() => {
+                                setSelectedAppointmentId(app.id);
+                                setIsDetailsModalOpen(true);
+                                // A modal de detalhes já tem a lógica de verificação de Pix
                               }}
                             >
                               <X size={14} /> Cancelar
