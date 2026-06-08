@@ -31,6 +31,7 @@ serve(async (req) => {
         automation:automation_templates(*),
         appointment:appointments(
           *,
+          appointment_group:appointment_groups(group_token),
           customer:customers(name, phone),
           service:services(name, price),
           barber:barbers(name)
@@ -169,7 +170,7 @@ serve(async (req) => {
         
         let managementUrl = "";
         if (appointment) {
-          const groupToken = appointment.group_token || appointment.appointment_group_id || appointment.group_id;
+          const groupToken = appointment.appointment_group?.group_token;
           if (groupToken) {
             managementUrl = `https://barbex.shop/agendamentos/grupo/${groupToken}`;
           } else {
