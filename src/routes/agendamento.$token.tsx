@@ -536,7 +536,7 @@ function AppointmentManagementPage() {
                 disabled={cancelling}
                 className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-lg border border-zinc-700 shadow-lg"
               >
-                Transformar em créditos
+                Transformar em crédito
               </Button>
               <Button 
                 onClick={() => setShowRefundForm(true)}
