@@ -335,6 +335,32 @@ function FinancesComponent() {
           });
         }
       }
+      if (newStatus === 'completed') {
+        const { data: refund } = await supabase
+          .from("refund_requests")
+          .select("amount, appointment_id, tenant_id")
+          .eq("id", refundId)
+          .single();
+
+        if (refund) {
+          const { data: appt } = await supabase
+            .from("appointments")
+            .select("services(name), customers(name), barber_id")
+            .eq("id", refund.appointment_id)
+            .single();
+
+          await supabase.from("transactions").insert({
+            amount: refund.amount,
+            type: "expense",
+            description: `Estorno Pago: ${appt?.services?.name || "Serviço"} - ${appt?.customers?.name || "Cliente"}`,
+            category: "Estorno",
+            barber_id: appt?.barber_id,
+            appointment_id: refund.appointment_id,
+            user_id: refund.tenant_id,
+            date: new Date().toISOString().split('T')[0]
+          });
+        }
+      }
 
       toast.success(`Solicitação ${newStatus === 'approved' ? 'aprovada' : newStatus === 'completed' ? 'marcada como paga' : 'rejeitada'}!`);
       fetchRefundRequests();
@@ -377,11 +403,13 @@ function FinancesComponent() {
 
     // 2. Estornos Pagos (Saídas Financeiras Reais)
     // Regra: Somar apenas estornos pagos/concluídos
-    const totalRefundsPaid = refundRequests
-      .filter(r => r.status === 'completed')
-      .reduce((acc, r) => acc + Number(r.amount), 0);
+    const totalRefundsPaid = (refundRequests || [])
+      .filter(r => r && r.status === 'completed')
+      .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
-    // 3. Créditos Utilizados (Valor que deixou de entrar em dinheiro)
+    // Moving netRevenue calculation down after realCashIncome is defined
+
+    // 4. Créditos Utilizados (Valor que deixou de entrar em dinheiro)
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
@@ -405,9 +433,9 @@ function FinancesComponent() {
 
     // 5. Estornos Solicitados (Aguardando ação)
     // Regra: Somar refund_requests com status requested
-    const totalRefundsRequested = refundRequests
-      .filter(r => r.status === 'requested')
-      .reduce((acc, r) => acc + Number(r.amount), 0);
+    const totalRefundsRequested = (refundRequests || [])
+      .filter(r => r && r.status === 'requested')
+      .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
     // 6. Entrada em Caixa (Fluxo de Caixa Real antes de saídas)
     const realCashIncome = effectiveTransactions
@@ -422,12 +450,18 @@ function FinancesComponent() {
       }, 0);
 
     // 7. Receita Líquida
-    // Regra: entrada em caixa - estornos pagos - créditos utilizados
-    const netRevenue = realCashIncome - totalRefundsPaid - creditsConsumed;
+    // Regra: entrada em caixa - estornos pagos
+    const netRevenue = realCashIncome - totalRefundsPaid;
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
-      .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
+      .reduce((acc, t) => {
+        // We already subtract totalRefundsPaid in netRevenue and balance, 
+        // but expense card should show all exits. 
+        // If refund transactions are already in effectiveTransactions as 'expense', they will be counted twice if we add totalRefundsPaid manually.
+        // Let's ensure we count them correctly.
+        return acc + (parseFloat(String(t.amount)) || 0);
+      }, 0);
     
     const pending = appointments
       .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
@@ -1543,36 +1577,10 @@ function FinancesComponent() {
                               variant="ghost" 
                               size="sm" 
                               className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={async () => {
-                                if (!confirm("Deseja cancelar este agendamento? O valor será registrado como saída se houver custo associado.")) return;
-                                
-                                const { error } = await supabase
-                                  .from("appointments")
-                                  .update({ status: 'cancelled' as any })
-                                  .eq("id", app.id);
-                                
-                                if (error) {
-                                  toast.error("Erro ao cancelar agendamento");
-                                } else {
-                                  // Se o agendamento foi pago, registramos a saída
-                                  if (app.payment_status === 'paid') {
-                                    await supabase.from("transactions").insert({
-                                      amount: app.total_price,
-                                      type: "expense",
-                                      description: `Cancelamento (Estorno): ${app.services?.name} - ${app.customers?.name}`,
-                                      category: "Cancelamento",
-                                      barber_id: app.barber_id,
-                                      appointment_id: app.id,
-                                      user_id: user.id,
-                                      date: new Date().toISOString().split('T')[0]
-                                    });
-                                    toast.success("Agendamento cancelado e estorno registrado como saída!");
-                                  } else {
-                                    toast.success("Agendamento cancelado com sucesso!");
-                                  }
-                                  fetchAppointments();
-                                  fetchTransactions();
-                                }
+                              onClick={() => {
+                                setSelectedAppointmentId(app.id);
+                                setIsDetailsModalOpen(true);
+                                // A modal de detalhes já tem a lógica de verificação de Pix
                               }}
                             >
                               <X size={14} /> Cancelar

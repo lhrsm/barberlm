@@ -249,7 +249,7 @@ function AppointmentManagementPage() {
       const { data, error: rpcError } = await supabase.rpc('cancel_appointment', {
         p_appointment_id: appointment.id,
         p_cancelled_by: 'customer',
-        p_source: 'public_link',
+        p_source: 'user_panel',
         p_refund_preference: preference,
         p_changed_by_id: undefined
       });
@@ -304,9 +304,11 @@ function AppointmentManagementPage() {
   const [isPixCancelModalOpen, setIsPixCancelModalOpen] = useState(false);
 
   const handleInitialCancelClick = () => {
+    if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+
     // Verificar se existe pagamento Pix confirmado
-    // appointment.payment_method === 'pix' e appointment.payment_status in ['paid', 'confirmed', 'completed']
-    const isPixPaid = appointment.payment_method === 'pix' && ['paid', 'confirmed', 'completed'].includes(appointment.payment_status);
+    const isPixPaid = ['pix', 'PIX', 'Pix'].includes(appointment.payment_method) && 
+                      ['paid', 'confirmed', 'completed', 'aprovado', 'pago'].includes(appointment.payment_status);
     
     if (isPixPaid) {
       setIsPixCancelModalOpen(true);
@@ -601,12 +603,21 @@ function AppointmentManagementPage() {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest ml-1">Observação (Opcional)</label>
+                <textarea 
+                  placeholder="Informações adicionais..."
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white text-sm focus:border-primary outline-none min-h-[80px]"
+                  value={refundData.notes}
+                  onChange={(e) => setRefundData({...refundData, notes: e.target.value})}
+                />
+              </div>
               <Button 
                 onClick={() => handleCancel('refund', refundData)}
                 disabled={cancelling || !refundData.pixKey || !refundData.holderName}
-                className="w-full h-[64px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-lg shadow-lg mt-4"
+                className="w-full h-[64px] rounded-2xl bg-primary text-black font-black uppercase tracking-widest text-lg shadow-lg mt-4"
               >
-                {cancelling ? "Processando..." : "Confirmar Estorno"}
+                {cancelling ? "Processando..." : "Confirmar Solicitação"}
               </Button>
               <Button 
                 variant="ghost"

@@ -29,7 +29,7 @@ export function useAppointmentStatus() {
       if (newStatus === 'cancelled') {
         const { data, error } = await supabase.rpc('cancel_appointment', {
           p_appointment_id: appointmentId,
-          p_cancelled_by: source.includes('portal') ? 'customer' : 'admin',
+          p_cancelled_by: source.includes('portal') || source.includes('user_panel') || source.includes('public_link') ? 'customer' : 'admin',
           p_source: source,
           p_refund_preference: metadata.refund_preference || 'none',
           p_changed_by_id: user?.id || undefined

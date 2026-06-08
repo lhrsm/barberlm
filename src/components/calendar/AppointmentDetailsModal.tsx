@@ -109,8 +109,10 @@ export function AppointmentDetailsModal({
                       ['paid', 'confirmed', 'completed'].includes(appointment.payment_status);
     
     if (isPixPaid) {
+      if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
       setIsPixCancelModalOpen(true);
     } else {
+      if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
       updateStatus('cancelled');
     }
   };
@@ -405,7 +407,7 @@ export function AppointmentDetailsModal({
                 </div>
                 <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Estorno ou Crédito?</DialogTitle>
                 <DialogDescription className="text-gray-400 text-sm font-medium leading-relaxed">
-                  Este agendamento possui pagamento confirmado. Como deseja processar o cancelamento?
+                  Este agendamento foi pago via Pix. Escolha se deseja transformar o valor em crédito para usar em outro atendimento ou solicitar estorno.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-3 mt-6">
