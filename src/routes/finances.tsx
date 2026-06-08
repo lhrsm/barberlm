@@ -377,9 +377,9 @@ function FinancesComponent() {
 
     // 2. Estornos Pagos (Saídas Financeiras Reais)
     // Regra: Somar apenas estornos pagos/concluídos
-    const totalRefundsPaid = refundRequests
-      .filter(r => r.status === 'completed')
-      .reduce((acc, r) => acc + Number(r.amount), 0);
+    const totalRefundsPaid = (refundRequests || [])
+      .filter(r => r && r.status === 'completed')
+      .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
     // 3. Créditos Utilizados (Valor que deixou de entrar em dinheiro)
     const creditsConsumed = effectiveTransactions
@@ -405,9 +405,9 @@ function FinancesComponent() {
 
     // 5. Estornos Solicitados (Aguardando ação)
     // Regra: Somar refund_requests com status requested
-    const totalRefundsRequested = refundRequests
-      .filter(r => r.status === 'requested')
-      .reduce((acc, r) => acc + Number(r.amount), 0);
+    const totalRefundsRequested = (refundRequests || [])
+      .filter(r => r && r.status === 'requested')
+      .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
     // 6. Entrada em Caixa (Fluxo de Caixa Real antes de saídas)
     const realCashIncome = effectiveTransactions
