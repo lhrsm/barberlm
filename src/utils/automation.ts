@@ -97,20 +97,18 @@ export const triggerAutomation = async ({
 
     if (!profile?.whatsapp_enabled || !profile?.whatsapp_instance_id) {
       console.warn("[Automation] ⚠️ WhatsApp integration not active for tenant", tenant_id);
-      if (automationId) {
-        await anySupabase.from("automation_logs").insert({
-          tenant_id,
-          automation_id: automationId,
-          appointment_id,
-          status: "skipped",
-          message_type: "diagnostic",
-          payload: { 
-            diagnostic: "whatsapp_inactive",
-            whatsapp_enabled: profile?.whatsapp_enabled,
-            has_instance: !!profile?.whatsapp_instance_id
-          }
-        });
-      }
+      await anySupabase.from("automation_logs").insert({
+        tenant_id,
+        automation_id: automationId || null,
+        appointment_id,
+        status: "skipped",
+        message_type: "diagnostic",
+        payload: { 
+          diagnostic: "whatsapp_inactive",
+          whatsapp_enabled: profile?.whatsapp_enabled,
+          has_instance: !!profile?.whatsapp_instance_id
+        }
+      });
       return { success: false, error: "WhatsApp inactive" };
     }
 
