@@ -244,7 +244,7 @@ serve(async (req) => {
 
         const sendResult = await sendAutomationMessageV2(supabase, {
           tenant_id: itemTenantId,
-          workflow_key: automation.key,
+          workflow_key: currentWorkflowKey,
           appointment_id: appointment?.id,
           appointment_group_id: appointment?.group_id || appointment?.appointment_group_id,
           customer_id: appointment?.customer_id || item.customer_id,
