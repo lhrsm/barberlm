@@ -551,16 +551,21 @@ function AppointmentGroupPage() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-start md:items-end justify-center">
-                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Status</p>
+                      <div className="flex flex-col items-start md:items-end justify-center gap-1.5">
+                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Status</p>
                         <Badge className={cn(
                           "uppercase text-[9px] font-black tracking-widest",
-                          isCancelled ? "bg-red-500/20 text-red-500 border-red-500/20" : 
-                          isCompleted ? "bg-blue-500/20 text-blue-500 border-blue-500/20" :
+                          appt.status === 'cancelled' ? "bg-red-500/20 text-red-500 border-red-500/20" : 
+                          appt.status === 'completed' ? "bg-blue-500/20 text-blue-500 border-blue-500/20" :
                           "bg-emerald-500/20 text-emerald-500 border-emerald-500/20"
                         )}>
-                          {isCancelled ? "Cancelado" : isCompleted ? "Concluído" : "Confirmado"}
+                          {appt.status === 'cancelled' ? "Cancelado" : appt.status === 'completed' ? "Concluído" : "Confirmado"}
                         </Badge>
+                        {appt.status !== 'cancelled' && group.payment_status === 'paid' && (
+                          <Badge className="bg-emerald-500 text-white border-none font-black text-[8px] uppercase px-1.5 py-0">
+                            PAGO
+                          </Badge>
+                        )}
                       </div>
                     </div>
 
