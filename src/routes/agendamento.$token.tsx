@@ -594,14 +594,14 @@ function AppointmentManagementPage() {
               <Button 
                 onClick={() => handleCancel('refund', refundData)}
                 disabled={cancelling || !refundData.pixKey || !refundData.holderName}
-                className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs shadow-lg mt-4"
+                className="w-full h-[64px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-lg shadow-lg mt-4"
               >
                 {cancelling ? "Processando..." : "Confirmar Estorno"}
               </Button>
               <Button 
                 variant="ghost"
                 onClick={() => setShowRefundForm(false)}
-                className="w-full h-12 rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-[10px]"
+                className="w-full h-[64px] rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-sm"
               >
                 Voltar
               </Button>
