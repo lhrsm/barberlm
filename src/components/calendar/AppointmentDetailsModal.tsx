@@ -100,14 +100,28 @@ export function AppointmentDetailsModal({
     }
   }
 
-  const updateStatus = async (newStatus: string) => {
+  const [isPixCancelModalOpen, setIsPixCancelModalOpen] = React.useState(false);
+
+  const handleCancelClick = () => {
+    if (!appointment) return;
+    const isPixPaid = (appointment.payment_method === 'pix' || appointment.payment_method === 'mixed') && 
+                      ['paid', 'confirmed', 'completed'].includes(appointment.payment_status);
+    
+    if (isPixPaid) {
+      setIsPixCancelModalOpen(true);
+    } else {
+      updateStatus('cancelled');
+    }
+  };
+
+  const updateStatus = async (newStatus: string, metadata: any = {}) => {
     if (!appointment) return;
     setActionLoading(true);
     
     const result = await centralUpdateStatus(
       appointment.id, 
       newStatus, 
-      {}, 
+      metadata, 
       'admin_panel'
     );
 
@@ -375,12 +389,56 @@ export function AppointmentDetailsModal({
             <Button 
               variant="default"
               className="rounded-xl bg-transparent hover:bg-red-950/20 text-red-500 border border-red-900/50 font-black uppercase text-[10px] tracking-widest px-6 h-12 transition-all active:scale-95"
-              onClick={() => updateStatus('cancelled')}
+              onClick={handleCancelClick}
               disabled={actionLoading}
             >
               Cancelar
             </Button>
           )}
+
+          <Dialog open={isPixCancelModalOpen} onOpenChange={setIsPixCancelModalOpen}>
+            <DialogContent className="bg-[#0b0f17] border border-[#D4AF37]/20 text-white rounded-[2rem] max-w-sm w-[90%] p-8">
+              <DialogHeader className="text-center">
+                <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <DollarSign className="text-[#D4AF37] w-8 h-8" />
+                </div>
+                <DialogTitle className="text-2xl font-black tracking-tight mb-2 uppercase italic">Estorno ou Crédito?</DialogTitle>
+                <DialogDescription className="text-gray-400 text-sm font-medium leading-relaxed">
+                  Este agendamento possui pagamento confirmado. Como deseja processar o cancelamento?
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-3 mt-6">
+                <Button 
+                  className="w-full h-14 bg-[#D4AF37] hover:bg-[#D4AF37]/90 text-black font-black uppercase italic tracking-tighter rounded-2xl"
+                  onClick={() => {
+                    setIsPixCancelModalOpen(false);
+                    updateStatus('cancelled', { refund_preference: 'credits' });
+                  }}
+                  disabled={actionLoading}
+                >
+                  Transformar em Crédito
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="w-full h-14 border-[#D4AF37]/20 hover:bg-[#D4AF37]/10 text-white font-black uppercase italic tracking-tighter rounded-2xl"
+                  onClick={() => {
+                    setIsPixCancelModalOpen(false);
+                    updateStatus('cancelled', { refund_preference: 'refund' });
+                  }}
+                  disabled={actionLoading}
+                >
+                  Solicitar Estorno
+                </Button>
+                <Button 
+                  variant="ghost"
+                  className="w-full h-12 text-gray-500 font-bold uppercase text-[10px] tracking-widest hover:text-white"
+                  onClick={() => setIsPixCancelModalOpen(false)}
+                >
+                  Voltar
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {showReschedule && (
             <Button 
