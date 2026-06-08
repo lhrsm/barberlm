@@ -56,27 +56,26 @@ export const triggerAutomation = async ({
     const automationId = template?.id;
 
     // 4. Initial Audit Log: appointment_created / automation_trigger_started
-    if (automationId) {
-      await anySupabase.from("automation_logs").insert({
-        tenant_id,
-        automation_id: automationId,
-        appointment_id,
-        customer_id: customerId,
-        phone: customerPhone,
-        status: "pending",
-        message_type: "diagnostic",
-        payload: { 
-          diagnostic: "automation_trigger_started", 
-          event_name, 
-          workflow_key: workflowKey,
-          source: "real_appointment_flow",
-          automation_type: "new_appointment",
-          management_token_exists: !!managementToken,
-          customer_phone_exists: !!customerPhone,
-          template_active: template?.active
-        }
-      });
-    }
+    await anySupabase.from("automation_logs").insert({
+      tenant_id,
+      automation_id: automationId || null,
+      appointment_id,
+      customer_id: customerId,
+      phone: customerPhone,
+      status: "pending",
+      message_type: "diagnostic",
+      payload: { 
+        diagnostic: "automation_trigger_started", 
+        event_name, 
+        workflow_key: workflowKey,
+        source: "real_appointment_flow",
+        automation_type: "new_appointment",
+        management_token_exists: !!managementToken,
+        customer_phone_exists: !!customerPhone,
+        template_active: template?.active,
+        has_automation_id: !!automationId
+      }
+    });
 
     // 5. Hard validations before sending
     if (!managementToken) {
@@ -98,20 +97,18 @@ export const triggerAutomation = async ({
 
     if (!profile?.whatsapp_enabled || !profile?.whatsapp_instance_id) {
       console.warn("[Automation] ⚠️ WhatsApp integration not active for tenant", tenant_id);
-      if (automationId) {
-        await anySupabase.from("automation_logs").insert({
-          tenant_id,
-          automation_id: automationId,
-          appointment_id,
-          status: "skipped",
-          message_type: "diagnostic",
-          payload: { 
-            diagnostic: "whatsapp_inactive",
-            whatsapp_enabled: profile?.whatsapp_enabled,
-            has_instance: !!profile?.whatsapp_instance_id
-          }
-        });
-      }
+      await anySupabase.from("automation_logs").insert({
+        tenant_id,
+        automation_id: automationId || null,
+        appointment_id,
+        status: "skipped",
+        message_type: "diagnostic",
+        payload: { 
+          diagnostic: "whatsapp_inactive",
+          whatsapp_enabled: profile?.whatsapp_enabled,
+          has_instance: !!profile?.whatsapp_instance_id
+        }
+      });
       return { success: false, error: "WhatsApp inactive" };
     }
 
@@ -132,21 +129,19 @@ export const triggerAutomation = async ({
     }
 
     // 8. Payload Build Log
-    if (automationId) {
-      await anySupabase.from("automation_logs").insert({
-        tenant_id,
-        automation_id: automationId,
-        appointment_id,
-        status: "pending",
-        message_type: "diagnostic",
-        payload: { 
-          diagnostic: "automation_payload_built",
-          queue_id: queueItem?.id,
-          target_phone: customerPhone,
-          workflow: workflowKey
-        }
-      });
-    }
+    await anySupabase.from("automation_logs").insert({
+      tenant_id,
+      automation_id: automationId || null,
+      appointment_id,
+      status: "pending",
+      message_type: "diagnostic",
+      payload: { 
+        diagnostic: "automation_payload_built",
+        queue_id: queueItem?.id,
+        target_phone: customerPhone,
+        workflow: workflowKey
+      }
+    });
 
     // 9. Invoke the processing edge function to handle it immediately
     // Using force_resend: true to ensure immediate processing similar to the test button
@@ -164,37 +159,33 @@ export const triggerAutomation = async ({
 
     if (invokeError) {
       console.error("[Automation] ❌ Error invoking process-automation-queue:", invokeError);
-      if (automationId) {
-        await anySupabase.from("automation_logs").insert({
-          tenant_id,
-          automation_id: automationId,
-          appointment_id,
-          status: "failed",
-          error_message: invokeError.message,
-          message_type: "diagnostic",
-          payload: { 
-            diagnostic: "whatsapp_send_failed", 
-            error: invokeError.message 
-          }
-        });
-      }
+      await anySupabase.from("automation_logs").insert({
+        tenant_id,
+        automation_id: automationId || null,
+        appointment_id,
+        status: "failed",
+        error_message: invokeError.message,
+        message_type: "diagnostic",
+        payload: { 
+          diagnostic: "whatsapp_send_failed", 
+          error: invokeError.message 
+        }
+      });
       return { success: false, error: invokeError };
     }
 
     // 10. Final Success Log
-    if (automationId) {
-      await anySupabase.from("automation_logs").insert({
-        tenant_id,
-        automation_id: automationId,
-        appointment_id,
-        status: "success",
-        message_type: "diagnostic",
-        payload: { 
-          diagnostic: "whatsapp_send_success",
-          response: data
-        }
-      });
-    }
+    await anySupabase.from("automation_logs").insert({
+      tenant_id,
+      automation_id: automationId || null,
+      appointment_id,
+      status: "success",
+      message_type: "diagnostic",
+      payload: { 
+        diagnostic: "whatsapp_send_success",
+        response: data
+      }
+    });
 
     console.log("[Automation] ✅ Process queue response:", data);
     return { success: true, data };

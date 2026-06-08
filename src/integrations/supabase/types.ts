@@ -724,7 +724,7 @@ export type Database = {
           action: string | null
           appointment_group_id: string | null
           appointment_id: string | null
-          automation_id: string
+          automation_id: string | null
           barber_id: string | null
           button_id: string | null
           callback_received: boolean | null
@@ -763,7 +763,7 @@ export type Database = {
           action?: string | null
           appointment_group_id?: string | null
           appointment_id?: string | null
-          automation_id: string
+          automation_id?: string | null
           barber_id?: string | null
           button_id?: string | null
           callback_received?: boolean | null
@@ -802,7 +802,7 @@ export type Database = {
           action?: string | null
           appointment_group_id?: string | null
           appointment_id?: string | null
-          automation_id?: string
+          automation_id?: string | null
           barber_id?: string | null
           button_id?: string | null
           callback_received?: boolean | null
