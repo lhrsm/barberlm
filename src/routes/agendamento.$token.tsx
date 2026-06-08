@@ -82,20 +82,37 @@ function AppointmentManagementPage() {
   async function fetchAppointment() {
     setLoading(true);
     try {
+      console.log('AUDIT [ManagementLink]: Fetching appointment with token:', token);
+      console.log('AUDIT [ManagementLink]: Tenant Context:', expectedTenantId);
+
       const { data, error: rpcError } = await supabase.rpc('get_appointment_by_management_token', {
         p_token: token
       });
 
-      if (rpcError) throw rpcError;
+      if (rpcError) {
+        console.error('AUDIT [ManagementLink]: RPC Error:', rpcError);
+        throw rpcError;
+      }
       
+      console.log('AUDIT [ManagementLink]: RPC Results:', data);
+
       if (!data || data.length === 0) {
+        console.warn('AUDIT [ManagementLink]: No appointment found for token:', token);
         setError("Agendamento não encontrado ou link expirado.");
         return;
       }
 
       const appt = data[0];
+      console.log('AUDIT [ManagementLink]: Appointment data:', {
+        id: appt.id,
+        tenant_id: appt.tenant_id,
+        customer_id: appt.customer_id,
+        status: appt.status,
+        payment_status: appt.payment_status
+      });
 
       if (expectedTenantId && appt.tenant_id !== expectedTenantId) {
+        console.warn('AUDIT [ManagementLink]: Tenant mismatch. Expected:', expectedTenantId, 'Found:', appt.tenant_id);
         setError("Este agendamento pertence a outra barbearia ou o link está incorreto.");
         return;
       }
@@ -117,7 +134,7 @@ function AppointmentManagementPage() {
         setBarber(barbData);
       }
     } catch (err: any) {
-      console.error("Error fetching appointment:", err);
+      console.error("AUDIT [ManagementLink]: Critical Error:", err);
       setError("Erro ao carregar agendamento.");
     } finally {
       setLoading(false);
