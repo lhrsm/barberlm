@@ -523,8 +523,8 @@ function AppointmentManagementPage() {
           <DialogHeader className="mb-4">
             <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-red-500">Cancelar Agendamento</DialogTitle>
             <DialogDescription className="text-zinc-400 font-medium">
-              {appointment.payment_status === 'paid' 
-                ? "Identificamos que este agendamento já foi pago. O que deseja fazer com o valor?"
+              {(appointment.payment_status === 'paid' || appointment.payment_status === 'confirmed')
+                ? "Este agendamento foi pago via Pix. Escolha se deseja transformar o valor em crédito para usar na barbearia ou solicitar estorno."
                 : "Tem certeza que deseja cancelar seu horário? Esta ação não poderá ser desfeita."}
             </DialogDescription>
           </DialogHeader>
