@@ -941,6 +941,7 @@ function ShopPageComponent() {
 
         if (groupError) throw groupError;
         appointmentGroupId = groupData.id;
+        console.log('DEBUG: Appointment group created', { id: appointmentGroupId, token: groupTokenValLocal });
       }
 
       const finalPaymentMethod = paymentMethod || (calculateTotal() === 0 ? (useCredits ? 'credits' : 'cashback') : 'barbershop');
@@ -1096,12 +1097,24 @@ function ShopPageComponent() {
       // 5. Trigger Automation System (New V2)
       if (createdAppointments.length > 0) {
         console.log("DEBUG: Triggering automation for new appointments", createdAppointments.map(a => a.id));
-        for (const appt of createdAppointments) {
+        
+        if (isMultipleAppt && appointmentGroupId) {
+          // Para múltiplos agendamentos, disparamos apenas UM gatilho usando o primeiro agendamento
+          // mas o sistema de automação saberá que ele pertence a um grupo
           triggerAutomation({
             tenant_id: shop.id,
             event_name: 'appointment.created',
-            appointment_id: appt.id
+            appointment_id: createdAppointments[0].id
           }).catch(err => console.error("Error triggering automation:", err));
+        } else {
+          // Agendamento único
+          for (const appt of createdAppointments) {
+            triggerAutomation({
+              tenant_id: shop.id,
+              event_name: 'appointment.created',
+              appointment_id: appt.id
+            }).catch(err => console.error("Error triggering automation:", err));
+          }
         }
       }
 
