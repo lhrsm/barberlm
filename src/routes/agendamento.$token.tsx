@@ -89,7 +89,7 @@ function AppointmentManagementPage() {
       // First try to fetch by management_token directly to see if it exists
       const { data: rawData, error: rawError } = await supabase
         .from('appointments')
-        .select('id, tenant_id, customer_id, status, payment_status, start_time, end_time, professional_id, cancel_token, manage_token')
+        .select('id, tenant_id, customer_id, status, payment_status, start_time, end_time, barber_id, cancel_token, manage_token')
         .eq('manage_token', token)
         .maybeSingle();
       

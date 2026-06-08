@@ -649,7 +649,7 @@ export function SignupOnboardingModal({ isOpen, onOpenChange }: SignupOnboarding
               onClick={() => {
                 setShowEmailExistsModal(false);
                 onOpenChange(false);
-                navigate({ to: "/auth?type=recovery" });
+                navigate({ to: "/auth" as any });
               }}
             >
               <KeyRound className="h-4 w-4" />
