@@ -240,7 +240,7 @@ function AppointmentManagementPage() {
     }
   };
 
-  const handleCancel = async (preference: 'credit' | 'refund' | 'none' = 'none', refundDetails?: any) => {
+  const handleCancel = async (preference: 'credits' | 'refund' | 'none' = 'none', refundDetails?: any) => {
     setCancelling(true);
     try {
       // Registrar log de início de cancelamento
