@@ -175,19 +175,17 @@ export const triggerAutomation = async ({
     }
 
     // 10. Final Success Log
-    if (automationId) {
-      await anySupabase.from("automation_logs").insert({
-        tenant_id,
-        automation_id: automationId,
-        appointment_id,
-        status: "success",
-        message_type: "diagnostic",
-        payload: { 
-          diagnostic: "whatsapp_send_success",
-          response: data
-        }
-      });
-    }
+    await anySupabase.from("automation_logs").insert({
+      tenant_id,
+      automation_id: automationId || null,
+      appointment_id,
+      status: "success",
+      message_type: "diagnostic",
+      payload: { 
+        diagnostic: "whatsapp_send_success",
+        response: data
+      }
+    });
 
     console.log("[Automation] ✅ Process queue response:", data);
     return { success: true, data };
