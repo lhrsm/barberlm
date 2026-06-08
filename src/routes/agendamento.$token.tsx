@@ -518,15 +518,111 @@ function AppointmentManagementPage() {
       </motion.div>
 
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
-        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-3xl sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black uppercase italic tracking-tight">Cancelar Agendamento</DialogTitle>
-            <DialogDescription className="text-zinc-400">Esta ação não poderá ser desfeita.</DialogDescription>
+        <DialogContent className="bg-[#0b0f17] border-zinc-800 text-white rounded-[2rem] sm:max-w-md p-8">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-red-500">Cancelar Agendamento</DialogTitle>
+            <DialogDescription className="text-zinc-400 font-medium">
+              {appointment.payment_status === 'paid' 
+                ? "Identificamos que este agendamento já foi pago. O que deseja fazer com o valor?"
+                : "Tem certeza que deseja cancelar seu horário? Esta ação não poderá ser desfeita."}
+            </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" onClick={() => setIsCancelModalOpen(false)} className="rounded-xl flex-1 uppercase text-[10px]">Manter</Button>
-            <Button onClick={() => handleCancel()} disabled={cancelling} className="bg-red-600 rounded-xl flex-1 uppercase text-[10px]">Confirmar</Button>
-          </DialogFooter>
+
+          {appointment.payment_status === 'paid' && !showRefundForm ? (
+            <div className="flex flex-col gap-4 py-4">
+              <Button 
+                onClick={() => handleCancel('credits')}
+                disabled={cancelling}
+                className="w-full h-14 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-xs border border-zinc-700 shadow-lg"
+              >
+                Transformar em créditos
+              </Button>
+              <Button 
+                onClick={() => setShowRefundForm(true)}
+                disabled={cancelling}
+                className="w-full h-14 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-xs border border-zinc-700 shadow-lg"
+              >
+                Solicitar estorno
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => setIsCancelModalOpen(false)}
+                className="w-full h-12 rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-[10px]"
+              >
+                Voltar
+              </Button>
+            </div>
+          ) : showRefundForm ? (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest ml-1">Nome do Titular</label>
+                <input 
+                  type="text"
+                  placeholder="Nome completo"
+                  className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white text-sm focus:border-primary outline-none"
+                  value={refundData.holderName}
+                  onChange={(e) => setRefundData({...refundData, holderName: e.target.value})}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest ml-1">Tipo de Chave</label>
+                  <select 
+                    className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white text-sm outline-none"
+                    value={refundData.pixType}
+                    onChange={(e) => setRefundData({...refundData, pixType: e.target.value})}
+                  >
+                    <option value="cpf">CPF</option>
+                    <option value="cnpj">CNPJ</option>
+                    <option value="email">E-mail</option>
+                    <option value="phone">Celular</option>
+                    <option value="random">Chave Aleatória</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest ml-1">Chave Pix</label>
+                  <input 
+                    type="text"
+                    placeholder="Chave Pix"
+                    className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white text-sm focus:border-primary outline-none"
+                    value={refundData.pixKey}
+                    onChange={(e) => setRefundData({...refundData, pixKey: e.target.value})}
+                  />
+                </div>
+              </div>
+              <Button 
+                onClick={() => handleCancel('refund', refundData)}
+                disabled={cancelling || !refundData.pixKey || !refundData.holderName}
+                className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs shadow-lg mt-4"
+              >
+                {cancelling ? "Processando..." : "Confirmar Estorno"}
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => setShowRefundForm(false)}
+                className="w-full h-12 rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-[10px]"
+              >
+                Voltar
+              </Button>
+            </div>
+          ) : (
+            <DialogFooter className="flex flex-col sm:flex-row gap-4 mt-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsCancelModalOpen(false)} 
+                className="h-14 rounded-2xl flex-1 uppercase font-black text-xs tracking-widest border-zinc-800 text-zinc-400 order-2 sm:order-1"
+              >
+                Manter
+              </Button>
+              <Button 
+                onClick={() => handleCancel('none')} 
+                disabled={cancelling}
+                className="h-14 rounded-2xl flex-1 bg-red-600 hover:bg-red-700 text-white uppercase font-black text-xs tracking-widest order-1 sm:order-2 shadow-lg shadow-red-900/20"
+              >
+                {cancelling ? "..." : "Confirmar"}
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     </div>
