@@ -181,46 +181,50 @@ serve(async (req) => {
 
         const sendOptions: any = {};
         let renderedTemplate = "";
+        let baseTemplate = automation.template || "";
+
+        const managementUrl = `https://barbex.shop/agendamento/${appointment?.management_token || appointment?.id}?tenant=${itemTenantId}`;
+        const templateData = {
+          ...testData,
+          management_link: managementUrl,
+          management_token: appointment?.management_token || appointment?.id
+        };
 
         if (automation.key === 'appointment_confirmation') {
           // Rule: No buttons on initial confirmation. Direct confirmation flow with management link.
-          const managementUrl = `https://barbex.shop/agendamento/${appointment?.management_token || appointment?.id}?tenant=${itemTenantId}`;
-          renderedTemplate = `Olá ${testData.customer_name}! 👋\n\nSeu agendamento foi realizado com sucesso.\n\nServiço: ${testData.service_name}\nProfissional: ${testData.professional_name}\nData: ${testData.appointment_date}\nHorário: ${testData.appointment_time}\n\nPara reagendar ou cancelar, acesse:\n${managementUrl}\n\nObrigado!`;
+          if (!baseTemplate) {
+            baseTemplate = `Olá {customer_name}! 👋\n\nSeu agendamento foi realizado com sucesso.\n\nServiço: {service_name}\nProfissional: {professional_name}\nData: {appointment_date}\nHorário: {appointment_time}\n\nPara reagendar ou cancelar, acesse:\n{management_link}\n\nObrigado!`;
+          }
+          renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
         } else if (automation.key === 'cancellation') {
-          const managementUrl = `https://barbex.shop/agendamento/${appointment?.management_token || appointment?.id}?tenant=${itemTenantId}`;
-          renderedTemplate = `Olá ${testData.customer_name} 👋\n\nInformamos que seu agendamento na ${testData.barbershop_name} para o dia ${testData.appointment_date} às ${testData.appointment_time} foi CANCELADO.\n\n🔗 Você pode visualizar os detalhes aqui:\n${managementUrl}\n\nEsperamos te ver em breve! 💈`;
+          if (!baseTemplate) {
+            baseTemplate = `Olá {customer_name} 👋\n\nInformamos que seu agendamento na {barbershop_name} para o dia {appointment_date} às {appointment_time} foi CANCELADO.\n\n🔗 Você pode visualizar os detalhes aqui:\n{management_link}\n\nEsperamos te ver em breve! 💈`;
+          }
+          renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
         } else if (automation.key === 'appointment_reminder') {
           const type = item.payload?.reminder_type || "6h";
           
-          // DEPRECATED: Interactive buttons removed in favor of link-based management.
-          
           if (type === "6h") {
-            renderedTemplate = `Olá ${testData.customer_name} 👋\n\nPassando para lembrar do seu agendamento na ${testData.barbershop_name}.\n\n📋 Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n📅 Data: ${testData.appointment_date}\n⏰ Horário: ${testData.appointment_time}\n\nEstamos te esperando!`;
+            baseTemplate = `Olá {customer_name} 👋\n\nPassando para lembrar do seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n📅 Data: {appointment_date}\n⏰ Horário: {appointment_time}\n\nEstamos te esperando!`;
           } else if (type === "1h") {
-            renderedTemplate = `Olá ${testData.customer_name} 👋\n\nSeu atendimento na ${testData.barbershop_name} está chegando.\n\n⏰ Falta apenas 1 hora para o seu agendamento.\n\n📋 Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n⏰ Horário: ${testData.appointment_time}`;
+            baseTemplate = `Olá {customer_name} 👋\n\nSeu atendimento na {barbershop_name} está chegando.\n\n⏰ Falta apenas 1 hora para o seu agendamento.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}`;
           } else if (type === "30m") {
-            renderedTemplate = `Olá ${testData.customer_name} 👋\n\nFaltam 30 minutos para o seu agendamento na ${testData.barbershop_name}.\n\n📋 Serviço: ${testData.service_name}\n💈 Profissional: ${testData.professional_name}\n⏰ Horário: ${testData.appointment_time}`;
+            baseTemplate = `Olá {customer_name} 👋\n\nFaltam 30 minutos para o seu agendamento na {barbershop_name}.\n\n📋 Serviço: {service_name}\n💈 Profissional: {professional_name}\n⏰ Horário: {appointment_time}`;
           }
+          renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
         } else if (automation.key === 'customer_birthday') {
-           renderedTemplate = `Olá ${testData.customer_name} 🎉\n\nA ${testData.barbershop_name} te felicita pelo seu aniversário!\n\nQue seu dia seja especial e cheio de boas comemorações. 🥳\n\nE para comemorar com a gente, você ganhou um cupom especial para usar em nossos produtos ou serviços na barbearia.\n\n🎁 Cupom: ANIVERSARIO10\n\nEsperamos você para celebrar esse momento com estilo! 💈`;
+           if (!baseTemplate) {
+             baseTemplate = `Olá {customer_name} 🎉\n\nA {barbershop_name} te felicita pelo seu aniversário!\n\nQue seu dia seja especial e cheio de boas comemorações. 🥳\n\nE para comemorar com a gente, você ganhou um cupom especial para usar em nossos produtos ou serviços na barbearia.\n\n🎁 Cupom: ANIVERSARIO10\n\nEsperamos você para celebrar esse momento com estilo! 💈`;
+           }
+           renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
         } else if (automation.key === 'barbershop_anniversary') {
            const type = item.payload?.anniversary_message_type || "anniversary_day";
            if (type === "reminder_7_days") {
-              renderedTemplate = automation.additional_templates?.reminder_7_days || `Olá ${testData.customer_name} 👋\n\nO aniversário da ${testData.barbershop_name} está chegando! 🎉\n\nFaltam apenas 7 dias para celebrarmos mais um ano dessa história com você.\n\nPrepare-se, porque vem comemoração especial por aí! 💈`;
-              Object.entries(testData).forEach(([key, value]) => {
-                renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
-              });
-           } else {
-              renderedTemplate = automation.template;
-              Object.entries(testData).forEach(([key, value]) => {
-                renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
-              });
+              baseTemplate = automation.additional_templates?.reminder_7_days || `Olá {customer_name} 👋\n\nO aniversário da {barbershop_name} está chegando! 🎉\n\nFaltam apenas 7 dias para celebrarmos mais um ano dessa história com você.\n\nPrepare-se, porque vem comemoração especial por aí! 💈`;
            }
+           renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
         } else {
-          renderedTemplate = automation.template;
-          Object.entries(testData).forEach(([key, value]) => {
-            renderedTemplate = renderedTemplate.replace(new RegExp(`{${key}}`, 'g'), value as string);
-          });
+          renderedTemplate = processAutomationTemplate(baseTemplate, templateData);
         }
 
         if (dry_run) {
