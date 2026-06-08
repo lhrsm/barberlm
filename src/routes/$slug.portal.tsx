@@ -84,7 +84,14 @@ function ClientPortalComponent() {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [fetchingTimes, setFetchingTimes] = useState(false);
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [showRefundForm, setShowRefundForm] = useState(false);
   const [cancellingAppointment, setCancellingAppointment] = useState<any>(null);
+  const [refundData, setRefundData] = useState({
+    holderName: '',
+    pixKey: '',
+    pixType: 'cpf',
+    notes: ''
+  });
   const [creditTransactions, setCreditTransactions] = useState<any[]>([]);
   const [cashbackTransactions, setCashbackTransactions] = useState<any[]>([]);
 
@@ -672,24 +679,28 @@ function ClientPortalComponent() {
   const handleCancelAppointment = async (app: any) => {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
     
+    // Check if it's a confirmed PIX payment
+    const isPixPaid = ['pix', 'PIX', 'Pix'].includes(app.payment_method) && 
+                      ['paid', 'confirmed', 'completed', 'aprovado', 'pago'].includes(app.payment_status);
+
+    if (isPixPaid) {
+      setCancellingAppointment(app);
+      setIsRefundModalOpen(true);
+      setShowRefundForm(false);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const { data, error } = await supabase.rpc('cancel_appointment', {
         p_appointment_id: app.id,
         p_cancelled_by: 'customer',
-        p_source: 'customer_portal',
+        p_source: 'user_panel',
         p_refund_preference: 'none'
       });
       
       if (error) throw error;
       
-      const result = data as any;
-      if (result && result.pix_refund_amount > 0) {
-        setCancellingAppointment(app);
-        setIsRefundModalOpen(true);
-        return;
-      }
-
       toast.success("Agendamento cancelado com sucesso");
       fetchClientData(client.customer_id);
     } catch (e: any) {
@@ -702,19 +713,39 @@ function ClientPortalComponent() {
   const handleProcessRefundChoice = async (type: 'credits' | 'refund') => {
     if (!cancellingAppointment) return;
     
+    if (type === 'refund' && !showRefundForm) {
+      setShowRefundForm(true);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const { error } = await supabase.rpc('cancel_appointment', {
         p_appointment_id: cancellingAppointment.id,
         p_cancelled_by: 'customer',
-        p_source: 'customer_portal',
+        p_source: 'user_panel',
         p_refund_preference: type
       });
       
       if (error) throw error;
 
+      if (type === 'refund') {
+        // Update refund request with PIX data
+        await supabase
+          .from('refund_requests')
+          .update({
+            holder_name: refundData.holderName,
+            pix_key: refundData.pixKey,
+            pix_type: refundData.pixType,
+            notes: refundData.notes
+          })
+          .eq('appointment_id', cancellingAppointment.id)
+          .eq('status', 'requested');
+      }
+
       toast.success(type === 'credits' ? "Valor convertido em créditos!" : "Solicitação de estorno enviada!");
       setIsRefundModalOpen(false);
+      setShowRefundForm(false);
       setCancellingAppointment(null);
       fetchClientData(client.customer_id);
     } catch (e: any) {
@@ -1507,46 +1538,109 @@ function ClientPortalComponent() {
       </Dialog>
 
       <Dialog open={isRefundModalOpen} onOpenChange={setIsRefundModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Opções de Reembolso</DialogTitle>
-            <DialogDescription>
-              Este agendamento foi pago via Pix. Como deseja receber o valor de 
-              <span className="font-bold text-foreground"> R$ {Number(cancellingAppointment?.total_price || 0).toFixed(2)}</span>?
+        <DialogContent className="bg-white rounded-[2rem] border-none shadow-2xl p-8 sm:max-w-md">
+          <DialogHeader className="text-center">
+            <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <DollarSign className="text-[#D4AF37] w-8 h-8" />
+            </div>
+            <DialogTitle className="text-2xl font-black text-black uppercase italic tracking-tighter">O que deseja fazer com o valor pago?</DialogTitle>
+            <DialogDescription className="text-gray-500 font-medium">
+              Este agendamento foi pago via Pix. Escolha se deseja transformar o valor em crédito para usar em outro atendimento ou solicitar estorno.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 gap-4 py-4">
-            <Button 
-              variant="outline" 
-              className="h-auto py-4 flex flex-col items-start gap-1 border-green-200 hover:bg-green-50 hover:border-green-300 transition-all"
-              onClick={() => handleProcessRefundChoice('credits')}
-              disabled={submitting}
-            >
-              <div className="flex items-center gap-2">
-                <RefreshCcw className="h-5 w-5 text-green-600" />
-                <span className="font-bold text-green-700">Créditos na Barbearia</span>
+
+          {!showRefundForm ? (
+            <div className="flex flex-col gap-4 py-4">
+              <Button 
+                onClick={() => handleProcessRefundChoice('credits')}
+                disabled={submitting}
+                className="w-full h-16 rounded-2xl bg-black text-white hover:bg-zinc-900 font-black uppercase tracking-widest text-lg shadow-xl"
+              >
+                Transformar em crédito
+              </Button>
+              <Button 
+                onClick={() => setShowRefundForm(true)}
+                disabled={submitting}
+                className="w-full h-16 rounded-2xl bg-white border-2 border-black text-black hover:bg-zinc-50 font-black uppercase tracking-widest text-lg shadow-sm"
+              >
+                Solicitar estorno
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => {
+                  setIsRefundModalOpen(false);
+                  setCancellingAppointment(null);
+                }}
+                className="w-full h-12 text-gray-400 font-bold uppercase text-xs tracking-widest"
+              >
+                Voltar
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nome do Titular</Label>
+                <Input 
+                  placeholder="Nome completo"
+                  className="h-12 bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm focus:border-[#D4AF37] outline-none"
+                  value={refundData.holderName}
+                  onChange={(e) => setRefundData({...refundData, holderName: e.target.value})}
+                />
               </div>
-              <span className="text-xs text-green-600/80 text-left">O valor cai na hora na sua conta para usar no próximo agendamento.</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="h-auto py-4 flex flex-col items-start gap-1 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all"
-              onClick={() => handleProcessRefundChoice('refund')}
-              disabled={submitting}
-            >
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-blue-600" />
-                <span className="font-bold text-blue-700">Estorno (Pix)</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Tipo de Chave</Label>
+                  <Select 
+                    value={refundData.pixType}
+                    onValueChange={(val) => setRefundData({...refundData, pixType: val})}
+                  >
+                    <SelectTrigger className="h-12 bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm outline-none">
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-gray-100">
+                      <SelectItem value="cpf">CPF</SelectItem>
+                      <SelectItem value="cnpj">CNPJ</SelectItem>
+                      <SelectItem value="email">E-mail</SelectItem>
+                      <SelectItem value="phone">Celular</SelectItem>
+                      <SelectItem value="random">Chave Aleatória</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Chave Pix</Label>
+                  <Input 
+                    placeholder="Chave Pix"
+                    className="h-12 bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm focus:border-[#D4AF37] outline-none"
+                    value={refundData.pixKey}
+                    onChange={(e) => setRefundData({...refundData, pixKey: e.target.value})}
+                  />
+                </div>
               </div>
-              <span className="text-xs text-blue-600/80 text-left">Solicitar o estorno manual do valor. Sujeito à análise da barbearia.</span>
-            </Button>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsRefundModalOpen(false)} disabled={submitting}>
-              Cancelar
-            </Button>
-          </DialogFooter>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Observação (Opcional)</Label>
+                <Textarea 
+                  placeholder="Informações adicionais..."
+                  className="bg-gray-50 border-gray-100 rounded-xl px-4 text-black text-sm focus:border-[#D4AF37] outline-none min-h-[80px]"
+                  value={refundData.notes}
+                  onChange={(e) => setRefundData({...refundData, notes: e.target.value})}
+                />
+              </div>
+              <Button 
+                onClick={() => handleProcessRefundChoice('refund')}
+                disabled={submitting || !refundData.pixKey || !refundData.holderName}
+                className="w-full h-16 rounded-2xl bg-black text-white hover:bg-zinc-900 font-black uppercase tracking-widest text-lg shadow-xl mt-4"
+              >
+                {submitting ? "Processando..." : "Confirmar Solicitação"}
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => setShowRefundForm(false)}
+                className="w-full h-12 text-gray-400 font-bold uppercase text-xs tracking-widest"
+              >
+                Voltar
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
       <AppointmentDetailsModal 
