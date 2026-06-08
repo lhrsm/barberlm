@@ -387,7 +387,7 @@ function DashboardComponent() {
     const { error } = await supabase
       .from("appointments")
       .update({ 
-        // @ts-ignore - Database type definitions might be restrictive
+        // @ts-ignore
         payment_status: newStatus,
         // @ts-ignore
         paid_at: newStatus === 'paid' ? new Date().toISOString() : null
