@@ -6,6 +6,26 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
 
   console.error("Critical Runtime Error:", error);
 
+  // Auto-reload on chunk load errors
+  if (typeof window !== 'undefined') {
+    const isChunkError = 
+      error.message?.includes("Failed to fetch dynamically imported module") || 
+      error.message?.includes("error loading dynamically imported module");
+
+    if (isChunkError) {
+      const storageKey = 'last-chunk-error-reload';
+      const lastReload = localStorage.getItem(storageKey);
+      const now = Date.now();
+
+      // Only auto-reload once every 30 seconds to avoid infinite loops
+      if (!lastReload || now - parseInt(lastReload) > 30000) {
+        localStorage.setItem(storageKey, now.toString());
+        window.location.reload();
+        return null;
+      }
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md w-full text-center">
@@ -25,36 +45,40 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Something went wrong</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Ops! Ocorreu um erro</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          An unexpected error occurred. Please try again.
+          Parece que há uma versão mais recente da plataforma disponível ou ocorreu um problema de conexão.
         </p>
         
         {error.message && (
           <div className="mt-4 text-left">
-            <p className="text-[10px] font-bold text-destructive/50 mb-1 uppercase tracking-widest">Error Trace</p>
+            <p className="text-[10px] font-bold text-destructive/50 mb-1 uppercase tracking-widest">Detalhes técnicos</p>
             <pre className="max-h-60 overflow-auto rounded-lg bg-muted p-4 font-mono text-[10px] text-destructive border border-destructive/20 whitespace-pre-wrap">
               {error.message}
-              {error.stack && `\n\n${error.stack}`}
             </pre>
           </div>
         )}
 
-        <div className="mt-6 flex items-center justify-center gap-3">
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             onClick={() => {
-              router.invalidate();
-              reset();
+              // Clear cache and reload when clicking "Try again" manually
+              if (typeof window !== 'undefined') {
+                window.location.reload();
+              } else {
+                router.invalidate();
+                reset();
+              }
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="w-full sm:w-auto inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            Tentar novamente
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="w-full sm:w-auto inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            Voltar ao início
           </a>
         </div>
       </div>
