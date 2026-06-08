@@ -18,7 +18,8 @@ import {
   ChevronRight,
   ChevronLeft,
   CalendarDays,
-  Trash2
+  Trash2,
+  DollarSign
 } from "lucide-react";
 import { format, parseISO, addMinutes, isSameDay, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
