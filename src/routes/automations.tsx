@@ -1062,6 +1062,13 @@ function AutomationsComponent() {
     if (log.action === 'finalizado') return <CheckCheck className="text-[#10B981]" size={16} />;
     if (log.action === 'button_clicked') return <MousePointer2 className="text-amber-400" size={16} />;
     
+    // Diagnostic Fallbacks
+    if (log.payload?.diagnostic === 'automation_trigger_started') return <Zap className="text-sky-500" size={16} />;
+    if (log.payload?.diagnostic === 'automation_payload_built') return <FileCode className="text-indigo-400" size={16} />;
+    if (log.payload?.diagnostic === 'whatsapp_send_success') return <SendHorizontal className="text-emerald-500" size={16} />;
+    if (log.payload?.diagnostic === 'whatsapp_send_failed') return <XCircle className="text-rose-500" size={16} />;
+    if (log.payload?.diagnostic === 'whatsapp_inactive') return <AlertTriangle className="text-amber-500" size={16} />;
+    
     // Status fallback
     if (log.status === 'sent' || log.status === 'success') return <CheckCircle2 className="text-emerald-500" size={16} />;
     if (log.status === 'error' || log.status === 'failed' || log.status === 'not_found') return <XCircle className="text-rose-500" size={16} />;
