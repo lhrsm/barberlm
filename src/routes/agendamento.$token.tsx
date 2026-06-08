@@ -534,21 +534,21 @@ function AppointmentManagementPage() {
               <Button 
                 onClick={() => handleCancel('credits')}
                 disabled={cancelling}
-                className="w-full h-14 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-xs border border-zinc-700 shadow-lg"
+                className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-lg border border-zinc-700 shadow-lg"
               >
                 Transformar em créditos
               </Button>
               <Button 
                 onClick={() => setShowRefundForm(true)}
                 disabled={cancelling}
-                className="w-full h-14 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-xs border border-zinc-700 shadow-lg"
+                className="w-full h-[64px] rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-lg border border-zinc-700 shadow-lg"
               >
                 Solicitar estorno
               </Button>
               <Button 
                 variant="ghost"
                 onClick={() => setIsCancelModalOpen(false)}
-                className="w-full h-12 rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-[10px]"
+                className="w-full h-[64px] rounded-2xl text-zinc-500 font-black uppercase tracking-widest text-sm"
               >
                 Voltar
               </Button>
