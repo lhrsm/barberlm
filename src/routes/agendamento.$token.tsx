@@ -603,12 +603,21 @@ function AppointmentManagementPage() {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest ml-1">Observação (Opcional)</label>
+                <textarea 
+                  placeholder="Informações adicionais..."
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white text-sm focus:border-primary outline-none min-h-[80px]"
+                  value={refundData.notes}
+                  onChange={(e) => setRefundData({...refundData, notes: e.target.value})}
+                />
+              </div>
               <Button 
                 onClick={() => handleCancel('refund', refundData)}
                 disabled={cancelling || !refundData.pixKey || !refundData.holderName}
-                className="w-full h-[64px] rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-lg shadow-lg mt-4"
+                className="w-full h-[64px] rounded-2xl bg-primary text-black font-black uppercase tracking-widest text-lg shadow-lg mt-4"
               >
-                {cancelling ? "Processando..." : "Confirmar Estorno"}
+                {cancelling ? "Processando..." : "Confirmar Solicitação"}
               </Button>
               <Button 
                 variant="ghost"
