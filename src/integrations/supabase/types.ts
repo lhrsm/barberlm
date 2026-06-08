@@ -4386,26 +4386,16 @@ export type Database = {
     }
     Functions: {
       calculate_next_retry: { Args: { attempts: number }; Returns: string }
-      cancel_appointment:
-        | {
-            Args: {
-              p_appointment_id: string
-              p_cancelled_by?: string
-              p_refund_preference?: string
-              p_source?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_appointment_id: string
-              p_cancelled_by: string
-              p_changed_by_id?: string
-              p_refund_preference?: string
-              p_source?: string
-            }
-            Returns: Json
-          }
+      cancel_appointment: {
+        Args: {
+          p_appointment_id: string
+          p_cancelled_by: string
+          p_changed_by_id?: string
+          p_refund_preference: string
+          p_source: string
+        }
+        Returns: Json
+      }
       cancel_appointment_by_token:
         | {
             Args: { token_val: string }
