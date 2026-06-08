@@ -1128,6 +1128,9 @@ function ShopPageComponent() {
       setUseCredits(false);
       setPaymentMethod(null);
       
+      const isMultiple = createdAppointments.length > 1;
+      const groupToken = createdAppointments[0]?.group_token;
+
       setTimeout(() => {
         // Redirecionamento usando navigate do TanStack Router com substituição de histórico
         if (isMultiple && groupToken) {

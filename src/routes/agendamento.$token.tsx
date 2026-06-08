@@ -1,5 +1,5 @@
 
-import { createFileRoute, useLocation } from "@tanstack/react-router";
+import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,6 +44,7 @@ export const Route = createFileRoute("/agendamento/$token")({
 
 function AppointmentManagementPage() {
   const { token } = Route.useParams();
+  const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const expectedTenantId = searchParams.get('tenant');
@@ -84,6 +85,15 @@ function AppointmentManagementPage() {
     try {
       console.log('AUDIT [ManagementLink]: Fetching appointment with token:', token);
       console.log('AUDIT [ManagementLink]: Tenant Context:', expectedTenantId);
+
+      // First try to fetch by management_token directly to see if it exists
+      const { data: rawData, error: rawError } = await supabase
+        .from('appointments')
+        .select('id, tenant_id, customer_id, status, payment_status, start_time, end_time, professional_id, cancel_token, manage_token')
+        .eq('manage_token', token)
+        .maybeSingle();
+      
+      console.log('AUDIT [ManagementLink]: Direct lookup result:', { rawData, rawError });
 
       const { data, error: rpcError } = await supabase.rpc('get_appointment_by_management_token', {
         p_token: token
@@ -136,6 +146,14 @@ function AppointmentManagementPage() {
     } catch (err: any) {
       console.error("AUDIT [ManagementLink]: Critical Error:", err);
       setError("Erro ao carregar agendamento.");
+      // Se der erro crítico, tentar redirecionar para o portal se houver slug/tenant
+      if (expectedTenantId) {
+        const { data: profile } = await supabase.from('profiles').select('slug').eq('id', expectedTenantId).maybeSingle();
+        if (profile?.slug) {
+          console.log('AUDIT [ManagementLink]: Redirecting to portal due to error');
+          setTimeout(() => navigate({ to: `/${profile.slug}/portal`, replace: true }), 3000);
+        }
+      }
     } finally {
       setLoading(false);
     }
