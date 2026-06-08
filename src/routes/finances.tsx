@@ -342,39 +342,23 @@ function FinancesComponent() {
       !t.appointment || t.appointment.status === 'completed' || t.appointment.status === 'confirmed' || t.appointment.status === 'scheduled'
     );
 
-    // 1. Serviços Vendidos Hoje (Faturamento Operacional) - Somar o valor total dos serviços realizados/concluídos.
+    // 1. Receita Bruta (Faturamento Operacional)
     const operationalRevenue = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         if (t.appointment) {
-          // Use total_price as the total service value
           return acc + (Number(t.appointment.total_price || t.appointment.original_total) || 0);
         }
-        // For manual entries, include extra amounts that might not be in 'amount'
         const extraAmounts = Number(t.credits_amount || 0) + Number(t.cashback_amount || 0);
         return acc + (parseFloat(String(t.amount)) || 0) + extraAmounts;
       }, 0);
 
-    // 2. Entrada em Caixa Hoje (Fluxo de Caixa) - Dinheiro novo no caixa (PIX, Dinheiro, Cartão)
-    // NÃO incluir cashback ou créditos
-    const realCashIncome = effectiveTransactions
-      .filter((t) => t.type === "income")
-      .reduce((acc, t) => {
-        // Se houver valores detalhados de pagamento, usar eles (preferência para ajustes manuais ou mistos)
-        if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment) {
-          const cashFlow = Number(t.pix_amount || 0) + Number(t.cash_amount || 0) + Number(t.credit_card_amount || 0) + Number(t.debit_card_amount || 0);
-          return acc + cashFlow;
-        }
+    // 2. Estornos Pagos (Saídas Financeiras Reais)
+    const totalRefundsPaid = refundRequests
+      .filter(r => r.status === 'completed')
+      .reduce((acc, r) => acc + Number(r.amount), 0);
 
-        // Se for via cashback ou créditos no método de pagamento, não deve contar no caixa real
-        const method = t.payment_method || t.appointment?.payment_method;
-        if (method === 'cashback' || method === 'credits') {
-          return acc;
-        }
-        return acc + (parseFloat(String(t.amount)) || 0);
-      }, 0);
-
-    // 3. Créditos Utilizados Hoje
+    // 3. Créditos Utilizados (Valor que deixou de entrar em dinheiro)
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
@@ -382,80 +366,65 @@ function FinancesComponent() {
           return acc + Number(t.credits_amount || 0);
         }
         let val = Number(t.appointment?.credit_used || 0) + Number(t.appointment?.credits_used || 0);
-        // Fallback: se o valor for 0 mas o método for créditos, usar o valor da transação
         if (val === 0 && t.appointment?.payment_method === 'credits') {
           val = parseFloat(String(t.amount)) || 0;
         }
         return acc + val;
       }, 0);
 
-    // 4. Cashback Utilizado Hoje
-    const cashbackConsumed = effectiveTransactions
+    // 4. Receita Líquida (Sugestão: Bruta - Estornos Pagos - Créditos Utilizados)
+    const netRevenue = operationalRevenue - totalRefundsPaid - creditsConsumed;
+
+    // 5. Créditos Concedidos (Obrigação futura / Não é receita nova)
+    // Buscamos créditos gerados por cancelamento que ainda estão disponíveis
+    const creditsGranted = refundRequests
+      .filter(r => r.status === 'completed' && r.refund_method === 'credits')
+      .reduce((acc, r) => acc + Number(r.amount), 0);
+
+    // 6. Estornos Solicitados (Aguardando ação)
+    const totalRefundsRequested = refundRequests
+      .filter(r => r.status === 'requested')
+      .reduce((acc, r) => acc + Number(r.amount), 0);
+
+    // 7. Entrada em Caixa (Fluxo de Caixa Real)
+    const realCashIncome = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
         if (t.payment_method === 'misto' || t.payment_method === 'mixed' || t.manual_adjustment) {
-          return acc + Number(t.cashback_amount || 0);
+          return acc + (Number(t.pix_amount || 0) + Number(t.cash_amount || 0) + Number(t.credit_card_amount || 0) + Number(t.debit_card_amount || 0));
         }
-        let val = Number(t.appointment?.cashback_used || 0);
-        // Fallback: se o valor for 0 mas o método for cashback, usar o valor da transação
-        if (val === 0 && t.appointment?.payment_method === 'cashback') {
-          val = parseFloat(String(t.amount)) || 0;
-        }
-        return acc + val;
+        const method = t.payment_method || t.appointment?.payment_method;
+        if (method === 'cashback' || method === 'credits') return acc;
+        return acc + (parseFloat(String(t.amount)) || 0);
       }, 0);
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
     
-    // Pendentes são agendamentos que ainda não foram concluídos
-    const pending = appointments
-      .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
-
-
-    // Parte dos Freelancers (Comissão baseada no Valor Total do Serviço)
     const freelancersPart = barbers.reduce((acc, barber) => {
-      const bTransactions = effectiveTransactions.filter(t => 
-        t.barber_id === barber.id && 
-        t.type === 'income'
-      );
+      const bTransactions = effectiveTransactions.filter(t => t.barber_id === barber.id && t.type === 'income');
       const bTotal = bTransactions.reduce((tAcc, t) => {
-        if (t.appointment) {
-          return tAcc + (Number(t.appointment.original_total || t.appointment.total_price || (Number(t.amount) + Number(t.appointment.credit_used || 0) + Number(t.appointment.cashback_used || 0))) || 0);
-        }
-        
-        const val = parseFloat(String(t.amount)) || 0;
-        let creditedAmount = 0;
-        let cashbackUsedAmount = 0;
-        
-        if (t.description?.includes("Créditos: R$")) {
-          const match = t.description?.match(/Créditos: R\$\s*([\d.]+)/);
-          creditedAmount = match ? parseFloat(match[1]) : 0;
-        }
-        if (t.description?.includes("Cashback: R$")) {
-          const match = t.description?.match(/Cashback: R\$\s*([\d.]+)/);
-          cashbackUsedAmount = match ? parseFloat(match[1]) : 0;
-        }
-        return tAcc + val + creditedAmount + cashbackUsedAmount;
+        if (t.appointment) return tAcc + (Number(t.appointment.original_total || t.appointment.total_price) || 0);
+        return tAcc + (parseFloat(String(t.amount)) || 0);
       }, 0);
-      const commissionRate = Number(barber.commission_rate || 0);
-      return acc + (bTotal * (commissionRate / 100));
+      return acc + (bTotal * (Number(barber.commission_rate || 0) / 100));
     }, 0);
-
-    const barbershopPart = operationalRevenue - freelancersPart;
 
     return { 
       income: operationalRevenue, 
       realCashIncome,
       creditsConsumed,
-      cashbackConsumed,
+      creditsGranted,
+      totalRefundsRequested,
+      totalRefundsPaid,
+      netRevenue,
       expense, 
-      pending, 
-      balance: realCashIncome - expense, // Saldo Atual é Dinheiro Real - Despesas
+      balance: realCashIncome - expense - totalRefundsPaid,
       freelancersPart, 
-      barbershopPart 
+      barbershopPart: operationalRevenue - freelancersPart 
     };
-  }, [transactions, appointments, barbers]);
+  }, [transactions, refundRequests, barbers]);
 
   useEffect(() => {
     async function fetchBalances() {
