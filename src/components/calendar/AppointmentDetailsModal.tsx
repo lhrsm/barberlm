@@ -25,6 +25,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
