@@ -79,36 +79,47 @@ function AppointmentManagementPage() {
 
   async function fetchAppointment() {
     setLoading(true);
+    console.log("AUDIT [ManagementLink]: Accessing route with token:", token);
     try {
+      // Tentar buscar por token de gerenciamento via RPC
       const { data, error: rpcError } = await supabase.rpc('get_appointment_by_management_token', {
         p_token: token
       });
 
-      if (rpcError) throw rpcError;
+      if (rpcError) {
+        console.error("AUDIT [ManagementLink]: RPC Error:", rpcError);
+        throw rpcError;
+      }
+      
       if (!data || data.length === 0) {
+        console.log("AUDIT [ManagementLink]: No appointment found for token:", token);
         setError("Agendamento não encontrado ou link expirado.");
         return;
       }
 
       const appt = data[0];
+      console.log("AUDIT [ManagementLink]: Appointment found:", appt.id, "Tenant:", appt.tenant_id);
+
       if (expectedTenantId && appt.tenant_id !== expectedTenantId) {
+        console.warn("AUDIT [ManagementLink]: Tenant mismatch. Expected:", expectedTenantId, "Found:", appt.tenant_id);
         setError("Este agendamento pertence a outra barbearia ou o link está incorreto.");
         return;
       }
 
       setAppointment(appt);
       
-      if (appt.professional_id) {
+      if (appt.professional_id || appt.barber_id) {
+        const profId = appt.professional_id || appt.barber_id;
         const { data: barbData } = await supabase
           .from("barbers")
           .select("*")
-          .eq("id", appt.professional_id)
+          .eq("id", profId)
           .single();
         setBarber(barbData);
       }
     } catch (err: any) {
       console.error("AUDIT [ManagementLink]: Critical Error:", err);
-      setError("Erro ao carregar agendamento.");
+      setError(`Erro ao carregar agendamento: ${err.message || 'Erro desconhecido'}`);
     } finally {
       setLoading(false);
     }
