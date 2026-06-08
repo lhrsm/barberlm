@@ -1095,6 +1095,7 @@ function ShopPageComponent() {
 
       // 5. Trigger Automation System (New V2)
       if (createdAppointments.length > 0) {
+        console.log("DEBUG: Triggering automation for new appointments", createdAppointments.map(a => a.id));
         for (const appt of createdAppointments) {
           triggerAutomation({
             tenant_id: shop.id,

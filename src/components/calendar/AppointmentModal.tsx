@@ -439,50 +439,15 @@ export function AppointmentModal({
       const { data: profile } = await supabase.from("profiles").select("whatsapp_enabled").eq("id", tenantId).single();
 
       if (profile?.whatsapp_enabled) {
-        console.log("Creating item in automation_queue for V2 trigger...");
-        const queuePayload: any = {
+        console.log("Triggering automation flow...");
+        triggerAutomation({
           tenant_id: tenantId,
-          appointment_id: appointmentData.id,
-          workflow_key: 'appointment_confirmation',
           event_name: 'appointment.created',
-          status: 'pending',
-          attempts: 0,
-          scheduled_for: new Date().toISOString()
-        };
-        
-        const { data: queueData, error: queueErr } = await supabase
-          .from("automation_queue")
-          .insert([queuePayload])
-          .select()
-          .single();
-
-        if (queueErr) {
-          console.error("Failed to create automation_queue item:", queueErr);
-          console.log('AUTOMATION_NOT_DISPATCHED_REASON', {
-            appointment_id: appointmentData.id,
-            error: queueErr.message,
-            queue_created: false
-          });
-        } else {
-          console.log("Triggering process-automation-queue edge function...");
-          const triggerResult = await triggerAutomation({
-            tenant_id: tenantId,
-            event_name: 'appointment.created',
-            appointment_id: appointmentData.id
-          });
-
-          if (!triggerResult.success) {
-            console.log('AUTOMATION_NOT_DISPATCHED_REASON', {
-              appointment_id: appointmentData.id,
-              error: triggerResult.error?.message || 'Edge function call failed',
-              queue_created: true,
-              queue_id: queueData.id
-            });
-          }
-        }
+          appointment_id: appointmentData.id
+        }).catch(err => {
+          console.error("Failed to trigger automation:", err);
+        });
       }
-
-
 
       toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
       setOpen(false);

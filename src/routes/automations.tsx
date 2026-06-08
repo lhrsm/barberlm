@@ -1255,7 +1255,57 @@ function AutomationsComponent() {
 
           <TabsContent value="templates" className="space-y-4 pt-4">
             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-              {automations.map((auto) => (
+              {/* Card Especial para Novo Agendamento (new_appointment) */}
+              <Card className="group relative flex flex-col bg-[#0F172A] border-2 border-emerald-500/40 rounded-[24px] shadow-[0_10px_45px_rgba(16,185,129,0.15)] hover:border-emerald-500/60 transition-all duration-300 overflow-hidden">
+                <CardHeader className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-emerald-500 shadow-lg shadow-emerald-500/20">
+                        <Zap className="text-white" size={24} />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl font-bold text-white">Novo Agendamento</CardTitle>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mt-1 flex items-center gap-1">
+                          <div className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" /> Fluxo Prioritário
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <CardDescription className="text-slate-400 text-xs leading-relaxed">
+                    Disparo imediato após o cliente finalizar a reserva. Garante que ele receba o link de gestão.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="px-6 flex-1 flex flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Enviados</p>
+                      <p className="text-2xl font-black text-white">{logStats.success}</p>
+                    </div>
+                    <div className="bg-rose-500/5 border border-rose-500/10 rounded-2xl p-4 text-center">
+                      <p className="text-[9px] font-bold text-rose-400 uppercase tracking-widest mb-1">Falhas Recentes</p>
+                      <p className="text-2xl font-black text-rose-400">{logStats.failed}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between px-2 text-[10px] font-bold uppercase tracking-tighter text-slate-500">
+                    <span>Última Execução</span>
+                    <span className="text-slate-300">{logStats.lastSent ? new Date(logStats.lastSent).toLocaleString('pt-BR') : 'Sem registros'}</span>
+                  </div>
+
+                  <Button 
+                    className="w-full mt-2 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-tighter shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02]"
+                    onClick={() => {
+                      const auto = automations.find(a => a.key === 'appointment_confirmation');
+                      if (auto) openTest(auto);
+                      else toast.error("Template de confirmação não encontrado.");
+                    }}
+                  >
+                    <Play size={16} className="mr-2 fill-current" /> Testar Automação Agora
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {automations.filter(a => a.key !== 'appointment_confirmation').map((auto) => (
                 <Card 
                   key={auto.id} 
                   className="group relative flex flex-col bg-[#0F172A] border-[1px] border-amber-500/30 rounded-[20px] shadow-[0_10px_35px_rgba(0,0,0,0.35)] hover:border-amber-500/60 hover:shadow-[0_20px_45px_rgba(0,0,0,0.45)] transition-all duration-300 overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/50"
