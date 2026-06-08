@@ -376,7 +376,6 @@ function FinancesComponent() {
     const netRevenue = operationalRevenue - totalRefundsPaid - creditsConsumed;
 
     // 5. Créditos Concedidos (Obrigação futura / Não é receita nova)
-    // Buscamos créditos gerados por cancelamento que ainda estão disponíveis
     const creditsGranted = refundRequests
       .filter(r => r.status === 'completed' && r.refund_method === 'credits')
       .reduce((acc, r) => acc + Number(r.amount), 0);
@@ -402,6 +401,9 @@ function FinancesComponent() {
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => acc + (parseFloat(String(t.amount)) || 0), 0);
     
+    const pending = appointments
+      .reduce((acc, app) => acc + (parseFloat(String(app.total_price)) || 0), 0);
+
     const freelancersPart = barbers.reduce((acc, barber) => {
       const bTransactions = effectiveTransactions.filter(t => t.barber_id === barber.id && t.type === 'income');
       const bTotal = bTransactions.reduce((tAcc, t) => {
@@ -420,11 +422,13 @@ function FinancesComponent() {
       totalRefundsPaid,
       netRevenue,
       expense, 
+      pending,
       balance: realCashIncome - expense - totalRefundsPaid,
       freelancersPart, 
-      barbershopPart: operationalRevenue - freelancersPart 
+      barbershopPart: operationalRevenue - freelancersPart,
+      cashbackConsumed: 0 // Adding to avoid TS errors in the UI if it's used elsewhere
     };
-  }, [transactions, refundRequests, barbers]);
+  }, [transactions, refundRequests, barbers, appointments]);
 
   useEffect(() => {
     async function fetchBalances() {

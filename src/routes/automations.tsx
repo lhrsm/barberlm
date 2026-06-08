@@ -270,7 +270,6 @@ function AutomationsComponent() {
             isOpen={isEditOpen} 
             onClose={() => setIsEditOpen(false)} 
             automation={selectedAutomation} 
-            onSuccess={fetchData} 
           />
         )}
         
