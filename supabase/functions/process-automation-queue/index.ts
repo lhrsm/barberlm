@@ -275,6 +275,7 @@ serve(async (req) => {
             attempts: (item.attempts || 0) + 1, 
             retry_count: (item.retry_count || 0) + 1,
             last_retry_at: now,
+            processed_at: now,
             updated_at: now 
           }).eq("id", item.id);
 
