@@ -19,9 +19,18 @@ serve(async (req) => {
   );
 
   try {
-    const { tenant_id, appointment_id, automation_id, workflow_key, force_resend, dry_run, payload: requestPayload } = await req.json().catch(() => ({}));
+    const { 
+      tenant_id, 
+      appointment_id, 
+      appointment_group_id: requestGroupId,
+      automation_id, 
+      workflow_key, 
+      force_resend, 
+      dry_run, 
+      payload: requestPayload 
+    } = await req.json().catch(() => ({}));
     
-    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, automation_id, workflow_key, force_resend, dry_run, requestPayload });
+    console.log("[ProcessQueue] Unified Start", { tenant_id, appointment_id, requestGroupId, automation_id, workflow_key, force_resend, dry_run, requestPayload });
 
     // 1. Fetch items to process
     let query = supabase
