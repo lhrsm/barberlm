@@ -607,20 +607,20 @@ function AppointmentManagementPage() {
               </Button>
             </div>
           ) : (
-            <DialogFooter className="flex flex-col sm:flex-row gap-4 mt-6">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsCancelModalOpen(false)} 
-                className="h-14 rounded-2xl flex-1 uppercase font-black text-xs tracking-widest border-zinc-800 text-zinc-400 order-2 sm:order-1"
-              >
-                Manter
-              </Button>
+            <DialogFooter className="flex flex-col gap-4 mt-6">
               <Button 
                 onClick={() => handleCancel('none')} 
                 disabled={cancelling}
-                className="h-14 rounded-2xl flex-1 bg-red-600 hover:bg-red-700 text-white uppercase font-black text-xs tracking-widest order-1 sm:order-2 shadow-lg shadow-red-900/20"
+                className="w-full h-[64px] rounded-2xl bg-red-600 hover:bg-red-700 text-white uppercase font-black text-lg tracking-widest shadow-lg shadow-red-900/20"
               >
-                {cancelling ? "..." : "Confirmar"}
+                {cancelling ? "Processando..." : "Confirmar Cancelamento"}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsCancelModalOpen(false)} 
+                className="w-full h-[64px] rounded-2xl uppercase font-black text-sm tracking-widest border-zinc-800 text-zinc-400"
+              >
+                Manter Agendamento
               </Button>
             </DialogFooter>
           )}
