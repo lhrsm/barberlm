@@ -903,6 +903,45 @@ function FinancesComponent() {
 
           <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Cashback Utilizado</CardTitle>
+              <div className="p-2 bg-orange-500/10 rounded-lg">
+                <History className="h-4 w-4 text-orange-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-400">R$ {summary.cashbackConsumed.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Utilizados em agendamentos</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Créditos Devolvidos</CardTitle>
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <RefreshCcw className="h-4 w-4 text-emerald-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-400">R$ {summary.creditsReversed.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Retornados por cancelamento</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold">Cashback Devolvido</CardTitle>
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <RefreshCcw className="h-4 w-4 text-emerald-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-400">R$ {summary.cashbackReversed.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">Retornados por cancelamento</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold">Pendente</CardTitle>
               <div className="p-2 bg-yellow-500/10 rounded-lg">
                 <Clock className="h-4 w-4 text-yellow-500" />
