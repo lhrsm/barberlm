@@ -82,53 +82,116 @@ function AppointmentGroupPage() {
   }, [token]);
 
   async function fetchGroup() {
+    console.log("[GroupPage] 🟢 fetchGroup started", { token, expectedTenantId });
     setLoading(true);
+    setError(null);
     try {
-      const { data, error: rpcError } = await supabase.rpc('get_appointment_group_by_token', {
-        p_token: token
-      });
-
-      if (rpcError) throw rpcError;
+      // 1. Fetch appointment group details
+      console.log("[GroupPage] 🔍 Fetching appointment_group by group_token", token);
+      let groupQuery = supabase
+        .from('appointment_groups')
+        .select('*')
+        .eq('group_token', token);
       
-      if (!data || data.length === 0) {
-        setError("Grupo de agendamentos não encontrado ou link expirado.");
+      if (expectedTenantId) {
+        groupQuery = groupQuery.eq('tenant_id', expectedTenantId);
+      }
+      
+      const { data: groupData, error: groupError } = await groupQuery.maybeSingle();
+
+      if (groupError) {
+        console.error("[GroupPage] ❌ Error fetching group:", groupError);
+        throw groupError;
+      }
+      
+      if (!groupData) {
+        console.warn("[GroupPage] ⚠️ Group not found", { token, expectedTenantId });
+        setError("Agendamento não encontrado ou link inválido.");
         return;
       }
 
-      if (expectedTenantId && data[0].tenant_id !== expectedTenantId) {
-        setError("Este agendamento pertence a outra barbearia.");
+      console.log("[GroupPage] ✅ Group found", groupData.id);
+
+      // 2. Fetch appointments for this group
+      console.log("[GroupPage] 🔍 Fetching appointments for group", groupData.id);
+      const { data: appointmentsData, error: apptsError } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          service_id,
+          barber_id,
+          start_time,
+          end_time,
+          status,
+          service_amount,
+          group_sequence,
+          management_token,
+          service:services(name),
+          professional:barbers(name)
+        `)
+        .eq('appointment_group_id', groupData.id)
+        .order('group_sequence', { ascending: true });
+
+      if (apptsError) {
+        console.error("[GroupPage] ❌ Error fetching appointments:", apptsError);
+        throw apptsError;
+      }
+
+      if (!appointmentsData || appointmentsData.length === 0) {
+        console.warn("[GroupPage] ⚠️ No appointments found for group", groupData.id);
+        setError("Nenhum serviço encontrado para este agendamento.");
         return;
       }
+
+      console.log("[GroupPage] ✅ Appointments found", appointmentsData.length);
+
+      // 3. Fetch business profile
+      console.log("[GroupPage] 🔍 Fetching business profile", groupData.tenant_id);
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('business_name, phone')
+        .eq('id', groupData.tenant_id)
+        .maybeSingle();
+
+      // 4. Fetch customer data
+      console.log("[GroupPage] 🔍 Fetching customer data", groupData.customer_id);
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('name')
+        .eq('id', groupData.customer_id)
+        .maybeSingle();
 
       setGroup({
-        id: data[0].group_id,
-        tenant_id: data[0].tenant_id,
-        customer_id: data[0].customer_id,
-        customer_name: data[0].customer_name,
-        business_name: data[0].business_name,
-        business_phone: data[0].business_phone,
-        total_amount: data[0].total_amount,
-        payment_status: data[0].payment_status,
-        status: data[0].group_status
+        id: groupData.id,
+        tenant_id: groupData.tenant_id,
+        customer_id: groupData.customer_id,
+        customer_name: customerData?.name || "Cliente",
+        business_name: profileData?.business_name || "Barbearia",
+        business_phone: profileData?.phone || "",
+        total_amount: groupData.total_amount,
+        payment_status: groupData.payment_status,
+        status: groupData.status
       });
 
-      setAppointments(data.map((item: any) => ({
-        id: item.appointment_id,
+      setAppointments(appointmentsData.map((item: any) => ({
+        id: item.id,
         service_id: item.service_id,
-        service_name: item.service_name,
-        professional_id: item.professional_id,
-        professional_name: item.professional_name,
+        service_name: item.service?.name || "Serviço",
+        professional_id: item.barber_id,
+        professional_name: item.professional?.name || "Profissional",
         start_time: item.start_time,
         end_time: item.end_time,
-        status: item.appointment_status,
+        status: item.status,
         service_amount: item.service_amount,
         sequence: item.group_sequence,
         management_token: item.management_token
       })));
 
+      console.log("[GroupPage] 🏁 group_page_rendered");
+
     } catch (err: any) {
-      console.error("Error fetching group:", err);
-      setError("Erro ao carregar agendamentos.");
+      console.error("[GroupPage] ❌ group_page_failed:", err);
+      setError("Erro ao carregar agendamentos. Por favor, tente novamente.");
     } finally {
       setLoading(false);
     }
