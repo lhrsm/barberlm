@@ -877,6 +877,7 @@ export type Database = {
       }
       automation_queue: {
         Row: {
+          appointment_group_id: string | null
           appointment_id: string | null
           attempts: number | null
           automation_id: string | null
@@ -900,6 +901,7 @@ export type Database = {
           workflow_key: string | null
         }
         Insert: {
+          appointment_group_id?: string | null
           appointment_id?: string | null
           attempts?: number | null
           automation_id?: string | null
@@ -923,6 +925,7 @@ export type Database = {
           workflow_key?: string | null
         }
         Update: {
+          appointment_group_id?: string | null
           appointment_id?: string | null
           attempts?: number | null
           automation_id?: string | null
@@ -946,6 +949,13 @@ export type Database = {
           workflow_key?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "automation_queue_appointment_group_id_fkey"
+            columns: ["appointment_group_id"]
+            isOneToOne: false
+            referencedRelation: "appointment_groups"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "automation_queue_appointment_id_fkey"
             columns: ["appointment_id"]
