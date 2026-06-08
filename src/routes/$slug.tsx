@@ -967,7 +967,7 @@ function ShopPageComponent() {
           total_price: item.price,
           original_total: item.price,
           status: "confirmed",
-          payment_status: (paymentMethod === 'pix' || calculateTotal() === 0) ? 'paid' : 'pending',
+          payment_status: (calculateTotal() === 0) ? 'paid' : 'pending',
           payment_method: finalPaymentMethod,
           source: 'online',
           appointment_group_id: appointmentGroupId,
@@ -1003,14 +1003,14 @@ function ShopPageComponent() {
         return res.data;
       });
 
-      // 2.5 Create Finance Transactions for Paid Appointments (e.g. PIX)
+      // 2.5 Create Finance Transactions for Paid Appointments (e.g. Full Credits/Cashback)
       for (const appt of createdAppointments) {
-        if (appt.payment_status === 'paid' && (appt.payment_method === 'pix' || appt.payment_method === 'card' || appt.payment_method === 'barbershop')) {
+        if (appt.payment_status === 'paid' && (appt.payment_method === 'credits' || appt.payment_method === 'cashback')) {
           const item = finalCart.find(i => i.service_id === appt.service_id);
           const amount = appt.total_price || 0;
           
           if (amount > 0) {
-            console.log('DEBUG: Creating transaction for paid appointment', appt.id);
+            console.log('DEBUG: Creating transaction for paid (credits/cashback) appointment', appt.id);
             await supabase.from("transactions").insert([{
               amount: amount,
               type: "income",
@@ -2419,6 +2419,8 @@ function ShopPageComponent() {
                         return;
                       }
                       setBookingStep(5);
+                      // Clear payment method when moving to checkout to ensure fresh choice
+                      setPaymentMethod(null);
                     }}
                     disabled={fetchingTimes || !selectedTime}
                   >

@@ -331,7 +331,7 @@ export function AppointmentModal({
         total_price: totalPrice,
         original_total: totalPrice,
         status: "confirmed",
-        payment_status: paymentStatus === 'paid' ? 'paid' : (finalAmount === 0 ? 'paid' : 'pending'),
+        payment_status: paymentStatus === 'paid' ? 'paid' : (finalAmount === 0 && totalPrice > 0 ? 'paid' : 'pending'),
         payment_method: usedCredits > 0 ? (finalAmount === 0 ? 'wallet' : 'mixed') : (paymentMethod || 'cash'),
         credit_used: usedCredits,
         final_amount: finalAmount,
