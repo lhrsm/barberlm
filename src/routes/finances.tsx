@@ -407,7 +407,11 @@ function FinancesComponent() {
       .filter(r => r && r.status === 'completed')
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
-    // 3. Créditos Utilizados (Valor que deixou de entrar em dinheiro)
+    // 3. Receita Líquida (Cash Income Real - Estornos Pagos)
+    // Regra: entrada em caixa - estornos pagos
+    const netRevenue = realCashIncome - totalRefundsPaid;
+
+    // 4. Créditos Utilizados (Valor que deixou de entrar em dinheiro)
     const creditsConsumed = effectiveTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => {
@@ -449,7 +453,8 @@ function FinancesComponent() {
 
     // 7. Receita Líquida
     // Regra: entrada em caixa - estornos pagos - créditos utilizados
-    const netRevenue = realCashIncome - totalRefundsPaid - creditsConsumed;
+    // Receita líquida já calculada acima
+    // const netRevenue = realCashIncome - totalRefundsPaid - creditsConsumed;
 
     const expense = effectiveTransactions
       .filter((t) => t.type === "expense")
