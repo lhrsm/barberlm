@@ -72,21 +72,48 @@ serve(async (req) => {
     let itemsToProcess = queueItems || [];
 
     // 2. Virtual item creation for forced resend
-    if (itemsToProcess.length === 0 && force_resend && appointment_id) {
+    if (itemsToProcess.length === 0 && force_resend && (appointment_id || requestGroupId)) {
       console.log("[ProcessQueue] No queue item found for forced resend, attempting virtual item creation");
       
-      const { data: appointment, error: appError } = await supabase
-        .from("appointments")
-        .select(`
-          *,
-          customer:customers(name, phone),
-          service:services(name, price),
-          barber:barbers(name)
-        `)
-        .eq("id", appointment_id)
-        .single();
+      let appointment = null;
+      let appTenantId = tenant_id;
+
+      if (appointment_id) {
+        const { data: appData, error: appError } = await supabase
+          .from("appointments")
+          .select(`
+            *,
+            customer:customers(name, phone),
+            service:services(name, price),
+            barber:barbers(name)
+          `)
+          .eq("id", appointment_id)
+          .single();
+        
+        if (!appError && appData) {
+          appointment = appData;
+          appTenantId = appTenantId || appointment.tenant_id;
+        }
+      } else if (requestGroupId) {
+        // Find one appointment from the group to use as base
+        const { data: groupAppts } = await supabase
+          .from("appointments")
+          .select(`
+            *,
+            customer:customers(name, phone),
+            service:services(name, price),
+            barber:barbers(name)
+          `)
+          .eq("appointment_group_id", requestGroupId)
+          .limit(1);
+        
+        if (groupAppts && groupAppts.length > 0) {
+          appointment = groupAppts[0];
+          appTenantId = appTenantId || appointment.tenant_id;
+        }
+      }
       
-      if (appError || !appointment) {
+      if (!appointment && !requestGroupId) {
         throw new Error("Appointment not found for virtual resend");
       }
 
@@ -94,17 +121,18 @@ serve(async (req) => {
       if (automation_id) {
         automationQuery = automationQuery.eq("id", automation_id);
       } else if (workflow_key) {
-        automationQuery = automationQuery.eq("key", workflow_key).eq("tenant_id", tenant_id || appointment.tenant_id);
+        automationQuery = automationQuery.eq("key", workflow_key).eq("tenant_id", appTenantId);
       } else {
-        automationQuery = automationQuery.eq("key", "appointment_confirmation").eq("tenant_id", tenant_id || appointment.tenant_id);
+        automationQuery = automationQuery.eq("key", "appointment_confirmation").eq("tenant_id", appTenantId);
       }
 
       const { data: automation, error: autoError } = await automationQuery.maybeSingle();
 
       itemsToProcess = [{
         id: "virtual-" + crypto.randomUUID(),
-        tenant_id: tenant_id || appointment.tenant_id,
-        appointment_id: appointment.id,
+        tenant_id: appTenantId,
+        appointment_id: appointment?.id,
+        appointment_group_id: requestGroupId,
         automation_id: automation?.id,
         status: "pending",
         attempts: 0,
