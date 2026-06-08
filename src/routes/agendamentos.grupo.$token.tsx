@@ -82,16 +82,17 @@ function AppointmentGroupPage() {
   }, [token]);
 
   async function fetchGroup() {
-    console.log("[GroupPage] 🟢 fetchGroup started", { token, expectedTenantId });
+    const currentToken = token || "";
+    console.log("[GroupPage] 🟢 fetchGroup started", { token: currentToken, expectedTenantId });
     setLoading(true);
     setError(null);
     try {
       // 1. Fetch appointment group details
-      console.log("[GroupPage] 🔍 Fetching appointment_group by group_token", token);
+      console.log("[GroupPage] 🔍 Fetching appointment_group by group_token", currentToken);
       let groupQuery = supabase
         .from('appointment_groups')
         .select('*')
-        .eq('group_token', token);
+        .eq('group_token', currentToken);
       
       if (expectedTenantId) {
         groupQuery = groupQuery.eq('tenant_id', expectedTenantId);
