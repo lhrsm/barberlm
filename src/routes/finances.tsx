@@ -602,20 +602,29 @@ function FinancesComponent() {
           </div>
           <div className="flex flex-col gap-3">
             {role !== 'barber' && (
-              <Button 
-                variant="outline" 
-                className="gap-2" 
-                onClick={() => {
-                  if (plan === 'free') {
-                    toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
-                    navigate({ to: "/subscription" });
-                  } else {
-                    toast.info("Gerando relatório PDF...");
-                  }
-                }}
-              >
-                <Wallet size={18} /> Exportar PDF
-              </Button>
+              <div className="flex gap-2 w-full overflow-x-auto pb-2 scrollbar-hide">
+                <Button 
+                  variant="outline" 
+                  className="gap-2 whitespace-nowrap" 
+                  onClick={() => {
+                    if (plan === 'free') {
+                      toast.error("Relatórios PDF estão disponíveis apenas no plano Pro.");
+                      navigate({ to: "/subscription" });
+                    } else {
+                      toast.info("Gerando relatório PDF...");
+                    }
+                  }}
+                >
+                  <Wallet size={18} /> Exportar PDF
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="gap-2 whitespace-nowrap border-primary/30 text-primary" 
+                  onClick={() => fetchRefundRequests()}
+                >
+                  <RefreshCcw size={18} /> Sincronizar Tudo
+                </Button>
+              </div>
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
