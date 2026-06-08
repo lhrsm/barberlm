@@ -324,9 +324,14 @@ serve(async (req) => {
             tenant_id: itemTenantId,
             automation_id: automation?.id || item.automation_id,
             appointment_id: appointment?.id,
+            appointment_group_id: appointment_group_id,
             status: 'sent',
             payload: { message: renderedMessage, ...templateData }
           });
+          
+          if (appointment_group_id) {
+            console.log("[ProcessQueue] ✅ group_whatsapp_sent");
+          }
 
           if (appointment?.id) {
             await supabase.from("appointments").update({ 
